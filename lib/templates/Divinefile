@@ -1,0 +1,64 @@
+#:title:        Divinefile annotated template
+#:author:       Grove Pyree
+#:email:        grayarea@protonmail.ch
+#:revnumber:    1.0.0-RELEASE
+#:revdate:      2019.03.27
+#:revremark:    Initial release
+#:created_at:   2018.03.27
+
+## Divinefile is a manifest of packages to be installed/removed via system’s 
+#. package manager during Divine intervention
+#
+## Each line contains a list of whitespace-delimited package names
+#
+## Within a line, every ‘|’ starts an alternative package-list for particular 
+#. package manager.
+#
+## Within an alt-list, everything to the left of first ‘:’ is read as package 
+#. manager name, everything to the right — as whitespace-delimited alt-list of 
+#. package names.
+#
+## NOTE: For list of supported package managers, see __populate_os_pkgmgr 
+#. function implemented in lib/dos.utl.sh
+#
+## If a line contains ‘)’, everything to the left of first ‘)’ is parsed for 
+#. space-separated words. First word, if any, is read as priority, second word 
+#. as mode, others are ignored. Priority and mode serve the same function as in 
+#. *.dpl.sh files.
+#
+## Priority must be an integer, otherwise it is disregarded in favor of default 
+#. value — 4096. Accepted mode values are ‘pa’, ‘pi’, and ‘pr’ (prompt always, 
+#. on installation, and on removal, respectively).
+#
+## Packages are installed in order of ascending numerical priority. For 
+#. matching priority, packages are installed in order of appearance in this 
+#. file. For removal, the order is fully reversed.
+#
+## Both ‘#’ and ‘//’ comments are recognized. Whitespace can be freely added 
+#. among WORDs and delimiters.
+#
+## Examples of valid lines:
+#
+#>  git
+#.      Means:
+#.    * priority: 4096 (default)
+#.    * packages: git
+#
+#>  300 pr) node | apt-get: nodejs npm
+#.      Means:
+#.    * priority: 300
+#.    * mode: ‘always prompt before removing’
+#.    * packages (on apt-get): nodejs npm
+#.    * packages (anywhere else): node
+#
+## For more complex installations, e.g., involving particular versions or 
+#. special package manager options, look at deployments. Sample deployment 
+#. files are available in lib/templates
+#
+
+# Bread & butter
+300) git
+303) vim
+
+# zsh as an alternative shell
+1000) zsh
