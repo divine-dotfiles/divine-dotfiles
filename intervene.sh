@@ -3126,7 +3126,21 @@ __adding__clobber_check()
 
   else
 
-    # Path is free
+    # Path does not exist
+
+    # Make sure parent path exists and is a directory though
+    local parent_path="$( dirname -- "$clobber_path" )"
+    if [ ! -d "$parent_path" ]; then
+      mkdir -p -- "$parent_path" || {
+        printf >&2 '\n%s %s\n  %s\n' \
+          "${BOLD}${RED}==>${NORMAL}" \
+          "Failed to create destination directory at:" \
+          "$parent_path"
+        return 1
+      }
+    fi
+
+    # All good
     return 0
   
   fi
