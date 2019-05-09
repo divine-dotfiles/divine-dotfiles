@@ -29,7 +29,7 @@ __declare_global_colors()
   # Colorize output (shamelessly stolen off oh-my-zsh)
   local num_of_colors
   if command -v tput &>/dev/null; then num_of_colors=$( tput colors ); fi
-  if [ -t 1] && [ -n "$num_of_colors" ] && [ "$num_of_colors" -ge 8 ]; then
+  if [ -t 1 ] && [ -n "$num_of_colors" ] && [ "$num_of_colors" -ge 8 ]; then
     RED="$( tput setaf 1 )"
     GREEN="$( tput setaf 2 )"
     YELLOW="$( tput setaf 3 )"
@@ -102,7 +102,7 @@ __uninstall_shortcut()
   # Report success
   printf >&2 '\n%s %s\n  %s\n' \
     "${BOLD}${GREEN}==>${NORMAL}" \
-    'Successfully uninstalled shortcut command at:'
+    'Successfully uninstalled shortcut command at:' \
     "$D_SHORTCUT_FILEPATH"
   return 0
 }
@@ -113,9 +113,9 @@ __erase_d_dir()
   local yes=false
   printf >&2 '\n%s %s\n  %s\n' \
     "${BOLD}${YELLOW}==>${NORMAL}" \
-    "${BOLD}Divine.dotfiles${NORMAL} Bash framework installed at:"
+    "${BOLD}Divine.dotfiles${NORMAL} Bash framework installed at:" \
     "$D_DIR"
-  printf >&2 '%s %s\n' \
+  printf >&2 '\n%s %s\n' \
     "${BOLD}${RED}${REVERSE} CAREFUL ${NORMAL}" \
     'This will completely erase installation directory'
   printf >&2 'Uninstall? [y/n] '
@@ -149,7 +149,7 @@ __erase_d_dir()
   printf >&2 '\n%s %s %s\n  %s\n' \
     "${BOLD}${GREEN}==>${NORMAL}" \
     'Successfully uninstalled' \
-    "${BOLD}Divine.dotfiles${NORMAL} Bash framework from:"
+    "${BOLD}Divine.dotfiles${NORMAL} Bash framework from:" \
     "$D_DIR"
   return 0
 }
