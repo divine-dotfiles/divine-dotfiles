@@ -1,5 +1,3 @@
-# bash -c "$( URL=https://raw.github.com/no-simpler/divine-dotfiles/master/lib/uninstall/uninstall.sh; if command -v curl >/dev/null 2>&1; then curl -fsSL $URL; elif command -v wget >/dev/null 2>&1; then wget -qO - $URL; else printf >&2 '\n==> Unable to uninstall: failed to detect neither curl nor wget\n'; fi )"
-
 # Driver function
 main()
 {

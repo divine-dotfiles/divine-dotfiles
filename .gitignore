@@ -4,12 +4,17 @@
 # Except root files
 !/.gitignore
 !/intervene.sh
+!/README.adoc
+!/LICENSE
 
 # Assets directory is deprecated
 #!/assets/
 
 # Keep lib directory with all of its content
 !/lib/
+
+# Ignore special marker file
+/lib/uninstall/shortcut-location
 
 # Keep backups directory without content
 !/backups/
