@@ -25,7 +25,7 @@ __declare_global_colors()
   # Colorize output (shamelessly stolen off oh-my-zsh)
   local num_of_colors
   if command -v tput &>/dev/null; then num_of_colors=$( tput colors ); fi
-  if [ -t 1] && [ -n "$num_of_colors" ] && [ "$num_of_colors" -ge 8 ]; then
+  if [ -t 1 ] && [ -n "$num_of_colors" ] && [ "$num_of_colors" -ge 8 ]; then
     RED="$( tput setaf 1 )"
     GREEN="$( tput setaf 2 )"
     YELLOW="$( tput setaf 3 )"
@@ -51,7 +51,7 @@ __pull_github_repo()
   local yes=false
   printf >&2 '\n%s %s\n  %s\n' \
     "${BOLD}${YELLOW}==>${NORMAL}" \
-    "${BOLD}Divine.dotfiles${NORMAL} Bash framework from:"
+    "${BOLD}Divine.dotfiles${NORMAL} Bash framework from:" \
     "https://github.com/${user_repo}"
   printf >&2 'Install? [y/n] '
 
@@ -259,7 +259,7 @@ __install_shortcut()
       read -r new_cmd_name && printf '\n'
 
       # Check if user don’t want another name
-      [ "$D_SHORTCUT_NAME" = q ] && {
+      [ "$new_cmd_name" = q ] && {
         printf >&2 '\n%s %s %s\n  %s\n' \
           "${BOLD}${WHITE}==>${NORMAL}" \
           'Skipped installing shortcut shell command' \
@@ -269,7 +269,7 @@ __install_shortcut()
       }
 
       # Check if name is valid
-      [[ $D_SHORTCUT_NAME =~ ^[a-z0-9]+$ ]] || {
+      [[ $new_cmd_name =~ ^[a-z0-9]+$ ]] || {
         printf >&2 '%s\n' 'Use letters and digits only'
         continue
       }
@@ -327,13 +327,13 @@ __install_shortcut()
     printf >&2 '\n%s %s %s\n  %s\n' \
       "${BOLD}${GREEN}==>${NORMAL}" \
       'Successfully installed shortcut shell command' \
-      "'${BOLD}${D_SHORTCUT_NAME}${NORMAL}' to:"
+      "'${BOLD}${D_SHORTCUT_NAME}${NORMAL}' to:" \
       "$shortcut_filepath"
   else  
     printf >&2 '\n%s %s %s\n  %s\n' \
       "${BOLD}${RED}==>${NORMAL}" \
       'Failed to install shortcut shell command' \
-      "'${BOLD}${D_SHORTCUT_NAME}${NORMAL}'"
+      "'${BOLD}${D_SHORTCUT_NAME}${NORMAL}'" \
       'because none of $PATH directories could take it'
   fi
 }
