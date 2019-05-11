@@ -67,7 +67,7 @@ __locate_installations()
   local shortcut_filepath
 
   # Try to figure location of shortcut command
-  if [ -f "$shortcut_memo_path" ]; then
+  if [ -r "$shortcut_memo_path" ]; then
 
     # Read stored memo
     shortcut_filepath="$( cat "$shortcut_memo_path" | head -1 )"
@@ -75,9 +75,11 @@ __locate_installations()
     # Ensure the shortcut path exists and is a symlink
     [ -x "$shortcut_filepath" -a -L "$shortcut_filepath" ] || return 0
 
-    # Ensure the link points to ‘intervene.sh’
-    [ "$( readlink -- "$shortcut_filepath" )" = "$D_DIR/intervene.sh" ] \
-      || return 0
+    # Ensure the link points to ‘intervene.sh’ (if readlink is available)
+    if command -v readlink; then
+      [ "$( readlink -- "$shortcut_filepath" )" = "$D_DIR/intervene.sh" ] \
+        || return 0
+    fi
 
     # Set global variable
     D_SHORTCUT_FILEPATH="$shortcut_filepath"
@@ -91,10 +93,17 @@ __locate_installations()
 __uninstall_shortcut()
 {
   # Check if shortcut is detected
-  [ -e "$D_SHORTCUT_FILEPATH" ] || return 0
+  [ -f "$D_SHORTCUT_FILEPATH" ] || return 0
 
-  # Straight-forward enough
-  rm -f "$D_SHORTCUT_FILEPATH" || {
+  # Remove shortcut, using sudo if need be
+  if [ -w "$( dirname -- "$D_SHORTCUT_FILEPATH" )" ]; then
+    rm -f "$D_SHORTCUT_FILEPATH"
+  else
+    sudo rm -f "$D_SHORTCUT_FILEPATH"
+  fi
+  
+  # Check if removal went fine
+  [ $? -eq 0 ] || {
     printf >&2 '\n%s %s\n  %s\n' \
       "${BOLD}${RED}==>${NORMAL}" \
       'Failed to uninstall shortcut command at:' \
