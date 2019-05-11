@@ -34,7 +34,7 @@ dinstall() {
 
 # Special function that removes this deployment
 dremove() {
-  rm -f -- ~/bin/cmd
+  rm -f -- ~/bin/cmd && hash -d cmd
 }
 ----
 
