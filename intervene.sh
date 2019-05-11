@@ -511,15 +511,6 @@ __populate_globals()
     --effects-4 n \
   ); readonly D_PRINTC_OPTS_NRM
 
-  # dprint_msg options for debugging messages
-  D_PRINTC_OPTS_DBG=( \
-    "${D_PRINTC_OPTS_BASE[@]}" \
-    --effects-1 c \
-    --effects-2 c \
-    --effects-3 c \
-    --effects-4 c \
-  ); readonly D_PRINTC_OPTS_DBG
-  
   # dprint_msg options for user prompts
   D_PRINTC_OPTS_PMT=( \
     -n \
@@ -1497,8 +1488,7 @@ __install_dpls()
         '>>>' 'Installing' ':' "$task_desc" "$task_name" \
         && intro_printed=true
       # In verbose mode, print location of script to be sourced
-      $D_QUIET || dprint_msg "${D_PRINTC_OPTS_DBG[@]}" -c "$CYAN" -- \
-        '' 'Location' ':' "$divinedpl_filepath"
+      debug_print "Location: $divinedpl_filepath"
       # If description is available, show it
       [ -n "$desc" ] && dprint_msg "${D_PRINTC_OPTS_DSC[@]}" -- \
         '' 'Description' ':' "$desc"
@@ -1525,8 +1515,7 @@ __install_dpls()
     # Source the *.dpl.sh file
     if $proceeding; then
       # Print informative message for potential debugging of errors
-      $D_QUIET || dprint_msg "${D_PRINTC_OPTS_DBG[@]}" -c "$CYAN" -- \
-        '' 'Sourcing' ':' "$divinedpl_filepath"
+      debug_print "Sourcing: $divinedpl_filepath"
       # Hold your breath…
       source "$divinedpl_filepath"
     fi
@@ -1945,8 +1934,7 @@ __remove_dpls()
         '>>>' 'Removing' ':' "$task_desc" "$task_name" \
         && intro_printed=true
       # In verbose mode, print location of script to be sourced
-      $D_QUIET || dprint_msg "${D_PRINTC_OPTS_DBG[@]}" -c "$CYAN" -- \
-        '' 'Location' ':' "$divinedpl_filepath"
+      debug_print "Location: $divinedpl_filepath"
       # If description is available, show it
       [ -n "$desc" ] && dprint_msg "${D_PRINTC_OPTS_DSC[@]}" -- \
         '' 'Description' ':' "$desc"
@@ -1973,8 +1961,7 @@ __remove_dpls()
     # Source the *.dpl.sh file
     if $proceeding; then
       # Print informative message for potential debugging of errors
-      $D_QUIET || dprint_msg "${D_PRINTC_OPTS_DBG[@]}" -c "$CYAN" -- \
-        '' 'Sourcing' ':' "$divinedpl_filepath"
+      debug_print "Sourcing: $divinedpl_filepath"
       # Hold your breath…
       source "$divinedpl_filepath"
     fi
@@ -2301,8 +2288,7 @@ __check_dpls()
         '>>>' 'Checking' ':' "$task_desc" "$task_name" \
         && intro_printed=true
       # In verbose mode, print location of script to be sourced
-      $D_QUIET || dprint_msg "${D_PRINTC_OPTS_DBG[@]}" -c "$CYAN" -- \
-        '' 'Location' ':' "$divinedpl_filepath"
+      debug_print "Location: $divinedpl_filepath"
       # If description is available, show it
       [ -n "$desc" ] && dprint_msg "${D_PRINTC_OPTS_DSC[@]}" -- \
         '' 'Description' ':' "$desc"
@@ -2329,8 +2315,7 @@ __check_dpls()
     # Source the *.dpl.sh file
     if $proceeding; then
       # Print informative message for potential debugging of errors
-      $D_QUIET || dprint_msg "${D_PRINTC_OPTS_DBG[@]}" -c "$CYAN" -- \
-        '' 'Sourcing' ':' "$divinedpl_filepath"
+      debug_print "Sourcing: $divinedpl_filepath"
       # Hold your breath…
       source "$divinedpl_filepath"
     fi
