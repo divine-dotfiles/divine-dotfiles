@@ -90,6 +90,9 @@ __locate_installations()
 
 __uninstall_shortcut()
 {
+  # Check if shortcut is detected
+  [ -e "$D_SHORTCUT_FILEPATH" ] || return 0
+
   # Straight-forward enough
   rm -f "$D_SHORTCUT_FILEPATH" || {
     printf >&2 '\n%s %s\n  %s\n' \
