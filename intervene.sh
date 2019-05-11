@@ -87,8 +87,8 @@ __parse_arguments()
       --)                 delim=true;;
       -h|--help)          __show_help_and_exit;;
       --version)          __show_version_and_exit;;
-      -y|--blanket-yes)   D_BLANKET_ANSWER=y;;
-      -n|--blanket-no)    D_BLANKET_ANSWER=n;;
+      -y|--yes)           D_BLANKET_ANSWER=y;;
+      -n|--no)            D_BLANKET_ANSWER=n;;
       -f|--force)         D_FORCE=true;;
       -i|--inverse)       D_INVERSE_FILTER=true;;
       -e|--except)        D_INVERSE_FILTER=true;;
@@ -261,11 +261,11 @@ DESCRIPTION
     Divinefile processing. Other names refer to deployments.
 
 OPTIONS
-    -y, --blanket-yes
+    -y, --yes
                     Assume affirmative answer to every prompt. Deployments may 
                     override this option to make sure that user is prompted 
                     every time.
-    -n, --blanket-no
+    -n, --no
                     Assume negatory answer to every prompt. In effect, skips 
                     every task.
     -f, --force     Forego checking if task is already installed (removed) 
@@ -331,7 +331,7 @@ Usage: ${bold}${script_name}${normal} ${bold}i${normal}|${bold}install${normal} 
    or: ${bold}${script_name}${normal} ${bold}r${normal}|${bold}remove${normal}  [-ynqveif] [TASK]…   - Launch removal
    or: ${bold}${script_name}${normal} ${bold}f${normal}|${bold}refresh${normal} [-ynqveif] [TASK]…   - Launch refreshing
    or: ${bold}${script_name}${normal} ${bold}c${normal}|${bold}check${normal}   [-ynqvei]  [TASK]…   - Launch checking
-   or: ${bold}${script_name}${normal} ${bold}a${normal}|${bold}add${normal}     [-yntqv]   [SRC]…    - Add deployment from repo/dir/file
+   or: ${bold}${script_name}${normal} ${bold}a${normal}|${bold}add${normal}     [-yntr]    [SRC]…    - Add deployment from repo/dir/file
    or: ${bold}${script_name}${normal} --version                      - Show script version
    or: ${bold}${script_name}${normal} -h|--help                      - Show help summary
 EOF
