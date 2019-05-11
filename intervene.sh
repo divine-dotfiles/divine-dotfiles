@@ -579,6 +579,7 @@ __import_dependencies()
 
   # Iterate over utility files
   while IFS= read -r -d $'\0' script_path; do
+    [ -r "$script_path" -a -f "$script_path" ] || continue
     # Attempt to source the file
     source "$script_path" || {
       printf >&2 '%s: %s: %s\n' \
@@ -588,11 +589,11 @@ __import_dependencies()
       printf >&2 '  %s\n' "$script_path"
       exit 1
     }
-  done < <( find "$D_UTILS_DIR" -mindepth 1 -name "$D_UTILS_SUFFIX" \
-    -type f -print0 )
+  done < <( find "$D_UTILS_DIR" -mindepth 1 -name "$D_UTILS_SUFFIX" -print0 )
 
   # Iterate over helper files
   while IFS= read -r -d $'\0' script_path; do
+    [ -r "$script_path" -a -f "$script_path" ] || continue
     # Attempt to source the file
     source "$script_path" || {
       printf >&2 '%s: %s: %s\n' \
@@ -603,7 +604,7 @@ __import_dependencies()
       exit 1
     }
   done < <( find "$D_HELPERS_DIR" -mindepth 1 -name "$D_HELPERS_SUFFIX" \
-    -type f -print0 )
+    -print0 )
 }
 
 #> __assemble_tasks
@@ -735,6 +736,9 @@ __parse_divinefile()
 
   # Iterate over every Divinefile in deployments dir
   while IFS= read -r -d $'\0' divinefile_path; do
+
+    # Check if Divinefile is a readable file
+    [ -r "$divinefile_path" -a -f "$divinefile_path" ] || continue
   
     # Iterate over lines in each Divinefile
     while IFS='' read -u 10 line || [ -n "$line" ]; do
@@ -832,7 +836,7 @@ __parse_divinefile()
 
   # Done iterating over Divinefiles in deployments directory
   done < <( find "$D_DEPLOYMENTS_DIR" -mindepth 1 -name "$D_DIVINEFILE_NAME" \
-    -type f -print0 )
+    -print0 )
 
   # Restore case sensitivity
   eval "$restore_nocasematch"
@@ -885,8 +889,8 @@ __locate_dpl_sh_files()
   local adding arg
   while IFS= read -r -d $'\0' divinedpl_filepath; do
 
-    # If no *.dpl.sh file, move on
-    [ -r "$divinedpl_filepath" ] || continue
+    # Ensure *.dpl.sh is a readable file
+    [ -r "$divinedpl_filepath" -a -f "$divinedpl_filepath" ] || continue
 
     # Extract directory containing *.dpl.sh file
     dirpath="$( dirname -- "$divinedpl_filepath" )"
@@ -1053,7 +1057,7 @@ __locate_dpl_sh_files()
     D_DEPLOYMENTS["$priority"]+="$divinedpl_filepath;"
 
   done < <( find "$D_DEPLOYMENTS_DIR" -mindepth 1 -name "$D_DPL_SH_SUFFIX" \
-    -type f -print0 )
+    -print0 )
 
   return 0
 }
@@ -1408,11 +1412,8 @@ __install_dpls()
   # Iterate over *.dpl.sh filepaths
   for divinedpl_filepath in "${chunks[@]}"; do
 
-    # Empty path — continue
-    [ -n "$divinedpl_filepath" ] || continue
-
-    # *.dpl.sh filepath not readable - continue
-    [ -r "$divinedpl_filepath" ] || continue
+    # Check if *.dpl.sh is a readable file
+    [ -r "$divinedpl_filepath" -a -f "$divinedpl_filepath" ] || continue
 
     # Empty out storage variables
     name=
@@ -1859,11 +1860,8 @@ __remove_dpls()
     # Extract *.dpl.sh filepath
     divinedpl_filepath="${chunks[$i]}"
 
-    # Empty path — continue
-    [ -n "$divinedpl_filepath" ] || continue
-
-    # *.dpl.sh filepath not readable - continue
-    [ -r "$divinedpl_filepath" ] || continue
+    # Check if *.dpl.sh is a readable file
+    [ -r "$divinedpl_filepath" -a -f "$divinedpl_filepath" ] || continue
 
     # Empty out storage variables
     name=
@@ -2221,11 +2219,8 @@ __check_dpls()
   # Iterate over *.dpl.sh filepaths
   for divinedpl_filepath in "${chunks[@]}"; do
 
-    # Empty path — continue
-    [ -n "$divinedpl_filepath" ] || continue
-
-    # *.dpl.sh filepath not readable - continue
-    [ -r "$divinedpl_filepath" ] || continue
+    # Check if *.dpl.sh is a readable file
+    [ -r "$divinedpl_filepath" -a -f "$divinedpl_filepath" ] || continue
 
     # Empty out storage variables
     name=
@@ -3029,20 +3024,24 @@ __adding__check_for_deployments()
   # Extract directory path and source path
   local dir_path="$1"; shift
   local src_path="$1"; shift
+  local divinedpl_filepath
 
-  # Check if that directory contains any deployments
-  find "$dir_path" -mindepth 1 \( -name "$D_DPL_SH_SUFFIX" -or \
-    -name "$D_DIVINEFILE_NAME" \) -type f \
-    | grep -q '.' || {
-      # No deployment files: announce and return
-      printf >&2 '\n%s %s\n  %s\n' \
-        "${BOLD}${RED}==>${NORMAL}" \
-        "Failed to detect any deployment files in:" "$src_path"
-      return 1
+  # Iterate over candidates for deployment file
+  while IFS= read -r -d $'\0' divinedpl_filepath; do
+
+    # Check if candidate is a readable file
+    [ -r "$divinedpl_filepath" -a -f "$divinedpl_filepath" ] && {
+      # Return on first hit
+      return 0
     }
-  
-  # Otherwise, there are indeed deployments in there
-  return 0
+
+  done < <( find "$dir_path" -mindepth 1 -name "$D_DPL_SH_SUFFIX" -print0 )
+
+  # No deployment files: announce and return
+  printf >&2 '\n%s %s\n  %s\n' \
+    "${BOLD}${RED}==>${NORMAL}" \
+    "Failed to detect any deployment files in:" "$src_path"
+  return 1
 }
 
 #>  __adding__clobber_check PATH
