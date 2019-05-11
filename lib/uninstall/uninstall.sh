@@ -76,7 +76,7 @@ __locate_installations()
     [ -x "$shortcut_filepath" -a -L "$shortcut_filepath" ] || return 0
 
     # Ensure the link points to ‘intervene.sh’ (if readlink is available)
-    if command -v readlink; then
+    if command -v readlink &>/dev/null; then
       [ "$( readlink -- "$shortcut_filepath" )" = "$D_DIR/intervene.sh" ] \
         || return 0
     fi
@@ -92,8 +92,8 @@ __locate_installations()
 
 __uninstall_shortcut()
 {
-  # Check if shortcut is detected
-  [ -f "$D_SHORTCUT_FILEPATH" ] || return 0
+  # Check if shortcut is detected and exists as a symlink
+  [ -L "$D_SHORTCUT_FILEPATH" ] || return 0
 
   # Remove shortcut, using sudo if need be
   if [ -w "$( dirname -- "$D_SHORTCUT_FILEPATH" )" ]; then
