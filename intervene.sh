@@ -2833,7 +2833,7 @@ __adding__attempt_local_dir()
   __adding__clobber_check "$perm_dest" || return 1
 
   # Finally, copy directory to intended location
-  cp -n -- "$dir_path" "$perm_dest" || {
+  cp -Rn -- "$dir_path" "$perm_dest" || {
     # Announce failure to copy
     printf >&2 '\n%s %s\n  %s\n' \
       "${BOLD}${RED}==>${NORMAL}" \
@@ -2909,7 +2909,7 @@ __adding__attempt_local_file()
   # Prompt user for possible clobbering, and clobber if required
   __adding__clobber_check "$perm_dest" || return 1
 
-  # Finally, copy directory to intended location
+  # Finally, copy deployment file to intended location
   cp -n -- "$dpl_file_path" "$perm_dest" || {
     # Announce failure to copy
     printf >&2 '\n%s %s\n  %s\n' \
