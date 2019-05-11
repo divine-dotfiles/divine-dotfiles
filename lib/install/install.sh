@@ -309,12 +309,22 @@ __install_shortcut()
     # Construct full path
     shortcut_filepath="$shortcut_path/$D_SHORTCUT_NAME"
 
+    # Announce attempt
+    printf '%s\n' "Attempting to install to '$shortcut_filepath'"
+
     # If file path is occupied, it is likely some namesake directory: skip
     [ -e "$shortcut_filepath" ] && continue
     
     # Create symlink, or move to next candidate on failure
-    ln -s -- "$D_DIR/intervene.sh" "$shortcut_filepath" &>/dev/null \
-      && { shortcut_installed=true; break; }
+    if [ -w "$shortcut_path" ]; then
+      # Writing permission for directory is granted
+      ln -s -- "$D_DIR/intervene.sh" "$shortcut_filepath" &>/dev/null \
+        && { shortcut_installed=true; break; }
+    else
+      # No write permission: try sudo
+      sudo ln -s -- "$D_DIR/intervene.sh" "$shortcut_filepath" &>/dev/null \
+        && { shortcut_installed=true; break; }
+    fi
 
   done
 
