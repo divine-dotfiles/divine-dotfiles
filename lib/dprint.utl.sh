@@ -354,7 +354,7 @@ dprint_msg()
   if (( width_printed > 0 )); then
 
     # Print buffered text
-    if stdout; then
+    if $stdout; then
 
       # First line goes first
       printf '%s' "$first_line"
