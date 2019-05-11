@@ -1,26 +1,68 @@
-= Divine.dotfiles: Bash framework for dotfiles and everything Bash
+# Divine.dotfiles
 
-Install using:
+[toc]
+
+++++
+<p align="center">
+<em>Bash framework for dotfiles and everything Bash</em>
+</p>
+++++
+
+[#divine-dotfiles-plaque]
+image::lib/img/divine-dotfiles-plaque.png[Divine.dotfiles,align="center"]
+
+New machine or new OS?
+Set it up with a single `*di install --yes*`.
+
+NOTE: `di` stands for **d**ivine **i**ntervention
+
+_Divine.ditfiles_ lets you upgrade your shell routines from mere Bash scripts to isolated *deployments* that are installed/removed in defined sequence.
+Here’s what a deployment file `example.dpl.sh` looks like:
+
+[source,bash]
+----
+# example.dpl.sh
+
+CMD_PATH=~/bin/cmd
+
+# Special function that checks whether this deployment is installed
+dcheck() {
+  if [ -e $CMD_PATH ]; then return 1; else return 2; fi
+} # special code is returned
+
+# Special function that installs this deployment
+dinstall() {
+  printf 'echo Divine.dotfiles is cool\n' >$CMD_PATH && chmod +x $CMD_PATH
+}
+
+# Special function that removes this deployment
+dremove() {
+  rm -f -- $CMD_PATH
+}
+----
+
+And here’s how working with it looks like:
+
+// TODO: Insert .gif illustration here
+
+## Installing and removing
+
+### Installing
 
 [source,bash]
 ----
 bash -c "$( URL=https://raw.github.com/no-simpler/divine-dotfiles/master/lib/install/install.sh; if command -v curl >/dev/null 2>&1; then curl -fsSL $URL; elif command -v wget >/dev/null 2>&1; then wget -qO - $URL; else printf >&2 '\n==> Unable to install: failed to detect neither curl nor wget\n'; fi )"
 ----
 
-To access framework use:
+NOTE: Installation is completely safe: it clones/downloads repository and creates one symlink.
+Oh, and it asks for your permission for everything.
 
-[source,bash]
-----
-# Shortcut command if you agreed to installing it:
-di
-
-# Otherwise, execute script directly:
-~/.divine/intervene.sh
-----
-
-Uninstall using:
+### Removing
 
 [source,bash]
 ----
 bash -c "$( URL=https://raw.github.com/no-simpler/divine-dotfiles/master/lib/uninstall/uninstall.sh; if command -v curl >/dev/null 2>&1; then curl -fsSL $URL; elif command -v wget >/dev/null 2>&1; then wget -qO - $URL; else printf >&2 '\n==> Unable to uninstall: failed to detect neither curl nor wget\n'; fi )"
 ----
+
+NOTE: This will erase entire installation directory, with all deployments in it.
+Be careful.
