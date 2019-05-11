@@ -47,5 +47,5 @@ debug_print()
   dprint_msg --color "$CYAN" \
     --width-1 3 --width-2 86 \
     --effects-1 cb --effects-2 n \
-    -- "$msg"
+    -- '==>' "$msg"
 }
