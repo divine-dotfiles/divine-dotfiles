@@ -588,8 +588,8 @@ __import_dependencies()
       printf >&2 '  %s\n' "$script_path"
       exit 1
     }
-  done < <( find "$D_UTILS_DIR" -name "$D_UTILS_SUFFIX" \
-    -mindepth 1 -type f -print0 )
+  done < <( find "$D_UTILS_DIR" -mindepth 1 -name "$D_UTILS_SUFFIX" \
+    -type f -print0 )
 
   # Iterate over helper files
   while IFS= read -r -d $'\0' script_path; do
@@ -602,8 +602,8 @@ __import_dependencies()
       printf >&2 '  %s\n' "$script_path"
       exit 1
     }
-  done < <( find "$D_HELPERS_DIR" -name "$D_HELPERS_SUFFIX" \
-    -mindepth 1 -type f -print0 )
+  done < <( find "$D_HELPERS_DIR" -mindepth 1 -name "$D_HELPERS_SUFFIX" \
+    -type f -print0 )
 }
 
 #> __assemble_tasks
@@ -831,8 +831,8 @@ __parse_divinefile()
     done 10<"$divinefile_path"
 
   # Done iterating over Divinefiles in deployments directory
-  done < <( find "$D_DEPLOYMENTS_DIR" -name "$D_DIVINEFILE_NAME" \
-    -mindepth 1 -type f -print0 )
+  done < <( find "$D_DEPLOYMENTS_DIR" -mindepth 1 -name "$D_DIVINEFILE_NAME" \
+    -type f -print0 )
 
   # Restore case sensitivity
   eval "$restore_nocasematch"
@@ -1052,8 +1052,8 @@ __locate_dpl_sh_files()
     # Add current package to packages queue
     D_DEPLOYMENTS["$priority"]+="$divinedpl_filepath;"
 
-  done < <( find "$D_DEPLOYMENTS_DIR" -name "$D_DPL_SH_SUFFIX" \
-    -mindepth 1 -type f -print0 )
+  done < <( find "$D_DEPLOYMENTS_DIR" -mindepth 1 -name "$D_DPL_SH_SUFFIX" \
+    -type f -print0 )
 
   return 0
 }
@@ -3031,8 +3031,8 @@ __adding__check_for_deployments()
   local src_path="$1"; shift
 
   # Check if that directory contains any deployments
-  find "$dir_path" \( -name "$D_DPL_SH_SUFFIX" -or \
-    -name "$D_DIVINEFILE_NAME" \) -mindepth 1 -type f \
+  find "$dir_path" -mindepth 1 \( -name "$D_DPL_SH_SUFFIX" -or \
+    -name "$D_DIVINEFILE_NAME" \) -type f \
     | grep -q '.' || {
       # No deployment files: announce and return
       printf >&2 '\n%s %s\n  %s\n' \
