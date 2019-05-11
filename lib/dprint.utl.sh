@@ -11,17 +11,11 @@
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
 #
 ## Summary of defined functions:
-#>  dprint_msg [-n] [-c|--color X] [--width-N X] [--effects-N X] [--] FIELD1 [FIELD2…]
-#>  dprint_plaque [-npe]… [-c|--color X] [-w|--width X] [-r|--padding-char X] [--] MSG
+#>  dprint_msg [-no] [-c|--color X] [--width-N X] [--effects-N X] [--] FIELD1 [FIELD2…]
+#>  dprint_plaque [-nope]… [-c|--color X] [-w|--width X] [-r|--padding-char X] [--] MSG
 #
 
-## Previous signatures (to be deleted)
-#>  printc_msg [-n]… [--] COLOR ICON [TITLE [MSG [SUBMSG]]]
-#>  print_plaque [-np]… [--] MSG [WIDTH [PADDING_CHAR]]
-#>  printc_plaque [-np]… [--] COLOR MSG [WIDTH [PADDING_CHAR]]
-#
-
-#>  dprint_msg [-n] [-c|--color X] [--width-N X] [--effects-N X] [--] FIELD1 [FIELD2…]
+#>  dprint_msg [-no] [-c|--color X] [--width-N X] [--effects-N X] [--] FIELD1 [FIELD2…]
 #
 ## Prints formatted message consisting of fields. Arguments are textual 
 #. ‘fields’ numbered from one. Adjacent non-empty fields are separated by 
@@ -43,6 +37,7 @@
 #
 ## Options:
 #.  -n|--no-newline   - Omit terminating newline
+#.  -o|--stdout       - Print to stdout instead of default stderr
 #.  -c|--color X      - Uses color X (see dcolors.utl.sh) in formatting. 
 #.                      Without this, default terminal color is used.
 #.  --width-N X       - Truncate/pad field N to width X. Content is printed 
@@ -76,7 +71,7 @@ dprint_msg()
 {
   # Parse args for supported options
   local args=( 'placeholder' ) delim=false i opts opt
-  local newline=true
+  local newline=true stdout=false
   local field_width_opts=() field_effect_opts=()
   local color
   local fieldnum field_width_opt field_effect_opt
@@ -89,6 +84,7 @@ dprint_msg()
     case "$1" in
       --)                   delim=true;;
       -n|--no-newline)      newline=false;;
+      -o|--stdout)          stdout=true;;
       -c|--color)           shift; color="$1";;
 
       --width-?*)
@@ -170,6 +166,7 @@ dprint_msg()
                               opt="${opts:i-1:1}"
                               case "$opt" in
                                 n)  newline=false;;
+                                o)  stdout=true;;
                                 c)  shift; color="$1";;
                                 *)  printf >&2 '%s: illegal option -- %s\n' \
                                       "${FUNCNAME[0]}" \
@@ -201,7 +198,7 @@ dprint_msg()
   [ $num_fields_remaining -gt 0 ] || {
     printf >&2 'Usage: %s %s\n' \
       "${FUNCNAME[0]}" \
-      '[-n] [-c|--color X] [--width-N X] [--effects-N X] [--] FIELD1 [FIELD2…]'
+      '[-no] [-c|--color X] [--width-N X] [--effects-N X] [--] FIELD1 [FIELD2…]'
     return 1
   }
 
@@ -210,6 +207,9 @@ dprint_msg()
 
   # Storage variables
   local pos field_text effect_str effect_str_override
+
+  # Line buffers
+  local first_line= other_lines=() other_line indentation=
 
   #
   # Iterate over textual argument numbers
@@ -272,38 +272,39 @@ dprint_msg()
         # Check if not last to be printed
         if [ $num_fields_remaining -gt 0 ]; then
 
-          # Print field truncated, increment counter
-          printf '%s' \
-            "${effect_str}${field_text:0:$field_width_opt}${NORMAL}" \
-            && (( width_printed += field_width_opt ))
+          # Buffer field, truncated, increment counter
+          first_line+="${effect_str}${field_text:0:$field_width_opt}${NORMAL}"
+          (( width_printed += field_width_opt ))
 
           # If not prevented from, add space
-          [ -z "${field_space_opts[$fieldnum]}" ] \
-            && { printf ' ' && (( width_printed++ )); }
+          if [ -z "${field_space_opts[$fieldnum]}" ]; then
+            first_line+=' '
+            (( width_printed++ ))
+          fi
 
         else
 
-          # Print field in chuncs
+          # Buffer field in chunks
           pos=0
 
-          # Print first chunk, increment pos
-          printf '%s' \
-            "${effect_str}${field_text:$pos:$field_width_opt}${NORMAL}" \
-            && (( pos += field_width_opt ))
+          # Buffer first chunk, increment pos
+          first_line+="${effect_str}${field_text:$pos:$field_width_opt}"
+          first_line+="${NORMAL}"
+          (( pos += field_width_opt ))
 
-          # Print rest of the chunks
+          # If wrapping to new line, generate indentation
+          if [ $pos -lt ${#field_text} -a $width_printed -gt 0 ]; then
+            indentation+="$( printf ' %.0s' $(seq 1 $width_printed) )"
+          fi
+
+          # Buffer rest of the chunks
           while (( pos < ${#field_text} )); do
             
-            # Print newline
-            printf '\n'
-            
-            # For non-first lines, prefix spaces
-            [ $width_printed -gt 0 ] && printf ' %.0s' $(seq 1 $width_printed)
-
-            # Print chunk, increment pos
-            printf '%s' \
-              "${effect_str}${field_text:$pos:$field_width_opt}${NORMAL}" \
-              && (( pos += field_width_opt ))
+            # Buffer chunk, with indentation, increment pos
+            other_lines+=( \
+      "$indentation${effect_str}${field_text:$pos:$field_width_opt}${NORMAL}" \
+            )
+            (( pos += field_width_opt ))
 
           done
 
@@ -312,17 +313,20 @@ dprint_msg()
 
         fi
 
-      # Otherwise, print field space padded
       else
 
-        # Width is sufficient: print field space-padded, increment counter
-        printf "${effect_str}%-${field_width_opt}s${NORMAL}" "$field_text" \
-          && (( width_printed += field_width_opt ))
+        # Width is sufficient: buffer field space-padded, increment counter
+        first_line+="${effect_str}"
+        first_line+="$( printf "%-${field_width_opt}s" "$field_text" )"
+        first_line+="${NORMAL}"
+        (( width_printed += field_width_opt ))
         
         # If not last to be printed, and not prevented from, add space
-        [ $num_fields_remaining -gt 0 \
-          -a -z "${field_space_opts[$fieldnum]}" ] \
-            && { printf ' ' && (( width_printed++ )); }
+        if [ $num_fields_remaining -gt 0 \
+          -a -z "${field_space_opts[$fieldnum]}" ]; then
+            first_line+=' '
+            (( width_printed++ ))
+        fi
 
       fi
 
@@ -331,27 +335,67 @@ dprint_msg()
       # If text is zero length, skip entirely
       [ -n "$field_text" ] || continue
 
-      # Width not mandated: print field as is, increment counter
-      printf '%s' "${effect_str}$field_text${NORMAL}" \
-      && (( width_printed += ${#field_text} ))
+      # Width not mandated: buffer field as is, increment counter
+      first_line+="${effect_str}$field_text${NORMAL}"
+      (( width_printed += ${#field_text} ))
       
       # If not last to be printed, and not prevented from, add space
-      [ $num_fields_remaining -gt 0 \
-        -a -z "${field_space_opts[$fieldnum]}" ] \
-          && { printf ' ' && (( width_printed++ )); }
+      if [ $num_fields_remaining -gt 0 \
+        -a -z "${field_space_opts[$fieldnum]}" ]; then
+          first_line+=' '
+          (( width_printed++ ))
+      fi
 
     fi
 
   done
 
-  # Check if anything has been printed, and conditionally print newline
-  (( width_printed > 0 )) && $newline && printf '\n'
+  # Check if anything has been buffered
+  if (( width_printed > 0 )); then
 
-  # Return status
-  (( width_printed > 0 )) && return 0 || return 1
+    # Print buffered text
+    if stdout; then
+
+      # First line goes first
+      printf '%s' "$first_line"
+
+      # If there were others, print them too, prefixing each with newline
+      for other_line in "${other_lines[@]}"; do
+        printf '\n%s' "$other_line"
+      done
+
+      # Conditionally print newline
+      $newline && printf '\n'
+    
+    else
+
+      # Default mode: print everything to stderr
+
+      # First line goes first
+      printf >&2 '%s' "$first_line"
+
+      # If there were others, print them too, prefixing each with newline
+      for other_line in "${other_lines[@]}"; do
+        printf >&2 '\n%s' "$other_line"
+      done
+
+      # Conditionally print newline
+      $newline && printf >&2 '\n'
+    
+    fi
+
+    # Return status
+    return 0
+
+  else
+
+    # Nothing buffered: return status
+    return 1
+
+  fi
 }
 
-#>  dprint_plaque [-npe]… [-c|--color X] [-w|--width X] [-r|--padding-char X] [--] MSG
+#>  dprint_plaque [-nope]… [-c|--color X] [-w|--width X] [-r|--padding-char X] [--] MSG
 #
 ## Prints message, either truncated or padded with spaces equally on both sides 
 #. to match provided width. By default prints an extra space on both sides of 
@@ -368,6 +412,7 @@ dprint_msg()
 ## Options:
 #.  -c|--color X          - Uses color X (see dcolors.utl.sh) in formatting. 
 #.                          Without this, default terminal color is used.
+#.  -o|--stdout           - Print to stdout instead of default stderr
 #.  -w|--width X          - Makes plaque X character wide. Without this, or if 
 #.                          not a number >=0 and <=128, defaults to 32. With 
 #.                          '-e', actual width is +2.
@@ -395,7 +440,7 @@ dprint_plaque()
   # Parse args for supported options
   local args=() delim=false i opts opt
   local color width pad_char
-  local newline=true pad_extra=true effects=true
+  local newline=true pad_extra=true effects=true stdout=false
   while [ $# -gt 0 ]; do
     # If delimiter encountered, add arg and continue
     $delim && { args+=("$1"); shift; continue; }
@@ -403,6 +448,7 @@ dprint_plaque()
     case "$1" in
       --)                     delim=true;;
       -n|--no-newline)        newline=false;;
+      -o|--stdout)            stdout=true;;
       -p|--no-extra-padding)  pad_extra=false;;
       -e|--no-effects)        effects=false;;
       -c|--color)             shift; color="$1";;
@@ -414,6 +460,7 @@ dprint_plaque()
                                 opt="${opts:i-1:1}"
                                 case "$opt" in
                                   n)  newline=false;;
+                                  o)  stdout=true;;
                                   p)  pad_extra=false;;
                                   e)  effects=false;;
                                   c)  shift; color="$1";;
@@ -433,7 +480,7 @@ dprint_plaque()
   [ ${#args[@]} -lt 1 ] && {
     printf >&2 'Usage: %s %s\n' \
       "${FUNCNAME[0]}" \
-      '[-npe]… [-c|--color X] [-w|--width X] [-r|--padding-char X] [--] MSG'
+      '[-nope]… [-c|--color X] [-w|--width X] [-r|--padding-char X] [--] MSG'
     return 1
   }
 
@@ -465,14 +512,27 @@ dprint_plaque()
   let "pad_left = width - message_width - pad_right - 2"
 
   # Print plaque in chunks
-  $effects              &&  printf '%s' "${color}${BOLD}${REVERSE}"
-  [ $pad_left -ge 0 ]   &&  printf "$pad_char%.0s" $(seq 0 $pad_left)
-  $pad_extra            &&  printf ' '
-                            printf '%s' "$message"
-  $pad_extra            &&  printf ' '
-  [ $pad_right -ge 0 ]  &&  printf "$pad_char%.0s" $(seq 0 $pad_right)
-  $effects              &&  printf '%s' "${NORMAL}"
-  $newline              &&  printf '\n'
+  if $stdout; then
+    # Print all to stdout
+    $effects              &&  printf '%s' "${color}${BOLD}${REVERSE}"
+    [ $pad_left -ge 0 ]   &&  printf "$pad_char%.0s" $(seq 0 $pad_left)
+    $pad_extra            &&  printf ' '
+                              printf '%s' "$message"
+    $pad_extra            &&  printf ' '
+    [ $pad_right -ge 0 ]  &&  printf "$pad_char%.0s" $(seq 0 $pad_right)
+    $effects              &&  printf '%s' "${NORMAL}"
+    $newline              &&  printf '\n'
+  else
+    # Print all to stderr
+    $effects              &&  printf >&2 '%s' "${color}${BOLD}${REVERSE}"
+    [ $pad_left -ge 0 ]   &&  printf >&2 "$pad_char%.0s" $(seq 0 $pad_left)
+    $pad_extra            &&  printf >&2 ' '
+                              printf >&2 '%s' "$message"
+    $pad_extra            &&  printf >&2 ' '
+    [ $pad_right -ge 0 ]  &&  printf >&2 "$pad_char%.0s" $(seq 0 $pad_right)
+    $effects              &&  printf >&2 '%s' "${NORMAL}"
+    $newline              &&  printf >&2 '\n'
+  fi
 
   # Report
   return 0
