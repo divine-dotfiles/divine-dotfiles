@@ -17,18 +17,18 @@ main()
     if __add_default_dpls; then
       # Optional: run ‘di install --yes’
       __run_install \
-        || announce_failure 'Failed to install default deployments'
+        || report_failure 'Failed to install default deployments'
     else
-      announce_failure 'Failed to add default deployments'
+      report_failure 'Failed to add default deployments'
     fi
 
     # Report success
-    announce_success 'All done'
+    report_success 'All done'
     return 0
   fi
 
   # Report failure
-  announce_failure 'Nothing was installed'
+  report_failure 'Nothing was installed'
   return 1
 }
 
@@ -123,9 +123,9 @@ __pull_github_repo()
     "${BOLD}Divine.dotfiles${NORMAL} Bash framework from:" \
     "https://github.com/${user_repo}"
   then
-    announce_start "Installing ${BOLD}Divine.dotfiles${NORMAL}"
+    report_start "Installing ${BOLD}Divine.dotfiles${NORMAL}"
   else
-    announce_skip "Refused to install ${BOLD}Divine.dotfiles${NORMAL}"
+    report_skip "Refused to install ${BOLD}Divine.dotfiles${NORMAL}"
     return 1
   fi
 
@@ -230,7 +230,7 @@ __pull_github_repo()
   }
 
   # If gotten here, all is good
-  announce_success \
+  report_success \
     "Successfully installed ${BOLD}Divine.dotfiles${NORMAL} to:" \
     "$D_INSTALL_PATH"
   return 0
@@ -249,7 +249,7 @@ __install_shortcut()
   if ! prompt "$D_INSTALL_SHORTCUT" 'Install?' \
     "[optional] Shortcut shell command '${cmd}'"
   then
-    announce_skip "Refused to install shortcut shell command '${cmd}'"
+    report_skip "Refused to install shortcut shell command '${cmd}'"
     return 1
   fi
 
@@ -261,14 +261,14 @@ __install_shortcut()
 
     # If predefined answer is given, no re-tries
     if [ "$D_INSTALL_SHORTCUT" = true ]; then
-      announce_skip \
+      report_skip \
         "Skipped installing shortcut shell command '${cmd}'" \
         'because command by that name already exists'
       return 1
     fi
 
     # Inform user
-    announce_start \
+    report_start \
       "Command '${BOLD}${D_SHORTCUT_NAME}${NORMAL}' already exists"
 
     while true; do
@@ -279,7 +279,7 @@ __install_shortcut()
 
       # Check if user don’t want another name
       [ "$new_cmd_name" = q ] && {
-        announce_skip \
+        report_skip \
           'Skipped installing shortcut shell command' \
           'because command by that name already exists'
         return 1
@@ -384,13 +384,13 @@ __install_shortcut()
     fi
 
     # Report success
-    announce_success \
+    report_success \
       "Successfully installed shortcut shell command '${cmd}' to:" \
       "$shortcut_filepath"
 
   else
 
-    announce_failure "Failed to install shortcut shell command '${cmd}'" \
+    report_failure "Failed to install shortcut shell command '${cmd}'" \
       'because none of $PATH directories could take it'
 
   fi
@@ -408,7 +408,7 @@ __add_default_dpls()
     'Deployments are only added, not installed' \
     'Default deployments are safe and fully removable'
   then
-    announce_skip 'Refused to add default set of deployments from:' \
+    report_skip 'Refused to add default set of deployments from:' \
       "https://github.com/${user_repo}"
     return 1
   fi
@@ -500,7 +500,7 @@ __add_default_dpls()
   fi
 
   # If gotten here, all is good
-  announce_success 'Successfully added default deployments to:' \
+  report_success 'Successfully added default deployments to:' \
     "$dpl_dir"
   return 0
 }
@@ -513,7 +513,7 @@ __run_install()
     'Deployments added in previous step will be installed' \
     'Default deployments are safe and fully removable'
   then
-    announce_skip 'Refused to install default deployments'
+    report_skip 'Refused to install default deployments'
     return 1
   fi
 
@@ -532,7 +532,7 @@ debug_print()
   do printf >&2 "    ${CYAN}%s${NORMAL}\n" "$1"; shift; done; return 0
 }
 
-announce_start()
+report_start()
 {
   $D_QUIET && return 0
   printf >&2 '\n%s %s\n' "${BOLD}${YELLOW}==>${NORMAL}" "$1"; shift
@@ -572,21 +572,21 @@ prompt()
   if $yes; then return 0; else return 1; fi
 }
 
-announce_success()
+report_success()
 {
   $D_QUIET && return 0
   printf >&2 '\n%s %s\n' "${BOLD}${GREEN}==>${NORMAL}" "$1"; shift
   while [ $# -gt 0 ]; do printf >&2 '    %s\n' "$1"; shift; done; return 0
 }
 
-announce_skip()
+report_skip()
 {
   $D_QUIET && return 0
   printf >&2 '\n%s %s\n' "${BOLD}${WHITE}==>${NORMAL}" "$1"; shift
   while [ $# -gt 0 ]; do printf >&2 '    %s\n' "$1"; shift; done; return 0
 }
 
-announce_failure()
+report_failure()
 {
   $D_QUIET && return 0
   printf >&2 '\n%s %s\n' "${BOLD}${RED}==>${NORMAL}" "$1"; shift
