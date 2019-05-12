@@ -93,9 +93,7 @@ __parse_arguments()
                           D_ADD_DEFAULTS=false
                           D_RUN_INSTALL=false
                           ;;
-      *)                  printf >&2 '%s\n' \
-                            "Skipped unrecognized argument: $arg"
-                          ;;
+      *)                  :;;
     esac
   done
 }
