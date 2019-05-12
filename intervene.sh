@@ -52,7 +52,8 @@ __parse_arguments()
   D_QUIET=true            # Verbosity setting
   D_BLANKET_ANSWER=       # Blanket answer to all prompts
   D_MAX_PRIORITY_LEN=0    # Number of digits in largest priority
-  D_ADD_MODE=normal       # Flag for how to store cloned/copied deployments
+  D_ADD_MODE=normal       # Flag for how to organize cloned/copied deployments
+  D_ADD_LINK=false        # Flag for whether copy or symlink non-repos
 
   # Parse the first argument
   case "$1" in
@@ -96,6 +97,7 @@ __parse_arguments()
       -v|--verbose)       D_QUIET=false;;
       -t|--flat)          D_ADD_MODE=flat;;
       -r|--root)          D_ADD_MODE=root;;
+      -l|--link)          D_ADD_LINK=true;;
       -*)                 for i in $( seq 2 ${#1} ); do
                             opt="${1:i-1:1}"
                             case $opt in
@@ -109,6 +111,7 @@ __parse_arguments()
                               v)  D_QUIET=false;;
                               t)  D_ADD_MODE=flat;;
                               r)  D_ADD_MODE=root;;
+                              l)  D_ADD_LINK=true;;
                               *)  printf >&2 '%s: Illegal option -- %s\n\n' \
                                     "$( basename -- "${BASH_SOURCE[0]}" )" \
                                     "$opt"
@@ -197,7 +200,7 @@ SYNOPSIS
     ${script_name} f|refresh          [-ynqveif]… [--] [TASK]…
     ${script_name} c[heck]            [-ynqvei]…  [--] [TASK]…
 
-    ${script_name} a[dd]              [-yntr]…    [--] [REPO]…
+    ${script_name} a[dd]              [-yntrl]…    [--] [REPO]…
 
     ${script_name} --version
     ${script_name} -h|--help
@@ -280,6 +283,11 @@ OPTIONS
                     directory being added. Standalone deployments are copied to 
                     root of deployments directory without erasing it.
                     For all other routines this is a no-opt.
+    -l, --link      In adding routine:
+                    Prefer to symlink local deployment files and directories, 
+                    and do not try to clone or download repositories.
+                    For adding remote deployments this is a no-opt.
+                    For all other routines this is a no-opt.
     -e, --except, -i, --inverse
                     Inverse task list: filter out tasks included in it
     -q, --quiet     (default) Slightly decreases amount of status messages
@@ -331,7 +339,7 @@ Usage: ${bold}${script_name}${normal} ${bold}i${normal}|${bold}install${normal} 
    or: ${bold}${script_name}${normal} ${bold}r${normal}|${bold}remove${normal}  [-ynqveif] [TASK]…   - Launch removal
    or: ${bold}${script_name}${normal} ${bold}f${normal}|${bold}refresh${normal} [-ynqveif] [TASK]…   - Launch refreshing
    or: ${bold}${script_name}${normal} ${bold}c${normal}|${bold}check${normal}   [-ynqvei]  [TASK]…   - Launch checking
-   or: ${bold}${script_name}${normal} ${bold}a${normal}|${bold}add${normal}     [-yntr]    [SRC]…    - Add deployment from repo/dir/file
+   or: ${bold}${script_name}${normal} ${bold}a${normal}|${bold}add${normal}     [-yntrl]   [SRC]…    - Add deployment from repo/dir/file
    or: ${bold}${script_name}${normal} --version                      - Show script version
    or: ${bold}${script_name}${normal} -h|--help                      - Show help summary
 EOF
@@ -2373,8 +2381,8 @@ __check_dpls()
 #
 __perform_add()
 {
-  # Check if git is available and offer to install it
-  __adding__check_for_git
+  # If not linking, check if git is available, offer to install it
+  if ! $D_ADD_LINK; then __adding__check_for_git; fi
 
   # Storage variable
   local dpl_arg
@@ -2395,11 +2403,17 @@ __perform_add()
       "Processing '$dpl_arg'"
 
     # Process each argument sequentially until the first hit
-    __adding__attempt_github_repo "$dpl_arg" \
-      || __adding__attempt_local_repo "$dpl_arg" \
-      || __adding__attempt_local_dir "$dpl_arg" \
-      || __adding__attempt_local_file "$dpl_arg" \
-      || arg_success=false
+    if $D_ADD_LINK; then
+      __adding__attempt_local_dir "$dpl_arg" \
+        || __adding__attempt_local_file "$dpl_arg" \
+        || arg_success=false
+    else
+      __adding__attempt_github_repo "$dpl_arg" \
+        || __adding__attempt_local_repo "$dpl_arg" \
+        || __adding__attempt_local_dir "$dpl_arg" \
+        || __adding__attempt_local_file "$dpl_arg" \
+        || arg_success=false
+    fi
     
     # Report and set status
     if $arg_success; then
@@ -2817,16 +2831,28 @@ __adding__attempt_local_dir()
   # Prompt user for possible clobbering, and clobber if required
   __adding__clobber_check "$perm_dest" || return 1
 
-  # Finally, copy directory to intended location
-  cp -Rn -- "$dir_path" "$perm_dest" || {
-    # Announce failure to copy
-    printf >&2 '\n%s %s\n  %s\n' \
-      "${BOLD}${RED}==>${NORMAL}" \
-      'Failed to copy deployments from local directory at:' "$dir_path"
-    printf >&2 '%s\n  %s\n' 'to intended location at:' "$perm_dest"
-    # Return
-    return 1
-  }
+  # Finally, link/copy directory to intended location
+  if $D_ADD_LINK; then
+    dln -- "$dir_path" "$perm_dest" || {
+      # Announce failure to link
+      printf >&2 '\n%s %s\n  %s\n' \
+        "${BOLD}${RED}==>${NORMAL}" \
+        'Failed to link deployments from local directory at:' "$dir_path"
+      printf >&2 '%s\n  %s\n' 'to intended location at:' "$perm_dest"
+      # Return
+      return 1
+    }
+  else
+    cp -Rn -- "$dir_path" "$perm_dest" || {
+      # Announce failure to copy
+      printf >&2 '\n%s %s\n  %s\n' \
+        "${BOLD}${RED}==>${NORMAL}" \
+        'Failed to copy deployments from local directory at:' "$dir_path"
+      printf >&2 '%s\n  %s\n' 'to intended location at:' "$perm_dest"
+      # Return
+      return 1
+    }
+  fi
 
   # All done: announce and return
   printf >&2 '\n%s %s\n  %s\n' \
@@ -2894,16 +2920,28 @@ __adding__attempt_local_file()
   # Prompt user for possible clobbering, and clobber if required
   __adding__clobber_check "$perm_dest" || return 1
 
-  # Finally, copy deployment file to intended location
-  cp -n -- "$dpl_file_path" "$perm_dest" || {
-    # Announce failure to copy
-    printf >&2 '\n%s %s\n  %s\n' \
-      "${BOLD}${RED}==>${NORMAL}" \
-      'Failed to copy local deployment file at:' "$dpl_file_path"
-    printf >&2 '%s\n  %s\n' 'to intended location at:' "$perm_dest"
-    # Return
-    return 1
-  }
+  # Finally, link/copy deployment file to intended location
+  if $D_ADD_LINK; then
+    dln -- "$dpl_file_path" "$perm_dest" || {
+      # Announce failure to link
+      printf >&2 '\n%s %s\n  %s\n' \
+        "${BOLD}${RED}==>${NORMAL}" \
+        'Failed to link local deployment file at:' "$dpl_file_path"
+      printf >&2 '%s\n  %s\n' 'to intended location at:' "$perm_dest"
+      # Return
+      return 1
+    }
+  else
+    cp -n -- "$dpl_file_path" "$perm_dest" || {
+      # Announce failure to copy
+      printf >&2 '\n%s %s\n  %s\n' \
+        "${BOLD}${RED}==>${NORMAL}" \
+        'Failed to copy local deployment file at:' "$dpl_file_path"
+      printf >&2 '%s\n  %s\n' 'to intended location at:' "$perm_dest"
+      # Return
+      return 1
+    }
+  fi
 
   # All done: announce and return
   printf >&2 '\n%s %s\n  %s\n' \
@@ -2987,7 +3025,11 @@ __adding__prompt_dir_or_file()
       "Detected $local_type at:" "$local_path"
 
     # Prompt user
-    dprompt 'Add it?' && yes=true || yes=false
+    if $D_ADD_LINK; then
+      dprompt 'Link it?' && yes=true || yes=false
+    else
+      dprompt 'Add it?' && yes=true || yes=false
+    fi
 
   fi
 
