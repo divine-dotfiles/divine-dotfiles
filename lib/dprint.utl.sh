@@ -11,30 +11,37 @@
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
 #
 ## Summary of defined functions:
+#>  dprint_debug    [-n] [CHUNKS|-n|-i]…
+#>  dprint_start    [-n] [CHUNKS|-n|-i]…
+#>  dprint_skip     [-n] [CHUNKS|-n|-i]…
+#>  dprint_success  [-n] [CHUNKS|-n|-i]…
+#>  dprint_failure  [-n] [CHUNKS|-n|-i]…
 #>  dprint_msg [-no] [-c|--color X] [--width-N X] [--effects-N X] [--] FIELD1 [FIELD2…]
 #>  dprint_plaque [-nope]… [-c|--color X] [-w|--width X] [-r|--padding-char X] [--] MSG
 #
 
-#>  dprint_debug CHUNKS…
+#>  dprint_debug [-n] [CHUNKS|-n|-i]…
 #
-## If verbose mode is activated, prints message in debug style. Otherwise, does 
-#. nothing.
+## In verbose mode: from given chunks and line breaks composes and prints a 
+#. message themed as a debug line. Chunks are separated by single space.
+#
+## In quiet mode ($D_QUIET): does nothing.
+#
+## Options:
+#.  -n  - Prepend empty line to any other output
 #
 ## Parameters:
-#.  $@  - Chunks of debug message, to be separated from each other by single 
-#.        space.
-#.        Following special marks are also accepted:
-#.          '-n'  - Insert new line. When used as first argument, inserts new
-#.                  line before any other output.
+#.  $@  - Textual chunks of a message. Following special chunks are recognized:
+#.          '-n'  - Insert new line
 #.          '-i'  - Insert new indented line
 #
 ## Returns:
-#.  0 - After printing composed message
-#.  1 - If $D_QUIET is set to 'true'
+#.  0 - If message was printed
+#.  1 - Otherwise
 #
 ## Prints:
 #.  stdout  - *nothing*
-#.  stderr  - Composed message, or as little as possible
+#.  stderr  - Composed message
 #
 dprint_debug()
 {
@@ -47,6 +54,154 @@ dprint_debug()
     case $chunk in -n) printf >&2 '\n   ';; -i) printf >&2 '\n       ';;
     *) printf >&2 ' %s' "$chunk";; esac
   done; printf >&2 '%s\n' "${NORMAL}"; return 0
+}
+
+#>  dprint_start [-n] [CHUNKS|-n|-i]…
+#
+## In verbose mode: from given chunks and line breaks composes and prints a 
+#. message themed as an announcement of new stage in a process. Chunks are 
+#. separated by single space.
+#
+## In quiet mode ($D_QUIET): does nothing.
+#
+## Options:
+#.  -n  - Prepend empty line to any other output
+#
+## Parameters:
+#.  $@  - Textual chunks of a message. Following special chunks are recognized:
+#.          '-n'  - Insert new line
+#.          '-i'  - Insert new indented line
+#
+## Returns:
+#.  0 - If message was printed
+#.  1 - Otherwise
+#
+## Prints:
+#.  stdout  - *nothing*
+#.  stderr  - Composed message
+#
+dprint_start()
+{
+  # Check if quiet mode is active
+  [ "$D_QUIET" = true ] && return 1
+
+  # Compose message from arguments and print it all on the go
+  [ "$1" = -n ] && { printf >&2 '\n'; shift; }
+  printf >&2 '%s' "${BOLD}${YELLOW}==>${NORMAL}"; local chunk; for chunk; do
+    case $chunk in -n) printf >&2 '\n   ';; -i) printf >&2 '\n       ';;
+    *) printf >&2 ' %s' "$chunk";; esac
+  done; printf >&2 '\n'; return 0
+}
+
+#>  dprint_skip [-n] [CHUNKS|-n|-i]…
+#
+## In verbose mode: from given chunks and line breaks composes and prints a 
+#. message themed as an announcement of skipped stage in a process. Chunks are 
+#. separated by single space.
+#
+## In quiet mode ($D_QUIET): does nothing.
+#
+## Options:
+#.  -n  - Prepend empty line to any other output
+#
+## Parameters:
+#.  $@  - Textual chunks of a message. Following special chunks are recognized:
+#.          '-n'  - Insert new line
+#.          '-i'  - Insert new indented line
+#
+## Returns:
+#.  0 - If message was printed
+#.  1 - Otherwise
+#
+## Prints:
+#.  stdout  - *nothing*
+#.  stderr  - Composed message
+#
+dprint_skip()
+{
+  # Check if quiet mode is active
+  [ "$D_QUIET" = true ] && return 1
+
+  # Compose message from arguments and print it all on the go
+  [ "$1" = -n ] && { printf >&2 '\n'; shift; }
+  printf >&2 '%s' "${BOLD}${WHITE}==>${NORMAL}"; local chunk; for chunk; do
+    case $chunk in -n) printf >&2 '\n   ';; -i) printf >&2 '\n       ';;
+    *) printf >&2 ' %s' "$chunk";; esac
+  done; printf >&2 '\n'; return 0
+}
+
+#>  dprint_success [-n] [CHUNKS|-n|-i]…
+#
+## In verbose mode: from given chunks and line breaks composes and prints a 
+#. message themed as an announcement of successfully completed stage in a 
+#. process. Chunks are separated by single space.
+#
+## In quiet mode ($D_QUIET): does nothing.
+#
+## Options:
+#.  -n  - Prepend empty line to any other output
+#
+## Parameters:
+#.  $@  - Textual chunks of a message. Following special chunks are recognized:
+#.          '-n'  - Insert new line
+#.          '-i'  - Insert new indented line
+#
+## Returns:
+#.  0 - If message was printed
+#.  1 - Otherwise
+#
+## Prints:
+#.  stdout  - *nothing*
+#.  stderr  - Composed message
+#
+dprint_success()
+{
+  # Check if quiet mode is active
+  [ "$D_QUIET" = true ] && return 1
+
+  # Compose message from arguments and print it all on the go
+  [ "$1" = -n ] && { printf >&2 '\n'; shift; }
+  printf >&2 '%s' "${BOLD}${GREEN}==>${NORMAL}"; local chunk; for chunk; do
+    case $chunk in -n) printf >&2 '\n   ';; -i) printf >&2 '\n       ';;
+    *) printf >&2 ' %s' "$chunk";; esac
+  done; printf >&2 '\n'; return 0
+}
+
+#>  dprint_failure [-n] [CHUNKS|-n|-i]…
+#
+## In verbose mode: from given chunks and line breaks composes and prints a 
+#. message themed as an announcement of failed stage in a process. Chunks are 
+#. separated by single space.
+#
+## In quiet mode ($D_QUIET): does nothing.
+#
+## Options:
+#.  -n  - Prepend empty line to any other output
+#
+## Parameters:
+#.  $@  - Textual chunks of a message. Following special chunks are recognized:
+#.          '-n'  - Insert new line
+#.          '-i'  - Insert new indented line
+#
+## Returns:
+#.  0 - If message was printed
+#.  1 - Otherwise
+#
+## Prints:
+#.  stdout  - *nothing*
+#.  stderr  - Composed message
+#
+dprint_failure()
+{
+  # Check if quiet mode is active
+  [ "$D_QUIET" = true ] && return 1
+
+  # Compose message from arguments and print it all on the go
+  [ "$1" = -n ] && { printf >&2 '\n'; shift; }
+  printf >&2 '%s' "${BOLD}${RED}==>${NORMAL}"; local chunk; for chunk; do
+    case $chunk in -n) printf >&2 '\n   ';; -i) printf >&2 '\n       ';;
+    *) printf >&2 ' %s' "$chunk";; esac
+  done; printf >&2 '\n'; return 0
 }
 
 #>  dprint_msg [-no] [-c|--color X] [--width-N X] [--effects-N X] [--] FIELD1 [FIELD2…]
