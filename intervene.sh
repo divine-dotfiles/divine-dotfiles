@@ -501,7 +501,7 @@ __populate_globals()
   # Default width of information plaque
   readonly D_PLAQUE_WIDTH=80
 
-  # dprint_msg base options (total width with single space delimiters: 80)
+  # dprint_ode base options (total width with single space delimiters: 80)
   D_PRINTC_OPTS_BASE=( \
     --width-1 3 \
     --width-2 16 \
@@ -510,7 +510,7 @@ __populate_globals()
   )
   readonly D_PRINTC_OPTS_BASE
 
-  # dprint_msg options for normal messages
+  # dprint_ode options for normal messages
   D_PRINTC_OPTS_NRM=( \
     "${D_PRINTC_OPTS_BASE[@]}" \
     --effects-1 bci \
@@ -519,7 +519,7 @@ __populate_globals()
     --effects-4 n \
   ); readonly D_PRINTC_OPTS_NRM
 
-  # dprint_msg options for user prompts
+  # dprint_ode options for user prompts
   D_PRINTC_OPTS_PMT=( \
     -n \
     "${D_PRINTC_OPTS_NRM[@]}" \
@@ -527,7 +527,7 @@ __populate_globals()
     --effects-1 n \
   ); readonly D_PRINTC_OPTS_PMT
 
-  # dprint_msg options for user prompts with danger
+  # dprint_ode options for user prompts with danger
   D_PRINTC_OPTS_DNG=( \
     -n \
     "${D_PRINTC_OPTS_NRM[@]}" \
@@ -536,13 +536,13 @@ __populate_globals()
     --effects-2 bc \
   ); readonly D_PRINTC_OPTS_DNG
 
-  # dprint_msg options for descriptions
+  # dprint_ode options for descriptions
   D_PRINTC_OPTS_DSC=( \
     "${D_PRINTC_OPTS_NRM[@]}" \
     --effects-1 n \
   ); readonly D_PRINTC_OPTS_DSC
 
-  # dprint_msg options for warnings
+  # dprint_ode options for warnings
   D_PRINTC_OPTS_WRN=( \
     "${D_PRINTC_OPTS_NRM[@]}" \
     --effects-1 n \
@@ -665,7 +665,7 @@ __assemble_tasks()
   D_MAX_PRIORITY_LEN=${#largest_priority}
   readonly D_MAX_PRIORITY_LEN
 
-  # dprint_msg options for package updating name announcements
+  # dprint_ode options for package updating name announcements
   local priority_field_width=$(( D_MAX_PRIORITY_LEN + 3 + 19 ))
   local name_field_width=$(( 57 - 1 - priority_field_width ))
   D_PRINTC_OPTS_UP=( \
@@ -675,7 +675,7 @@ __assemble_tasks()
     --effects-5 b \
   ); readonly D_PRINTC_OPTS_UP
 
-  # dprint_msg options for package/deployment name announcements
+  # dprint_ode options for package/deployment name announcements
   priority_field_width=$(( D_MAX_PRIORITY_LEN + 3 + 10 ))
   name_field_width=$(( 57 - 1 - priority_field_width ))
   D_PRINTC_OPTS_NM=( \
@@ -1123,7 +1123,7 @@ __perform_install()
     case $? in
       100)
         printf '\n'
-        dprint_msg "${D_PRINTC_OPTS_NRM[@]}" -c "$YELLOW" -- \
+        dprint_ode "${D_PRINTC_OPTS_NRM[@]}" -c "$YELLOW" -- \
           ')))' 'Reboot required' ':' \
           'Last deployment asked for machine reboot'
         printf '\n'
@@ -1132,7 +1132,7 @@ __perform_install()
         return 1;;
       101)
         printf '\n'
-        dprint_msg "${D_PRINTC_OPTS_NRM[@]}" -c "$YELLOW" -- \
+        dprint_ode "${D_PRINTC_OPTS_NRM[@]}" -c "$YELLOW" -- \
           'ooo' 'Attention' ':' \
           'Last deployment asked for user’s attention'
         printf '\n'
@@ -1141,7 +1141,7 @@ __perform_install()
         return 1;;
       666)
         printf '\n'
-        dprint_msg "${D_PRINTC_OPTS_NRM[@]}" -c "$YELLOW" -- \
+        dprint_ode "${D_PRINTC_OPTS_NRM[@]}" -c "$YELLOW" -- \
           'x_x' 'Critical failure' ':' \
           'Last deployment reported catastrophic error'
         printf '\n'
@@ -1210,13 +1210,13 @@ __update_pkgs()
 
     # Print message about the upcoming installation
     if $proceeding; then
-      dprint_msg "${D_PRINTC_OPTS_UP[@]}" -c "$YELLOW" -- \
+      dprint_ode "${D_PRINTC_OPTS_UP[@]}" -c "$YELLOW" -- \
         '>>>' 'Installing' ':' "$task_desc" "$task_name"
     fi
 
     # Unless given a ‘-y’ option, prompt for user’s approval
     if $proceeding && [ "$D_BLANKET_ANSWER" != y ]; then
-      dprint_msg "${D_PRINTC_OPTS_PMT[@]}" -- '' 'Confirm' ': '
+      dprint_ode "${D_PRINTC_OPTS_PMT[@]}" -- '' 'Confirm' ': '
       dprompt && proceeding=true || {
         task_name="$task_name (declined by user)"
         proceeding=false
@@ -1227,14 +1227,14 @@ __update_pkgs()
     if $proceeding; then
       os_pkgmgr dupdate
       if [ $? -eq 0 ]; then
-        dprint_msg "${D_PRINTC_OPTS_UP[@]}" -c "$GREEN" -- \
+        dprint_ode "${D_PRINTC_OPTS_UP[@]}" -c "$GREEN" -- \
           'vvv' 'Installed' ':' "$task_desc" "$task_name"
       else
-        dprint_msg "${D_PRINTC_OPTS_UP[@]}" -c "$RED" -- \
+        dprint_ode "${D_PRINTC_OPTS_UP[@]}" -c "$RED" -- \
           'xxx' 'Failed' ':' "$task_desc" "$task_name"
       fi
     else
-      dprint_msg "${D_PRINTC_OPTS_UP[@]}" -c "$WHITE" -- \
+      dprint_ode "${D_PRINTC_OPTS_UP[@]}" -c "$WHITE" -- \
         '---' 'Skipped' ':' "$task_desc" "$task_name"
     fi
 
@@ -1324,7 +1324,7 @@ __install_pkgs()
     if $proceeding; then
 
       # Print message about the upcoming installation
-      dprint_msg "${D_PRINTC_OPTS_NM[@]}" -c "$YELLOW" -- \
+      dprint_ode "${D_PRINTC_OPTS_NM[@]}" -c "$YELLOW" -- \
         '>>>' 'Installing' ':' "$task_desc" "$task_name"
 
       ## Unless given a ‘-y’ option (or unless aa_mode is enabled), prompt for 
@@ -1333,9 +1333,9 @@ __install_pkgs()
 
         # Prompt slightly differs depending on whether ‘always ask’ is enabled
         if $aa_mode; then
-          dprint_msg "${D_PRINTC_OPTS_DNG[@]}" -c "$RED" -- '!!!' 'Danger' ': '
+          dprint_ode "${D_PRINTC_OPTS_DNG[@]}" -c "$RED" -- '!!!' 'Danger' ': '
         else
-          dprint_msg "${D_PRINTC_OPTS_PMT[@]}" -- '' 'Confirm' ': '
+          dprint_ode "${D_PRINTC_OPTS_PMT[@]}" -- '' 'Confirm' ': '
         fi
 
         # Prompt user
@@ -1352,14 +1352,14 @@ __install_pkgs()
     if $proceeding; then
       os_pkgmgr dinstall "$pkgname"
       if [ $? -eq 0 ]; then
-        dprint_msg "${D_PRINTC_OPTS_NM[@]}" -c "$GREEN" -- \
+        dprint_ode "${D_PRINTC_OPTS_NM[@]}" -c "$GREEN" -- \
           'vvv' 'Installed' ':' "$task_desc" "$task_name"
       else
-        dprint_msg "${D_PRINTC_OPTS_NM[@]}" -c "$RED" -- \
+        dprint_ode "${D_PRINTC_OPTS_NM[@]}" -c "$RED" -- \
           'xxx' 'Failed' ':' "$task_desc" "$task_name"
       fi
     else
-      dprint_msg "${D_PRINTC_OPTS_NM[@]}" -c "$WHITE" -- \
+      dprint_ode "${D_PRINTC_OPTS_NM[@]}" -c "$WHITE" -- \
         '---' 'Skipped' ':' "$task_desc" "$task_name"
     fi
 
@@ -1492,24 +1492,24 @@ __install_dpls()
     if $proceeding && [ "$aa_mode" = true -o "$D_BLANKET_ANSWER" != y ]; then
 
       # Print message about the upcoming installation
-      dprint_msg "${D_PRINTC_OPTS_NM[@]}" -c "$YELLOW" -- \
+      dprint_ode "${D_PRINTC_OPTS_NM[@]}" -c "$YELLOW" -- \
         '>>>' 'Installing' ':' "$task_desc" "$task_name" \
         && intro_printed=true
       # In verbose mode, print location of script to be sourced
       debug_print "Location: $divinedpl_filepath"
       # If description is available, show it
-      [ -n "$desc" ] && dprint_msg "${D_PRINTC_OPTS_DSC[@]}" -- \
+      [ -n "$desc" ] && dprint_ode "${D_PRINTC_OPTS_DSC[@]}" -- \
         '' 'Description' ':' "$desc"
       # If warning is relevant, show it
       [ -n "$warning" -a "$aa_mode" = true ] \
-        && dprint_msg "${D_PRINTC_OPTS_WRN[@]}" -c "$RED" -- \
+        && dprint_ode "${D_PRINTC_OPTS_WRN[@]}" -c "$RED" -- \
           '' 'Warning' ':' "$warning"
 
       # Prompt slightly differs depending on whether ‘always ask’ is enabled
       if $aa_mode; then
-        dprint_msg "${D_PRINTC_OPTS_DNG[@]}" -c "$RED" -- '!!!' 'Danger' ': '
+        dprint_ode "${D_PRINTC_OPTS_DNG[@]}" -c "$RED" -- '!!!' 'Danger' ': '
       else
-        dprint_msg "${D_PRINTC_OPTS_PMT[@]}" -- '' 'Confirm' ': '
+        dprint_ode "${D_PRINTC_OPTS_PMT[@]}" -- '' 'Confirm' ': '
       fi
 
       # Prompt user
@@ -1558,7 +1558,7 @@ __install_dpls()
     if $proceeding; then
 
       # Print descriptive introduction, if haven’t already
-      $intro_printed || dprint_msg "${D_PRINTC_OPTS_NM[@]}" -c "$YELLOW" -- \
+      $intro_printed || dprint_ode "${D_PRINTC_OPTS_NM[@]}" -c "$YELLOW" -- \
         '>>>' 'Installing' ':' "$task_desc" "$task_name"
 
       # Get return code of dinstall, or fall back to zero
@@ -1571,13 +1571,13 @@ __install_dpls()
       # Analyze exit code
       case $dpl_status in
         0|100|101)
-          dprint_msg "${D_PRINTC_OPTS_NM[@]}" -c "$GREEN" -- \
+          dprint_ode "${D_PRINTC_OPTS_NM[@]}" -c "$GREEN" -- \
             'vvv' 'Installed' ':' "$task_desc" "$task_name";;
         2)
-          dprint_msg "${D_PRINTC_OPTS_NM[@]}" -c "$WHITE" -- \
+          dprint_ode "${D_PRINTC_OPTS_NM[@]}" -c "$WHITE" -- \
             '---' 'Skipped' ':' "$task_desc" "$task_name";;
         1|666|*)
-          dprint_msg "${D_PRINTC_OPTS_NM[@]}" -c "$RED" -- \
+          dprint_ode "${D_PRINTC_OPTS_NM[@]}" -c "$RED" -- \
             'xxx' 'Failed' ':' "$task_desc" "$task_name";;
       esac
 
@@ -1585,7 +1585,7 @@ __install_dpls()
       [ $dpl_status -ge 100 ] && return $dpl_status
       
     else
-      dprint_msg "${D_PRINTC_OPTS_NM[@]}" -c "$WHITE" -- \
+      dprint_ode "${D_PRINTC_OPTS_NM[@]}" -c "$WHITE" -- \
         '---' 'Skipped' ':' "$task_desc" "$task_name"
     fi
 
@@ -1636,7 +1636,7 @@ __perform_remove()
     case $? in
       100)
         printf '\n'
-        dprint_msg "${D_PRINTC_OPTS_NRM[@]}" -c "$YELLOW" -- \
+        dprint_ode "${D_PRINTC_OPTS_NRM[@]}" -c "$YELLOW" -- \
           ')))' 'Reboot required' ':' \
           'Last deployment asked for machine reboot'
         printf '\n'
@@ -1645,7 +1645,7 @@ __perform_remove()
         return 1;;
       101)
         printf '\n'
-        dprint_msg "${D_PRINTC_OPTS_NRM[@]}" -c "$YELLOW" -- \
+        dprint_ode "${D_PRINTC_OPTS_NRM[@]}" -c "$YELLOW" -- \
           'ooo' 'Attention' ':' \
           'Last deployment asked for user’s attention'
         printf '\n'
@@ -1654,7 +1654,7 @@ __perform_remove()
         return 1;;
       666)
         printf '\n'
-        dprint_msg "${D_PRINTC_OPTS_NRM[@]}" -c "$YELLOW" -- \
+        dprint_ode "${D_PRINTC_OPTS_NRM[@]}" -c "$YELLOW" -- \
           'x_x' 'Critical failure' ':' \
           'Last deployment reported catastrophic error'
         printf '\n'
@@ -1766,7 +1766,7 @@ __remove_pkgs()
     if $proceeding; then
 
       # Print message about the upcoming removal
-      dprint_msg "${D_PRINTC_OPTS_NM[@]}" -c "$YELLOW" -- \
+      dprint_ode "${D_PRINTC_OPTS_NM[@]}" -c "$YELLOW" -- \
         '>>>' 'Removing' ':' "$task_desc" "$task_name"
 
       ## Unless given a ‘-y’ option (or unless aa_mode is enabled), prompt for 
@@ -1776,9 +1776,9 @@ __remove_pkgs()
 
         # Prompt slightly differs depending on whether ‘always ask’ is enabled
         if $aa_mode; then
-          dprint_msg "${D_PRINTC_OPTS_DNG[@]}" -c "$RED" -- '!!!' 'Danger' ': '
+          dprint_ode "${D_PRINTC_OPTS_DNG[@]}" -c "$RED" -- '!!!' 'Danger' ': '
         else
-          dprint_msg "${D_PRINTC_OPTS_PMT[@]}" -- '' 'Confirm' ': '
+          dprint_ode "${D_PRINTC_OPTS_PMT[@]}" -- '' 'Confirm' ': '
         fi
 
         # Prompt user
@@ -1795,14 +1795,14 @@ __remove_pkgs()
     if $proceeding; then
       os_pkgmgr dremove "$pkgname"
       if [ $? -eq 0 ]; then
-        dprint_msg "${D_PRINTC_OPTS_NM[@]}" -c "$GREEN" -- \
+        dprint_ode "${D_PRINTC_OPTS_NM[@]}" -c "$GREEN" -- \
           'vvv' 'Removed' ':' "$task_desc" "$task_name"
       else
-        dprint_msg "${D_PRINTC_OPTS_NM[@]}" -c "$RED" -- \
+        dprint_ode "${D_PRINTC_OPTS_NM[@]}" -c "$RED" -- \
           'xxx' 'Failed' ':' "$task_desc" "$task_name"
       fi
     else
-      dprint_msg "${D_PRINTC_OPTS_NM[@]}" -c "$WHITE" -- \
+      dprint_ode "${D_PRINTC_OPTS_NM[@]}" -c "$WHITE" -- \
         '---' 'Skipped' ':' "$task_desc" "$task_name"
     fi
 
@@ -1938,24 +1938,24 @@ __remove_dpls()
     if $proceeding && [ "$aa_mode" = true -o "$D_BLANKET_ANSWER" != y ]; then
 
       # Print message about the upcoming removal
-      dprint_msg "${D_PRINTC_OPTS_NM[@]}" -c "$YELLOW" -- \
+      dprint_ode "${D_PRINTC_OPTS_NM[@]}" -c "$YELLOW" -- \
         '>>>' 'Removing' ':' "$task_desc" "$task_name" \
         && intro_printed=true
       # In verbose mode, print location of script to be sourced
       debug_print "Location: $divinedpl_filepath"
       # If description is available, show it
-      [ -n "$desc" ] && dprint_msg "${D_PRINTC_OPTS_DSC[@]}" -- \
+      [ -n "$desc" ] && dprint_ode "${D_PRINTC_OPTS_DSC[@]}" -- \
         '' 'Description' ':' "$desc"
       # If warning is relevant, show it
       [ -n "$warning" -a "$aa_mode" = true ] \
-        && dprint_msg "${D_PRINTC_OPTS_WRN[@]}" -c "$RED" -- \
+        && dprint_ode "${D_PRINTC_OPTS_WRN[@]}" -c "$RED" -- \
           '' 'Warning' ':' "$warning"
 
       # Prompt slightly differs depending on whether ‘always ask’ is enabled
       if $aa_mode; then
-        dprint_msg "${D_PRINTC_OPTS_DNG[@]}" -c "$RED" -- '!!!' 'Danger' ': '
+        dprint_ode "${D_PRINTC_OPTS_DNG[@]}" -c "$RED" -- '!!!' 'Danger' ': '
       else
-        dprint_msg "${D_PRINTC_OPTS_PMT[@]}" -- '' 'Confirm' ': '
+        dprint_ode "${D_PRINTC_OPTS_PMT[@]}" -- '' 'Confirm' ': '
       fi
 
       # Prompt user
@@ -2004,7 +2004,7 @@ __remove_dpls()
     if $proceeding; then
 
       # Print descriptive introduction if haven’t already
-      $intro_printed || dprint_msg "${D_PRINTC_OPTS_NM[@]}" -c "$YELLOW" -- \
+      $intro_printed || dprint_ode "${D_PRINTC_OPTS_NM[@]}" -c "$YELLOW" -- \
           '>>>' 'Removing' ':' "$task_desc" "$task_name"
 
       # Get return code of dremove, or fall back to zero
@@ -2017,13 +2017,13 @@ __remove_dpls()
       # Analyze exit code
       case $dpl_status in
         0|100|101)
-          dprint_msg "${D_PRINTC_OPTS_NM[@]}" -c "$GREEN" -- \
+          dprint_ode "${D_PRINTC_OPTS_NM[@]}" -c "$GREEN" -- \
             'vvv' 'Removed' ':' "$task_desc" "$task_name";;
         2)
-          dprint_msg "${D_PRINTC_OPTS_NM[@]}" -c "$WHITE" -- \
+          dprint_ode "${D_PRINTC_OPTS_NM[@]}" -c "$WHITE" -- \
             '---' 'Skipped' ':' "$task_desc" "$task_name";;
         1|666|*)
-          dprint_msg "${D_PRINTC_OPTS_NM[@]}" -c "$RED" -- \
+          dprint_ode "${D_PRINTC_OPTS_NM[@]}" -c "$RED" -- \
             'xxx' 'Failed' ':' "$task_desc" "$task_name";;
       esac
 
@@ -2031,7 +2031,7 @@ __remove_dpls()
       [ $dpl_status -ge 100 ] && return $dpl_status
 
     else
-      dprint_msg "${D_PRINTC_OPTS_NM[@]}" -c "$WHITE" -- \
+      dprint_ode "${D_PRINTC_OPTS_NM[@]}" -c "$WHITE" -- \
         '---' 'Skipped' ':' "$task_desc" "$task_name"
     fi
 
@@ -2159,14 +2159,14 @@ __check_pkgs()
     # Perform check
     if $proceeding; then
       if os_pkgmgr dcheck "$pkgname"; then
-        dprint_msg "${D_PRINTC_OPTS_NM[@]}" -c "$GREEN" -- \
+        dprint_ode "${D_PRINTC_OPTS_NM[@]}" -c "$GREEN" -- \
           'vvv' 'Installed' ':' "$task_desc" "$task_name"
       else
-        dprint_msg "${D_PRINTC_OPTS_NM[@]}" -c "$RED" -- \
+        dprint_ode "${D_PRINTC_OPTS_NM[@]}" -c "$RED" -- \
           'xxx' 'Not installed' ':' "$task_desc" "$task_name"
       fi
     else
-      dprint_msg "${D_PRINTC_OPTS_NM[@]}" -c "$WHITE" -- \
+      dprint_ode "${D_PRINTC_OPTS_NM[@]}" -c "$WHITE" -- \
         '---' 'Skipped' ':' "$task_desc" "$task_name"
     fi
 
@@ -2292,24 +2292,24 @@ __check_dpls()
     if $proceeding && [ "$aa_mode" = true -o "$D_BLANKET_ANSWER" != y ]; then
 
       # Print message about the upcoming checking
-      dprint_msg "${D_PRINTC_OPTS_NM[@]}" -c "$YELLOW" -- \
+      dprint_ode "${D_PRINTC_OPTS_NM[@]}" -c "$YELLOW" -- \
         '>>>' 'Checking' ':' "$task_desc" "$task_name" \
         && intro_printed=true
       # In verbose mode, print location of script to be sourced
       debug_print "Location: $divinedpl_filepath"
       # If description is available, show it
-      [ -n "$desc" ] && dprint_msg "${D_PRINTC_OPTS_DSC[@]}" -- \
+      [ -n "$desc" ] && dprint_ode "${D_PRINTC_OPTS_DSC[@]}" -- \
         '' 'Description' ':' "$desc"
       # If warning is relevant, show it
       [ -n "$warning" -a "$aa_mode" = true ] \
-        && dprint_msg "${D_PRINTC_OPTS_WRN[@]}" -c "$RED" -- \
+        && dprint_ode "${D_PRINTC_OPTS_WRN[@]}" -c "$RED" -- \
           '' 'Warning' ':' "$warning"
 
       # Prompt slightly differs depending on whether ‘always ask’ is enabled
       if $aa_mode; then
-        dprint_msg "${D_PRINTC_OPTS_DNG[@]}" -c "$RED" -- '!!!' 'Danger' ': '
+        dprint_ode "${D_PRINTC_OPTS_DNG[@]}" -c "$RED" -- '!!!' 'Danger' ': '
       else
-        dprint_msg "${D_PRINTC_OPTS_PMT[@]}" -- '' 'Confirm' ': '
+        dprint_ode "${D_PRINTC_OPTS_PMT[@]}" -- '' 'Confirm' ': '
       fi
 
       # Prompt user
@@ -2341,25 +2341,25 @@ __check_dpls()
       # Process return code
       case $dpl_status in
         1)
-          dprint_msg "${D_PRINTC_OPTS_NM[@]}" -c "$GREEN" -- \
+          dprint_ode "${D_PRINTC_OPTS_NM[@]}" -c "$GREEN" -- \
             'vvv' 'Installed' ':' "$task_desc" "$task_name"
           ;;
         2)
-          dprint_msg "${D_PRINTC_OPTS_NM[@]}" -c "$RED" -- \
+          dprint_ode "${D_PRINTC_OPTS_NM[@]}" -c "$RED" -- \
             'xxx' 'Not installed' ':' "$task_desc" "$task_name"
           ;;
         3)
-          dprint_msg "${D_PRINTC_OPTS_NM[@]}" -c "$MAGENTA" -- \
+          dprint_ode "${D_PRINTC_OPTS_NM[@]}" -c "$MAGENTA" -- \
             '~~~' 'Irrelevant' ':' "$task_desc" "$task_name"
           ;;
         *)
-          dprint_msg "${D_PRINTC_OPTS_NM[@]}" -c "$BLUE" -- \
+          dprint_ode "${D_PRINTC_OPTS_NM[@]}" -c "$BLUE" -- \
             '???' 'Unknown' ':' "$task_desc" "$task_name"
           ;;
       esac
 
     else
-      dprint_msg "${D_PRINTC_OPTS_NM[@]}" -c "$WHITE" -- \
+      dprint_ode "${D_PRINTC_OPTS_NM[@]}" -c "$WHITE" -- \
         '---' 'Skipped' ':' "$task_desc" "$task_name"
     fi
 

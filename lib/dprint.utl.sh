@@ -16,7 +16,7 @@
 #>  dprint_skip     [-n] [CHUNKS|-n|-i]…
 #>  dprint_success  [-n] [CHUNKS|-n|-i]…
 #>  dprint_failure  [-n] [CHUNKS|-n|-i]…
-#>  dprint_msg [-no] [-c|--color X] [--width-N X] [--effects-N X] [--] FIELD1 [FIELD2…]
+#>  dprint_ode [-no] [-c|--color X] [--width-N X] [--effects-N X] [--] FIELD1 [FIELD2…]
 #>  dprint_plaque [-nope]… [-c|--color X] [-w|--width X] [-r|--padding-char X] [--] MSG
 #
 
@@ -204,7 +204,7 @@ dprint_failure()
   done; printf >&2 '\n'; return 0
 }
 
-#>  dprint_msg [-no] [-c|--color X] [--width-N X] [--effects-N X] [--] FIELD1 [FIELD2…]
+#>  dprint_ode [-no] [-c|--color X] [--width-N X] [--effects-N X] [--] FIELD1 [FIELD2…]
 #
 ## Prints formatted message consisting of fields. Arguments are textual 
 #. ‘fields’ numbered from one. Adjacent non-empty fields are separated by 
@@ -215,7 +215,7 @@ dprint_failure()
 #. it is instead wrapped to as many lines as necessary, all starting at the 
 #. same column.
 #
-#>  dprint_msg -c $GREEN '>>>' Success: 'Operation completed' '(no errors)'
+#>  dprint_ode -c $GREEN '>>>' Success: 'Operation completed' '(no errors)'
 #=  >>> Success: Operation completed (no errors)
 #
 ## Effects applied by default:
@@ -256,7 +256,7 @@ dprint_failure()
 #.  stdout: Composed and formatted message
 #.  stderr: Error descriptions
 #
-dprint_msg()
+dprint_ode()
 {
   # Parse args for supported options
   local args=( 'placeholder' ) delim=false i opts opt
