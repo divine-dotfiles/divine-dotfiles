@@ -30,7 +30,13 @@
 #.                        chunks as regular arguments.
 #.  -c|--color COLOR    - Uses color X (see dcolors.utl.sh) in formatting. 
 #.                        Without this, $YELLOW is used.
-#.  -b|--bare           - Remove built-in coloring and bolding effects
+#.  -b|--bare           - (repeatable) Gradually remove built-in coloring and 
+#.                        bolding effects. Depending on number of -b options:
+#.                          0:  bold, color, reverse color
+#.                          1:  bold, color
+#.                          2:  bold
+#.                          3:  color
+#.                          4+: -
 #.  -r|--arrow          - Print '==>' arrow. Without this option, the arrow is 
 #.                        only printed with at least one textual chunk.
 #.  -k|--any-key        - Mode: any key. Return 0 on any key press.
@@ -57,7 +63,7 @@ dprompt_key()
 {
   # Parse options
   local args=() prompt= prompt_overridden=false color="${YELLOW}"
-  local arrow=false bare=false mode=yn or_quit=false
+  local arrow=false formats=4 mode=yn or_quit=false
   local i opts opt
   while (($#)); do
     case $1 in
@@ -66,7 +72,7 @@ dprompt_key()
                     case $1 in true) return 0;; false) return 1;; *) :;; esac;;
       -p|--prompt)  shift; prompt="$1"; prompt_overridden=true;;
       -c|--color)   shift; color="$1";;
-      -b|--bare)    bare=true;; 
+      -b|--bare)    ((formats)) && ((formats--));; 
       -r|--arrow)   arrow=true;;
       -k|--any-key) mode=any;;
       -y|--yes-no)  mode=yn;;
@@ -77,7 +83,7 @@ dprompt_key()
                             false) return 1;; *) :;; esac;;
                         p)  shift; prompt="$1"; prompt_overridden=true;;
                         c)  shift; color="$1";;
-                        b)  bare=true;;
+                        b)  ((formats)) && ((formats--));;
                         r)  arrow=true;;
                         k)  mode=any;;
                         y)  mode=yn;;
@@ -97,17 +103,21 @@ dprompt_key()
   [ "$1" = -n ] && { printf >&2 '\n'; shift; }
 
   # Compose formatting
-  local prefix= suffix= spacing=
-  $bare || {
-    prefix="${BOLD}${color}${REVERSE}"; suffix="${NORMAL}"; spacing=' '
-  }
+  local prefix suffix spacing
+  case $formats in
+    4) prefix="${BOLD}${color}${REVERSE}"; suffix="${NORMAL}"; spacing=' ';;
+    3) prefix="${BOLD}${color}"; suffix="${NORMAL}"; spacing=;;
+    2) prefix="${BOLD}"; suffix="${NORMAL}"; spacing=;;
+    1) prefix="${color}"; suffix="${NORMAL}"; spacing=;;
+    *) prefix=; suffix=; spacing=;;
+  esac
 
   # If still have chunks to print (or if requested), print arrow
   if (($#)); then
     printf >&2 '%s' "${prefix}==>${suffix}"
   elif [ "$arrow" = true ]; then
     printf >&2 '%s' "${prefix}==>${suffix}"
-    $bare && printf >&2 ' '
+    ((formats<4)) && printf >&2 ' '
   fi
 
   # Print any remaining chunks, space-separated
@@ -116,8 +126,8 @@ dprompt_key()
     *) printf >&2 ' %s' "$chunk";; esac
   done
 
-  # Print newline if there were any chunks printed
-  (($#)) && printf >&2 '\n'
+  # Print newline and indentation if there were any chunks printed
+  (($#)) && printf >&2 '\n    '
 
   # Pre-fill ‘safe’ default answer; prepare input storage
   local ans=false input prompt
