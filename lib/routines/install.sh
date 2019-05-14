@@ -351,7 +351,7 @@ __install_dpls()
         '>>>' 'Installing' ':' "$task_desc" "$task_name" \
         && intro_printed=true
       # In verbose mode, print location of script to be sourced
-      debug_print "Location: $divinedpl_filepath"
+      dprint_debug "Location: $divinedpl_filepath"
       # If description is available, show it
       [ -n "$desc" ] && dprint_ode "${D_PRINTC_OPTS_DSC[@]}" -- \
         '' 'Description' ':' "$desc"
@@ -378,7 +378,7 @@ __install_dpls()
     # Source the *.dpl.sh file
     if $proceeding; then
       # Print informative message for potential debugging of errors
-      debug_print "Sourcing: $divinedpl_filepath"
+      dprint_debug "Sourcing: $divinedpl_filepath"
       # Hold your breath…
       source "$divinedpl_filepath"
     fi
