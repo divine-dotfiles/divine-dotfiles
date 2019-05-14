@@ -50,7 +50,7 @@ dprint_debug()
 
   # Compose message from arguments and print it all on the go
   [ "$1" = -n ] && { printf >&2 '\n'; shift; }; printf >&2 '%s' "${CYAN}==>"
-  local chunk; for chunk; do
+  local chunk; for chunk do
     case $chunk in -n) printf >&2 '\n   ';; -i) printf >&2 '\n       ';;
     *) printf >&2 ' %s' "$chunk";; esac
   done; printf >&2 '%s\n' "${NORMAL}"; return 0
@@ -87,7 +87,7 @@ dprint_start()
 
   # Compose message from arguments and print it all on the go
   [ "$1" = -n ] && { printf >&2 '\n'; shift; }
-  printf >&2 '%s' "${BOLD}${YELLOW}==>${NORMAL}"; local chunk; for chunk; do
+  printf >&2 '%s' "${BOLD}${YELLOW}==>${NORMAL}"; local chunk; for chunk do
     case $chunk in -n) printf >&2 '\n   ';; -i) printf >&2 '\n       ';;
     *) printf >&2 ' %s' "$chunk";; esac
   done; printf >&2 '\n'; return 0
@@ -124,7 +124,7 @@ dprint_skip()
 
   # Compose message from arguments and print it all on the go
   [ "$1" = -n ] && { printf >&2 '\n'; shift; }
-  printf >&2 '%s' "${BOLD}${WHITE}==>${NORMAL}"; local chunk; for chunk; do
+  printf >&2 '%s' "${BOLD}${WHITE}==>${NORMAL}"; local chunk; for chunk do
     case $chunk in -n) printf >&2 '\n   ';; -i) printf >&2 '\n       ';;
     *) printf >&2 ' %s' "$chunk";; esac
   done; printf >&2 '\n'; return 0
@@ -161,7 +161,7 @@ dprint_success()
 
   # Compose message from arguments and print it all on the go
   [ "$1" = -n ] && { printf >&2 '\n'; shift; }
-  printf >&2 '%s' "${BOLD}${GREEN}==>${NORMAL}"; local chunk; for chunk; do
+  printf >&2 '%s' "${BOLD}${GREEN}==>${NORMAL}"; local chunk; for chunk do
     case $chunk in -n) printf >&2 '\n   ';; -i) printf >&2 '\n       ';;
     *) printf >&2 ' %s' "$chunk";; esac
   done; printf >&2 '\n'; return 0
@@ -198,7 +198,7 @@ dprint_failure()
 
   # Compose message from arguments and print it all on the go
   [ "$1" = -n ] && { printf >&2 '\n'; shift; }
-  printf >&2 '%s' "${BOLD}${RED}==>${NORMAL}"; local chunk; for chunk; do
+  printf >&2 '%s' "${BOLD}${RED}==>${NORMAL}"; local chunk; for chunk do
     case $chunk in -n) printf >&2 '\n   ';; -i) printf >&2 '\n       ';;
     *) printf >&2 ' %s' "$chunk";; esac
   done; printf >&2 '\n'; return 0
