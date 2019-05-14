@@ -26,7 +26,7 @@
 densure()
 {
   # Extract util name
-  local util_name="${BOLD}${1}${NORMAL}"
+  local util_name="$1"
 
   # If command by that name is available, return zero immediately
   command -v "$util_name" &>/dev/null && return 0
@@ -44,12 +44,10 @@ densure()
   
   else
 
-    local pkgmgr_name="${BOLD}${OS_PKGMGR}${NORMAL}"
-
     # Prompt user for whether to install utility
     if dprompt_key --answer "$D_BLANKET_ANSWER" \
-      "Package manager $pkgmgr_name is available" \
-      --prompt "Install $util_name using $pkgmgr_name?"
+      "Package manager $OS_PKGMGR is available" \
+      --prompt "Install $util_name using $OS_PKGMGR?"
     then
 
       # Announce installation
