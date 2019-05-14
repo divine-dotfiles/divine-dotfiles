@@ -1217,7 +1217,7 @@ __update_pkgs()
     # Unless given a ‘-y’ option, prompt for user’s approval
     if $proceeding && [ "$D_BLANKET_ANSWER" != y ]; then
       dprint_ode "${D_PRINTC_OPTS_PMT[@]}" -- '' 'Confirm' ': '
-      dprompt && proceeding=true || {
+      dprompt_key --bare && proceeding=true || {
         task_name="$task_name (declined by user)"
         proceeding=false
       }
@@ -1339,7 +1339,7 @@ __install_pkgs()
         fi
 
         # Prompt user
-        dprompt && proceeding=true || {
+        dprompt_key --bare && proceeding=true || {
           task_name="$task_name (declined by user)"
           proceeding=false
         }
@@ -1513,7 +1513,7 @@ __install_dpls()
       fi
 
       # Prompt user
-      dprompt && proceeding=true || {
+      dprompt_key --bare && proceeding=true || {
         task_name="$task_name (declined by user)"
         proceeding=false
       }
@@ -1782,7 +1782,7 @@ __remove_pkgs()
         fi
 
         # Prompt user
-        dprompt && proceeding=true || {
+        dprompt_key --bare && proceeding=true || {
           task_name="$task_name (declined by user)"
           proceeding=false
         }
@@ -1959,7 +1959,7 @@ __remove_dpls()
       fi
 
       # Prompt user
-      dprompt && proceeding=true || {
+      dprompt_key --bare && proceeding=true || {
         task_name="$task_name (declined by user)"
         proceeding=false
       }
@@ -2313,7 +2313,7 @@ __check_dpls()
       fi
 
       # Prompt user
-      dprompt && proceeding=true || {
+      dprompt_key --bare && proceeding=true || {
         task_name="$task_name (declined by user)"
         proceeding=false
       }
@@ -2982,7 +2982,7 @@ __adding__prompt_git_repo()
       "$repo_address"
 
     # Prompt user
-    dprompt 'Add it?' && yes=true || yes=false
+    dprompt_key --bare --prompt 'Add it?' && yes=true || yes=false
 
   fi
 
@@ -3026,9 +3026,9 @@ __adding__prompt_dir_or_file()
 
     # Prompt user
     if $D_ADD_LINK; then
-      dprompt 'Link it?' && yes=true || yes=false
+      dprompt_key --bare --prompt 'Link it?' && yes=true || yes=false
     else
-      dprompt 'Add it?' && yes=true || yes=false
+      dprompt_key --bare --prompt 'Add it?' && yes=true || yes=false
     fi
 
   fi
@@ -3122,7 +3122,7 @@ __adding__clobber_check()
       fi
 
       # Prompt user
-      dprompt 'Pre-erase?' && yes=true || yes=false
+      dprompt_key --bare --prompt 'Pre-erase?' && yes=true || yes=false
 
     fi
 
