@@ -15,18 +15,50 @@
 #. into the deployments directory
 #
 
-#>  __adding__main
+#>  __perform_add
 #
 ## Performs addition routine
 #
 ## Returns:
-#.  0 - Routine performed
-#.  1 - Routine terminated prematurely
+#.  0 - Routine performed, all arguments added successfully
+#.  1 - Routine performed, only some arguments added successfully
+#.  2 - Routine performed, none of the arguments added
+#.  3 - Routine terminated with nothing to do
 #
-__adding__main()
+__perform_add()
 {
+  # Announce beginning
+  if [ "$D_BLANKET_ANSWER" = false ]; then
+    dprint_plaque -pcw "$WHITE" "$D_PLAQUE_WIDTH" \
+      -- '‘Adding’ deployments'
+  else
+    dprint_plaque -pcw "$GREEN" "$D_PLAQUE_WIDTH" \
+      -- 'Adding deployments'
+  fi
+
   # Unless just linking: check if git is available and offer to install it
-  if ! $D_ADD_LINK; then __adding__check_for_git; fi
+  if ! $D_ADD_LINK; then
+    # Check if git is available (possibly install it)
+    if ! __adding__check_or_install git; then
+
+      # Inform of the issue
+      dprint_debug 'Repository cloning will not be available'
+      NO_GIT=true
+
+      # Check of curl/wget are available (for downloading Github tarballs)
+      if ! curl --version &>/dev/null && ! wget --version &>/dev/null; then
+        dprint_debug 'Neither curl nor wget is detected'
+        dprint_debug 'Github repositories will not be available'
+        NO_GITHUB=true
+      fi
+
+      # Check if tar is available (for extracting Github tarballs)
+      if ! __adding__check_or_install tar; then
+        dprint_debug 'Github repositories will not be available'
+        NO_GITHUB=true
+      fi
+    fi
+  fi
 
   # Storage & status variables
   local dpl_arg
@@ -39,10 +71,12 @@ __adding__main()
     # Set default status
     arg_success=true
 
+    # Print newline to visually separate additions
+    printf >&2 '\n'
+
     # Announce start
-    printf >&2 '\n%s %s\n' \
-      "${BOLD}${YELLOW}==>${NORMAL}" \
-      "Processing '$dpl_arg'"
+    dprint_ode "${D_PRINTC_OPTS_NRM[@]}" -c "$YELLOW" -- \
+      '>>>' 'Processing' ':' "$dpl_arg"
 
     # Process each argument sequentially until the first hit
     if $D_ADD_LINK; then
@@ -59,39 +93,42 @@ __adding__main()
     
     # Report and set status
     if $arg_success; then
-      printf >&2 '\n%s %s\n' \
-        "${BOLD}${GREEN}==>${NORMAL}" \
-        "Successfully added '$dpl_arg'"
       added_anything=true
+      dprint_ode "${D_PRINTC_OPTS_NRM[@]}" -c "$GREEN" -- \
+        '>>>' 'Success' ':' "$dpl_arg"
     else
-      printf >&2 '\n%s %s\n' \
-        "${BOLD}${RED}==>${NORMAL}" \
-        "Did not add '$dpl_arg'"
       errors_encountered=true
+      dprint_ode "${D_PRINTC_OPTS_NRM[@]}" -c "$RED" -- \
+        '>>>' 'Failed' ':' "$dpl_arg"
     fi
 
   done
 
   # Announce routine completion
-  if $added_anything; then
+  printf >&2 '\n'
+  if [ "$D_BLANKET_ANSWER" = false ]; then
+    dprint_plaque -pcw "$WHITE" "$D_PLAQUE_WIDTH" \
+      -- 'Finished ‘adding’ deployments'
+    return 3
+  elif $added_anything; then
     if $errors_encountered; then
-      printf >&2 '\n%s %s\n' \
-        "${BOLD}${YELLOW}==>${NORMAL}" \
-        'Successfully added some deployments'
+      dprint_plaque -pcw "$YELLOW" "$D_PLAQUE_WIDTH" \
+        -- 'Successfully added some deployments'
+      return 1
     else
-      printf >&2 '\n%s %s\n' \
-        "${BOLD}${GREEN}==>${NORMAL}" \
-        'Successfully added all deployments'
+      dprint_plaque -pcw "$GREEN" "$D_PLAQUE_WIDTH" \
+        -- 'Successfully added all deployments'
+      return 0
     fi
   else
     if $errors_encountered; then
-      printf >&2 '\n%s %s\n' \
-        "${BOLD}${RED}==>${NORMAL}" \
-        'Did not add any deployments'
+      dprint_plaque -pcw "$RED" "$D_PLAQUE_WIDTH" \
+        -- 'Failed to add deployments'
+      return 2
     else
-      printf >&2 '\n%s %s\n' \
-        "${BOLD}${WHITE}==>${NORMAL}" \
-        'Nothing to do'
+      dprint_plaque -pcw "$WHITE" "$D_PLAQUE_WIDTH" \
+        -- 'Nothing to do'
+      return 3
     fi
   fi
 }
@@ -108,6 +145,9 @@ __adding__main()
 #
 __adding__attempt_github_repo()
 {
+  # In previously deteced that both git and tar are unavailable: skip
+  $NO_GITHUB && return 1
+
   # Extract argument
   local repo_arg="$1"
 
@@ -126,7 +166,7 @@ __adding__attempt_github_repo()
   fi
 
   # Announce start
-  printf >&2 '  %s\n' 'interpreting as Github repository'
+  dprint_debug 'Interpreting as Github repository'
 
   # Construct temporary destination path
   local temp_dest="$( mktemp -d )"
@@ -154,18 +194,18 @@ __adding__attempt_github_repo()
       # Both git and remote repo are available
 
       # Prompt user about the addition
-      __adding__prompt_git_repo "https://github.com/${user_repo}" || return 1
+      dprompt_key -bbbb --answer "$D_BLANKET_ANSWER" --prompt 'Clone it?' -- \
+        "Detected ${BOLD}Github repository${NORMAL} at:" \
+        -i "https://github.com/${user_repo}" || return 1
 
       # Make shallow clone of repository
       git clone --depth=1 "https://github.com/${user_repo}.git" \
         "$temp_dest" &>/dev/null \
         || {
           # Announce failure to clone
-          printf >&2 '\n%s %s\n  %s\n' \
-            "${BOLD}${RED}==>${NORMAL}" \
-            'Failed to clone repository at:' \
-            "https://github.com/${user_repo}"
-          printf >&2 '%s\n  %s\n' 'to temporary directory at:' "$temp_dest"
+          dprint_debug 'Failed to clone repository at:' \
+            -i "https://github.com/${user_repo}" \
+            -n 'to temporary directory at:' -i "$temp_dest"
           # Try to clean up
           rm -rf -- "$temp_dest"
           # Return
@@ -178,16 +218,13 @@ __adding__attempt_github_repo()
     else
 
       # Repo does not exist
+      dprint_debug 'Non-existent repository at:' \
+        -i "https://github.com/${user_repo}"
       return 1
     
     fi
 
   else
-
-    # If curl/wget are not available, don’t bother
-    if ! curl --version &>/dev/null && ! wget --version &>/dev/null; then
-      return 1
-    fi
 
     # Not cloning repository, tinker with destination paths again
     if [ "$D_ADD_MODE" = normal ]; then
@@ -205,11 +242,9 @@ __adding__attempt_github_repo()
       # Both curl and remote repo are available
 
       # Prompt user about the addition
-      __adding__prompt_git_repo "https://github.com/${user_repo}" || return 1
-
-      # Check if tar is available
-      __adding__check_for_tar \
-        "https://api.github.com/repos/${user_repo}/tarball" || return 1
+      dprompt_key -bbbb --answer "$D_BLANKET_ANSWER" --prompt 'Download it?' \
+        -- "Detected ${BOLD}Github repository${NORMAL} (tarball) at:" \
+        -i "https://github.com/${user_repo}" || return 1
 
       # Download and untar in one fell swoop
       curl -sL "https://api.github.com/repos/${user_repo}/tarball" \
@@ -217,12 +252,11 @@ __adding__attempt_github_repo()
       
       # Check status
       [ $? -eq 0 ] || {
-        # Announce failure to clone
-        printf >&2 '\n%s %s\n  %s\n' \
-          "${BOLD}${RED}==>${NORMAL}" \
+        # Announce failure to download
+        dprint_debug \
           'Failed to download (curl) or extract tarball repository at:' \
-          "https://api.github.com/repos/${user_repo}/tarball"
-        printf >&2 '%s\n  %s\n' 'to temporary directory at:' "$temp_dest"
+          -i "https://api.github.com/repos/${user_repo}/tarball" \
+          -n 'to temporary directory at:' -i "$temp_dest"
         # Try to clean up
         rm -rf -- "$temp_dest"
         # Return
@@ -239,11 +273,9 @@ __adding__attempt_github_repo()
       # Both wget and remote repo are available
 
       # Prompt user about the addition
-      __adding__prompt_git_repo "https://github.com/${user_repo}" || return 1
-
-      # Check if tar is available
-      __adding__check_for_tar \
-        "https://api.github.com/repos/${user_repo}/tarball" || return 1
+      dprompt_key -bbbb --answer "$D_BLANKET_ANSWER" --prompt 'Download it?' \
+        -- "Detected ${BOLD}Github repository${NORMAL} (tarball) at:" \
+        -i "https://github.com/${user_repo}" || return 1
 
       # Download and untar in one fell swoop
       wget -qO - "https://api.github.com/repos/${user_repo}/tarball" \
@@ -251,12 +283,11 @@ __adding__attempt_github_repo()
       
       # Check status
       [ $? -eq 0 ] || {
-        # Announce failure to clone
-        printf >&2 '\n%s %s\n  %s\n' \
-          "${BOLD}${RED}==>${NORMAL}" \
+        # Announce failure to download
+        dprint_debug \
           'Failed to download (wget) or extract tarball repository at:' \
-          "https://api.github.com/repos/${user_repo}/tarball"
-        printf >&2 '%s\n  %s\n' 'to temporary directory at:' "$temp_dest"
+          -i "https://api.github.com/repos/${user_repo}/tarball" \
+          -n 'to temporary directory at:' -i "$temp_dest"
         # Try to clean up
         rm -rf -- "$temp_dest"
         # Return
@@ -268,7 +299,9 @@ __adding__attempt_github_repo()
 
     else
 
-      # Either none of the tools were available, or repo does not exist
+      # Repo does not exist
+      dprint_debug 'Non-existent repository at:' \
+        -i "https://github.com/${user_repo}"
       return 1
 
     fi
@@ -289,10 +322,8 @@ __adding__attempt_github_repo()
     # Finally, move cloned repository to intended location
     mv -n -- "$temp_dest" "$perm_dest" || {
       # Announce failure to move
-      printf >&2 '\n%s %s\n  %s\n' \
-        "${BOLD}${RED}==>${NORMAL}" \
-        'Failed to move deployments from temporary location at:' "$temp_dest"
-      printf >&2 '%s\n  %s\n' 'to intended location at:' "$perm_dest"
+      dprint_debug 'Failed to move deployments from temporary location at:' \
+        -i "$temp_dest" -n 'to intended location at:' -i "$perm_dest"
       # Try to clean up
       rm -rf -- "$temp_dest"
       # Return
@@ -300,16 +331,15 @@ __adding__attempt_github_repo()
     }
 
     # All done: announce and return
-    printf >&2 '\n%s %s\n  %s\n' \
-      "${BOLD}${GREEN}==>${NORMAL}" \
-      'Successfully added Github-hosted deployments from:' \
-      "https://github.com/${user_repo}"
-    printf >&2 '%s\n  %s\n' 'to intended location at:' "$perm_dest"
+    dprint_debug 'Successfully added Github-hosted deployments from:' \
+      -i "https://github.com/${user_repo}" \
+      -n 'to intended location at:' -i "$perm_dest"
     return 0
   
   else
 
     # Somehow got here without successfully pulling repo: return error
+    dprint_debug 'Not supposed to get here'
     return 1
   
   fi
@@ -326,6 +356,9 @@ __adding__attempt_github_repo()
 #
 __adding__attempt_local_repo()
 {
+  # If it has been detected that git is unavailable: skip
+  $NO_GIT && return 1
+
   # Extract argument
   local repo_arg="$1"
 
@@ -336,16 +369,14 @@ __adding__attempt_local_repo()
   git --version >&/dev/null || return 1
 
   # Announce start
-  printf >&2 '  %s\n' 'interpreting as local repository'
+  dprint_debug 'Interpreting as local repository'
 
   # Construct full path to directory
   local repo_path="$( cd -- "$repo_arg" && pwd -P || exit $? )"
 
   # Check if directory was accessible
   if [ $? -ne 0 ]; then
-    printf >&2 '\n%s %s\n  %s\n' \
-      "${BOLD}${RED}==>${NORMAL}" \
-      'Failed to access local repository at:' "$repo_path"
+    dprint_debug 'Failed to access local repository at:' -i "$repo_path"
     return 1
   fi
 
@@ -370,16 +401,16 @@ __adding__attempt_local_repo()
     # Both git and local repo are available
 
     # Prompt user about the addition
-    __adding__prompt_git_repo "$repo_path" || return 1
+    dprompt_key -bbbb --answer "$D_BLANKET_ANSWER" --prompt 'Clone it?' -- \
+      "Detected ${BOLD}local git repository${NORMAL} at:" -i "$repo_path" \
+        || return 1
 
     # Make shallow clone of repository
     git clone --depth=1 "$repo_path" "$temp_dest" &>/dev/null \
       || {
         # Announce failure to clone
-        printf >&2 '\n%s %s\n  %s\n' \
-          "${BOLD}${RED}==>${NORMAL}" \
-          'Failed to clone repository at:' "$repo_path"
-        printf >&2 '%s\n  %s\n' 'to temporary directory at:' "$temp_dest"
+        dprint_debug 'Failed to clone repository at:' -i "$repo_path" \
+          -n 'to temporary directory at:' -i "$temp_dest"
         # Try to clean up
         rm -rf -- "$temp_dest"
         # Return
@@ -396,10 +427,8 @@ __adding__attempt_local_repo()
     # Finally, move cloned repository to intended location
     mv -n -- "$temp_dest" "$perm_dest" || {
       # Announce failure to move
-      printf >&2 '\n%s %s\n  %s\n' \
-        "${BOLD}${RED}==>${NORMAL}" \
-        'Failed to move deployments from temporary location at:' "$temp_dest"
-      printf >&2 '%s\n  %s\n' 'to intended location at:' "$perm_dest"
+      dprint_debug 'Failed to move deployments from temporary location at:' \
+        -i "$temp_dest" -n 'to intended location at:' -i "$perm_dest"
       # Try to clean up
       rm -rf -- "$temp_dest"
       # Return
@@ -407,15 +436,14 @@ __adding__attempt_local_repo()
     }
 
     # All done: announce and return
-    printf >&2 '\n%s %s\n  %s\n' \
-      "${BOLD}${GREEN}==>${NORMAL}" \
-      'Successfully added local git-controlled deployments from:' "$repo_path"
-    printf >&2 '%s\n  %s\n' 'to intended location at:' "$perm_dest"
+    dprint_debug 'Successfully added local git-controlled deployments from:' \
+      -i "$repo_path" -n 'to intended location at:' -i "$perm_dest"
     return 0
     
   else
 
-    # Either git is not available, or directory is not a git repo
+    # Directory is not a git repo
+    dprint_debug 'Not a git repository at:' -i "$repo_path"
     return 1
 
   fi
@@ -439,16 +467,14 @@ __adding__attempt_local_dir()
   [ -d "$dir_arg" ] || return 1
 
   # Announce start
-  printf >&2 '  %s\n' 'interpreting as local directory'
+  dprint_debug 'Interpreting as local directory'
 
   # Construct full path to directory
   local dir_path="$( cd -- "$dir_arg" && pwd -P || exit $? )"
 
   # Check if directory was accessible
   if [ $? -ne 0 ]; then
-    printf >&2 '\n%s %s\n  %s\n' \
-      "${BOLD}${RED}==>${NORMAL}" \
-      'Failed to access local direcotry at:' "$dir_path"
+    dprint_debug 'Failed to access local directory at:' -i "$dir_path"
     return 1
   fi
 
@@ -464,7 +490,10 @@ __adding__attempt_local_dir()
   esac
 
   # Prompt user about the addition
-  __adding__prompt_dir_or_file "$dir_path" || return 1
+  local prompt; $D_ADD_LINK && prompt='Link it?' || prompt='Copy it?'
+  dprompt_key -bbbb --answer "$D_BLANKET_ANSWER" --prompt "$prompt" -- \
+    "Detected ${BOLD}local directory${NORMAL} at:" -i "$dir_path" \
+      || return 1
 
   # Check whether directory to be added contains any deployments
   __adding__check_for_deployments "$dir_path" "$dir_path" \
@@ -477,30 +506,24 @@ __adding__attempt_local_dir()
   if $D_ADD_LINK; then
     dln -- "$dir_path" "$perm_dest" || {
       # Announce failure to link
-      printf >&2 '\n%s %s\n  %s\n' \
-        "${BOLD}${RED}==>${NORMAL}" \
-        'Failed to link deployments from local directory at:' "$dir_path"
-      printf >&2 '%s\n  %s\n' 'to intended location at:' "$perm_dest"
+      dprint_debug 'Failed to link deployments from local directory at:' \
+        -i "$dir_path" -n 'to intended location at:' -i "$perm_dest"
       # Return
       return 1
     }
   else
     cp -Rn -- "$dir_path" "$perm_dest" || {
       # Announce failure to copy
-      printf >&2 '\n%s %s\n  %s\n' \
-        "${BOLD}${RED}==>${NORMAL}" \
-        'Failed to copy deployments from local directory at:' "$dir_path"
-      printf >&2 '%s\n  %s\n' 'to intended location at:' "$perm_dest"
+      dprint_debug 'Failed to copy deployments from local directory at:' \
+        -i "$dir_path" -n 'to intended location at:' -i "$perm_dest"
       # Return
       return 1
     }
   fi
 
   # All done: announce and return
-  printf >&2 '\n%s %s\n  %s\n' \
-    "${BOLD}${GREEN}==>${NORMAL}" \
-    'Successfully added local deployments directory at:' "$dir_path"
-  printf >&2 '%s\n  %s\n' 'to intended location at:' "$perm_dest"
+  dprint_debug 'Successfully added local deployments directory at:' \
+    -i "$dir_path" -n 'to intended location at:' -i "$perm_dest"
   return 0
 }
 
@@ -527,7 +550,7 @@ __adding__attempt_local_file()
     || $dpl_file_name == $D_DIVINEFILE_NAME ]] || return 1
   
   # Announce start
-  printf >&2 '  %s\n' 'interpreting as local deployment file'
+  dprint_debug 'Interpreting as local deployment file'
 
   # Construct full path to directory containing file
   local dpl_file_path="$( cd -- "$( dirname -- "$dpl_file_arg" )" && pwd -P \
@@ -535,10 +558,8 @@ __adding__attempt_local_file()
 
   # Check if directory was accessible
   if [ $? -ne 0 ]; then
-    printf >&2 '\n%s %s\n  %s\n' \
-      "${BOLD}${RED}==>${NORMAL}" \
-      'Failed to access directory of local deployment file at:' \
-      "$dpl_file_path"
+    dprint_debug 'Failed to access directory of local deployment file at:' \
+      -i "$dpl_file_path"
     return 1
   fi
 
@@ -557,7 +578,11 @@ __adding__attempt_local_file()
   esac
 
   # Prompt user about the addition
-  __adding__prompt_dir_or_file "$dpl_file_path" || return 1
+  local prompt; $D_ADD_LINK && prompt='Link it?' || prompt='Copy it?'
+  dprompt_key -bbbb --answer "$D_BLANKET_ANSWER" --prompt "$prompt" -- \
+    "Detected ${BOLD}local deployment file${NORMAL} at:" \
+    -i "$dpl_file_path" \
+      || return 1
 
   # Prompt user for possible clobbering, and clobber if required
   __adding__clobber_check "$perm_dest" || return 1
@@ -566,117 +591,25 @@ __adding__attempt_local_file()
   if $D_ADD_LINK; then
     dln -- "$dpl_file_path" "$perm_dest" || {
       # Announce failure to link
-      printf >&2 '\n%s %s\n  %s\n' \
-        "${BOLD}${RED}==>${NORMAL}" \
-        'Failed to link local deployment file at:' "$dpl_file_path"
-      printf >&2 '%s\n  %s\n' 'to intended location at:' "$perm_dest"
+      dprint_debug 'Failed to link local deployment file at:' \
+        -i "$dpl_file_path" -n 'to intended location at:' -i "$perm_dest"
       # Return
       return 1
     }
   else
     cp -n -- "$dpl_file_path" "$perm_dest" || {
       # Announce failure to copy
-      printf >&2 '\n%s %s\n  %s\n' \
-        "${BOLD}${RED}==>${NORMAL}" \
-        'Failed to copy local deployment file at:' "$dpl_file_path"
-      printf >&2 '%s\n  %s\n' 'to intended location at:' "$perm_dest"
+      dprint_debug 'Failed to copy local deployment file at:' \
+        -i "$dpl_file_path" -n 'to intended location at:' -i "$perm_dest"
       # Return
       return 1
     }
   fi
 
   # All done: announce and return
-  printf >&2 '\n%s %s\n  %s\n' \
-    "${BOLD}${GREEN}==>${NORMAL}" \
-    'Successfully added local deployment file at:' "$dpl_file_path"
-  printf >&2 '%s\n  %s\n' 'to intended location at:' "$perm_dest"
+  dprint_debug 'Successfully added local deployment file at:' \
+    -i "$dpl_file_path" -n 'to intended location at:' -i "$perm_dest"
   return 0
-}
-
-#>  __adding__prompt_git_repo REPO_PATH
-#
-## Prompts user whether they indeed meant the git repository, path to which is 
-#. passed as single argument.
-#
-## Returns:
-#.  0 - User confirms
-#.  1 - User declines
-#
-__adding__prompt_git_repo()
-{
-  # Status variable
-  local yes=false
-
-  # Depending on existence of blanket answer, devise decision
-  if [ "$D_BLANKET_ANSWER" = true ]; then yes=true
-  elif [ "$D_BLANKET_ANSWER" = false ]; then yes=false
-  else
-  
-    # User approval required
-
-    # Extract repo address
-    local repo_address="$1"
-
-    # Prompt user if this is their choice
-    printf >&2 '\n%s %s\n  %s\n' \
-      "${BOLD}${YELLOW}==>${NORMAL}" \
-      "Detected ${BOLD}git repository${NORMAL} at:" \
-      "$repo_address"
-
-    # Prompt user
-    dprompt_key --bare --prompt 'Add it?' && yes=true || yes=false
-
-  fi
-
-  # Check response
-  $yes && return 0 || return 1
-}
-
-#>  __adding__prompt_dir_or_file PATH
-#
-## Prompts user whether they indeed meant the local dir or file, path to which 
-#. is passed as single argument.
-#
-## Returns:
-#.  0 - User confirms
-#.  1 - User declines
-#
-__adding__prompt_dir_or_file()
-{
-  # Status variable
-  local yes=false
-
-  # Depending on existence of blanket answer, devise decision
-  if [ "$D_BLANKET_ANSWER" = true ]; then yes=true
-  elif [ "$D_BLANKET_ANSWER" = false ]; then yes=false
-  else
-  
-    # User approval required
-
-    # Extract repo address
-    local local_path="$1" local_type
-
-    # Detect type
-    [ -d "$local_path" ] \
-      && local_type="${BOLD}local directory${NORMAL}" \
-      || local_type="${BOLD}local deployment file${NORMAL}"
-
-    # Prompt user if this is their choice
-    printf >&2 '\n%s %s\n  %s\n' \
-      "${BOLD}${YELLOW}==>${NORMAL}" \
-      "Detected $local_type at:" "$local_path"
-
-    # Prompt user
-    if $D_ADD_LINK; then
-      dprompt_key --bare --prompt 'Link it?' && yes=true || yes=false
-    else
-      dprompt_key --bare --prompt 'Add it?' && yes=true || yes=false
-    fi
-
-  fi
-
-  # Check response
-  $yes && return 0 || return 1
 }
 
 #>  __adding__check_for_deployments PATH SRC_PATH
@@ -708,9 +641,7 @@ __adding__check_for_deployments()
     -name "$D_DPL_SH_SUFFIX" -print0 )
 
   # No deployment files: announce and return
-  printf >&2 '\n%s %s\n  %s\n' \
-    "${BOLD}${RED}==>${NORMAL}" \
-    "Failed to detect any deployment files in:" "$src_path"
+  dprint_debug 'Failed to detect any deployment files in:' -i "$src_path"
   return 1
 }
 
@@ -737,60 +668,64 @@ __adding__clobber_check()
 
     # Detect type of existing entity
     local clobber_type
-    [ -d "$clobber_path" ] && clobber_type=directory || clobber_type=file
+    [ -d "$clobber_path" ] && clobber_type='directory' || clobber_type='file'
+    [ -L "$clobber_path" ] && clobber_type="symlinked $clobber_type"
 
-    if [ "$D_BLANKET_ANSWER" = true -a "$clobber_path" != "$D_DEPLOYMENTS_DIR" ]
-    then yes=true
-    elif [ "$D_BLANKET_ANSWER" = false ]; then yes=false
-    else
+    # Compose pre-defined answer
+    local answer="$D_BLANKET_ANSWER"
 
-      # Print announcement
-      printf >&2 '\n%s %s\n  %s\n' \
-        "${BOLD}${YELLOW}==>${NORMAL}" \
-        "A $clobber_type already exists at:" "$clobber_path"
+    # Compose prompt description
+    local prompt_desc=()
 
-      # Further warnings for particular cases
-      if [ -d "$clobber_path" ]; then
+    # Warning about clobbering
+    prompt_desc+=( "A $clobber_type already exists at:" -i "$clobber_path" )
 
-        printf >&2 '%s %s\n' \
-          "${BOLD}${YELLOW}${INVERTED}Warning!${NORMAL}" \
-          'Directories are not merged. They are erased completely.'
+    # Further warning for directories
+    if [ -d "$clobber_path" -a ! -L "$clobber_path" ]; then
+      prompt_desc+=( -n "${BOLD}${YELLOW}${REVERSE} Warning! ${NORMAL}" )
+      prompt_desc+=( \
+        'Directories are not merged. They are erased completely.' \
+      )
+    fi
 
-        # Even more warning for deployment directory
-        if [ "$clobber_path" = "$D_DEPLOYMENTS_DIR" ]; then
-          printf >&2 '%s\n' \
-            "${BOLD}Entire deployments directory will be erased!${NORMAL}"
-        fi
+    # Further still for deployments directory
+    if [ "$clobber_path" = "$D_DEPLOYMENTS_DIR" ]; then
 
+      if [ -L "$clobber_path" ]; then
+        prompt_desc+=( \
+          -n "${BOLD}Entire deployments directory will be unlinked!${NORMAL}" \
+        )
+      else
+        prompt_desc+=( \
+          -n "${BOLD}Entire deployments directory will be erased!${NORMAL}" \
+        )
       fi
 
-      # Prompt user
-      dprompt_key --bare --prompt 'Pre-erase?' && yes=true || yes=false
+      # If clobbering deployments directory, blanket answer is not enough
+      [ "$D_BLANKET_ANSWER" = true ] && answer=
 
     fi
 
-    # Check response
-    if $yes; then
+    if dprompt_key -bbbb --prompt 'Pre-erase?' --answer "$answer" -- \
+      "${prompt_desc[@]}"; then
 
       # Attempt to remove pre-existing file/dir
       rm -rf -- "$clobber_path" || {
-        printf >&2 '\n%s %s\n  %s\n' \
-          "${BOLD}${RED}==>${NORMAL}" \
-          "Failed to erase existing $clobber_type at:" "$clobber_path"
+        dprint_debug "Failed to erase existing $clobber_type at:" \
+          -i "$clobber_path"
         return 1
       }
 
       # Pre-erased successfully
       return 0
-
+    
     else
 
-      # Refused to remove
-      printf >&2 '\n%s %s\n  %s\n' \
-        "${BOLD}${RED}==>${NORMAL}" \
-        "Refused to erase existing $clobber_type at:" "$clobber_path"
+      # Refused to erase
+      dprint_debug "Refused to erase existing $clobber_type at:" \
+        -i "$clobber_path"
       return 1
-
+    
     fi
 
   else
@@ -801,10 +736,8 @@ __adding__clobber_check()
     local parent_path="$( dirname -- "$clobber_path" )"
     if [ ! -d "$parent_path" ]; then
       mkdir -p -- "$parent_path" || {
-        printf >&2 '\n%s %s\n  %s\n' \
-          "${BOLD}${RED}==>${NORMAL}" \
-          "Failed to create destination directory at:" \
-          "$parent_path"
+        dprint_debug 'Failed to create destination directory at:' \
+          -i "$parent_path"
         return 1
       }
     fi
@@ -815,217 +748,66 @@ __adding__clobber_check()
   fi
 }
 
-#>  __adding__check_for_git
+#>  __adding__check_or_install UTIL_NAME
 #
-## Checks whether git is available and, if not, offers to install it using 
-#. system’s package manager, if it is available
-#
-## Returns:
-#.  0 - Git is available or successfully installed
-#.  1 - Git is not available or failed to install
-#
-__adding__check_for_git()
-{
-  # Check if git is callable
-  if git --version &>/dev/null; then
-
-    # All good, return positive
-    return 0
-
-  else
-
-    # Prepare message for when git is not available (to avoid repetition)
-    local no_git_msg='Repository cloning will not be available'
-
-    # No git. Print warning.
-    printf >&2 '\n%s %s\n' \
-      "${BOLD}${YELLOW}==>${NORMAL}" \
-      "Failed to detect ${BOLD}git${NORMAL} executable"
-
-    # Check if $OS_PKGMGR is detected
-    if [ -z ${OS_PKGMGR+isset} ]; then
-
-      # No supported package manager
-
-      # Print warning and return
-      printf >&2 '%s\n' "$no_git_msg"
-      return 1
-    
-    else
-
-      # Possible to try and install git using system’s package manager
-
-      # Prompt for answer
-      local yes=false
-      if [ "$D_BLANKET_ANSWER" = true ]; then yes=true
-      elif [ "$D_BLANKET_ANSWER" = false ]; then yes=false
-      else
-
-        # Print question
-        printf >&2 '%s' \
-          "Attempt to install it using ${BOLD}${OS_PKGMGR}${NORMAL}? [y/n] "
-
-        # Await answer
-        while true; do
-          read -rsn1 input
-          [[ $input =~ ^(y|Y)$ ]] && { printf 'y'; yes=true;  break; }
-          [[ $input =~ ^(n|N)$ ]] && { printf 'n'; yes=false; break; }
-        done
-        printf '\n'
-
-      fi
-
-      # Check if user accepted
-      if $yes; then
-
-        # Announce installation
-        printf >&2 '\n%s %s\n' \
-          "${BOLD}${YELLOW}==>${NORMAL}" \
-          "Installing ${BOLD}git${NORMAL} using ${BOLD}${OS_PKGMGR}${NORMAL}"
-
-        # Proceed with automated installation
-        os_pkgmgr dinstall git
-
-        # Check exit code and print status message, then return
-        if [ $? -eq 0 ]; then
-          printf >&2 '\n%s %s\n' \
-            "${BOLD}${GREEN}==>${NORMAL}" \
-            "Successfully installed ${BOLD}git${NORMAL}"
-          return 0
-        else
-          printf >&2 '\n%s %s\n' \
-            "${BOLD}${RED}==>${NORMAL}" \
-            "Failed to install ${BOLD}git${NORMAL}"
-          printf >&2 '%s\n' "$no_git_msg"
-          return 1
-        fi
-
-      else
-
-        # Proceeding without git
-        printf >&2 '\n%s %s\n' \
-          "${BOLD}${RED}==>${NORMAL}" \
-          "Proceeding without ${BOLD}git${NORMAL}"
-        printf >&2 '%s\n' "$no_git_msg"
-        return 1
-
-      fi
-    
-    fi
-
-  fi  
-}
-
-#>  __adding__check_for_tar
-#
-## Checks whether tar is available and, if not, offers to install it using 
-#. system’s package manager, if it is available. Informs user that tar is 
-#. required to download tarball repository, path to which is passed as first 
-#. argument.
+## Checks whether UTIL_NAME is available and, if not, offers to install it 
+#. using system’s package manager, if it is available
 #
 ## Returns:
-#.  0 - tar is available or successfully installed
-#.  1 - tar is not available or failed to install
+#.  0 - UTIL_NAME is available or successfully installed
+#.  1 - UTIL_NAME is not available or failed to install
 #
-__adding__check_for_tar()
+__adding__check_or_install()
 {
-  # Extract url of attempted tarball from arguments
-  local tarball_url="$1"
+  # Extract util name
+  local util_name="$1"
 
-  # Check if tar is callable
-  if tar --version &>/dev/null; then
+  # If command by that name is available, return zero immediately
+  command -v "$util_name" &>/dev/null && return 0
 
-    # All good, return positive
-    return 0
+  # Print initial warning
+  dprint_debug "Failed to detect $util_name executable"
 
+  # Check if $OS_PKGMGR is detected
+  if [ -z ${OS_PKGMGR+isset} ]; then
+
+    # No option to install: report and return
+    dprint_debug \
+      "Unable to auto-install $util_name (no supported package manager)"
+    return 1
+  
   else
 
-    # No tar. Print warning.
-    printf >&2 '\n%s %s\n' \
-      "${BOLD}${YELLOW}==>${NORMAL}" \
-      "Failed to detect ${BOLD}tar${NORMAL} executable"
+    # Prompt user for whether to install utility
+    if dprompt_key -bbbb --answer "$D_BLANKET_ANSWER" \
+      "Package manager $OS_PKGMGR is available" \
+      --prompt "Install $util_name using $OS_PKGMGR?"
+    then
 
-    # Check if $OS_PKGMGR is detected
-    if [ -z ${OS_PKGMGR+isset} ]; then
+      # Announce installation
+      dprint_debug "Installing $util_name"
 
-      # No supported package manager
+      # Attempt installation
+      os_pkgmgr dinstall "$util_name"
 
-      # Print warning and return
-      printf >&2 '\n%s %s\n  %s\n' \
-        "${BOLD}${RED}==>${NORMAL}" \
-        'Refusing to download tarball repository at:' "$tarball_url"
-      printf >&2 '%s\n' \
-        "because ${BOLD}tar${NORMAL} is not available"
-      return 1
-    
+      # Check status code of installation
+      if [ $? -eq 0 ]; then
+        dprint_debug "Successfully installed $util_name"
+        return 0
+      else
+        dprint_debug "Failed to install $util_name"
+        return 1
+      fi
+
     else
 
-      # Possible to try and install tar using system’s package manager
+      # Announce refusal to install and return
+      dprint_debug "Proceeding without $util_name"
+      return 1
 
-      # Prompt for answer
-      local yes=false
-      if [ "$D_BLANKET_ANSWER" = true ]; then yes=true
-      elif [ "$D_BLANKET_ANSWER" = false ]; then yes=false
-      else
-
-        # Print question
-        printf >&2 '%s' \
-          "Attempt to install it using ${BOLD}${OS_PKGMGR}${NORMAL}? [y/n] "
-
-        # Await answer
-        while true; do
-          read -rsn1 input
-          [[ $input =~ ^(y|Y)$ ]] && { printf 'y'; yes=true;  break; }
-          [[ $input =~ ^(n|N)$ ]] && { printf 'n'; yes=false; break; }
-        done
-        printf '\n'
-
-      fi
-
-      # Check if user accepted
-      if $yes; then
-
-        # Announce installation
-        printf >&2 '\n%s %s\n' \
-          "${BOLD}${YELLOW}==>${NORMAL}" \
-          "Installing ${BOLD}tar${NORMAL} using ${BOLD}${OS_PKGMGR}${NORMAL}"
-
-        # Proceed with automated installation
-        os_pkgmgr dinstall tar
-
-        # Check exit code and print status message, then return
-        if [ $? -eq 0 ]; then
-          printf >&2 '\n%s %s\n' \
-            "${BOLD}${GREEN}==>${NORMAL}" \
-            "Successfully installed ${BOLD}tar${NORMAL}"
-          return 0
-        else
-          printf >&2 '\n%s %s\n' \
-            "${BOLD}${RED}==>${NORMAL}" \
-            "Failed to install ${BOLD}tar${NORMAL}"
-          printf >&2 '\n%s %s\n  %s\n' \
-            "${BOLD}${RED}==>${NORMAL}" \
-            'Refusing to download tarball repository at:' "$tarball_url"
-          printf >&2 '%s\n' \
-            "because ${BOLD}tar${NORMAL} is not available"
-          return 1
-        fi
-
-      else
-
-        # No tar: print warning and return
-        printf >&2 '\n%s %s\n  %s\n' \
-          "${BOLD}${RED}==>${NORMAL}" \
-          'Refusing to download tarball repository at:' "$tarball_url"
-        printf >&2 '%s\n' \
-          "because ${BOLD}tar${NORMAL} is not available"
-        return 1
-
-      fi
-    
     fi
 
-  fi  
+  fi
 }
 
-__adding__main
+__perform_add
