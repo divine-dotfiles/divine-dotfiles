@@ -66,7 +66,7 @@ __update_pkgs()
     # Unless given a ‘-y’ option, prompt for user’s approval
     if $proceeding && [ "$D_BLANKET_ANSWER" != true ]; then
       dprint_ode "${D_PRINTC_OPTS_PMT[@]}" -- '' 'Confirm' ': '
-      dprompt_key --bare && proceeding=true || {
+      dprompt_key -bbbb && proceeding=true || {
         task_name="$task_name (declined by user)"
         proceeding=false
       }

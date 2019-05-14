@@ -287,7 +287,7 @@ __check_dpls()
       fi
 
       # Prompt user
-      dprompt_key --bare && proceeding=true || {
+      dprompt_key -bbbb && proceeding=true || {
         task_name="$task_name (declined by user)"
         proceeding=false
       }

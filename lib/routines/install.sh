@@ -194,7 +194,7 @@ __install_pkgs()
         fi
 
         # Prompt user
-        dprompt_key --bare && proceeding=true || {
+        dprompt_key -bbbb && proceeding=true || {
           task_name="$task_name (declined by user)"
           proceeding=false
         }
@@ -368,7 +368,7 @@ __install_dpls()
       fi
 
       # Prompt user
-      dprompt_key --bare && proceeding=true || {
+      dprompt_key -bbbb && proceeding=true || {
         task_name="$task_name (declined by user)"
         proceeding=false
       }
