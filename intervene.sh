@@ -615,7 +615,8 @@ __import_dependencies()
       printf >&2 '  %s\n' "$script_path"
       exit 1
     }
-  done < <( find "$D_UTILS_DIR" -mindepth 1 -name "$D_UTILS_SUFFIX" -print0 )
+  done < <( find "$D_UTILS_DIR" -mindepth 1 -maxdepth 3 \
+    -name "$D_UTILS_SUFFIX" -print0 )
 
   # Iterate over helper files
   while IFS= read -r -d $'\0' script_path; do
@@ -629,8 +630,8 @@ __import_dependencies()
       printf >&2 '  %s\n' "$script_path"
       exit 1
     }
-  done < <( find "$D_HELPERS_DIR" -mindepth 1 -name "$D_HELPERS_SUFFIX" \
-    -print0 )
+  done < <( find "$D_HELPERS_DIR" -mindepth 1 -maxdepth 3 \
+    -name "$D_HELPERS_SUFFIX" -print0 )
 }
 
 #> __perform_routine

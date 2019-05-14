@@ -239,8 +239,8 @@ __parse_divinefile()
     done 10<"$divinefile_path"
 
   # Done iterating over Divinefiles in deployments directory
-  done < <( find "$D_DEPLOYMENTS_DIR" -mindepth 1 -name "$D_DIVINEFILE_NAME" \
-    -print0 )
+  done < <( find -L "$D_DEPLOYMENTS_DIR" -mindepth 1 -maxdepth 14 \
+    -name "$D_DIVINEFILE_NAME" -print0 )
 
   # Restore case sensitivity
   eval "$restore_nocasematch"
@@ -460,8 +460,8 @@ __locate_dpl_sh_files()
     # Add current package to packages queue
     D_DEPLOYMENTS["$priority"]+="$divinedpl_filepath;"
 
-  done < <( find "$D_DEPLOYMENTS_DIR" -mindepth 1 -name "$D_DPL_SH_SUFFIX" \
-    -print0 )
+  done < <( find -L "$D_DEPLOYMENTS_DIR" -mindepth 1 -maxdepth 14 \
+    -name "$D_DPL_SH_SUFFIX" -print0 )
 
   return 0
 }

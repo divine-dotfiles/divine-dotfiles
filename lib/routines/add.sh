@@ -704,7 +704,8 @@ __adding__check_for_deployments()
       return 0
     }
 
-  done < <( find "$dir_path" -mindepth 1 -name "$D_DPL_SH_SUFFIX" -print0 )
+  done < <( find -L "$dir_path" -mindepth 1 -maxdepth 10 \
+    -name "$D_DPL_SH_SUFFIX" -print0 )
 
   # No deployment files: announce and return
   printf >&2 '\n%s %s\n  %s\n' \
