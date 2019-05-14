@@ -87,8 +87,8 @@ __parse_arguments()
       --)                 delim=true;;
       -h|--help)          __show_help_and_exit;;
       --version)          __show_version_and_exit;;
-      -y|--yes)           D_BLANKET_ANSWER=y;;
-      -n|--no)            D_BLANKET_ANSWER=n;;
+      -y|--yes)           D_BLANKET_ANSWER=true;;
+      -n|--no)            D_BLANKET_ANSWER=false;;
       -f|--force)         D_FORCE=true;;
       -i|--inverse)       D_INVERSE_FILTER=true;;
       -e|--except)        D_INVERSE_FILTER=true;;
@@ -102,8 +102,8 @@ __parse_arguments()
                             opt="${1:i-1:1}"
                             case $opt in
                               h)  __show_help_and_exit;;
-                              y)  D_BLANKET_ANSWER=y;;
-                              n)  D_BLANKET_ANSWER=n;;
+                              y)  D_BLANKET_ANSWER=true;;
+                              n)  D_BLANKET_ANSWER=false;;
                               f)  D_FORCE=true;;
                               i)  D_INVERSE_FILTER=true;;
                               e)  D_INVERSE_FILTER=true;;

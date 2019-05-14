@@ -52,7 +52,7 @@ __update_pkgs()
     }
 
     # Don’t proceed if ‘-n’ option is given
-    [ "$D_BLANKET_ANSWER" = n ] && proceeding=false
+    [ "$D_BLANKET_ANSWER" = false ] && proceeding=false
 
     # Print newline to visually separate tasks
     printf '\n'
@@ -64,7 +64,7 @@ __update_pkgs()
     fi
 
     # Unless given a ‘-y’ option, prompt for user’s approval
-    if $proceeding && [ "$D_BLANKET_ANSWER" != y ]; then
+    if $proceeding && [ "$D_BLANKET_ANSWER" != true ]; then
       dprint_ode "${D_PRINTC_OPTS_PMT[@]}" -- '' 'Confirm' ': '
       dprompt_key --bare && proceeding=true || {
         task_name="$task_name (declined by user)"

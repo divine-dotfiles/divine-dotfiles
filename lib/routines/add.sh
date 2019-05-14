@@ -608,8 +608,8 @@ __adding__prompt_git_repo()
   local yes=false
 
   # Depending on existence of blanket answer, devise decision
-  if [ "$D_BLANKET_ANSWER" = y ]; then yes=true
-  elif [ "$D_BLANKET_ANSWER" = n ]; then yes=false
+  if [ "$D_BLANKET_ANSWER" = true ]; then yes=true
+  elif [ "$D_BLANKET_ANSWER" = false ]; then yes=false
   else
   
     # User approval required
@@ -647,8 +647,8 @@ __adding__prompt_dir_or_file()
   local yes=false
 
   # Depending on existence of blanket answer, devise decision
-  if [ "$D_BLANKET_ANSWER" = y ]; then yes=true
-  elif [ "$D_BLANKET_ANSWER" = n ]; then yes=false
+  if [ "$D_BLANKET_ANSWER" = true ]; then yes=true
+  elif [ "$D_BLANKET_ANSWER" = false ]; then yes=false
   else
   
     # User approval required
@@ -739,9 +739,9 @@ __adding__clobber_check()
     local clobber_type
     [ -d "$clobber_path" ] && clobber_type=directory || clobber_type=file
 
-    if [ "$D_BLANKET_ANSWER" = y -a "$clobber_path" != "$D_DEPLOYMENTS_DIR" ]
+    if [ "$D_BLANKET_ANSWER" = true -a "$clobber_path" != "$D_DEPLOYMENTS_DIR" ]
     then yes=true
-    elif [ "$D_BLANKET_ANSWER" = n ]; then yes=false
+    elif [ "$D_BLANKET_ANSWER" = false ]; then yes=false
     else
 
       # Print announcement
@@ -857,8 +857,8 @@ __adding__check_for_git()
 
       # Prompt for answer
       local yes=false
-      if [ "$D_BLANKET_ANSWER" = y ]; then yes=true
-      elif [ "$D_BLANKET_ANSWER" = n ]; then yes=false
+      if [ "$D_BLANKET_ANSWER" = true ]; then yes=true
+      elif [ "$D_BLANKET_ANSWER" = false ]; then yes=false
       else
 
         # Print question
@@ -964,8 +964,8 @@ __adding__check_for_tar()
 
       # Prompt for answer
       local yes=false
-      if [ "$D_BLANKET_ANSWER" = y ]; then yes=true
-      elif [ "$D_BLANKET_ANSWER" = n ]; then yes=false
+      if [ "$D_BLANKET_ANSWER" = true ]; then yes=true
+      elif [ "$D_BLANKET_ANSWER" = false ]; then yes=false
       else
 
         # Print question

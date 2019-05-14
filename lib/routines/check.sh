@@ -29,7 +29,7 @@
 __perform_check()
 {
   # Announce beginning
-  if [ "$D_BLANKET_ANSWER" = n ]; then
+  if [ "$D_BLANKET_ANSWER" = false ]; then
     dprint_plaque -pcw "$WHITE" "$D_PLAQUE_WIDTH" \
       -- '‘Checking’ Divine intervention'
   else
@@ -53,7 +53,7 @@ __perform_check()
 
   # Announce completion
   printf '\n'
-  if [ "$D_BLANKET_ANSWER" = n ]; then
+  if [ "$D_BLANKET_ANSWER" = false ]; then
     dprint_plaque -pcw "$WHITE" "$D_PLAQUE_WIDTH" \
       -- 'Successfully ‘checked’ Divine intervention'
   else
@@ -125,7 +125,7 @@ __check_pkgs()
     proceeding=true
 
     # Don’t proceed if ‘-n’ option is given
-    [ "$D_BLANKET_ANSWER" = n ] && proceeding=false
+    [ "$D_BLANKET_ANSWER" = false ] && proceeding=false
 
     # Print newline to visually separate tasks
     printf '\n'
@@ -256,14 +256,14 @@ __check_dpls()
     proceeding=true
 
     # Don’t proceed if ‘-n’ option is given
-    [ "$D_BLANKET_ANSWER" = n ] && proceeding=false
+    [ "$D_BLANKET_ANSWER" = false ] && proceeding=false
 
     # Print newline to visually separate tasks
     printf '\n'
 
     ## Unless given a ‘-y’ option (or unless aa_mode is enabled), prompt for 
     #. user’s approval
-    if $proceeding && [ "$aa_mode" = true -o "$D_BLANKET_ANSWER" != y ]; then
+    if $proceeding && [ "$aa_mode" = true -o "$D_BLANKET_ANSWER" != true ]; then
 
       # Print message about the upcoming checking
       dprint_ode "${D_PRINTC_OPTS_NM[@]}" -c "$YELLOW" -- \

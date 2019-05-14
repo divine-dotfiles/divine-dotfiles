@@ -169,7 +169,7 @@ __remove_pkgs()
     proceeding=true
 
     # Don’t proceed if ‘-n’ option is given
-    [ "$D_BLANKET_ANSWER" = n ] && proceeding=false
+    [ "$D_BLANKET_ANSWER" = false ] && proceeding=false
 
     # Don’t proceed if already removed (except when forcing)
     if $proceeding; then
@@ -191,7 +191,7 @@ __remove_pkgs()
 
       ## Unless given a ‘-y’ option (or unless aa_mode is enabled), prompt for 
       #. user’s approval
-      if [ "$aa_mode" = true -o "$D_BLANKET_ANSWER" != y ]; then
+      if [ "$aa_mode" = true -o "$D_BLANKET_ANSWER" != true ]; then
 
 
         # Prompt slightly differs depending on whether ‘always ask’ is enabled
@@ -348,14 +348,14 @@ __remove_dpls()
     intro_printed=false
 
     # Don’t proceed if ‘-n’ option is given
-    [ "$D_BLANKET_ANSWER" = n ] && proceeding=false
+    [ "$D_BLANKET_ANSWER" = false ] && proceeding=false
 
     # Print newline to visually separate tasks
     printf '\n'
 
     ## Unless given a ‘-y’ option (or unless aa_mode is enabled), prompt for 
     #. user’s approval
-    if $proceeding && [ "$aa_mode" = true -o "$D_BLANKET_ANSWER" != y ]; then
+    if $proceeding && [ "$aa_mode" = true -o "$D_BLANKET_ANSWER" != true ]; then
 
       # Print message about the upcoming removal
       dprint_ode "${D_PRINTC_OPTS_NM[@]}" -c "$YELLOW" -- \

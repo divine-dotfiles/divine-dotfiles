@@ -287,8 +287,8 @@ __populate_os_pkgmgr()
 
         # Prompt for answer
         local yes=false
-        if [ "$D_BLANKET_ANSWER" = y ]; then yes=true
-        elif [ "$D_BLANKET_ANSWER" = n ]; then yes=false
+        if [ "$D_BLANKET_ANSWER" = true ]; then yes=true
+        elif [ "$D_BLANKET_ANSWER" = false ]; then yes=false
         else
 
           # Print question

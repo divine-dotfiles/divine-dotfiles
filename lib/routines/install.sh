@@ -29,7 +29,7 @@
 __perform_install()
 {
   # Announce beginning
-  if [ "$D_BLANKET_ANSWER" = n ]; then
+  if [ "$D_BLANKET_ANSWER" = false ]; then
     dprint_plaque -pcw "$WHITE" "$D_PLAQUE_WIDTH" \
       -- 'Previewing Divine intervention'
   else
@@ -88,7 +88,7 @@ __perform_install()
 
   # Announce completion
   printf '\n'
-  if [ "$D_BLANKET_ANSWER" = n ]; then
+  if [ "$D_BLANKET_ANSWER" = false ]; then
     dprint_plaque -pcw "$WHITE" "$D_PLAQUE_WIDTH" \
       -- 'Successfully previewed Divine intervention'
   else
@@ -162,7 +162,7 @@ __install_pkgs()
     proceeding=true
 
     # Don’t proceed if ‘-n’ option is given
-    [ "$D_BLANKET_ANSWER" = n ] && proceeding=false
+    [ "$D_BLANKET_ANSWER" = false ] && proceeding=false
 
     # Don’t proceed if already installed (except when forcing)
     if $proceeding; then
@@ -184,7 +184,7 @@ __install_pkgs()
 
       ## Unless given a ‘-y’ option (or unless aa_mode is enabled), prompt for 
       #. user’s approval
-      if [ "$aa_mode" = true -o "$D_BLANKET_ANSWER" != y ]; then
+      if [ "$aa_mode" = true -o "$D_BLANKET_ANSWER" != true ]; then
 
         # Prompt slightly differs depending on whether ‘always ask’ is enabled
         if $aa_mode; then
@@ -337,14 +337,14 @@ __install_dpls()
     intro_printed=false
 
     # Don’t proceed if ‘-n’ option is given
-    [ "$D_BLANKET_ANSWER" = n ] && proceeding=false
+    [ "$D_BLANKET_ANSWER" = false ] && proceeding=false
 
     # Print newline to visually separate tasks
     printf '\n'
 
     ## Unless given a ‘-y’ option (or unless aa_mode is enabled), prompt for 
     #. user’s approval
-    if $proceeding && [ "$aa_mode" = true -o "$D_BLANKET_ANSWER" != y ]; then
+    if $proceeding && [ "$aa_mode" = true -o "$D_BLANKET_ANSWER" != true ]; then
 
       # Print message about the upcoming installation
       dprint_ode "${D_PRINTC_OPTS_NM[@]}" -c "$YELLOW" -- \
