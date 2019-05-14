@@ -684,14 +684,15 @@ __launch_routine()
   local routine_filepath="${D_ROUTINES_DIR}/${routine_name}.sh"
 
   # Check if file exists and source it
-  if [ -r "$routine_filepath" -a -f "$routine_filepath" ] \
-    && source "$routine_filepath"
-  then
+  if [ -r "$routine_filepath" -a -f "$routine_filepath" ]; then
+    # Source script
+    source "$routine_filepath"
     # Return last command’s status
     return $?
   else
     # Report failed sourcing
-    dprint_debug 'Failed to source script file at:' -i "$routine_filepath"
+    dprint_debug 'Failed to source script file at:' -i "$routine_filepath" \
+      -n 'Not a readable file'
   fi
 
   # If got here, report failure
