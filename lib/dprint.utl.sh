@@ -48,12 +48,16 @@ dprint_debug()
   # Check if quiet mode is active
   [ "$D_QUIET" = true ] && return 1
 
+  # Save formatting
+  local c="$CYAN" n="$NORMAL"
+
   # Compose message from arguments and print it all on the go
-  [ "$1" = -n ] && { printf >&2 '\n'; shift; }; printf >&2 '%s' "${CYAN}==>"
+  [ "$1" = -n ] && { printf >&2 '\n'; shift; }
+  printf >&2 '%s' "$c==>$n"
   local chunk; for chunk do
     case $chunk in -n) printf >&2 '\n   ';; -i) printf >&2 '\n       ';;
-    *) printf >&2 ' %s' "$chunk";; esac
-  done; printf >&2 '%s\n' "${NORMAL}"; return 0
+    *) printf >&2 ' %s' "$c$chunk$n";; esac
+  done; printf >&2 '\n'; return 0
 }
 
 #>  dprint_start [-n] [CHUNKS|-n|-i]…
