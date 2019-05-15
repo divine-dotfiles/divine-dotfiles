@@ -51,7 +51,6 @@ __parse_arguments()
   D_MAX_PRIORITY_LEN=0    # Number of digits in largest priority
   D_ADD_MODE=normal       # Flag for how to organize cloned/copied deployments
   D_ADD_LINK=false        # Flag for whether copy or symlink non-repos
-  D_UP_DPLS=false         # Flaf for whether to update deployment repositories
 
   # Parse the first argument
   case "$1" in
@@ -97,7 +96,6 @@ __parse_arguments()
       -t|--flat)          D_ADD_MODE=flat;;
       -r|--root)          D_ADD_MODE=root;;
       -l|--link)          D_ADD_LINK=true;;
-      -a|--all)           D_UP_DPLS=true;;
       -*)                 for i in $( seq 2 ${#1} ); do
                             opt="${1:i-1:1}"
                             case $opt in
@@ -112,7 +110,6 @@ __parse_arguments()
                               t)  D_ADD_MODE=flat;;
                               r)  D_ADD_MODE=root;;
                               l)  D_ADD_LINK=true;;
-                              a)  D_UP_DPLS=true;;
                               *)  printf >&2 '%s: Illegal option -- %s\n\n' \
                                     "$( basename -- "${BASH_SOURCE[0]}" )" \
                                     "$opt"
@@ -132,6 +129,7 @@ __parse_arguments()
   readonly D_GROUPS
   readonly D_ARGS
   readonly D_ADD_MODE
+  readonly D_ADD_LINK
 
   # In some routines: skip early
   [ "$D_ROUTINE" = add -o "$D_ROUTINE" = update ] && return 0
@@ -202,7 +200,7 @@ SYNOPSIS
     ${script_name} c[heck]            [-ynqvei]…  [--] [TASK]…
 
     ${script_name} a[dd]              [-yntrl]…    [--] [REPO]…
-    ${script_name} u[pdate]           [-yna]…
+    ${script_name} u[pdate]           [-yn]…
 
     ${script_name} --version
     ${script_name} -h|--help
@@ -302,11 +300,6 @@ OPTIONS
                     and do not try to clone or download repositories.
                     For adding remote deployments this is a no-opt.
 
-    -a, --all       (only for updating routine)
-                    For all other routines this is a no-opt.
-                    Additionally attempts to pull from remote for every 
-                    repository currently in deployments directory
-
     -e, --except, -i, --inverse
                     Inverse task list: filter out tasks included in it
 
@@ -363,7 +356,7 @@ Usage: ${bold}${script_name}${normal} ${bold}i${normal}|${bold}install${normal} 
    or: ${bold}${script_name}${normal} ${bold}f${normal}|${bold}refresh${normal} [-ynqveif] [TASK]…   - Launch refreshing
    or: ${bold}${script_name}${normal} ${bold}c${normal}|${bold}check${normal}   [-ynqvei]  [TASK]…   - Launch checking
    or: ${bold}${script_name}${normal} ${bold}a${normal}|${bold}add${normal}     [-yntrl]   [SRC]…    - Add deployment from repo/dir/file
-   or: ${bold}${script_name}${normal} ${bold}u${normal}|${bold}update${normal}  [-yna]               - Update framework
+   or: ${bold}${script_name}${normal} ${bold}u${normal}|${bold}update${normal}  [-yn]                - Update framework
    or: ${bold}${script_name}${normal} --version                      - Show script version
    or: ${bold}${script_name}${normal} -h|--help                      - Show help summary
 EOF
