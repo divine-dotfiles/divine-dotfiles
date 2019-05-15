@@ -17,18 +17,18 @@ main()
     if __add_default_dpls; then
       # Optional: run ‘di install --yes’
       __run_install \
-        || report_failure 'Failed to install default deployments'
+        || dprint_failure 'Failed to install default deployments'
     else
-      report_failure 'Failed to add default deployments'
+      dprint_failure 'Failed to add default deployments'
     fi
 
     # Report success
-    report_success 'All done'
+    dprint_success 'All done'
     return 0
   fi
 
   # Report failure
-  report_failure 'Nothing was installed'
+  dprint_failure 'Nothing was installed'
   return 1
 }
 
@@ -105,25 +105,25 @@ __pull_github_repo()
 
   # Install to home directory unless overridden
   [ -n "$D_INSTALL_PATH" ] || D_INSTALL_PATH="$HOME/.divine"
-  debug_print "Installation directory: $D_INSTALL_PATH"
+  dprint_debug "Installation directory: $D_INSTALL_PATH"
 
   # Check if installation directory already exists
   if [ -d "$D_INSTALL_PATH" ]; then
-    debug_print 'Installation directory already exists; refusing to overwrite'
+    dprint_debug 'Installation directory already exists; refusing to overwrite'
     return 1
   elif [ -e "$D_INSTALL_PATH" ]; then
-    debug_print 'Installation directory is a file; refusing to overwrite'
+    dprint_debug 'Installation directory is a file; refusing to overwrite'
     return 1
   fi
 
   # Offer to install framework
-  if prompt "$D_INSTALL_FRAMEWORK" 'Install?' \
+  if dprompt_key "$D_INSTALL_FRAMEWORK" 'Install?' \
     "${BOLD}Divine.dotfiles${NORMAL} Bash framework from:" \
     "https://github.com/${user_repo}"
   then
-    report_start "Installing ${BOLD}Divine.dotfiles${NORMAL}"
+    dprint_start "Installing ${BOLD}Divine.dotfiles${NORMAL}"
   else
-    report_skip "Refused to install ${BOLD}Divine.dotfiles${NORMAL}"
+    dprint_skip "Refused to install ${BOLD}Divine.dotfiles${NORMAL}"
     return 1
   fi
 
@@ -132,7 +132,7 @@ __pull_github_repo()
 
   # Create installation directory
   mkdir -p -- "$D_INSTALL_PATH" &>/dev/null || {
-    debug_print 'Failed to create installation directory'
+    dprint_debug 'Failed to create installation directory'
     return 1
   }
 
@@ -147,7 +147,7 @@ __pull_github_repo()
       git clone --depth=1 "https://github.com/${user_repo}.git" \
         "$D_INSTALL_PATH" &>/dev/null \
         || {
-          debug_print 'Failed to clone Github repository at:' \
+          dprint_debug 'Failed to clone Github repository at:' \
             "https://github.com/${user_repo}"
           rm -rf -- "$D_INSTALL_PATH"
           return 1
@@ -156,7 +156,7 @@ __pull_github_repo()
     else
 
       # Likely unable to connect to repository
-      debug_print 'Failed to connect to repository at:' \
+      dprint_debug 'Failed to connect to repository at:' \
         "https://github.com/${user_repo}"
       rm -rf -- "$D_INSTALL_PATH"
       return 1
@@ -169,7 +169,7 @@ __pull_github_repo()
 
     # Check if tar is available
     tar --version &>/dev/null || {
-      debug_print \
+      dprint_debug \
         'Failed to detect neither git nor tar (at least one is required)'
       rm -rf -- "$D_INSTALL_PATH"
       return 1
@@ -185,7 +185,7 @@ __pull_github_repo()
       curl -sL "https://api.github.com/repos/${user_repo}/tarball" \
         | tar --strip-components=1 -C "$D_INSTALL_PATH" -xzf -
       [ $? -eq 0 ] || {
-        debug_print \
+        dprint_debug \
           'Failed to download (curl) or extract tarball repository from:' \
           "https://api.github.com/repos/${user_repo}/tarball"
         rm -rf -- "$D_INSTALL_PATH"
@@ -202,7 +202,7 @@ __pull_github_repo()
       wget -qO - "https://api.github.com/repos/${user_repo}/tarball" \
         | tar --strip-components=1 -C "$D_INSTALL_PATH" -xzf -
       [ $? -eq 0 ] || {
-        debug_print \
+        dprint_debug \
           'Failed to download (wget) or extract tarball repository from:' \
           "https://api.github.com/repos/${user_repo}/tarball"
         rm -rf -- "$D_INSTALL_PATH"
@@ -212,7 +212,7 @@ __pull_github_repo()
     else
 
       # Either none of the tools were available, or repo does not exist
-      debug_print 'Failed to clone or download repository from:' \
+      dprint_debug 'Failed to clone or download repository from:' \
         "https://github.com/${user_repo}"
       rm -rf -- "$D_INSTALL_PATH"
       return 1
@@ -223,12 +223,12 @@ __pull_github_repo()
 
   # Make sure primary script is executable
   chmod +x "$D_INSTALL_PATH/intervene.sh" || {
-    debug_print 'Failed to set executable flag for:' \
+    dprint_debug 'Failed to set executable flag for:' \
       "$D_INSTALL_PATH/intervene.sh" 'Please, see to it yourself'
   }
 
   # If gotten here, all is good
-  report_success \
+  dprint_success \
     "Successfully installed ${BOLD}Divine.dotfiles${NORMAL} to:" \
     "$D_INSTALL_PATH"
   return 0
@@ -244,10 +244,10 @@ __install_shortcut()
   local cmd="${BOLD}${D_SHORTCUT_NAME}${NORMAL}"
 
   # Offer to install shortcut
-  if ! prompt "$D_INSTALL_SHORTCUT" 'Install?' \
+  if ! dprompt_key "$D_INSTALL_SHORTCUT" 'Install?' \
     "[optional] Shortcut shell command '${cmd}'"
   then
-    report_skip "Refused to install shortcut shell command '${cmd}'"
+    dprint_skip "Refused to install shortcut shell command '${cmd}'"
     return 1
   fi
 
@@ -259,14 +259,14 @@ __install_shortcut()
 
     # If predefined answer is given, no re-tries
     if [ "$D_INSTALL_SHORTCUT" = true ]; then
-      report_skip \
+      dprint_skip \
         "Skipped installing shortcut shell command '${cmd}'" \
         'because command by that name already exists'
       return 1
     fi
 
     # Inform user
-    report_start \
+    dprint_start \
       "Command '${BOLD}${D_SHORTCUT_NAME}${NORMAL}' already exists"
 
     while true; do
@@ -277,7 +277,7 @@ __install_shortcut()
 
       # Check if user don’t want another name
       [ "$new_cmd_name" = q ] && {
-        report_skip \
+        dprint_skip \
           'Skipped installing shortcut shell command' \
           'because command by that name already exists'
         return 1
@@ -320,7 +320,7 @@ __install_shortcut()
     # Check if shortcut directory exists and is on $PATH
     [[ -d "$shortcut_path" && ":$PATH:" == *":$shortcut_path:"* ]] \
       || {
-        debug_print "Refusing to install shortcut to: $shortcut_path" \
+        dprint_debug "Refusing to install shortcut to: $shortcut_path" \
           'Not a directory or not in $PATH'
         continue
       }
@@ -329,11 +329,11 @@ __install_shortcut()
     shortcut_filepath="$shortcut_path/$D_SHORTCUT_NAME"
 
     # Announce attempt
-    debug_print "Attempting to install shortcut to: $shortcut_filepath"
+    dprint_debug "Attempting to install shortcut to: $shortcut_filepath"
 
     # If file path is occupied, it is likely some namesake directory: skip
     [ -e "$shortcut_filepath" ] && {
-      debug_print "Refusing to install shortcut to: $shortcut_filepath" \
+      dprint_debug "Refusing to install shortcut to: $shortcut_filepath" \
         'Path is occupied'
       continue
     }
@@ -346,7 +346,7 @@ __install_shortcut()
       then
         shortcut_installed=true; break
       else
-        debug_print 'Failed to create symlink:' \
+        dprint_debug 'Failed to create symlink:' \
           "$shortcut_filepath -> $D_INSTALL_PATH/intervene.sh"
       fi
     else
@@ -356,7 +356,7 @@ __install_shortcut()
       then
         shortcut_installed=true; break
       else
-        debug_print 'Failed to create symlink with sudo:' \
+        dprint_debug 'Failed to create symlink with sudo:' \
           "$shortcut_filepath -> $D_INSTALL_PATH/intervene.sh"
       fi
     fi
@@ -373,22 +373,22 @@ __install_shortcut()
     if printf '%s\n' "$shortcut_filepath" \
       >"$D_INSTALL_PATH/lib/uninstall/shortcut-location"
     then
-      debug_print 'Stored information about shortcut location at:' \
+      dprint_debug 'Stored information about shortcut location at:' \
         "$D_INSTALL_PATH/lib/uninstall/shortcut-location"
     else
-      debug_print 'Failed to store information about shortcut location at:' \
+      dprint_debug 'Failed to store information about shortcut location at:' \
         "$D_INSTALL_PATH/lib/uninstall/shortcut-location" \
         'Uninstallation script will be unable to remove shortcut'
     fi
 
     # Report success
-    report_success \
+    dprint_success \
       "Successfully installed shortcut shell command '${cmd}' to:" \
       "$shortcut_filepath"
 
   else
 
-    report_failure "Failed to install shortcut shell command '${cmd}'" \
+    dprint_failure "Failed to install shortcut shell command '${cmd}'" \
       'because none of $PATH directories could take it'
 
   fi
@@ -400,13 +400,13 @@ __add_default_dpls()
   local user_repo='no-simpler/divine-dpl-default'
 
   # Offer to install default deployments
-  if ! prompt "$D_ADD_DEFAULTS" 'Add?' \
+  if ! dprompt_key "$D_ADD_DEFAULTS" 'Add?' \
     '[optional] Default set of deployments from:' \
     "https://github.com/${user_repo}" \
     'Deployments are only added, not installed' \
     'Default deployments are safe and fully removable'
   then
-    report_skip 'Refused to add default set of deployments from:' \
+    dprint_skip 'Refused to add default set of deployments from:' \
       "https://github.com/${user_repo}"
     return 1
   fi
@@ -416,13 +416,13 @@ __add_default_dpls()
 
   # Remove current (almost empty) deployments directory
   rm -rf -- "$dpl_dir" || {
-    debug_print "Failed to pre-erase directory: $dpl_dir"
+    dprint_debug "Failed to pre-erase directory: $dpl_dir"
     return 1
   }
 
   # Create empty installation directory
   mkdir -p -- "$dpl_dir" || {
-    debug_print "Failed to create deployments directory: $dpl_dir"
+    dprint_debug "Failed to create deployments directory: $dpl_dir"
     return 1
   }
 
@@ -437,7 +437,7 @@ __add_default_dpls()
       git clone --depth=1 "https://github.com/${user_repo}.git" \
         "$dpl_dir" &>/dev/null \
         || {
-          debug_print 'Failed to clone default deployments repository at:' \
+          dprint_debug 'Failed to clone default deployments repository at:' \
             "https://github.com/${user_repo}"
           return 1
         }
@@ -445,7 +445,7 @@ __add_default_dpls()
     else
 
       # Likely unable to connect to repository
-      debug_print 'Failed to connect to default deployments repository at:' \
+      dprint_debug 'Failed to connect to default deployments repository at:' \
         "https://github.com/${user_repo}"
       return 1
     
@@ -465,7 +465,7 @@ __add_default_dpls()
       curl -sL "https://api.github.com/repos/${user_repo}/tarball" \
         | tar --strip-components=1 -C "$dpl_dir" -xzf -
       [ $? -eq 0 ] || {
-        debug_print 'Failed to download (curl) or extract tarball from' \
+        dprint_debug 'Failed to download (curl) or extract tarball from' \
           "https://api.github.com/repos/${user_repo}/tarball"
         return 1
       }
@@ -480,7 +480,7 @@ __add_default_dpls()
       wget -qO - "https://api.github.com/repos/${user_repo}/tarball" \
         | tar --strip-components=1 -C "$dpl_dir" -xzf -
       [ $? -eq 0 ] || {
-        debug_print 'Failed to download (wget) or extract tarball from' \
+        dprint_debug 'Failed to download (wget) or extract tarball from' \
           "https://api.github.com/repos/${user_repo}/tarball"
         return 1
       }
@@ -488,7 +488,7 @@ __add_default_dpls()
     else
 
       # Either none of the tools were available, or repo does not exist
-      debug_print \
+      dprint_debug \
         'Failed to clone or download default deployments repository from:' \
         "https://github.com/${user_repo}"
       return 1
@@ -498,7 +498,7 @@ __add_default_dpls()
   fi
 
   # If gotten here, all is good
-  report_success 'Successfully added default deployments to:' \
+  dprint_success 'Successfully added default deployments to:' \
     "$dpl_dir"
   return 0
 }
@@ -506,12 +506,12 @@ __add_default_dpls()
 __run_install()
 {
   # Offer to install default deployments
-  if ! prompt "$D_RUN_INSTALL" 'Install?' \
+  if ! dprompt_key "$D_RUN_INSTALL" 'Install?' \
     '[optional] Install default deployments' \
     'Deployments added in previous step will be installed' \
     'Default deployments are safe and fully removable'
   then
-    report_skip 'Refused to install default deployments'
+    dprint_skip 'Refused to install default deployments'
     return 1
   fi
 
@@ -522,7 +522,7 @@ __run_install()
   return 0
 }
 
-debug_print()
+dprint_debug()
 {
   $D_QUIET && return 0
   printf >&2 "\n${CYAN}%s %s${NORMAL}\n" "==>" "$1"; shift
@@ -530,14 +530,35 @@ debug_print()
   do printf >&2 "    ${CYAN}%s${NORMAL}\n" "$1"; shift; done; return 0
 }
 
-report_start()
+dprint_start()
 {
   $D_QUIET && return 0
   printf >&2 '\n%s %s\n' "${BOLD}${YELLOW}==>${NORMAL}" "$1"; shift
   while [ $# -gt 0 ]; do printf >&2 '    %s\n' "$1"; shift; done; return 0
 }
 
-prompt()
+dprint_skip()
+{
+  $D_QUIET && return 0
+  printf >&2 '\n%s %s\n' "${BOLD}${WHITE}==>${NORMAL}" "$1"; shift
+  while [ $# -gt 0 ]; do printf >&2 '    %s\n' "$1"; shift; done; return 0
+}
+
+dprint_success()
+{
+  $D_QUIET && return 0
+  printf >&2 '\n%s %s\n' "${BOLD}${GREEN}==>${NORMAL}" "$1"; shift
+  while [ $# -gt 0 ]; do printf >&2 '    %s\n' "$1"; shift; done; return 0
+}
+
+dprint_failure()
+{
+  $D_QUIET && return 0
+  printf >&2 '\n%s %s\n' "${BOLD}${RED}==>${NORMAL}" "$1"; shift
+  while [ $# -gt 0 ]; do printf >&2 '    %s\n' "$1"; shift; done; return 0
+}
+
+dprompt_key()
 {
   # Extract predefined answer
   local predefined_answer="$1"; shift
@@ -568,27 +589,6 @@ prompt()
 
   # Check answer
   if $yes; then return 0; else return 1; fi
-}
-
-report_success()
-{
-  $D_QUIET && return 0
-  printf >&2 '\n%s %s\n' "${BOLD}${GREEN}==>${NORMAL}" "$1"; shift
-  while [ $# -gt 0 ]; do printf >&2 '    %s\n' "$1"; shift; done; return 0
-}
-
-report_skip()
-{
-  $D_QUIET && return 0
-  printf >&2 '\n%s %s\n' "${BOLD}${WHITE}==>${NORMAL}" "$1"; shift
-  while [ $# -gt 0 ]; do printf >&2 '    %s\n' "$1"; shift; done; return 0
-}
-
-report_failure()
-{
-  $D_QUIET && return 0
-  printf >&2 '\n%s %s\n' "${BOLD}${RED}==>${NORMAL}" "$1"; shift
-  while [ $# -gt 0 ]; do printf >&2 '    %s\n' "$1"; shift; done; return 0
 }
 
 main "$@"
