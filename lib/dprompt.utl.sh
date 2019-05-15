@@ -30,13 +30,14 @@
 #.                        chunks as regular arguments.
 #.  -c|--color COLOR    - Uses color X (see dcolors.utl.sh) in formatting. 
 #.                        Without this, $YELLOW is used.
-#.  -b|--bare           - (repeatable) Gradually remove built-in coloring and 
+#.  -b                  - (repeatable) Gradually remove built-in coloring and 
 #.                        bolding effects. Depending on number of -b options:
 #.                          0:  bold, color, reverse color
 #.                          1:  bold, color
 #.                          2:  bold
 #.                          3:  color
 #.                          4+: -
+#.  --bare              - Completely remove built-in coloring and formatting
 #.  -r|--arrow          - Print '==>' arrow. Without this option, the arrow is 
 #.                        only printed with at least one textual chunk.
 #.  -k|--any-key        - Mode: any key. Return 0 on any key press.
@@ -72,7 +73,8 @@ dprompt_key()
                     case $1 in true) return 0;; false) return 1;; *) :;; esac;;
       -p|--prompt)  shift; prompt="$1"; prompt_overridden=true;;
       -c|--color)   shift; color="$1";;
-      -b|--bare)    ((formats)) && ((formats--));; 
+      -b)           ((formats)) && ((formats--));;
+      --bare)       formats=0;;
       -r|--arrow)   arrow=true;;
       -k|--any-key) mode=any;;
       -y|--yes-no)  mode=yn;;
