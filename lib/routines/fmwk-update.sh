@@ -29,10 +29,10 @@ __updating__main()
   # Announce beginning
   if [ "$D_BLANKET_ANSWER" = false ]; then
     dprint_plaque -pcw "$WHITE" "$D_PLAQUE_WIDTH" \
-      -- '‘Updating’ Divine.dotfiles'
+      -- '‘Updating’ Divine.dotfiles framework'
   else
     dprint_plaque -pcw "$GREEN" "$D_PLAQUE_WIDTH" \
-      -- 'Updating Divine.dotfiles'
+      -- 'Updating Divine.dotfiles framework'
   fi
 
   # Success marker
@@ -109,15 +109,15 @@ __updating__main()
   printf >&2 '\n'
   if [ "$D_BLANKET_ANSWER" = false ]; then
     dprint_plaque -pcw "$WHITE" "$D_PLAQUE_WIDTH" \
-      -- 'Finished ‘updating’ Divine.dotfiles'
+      -- 'Finished ‘updating’ Divine.dotfiles framework'
     return 2
   elif $updated_successfully; then
     dprint_plaque -pcw "$GREEN" "$D_PLAQUE_WIDTH" \
-      -- 'Finished updating Divine.dotfiles'
+      -- 'Finished updating Divine.dotfiles framework'
     return 0
   else
     dprint_plaque -pcw "$RED" "$D_PLAQUE_WIDTH" \
-      -- 'Failed to update Divine.dotfiles'
+      -- 'Failed to update Divine.dotfiles framework'
     return 0
   fi
 }
