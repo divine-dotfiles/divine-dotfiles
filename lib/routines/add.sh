@@ -197,7 +197,7 @@ __adding__attempt_github_repo()
       # Both git and remote repo are available
 
       # Prompt user about the addition
-      dprompt_key -bbbb --answer "$D_BLANKET_ANSWER" --prompt 'Clone it?' -- \
+      dprompt_key --bare --answer "$D_BLANKET_ANSWER" --prompt 'Clone it?' -- \
         "Detected ${BOLD}Github repository${NORMAL} at:" \
         -i "https://github.com/${user_repo}" || return 1
 
@@ -245,7 +245,7 @@ __adding__attempt_github_repo()
       # Both curl and remote repo are available
 
       # Prompt user about the addition
-      dprompt_key -bbbb --answer "$D_BLANKET_ANSWER" --prompt 'Download it?' \
+      dprompt_key --bare --answer "$D_BLANKET_ANSWER" --prompt 'Download it?' \
         -- "Detected ${BOLD}Github repository${NORMAL} (tarball) at:" \
         -i "https://github.com/${user_repo}" || return 1
 
@@ -276,7 +276,7 @@ __adding__attempt_github_repo()
       # Both wget and remote repo are available
 
       # Prompt user about the addition
-      dprompt_key -bbbb --answer "$D_BLANKET_ANSWER" --prompt 'Download it?' \
+      dprompt_key --bare --answer "$D_BLANKET_ANSWER" --prompt 'Download it?' \
         -- "Detected ${BOLD}Github repository${NORMAL} (tarball) at:" \
         -i "https://github.com/${user_repo}" || return 1
 
@@ -404,7 +404,7 @@ __adding__attempt_local_repo()
     # Both git and local repo are available
 
     # Prompt user about the addition
-    dprompt_key -bbbb --answer "$D_BLANKET_ANSWER" --prompt 'Clone it?' -- \
+    dprompt_key --bare --answer "$D_BLANKET_ANSWER" --prompt 'Clone it?' -- \
       "Detected ${BOLD}local git repository${NORMAL} at:" -i "$repo_path" \
         || return 1
 
@@ -494,7 +494,7 @@ __adding__attempt_local_dir()
 
   # Prompt user about the addition
   local prompt; $D_ADD_LINK && prompt='Link it?' || prompt='Copy it?'
-  dprompt_key -bbbb --answer "$D_BLANKET_ANSWER" --prompt "$prompt" -- \
+  dprompt_key --bare --answer "$D_BLANKET_ANSWER" --prompt "$prompt" -- \
     "Detected ${BOLD}local directory${NORMAL} at:" -i "$dir_path" \
       || return 1
 
@@ -582,7 +582,7 @@ __adding__attempt_local_file()
 
   # Prompt user about the addition
   local prompt; $D_ADD_LINK && prompt='Link it?' || prompt='Copy it?'
-  dprompt_key -bbbb --answer "$D_BLANKET_ANSWER" --prompt "$prompt" -- \
+  dprompt_key --bare --answer "$D_BLANKET_ANSWER" --prompt "$prompt" -- \
     "Detected ${BOLD}local deployment file${NORMAL} at:" \
     -i "$dpl_file_path" \
       || return 1
@@ -709,7 +709,7 @@ __adding__clobber_check()
 
     fi
 
-    if dprompt_key -bbbb --prompt 'Pre-erase?' --answer "$answer" -- \
+    if dprompt_key --bare --prompt 'Pre-erase?' --answer "$answer" -- \
       "${prompt_desc[@]}"; then
 
       # Attempt to remove pre-existing file/dir
@@ -782,7 +782,7 @@ __adding__check_or_install()
   else
 
     # Prompt user for whether to install utility
-    if dprompt_key -bbbb --answer "$D_BLANKET_ANSWER" \
+    if dprompt_key --bare --answer "$D_BLANKET_ANSWER" \
       "Package manager $OS_PKGMGR is available" \
       --prompt "Install $util_name using $OS_PKGMGR?"
     then
