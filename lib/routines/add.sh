@@ -38,6 +38,7 @@ __perform_add()
 
   # Unless just linking: check if git is available and offer to install it
   if ! $D_ADD_LINK; then
+
     # Check if git is available (possibly install it)
     if ! __adding__check_or_install git; then
 
@@ -57,7 +58,9 @@ __perform_add()
         dprint_debug 'Github repositories will not be available'
         NO_GITHUB=true
       fi
+
     fi
+
   fi
 
   # Storage & status variables
@@ -95,11 +98,11 @@ __perform_add()
     if $arg_success; then
       added_anything=true
       dprint_ode "${D_PRINTC_OPTS_NRM[@]}" -c "$GREEN" -- \
-        '>>>' 'Success' ':' "$dpl_arg"
+        'vvv' 'Success' ':' "$dpl_arg"
     else
       errors_encountered=true
       dprint_ode "${D_PRINTC_OPTS_NRM[@]}" -c "$RED" -- \
-        '>>>' 'Failed' ':' "$dpl_arg"
+        'xxx' 'Failed' ':' "$dpl_arg"
     fi
 
   done
