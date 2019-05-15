@@ -38,6 +38,10 @@ __updating__main()
   # Success marker
   local updated_successfully=false
 
+  # Initialize global status variables
+  NO_GIT=false
+  NO_GITHUB=false
+
   # Check if necessary tools are available and offer to install them
   if ! __updating__check_or_install git; then
 

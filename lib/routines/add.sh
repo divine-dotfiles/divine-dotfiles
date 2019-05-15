@@ -36,6 +36,10 @@ __perform_add()
       -- 'Adding deployments'
   fi
 
+  # Initialize global status variables
+  NO_GIT=false
+  NO_GITHUB=false
+
   # Unless just linking: check if git is available and offer to install it
   if ! $D_ADD_LINK; then
 
