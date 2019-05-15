@@ -17,7 +17,7 @@ main()
       __uninstall_shortcut
 
       # Report success
-      report_success 'All done'
+      dprint_success 'All done'
       return 0
 
     fi
@@ -25,7 +25,7 @@ main()
   fi
 
   # Report failure
-  report_failure 'Nothing was removed'
+  dprint_failure 'Nothing was removed'
   return 1
 }
 
@@ -80,17 +80,17 @@ __locate_installations()
 {
   # Try the usual installation directory unless overridden
   [ -n "$D_INSTALL_PATH" ] || D_INSTALL_PATH="$HOME/.divine"
-  debug_print "Installation directory: $D_INSTALL_PATH"
+  dprint_debug "Installation directory: $D_INSTALL_PATH"
 
   # Rely on existence of ‘intervene.sh’ within the dir
   if [ ! -e "$D_INSTALL_PATH" ]; then
-    debug_print 'Installation directory does not exist; nothing to remove'
+    dprint_debug 'Installation directory does not exist; nothing to remove'
     return 1
   elif [ -f "$D_INSTALL_PATH" ]; then
-    debug_print 'Installation directory is a file; refusing to touch'
+    dprint_debug 'Installation directory is a file; refusing to touch'
     return 1
   elif [ ! -e "$D_INSTALL_PATH/intervene.sh" ]; then
-    debug_print 'Installation directory does not resemble Divine.dotfiles'
+    dprint_debug 'Installation directory does not resemble Divine.dotfiles'
     return 1
   fi
   
@@ -131,7 +131,7 @@ __check_shortcut_filepath()
 
   # Ensure the shortcut path exists and is a symlink
   [ -L "$shortcut_filepath" ] || {
-    debug_print "Skipping shortcut filepath: $shortcut_filepath" \
+    dprint_debug "Skipping shortcut filepath: $shortcut_filepath" \
       'Not a symlink'
     return 1
   }
@@ -141,7 +141,7 @@ __check_shortcut_filepath()
     [ "$( readlink -- "$shortcut_filepath" )" \
       = "$D_INSTALL_PATH/intervene.sh" ] \
         || {
-          debug_print "Skipping shortcut filepath: $shortcut_filepath" \
+          dprint_debug "Skipping shortcut filepath: $shortcut_filepath" \
             'Not pointing to intervene.sh'
           return 1
         }
@@ -154,24 +154,24 @@ __erase_d_dir()
   local name="${BOLD}Divine.dotfiles${NORMAL}"
 
   # Offer to uninstall framework
-  if prompt "$D_REMOVE_ALL" 'Uninstall?' \
+  if dprompt_key "$D_REMOVE_ALL" 'Uninstall?' \
     "${name} Bash framework installed at:" \
     "$D_INSTALL_PATH"
   then
-    report_start "Uninstalling ${name}"
+    dprint_start "Uninstalling ${name}"
   else
-    report_skip "Refused to uninstall ${name}"
+    dprint_skip "Refused to uninstall ${name}"
     return 1
   fi
 
   # Straight-forward enough
   rm -rf "$D_INSTALL_PATH" || {
-    debug_print "Failed to erase directory at: $D_INSTALL_PATH"
+    dprint_debug "Failed to erase directory at: $D_INSTALL_PATH"
     return 1
   }
 
   # Report success
-  report_success "Successfully uninstalled ${name} Bash framework from:" \
+  dprint_success "Successfully uninstalled ${name} Bash framework from:" \
     "$D_INSTALL_PATH"
   return 0
 }
@@ -184,7 +184,7 @@ __uninstall_shortcut()
   for shortcut_filepath in "${D_SHORTCUT_FILEPATHS[@]}"; do
 
     # Announce attempt
-    debug_print "Attempting to remove shortcut command at: $shortcut_filepath"
+    dprint_debug "Attempting to remove shortcut command at: $shortcut_filepath"
 
     # Remove shortcut, using sudo if need be
     if [ -w "$( dirname -- "$shortcut_filepath" )" ]; then
@@ -195,11 +195,11 @@ __uninstall_shortcut()
     
     # Check if removal went fine
     if [ $? -eq 0 ]; then
-      debug_print \
+      dprint_debug \
         "Successfully removed shortcut command at: $shortcut_filepath"
       anything_removed=true
     else
-      debug_print "Failed to remove shortcut command at: $shortcut_filepath"
+      dprint_debug "Failed to remove shortcut command at: $shortcut_filepath"
       errors_encountered=true
     fi
     
@@ -208,20 +208,20 @@ __uninstall_shortcut()
   # Return status
   if $anything_removed; then
     if $errors_encountered; then
-      report_failure 'There were problems during removal of shortcut command'
+      dprint_failure 'There were problems during removal of shortcut command'
     else
-      report_success 'Successfully removed shortcut command'
+      dprint_success 'Successfully removed shortcut command'
     fi
   else
     if $errors_encountered; then
-      report_failure 'Failed to remove shortcut command'
+      dprint_failure 'Failed to remove shortcut command'
     else
-      report_skip 'No shortcut command to remove'
+      dprint_skip 'No shortcut command to remove'
     fi
   fi
 }
 
-debug_print()
+dprint_debug()
 {
   $D_QUIET && return 0
   printf >&2 "\n${CYAN}%s %s${NORMAL}\n" "==>" "$1"; shift
@@ -229,14 +229,35 @@ debug_print()
   do printf >&2 "    ${CYAN}%s${NORMAL}\n" "$1"; shift; done; return 0
 }
 
-report_start()
+dprint_start()
 {
   $D_QUIET && return 0
   printf >&2 '\n%s %s\n' "${BOLD}${YELLOW}==>${NORMAL}" "$1"; shift
   while [ $# -gt 0 ]; do printf >&2 '    %s\n' "$1"; shift; done; return 0
 }
 
-prompt()
+dprint_skip()
+{
+  $D_QUIET && return 0
+  printf >&2 '\n%s %s\n' "${BOLD}${WHITE}==>${NORMAL}" "$1"; shift
+  while [ $# -gt 0 ]; do printf >&2 '    %s\n' "$1"; shift; done; return 0
+}
+
+dprint_success()
+{
+  $D_QUIET && return 0
+  printf >&2 '\n%s %s\n' "${BOLD}${GREEN}==>${NORMAL}" "$1"; shift
+  while [ $# -gt 0 ]; do printf >&2 '    %s\n' "$1"; shift; done; return 0
+}
+
+dprint_failure()
+{
+  $D_QUIET && return 0
+  printf >&2 '\n%s %s\n' "${BOLD}${RED}==>${NORMAL}" "$1"; shift
+  while [ $# -gt 0 ]; do printf >&2 '    %s\n' "$1"; shift; done; return 0
+}
+
+dprompt_key()
 {
   # Extract predefined answer
   local predefined_answer="$1"; shift
@@ -274,27 +295,6 @@ prompt()
 
   # Check answer
   if $yes; then return 0; else return 1; fi
-}
-
-report_success()
-{
-  $D_QUIET && return 0
-  printf >&2 '\n%s %s\n' "${BOLD}${GREEN}==>${NORMAL}" "$1"; shift
-  while [ $# -gt 0 ]; do printf >&2 '    %s\n' "$1"; shift; done; return 0
-}
-
-report_skip()
-{
-  $D_QUIET && return 0
-  printf >&2 '\n%s %s\n' "${BOLD}${WHITE}==>${NORMAL}" "$1"; shift
-  while [ $# -gt 0 ]; do printf >&2 '    %s\n' "$1"; shift; done; return 0
-}
-
-report_failure()
-{
-  $D_QUIET && return 0
-  printf >&2 '\n%s %s\n' "${BOLD}${RED}==>${NORMAL}" "$1"; shift
-  while [ $# -gt 0 ]; do printf >&2 '    %s\n' "$1"; shift; done; return 0
 }
 
 main "$@"
