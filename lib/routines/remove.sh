@@ -394,6 +394,10 @@ __remove_dpls()
       source "$divinedpl_filepath"
     fi
 
+    # Expose both name and description to deployment (in the form extracted)
+    D_NAME="$name"
+    D_DESC="$desc"
+
     # Try to figure out, if deployment is already removed
     if $proceeding; then
 

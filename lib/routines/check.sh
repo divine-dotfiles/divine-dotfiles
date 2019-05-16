@@ -302,6 +302,10 @@ __check_dpls()
       source "$divinedpl_filepath"
     fi
 
+    # Expose both name and description to deployment (in the form extracted)
+    D_NAME="$name"
+    D_DESC="$desc"
+
     # Check if deployment is installed and report
     if $proceeding; then
 
