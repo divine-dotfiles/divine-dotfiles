@@ -34,7 +34,7 @@
 dstash_record()
 {
   # Do pre-flight checks
-  __dstash_pre_flight_checks || return 2
+  dstash_prepare || return 2
 
   # Storage variable
   local string
@@ -71,7 +71,7 @@ dstash_record()
 dstash_exists()
 {
   # Do pre-flight checks
-  __dstash_pre_flight_checks || return 2
+  dstash_prepare || return 2
 
   # Storage variable
   local string
@@ -108,7 +108,7 @@ dstash_exists()
 dstash_remove()
 {
   # Do pre-flight checks
-  __dstash_pre_flight_checks || return 2
+  dstash_prepare || return 2
 
   # Storage variable
   local string temp_stash temp_line
@@ -152,7 +152,24 @@ dstash_remove()
   $all_removed && return 0 || return 1
 }
 
-#>  __dstash_pre_flight_checks
+#>  dstash_clear
+#
+## Erases everything from stash file (leaves it empty)
+#
+## Returns:
+#.  0 - Successfully emptied out stash file
+#.  1 - Otherwise
+#
+dstash_clear()
+{
+  # Do pre-flight checks
+  dstash_prepare || return 2
+
+  # Positively destroy contents of stash file
+  >"$D_DPL_STASH_FILEPATH" && return 0 || return 1
+}
+
+#>  dstash_prepare
 #
 ## Helper function that ensures that stashing is good to go
 #
@@ -160,7 +177,7 @@ dstash_remove()
 #.  0 - Ready for stashing
 #.  1 - Otherwise
 #
-__dstash_pre_flight_checks()
+dstash_prepare()
 {
   # Check if within deployment by ensuring $D_NAME is populated
   [ -n "$D_NAME" ] || {
