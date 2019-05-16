@@ -128,6 +128,9 @@ __dstash_set()
       -n 'in stash file at:' -i "$D_STASH_FILEPATH"
     return 1
   }
+
+  # Update stash file checksum and return zero regardless
+  __dstash_store_md5; return 0
 }
 
 #> __dstash_get KEY
@@ -230,6 +233,9 @@ __dstash_rm()
       -n 'in stash file at:' -i "$D_STASH_FILEPATH"
     return 1
   }
+
+  # Update stash file checksum and return zero regardless
+  __dstash_store_md5; return 0
 }
 
 #>  __dstash_pre_flight_checks [-r]
@@ -296,6 +302,14 @@ __dstash_pre_flight_checks()
     return 1
   }
 
+  # Check if md5 checking works
+  __dstash_md5 <( : ) &>/dev/null || {
+    dprint_debug "$( basename -- "${BASH_SOURCE[0]}" ):" \
+      'Unable to verify md5 checksums' \
+      -n 'Stashing is not available without means of checksum verification'
+    return 1
+  }
+
   # Establish directory path for stash
   local stash_dirpath="$D_BACKUPS_DIR"
   [ "$root" = false ] && stash_dirpath+="/$D_NAME"
@@ -307,34 +321,56 @@ __dstash_pre_flight_checks()
     return 1
   }
 
-  # Compose path to stash file
+  # Compose path to stash file and its checksum file
   local stash_filepath="$stash_dirpath/$D_STASH_FILENAME"
+  local stash_md5_filepath="$stash_filepath.md5"
 
-  # Ensure stash file is not a directory
+  # Ensure both stash files are not a directory
   [ -d "$stash_filepath" ] && {
     dprint_debug "$( basename -- "${BASH_SOURCE[0]}" ):" \
       'Stash filepath occupied by a directory:' -i "$stash_filepath"
     return 1
   }
+  [ -d "$stash_md5_filepath" ] && {
+    dprint_debug "$( basename -- "${BASH_SOURCE[0]}" ):" \
+      'Stash checksum filepath occupied by a directory:' \
+      -i "$stash_md5_filepath"
+    return 1
+  }
 
-  # If stash file does not yet exist, create it
+  # If stash file does not yet exist, create it and record checksum
   if [ ! -e "$stash_filepath" ]; then
     touch -- "$stash_filepath" || {
       dprint_debug "$( basename -- "${BASH_SOURCE[0]}" ):" \
         'Failed to create fresh stash file at:' -i "$stash_filepath"
       return 1
     }
+    __dstash_md5 "$stash_filepath" >"$stash_md5_filepath" || {
+      dprint_debug "$( basename -- "${BASH_SOURCE[0]}" ):" \
+        'Failed to create stash md5 checksum file at:' -i "$stash_md5_filepath"
+      return 1
+    }
   fi
 
-  # Ensure stash file is a writable file
+  # Ensure stash file and checksum file are both writable files
   [ -f "$stash_filepath" -a -w "$stash_filepath" ] || {
     dprint_debug "$( basename -- "${BASH_SOURCE[0]}" ):" \
-      'Stash file path is not a writable file:' -i "$stash_filepath"
+      'Stash filepath is not a writable file:' -i "$stash_filepath"
+    return 1
+  }
+  [ -f "$stash_md5_filepath" -a -w "$stash_md5_filepath" ] || {
+    dprint_debug "$( basename -- "${BASH_SOURCE[0]}" ):" \
+      'Stash md5 checksum filepath is not a writable file:' \
+      -i "$stash_md5_filepath"
     return 1
   }
 
   # Populate stash file path globally
   D_STASH_FILEPATH="$stash_filepath"
+  D_STASH_MD5_FILEPATH="$stash_md5_filepath"
+
+  # Ensure checksum is good
+  __dstash_check_md5 || return 1
 
   # Return
   return 0
@@ -367,4 +403,113 @@ __dstash_validate_key()
 
   # Return
   return 0
+}
+
+#>  __dstash_store_md5
+#
+## Stores calculated md5 checksum of stash file into pre-defined file. No file 
+#. existence checks are performed
+#
+## Returns:
+#.  0 - Successfully stored checksum
+#.  1 - Otherwise
+#
+__dstash_store_md5()
+{
+  # Store current md5 checksum to intended file, or report error
+  __dstash_md5 "$D_STASH_FILEPATH" >"$D_STASH_MD5_FILEPATH" || {
+    dprint_debug "$( basename -- "${BASH_SOURCE[0]}" ):" \
+      'Failed to create md5 checksum file at:' -i "$D_STASH_MD5_FILEPATH"
+    return 1
+  }
+}
+
+#>  __dstash_check_md5
+#
+## Checks whether checksum file at pre-defined path contains current md5 hash 
+#. of stash file. If not, issues a warning and prompts user on whether they 
+#. which to continue anyway. If they do, updates stored checksum.
+#
+## Returns:
+#.  0 - Either checksum matches, or user is okay with mismatch
+#.  1 - Otherwise
+#
+__dstash_check_md5()
+{
+  # Calculate current checksum; extract stored one
+  local calculated_md5="$( __dstash_md5 "$D_STASH_FILEPATH" )"
+  local stored_md5="$( head -1 -- "$D_STASH_MD5_FILEPATH" 2>/dev/null )"
+
+  # If checksums match: return immediately
+  [ "$calculated_md5" = "$stored_md5" ] && return 0
+
+  # Otherwise, compose prompt
+  local prompt_desc prompt_question
+  if [ ${#stored_md5} -eq 32 ]; then
+    dprint_debug 'Mismatched checksum on stash file:' -i "$D_STASH_FILEPATH"
+    prompt_desc=( \
+      'Current md5 checksum of stash file:' -i "$D_STASH_FILEPATH" \
+      -n 'does not match checksum recorded in' -i "$D_STASH_MD5_FILEPATH" \
+      -n 'This suggests manual tinkering with framework directories' \
+      -n "${BOLD}Without reliable stash," \
+      "deployments may act unpredictably!${NORMAL}"
+    )
+    prompt_question='Ignore incorrect checksum?'
+  else
+    dprint_debug 'Missing checksum on stash file:' -i "$D_STASH_FILEPATH"
+    prompt_desc=( \
+      'There is no stored checksum for stash file at:' -i "$D_STASH_FILEPATH" \
+      -n 'This suggests manual tinkering with framework directories' \
+      -n "${BOLD}Without reliable stash," \
+      "deployments may act unpredictably!${NORMAL}"
+    )
+    prompt_question='Ignore missing checksum?'
+  fi
+
+  # Prompt user and return appropriately
+  if dprompt_key --color "$RED" --answer "$D_BLANKET_ANSWER" \
+    --prompt "$prompt_question" -- "${prompt_desc[@]}"
+  then
+    dprint_debug 'Working with unverified stash'
+    __dstash_store_md5
+    return 0
+  else
+    dprint_debug 'Refused to work with unverified stash'
+    return 1
+  fi
+}
+
+#>  __dstash_md5 FILE
+#
+## Prints md5 checksum of FILE to stdout. Tries three methods in succession: 
+#. md5sum, md5 (macOS), openssl md5. Stops as soon as resulting HEX string is 
+#. 32 characters long. If none of the approaches works, prints nothing and 
+#. returns non-zero.
+#
+## Parameters:
+#.  $1  - Path to file
+#
+## Returns:
+#.  0 - Successfully printed 32 character md5 hash
+#.  1 - Otherwise: not a file, or missing tools
+#
+__dstash_md5()
+{
+  # Storage variable
+  local md5
+
+  # Attempt via GNU md5sum
+  md5="$( md5sum -- "$1" 2>/dev/null | awk '{print $1}' )"
+  if [ ${#md5} -eq 32 ]; then printf '%s\n' "$md5"; return 0; fi
+
+  # Attempt via macOS md5
+  md5="$( md5 -r -- "$1" 2>/dev/null | awk '{print $1}' )"
+  if [ ${#md5} -eq 32 ]; then printf '%s\n' "$md5"; return 0; fi
+
+  # Attempt via openssl md5
+  md5="$( openssl md5 "$1" 2>/dev/null | awk '{print $NF}' )"
+  if [ ${#md5} -eq 32 ]; then printf '%s\n' "$md5"; return 0; fi
+
+  # Made it here: return error code
+  return 1
 }
