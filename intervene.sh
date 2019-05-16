@@ -500,6 +500,9 @@ __populate_globals()
   # Prefix for backup files created by deployments
   readonly D_BACKUP_PREFIX='.dvn-backup-'
 
+  # Name for stash files
+  readonly D_STASH_FILENAME="stash.cfg"
+
   # Regex for extracting D_NAME from *.dpl.sh file
   readonly D_DPL_NAME_REGEX='D_NAME=\(.*\)'
 
