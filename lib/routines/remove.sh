@@ -38,7 +38,7 @@ __perform_remove()
 
   # Update packages if touching them at all
   # (This is normally required even for removal)
-  __source_routine "$D_ROUTINES_DIR/pkgs.sh"
+  __launch_routine pkgs
 
   # Storage variables
   local priority reversed_queue
