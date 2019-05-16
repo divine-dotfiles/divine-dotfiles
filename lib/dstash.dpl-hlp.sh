@@ -17,9 +17,11 @@
 #. gets its own stash.
 #
 ## Following functions are available:
+#>  dstash_prepare
 #>  dstash_record [STRING]…
 #>  dstash_exists [STRING]…
 #>  dstash_remove [STRING]…
+#>  dstash_clear
 
 #>  dstash_record [STRING]…
 #
@@ -220,10 +222,10 @@ dstash_prepare()
     }
   fi
 
-  # Ensure stash file is a readable file
-  [ -f "$stash_filepath" -a -r "$stash_filepath" ] || {
+  # Ensure stash file is a writable file
+  [ -f "$stash_filepath" -a -w "$stash_filepath" ] || {
     dprint_debug \
-      "${BASH_SOURCE[0]}: Stash file path is not a readable file:" \
+      "${BASH_SOURCE[0]}: Stash file path is not a writable file:" \
       -i "$stash_filepath"
     return 1
   }
