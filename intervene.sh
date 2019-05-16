@@ -464,6 +464,9 @@ __populate_d_dir()
 #
 __populate_globals()
 {
+  # Framework displayed name
+  readonly D_FMWK='Divine.dotfiles'
+
   # Path to assets directory
   readonly D_ASSETS_DIR="$D_DIR/assets"
 
