@@ -599,38 +599,66 @@ __populate_globals()
 #
 __import_dependencies()
 {
+  # Manually assemble utility dependency list (order is significant)
+  local dependencies=( \
+    dcolors.utl.sh \
+    dprint.utl.sh \
+    dprompt.utl.sh \
+    dtrim.utl.sh \
+    dos.utl.sh \
+    dreadlink.utl.sh \
+    dln.utl.sh \
+    dmv.utl.sh \
+  )
+
   # Storage variable
   local script_path
 
-  # Iterate over utility files
-  while IFS= read -r -d $'\0' script_path; do
-    [ -r "$script_path" -a -f "$script_path" ] || continue
-    # Attempt to source the file
-    source "$script_path" || {
-      printf >&2 '%s: %s: %s\n' \
-        "$( basename -- "${BASH_SOURCE[0]}" )" \
-        'Fatal error' \
-        'Failed to source utility dependency at:'
-      printf >&2 '  %s\n' "$script_path"
-      exit 1
-    }
-  done < <( find "$D_UTILS_DIR" -mindepth 1 -maxdepth 3 \
-    -name "$D_UTILS_SUFFIX" -print0 )
+  # Iterate over utility dependencies
+  for script_path in "${dependencies[@]}"; do
 
-  # Iterate over helper files
-  while IFS= read -r -d $'\0' script_path; do
-    [ -r "$script_path" -a -f "$script_path" ] || continue
-    # Attempt to source the file
-    source "$script_path" || {
-      printf >&2 '%s: %s: %s\n' \
-        "$( basename -- "${BASH_SOURCE[0]}" )" \
-        'Fatal error' \
-        'Failed to source helper dependency at:'
-      printf >&2 '  %s\n' "$script_path"
+    # Construct path
+    script_path="$D_UTILS_DIR/$script_path"
+
+    # Check that dependency is a readable file
+    [ -r "$script_path" -a -f "$script_path" ] || {
+      dprint_debug "$( basename -- "${BASH_SOURCE[0]}" ):" \
+        'Fatal error' -n 'Utility dependency is not a readable file:' \
+        -i "$script_path"
       exit 1
     }
-  done < <( find "$D_HELPERS_DIR" -mindepth 1 -maxdepth 3 \
-    -name "$D_HELPERS_SUFFIX" -print0 )
+
+    # Attempt to source the file
+    source "$script_path" || {
+      dprint_debug "$( basename -- "${BASH_SOURCE[0]}" ):" \
+        'Fatal error' -n 'Failed to source utility dependency at:' \
+        -i "$script_path"
+      exit 1
+    }
+
+  done
+
+  # As for helper functions: import them all
+  while IFS= read -r -d $'\0' script_path; do
+
+    # Check that dependency is a readable file
+    [ -r "$script_path" -a -f "$script_path" ] || {
+      dprint_debug "$( basename -- "${BASH_SOURCE[0]}" ):" \
+        'Fatal error' -n 'Helper dependency is not a readable file:' \
+        -i "$script_path"
+      exit 1
+    }
+
+    # Attempt to source the file
+    source "$script_path" || {
+      dprint_debug "$( basename -- "${BASH_SOURCE[0]}" ):" \
+        'Fatal error' -n 'Failed to source helper dependency at:' \
+        -i "$script_path"
+      exit 1
+    }
+    
+  done < <( find "$D_HELPERS_DIR" -mindepth 1 -maxdepth 1 \
+    -name "$D_HELPERS_SUFFIX" -type f -print0 )
 }
 
 #> __perform_routine
