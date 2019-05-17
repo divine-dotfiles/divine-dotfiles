@@ -16,7 +16,7 @@
 #. own stash. Text file in backups directory is used for storage.
 #
 
-#> dstash ready|has|set|get|pop|rm|clear [-r|--root] [ KEY [VALUE] ]
+#> dstash ready|has|set|get|pop|unset|clear [-r|--root] [ KEY [VALUE] ]
 #
 ## Main stashing command. Dispatches task based on first non-opt argument.
 #
@@ -35,7 +35,7 @@
 #.  set KEY [VALUE]   - Set/update KEY to VALUE; VALUE can be empty
 #.  get KEY           - Print value of KEY to stdout
 #.  pop KEY           - Print value of KEY to stdout; then remove it
-#.  rm KEY            - Remove KEY from stash
+#.  unset KEY         - Remove KEY from stash
 #.  clear             - Clear stash entirely
 #
 ## Returns:
@@ -66,7 +66,7 @@ dstash()
     set)    __dstash_set "$@";;
     get)    __dstash_get "$@";;
     pop)    __dstash_pop "$@";;
-    rm)     __dstash_rm "$@";;
+    unset)  __dstash_unset "$@";;
     clear)  >"$D_STASH_FILEPATH" && return 0 || return 1;;
     *)      dprint_debug 'dstash called with illegal task:' -i "$1"; return 1;;
   esac
@@ -120,7 +120,7 @@ __dstash_set()
   if [ "$1" = -s ]; then shift; else __dstash_validate_key "$1" || return 1; fi
 
   # If key is currently set, unset it
-  if __dstash_has -s "$1"; then __dstash_rm -s "$1" || return 1; fi
+  if __dstash_has -s "$1"; then __dstash_unset -s "$1" || return 1; fi
 
   # Append record at the end
   printf '%s\n' "$1=$2" >>"$D_STASH_FILEPATH" || {
@@ -204,10 +204,10 @@ __dstash_pop()
   __dstash_get -s "$1" || return 1
 
   # Delegate unsetting of key
-  __dstash_rm -s "$1" || return 1
+  __dstash_unset -s "$1" || return 1
 }
 
-#> __dstash_rm [-s] KEY
+#> __dstash_unset [-s] KEY
 #
 ## Unsets key by invalidating all previous assignments in stash file. Extra 
 #. arguments are ignored.
@@ -222,7 +222,7 @@ __dstash_pop()
 #.  0 - Task performed successfully
 #.  1 - Key is invalid, not provided, or failed to unset key
 #
-__dstash_rm()
+__dstash_unset()
 {
   # Validate arguments
   if [ "$1" = -s ]; then shift; else __dstash_validate_key "$1" || return 1; fi
