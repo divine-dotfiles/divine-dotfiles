@@ -16,7 +16,7 @@
 #. own stash. Text file in backups directory is used for storage.
 #
 
-#> dstash ready|has|set|get|pop|unset|clear [-r|--root] [ KEY [VALUE] ]
+#> dstash ready|has|set|get|pop|unset|clear [-rs] [ KEY [VALUE] ]
 #
 ## Main stashing command. Dispatches task based on first non-opt argument.
 #
@@ -27,6 +27,8 @@
 #.  -r|-root  - Use root stash, instead of deployment-specific. Root stash is 
 #.              used, for example, during installation of Divine.dotfiles 
 #.              framework itself.
+#.  -s|--skip-checks  - Forego stash health checks. Use with care for multiple 
+#.                      successive calls.
 #
 ## Parameters:
 #.  Name of task to perform, followed by appropriate arguments:
@@ -46,21 +48,19 @@
 dstash()
 {
   # Parse options
-  local args=() root=; while (($#)); do
-    case $1 in -r|--root) root=-r;; *) args+=("$1");; esac; shift; done
+  local args=() root= checks=true; while (($#)); do
+    case $1 in -r|--root) root=-r;; -s|--skip-checks) checks=false;; 
+    *) args+=("$1");; esac; shift; done
   set -- "${args[@]}"
 
-  # Always perform pre-flight checks first
-  __dstash_pre_flight_checks $root || return 2
+  # Perform pre-flight checks first, unless ordered to skip
+  if $checks; then __dstash_pre_flight_checks $root || return 2; fi
 
   # Quick return without arguments (equivalent of dstash ready)
   (($#)) || return 0
 
-  # Extract task name
-  local task="$1"; shift
-
   # Dispatch task based on first argument
-  case $task in
+  local task="$1"; shift; case $task in
     ready)  return 0;;
     has)    __dstash_has "$@";;
     set)    __dstash_set "$@";;
