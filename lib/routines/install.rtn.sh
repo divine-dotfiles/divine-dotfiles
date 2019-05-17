@@ -38,7 +38,7 @@ __perform_install()
   fi
 
   # Update packages if touching them at all
-  __launch_routine pkgs
+  __load routine pkgs
 
   # Storage variable
   local priority

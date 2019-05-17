@@ -473,27 +473,30 @@ __populate_globals()
   # Path to lib directory
   readonly D_LIB_DIR="$D_DIR/lib"
 
-  # Path to routines directory
+  # Path to routines directory and routine file suffix
   readonly D_ROUTINES_DIR="$D_LIB_DIR/routines"
+  readonly D_ROUTINE_SUFFIX=".rtn.sh"
 
-  # Path to directory containing Bash utility scripts
+  # Path to directory containing Bash utility scripts util file suffix
   readonly D_UTILS_DIR="$D_LIB_DIR"
+  readonly D_UTIL_SUFFIX=".utl.sh"
 
-  # Path to directory containing Bash helper functions for deployments
+  # Path to directory containing Bash helper functions and helper suffix
   readonly D_HELPERS_DIR="$D_LIB_DIR/helpers"
+  readonly D_HELPER_SUFFIX=".hlp.sh"
 
   # Ordered list of script’s utility and helper dependencies
   D_DEPENDENCIES=( \
-    "$D_UTILS_DIR/dcolors.utl.sh" \
-    "$D_UTILS_DIR/dprint.utl.sh" \
-    "$D_UTILS_DIR/dprompt.utl.sh" \
-    "$D_HELPERS_DIR/dstash.dpl-hlp.sh" \
-    "$D_UTILS_DIR/dos.utl.sh" \
-    "$D_UTILS_DIR/dtrim.utl.sh" \
-    "$D_UTILS_DIR/dreadlink.utl.sh" \
-    "$D_UTILS_DIR/dln.utl.sh" \
-    "$D_HELPERS_DIR/dln.dpl-hlp.sh" \
-    "$D_UTILS_DIR/dmv.utl.sh" \
+    "util dcolors" \
+    "util dprint" \
+    "util dprompt" \
+    "helper dstash" \
+    "util dos" \
+    "util dtrim" \
+    "util dreadlink" \
+    "util dln" \
+    "helper dln" \
+    "util dmv" \
   ); readonly D_DEPENDENCIES
 
   # Path to Divinefile
@@ -603,26 +606,13 @@ __populate_globals()
 __import_dependencies()
 {
   # Storage variable
-  local script_path
+  local dependency
 
-  # Iterate over utility dependencies
-  for script_path in "${D_DEPENDENCIES[@]}"; do
+  # Iterate over dependencies
+  for dependency in "${D_DEPENDENCIES[@]}"; do
 
-    # Check that dependency is a readable file
-    [ -r "$script_path" -a -f "$script_path" ] || {
-      dprint_debug "$( basename -- "${BASH_SOURCE[0]}" ):" \
-        'Fatal error' -n 'Dependency is not a readable file:' \
-        -i "$script_path"
-      exit 1
-    }
-
-    # Attempt to source the file
-    source "$script_path" || {
-      dprint_debug "$( basename -- "${BASH_SOURCE[0]}" ):" \
-        'Fatal error' -n 'Failed to source dependency at:' \
-        -i "$script_path"
-      exit 1
-    }
+    # Load dependency or halt script
+    __load $dependency || exit 1
 
   done
 }
@@ -635,62 +625,67 @@ __perform_routine()
 {
   case $D_ROUTINE in
     install)
-      __launch_routine assemble
-      __launch_routine install;;
+      __load routine assemble
+      __load routine install;;
     remove)
-      __launch_routine assemble
-      __launch_routine remove;;
+      __load routine assemble
+      __load routine remove;;
     refresh)
-      __launch_routine assemble
-      __launch_routine remove && printf '\n' && __launch_routine install;;
+      __load routine assemble
+      __load routine remove && printf '\n' && __load routine install;;
     check)
-      __launch_routine assemble
-      __launch_routine check;;
+      __load routine assemble
+      __load routine check;;
     add)
-      __launch_routine add;;
+      __load routine add;;
     update)
-      __launch_routine fmwk-update;;
+      __load routine fmwk-update;;
     *)
       return 1;;
   esac
 }
 
-#>  __launch_routine ROUTINE_NAME
+#>  __load TYPE NAME
 #
-## Sources routine script. It is expected that necessary function call is 
-#. present in the script file.
+## Sources sub-script by name, deducing location by provided type. It is 
+#. expected that necessary function call is present in sourced file.
 #
 ## Arguments:
-#.  $1  - Path to routine script
+#.  $1  - Type of script:
+#.          * 'routine'
+#.          * 'util'
+#.          * 'helper'
+#.  $2  - Name of script file, without path or suffix
 #
 ## Returns:
-#.  1 - Failed to source routine script
-#.  Otherwise, last return code (expected to be that of routine)
+#.  1 - Failed to source script
+#.  Otherwise, last return code (last command in sourced file)
+#.  1 - (script exit) Unrecognized type
 #
-__launch_routine()
+__load()
 {
-  # Compose path to routine file and name of routine entry function
-  local routine_name="$1"; shift
-  local routine_funcname="$1"; shift
-
-  # Construct routine filepath
-  local routine_filepath="${D_ROUTINES_DIR}/${routine_name}.sh"
+  # Check type and compose filepath accordingly
+  local type="$1"; shift; local name="$1" filepath; case $type in
+    routine)  filepath="${D_ROUTINES_DIR}/${name}${D_ROUTINE_SUFFIX}";;
+    util)     filepath="${D_UTILS_DIR}/${name}${D_UTIL_SUFFIX}";;
+    helper)   filepath="${D_HELPERS_DIR}/${name}${D_HELPER_SUFFIX}";;
+    *)        printf >&2 '%s: %s\n' "${FUNCNAME[0]}" \
+                "Called with illegal type argument: '$type'"; exit 1;;
+  esac; shift
 
   # Check if file exists and source it
-  if [ -r "$routine_filepath" -a -f "$routine_filepath" ]; then
+  if [ -r "$filepath" -a -f "$filepath" ]; then
     # Source script
-    source "$routine_filepath"
+    source "$filepath"
     # Return last command’s status
     return $?
   else
-    # Report failed sourcing
-    dprint_debug 'Failed to source script file at:' -i "$routine_filepath" \
-      -n 'Not a readable file'
+    # Report failed sourcing and return
+    printf >&2 '%s: %s\n' "${FUNCNAME[0]}" \
+      "Required script file is not a readable file:"
+    printf >&2 '  %s\n' "$filepath"
+    return 1
   fi
-
-  # If got here, report failure
-  dprint_failure 'Failed to execute requested routine'
-  return 1
 }
 
 # Launch driver function

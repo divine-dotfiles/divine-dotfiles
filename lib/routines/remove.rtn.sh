@@ -38,7 +38,7 @@ __perform_remove()
 
   # Update packages if touching them at all
   # (This is normally required even for removal)
-  __launch_routine pkgs
+  __load routine pkgs
 
   # Storage variables
   local priority reversed_queue
