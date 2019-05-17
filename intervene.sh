@@ -467,9 +467,6 @@ __populate_globals()
   # Framework displayed name
   readonly D_FMWK='Divine.dotfiles'
 
-  # Path to assets directory
-  readonly D_ASSETS_DIR="$D_DIR/assets"
-
   # Path to backups directory
   readonly D_BACKUPS_DIR="$D_DIR/backups"
 
@@ -482,14 +479,22 @@ __populate_globals()
   # Path to directory containing Bash utility scripts
   readonly D_UTILS_DIR="$D_LIB_DIR"
 
-  # Filepath suffix for utility files
-  readonly D_UTILS_SUFFIX='*.utl.sh'
-
   # Path to directory containing Bash helper functions for deployments
-  readonly D_HELPERS_DIR="$D_LIB_DIR"
+  readonly D_HELPERS_DIR="$D_LIB_DIR/helpers"
 
-  # Filepath suffix for helper files
-  readonly D_HELPERS_SUFFIX='*.dpl-hlp.sh'
+  # Ordered list of script’s utility and helper dependencies
+  D_DEPENDENCIES=( \
+    "$D_UTILS_DIR/dcolors.utl.sh" \
+    "$D_UTILS_DIR/dprint.utl.sh" \
+    "$D_UTILS_DIR/dprompt.utl.sh" \
+    "$D_HELPERS_DIR/dstash.dpl-hlp.sh" \
+    "$D_UTILS_DIR/dos.utl.sh" \
+    "$D_UTILS_DIR/dtrim.utl.sh" \
+    "$D_UTILS_DIR/dreadlink.utl.sh" \
+    "$D_UTILS_DIR/dln.utl.sh" \
+    "$D_HELPERS_DIR/dln.dpl-hlp.sh" \
+    "$D_UTILS_DIR/dmv.utl.sh" \
+  ); readonly D_DEPENDENCIES
 
   # Path to Divinefile
   readonly D_DIVINEFILE_NAME='Divinefile'
@@ -580,18 +585,16 @@ __populate_globals()
 
 #> __import_dependencies
 #
-## Straight-forward helper that sources utilities this script depends on. 
-#. Terminates the script on failing to source a utility (hard dependencies).
+## Straight-forward helper that sources utilities and helpers this script 
+#. depends on, in order. Terminates the script on failing to source a utility 
+#. (hard dependencies).
 #
 ## Requires:
-#.  $D_UTILS_DIR            - From __populate_globals
-#.  $D_UTILS_SUFFIX         - From __populate_globals
-#.  $D_HELPERS_DIR          - From __populate_globals
-#.  $D_HELPERS_SUFFIX       - From __populate_globals
+#.  $D_DEPENDENCIES     - From __populate_globals
 #
 ## Returns:
-#.  0 - All utilities successfully sourced
-#.  1 - (script exit) Failed to source a utility
+#.  0 - All dependencies successfully sourced
+#.  1 - (script exit) Failed to source a dependency
 #
 ## Prints:
 #.  stdout: *nothing*
@@ -599,31 +602,16 @@ __populate_globals()
 #
 __import_dependencies()
 {
-  # Manually assemble utility dependency list (order is significant)
-  local dependencies=( \
-    dcolors.utl.sh \
-    dprint.utl.sh \
-    dprompt.utl.sh \
-    dtrim.utl.sh \
-    dos.utl.sh \
-    dreadlink.utl.sh \
-    dln.utl.sh \
-    dmv.utl.sh \
-  )
-
   # Storage variable
   local script_path
 
   # Iterate over utility dependencies
-  for script_path in "${dependencies[@]}"; do
-
-    # Construct path
-    script_path="$D_UTILS_DIR/$script_path"
+  for script_path in "${D_DEPENDENCIES[@]}"; do
 
     # Check that dependency is a readable file
     [ -r "$script_path" -a -f "$script_path" ] || {
       dprint_debug "$( basename -- "${BASH_SOURCE[0]}" ):" \
-        'Fatal error' -n 'Utility dependency is not a readable file:' \
+        'Fatal error' -n 'Dependency is not a readable file:' \
         -i "$script_path"
       exit 1
     }
@@ -631,34 +619,12 @@ __import_dependencies()
     # Attempt to source the file
     source "$script_path" || {
       dprint_debug "$( basename -- "${BASH_SOURCE[0]}" ):" \
-        'Fatal error' -n 'Failed to source utility dependency at:' \
+        'Fatal error' -n 'Failed to source dependency at:' \
         -i "$script_path"
       exit 1
     }
 
   done
-
-  # As for helper functions: import them all
-  while IFS= read -r -d $'\0' script_path; do
-
-    # Check that dependency is a readable file
-    [ -r "$script_path" -a -f "$script_path" ] || {
-      dprint_debug "$( basename -- "${BASH_SOURCE[0]}" ):" \
-        'Fatal error' -n 'Helper dependency is not a readable file:' \
-        -i "$script_path"
-      exit 1
-    }
-
-    # Attempt to source the file
-    source "$script_path" || {
-      dprint_debug "$( basename -- "${BASH_SOURCE[0]}" ):" \
-        'Fatal error' -n 'Failed to source helper dependency at:' \
-        -i "$script_path"
-      exit 1
-    }
-    
-  done < <( find "$D_HELPERS_DIR" -mindepth 1 -maxdepth 1 \
-    -name "$D_HELPERS_SUFFIX" -type f -print0 )
 }
 
 #> __perform_routine
