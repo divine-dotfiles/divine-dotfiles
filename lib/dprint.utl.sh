@@ -11,16 +11,16 @@
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
 #
 ## Summary of defined functions:
-#>  dprint_debug    [-n] [CHUNKS|-n|-i]…
-#>  dprint_start    [-n] [CHUNKS|-n|-i]…
-#>  dprint_skip     [-n] [CHUNKS|-n|-i]…
-#>  dprint_success  [-n] [CHUNKS|-n|-i]…
-#>  dprint_failure  [-n] [CHUNKS|-n|-i]…
+#>  dprint_debug    [-l] [-n] [CHUNKS|-n|-i]…
+#>  dprint_start    [-l] [-n] [CHUNKS|-n|-i]…
+#>  dprint_skip     [-l] [-n] [CHUNKS|-n|-i]…
+#>  dprint_success  [-l] [-n] [CHUNKS|-n|-i]…
+#>  dprint_failure  [-l] [-n] [CHUNKS|-n|-i]…
 #>  dprint_ode [-no] [-c|--color X] [--width-N X] [--effects-N X] [--] FIELD1 [FIELD2…]
 #>  dprint_plaque [-nope]… [-c|--color X] [-w|--width X] [-r|--padding-char X] [--] MSG
 #
 
-#>  dprint_debug [-n] [CHUNKS|-n|-i]…
+#>  dprint_debug [-l] [-n] [CHUNKS|-n|-i]…
 #
 ## In verbose mode: from given chunks and line breaks composes and prints a 
 #. message themed as a debug line. Chunks are separated by single space.
@@ -28,7 +28,8 @@
 ## In quiet mode ($D_QUIET): does nothing.
 #
 ## Options:
-#.  -n  - Prepend empty line to any other output
+#.  -l  - (must be first) Ignore global $D_QUIET and always print
+#.  -n  - (must be first or second) Prepend empty line to any other output
 #
 ## Parameters:
 #.  $@  - Textual chunks of a message. Following special chunks are recognized:
@@ -45,14 +46,14 @@
 #
 dprint_debug()
 {
-  # Check if quiet mode is active
-  [ "$D_QUIET" = true ] && return 1
+  # Check options
+  [ "$1" = -l ] && shift || { [ "$D_QUIET" = true ] && return 1; }
+  [ "$1" = -n ] && { printf >&2 '\n'; shift; }
 
   # Save formatting
   local c="$CYAN" n="$NORMAL"
 
   # Compose message from arguments and print it all on the go
-  [ "$1" = -n ] && { printf >&2 '\n'; shift; }
   printf >&2 '%s' "$c==>$n"
   local chunk; for chunk do
     case $chunk in -n) printf >&2 '\n   ';; -i) printf >&2 '\n       ';;
@@ -60,7 +61,7 @@ dprint_debug()
   done; printf >&2 '\n'; return 0
 }
 
-#>  dprint_start [-n] [CHUNKS|-n|-i]…
+#>  dprint_start [-l] [-n] [CHUNKS|-n|-i]…
 #
 ## In verbose mode: from given chunks and line breaks composes and prints a 
 #. message themed as an announcement of new stage in a process. Chunks are 
@@ -69,7 +70,8 @@ dprint_debug()
 ## In quiet mode ($D_QUIET): does nothing.
 #
 ## Options:
-#.  -n  - Prepend empty line to any other output
+#.  -l  - (must be first) Ignore global $D_QUIET and always print
+#.  -n  - (must be first or second) Prepend empty line to any other output
 #
 ## Parameters:
 #.  $@  - Textual chunks of a message. Following special chunks are recognized:
@@ -86,18 +88,18 @@ dprint_debug()
 #
 dprint_start()
 {
-  # Check if quiet mode is active
-  [ "$D_QUIET" = true ] && return 1
+  # Check options
+  [ "$1" = -l ] && shift || { [ "$D_QUIET" = true ] && return 1; }
+  [ "$1" = -n ] && { printf >&2 '\n'; shift; }
 
   # Compose message from arguments and print it all on the go
-  [ "$1" = -n ] && { printf >&2 '\n'; shift; }
   printf >&2 '%s' "${BOLD}${YELLOW}==>${NORMAL}"; local chunk; for chunk do
     case $chunk in -n) printf >&2 '\n   ';; -i) printf >&2 '\n       ';;
     *) printf >&2 ' %s' "$chunk";; esac
   done; printf >&2 '\n'; return 0
 }
 
-#>  dprint_skip [-n] [CHUNKS|-n|-i]…
+#>  dprint_skip [-l] [-n] [CHUNKS|-n|-i]…
 #
 ## In verbose mode: from given chunks and line breaks composes and prints a 
 #. message themed as an announcement of skipped stage in a process. Chunks are 
@@ -106,7 +108,8 @@ dprint_start()
 ## In quiet mode ($D_QUIET): does nothing.
 #
 ## Options:
-#.  -n  - Prepend empty line to any other output
+#.  -l  - (must be first) Ignore global $D_QUIET and always print
+#.  -n  - (must be first or second) Prepend empty line to any other output
 #
 ## Parameters:
 #.  $@  - Textual chunks of a message. Following special chunks are recognized:
@@ -123,18 +126,18 @@ dprint_start()
 #
 dprint_skip()
 {
-  # Check if quiet mode is active
-  [ "$D_QUIET" = true ] && return 1
+  # Check options
+  [ "$1" = -l ] && shift || { [ "$D_QUIET" = true ] && return 1; }
+  [ "$1" = -n ] && { printf >&2 '\n'; shift; }
 
   # Compose message from arguments and print it all on the go
-  [ "$1" = -n ] && { printf >&2 '\n'; shift; }
   printf >&2 '%s' "${BOLD}${WHITE}==>${NORMAL}"; local chunk; for chunk do
     case $chunk in -n) printf >&2 '\n   ';; -i) printf >&2 '\n       ';;
     *) printf >&2 ' %s' "$chunk";; esac
   done; printf >&2 '\n'; return 0
 }
 
-#>  dprint_success [-n] [CHUNKS|-n|-i]…
+#>  dprint_success [-l] [-n] [CHUNKS|-n|-i]…
 #
 ## In verbose mode: from given chunks and line breaks composes and prints a 
 #. message themed as an announcement of successfully completed stage in a 
@@ -143,7 +146,8 @@ dprint_skip()
 ## In quiet mode ($D_QUIET): does nothing.
 #
 ## Options:
-#.  -n  - Prepend empty line to any other output
+#.  -l  - (must be first) Ignore global $D_QUIET and always print
+#.  -n  - (must be first or second) Prepend empty line to any other output
 #
 ## Parameters:
 #.  $@  - Textual chunks of a message. Following special chunks are recognized:
@@ -160,18 +164,18 @@ dprint_skip()
 #
 dprint_success()
 {
-  # Check if quiet mode is active
-  [ "$D_QUIET" = true ] && return 1
+  # Check options
+  [ "$1" = -l ] && shift || { [ "$D_QUIET" = true ] && return 1; }
+  [ "$1" = -n ] && { printf >&2 '\n'; shift; }
 
   # Compose message from arguments and print it all on the go
-  [ "$1" = -n ] && { printf >&2 '\n'; shift; }
   printf >&2 '%s' "${BOLD}${GREEN}==>${NORMAL}"; local chunk; for chunk do
     case $chunk in -n) printf >&2 '\n   ';; -i) printf >&2 '\n       ';;
     *) printf >&2 ' %s' "$chunk";; esac
   done; printf >&2 '\n'; return 0
 }
 
-#>  dprint_failure [-n] [CHUNKS|-n|-i]…
+#>  dprint_failure [-l] [-n] [CHUNKS|-n|-i]…
 #
 ## In verbose mode: from given chunks and line breaks composes and prints a 
 #. message themed as an announcement of failed stage in a process. Chunks are 
@@ -180,7 +184,8 @@ dprint_success()
 ## In quiet mode ($D_QUIET): does nothing.
 #
 ## Options:
-#.  -n  - Prepend empty line to any other output
+#.  -l  - (must be first) Ignore global $D_QUIET and always print
+#.  -n  - (must be first or second) Prepend empty line to any other output
 #
 ## Parameters:
 #.  $@  - Textual chunks of a message. Following special chunks are recognized:
@@ -197,11 +202,11 @@ dprint_success()
 #
 dprint_failure()
 {
-  # Check if quiet mode is active
-  [ "$D_QUIET" = true ] && return 1
+  # Check options
+  [ "$1" = -l ] && shift || { [ "$D_QUIET" = true ] && return 1; }
+  [ "$1" = -n ] && { printf >&2 '\n'; shift; }
 
   # Compose message from arguments and print it all on the go
-  [ "$1" = -n ] && { printf >&2 '\n'; shift; }
   printf >&2 '%s' "${BOLD}${RED}==>${NORMAL}"; local chunk; for chunk do
     case $chunk in -n) printf >&2 '\n   ';; -i) printf >&2 '\n       ';;
     *) printf >&2 ' %s' "$chunk";; esac
