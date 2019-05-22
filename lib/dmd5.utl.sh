@@ -58,7 +58,7 @@ dmd5()
 
       # Check if there is a readable file at given path
       [ -f "$1" -a -r "$1" ] || {
-        printf >&2 '%s: %s: %s\n' "${FUNCNAME[0]}" 'Not a readable file:' "$1"
+        printf >&2 '%s: %s: %s\n' "${FUNCNAME[0]}" 'Not a readable file' "$1"
         return 1
       }
 
@@ -82,7 +82,7 @@ dmd5()
 
       # Check if there is a readable file at given path
       [ -f "$1" -a -r "$1" ] || {
-        printf >&2 '%s: %s: %s\n' "${FUNCNAME[0]}:" 'Not a readable file:' "$1"
+        printf >&2 '%s: %s: %s\n' "${FUNCNAME[0]}" 'Not a readable file' "$1"
         return 1
       }
 
@@ -106,7 +106,7 @@ dmd5()
 
       # Check if there is a readable file at given path
       [ -f "$1" -a -r "$1" ] || {
-        printf >&2 '%s: %s: %s\n' "${FUNCNAME[0]}:" 'Not a readable file:' "$1"
+        printf >&2 '%s: %s: %s\n' "${FUNCNAME[0]}" 'Not a readable file' "$1"
         return 1
       }
 
@@ -118,7 +118,7 @@ dmd5()
   else
 
     # Announce error and return
-    printf >&2 '%s: %s\n' "${FUNCNAME[0]}:" \
+    printf >&2 '%s: %s\n' "${FUNCNAME[0]}" \
       'No means of calculating md5 checksums are detected'
     return 1
 
@@ -129,7 +129,7 @@ dmd5()
     printf '%s\n' "$md5"
     return 0
   else
-    printf >&2 '%s: %s\n' "${FUNCNAME[0]}:" \
+    printf >&2 '%s: %s\n' "${FUNCNAME[0]}" \
       'Failed to calculate valid md5 checksum'
     return 1
   fi
