@@ -172,7 +172,7 @@ dln_check()
 
           # Unreliable stash record: there is actually no installation
           dprint_debug 'Stashed record of replacing:' -i "$orig_path" \
-            -n 'with' -i "$replacement_path" -n 'is not supported by facts'
+            -n 'with:' -i "$replacement_path" -n 'is not supported by facts'
           all_installed=false
           some_botched=true
 
@@ -188,8 +188,8 @@ dln_check()
       if dln -?q -- "$replacement_path" "$orig_path" "$backup_path"; then
 
         # Despite missing record, replacement is installed, with backup
-        dprint_debug 'Path at' -i "$orig_path" -n 'is replaced with:' \
-          -i "$replacement_path" -n 'with possible backup at' \
+        dprint_debug 'Path at:' -i "$orig_path" -n 'is replaced with:' \
+          -i "$replacement_path" -n 'with possible backup at:' \
           -i "$backup_path" -n 'but without appropriate stash record'
         all_not_installed=false
         some_botched=true
@@ -200,7 +200,7 @@ dln_check()
         if dln -?q -- "$replacement_path" "$orig_path"; then
 
           # Despite missing record, replacement is installed, without backup
-          dprint_debug 'Path at' -i "$orig_path" -n 'is replaced with:' \
+          dprint_debug 'Path at:' -i "$orig_path" -n 'is replaced with:' \
             -i "$replacement_path" -n 'without backup' \
             'and, more importantly, without appropriate stash record'
           all_not_installed=false
