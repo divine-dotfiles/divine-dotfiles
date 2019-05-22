@@ -11,7 +11,7 @@ main()
   if __locate_installations; then
 
     # Remove possible stash-recorded Homebrew installation
-    __remove_homebrew
+    __uninstall_homebrew
 
     # Erase Divine.dotfiles directory
     if __erase_d_dir; then
@@ -152,6 +152,41 @@ __check_shortcut_filepath()
             'Not pointing to intervene.sh'
           return 1
         }
+  fi
+}
+
+__uninstall_homebrew()
+{
+  if dstash_get installed_homebrew; then
+
+    ## Homebrew has been previously auto-installed. This could only have 
+    #. happened on macOS, so assume macOS environment.
+
+    # Make temp dir for the uninstall script
+    local tmpdir=$( mktemp -d )
+
+    # Download script into that directory
+    curl -fsSLo "$tmpdir/uninstall" \
+      https://raw.githubusercontent.com/Homebrew/install/master/uninstall
+
+    # Make script executable
+    chmod +x "$tmpdir/uninstall"
+      
+    # Execute script
+    $tmpdir/uninstall --force
+
+    # Check exit code
+    if [ $? -eq 0 ]; then
+      dprint_success 'Homebrew has been uninstalled'
+    else
+      dprint_failure 'Failed to uninstall Homebrew'
+    fi
+
+  else
+
+    # Report no record
+    dprint_skip 'No record of previously auto-installed Homebrew'
+
   fi
 }
 
