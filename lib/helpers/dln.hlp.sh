@@ -117,7 +117,7 @@ dln_check()
     # Retrieve/construct three paths
     orig_path="${D_ORIG[$i]}"
     replacement_path="${D_REPLACEMENTS[$i]}"
-    orig_md5="$( dmd5 "$orig_path" )"
+    orig_md5="$( dmd5 -s "$orig_path" 2>/dev/null )"
     backup_path="$D_BACKUPS_DIR/$D_NAME/$orig_md5"
 
     # Check if original and replacement paths are both not empty
