@@ -246,7 +246,7 @@ dln_check()
   elif $all_not_installed; then
     $some_botched && return 0 || return 2
   else
-    dprint_start -l 'Deployment appears partially installed'
+    dprint_start -l 'Replacements appear partially installed'
     return 0
   fi
 }
