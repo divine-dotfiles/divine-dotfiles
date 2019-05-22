@@ -542,8 +542,7 @@ __populate_globals()
     --width-2 16 \
     --width-3 1 \
     --width-4 57 \
-  )
-  readonly D_PRINTC_OPTS_BASE
+  ); readonly D_PRINTC_OPTS_BASE
 
   # dprint_ode options for normal messages
   D_PRINTC_OPTS_NRM=( \
@@ -687,6 +686,29 @@ __load()
     printf >&2 '  %s\n' "$filepath"
     return 1
   fi
+}
+
+#>  __unset_d_vars
+#
+## There are a number of standard variables temporarily used by deployments. It 
+#. is best to unset those between deployments to ensure no unintended data 
+#. retention occurs.
+#
+__unset_d_vars()
+{
+  # Storage variables
+  local var_assignment var_name var_is_readonly
+
+  # Iterate over currently set variables, names of which start with 'D_'
+  while read -r var_assignment; do
+
+    # Extract variables names
+    var_name="$( awk -F  '=' '{print $1}' <<<"$var_assignment" )"
+
+    # If variable is not read-only (i.e., non-essential) — unset it
+    ( unset $var_name 2>/dev/null ) && unset $var_name
+    
+  done < <( grep ^D_ < <( set -o posix; set ) )
 }
 
 # Launch driver function

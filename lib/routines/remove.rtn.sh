@@ -280,6 +280,8 @@ __remove_dpls()
     # Check if *.dpl.sh is a readable file
     [ -r "$divinedpl_filepath" -a -f "$divinedpl_filepath" ] || continue
 
+    # Unset any variables that might have been set by previous deployments
+    __unset_d_vars
     # Empty out storage variables
     name=
     desc=
@@ -394,9 +396,8 @@ __remove_dpls()
       source "$divinedpl_filepath"
     fi
 
-    # Expose both name and description to deployment (in the form extracted)
+    # Expose name to deployment (in the form extracted)
     D_NAME="$name"
-    D_DESC="$desc"
 
     # Try to figure out, if deployment is already removed
     if $proceeding; then
