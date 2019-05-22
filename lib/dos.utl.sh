@@ -66,7 +66,7 @@ __main()
 #
 ## Returns:
 #.  0 - Variable populated successfully
-#.  1 - Could not re-assign the variable (already assigned)
+#.  1 - Could not re-assign the variable (already assigned and read-only)
 #.  2 - Could not reliably recognize the OS
 #
 ## Prints:
@@ -75,8 +75,8 @@ __main()
 #
 __populate_os_family()
 {
-  # Check if $OS_FAMILY is already set
-  [ -z ${OS_FAMILY+isset} ] || return 1
+  # Storage variable
+  local os_family
 
   # Store current case sensitivity setting, then turn it off
   local restore_nocasematch="$( shopt -p nocasematch )"
@@ -87,58 +87,56 @@ __populate_os_family()
   ## This uses $OSTYPE built-in bash variable and falls back to `uname -s`. 
   #. Such set-up should hold pretty well.
   #
-  local return_code=0
   case "$OSTYPE" in
     darwin*)
-      readonly OS_FAMILY='macos'
+      os_family='macos'
       ;;
     linux*)
       if [[ "$( 2>/dev/null </proc/version )" =~ (microsoft|wsl) ]]; then
-        readonly OS_FAMILY='wsl'
+        os_family='wsl'
       else
-        readonly OS_FAMILY='linux'
+        os_family='linux'
       fi
       ;;
     freebsd*|openbsd*|netbsd*)
-      readonly OS_FAMILY='bsd'
+      os_family='bsd'
       ;;
     solaris*)
-      readonly OS_FAMILY='solaris'
+      os_family='solaris'
       ;;
     cygwin*)
-      readonly OS_FAMILY='cygwin'
+      os_family='cygwin'
       ;;
     msys*)
-      readonly OS_FAMILY='msys'
+      os_family='msys'
       ;;
     *)
       # In case $OSTYPE is misbehaving
       case "$( uname -s 2>/dev/null )" in
         darwin*)
-          readonly OS_FAMILY='macos'
+          os_family='macos'
           ;;
         linux*)
           if [[ "$( 2>/dev/null </proc/version )" =~ (microsoft|wsl) ]]; then
-            readonly OS_FAMILY='wsl'
+            os_family='wsl'
           else
-            readonly OS_FAMILY='linux'
+            os_family='linux'
           fi
           ;;
         freebsd*|openbsd*|netbsd*)
-          readonly OS_FAMILY='bsd'
+          os_family='bsd'
           ;;
         sunos*)
-          readonly OS_FAMILY='solaris'
+          os_family='solaris'
           ;;
         cygwin*)
-          readonly OS_FAMILY='cygwin'
+          os_family='cygwin'
           ;;
         msys*|mingw*)
-          readonly OS_FAMILY='msys'
+          os_family='msys'
           ;;
         *)
-          return_code=2
-          # If not certain, do not touch global variables at all
+          os_family=
           ;;
       esac
       ;;
@@ -147,7 +145,35 @@ __populate_os_family()
   # Restore case sensitivity
   eval "$restore_nocasematch"
 
-  return $return_code
+  # Report and return
+  if [ -z "$os_family" ]; then
+
+    # Failed to detect OS family: not fatal, but should be noted
+    printf >&2 '%s: %s\n' "${FUNCNAME[0]}" 'Failed to detect OS family'
+    return 2
+
+  elif [ "$os_family" = "$OS_FAMILY" ]; then
+
+    # $OS_FAMILY is set to correct value: ensure it is read-only
+    ( unset OS_FAMILY 2>/dev/null ) && readonly OS_FAMILY
+    return 0
+
+  elif ( unset OS_FAMILY 2>/dev/null ); then
+
+    # $OS_FAMILY is set to incorrect value but is not read-only: set and make
+    readonly OS_FAMILY="$os_family"
+    return 0
+  
+  else
+
+    # $OS_FAMILY is set to incorrect value and is read-only: report error
+    printf >&2 '%s: %s\n' "${FUNCNAME[0]}" \
+      '$OS_FAMILY is already set to incorrect value and is read-only'
+    printf >&2 '%s: %s\n' 'Detected OS family             ' "$os_family"
+    printf >&2 '%s: %s\n' 'Content of $OS_FAMILY variable ' "$OS_FAMILY"
+    return 1
+  
+  fi
 }
 
 #>  __populate_os_distro
@@ -179,8 +205,8 @@ __populate_os_family()
 #
 __populate_os_distro()
 {
-  # Check if $OS_DISTRO is already set
-  [ -z ${OS_DISTRO+isset} ] || return 1
+  # Storage variable
+  local os_distro
 
   # Store current case sensitivity setting, then turn it off
   local restore_nocasematch="$( shopt -p nocasematch )"
@@ -197,30 +223,58 @@ __populate_os_distro()
   case "$OS_FAMILY" in
     macos)
       # For now, no need for detecting particular macOS version
-      readonly OS_DISTRO='macos'
+      os_distro='macos'
       ;;
     linux|wsl)
       if cat /etc/os-release 2>/dev/null | grep -qi ubuntu; then
         # Ubuntu 12+
-        readonly OS_DISTRO='ubuntu'
+        os_distro='ubuntu'
       elif lsb_release -a 2>/dev/null | grep -qi debian; then
         # Debian 6+
-        readonly OS_DISTRO='debian'
+        os_distro='debian'
       elif cat /etc/fedora-release 2>/dev/null | grep -qi fedora; then
         # Fedora 18+
-        readonly OS_DISTRO='fedora'
+        os_distro='fedora'
       fi
       ;;
     *)
-      return_code=2
-      # If not certain, do not touch global variables at all
+      os_distro=
       ;;
   esac
 
   # Restore case sensitivity
   eval "$restore_nocasematch"
 
-  return $return_code
+  # Report and return
+  if [ -z "$os_distro" ]; then
+
+    # Failed to detect OS distro: not fatal, but should be noted
+    printf >&2 '%s: %s\n' "${FUNCNAME[0]}" \
+      'Current OS distro is not recognized'
+    return 2
+
+  elif [ "$os_distro" = "$OS_DISTRO" ]; then
+
+    # $OS_DISTRO is set to correct value: ensure it is read-only
+    ( unset OS_DISTRO 2>/dev/null ) && readonly OS_DISTRO
+    return 0
+
+  elif ( unset OS_DISTRO 2>/dev/null ); then
+
+    # $OS_DISTRO is set to incorrect value but is not read-only: set and make
+    readonly OS_DISTRO="$os_distro"
+    return 0
+  
+  else
+
+    # $OS_DISTRO is set to incorrect value and is read-only: report error
+    printf >&2 '%s: %s\n' "${FUNCNAME[0]}" \
+      '$OS_DISTRO is already set to incorrect value and is read-only'
+    printf >&2 '%s: %s\n' 'Detected OS distro             ' "$os_distro"
+    printf >&2 '%s: %s\n' 'Content of $OS_DISTRO variable ' "$OS_DISTRO"
+    return 1
+  
+  fi
 }
 
 #>  __populate_os_pkgmgr
@@ -258,8 +312,8 @@ __populate_os_distro()
 #
 __populate_os_pkgmgr()
 {
-  # Check if $OS_PKGMGR is already set
-  [ -z ${OS_PKGMGR+isset} ] || return 1
+  # Storage variable
+  local os_pkgmgr
 
   # Store current case sensitivity setting, then turn it off
   local restore_nocasematch="$( shopt -p nocasematch )"
@@ -277,7 +331,9 @@ __populate_os_pkgmgr()
     macos)
 
       # (Special case) Offer to install Homebrew
-      if ! HOMEBREW_NO_AUTO_UPDATE=1 brew --version &>/dev/null; then
+      if ! HOMEBREW_NO_AUTO_UPDATE=1 brew --version &>/dev/null \
+        && dstash --root ready &>/dev/null
+      then
 
         # Inform user of the tragic circumstances
         printf >&2 '%s\n' \
@@ -285,7 +341,7 @@ __populate_os_pkgmgr()
         printf >&2 '  %s\n' \
           'https://brew.sh/'
 
-        # Prompt for answer
+        # Prompt user
         local yes=false
         if [ "$D_BLANKET_ANSWER" = true ]; then yes=true
         elif [ "$D_BLANKET_ANSWER" = false ]; then yes=false
@@ -319,6 +375,7 @@ __populate_os_pkgmgr()
           # Check exit code and print status message
           if [ $? -eq 0 ]; then
             printf >&2 '%s\n' 'Successfully installed Homebrew'
+            dstash --root set installed_homebrew
           else
             printf >&2 '%s\n' 'Failed to install Homebrew'
           fi
@@ -336,7 +393,7 @@ __populate_os_pkgmgr()
       if HOMEBREW_NO_AUTO_UPDATE=1 brew --version &>/dev/null; then
 
         # Set global variable
-        readonly OS_PKGMGR='brew'
+        os_pkgmgr='brew'
 
         # Implement wrapper aroung package manager
         os_pkgmgr() {
@@ -357,7 +414,7 @@ __populate_os_pkgmgr()
       if apt-get --version &>/dev/null; then
 
         # Set global variable
-        readonly OS_PKGMGR='apt-get'
+        os_pkgmgr='apt-get'
 
         # Implement wrapper aroung package manager
         os_pkgmgr() {
@@ -377,7 +434,7 @@ __populate_os_pkgmgr()
       if dnf --version &>/dev/null; then
 
         # Set global variable
-        readonly OS_PKGMGR='dnf'
+        os_pkgmgr='dnf'
 
         # Implement wrapper aroung package manager
         os_pkgmgr() {
@@ -394,7 +451,7 @@ __populate_os_pkgmgr()
       elif yum --version &>/dev/null; then
 
         # Set global variable
-        readonly OS_PKGMGR='yum'
+        os_pkgmgr='yum'
 
         # Implement wrapper aroung package manager
         os_pkgmgr() {
@@ -415,15 +472,47 @@ __populate_os_pkgmgr()
       ;;
   esac
 
-  # If failed to detect $OS_PKGMGR, implement dummy wrapper
-  if [ -z ${OS_PKGMGR+isset} ]; then
-    os_pkgmgr() { return -1; }
-  fi
-
   # Restore case sensitivity
   eval "$restore_nocasematch"
 
-  return $return_code
+  # Report and return
+  if [ -z "$os_pkgmgr" ]; then
+
+    # Failed to detect OS package manager: not fatal, but should be noted
+    printf >&2 '%s: %s\n' "${FUNCNAME[0]}" \
+      'Current OS package manager is not recognized'
+
+    # Implement dummy wrapper
+    os_pkgmgr() { return -1; }
+
+    return 2
+
+  elif [ "$os_pkgmgr" = "$OS_PKGMGR" ]; then
+
+    # $OS_PKGMGR is set to correct value: ensure it is read-only
+    ( unset OS_PKGMGR 2>/dev/null ) && readonly OS_PKGMGR
+    return 0
+
+  elif ( unset OS_PKGMGR 2>/dev/null ); then
+
+    # $OS_PKGMGR is set to incorrect value but is not read-only: set and make
+    readonly OS_PKGMGR="$os_pkgmgr"
+    return 0
+  
+  else
+
+    # $OS_PKGMGR is set to incorrect value and is read-only: report error
+    printf >&2 '%s: %s\n' "${FUNCNAME[0]}" \
+      '$OS_PKGMGR is already set to incorrect value and is read-only'
+    printf >&2 '%s: %s\n' 'Detected OS package manager    ' "$os_pkgmgr"
+    printf >&2 '%s: %s\n' 'Content of $OS_PKGMGR variable ' "$OS_PKGMGR"
+
+    # Implement dummy wrapper
+    os_pkgmgr() { return -1; }
+
+    return 1
+  
+  fi
 }
 
 __main
