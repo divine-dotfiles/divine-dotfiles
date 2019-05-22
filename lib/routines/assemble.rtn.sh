@@ -90,6 +90,14 @@ __assemble_tasks()
     --effects-5 b \
   ); readonly D_PRINTC_OPTS_NM
 
+  # Mark assembled containers read-only
+  readonly D_TASK_QUEUE
+  readonly D_PACKAGES
+  readonly D_DEPLOYMENTS
+
+  # Remove used up array
+  unset D_DPL_NAMES
+
   return 0
 }
 
