@@ -104,7 +104,7 @@ __pull_github_repo()
   local user_repo="no-simpler/divine-dotfiles"
 
   # Install to home directory unless overridden
-  [ -n "$D_INSTALL_PATH" ] || D_INSTALL_PATH="$HOME/.divine"
+  [ -n "$"D_INSTALL_PATH" ] || D_INSTALL_PATH="$HOME/.divine"/backups"
   dprint_debug "Installation directory: $D_INSTALL_PATH"
 
   # Check if installation directory already exists
@@ -370,14 +370,10 @@ __install_shortcut()
   if $shortcut_installed; then
 
     # Keep record of installation location
-    if printf '%s\n' "$shortcut_filepath" \
-      >"$D_INSTALL_PATH/lib/uninstall/shortcut-location"
-    then
-      dprint_debug 'Stored information about shortcut location at:' \
-        "$D_INSTALL_PATH/lib/uninstall/shortcut-location"
+    if dstash_set 'di_shortcut' "$shortcut_filepath"; then
+      dprint_debug 'Stored shortcut location in root stash'
     else
-      dprint_debug 'Failed to store information about shortcut location at:' \
-        "$D_INSTALL_PATH/lib/uninstall/shortcut-location" \
+      dprint_debug 'Failed to store shortcut location in root stash' \
         'Uninstallation script will be unable to remove shortcut'
     fi
 
@@ -465,7 +461,7 @@ __add_default_dpls()
       curl -sL "https://api.github.com/repos/${user_repo}/tarball" \
         | tar --strip-components=1 -C "$dpl_dir" -xzf -
       [ $? -eq 0 ] || {
-        dprint_debug 'Failed to download (curl) or extract tarball from' \
+        dprint_debug 'Failed to download (curl) or extract tarball from:' \
           "https://api.github.com/repos/${user_repo}/tarball"
         return 1
       }
@@ -480,7 +476,7 @@ __add_default_dpls()
       wget -qO - "https://api.github.com/repos/${user_repo}/tarball" \
         | tar --strip-components=1 -C "$dpl_dir" -xzf -
       [ $? -eq 0 ] || {
-        dprint_debug 'Failed to download (wget) or extract tarball from' \
+        dprint_debug 'Failed to download (wget) or extract tarball from:' \
           "https://api.github.com/repos/${user_repo}/tarball"
         return 1
       }
@@ -589,6 +585,43 @@ dprompt_key()
 
   # Check answer
   if $yes; then return 0; else return 1; fi
+}
+
+dstash_set()
+{
+  # Key variables
+  local stash_dirpath="$D_INSTALL_PATH/backups"
+  local stash_filepath="$stash_dirpath/stash.cfg"
+  local stash_md5_filepath="$stash_filepath.md5"
+
+  # Root stash file must be empty (as this is fresh installation)
+  if [ -e "$stash_filepath" ]; then
+    return 1
+  else
+    touch -- "$stash_filepath"
+    dmd5 "$stash_filepath" >"$stash_md5_filepath"
+  fi
+
+  # Check that stash file has valid checksum
+  local calculated_md5="$( dmd5 "$D_STASH_FILEPATH" )"
+  local stored_md5="$( head -1 -- "$D_STASH_MD5_FILEPATH" 2>/dev/null )"
+  [ "$calculated_md5" = "$stored_md5" ] || return 1
+
+  # Append record at the end, update stored md5
+  printf '%s\n' "$1=$2" >>"$D_STASH_FILEPATH"
+  dmd5 "$stash_filepath" >"$stash_md5_filepath"
+}
+
+dmd5()
+{
+  local md5
+  md5="$( md5sum -- "$1" 2>/dev/null | awk '{print $1}' )"
+  if [ ${#md5} -eq 32 ]; then printf '%s\n' "$md5"; return 0; fi
+  md5="$( md5 -r -- "$1" 2>/dev/null | awk '{print $1}' )"
+  if [ ${#md5} -eq 32 ]; then printf '%s\n' "$md5"; return 0; fi
+  md5="$( openssl md5 -- "$1" 2>/dev/null | awk '{print $1}' )"
+  if [ ${#md5} -eq 32 ]; then printf '%s\n' "$md5"; return 0; fi
+  return 1
 }
 
 main "$@"
