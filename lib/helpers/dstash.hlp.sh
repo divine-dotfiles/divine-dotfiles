@@ -303,7 +303,7 @@ __dstash_pre_flight_checks()
   }
 
   # Check if md5 checking works
-  __dstash_md5 <( : ) &>/dev/null || {
+  dmd5 -s &>/dev/null || {
     dprint_debug "$( basename -- "${BASH_SOURCE[0]}" ):" \
       'Unable to verify md5 checksums' \
       -n 'Stashing is not available without means of checksum verification'
@@ -345,7 +345,7 @@ __dstash_pre_flight_checks()
         'Failed to create fresh stash file at:' -i "$stash_filepath"
       return 1
     }
-    __dstash_md5 "$stash_filepath" >"$stash_md5_filepath" || {
+    dmd5 "$stash_filepath" >"$stash_md5_filepath" || {
       dprint_debug "$( basename -- "${BASH_SOURCE[0]}" ):" \
         'Failed to create stash md5 checksum file at:' -i "$stash_md5_filepath"
       return 1
@@ -417,7 +417,7 @@ __dstash_validate_key()
 __dstash_store_md5()
 {
   # Store current md5 checksum to intended file, or report error
-  __dstash_md5 "$D_STASH_FILEPATH" >"$D_STASH_MD5_FILEPATH" || {
+  dmd5 "$D_STASH_FILEPATH" >"$D_STASH_MD5_FILEPATH" || {
     dprint_debug "$( basename -- "${BASH_SOURCE[0]}" ):" \
       'Failed to create md5 checksum file at:' -i "$D_STASH_MD5_FILEPATH"
     return 1
@@ -437,7 +437,7 @@ __dstash_store_md5()
 __dstash_check_md5()
 {
   # Calculate current checksum; extract stored one
-  local calculated_md5="$( __dstash_md5 "$D_STASH_FILEPATH" )"
+  local calculated_md5="$( dmd5 "$D_STASH_FILEPATH" )"
   local stored_md5="$( head -1 -- "$D_STASH_MD5_FILEPATH" 2>/dev/null )"
 
   # If checksums match: return immediately
@@ -477,39 +477,4 @@ __dstash_check_md5()
     dprint_debug 'Refused to work with unverified stash'
     return 1
   fi
-}
-
-#>  __dstash_md5 FILE
-#
-## Prints md5 checksum of FILE to stdout. Tries three methods in succession: 
-#. md5sum, md5 (macOS), openssl md5. Stops as soon as resulting HEX string is 
-#. 32 characters long. If none of the approaches works, prints nothing and 
-#. returns non-zero.
-#
-## Parameters:
-#.  $1  - Path to file
-#
-## Returns:
-#.  0 - Successfully printed 32 character md5 hash
-#.  1 - Otherwise: not a file, or missing tools
-#
-__dstash_md5()
-{
-  # Storage variable
-  local md5
-
-  # Attempt via GNU md5sum
-  md5="$( md5sum -- "$1" 2>/dev/null | awk '{print $1}' )"
-  if [ ${#md5} -eq 32 ]; then printf '%s\n' "$md5"; return 0; fi
-
-  # Attempt via macOS md5
-  md5="$( md5 -r -- "$1" 2>/dev/null | awk '{print $1}' )"
-  if [ ${#md5} -eq 32 ]; then printf '%s\n' "$md5"; return 0; fi
-
-  # Attempt via openssl md5
-  md5="$( openssl md5 "$1" 2>/dev/null | awk '{print $NF}' )"
-  if [ ${#md5} -eq 32 ]; then printf '%s\n' "$md5"; return 0; fi
-
-  # Made it here: return error code
-  return 1
 }
