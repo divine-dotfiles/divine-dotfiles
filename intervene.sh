@@ -490,6 +490,7 @@ __populate_globals()
     "util dcolors" \
     "util dprint" \
     "util dprompt" \
+    "util dmd5" \
     "helper dstash" \
     "util dos" \
     "util dtrim" \
