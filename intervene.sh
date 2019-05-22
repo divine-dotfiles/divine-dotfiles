@@ -426,24 +426,38 @@ EOF
 __populate_d_dir()
 {
   # (Possibly relative) path to this script and a temp var
-  local filename="${BASH_SOURCE[0]}" dirpath
+  local filename="${BASH_SOURCE[0]}" dirpath d_dir
+
   # Resolve all base symlinks
   while [ -L "$filename" ]; do
     dirpath="$( cd -P "$( dirname -- "$filename" )" &>/dev/null && pwd )"
     filename="$( readlink -- "$filename" )"
     [[ $filename != /* ]] && filename="$dirpath/$filename"
   done
-  # Set global read-only variable with this script’s dirpath
-  if [ -z ${D_DIR+isset} ]; then
-    # Also, resolve any non-base symlinks remaining in the path
-    readonly \
-      D_DIR="$( cd -P "$( dirname -- "$filename" )" &>/dev/null && pwd )"
+
+  # Also, resolve any non-base symlinks remaining in the path
+  d_dir="$( cd -P "$( dirname -- "$filename" )" &>/dev/null && pwd )"
+
+  # Ensure global read-only variable with this path is set
+  if [ "$d_dir" = "$D_DIR" ]; then
+
+    # $D_DIR is set to correct value: ensure it is read-only
+    ( unset D_DIR 2>/dev/null ) && readonly D_DIR
+
+  elif ( unset D_DIR 2>/dev/null ); then
+
+    # $D_DIR is set to incorrect value but is not read-only: set and make
+    readonly D_DIR="$d_dir"
+  
   else
+
+    # $D_DIR is set to incorrect value and is read-only: error out
     printf >&2 '%s: %s: %s\n' \
       "$( basename -- "${BASH_SOURCE[0]}" )" \
       'Fatal error' \
-      'Global variable $D_DIR is already set'
+      '$D_DIR is already set to incorrect value and is read-only'
     exit 1
+  
   fi
 }
 
