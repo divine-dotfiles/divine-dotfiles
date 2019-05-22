@@ -41,6 +41,7 @@
 #
 ## Provides into the global scope:
 #.  $D_ORIG       - (array) $D_ORIG, possibly overridden for current OS
+#.  $D_BACKUPS    - (array) Paths to where to put backups of replaced files
 #
 ## Returns:
 #.  Values supported by dcheck function in *.dpl.sh
@@ -96,12 +97,9 @@ dln_check()
     return 3
   }
 
-  # Rely on stash
-  dstash ready || return 3
-
   # Storage variables
-  local all_installed=true all_not_installed=true all_botched=true
-  local some_botched=false good_pairs_exist=false
+  local all_installed=true all_not_installed=true
+  local good_pairs_exist=false
   local i
   local orig_path replacement_path orig_md5 backup_path
   local new_d_orig=() new_d_replacements=()
@@ -147,80 +145,30 @@ dln_check()
     new_d_replacements+=( "$replacement_path" )
     D_BACKUPS+=( "$backup_path" )
 
-    # Check if record of previous installation exists
-    if dstash has "$orig_md5"; then
+    # Check if replacement is installed
+    if dln -?q -- "$replacement_path" "$orig_path" "$backup_path"; then
 
-      # Record of previous installation exists
-
-      # Check if that record tells the truth
-      if dln -?q -- "$replacement_path" "$orig_path" "$backup_path"; then
-
-        # Previous installation record is valid and true
-        all_not_installed=false
-        all_botched=false
-
-      else
-
-        # Check if it’s just backup that is missing
-        if dln -?q -- "$replacement_path" "$orig_path"; then
-
-          # Still a valid previous installation
-          all_not_installed=false
-          all_botched=false
-
-        else
-
-          # Unreliable stash record: there is actually no installation
-          dprint_debug 'Stashed record of replacing:' -i "$orig_path" \
-            -n 'with:' -i "$replacement_path" -n 'is not supported by facts'
-          all_installed=false
-          some_botched=true
-
-        fi
-
-      fi
+      # Replacement is installed with backup
+      all_not_installed=false
 
     else
 
-      # No record of previous installation
+      # Check if it’s just backup that is missing
+      if dln -?q -- "$replacement_path" "$orig_path"; then
 
-      # Still, check if desired set-up is in place (e.g., wiped stash)
-      if dln -?q -- "$replacement_path" "$orig_path" "$backup_path"; then
-
-        # Despite missing record, replacement is installed, with backup
-        dprint_debug 'Path at:' -i "$orig_path" -n 'is replaced with:' \
-          -i "$replacement_path" -n 'with possible backup at:' \
-          -i "$backup_path" -n 'but without appropriate stash record'
+        # Replacement is installed without backup
         all_not_installed=false
-        some_botched=true
 
       else
 
-        # Check if it’s just backup that is missing
-        if dln -?q -- "$replacement_path" "$orig_path"; then
-
-          # Despite missing record, replacement is installed, without backup
-          dprint_debug 'Path at:' -i "$orig_path" -n 'is replaced with:' \
-            -i "$replacement_path" -n 'without backup' \
-            'and, more importantly, without appropriate stash record'
-          all_not_installed=false
-          some_botched=true
-
-        else
-
-          # No record and no installation: all fair
-          all_installed=false
-          all_botched=false
-
-        fi
+        # Replacement is not installed
+        all_installed=false
 
       fi
 
     fi
 
   done
-
-  # Report and return
 
   # Check if there were any good pairs
   if $good_pairs_exist; then
@@ -233,18 +181,9 @@ dln_check()
     return 3
   fi
 
-  # Print loud warning for presence of botched installations
-  if $all_botched; then
-    dprint_start -l 'Stash records are unreliable for all replacements'
-  elif $some_botched; then
-    dprint_start -l 'Stash records are unreliable for some replacements'
-  fi
-
-  # If no botched jobs, deliver unanimous verdict; otherwise prompt user
-  if $all_installed; then
-    $some_botched && return 0 || return 1
-  elif $all_not_installed; then
-    $some_botched && return 0 || return 2
+  # Deliver unanimous verdict or prompt user
+  if $all_installed; then return 1
+  elif $all_not_installed; then return 2
   else
     dprint_start -l 'Replacements appear partially installed'
     return 0
@@ -254,14 +193,14 @@ dln_check()
 #>  dln_install
 #
 ## Moves each original file in $D_ORIG to its respective backup location in 
-#. $D_BCKP; replaces each with a symlink pointing to respective target file in 
-#. $D_REPLACEMENTS.
+#. $D_BACKUPS; replaces each with a symlink pointing to respective target file 
+#. in $D_REPLACEMENTS.
 #
 ## Requires:
-#.  $D_REPLACEMENTS     - (array ok) Locations to symlink to
-#.  $D_ORIG       - (array ok) Paths to back up and replace on current OS
-#.  $D_BCKP       - (array ok) Backup locations on current OS
-#.  Divine Bash utils: dmvln (dmvln.utl.sh)
+#.  $D_REPLACEMENTS   - (array ok) Locations to symlink to
+#.  $D_ORIG           - (array ok) Paths to back up and replace on current OS
+#.  $D_BACKUPS        - (array ok) Backup locations
+#.  `dln.utl.sh`
 #
 ## Returns:
 #.  Values supported by dinstall function in *.dpl.sh
@@ -286,20 +225,10 @@ dln_install()
     backup_path="${D_BACKUPS[$i]}"
     orig_md5="$( basename -- "$backup_path" )"
 
-    # Still, check if desired set-up is in place (e.g., wiped stash)
+    # Check if desired set-up is in place
     if dln -?q -- "$replacement_path" "$orig_path" "$backup_path"; then
 
       # Replacement is already installed, with backup
-      
-      # Add stash record if it is not there
-      if ! dstash has "$orig_md5"; then
-        dstash set "$orig_md5"
-        dprint_debug 'Added missing stash record about replacing:' \
-          -i "$orig_path" -n 'with:' -i "$replacement_path" \
-          -n 'with backup at:' -i "$backup_path"
-      fi
-
-      # Flip switches
       all_newly_installed=false
       all_failed=false
 
@@ -309,15 +238,6 @@ dln_install()
       if dln -?q -- "$replacement_path" "$orig_path"; then
 
         # Replacement is already installed, without backup
-
-        # Add stash record if it is not there
-        if ! dstash has "$orig_md5"; then
-          dstash set "$orig_md5"
-          dprint_debug 'Added missing stash record about replacing:' \
-            -i "$orig_path" -n 'with:' -i "$replacement_path" \
-            -n 'without backup'
-        fi
-
         all_newly_installed=false
         all_failed=false
 
@@ -328,14 +248,6 @@ dln_install()
 
         # Attempt to install
         if dln -f -- "$replacement_path" "$orig_path" "$backup_path"; then
-
-          # All good, make stash record
-          if dstash has "$orig_md5"; then
-            dprint_debug 'Fulfilled orphaned stash record about replacing:' \
-              -i "$orig_path" -n 'with:' -i "$replacement_path"
-          else
-            dstash set "$orig_md5"
-          fi
 
           # Flip switches
           all_failed=false
@@ -382,12 +294,12 @@ dln_install()
 #
 ## Removes each path in $D_ORIG that is a symlink pointing to respective target 
 #. file in $D_REPLACEMENTS; where possible, restores original file from 
-#. corresponding backup location in $D_BCKP.
+#. corresponding backup location in $D_BACKUPS.
 #
 ## Requires:
 #.  $D_REPLACEMENTS   - (array ok) Locations currently symlinked to
 #.  $D_ORIG           - (array ok) Paths to be restored on current OS
-#.  $D_BCKP           - (array ok) Backup locations on current OS
+#.  $D_BACKUPS        - (array ok) Backup locations
 #.  `dln.utl.sh`
 #
 ## Returns:
@@ -422,14 +334,6 @@ dln_restore()
       # Attempt to remove
       if dln -fr -- "$replacement_path" "$orig_path" "$backup_path"; then
 
-        # Removed successfully, ensure stash record is unset
-        if dstash has "$orig_md5"; then
-          dstash unset "$orig_md5"
-          dprint_debug 'Removed orphaned stash record about replacing:' \
-            -i "$orig_path" -n 'with:' -i "$replacement_path" \
-            -n 'with backup at:' -i "$backup_path"
-        fi
-
         # Flip switches
         all_failed=false
 
@@ -457,14 +361,6 @@ dln_restore()
         # Attempt to remove
         if dln -fr -- "$replacement_path" "$orig_path"; then
 
-          # Removed successfully, ensure stash record is unset
-          if dstash has "$orig_md5"; then
-            dstash unset "$orig_md5"
-            dprint_debug 'Removed orphaned stash record about replacing:' \
-              -i "$orig_path" -n 'with:' -i "$replacement_path" \
-              -n 'without backup'
-          fi
-
           # Flip switches
           all_failed=false
 
@@ -472,7 +368,7 @@ dln_restore()
 
           # Failed to remove for some reason
           dprint_debug 'Failed to undo replacement of:' -i "$orig_path" \
-            -n 'with:' -i "$replacement_path"
+            -n 'with:' -i "$replacement_path" -n 'and without backup'
 
           # Flip switches
           all_newly_removed=false
@@ -483,16 +379,6 @@ dln_restore()
       else
 
         # There is no installation to speak of
-
-        # Make sure there is no stash record
-        if ! dstash has "$orig_md5"; then
-          dprint_debug 'Undid replacing:' -i "$orig_path" -n 'with:' \
-            -i "$replacement_path" -n 'to reflect missing stash record'
-        else
-          dstash unset "$orig_md5"
-        fi
-
-        # Flip switches
         all_newly_removed=false
         all_failed=false
 
