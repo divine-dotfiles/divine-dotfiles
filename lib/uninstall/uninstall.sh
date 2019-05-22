@@ -10,6 +10,9 @@ main()
   # Main removal
   if __locate_installations; then
 
+    # Remove possible stash-recorded Homebrew installation
+    __remove_homebrew
+
     # Erase Divine.dotfiles directory
     if __erase_d_dir; then
 
@@ -107,16 +110,20 @@ __locate_installations()
     && D_SHORTCUT_FILEPATHS+=( "$D_SHORTCUT_FILEPATH" )
 
   # Try to figure location of shortcut command
-  if [ -r "$shortcut_memo_path" -a -f "$shortcut_memo_path" ]; then
+  if dstash_get di_shortcut; then
 
-    # Read stored memo line by line
-    while IFS="" read -r shortcut_filepath || [ -n "$shortcut_filepath" ]; do
-      
-      # Check shortcut and add to global variable
-      __check_shortcut_filepath "$shortcut_filepath" \
-        && D_SHORTCUT_FILEPATHS+=( "$shortcut_filepath" )
+    # Extract stashed record
+    shortcut_filepath="$( dstash_get di_shortcut )"
 
-    done <"$shortcut_memo_path"
+    # Check shortcut and add to global variable
+    __check_shortcut_filepath "$shortcut_filepath" \
+      && D_SHORTCUT_FILEPATHS+=( "$shortcut_filepath" )
+  
+  else
+
+    # Inform user of stash-related trouble
+    dprint_debug \
+      'Failed to read record of previously installed shortcut from stash'
     
   fi
 
@@ -137,7 +144,7 @@ __check_shortcut_filepath()
   }
 
   # Ensure the link points to ‘intervene.sh’ (if readlink is available)
-  if command -v readlink &>/dev/null; then
+  if type -P readlink &>/dev/null; then
     [ "$( readlink -- "$shortcut_filepath" )" \
       = "$D_INSTALL_PATH/intervene.sh" ] \
         || {
@@ -295,6 +302,47 @@ dprompt_key()
 
   # Check answer
   if $yes; then return 0; else return 1; fi
+}
+
+dstash_get()
+{
+  # Key variables
+  local stash_dirpath="$D_INSTALL_PATH/backups"
+  local stash_filepath="$stash_dirpath/stash.cfg"
+  local stash_md5_filepath="$stash_filepath.md5"
+
+  # If stash file does not exist, return immediately
+  if [ ! -e "$stash_filepath" ]; then
+    return 1
+  fi
+
+  # Check that stash file has valid checksum
+  local calculated_md5="$( dmd5 "$D_STASH_FILEPATH" )"
+  local stored_md5="$( head -1 -- "$D_STASH_MD5_FILEPATH" 2>/dev/null )"
+  [ "$calculated_md5" = "$stored_md5" ] || return 1
+
+  # Check if requested key exists
+  if grep -q ^"$1"= -- "$stash_filepath" &>/dev/null; then
+    local value
+    value="$( grep ^"$1"= -- "$stash_filepath" 2>/dev/null \
+      | head -1 2>/dev/null )"
+    value="${value#$1=}"
+    printf '%s\n' "$value"
+  else
+    return 1
+  fi
+}
+
+dmd5()
+{
+  local md5
+  md5="$( md5sum -- "$1" 2>/dev/null | awk '{print $1}' )"
+  if [ ${#md5} -eq 32 ]; then printf '%s\n' "$md5"; return 0; fi
+  md5="$( md5 -r -- "$1" 2>/dev/null | awk '{print $1}' )"
+  if [ ${#md5} -eq 32 ]; then printf '%s\n' "$md5"; return 0; fi
+  md5="$( openssl md5 -- "$1" 2>/dev/null | awk '{print $1}' )"
+  if [ ${#md5} -eq 32 ]; then printf '%s\n' "$md5"; return 0; fi
+  return 1
 }
 
 main "$@"
