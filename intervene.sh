@@ -509,9 +509,10 @@ __populate_globals()
     "util dos" \
     "util dtrim" \
     "util dreadlink" \
+    "util dmv" \
     "util dln" \
     "helper dln" \
-    "util dmv" \
+    "helper cp" \
   ); readonly D_DEPENDENCIES
 
   # Path to Divinefile
