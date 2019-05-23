@@ -125,9 +125,9 @@ dln_check()
       continue
     }
 
-    # If replacement file is not readable, skip it
-    [ -f "$replacement_path" -a -r "$replacement_path" ] || {
-      dprint_debug 'Replacement file is not readable:' \
+    # If replacement file/dir is not readable, skip it
+    [ -r "$replacement_path" ] || {
+      dprint_debug 'Replacement is not readable at:' \
         -i "$replacement_path" -n 'Skipping'
       continue
     }

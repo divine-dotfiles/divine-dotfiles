@@ -4,10 +4,10 @@ D_PRIORITY=4096
 D_FLAGS=
 D_WARNING=
 
-# Paths to be symlinked to (string or array)
-D_TARGET=
+# Paths to replacement files (string or array)
+D_REPLACEMENTS=
 
-# Paths of symlink locations (string or array)
+# Paths to files to be replaced (string or array)
 D_ORIG=
 
 # OS family-specific overrides for $D_ORIG (narrow defeats broad)
