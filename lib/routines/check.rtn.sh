@@ -331,6 +331,10 @@ __check_dpls()
           dprint_ode "${D_PRINTC_OPTS_NM[@]}" -c "$MAGENTA" -- \
             '~~~' 'Irrelevant' ':' "$task_desc" "$task_name"
           ;;
+        4)
+          dprint_ode "${D_PRINTC_OPTS_NM[@]}" -c "$YELLOW" -- \
+            'vx-' 'Partly installed' ':' "$task_desc" "$task_name"
+          ;;
         *)
           dprint_ode "${D_PRINTC_OPTS_NM[@]}" -c "$BLUE" -- \
             '???' 'Unknown' ':' "$task_desc" "$task_name"

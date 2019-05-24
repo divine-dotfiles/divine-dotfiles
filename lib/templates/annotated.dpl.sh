@@ -167,25 +167,23 @@ D_WARNING=
 #. defined, exit code of 0 is assumed. Same for non-standard exit codes.
 #
 ## Exit codes and their meaning:
-#.  0 - Prompt, then install/remove
+#.  0 - “Unknown”: prompt, then install/remove
 #.      User will be prompted whether to proceed with installing/removing this 
 #.      deployment, then the appropriate function will be called. Prompt is 
 #.      affected by both command line options (‘--yes’ and ‘--no’) and 
 #.      deployment flags ($D_FLAGS), such as ‘always-prompt’.
-#.  1 - Installed
+#.  1 - “Installed”
 #.      During installation routine:  this deployment will be skipped.
 #.      During removal routive:       same as 0.
-#.  2 - Not installed
+#.  2 - “Not installed”
 #.      During installation routine:  same as 0.
 #.      During removal routive:       this deployment will be skipped.
-#.  3 - Irrelevant
+#.  3 - “Irrelevant”
 #.      During installation routine:  this deployment will be skipped.
 #.      During removal routive:       this deployment will be skipped.
-#.  4 - Partially installed
+#.  4 - “Partly installed”: prompt, then install/remove
 #.      Same as 0 functionally, but output slightly changes to signal to user 
 #.      that deployment is halfway between installed and not installed.
-#.  5 - Always prompt
-#.      This is equivalent to returning 0 and setting ‘always-prompt’ flag
 #
 dcheck()
 {

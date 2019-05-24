@@ -420,6 +420,8 @@ __remove_dpls()
             proceeding=false
             # continue
             ;;
+        4)  task_name="$task_name (partly installed)"
+            ;;
         *)  :;;
       esac
 
