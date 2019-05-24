@@ -88,6 +88,9 @@ __check_pkgs()
   # Check whether package manager has been detected
   [ -n "$OS_PKGMGR" ] || return 1
 
+  # Rely on root stash to be available
+  dstash --root ready || return 1
+
   # Extract priority
   local priority
   priority="$1"; shift
@@ -132,9 +135,18 @@ __check_pkgs()
 
     # Perform check
     if $proceeding; then
-      if os_pkgmgr dcheck "$pkgname"; then
-        dprint_ode "${D_PRINTC_OPTS_NM[@]}" -c "$GREEN" -- \
-          'vvv' 'Installed' ':' "$task_desc" "$task_name"
+      if os_pkgmgr dcheck "$pkgname"; then        
+        # Check if record of installation exists in root stash
+        if dstash --root has "pkg_$( dmd5 -s "$pkgname" )"; then
+          # Installed by this framework
+          dprint_ode "${D_PRINTC_OPTS_NM[@]}" -c "$GREEN" -- \
+            'vvv' 'Installed' ':' "$task_desc" "$task_name"
+        else
+          # Installed by user or OS
+          task_name="$task_name (installed by user or OS)"
+          dprint_ode "${D_PRINTC_OPTS_NM[@]}" -c "$MAGENTA" -- \
+            '~~~' 'Installed' ':' "$task_desc" "$task_name"
+        fi
       else
         dprint_ode "${D_PRINTC_OPTS_NM[@]}" -c "$RED" -- \
           'xxx' 'Not installed' ':' "$task_desc" "$task_name"

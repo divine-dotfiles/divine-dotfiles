@@ -123,6 +123,9 @@ __install_pkgs()
   # Check whether package manager has been detected
   [ -n "$OS_PKGMGR" ] || return 1
 
+  # Rely on root stash to be available
+  dstash --root ready || return 1
+
   # Extract priority
   local priority
   priority="$1"; shift
@@ -166,10 +169,10 @@ __install_pkgs()
 
     # Don’t proceed if already installed (except when forcing)
     if $proceeding; then
-      os_pkgmgr dcheck "$pkgname" && ! $D_FORCE && {
+      if os_pkgmgr dcheck "$pkgname"; then
         task_name="$task_name (already installed)"
-        proceeding=false
-      }
+        $D_FORCE || proceeding=false
+      fi
     fi
 
     # Print newline to visually separate tasks
@@ -207,6 +210,7 @@ __install_pkgs()
     if $proceeding; then
       os_pkgmgr dinstall "$pkgname"
       if [ $? -eq 0 ]; then
+        dstash --root set "pkg_$( dmd5 -s "$pkgname" )"
         dprint_ode "${D_PRINTC_OPTS_NM[@]}" -c "$GREEN" -- \
           'vvv' 'Installed' ':' "$task_desc" "$task_name"
       else

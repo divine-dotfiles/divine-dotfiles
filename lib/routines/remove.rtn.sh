@@ -127,6 +127,9 @@ __remove_pkgs()
   # Check whether package manager has been detected
   [ -n "$OS_PKGMGR" ] || return 1
 
+  # Rely on root stash to be available
+  dstash --root ready || return 1
+
   # Extract priority
   local priority
   priority="$1"; shift
@@ -173,10 +176,20 @@ __remove_pkgs()
 
     # Don’t proceed if already removed (except when forcing)
     if $proceeding; then
-      ! os_pkgmgr dcheck "$pkgname" && ! $D_FORCE && {
+      if os_pkgmgr dcheck "$pkgname"; then
+        if dstash --root has "pkg_$( dmd5 -s "$pkgname" )"; then
+          # Installed by this framework: remove
+          :
+        else
+          # Installed by user or OS: do not touch
+          task_name="$task_name (installed by user or OS)"
+          proceeding=false
+        fi
+      else
+        # Not installed: skip unless forcing
         task_name="$task_name (already removed)"
-        proceeding=false
-      }
+        $D_FORCE || proceeding=false
+      fi
     fi
 
     # Print newline to visually separate tasks
@@ -215,6 +228,7 @@ __remove_pkgs()
     if $proceeding; then
       os_pkgmgr dremove "$pkgname"
       if [ $? -eq 0 ]; then
+        dstash --root unset "pkg_$( dmd5 -s "$pkgname" )"
         dprint_ode "${D_PRINTC_OPTS_NM[@]}" -c "$GREEN" -- \
           'vvv' 'Removed' ':' "$task_desc" "$task_name"
       else
