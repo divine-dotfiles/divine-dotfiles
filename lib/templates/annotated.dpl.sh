@@ -2,8 +2,8 @@
 #:title:        Divine deployment annotated template
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    1.2.2-RELEASE
-#:revdate:      2019.03.28
+#:revnumber:    1.3.0-RELEASE
+#:revdate:      2019.05.24
 #:revremark:    Ready for distribution
 #:created_at:   2018.03.25
 
@@ -87,7 +87,7 @@
 ## Name of this deployment
 #
 ## Trimmed on both sides, truncated to 64 chars. If empty, name of deployment 
-#. directory is used.
+#. file, sans ‘.dpl.sh’ suffix, is used.
 #
 ## NOTE: Keep this assignment on its own line! The value is not read by Bash 
 #. interpreter, but is rather extracted using a regular expression. Quotes are 
@@ -147,8 +147,9 @@ D_FLAGS=
 
 #> $D_WARNING
 #
-## Warning shown before prompting for confirmation, but only if $D_FLAGS is in 
-#. effect
+## Warning shown before prompting for confirmation, but only if relevant flag 
+#. in $D_FLAGS is in effect. E.g., if deployment is marked with ‘i’ flag, this 
+#. warning will be shown before every installation.
 #
 ## One line only. Trimmed on both sides. If empty, no warning is shown.
 #
@@ -166,18 +167,25 @@ D_WARNING=
 #. defined, exit code of 0 is assumed. Same for non-standard exit codes.
 #
 ## Exit codes and their meaning:
-#.  0 - Prompt, then install/remove.
+#.  0 - Prompt, then install/remove
 #.      User will be prompted whether to proceed with installing/removing this 
-#.      deployment, then the appropriate function will be called.
-#.  1 - Installed.
+#.      deployment, then the appropriate function will be called. Prompt is 
+#.      affected by both command line options (‘--yes’ and ‘--no’) and 
+#.      deployment flags ($D_FLAGS), such as ‘always-prompt’.
+#.  1 - Installed
 #.      During installation routine:  this deployment will be skipped.
 #.      During removal routive:       same as 0.
-#.  2 - Not installed.
+#.  2 - Not installed
 #.      During installation routine:  same as 0.
 #.      During removal routive:       this deployment will be skipped.
-#.  3 - Irrelevant.
+#.  3 - Irrelevant
 #.      During installation routine:  this deployment will be skipped.
 #.      During removal routive:       this deployment will be skipped.
+#.  4 - Partially installed
+#.      Same as 0 functionally, but output slightly changes to signal to user 
+#.      that deployment is halfway between installed and not installed.
+#.  5 - Always prompt
+#.      This is equivalent to returning 0 and setting ‘always-prompt’ flag
 #
 dcheck()
 {
