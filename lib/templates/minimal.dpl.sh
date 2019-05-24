@@ -9,6 +9,7 @@ D_WARNING=
 #.  1 - Installed
 #.  2 - Not installed
 #.  3 - Irrelevant
+#.  4 - Partly installed
 dcheck()
 {
   return 0
