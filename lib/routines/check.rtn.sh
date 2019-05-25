@@ -347,6 +347,11 @@ __check_dpls()
           dprint_ode "${D_PRINTC_OPTS_NM[@]}" -c "$YELLOW" -- \
             'vx-' 'Partly installed' ':' "$task_desc" "$task_name"
           ;;
+        5)
+          task_name="$task_name (installed by user or OS)"
+          dprint_ode "${D_PRINTC_OPTS_NM[@]}" -c "$MAGENTA" -- \
+            '~~~' 'Installed' ':' "$task_desc" "$task_name"
+          ;;
         *)
           dprint_ode "${D_PRINTC_OPTS_NM[@]}" -c "$BLUE" -- \
             '???' 'Unknown' ':' "$task_desc" "$task_name"

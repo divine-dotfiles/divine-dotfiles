@@ -425,16 +425,17 @@ __remove_dpls()
 
       # Don’t proceed if already removed (except when forcing)
       case $dpl_status in
-        2)  $D_FORCE || {
-              task_name="$task_name (already removed)"
-              proceeding=false
-            }
+        2)  task_name="$task_name (already removed)"
+            $D_FORCE || proceeding=false
             ;;
         3)  task_name="$task_name (irrelevant)"
             proceeding=false
             # continue
             ;;
         4)  task_name="$task_name (partly installed)"
+            ;;
+        5)  task_name="$task_name (installed by user or OS)"
+            proceeding=false
             ;;
         *)  :;;
       esac

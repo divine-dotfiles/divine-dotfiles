@@ -184,6 +184,10 @@ D_WARNING=
 #.  4 - “Partly installed”: prompt, then install/remove
 #.      Same as 0 functionally, but output slightly changes to signal to user 
 #.      that deployment is halfway between installed and not installed.
+#.  5 - “Installed by user or OS”
+#.      Same as 3 functionally, but output slightly changes to signal to user 
+#.      that deployment is installed by means other than this framework and 
+#.      thus will not be touched.
 #
 dcheck()
 {
