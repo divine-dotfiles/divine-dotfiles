@@ -207,7 +207,7 @@ __install_pkgs()
     if $proceeding; then
       os_pkgmgr dinstall "$pkgname"
       if [ $? -eq 0 ]; then
-        dstash --root set "pkg_$( dmd5 -s "$pkgname" )"
+        dstash --root --skip-checks set "pkg_$( dmd5 -s "$pkgname" )"
         dprint_ode "${D_PRINTC_OPTS_NM[@]}" -c "$GREEN" -- \
           'vvv' 'Installed' ':' "$task_desc" "$task_name"
       else

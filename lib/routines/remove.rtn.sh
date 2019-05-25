@@ -174,7 +174,7 @@ __remove_pkgs()
     # Don’t proceed if already removed (except when forcing)
     if $proceeding; then
       if os_pkgmgr dcheck "$pkgname"; then
-        if dstash --root has "pkg_$( dmd5 -s "$pkgname" )"; then
+        if dstash --root --skip-checks has "pkg_$( dmd5 -s "$pkgname" )"; then
           # Installed by this framework: remove
           :
         else
@@ -225,7 +225,7 @@ __remove_pkgs()
     if $proceeding; then
       os_pkgmgr dremove "$pkgname"
       if [ $? -eq 0 ]; then
-        dstash --root unset "pkg_$( dmd5 -s "$pkgname" )"
+        dstash --root --skip-checks unset "pkg_$( dmd5 -s "$pkgname" )"
         dprint_ode "${D_PRINTC_OPTS_NM[@]}" -c "$GREEN" -- \
           'vvv' 'Removed' ':' "$task_desc" "$task_name"
       else

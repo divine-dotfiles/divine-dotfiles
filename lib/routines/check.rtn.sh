@@ -134,7 +134,7 @@ __check_pkgs()
     if $proceeding; then
       if os_pkgmgr dcheck "$pkgname"; then        
         # Check if record of installation exists in root stash
-        if dstash --root has "pkg_$( dmd5 -s "$pkgname" )"; then
+        if dstash --root --skip-checks has "pkg_$( dmd5 -s "$pkgname" )"; then
           # Installed by this framework
           dprint_ode "${D_PRINTC_OPTS_NM[@]}" -c "$GREEN" -- \
             'vvv' 'Installed' ':' "$task_desc" "$task_name"
