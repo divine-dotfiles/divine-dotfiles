@@ -54,7 +54,15 @@ dstash()
   set -- "${args[@]}"
 
   # Perform pre-flight checks first, unless ordered to skip
-  if $checks; then __dstash_pre_flight_checks $root || return 2; fi
+  if $checks; then
+    __dstash_pre_flight_checks $root || return 2
+  else
+    # Without checks, just populate necessary paths
+    local stash_dirpath="$D_BACKUPS_DIR"
+    [ "$root" = -r ] || stash_dirpath+="/$D_NAME"
+    D_STASH_FILEPATH="$stash_dirpath/$D_STASH_FILENAME"
+    D_STASH_MD5_FILEPATH="$D_STASH_FILEPATH.md5"
+  fi
 
   # Quick return without arguments (equivalent of dstash ready)
   (($#)) || return 0
