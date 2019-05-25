@@ -52,6 +52,17 @@ __assemble_tasks()
   # Parse Divinefile
   __parse_divinefile
 
+  # If there are packages to process, ensure root stash is ready
+  if [ ${#D_PACKAGES} -gt 0 ] && ! dstash --root ready; then
+    # No root stash — no packages
+    printf '%s: %s: %s\n' \
+      "$( basename -- "${BASH_SOURCE[0]}" )" \
+      'Divinefile will not be processed' \
+      'Root stash is not available'
+    # Erase all collected packages
+    D_PACKAGES=()
+  fi
+
   # Locate *.dpl.sh files
   __locate_dpl_sh_files
 
@@ -70,7 +81,7 @@ __assemble_tasks()
   D_MAX_PRIORITY_LEN=${#largest_priority}
   readonly D_MAX_PRIORITY_LEN
 
-  # dprint_ode options for package updating name announcements
+  # dprint_ode options for name announcements during package updating
   local priority_field_width=$(( D_MAX_PRIORITY_LEN + 3 + 19 ))
   local name_field_width=$(( 57 - 1 - priority_field_width ))
   D_PRINTC_OPTS_UP=( \

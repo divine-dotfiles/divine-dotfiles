@@ -88,9 +88,6 @@ __check_pkgs()
   # Check whether package manager has been detected
   [ -n "$OS_PKGMGR" ] || return 1
 
-  # Rely on root stash to be available
-  dstash --root ready || return 1
-
   # Extract priority
   local priority
   priority="$1"; shift
