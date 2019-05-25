@@ -53,7 +53,7 @@ __assemble_tasks()
   __parse_divinefile
 
   # If there are packages to process, ensure root stash is ready
-  if [ ${#D_PACKAGES} -gt 0 ] && ! dstash --root ready; then
+  if [ ${#D_PACKAGES[@]} -gt 0 ] && ! dstash --root ready; then
     # No root stash — no packages
     printf '%s: %s: %s\n' \
       "$( basename -- "${BASH_SOURCE[0]}" )" \
