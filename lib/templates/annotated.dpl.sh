@@ -167,11 +167,10 @@ D_WARNING=
 #. defined, exit code of 0 is assumed. Same for non-standard exit codes.
 #
 ## Exit codes and their meaning:
-#.  0 - “Unknown”: prompt, then install/remove
-#.      User will be prompted whether to proceed with installing/removing this 
-#.      deployment, then the appropriate function will be called. Prompt is 
-#.      affected by both command line options (‘--yes’ and ‘--no’) and 
-#.      deployment flags ($D_FLAGS), such as ‘always-prompt’.
+#.  0 - “Unknown”
+#.      If the user has agreed to process this deployment by either hitting ‘y’ 
+#.      during prompt or providing ‘--yes’ option, this deployment will be 
+#.      installed/removed as normal.
 #.  1 - “Installed”
 #.      During installation routine:  this deployment will be skipped.
 #.      During removal routive:       same as 0.
@@ -181,13 +180,21 @@ D_WARNING=
 #.  3 - “Irrelevant”
 #.      During installation routine:  this deployment will be skipped.
 #.      During removal routive:       this deployment will be skipped.
-#.  4 - “Partly installed”: prompt, then install/remove
+#.  4 - “Partly installed”
 #.      Same as 0 functionally, but output slightly changes to signal to user 
 #.      that deployment is halfway between installed and not installed.
 #.  5 - “Installed by user or OS”
 #.      Same as 3 functionally, but output slightly changes to signal to user 
 #.      that deployment is installed by means other than this framework and 
 #.      thus will not be touched.
+#
+## Optional global variables:
+#.  $D_ASK_AGAIN  - Set this one to 'true' to ensure that user is prompted 
+#.                  again about whether they are sure they want to proceed. 
+#.                  This additional prompt is not affected by ‘--yes’ command 
+#.                  line option.
+#.  $D_WARNING    - If $D_ASK_AGAIN is set to 'true', this textual warning will 
+#.                  be printed. Use this to explain possible consequences.
 #
 dcheck()
 {

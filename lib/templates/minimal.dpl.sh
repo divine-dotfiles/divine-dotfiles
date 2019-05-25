@@ -5,7 +5,7 @@ D_FLAGS=
 D_WARNING=
 
 ## Exit codes and their meaning:
-#.  0 - Prompt, then install/remove
+#.  0 - Unknown
 #.  1 - Installed
 #.  2 - Not installed
 #.  3 - Irrelevant

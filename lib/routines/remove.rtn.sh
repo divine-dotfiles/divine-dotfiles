@@ -442,6 +442,34 @@ __remove_dpls()
 
     fi
 
+    # Check if dpl requested another prompt by setting $D_ASK_AGAIN to 'true'
+    if $proceeding && [ "$D_ASK_AGAIN" = true ]; then
+
+      # Print descriptive introduction, if haven’t already
+      if ! $intro_printed; then
+        dprint_ode "${D_PRINTC_OPTS_NM[@]}" -c "$YELLOW" -- \
+          '>>>' 'Installing' ':' "$task_desc" "$task_name"
+        [ -n "$desc" ] && dprint_ode "${D_PRINTC_OPTS_DSC[@]}" -- \
+          '' 'Description' ':' "$desc"
+      fi
+
+      # If there was a warning provided, print it
+      if [ -n "$D_WARNING" ]; then
+        dprint_ode "${D_PRINTC_OPTS_WRN[@]}" -c "$RED" -- \
+          '' 'Warning' ':' "$D_WARNING"
+      fi
+
+      # Prompt user
+      dprint_ode "${D_PRINTC_OPTS_DNG[@]}" -c "$RED" -- '!!!' 'Danger' ': '
+      if dprompt_key --bare; then
+        proceeding=true
+      else
+        task_name="$task_name (declined by user)"
+        proceeding=false
+      fi
+
+    fi
+
     # Remove deployment
     if $proceeding; then
 
