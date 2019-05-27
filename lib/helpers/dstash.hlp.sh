@@ -2,8 +2,8 @@
 #:title:        Divine Bash deployment helpers: dstash
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    0.0.1-SNAPSHOT
-#:revdate:      2019.05.15
+#:revnumber:    1.1.--SNAPSHOT
+#:revdate:      2019.05.27
 #:revremark:    Initial revision
 #:created_at:   2019.05.15
 
@@ -13,10 +13,10 @@
 #
 ## Stashing allows to create/retrieve/update/delete key-value pairs that 
 #. persist between invocations of deployment scripts. Each deployment gets its 
-#. own stash. Text file in backups directory is used for storage.
+#. own stash. Stash is a specially named text file in backups directory.
 #
 
-#> dstash ready|has|set|get|pop|unset|clear [-rs] [ KEY [VALUE] ]
+#> dstash ready|has|set|add|get|list|unset|clear [-rs] [ KEY [VALUE] ]
 #
 ## Main stashing command. Dispatches task based on first non-opt argument.
 #
@@ -35,9 +35,10 @@
 #.  ready             - (default) Return 0 if stash is ready, or 2 if not
 #.  has KEY           - Check if KEY is stashed with any value
 #.  set KEY [VALUE]   - Set/update KEY to VALUE; VALUE can be empty
-#.  get KEY           - Print value of KEY to stdout
-#.  pop KEY           - Print value of KEY to stdout; then remove it
-#.  unset KEY         - Remove KEY from stash
+#.  add KEY [VALUE]   - Add another VALUE to KEY; VALUE can be empty
+#.  get KEY           - Print first value of KEY to stdout
+#.  list KEY          - Print each value of KEY on a line to stdout
+#.  unset KEY         - Remove KEY from stash completely
 #.  clear             - Clear stash entirely
 #
 ## Returns:
@@ -72,8 +73,9 @@ dstash()
     ready)  return 0;;
     has)    __dstash_has "$@";;
     set)    __dstash_set "$@";;
+    add)    __dstash_add "$@";;
     get)    __dstash_get "$@";;
-    pop)    __dstash_pop "$@";;
+    list)   __dstash_list "$@";;
     unset)  __dstash_unset "$@";;
     clear)  >"$D_STASH_FILEPATH" && return 0 || return 1;;
     *)      dprint_debug 'dstash called with illegal task:' -i "$1"; return 1;;
@@ -107,9 +109,9 @@ __dstash_has()
   grep -q ^"$1"= -- "$D_STASH_FILEPATH" &>/dev/null && return 0 || return 1
 }
 
-#> __dstash_set KEY VALUE
+#> __dstash_set KEY [VALUE]
 #
-## Sets KEY to VALUE. Extra arguments are ignored.
+## Sets first/new occurrence of KEY to VALUE. Extra arguments are ignored.
 #
 ## Options:
 #.  -s  - (first arg) Skip argument checks (for internal calls)
@@ -134,6 +136,38 @@ __dstash_set()
   printf '%s\n' "$1=$2" >>"$D_STASH_FILEPATH" || {
     dprint_debug 'Failed to store record:' -i "$1=$2" \
       -n 'in stash file at:' -i "$D_STASH_FILEPATH"
+    return 1
+  }
+
+  # Update stash file checksum and return zero regardless
+  __dstash_store_md5; return 0
+}
+
+#> __dstash_add KEY [VALUE]
+#
+## Adds new occurrence of KEY and sets it to VALUE. Extra arguments are 
+#. ignored.
+#
+## Options:
+#.  -s  - (first arg) Skip argument checks (for internal calls)
+#
+## Parameters:
+#.  $1  - Key
+#.  $2  - (optional) Value. Defaults to zero length string.
+#
+## Returns:
+#.  0 - Task performed successfully
+#.  1 - Key is invalid, not provided, or failed to set key
+#
+__dstash_add()
+{
+  # Validate arguments
+  if [ "$1" = -s ]; then shift; else __dstash_validate_key "$1" || return 1; fi
+
+  # Append record at the end
+  printf '%s\n' "$1=$2" >>"$D_STASH_FILEPATH" || {
+    dprint_debug 'Failed to add record:' -i "$1=$2" \
+      -n 'to stash file at:' -i "$D_STASH_FILEPATH"
     return 1
   }
 
@@ -187,9 +221,9 @@ __dstash_get()
   printf '%s\n' "$value"
 }
 
-#> __dstash_pop KEY
+#> __dstash_list KEY
 #
-## Prints value of provided KEY to stdout, then unsets KEY. If key does not 
+## Prints each value of provided KEY to its own line in stdout. If key does not 
 #. exist prints nothing and returns non-zero. Extra arguments are ignored.
 #
 ## Options:
@@ -200,19 +234,38 @@ __dstash_get()
 #
 ## Returns:
 #.  0 - Task performed successfully
-#.  1 - Key is invalid, not provided, failed to get/print key, or failed to 
-#.      unset key
+#.  1 - Key is invalid, not provided, or failed to get/print key
 #
-__dstash_pop()
+__dstash_list()
 {
   # Validate arguments
   if [ "$1" = -s ]; then shift; else __dstash_validate_key "$1" || return 1; fi
 
-  # Delegate printing of value
-  __dstash_get -s "$1" || return 1
+  # If key is currently not set, return status
+  __dstash_has -s "$1" || {
+    dprint_debug \
+      'Tried to list key:' -i "$1" -n 'from stash, but it is currently not set'
+    return 1
+  }
 
-  # Delegate unsetting of key
-  __dstash_unset -s "$1" || return 1
+  # List key’s values
+  local value
+  while read -r value; do
+
+    # Chop off the 'key=' part
+    value="${value#$1=}"
+
+    # Print value
+    printf '%s\n' "$value"
+
+  done < <( grep ^"$1"= -- "$D_STASH_FILEPATH" 2>/dev/null )
+
+  # Check if retrieval was successful
+  [ $? -eq 0 ] || {
+    dprint_debug 'Failed to retrieve key:' -i "$1" \
+      -n 'from stash file at:' -i "$D_STASH_FILEPATH"
+    return 1
+  }
 }
 
 #> __dstash_unset [-s] KEY
