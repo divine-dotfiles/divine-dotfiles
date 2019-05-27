@@ -183,18 +183,24 @@ D_WARNING=
 #.  4 - “Partly installed”
 #.      Same as 0 functionally, but output slightly changes to signal to user 
 #.      that deployment is halfway between installed and not installed.
-#.  5 - “Installed by user or OS”
-#.      Same as 3 functionally, but output slightly changes to signal to user 
-#.      that deployment is installed by means other than this framework and 
-#.      thus will not be touched.
 #
 ## Optional global variables:
-#.  $D_ASK_AGAIN  - Set this one to 'true' to ensure that user is prompted 
-#.                  again about whether they are sure they want to proceed. 
-#.                  This additional prompt is not affected by ‘--yes’ command 
-#.                  line option.
-#.  $D_WARNING    - If $D_ASK_AGAIN is set to 'true', this textual warning will 
-#.                  be printed. Use this to explain possible consequences.
+#.  $D_ASK_AGAIN      - Set this one to 'true' to ensure that user is prompted 
+#.                      again about whether they are sure they want to proceed. 
+#.                      This additional prompt is not affected by ‘--yes’ 
+#.                      command line option.
+#.  $D_WARNING        - If $D_ASK_AGAIN is set to 'true', this textual warning 
+#.                      will be printed. Use this to explain possible 
+#.                      consequences.
+#.  $D_PRE_INSTALLED  - Set this one to 'true' to signal that all parts of 
+#.                      current deployment that are detected to be already 
+#.                      installed, have been installed by user or OS, not by 
+#.                      this framework. This affects following return codes:
+#.                        * 1 (installed) — demotes to 3 (irrelevant)
+#.                        * 4 (partly installed) — demotes to 2 (not installed)
+#.                      In both cases output is modified to inform user.
+#.                      This is useful for deployments designed to not touch 
+#.                      anything done by user manually.
 #
 dcheck()
 {

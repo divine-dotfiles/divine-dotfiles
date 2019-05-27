@@ -329,8 +329,14 @@ __check_dpls()
       # Process return code
       case $dpl_status in
         1)
-          dprint_ode "${D_PRINTC_OPTS_NM[@]}" -c "$GREEN" -- \
-            'vvv' 'Installed' ':' "$task_desc" "$task_name"
+          if [ "$D_PRE_INSTALLED" = true ]; then
+            task_name="$task_name (installed by user or OS)"
+            dprint_ode "${D_PRINTC_OPTS_NM[@]}" -c "$MAGENTA" -- \
+              '~~~' 'Installed' ':' "$task_desc" "$task_name"
+          else
+            dprint_ode "${D_PRINTC_OPTS_NM[@]}" -c "$GREEN" -- \
+              'vvv' 'Installed' ':' "$task_desc" "$task_name"
+          fi
           ;;
         2)
           dprint_ode "${D_PRINTC_OPTS_NM[@]}" -c "$RED" -- \
@@ -341,13 +347,14 @@ __check_dpls()
             '~~~' 'Irrelevant' ':' "$task_desc" "$task_name"
           ;;
         4)
-          dprint_ode "${D_PRINTC_OPTS_NM[@]}" -c "$YELLOW" -- \
-            'vx-' 'Partly installed' ':' "$task_desc" "$task_name"
-          ;;
-        5)
-          task_name="$task_name (installed by user or OS)"
-          dprint_ode "${D_PRINTC_OPTS_NM[@]}" -c "$MAGENTA" -- \
-            '~~~' 'Installed' ':' "$task_desc" "$task_name"
+          if [ "$D_PRE_INSTALLED" = true ]; then
+            task_name="$task_name (partly installed by user or OS)"
+            dprint_ode "${D_PRINTC_OPTS_NM[@]}" -c "$MAGENTA" -- \
+              'vx~' 'Partly installed' ':' "$task_desc" "$task_name"
+          else
+            dprint_ode "${D_PRINTC_OPTS_NM[@]}" -c "$YELLOW" -- \
+              'vx-' 'Partly installed' ':' "$task_desc" "$task_name"
+          fi
           ;;
         *)
           dprint_ode "${D_PRINTC_OPTS_NM[@]}" -c "$BLUE" -- \

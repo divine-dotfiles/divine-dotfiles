@@ -427,12 +427,13 @@ __remove_dpls()
             ;;
         3)  task_name="$task_name (irrelevant)"
             proceeding=false
-            # continue
             ;;
-        4)  task_name="$task_name (partly installed)"
-            ;;
-        5)  task_name="$task_name (installed by user or OS)"
-            proceeding=false
+        4)  if [ "$D_PRE_INSTALLED" = true ]; then
+              task_name="$task_name (partly installed by user or OS)"
+              proceeding=false
+            else
+              task_name="$task_name (partly installed)"
+            fi
             ;;
         *)  :;;
       esac
