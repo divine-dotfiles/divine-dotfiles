@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: dln
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    0.0.1-SNAPSHOT
-#:revdate:      2019.04.02
-#:revremark:    Initial revision
+#:revnumber:    1.2.0-RELEASE
+#:revdate:      2019.05.28
+#:revremark:    Publication revision
 #:created_at:   2019.04.02
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -90,10 +90,10 @@ dln_check()
   # Check if $D_ORIG has ended up empty
   [ ${#D_ORIG[@]} -gt 1 -o -n "$D_ORIG" ] || {
     local detected_os="$OS_FAMILY"
-    [ -n "$OS_DISTRO" ] && detected_os+="($OS_DISTRO)"
+    [ -n "$OS_DISTRO" ] && detected_os+=" ($OS_DISTRO)"
     dprint_debug \
       'List of paths to replace ($D_ORIG) is empty for detected system:' \
-      -i "$detected_os)"
+      "$detected_os"
     return 3
   }
 
@@ -120,22 +120,21 @@ dln_check()
 
     # Check if original and replacement paths are both not empty
     [ -n "$orig_path" -a -n "$replacement_path" ] || {
-      dprint_debug 'Received an unworkable pair of paths:' \
-        -i "'$orig_path' - '$replacement_path'" -n 'Skipping'
+      dprint_debug 'Skipped an unworkable pair of paths:' \
+        -i "'$orig_path' - '$replacement_path'"
       continue
     }
 
     # If replacement file/dir is not readable, skip it
     [ -r "$replacement_path" ] || {
-      dprint_debug 'Replacement is not readable at:' \
-        -i "$replacement_path" -n 'Skipping'
+      dprint_debug "Skipped an unreadable replacement at: $replacement_path"
       continue
     }
 
     # Check if md5 is correctly calculated
     [ ${#orig_md5} -eq 32 ] || {
       dprint_debug 'Failed to calculate md5 checksum for text string:' \
-        -i "'$orig_path'"
+        "'$orig_path'"
       return 3
     }
 
@@ -164,6 +163,17 @@ dln_check()
         # Replacement is not installed
         all_installed=false
 
+        # Check if backup path exists, which would be abnormal
+        if [ -e "$backup_path" ]; then
+
+          # Report abnormal configuration
+          dprint_debug -l 'Despite no record of previous linking of:' \
+            "$orig_path" -n "to: $replacement_path" \
+            -n "backup exists at: $backup_path" \
+            -n '(Force remove to restore orphaned backups)'
+
+        fi
+
       fi
 
     fi
@@ -184,10 +194,7 @@ dln_check()
   # Deliver unanimous verdict or prompt user
   if $all_installed; then return 1
   elif $all_not_installed; then return 2
-  else
-    dprint_start -l 'Replacements appear partially installed'
-    return 0
-  fi
+  else return 4; fi
 }
 
 #>  dln_install
@@ -225,8 +232,9 @@ dln_install()
     backup_path="${D_BACKUPS[$i]}"
     orig_md5="$( basename -- "$backup_path" )"
 
-    # Check if desired set-up is in place
-    if dln -?q -- "$replacement_path" "$orig_path" "$backup_path"; then
+    # Check if desired set-up is in place (but only if not forcing)
+    if ! $D_FORCE && dln -?q -- "$replacement_path" "$orig_path" "$backup_path"
+    then
 
       # Replacement is already installed, with backup
       all_newly_installed=false
@@ -234,8 +242,8 @@ dln_install()
 
     else
 
-      # Check if it’s just backup that is missing
-      if dln -?q -- "$replacement_path" "$orig_path"; then
+      # Check if it’s just backup that is missing (but only if not forcing)
+      if ! $D_FORCE && dln -?q -- "$replacement_path" "$orig_path"; then
 
         # Replacement is already installed, without backup
         all_newly_installed=false
@@ -243,20 +251,22 @@ dln_install()
 
       else
 
-        # No installation: install it
+        # No installation or forcing: install it
         all_already_installed=false
 
         # Attempt to install
         if dln -f -- "$replacement_path" "$orig_path" "$backup_path"; then
 
           # Flip switches
+          dprint_debug "Replaced path at: $orig_path" \
+            -n "with symlink to: $replacement_path"
           all_failed=false
 
         else
 
           # Failed to install for some reason
-          dprint_debug 'Failed to replace path at:' -i "$orig_path" \
-            -n 'with:' -i "$replacement_path"
+          dprint_debug "Failed to replace path at: $orig_path" \
+            -n "with symlink to: $replacement_path"
 
           # Flip switches
           all_newly_installed=false
@@ -276,17 +286,15 @@ dln_install()
   elif $all_already_installed; then
     dprint_skip -l 'All replacements were already installed'
     return 0
+  elif $all_failed; then
+    dprint_failure -l 'Failed to install all replacements'
+    return 1
+  elif $some_failed; then
+    dprint_failure -l 'Failed to install some replacements'
+    return 1
   else
-    if $all_failed; then
-      dprint_failure -l 'Failed to install all replacements'
-      return 1
-    elif $some_failed; then
-      dprint_failure -l 'Failed to install some replacements'
-      return 1
-    else
-      dprint_skip -l 'Some replacements were already installed'
-      return 0
-    fi
+    dprint_skip -l 'Some replacements were already installed'
+    return 0
   fi
 }
 
@@ -334,15 +342,18 @@ dln_restore()
       # Attempt to remove
       if dln -fr -- "$replacement_path" "$orig_path" "$backup_path"; then
 
-        # Flip switches
+        # Report and flip switches
+        dprint_debug "Undid replacement of: $orig_path" \
+          -n "with symlink to: $replacement_path" \
+          -n "and restored backup from: $backup_path"
         all_failed=false
 
       else
 
         # Failed to remove for some reason
-        dprint_debug 'Failed to undo replacement of:' -i "$orig_path" \
-          -n 'with:' -i "$replacement_path" -n 'and backup at:' \
-          -i "$backup_path"
+        dprint_debug "Failed to undo replacement of: $orig_path" \
+          -n "with symlink to: $replacement_path" \
+          -n "and restore backup from: $backup_path"
 
         # Flip switches
         all_newly_removed=false
@@ -361,14 +372,16 @@ dln_restore()
         # Attempt to remove
         if dln -fr -- "$replacement_path" "$orig_path"; then
 
-          # Flip switches
+          # Report and flip switches
+          dprint_debug 'Undid replacement of:' "$orig_path" \
+            -n 'with symlink to:' "$replacement_path"
           all_failed=false
 
         else
 
           # Failed to remove for some reason
-          dprint_debug 'Failed to undo replacement of:' -i "$orig_path" \
-            -n 'with:' -i "$replacement_path" -n 'and without backup'
+          dprint_debug 'Failed to undo replacement of:' "$orig_path" \
+            -n 'with symlink to:' "$replacement_path"
 
           # Flip switches
           all_newly_removed=false
@@ -378,9 +391,67 @@ dln_restore()
 
       else
 
-        # There is no installation to speak of
-        all_newly_removed=false
-        all_failed=false
+        # No installation detected
+
+        # Check if forcing
+        if $D_FORCE; then
+
+          # Remove as best as possible
+
+          # Check if backup path exists
+          if [ -e "$backup_path" ]; then
+
+            # Backup exists
+
+            # Remove whatever sits on original location and check status
+            if rm -rf -- "$orig_path"; then
+
+              # Report
+              dprint_debug "Clobbered original path at: $orig_path"
+
+            else
+
+              # Report and skip
+              dprint_debug "Failed to clobber original path at: $orig_path" \
+                -n "while restoring backup from: $backup_path"
+
+              # Flip switches and move on
+              all_already_removed=false
+              all_newly_removed=false
+              some_failed=true
+              continue
+
+            fi
+
+            # Move backup path to original location, and check status
+            if mv -n -- "$backup_path" "$orig_path"; then
+
+              # Report and flip switches
+              dprint_debug "Restored backup from: $backup_path" \
+                -n "to its original location at: $orig_path"
+              all_already_removed=false
+              all_failed=false
+            
+            else
+
+              # Report
+              dprint_debug "Failed to restore backup from: $backup_path" \
+                -n "to its original location at: $orig_path"
+              
+              # Flip switches
+              all_already_removed=false
+              all_newly_removed=false
+              some_failed=true
+
+            fi
+
+        else
+
+          # No installation detected and not forcing: job’s done
+          all_newly_removed=false
+          all_failed=false
+
+        fi
 
       fi
 
@@ -394,16 +465,14 @@ dln_restore()
   elif $all_already_removed; then
     dprint_skip -l 'All replacements were already undone'
     return 0
+  elif $all_failed; then
+    dprint_failure -l 'Failed to undo all replacements'
+    return 1
+  elif $some_failed; then
+    dprint_failure -l 'Failed to undo some replacements'
+    return 1
   else
-    if $all_failed; then
-      dprint_failure -l 'Failed to undo all replacements'
-      return 1
-    elif $some_failed; then
-      dprint_failure -l 'Failed to undo some replacements'
-      return 1
-    else
-      dprint_skip -l 'Some replacements were already undone'
-      return 0
-    fi
+    dprint_skip -l 'Some replacements were already undone'
+    return 0
   fi
 }

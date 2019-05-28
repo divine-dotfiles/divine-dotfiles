@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: cp
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    0.0.1-SNAPSHOT
-#:revdate:      2019.05.23
-#:revremark:    Initial revision
+#:revnumber:    1.1.0-RELEASE
+#:revdate:      2019.05.28
+#:revremark:    Publication revision
 #:created_at:   2019.05.23
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -91,10 +91,10 @@ cp_check()
   # Check if $D_TO has ended up empty
   [ ${#D_TO[@]} -gt 1 -o -n "$D_TO" ] || {
     local detected_os="$OS_FAMILY"
-    [ -n "$OS_DISTRO" ] && detected_os+="($OS_DISTRO)"
+    [ -n "$OS_DISTRO" ] && detected_os+=" ($OS_DISTRO)"
     dprint_debug \
       'List of paths to replace ($D_TO) is empty for detected system:' \
-      -i "$detected_os)"
+      "$detected_os"
     return 3
   }
 
@@ -105,6 +105,7 @@ cp_check()
   local to_path from_path to_md5 backup_path
   local new_d_to=() new_d_from=()
   D_BACKUPS=()
+  D_USER_OR_OS=true
 
   # Retrieve number of paths to work with (largest size wins)
   [ ${#D_TO[@]} -ge ${#D_FROM[@]} ] \
@@ -121,22 +122,21 @@ cp_check()
 
     # Check if source and destination paths are both not empty
     [ -n "$to_path" -a -n "$from_path" ] || {
-      dprint_debug 'Received an unworkable pair of paths:' \
-        -i "'$to_path' - '$from_path'" -n 'Skipping'
+      dprint_debug 'Skipped an unworkable pair of paths:' \
+        -i "'$to_path' - '$from_path'"
       continue
     }
 
     # If source filepath is not readable, skip it
     [ -r "$from_path" ] || {
-      dprint_debug 'Replacement is not readable at:' \
-        -i "$from_path" -n 'Skipping'
+      dprint_debug "Skipped an unreadable replacement at: $from_path"
       continue
     }
 
     # Check if md5 is correctly calculated
     [ ${#to_md5} -eq 32 ] || {
       dprint_debug 'Failed to calculate md5 checksum for text string:' \
-        -i "'$to_path'"
+        "'$to_path'"
       return 3
     }
 
@@ -147,23 +147,31 @@ cp_check()
     D_BACKUPS+=( "$backup_path" )
 
     # Check if source filepath is copied
-    if dstash has "$to_md5"; then
+    if dstash -s has "$to_md5"; then
 
-      # Check if nevertheless there is a copy at destination path
+      # Check if there is a copy at destination path
       if [ -e "$to_path" ]; then
 
         # Source filepath is copied
         all_not_installed=false
       
+        # Report
+        if [ -e "$backup_path" ]; then
+          dprint_debug "Copied    : '$from_path' -> '$to_path'" \
+            -n "Destination path backed up at: $backup_path"
+        else
+          dprint_debug "Copied    : '$from_path' -> '$to_path'"
+        fi
+      
       else
 
-        # Despite record of copying, source filepath does not exist
+        # Despite record of copying, destination filepath does not exist
         all_installed=false
         some_trouble=true
-        dprint_debug 'Despite the record of previous copying from:' \
-          -i "$from_path" -n 'to:' -i "$to_path" \
-          -n 'destination path does not exist' \
-          -n 'Installing/removeing will fix this'
+        dprint_debug \
+          "Despite the record of previous copying from: $from_path" \
+          -n "to: $to_path" -n 'destination path does not exist' \
+          -n '(Install/remove to fix this)'
 
       fi
 
@@ -177,15 +185,17 @@ cp_check()
         # Backup path exists without record of installation
         all_not_installed=false
         some_trouble=true
-        dprint_debug 'Despite the lack of record of previous copying from:' \
-          -i "$from_path" -n 'to:' -i "$to_path" \
-          -n 'backup path exists at:' -i "$backup_path" \
-          -n 'Re-installing will overwrite it'
+        dprint_debug "Despite no record of previous copying from: $from_path" \
+          -n "to: $to_path" -n "backup path exists at: $backup_path" \
+          -n '(Re-installing will overwrite that backup)'
 
       else
 
         # Source filepath is not copied
         all_installed=false
+
+        # Report
+        dprint_debug "Not copied: '$from_path' -> '$to_path'"
 
       fi
 
@@ -207,12 +217,12 @@ cp_check()
   # Deliver unanimous verdict or prompt user
   if $all_installed; then return 1
   elif $all_not_installed; then return 2
-  elif $some_trouble; then
-    dprint_start -l 'There are irregularities with this deployment'
-    return 0
   else
-    dprint_start -l 'Source filepaths appear partially copied'
-    return 0
+    if $some_trouble; then
+      D_ASK_AGAIN=true
+      D_WARNING='There are irregularities with this deployment'
+    fi
+    return 4
   fi
 }
 
@@ -250,46 +260,10 @@ cp_install()
     backup_path="${D_BACKUPS[$i]}"
     to_md5="$( basename -- "$backup_path" )"
 
-    # Check if previously installed
-    if dstash has "$to_md5"; then
+    # Check if there is a reason to (re-)install
+    if ! dstash -s has "$to_md5" || [ ! -e "$to_path" ] || $D_FORCE; then
 
-      # Previous copying is recorded
-      
-      # Check if destination exists
-      if [ -e "$to_path" ]; then
-
-        # Proper installation
-        all_newly_installed=false
-        all_failed=false
-
-      else
-
-        # Destination is missing
-        all_already_installed=false
-
-        # Re-copy and check status
-        if cp -Rn -- "$from_path" "$to_path"; then
-
-          # Successfully copied
-          all_failed=false
-          dprint_debug 'Fulfilled erroneous stash record of copying:' \
-            -i "$from_path" -n 'to:' -i "$to_path"
-
-        else
-
-          # Failed to copy
-          all_newly_installed=false
-          some_failed=false
-          dprint_debug 'Failed to copy from:' -i "$from_path" \
-            -n 'to:' -i "$to_path" -n 'while fulfilling erroneous stash record'
-
-        fi
-      
-      fi
-
-    else
-
-      # No previous copying recorded
+      # No previous copying recorded, or forcing
 
       # Check if something already exists at destination path
       if [ -e "$to_path" ]; then
@@ -297,12 +271,12 @@ cp_install()
         # Check if something exists at backup path
         if [ -e "$backup_path" ]; then
 
-          # Backup path is occupies: erase it
+          # Backup path is occupied: erase it
           if rm -rf -- "$backup_path"; then
 
             # Report event
-            dprint_debug 'Clobbered unrecorded backup:' -i "$backup_path" \
-              -n 'of destination path:' -i "$to_path"
+            dprint_debug "Clobbered unexpected backup: $backup_path" \
+              -n "of destination path at: $to_path"
             
           else
 
@@ -310,9 +284,9 @@ cp_install()
             all_newly_installed=false
             all_already_installed=false
             some_failed=true
-            dprint_debug 'Failed to clobber unrecorded backup:' \
-              -i "$backup_path" -n 'of destination path:' -i "$to_path" \
-              'Skipping this source/destination pair'
+            dprint_debug "Failed to clobber unexpected backup: $backup_path" \
+              -n "of destination path at: $to_path" \
+              -n '(Skipping this source/destination pair)'
             continue
           
           fi
@@ -323,8 +297,8 @@ cp_install()
         if mv -n -- "$to_path" "$backup_path"; then
 
           # Report event
-          dprint_debug 'Backed up destination path:' -i "$to_path" \
-            -n 'to:' -i "$backup_path"
+          dprint_debug "Backed up destination path at: $to_path" \
+            -n "to: $backup_path"
 
         else
 
@@ -332,9 +306,9 @@ cp_install()
           all_newly_installed=false
           all_already_installed=false
           some_failed=true
-          dprint_debug 'Failed to back up destination path:' \
-            -i "$to_path" -n 'to:' -i "$backup_path" \
-            'Skipping this source/destination pair'
+          dprint_debug "Failed to back up destination path at: $to_path" \
+            -n "to: $backup_path" \
+            -n '(Skipping this source/destination pair)'
           continue
 
         fi
@@ -345,9 +319,10 @@ cp_install()
       if cp -Rn -- "$from_path" "$to_path"; then
 
         # Successfully copied
+        dprint_debug "Copied from: $from_path" -n "to: $to_path"
         all_already_installed=false
         all_failed=false
-        dstash set "$to_md5"
+        dstash -s set "$to_md5"
 
       else
 
@@ -355,10 +330,15 @@ cp_install()
         all_newly_installed=false
         all_already_installed=false
         some_failed=false
-        dprint_debug 'Failed to copy from:' -i "$from_path" \
-          -n 'to:' -i "$to_path" -n 'while fulfilling erroneous stash record'
+        dprint_debug "Failed to copy from: $from_path" -n "to: $to_path"
 
       fi
+
+    else
+
+      # Previous copying is recorded, destination exists: already installed
+      all_newly_installed=false
+      all_failed=false
 
     fi
 
@@ -401,7 +381,7 @@ cp_install()
 cp_restore()
 {
   # Storage variables
-  local all_newly_removed=true all_already_removed=true all_failed=true
+  local all_newly_restored=true all_already_restored=true all_failed=true
   local some_failed=false
   local i
   local to_path from_path to_md5 backup_path
@@ -415,108 +395,73 @@ cp_restore()
     backup_path="${D_BACKUPS[$i]}"
     to_md5="$( basename -- "$backup_path" )"
 
-    # Check if previously installed
-    if dstash has "$to_md5"; then
+    # Check if there is a reason to (re-)undo
+    if dstash -s has "$to_md5" || $D_FORCE; then
 
-      # Previous copying is recorded
-      
-      # Check if destination exists
-      if [ -e "$to_path" ]; then
+      # Previous copying recorded, or forcing
+      all_already_restored=false
 
-        # Destination path exists
-        all_already_removed=false
+      ## If destination path exists, erase in two distinct cases:
+      #.  * Stash record exists (proper restoration)
+      #.  * No stash record (=forcing), but there is backup to restore
+      #
+      if [ -e "$to_path" ] \
+        && ( dstash -s has "$to_md5" || [ -e "$backup_path" ] )
+      then
 
-        # Proper installation: remove it and check status
+        # Remove destination path and check status
         if rm -rf -- "$to_path"; then
 
-          # Successfully removed
-
-          # Check if backup is present
-          if [ -e "$backup_path" ]; then
-
-            # Move backup path to its original path and check status
-            if mv -n -- "$backup_path" "$to_path"; then
-
-              # Successfully restored backup
-              all_failed=false
-              dstash unset "$to_md5"
-
-            else
-
-              # Failed to restore backup
-              all_newly_removed=false
-              some_failed=true
-              dprint_debug 'Failed to restore backup:' -i "$backup_path" \
-                -n 'to cleared destination location at:' -i "$to_path"
-            
-            fi
-              
-          else
-
-            # No backup to restore; successfully removed
-            all_failed=false
-            dstash unset "$to_md5"
-
-          fi
+          # Successfully erased destination path: report
+          dprint_debug "Erased destination path: $to_path" \
+            -n "of respective source path: $from_path"
 
         else
 
-          # Failed to remove
-          all_newly_removed=false
+          # Report, flip switches, move on
+          dprint_debug "Failed to erase destination path: $to_path" \
+            -n "of respective source path: $from_path" \
+            -n '(Skipping this source/destination pair)'
+          all_newly_restored=false
           some_failed=true
-          dprint_debug 'Failed to remove path at:' -i "$to_path" \
-            'which is previously copied from:' -i "$from_path"
-
-        fi
-
-      else
-
-        # Destination is missing
-        all_newly_removed=false
-        dprint_debug 'Despite record of copying'
-
-        # Check if backup is present
-        if [ -e "$backup_path" ]; then
-
-          # Move backup path to its original path and check status
-          if mv -n -- "$backup_path" "$to_path"; then
-
-            # Successfully restored backup
-            all_failed=false
-            dstash unset "$to_md5"
-            dprint_debug 'Removed erroneous stash record of copying:' \
-              -i "$from_path" -n 'to:' -i "$to_path" \
-              -n 'and restored backup from:' -i "$backup_path"
-
-          else
-
-            # Failed to restore backup
-            all_already_removed=false
-            some_failed=true
-            dprint_debug 'Failed to restore backup:' -i "$backup_path" \
-              -n 'of erroneous stash record of copying:' \
-              -i "$from_path" -n 'to:' -i "$to_path"
-          
-          fi
-            
-        else
-
-          # No backup to restore; already removed: erase erroneous stash record
-          all_failed=false
-          dstash unset "$to_md5"
-          dprint_debug 'Removed erroneous stash record of copying:' \
-            -i "$from_path" -n 'to:' -i "$to_path"
+          continue
 
         fi
 
       fi
 
+      # Check if backup is present
+      if [ -e "$backup_path" ]; then
+
+        # Move backup path to its original path and check status
+        if mv -n -- "$backup_path" "$to_path"; then
+
+          # Successfully restored backup: report
+          dprint_debug "Restored backup: $backup_path" \
+            -n "to destination path at: $to_path"
+          
+        else
+
+          # Failed to restore backup
+          dprint_debug "Failed to restore backup: $backup_path" \
+            -n "to destination path at: $to_path" \
+            -n '(Skipping this source/destination pair)'
+          all_newly_restored=false
+          some_failed=true
+          continue
+        
+        fi
+
+      fi
+
+      # Done what everything possible to restore set-up
+      all_failed=false
+      dstash -s unset "$to_md5"
+
     else
 
-      # No previous copying recorded
-
-      # Don’t touch anything: no need to
-      all_newly_removed=false
+      # No reason to undo
+      all_newly_restored=false
       all_failed=false
 
     fi
