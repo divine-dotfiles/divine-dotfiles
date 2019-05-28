@@ -329,7 +329,7 @@ __check_dpls()
       # Process return code
       case $dpl_status in
         1)
-          if [ "$D_PRE_INSTALLED" = true ]; then
+          if [ "$D_USER_OR_OS" = true ]; then
             task_name="$task_name (installed by user or OS)"
             dprint_ode "${D_PRINTC_OPTS_NM[@]}" -c "$MAGENTA" -- \
               '~~~' 'Installed' ':' "$task_desc" "$task_name"
@@ -347,7 +347,7 @@ __check_dpls()
             '~~~' 'Irrelevant' ':' "$task_desc" "$task_name"
           ;;
         4)
-          if [ "$D_PRE_INSTALLED" = true ]; then
+          if [ "$D_USER_OR_OS" = true ]; then
             task_name="$task_name (partly installed by user or OS)"
             dprint_ode "${D_PRINTC_OPTS_NM[@]}" -c "$MAGENTA" -- \
               'vx~' 'Partly installed' ':' "$task_desc" "$task_name"

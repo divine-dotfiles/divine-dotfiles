@@ -192,7 +192,7 @@ D_WARNING=
 #.  $D_WARNING        - If $D_ASK_AGAIN is set to 'true', this textual warning 
 #.                      will be printed. Use this to explain possible 
 #.                      consequences.
-#.  $D_PRE_INSTALLED  - Set this one to 'true' to signal that all parts of 
+#.  $D_USER_OR_OS     - Set this one to 'true' to signal that all parts of 
 #.                      current deployment that are detected to be already 
 #.                      installed, have been installed by user or OS, not by 
 #.                      this framework. This affects following return codes:
@@ -203,31 +203,31 @@ D_WARNING=
 #.                      anything done by user manually.
 #
 ## The following table summarizes how dcheck affects framework behavior:
-#. +--------------------------------------------------------------------+
-#. |        Allowed actions depending on return status of dcheck        |
-#. +--------------------------------------------------------------------+
-#. |                    |  normal  | D_PRE_INSTALLED=true | '-f' option |
-#. +--------------------+----------+----------------------+-------------+
-#. |                    |          |                      |   dinstall  |
-#. +          1         +----------+----------------------+-------------+
-#. |     'installed'    |  dremove |                      |    dremove  |
-#. +--------------------+----------+----------------------+-------------+
-#. |                    | dinstall |       dinstall       |   dinstall  |
-#. +          4         +----------+----------------------+-------------+
-#. | 'partly installed' |  dremove |                      |    dremove  |
-#. +--------------------+----------+----------------------+-------------+
-#. |                    | dinstall |       dinstall       |   dinstall  |
-#. +          2         +----------+----------------------+-------------+
-#. |   'not installed'  |          |                      |    dremove  |
-#. +--------------------+----------+----------------------+-------------+
-#. |                    | dinstall |       dinstall       |   dinstall  |
-#. +          0         +----------+----------------------+-------------+
-#. |      'unknown'     |  dremove |        dremove       |    dremove  |
-#. +--------------------+----------+----------------------+-------------+
-#. |                    |          |                      |             |
-#. +          3         +----------+----------------------+-------------+
-#. |    'irrelevant'    |          |                      |             |
-#. +--------------------+----------+----------------------+-------------+
+#. +-----------------------------------------------------------------+
+#. |       Allowed actions depending on return status of dcheck      |
+#. +-----------------------------------------------------------------+
+#. |                    |  normal  | D_USER_OR_OS=true | '-f' option |
+#. +--------------------+----------+-------------------+-------------+
+#. |                    |          |                   |   dinstall  |
+#. +          1         +----------+-------------------+-------------+
+#. |     'installed'    |  dremove |                   |    dremove  |
+#. +--------------------+----------+-------------------+-------------+
+#. |                    | dinstall |     dinstall      |   dinstall  |
+#. +          4         +----------+-------------------+-------------+
+#. | 'partly installed' |  dremove |                   |    dremove  |
+#. +--------------------+----------+-------------------+-------------+
+#. |                    | dinstall |     dinstall      |   dinstall  |
+#. +          2         +----------+-------------------+-------------+
+#. |   'not installed'  |          |                   |    dremove  |
+#. +--------------------+----------+-------------------+-------------+
+#. |                    | dinstall |     dinstall      |   dinstall  |
+#. +          0         +----------+-------------------+-------------+
+#. |      'unknown'     |  dremove |      dremove      |    dremove  |
+#. +--------------------+----------+-------------------+-------------+
+#. |                    |          |                   |             |
+#. +          3         +----------+-------------------+-------------+
+#. |    'irrelevant'    |          |                   |             |
+#. +--------------------+----------+-------------------+-------------+
 #
 dcheck()
 {

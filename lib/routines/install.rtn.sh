@@ -402,7 +402,7 @@ __install_dpls()
 
       # Don’t proceed if already installed (except when forcing)
       case $dpl_status in
-        1)  if [ "$D_PRE_INSTALLED" = true ]; then
+        1)  if [ "$D_USER_OR_OS" = true ]; then
               task_name="$task_name (installed by user or OS)"
             else
               task_name="$task_name (already installed)"
@@ -412,7 +412,7 @@ __install_dpls()
         3)  task_name="$task_name (irrelevant)"
             proceeding=false
             ;;
-        4)  if [ "$D_PRE_INSTALLED" = true ]; then
+        4)  if [ "$D_USER_OR_OS" = true ]; then
               task_name="$task_name (partly installed by user or OS)"
             else
               task_name="$task_name (partly installed)"
