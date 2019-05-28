@@ -404,11 +404,10 @@ __install_dpls()
       case $dpl_status in
         1)  if [ "$D_PRE_INSTALLED" = true ]; then
               task_name="$task_name (installed by user or OS)"
-              proceeding=false
             else
               task_name="$task_name (already installed)"
-              $D_FORCE || proceeding=false
             fi
+            $D_FORCE || proceeding=false
             ;;
         3)  task_name="$task_name (irrelevant)"
             proceeding=false
@@ -418,9 +417,6 @@ __install_dpls()
             else
               task_name="$task_name (partly installed)"
             fi
-            ;;
-        5)  task_name="$task_name (installed by user or OS)"
-            proceeding=false
             ;;
         *)  :;;
       esac

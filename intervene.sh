@@ -279,8 +279,15 @@ OPTIONS
     -n, --no        Assume negatory answer to every prompt. In effect, skips 
                     every task.
 
-    -f, --force     Forego checking if task is already installed (removed) 
-                    before installing (removing) it. User prompts still apply.
+    -f, --force     By default, framework does NOT intend to:
+                      * re-install something that appears already installed;
+                      * remove something that appears already removed;
+                      * remove something that appears installed by means other 
+                        than this framework.
+                    This option signals that such considerations are to be 
+                    forgone. Note that it is mostly up to authors of 
+                    deployments to honor this option. Divine.dotfiles default 
+                    deployments are designed with this option in mind.
 
     -t, --flat      (only for adding routine)
                     For all other routines this is a no-opt.

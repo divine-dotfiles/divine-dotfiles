@@ -422,6 +422,11 @@ __remove_dpls()
 
       # Don’t proceed if already removed (except when forcing)
       case $dpl_status in
+        1)  if [ "$D_PRE_INSTALLED" = true ]; then
+              task_name="$task_name (installed by user or OS)"
+              $D_FORCE || proceeding=false
+            fi
+            ;;
         2)  task_name="$task_name (already removed)"
             $D_FORCE || proceeding=false
             ;;
@@ -430,7 +435,7 @@ __remove_dpls()
             ;;
         4)  if [ "$D_PRE_INSTALLED" = true ]; then
               task_name="$task_name (partly installed by user or OS)"
-              proceeding=false
+              $D_FORCE || proceeding=false
             else
               task_name="$task_name (partly installed)"
             fi

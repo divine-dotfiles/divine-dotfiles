@@ -196,11 +196,38 @@ D_WARNING=
 #.                      current deployment that are detected to be already 
 #.                      installed, have been installed by user or OS, not by 
 #.                      this framework. This affects following return codes:
-#.                        * 1 (installed) — demotes to 3 (irrelevant)
-#.                        * 4 (partly installed) — demotes to 2 (not installed)
+#.                        * 1 (installed) — removes ability to remove
+#.                        * 4 (partly installed) — removes ability to remove
 #.                      In both cases output is modified to inform user.
 #.                      This is useful for deployments designed to not touch 
 #.                      anything done by user manually.
+#
+## The following table summarizes how dcheck affects framework behavior:
+#. +--------------------------------------------------------------------+
+#. |        Allowed actions depending on return status of dcheck        |
+#. +--------------------------------------------------------------------+
+#. |                    |  normal  | D_PRE_INSTALLED=true | '-f' option |
+#. +--------------------+----------+----------------------+-------------+
+#. |                    |          |                      |   dinstall  |
+#. +          1         +----------+----------------------+-------------+
+#. |     'installed'    |  dremove |                      |    dremove  |
+#. +--------------------+----------+----------------------+-------------+
+#. |                    | dinstall |       dinstall       |   dinstall  |
+#. +          4         +----------+----------------------+-------------+
+#. | 'partly installed' |  dremove |                      |    dremove  |
+#. +--------------------+----------+----------------------+-------------+
+#. |                    | dinstall |       dinstall       |   dinstall  |
+#. +          2         +----------+----------------------+-------------+
+#. |   'not installed'  |          |                      |    dremove  |
+#. +--------------------+----------+----------------------+-------------+
+#. |                    | dinstall |       dinstall       |   dinstall  |
+#. +          0         +----------+----------------------+-------------+
+#. |      'unknown'     |  dremove |        dremove       |    dremove  |
+#. +--------------------+----------+----------------------+-------------+
+#. |                    |          |                      |             |
+#. +          3         +----------+----------------------+-------------+
+#. |    'irrelevant'    |          |                      |             |
+#. +--------------------+----------+----------------------+-------------+
 #
 dcheck()
 {
