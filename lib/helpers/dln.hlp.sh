@@ -444,6 +444,8 @@ dln_restore()
               some_failed=true
 
             fi
+          
+          fi
 
         else
 
