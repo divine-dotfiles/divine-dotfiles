@@ -349,12 +349,9 @@ __check_dpls()
         4)
           if [ "$D_USER_OR_OS" = true ]; then
             task_name="$task_name (partly installed by user or OS)"
-            dprint_ode "${D_PRINTC_OPTS_NM[@]}" -c "$MAGENTA" -- \
-              'vx~' 'Partly installed' ':' "$task_desc" "$task_name"
-          else
-            dprint_ode "${D_PRINTC_OPTS_NM[@]}" -c "$YELLOW" -- \
-              'vx-' 'Partly installed' ':' "$task_desc" "$task_name"
           fi
+          dprint_ode "${D_PRINTC_OPTS_NM[@]}" -c "$YELLOW" -- \
+            'vx-' 'Partly installed' ':' "$task_desc" "$task_name"
           ;;
         *)
           dprint_ode "${D_PRINTC_OPTS_NM[@]}" -c "$BLUE" -- \
