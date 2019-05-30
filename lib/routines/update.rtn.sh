@@ -191,7 +191,7 @@ __updating__update_dpls()
     # Announce skiping and return
     dprint_ode "${D_PRINTC_OPTS_NRM[@]}" -c "$WHITE" -- \
       '---' 'Skipped updating' ':' 'Deployment repositories'
-    return 2
+    return 3
   fi
 
   # Iterate over list of cloned deployment repositories from root stash
