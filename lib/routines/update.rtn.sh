@@ -171,7 +171,10 @@ __updating__update_dpls()
 {
   # Storage and status variables
   local all_updated=true all_failed=true all_skipped=true some_failed=false
-  local dpl_repo dpl_repos=() proceeding
+  local dpl_repo dpl_repos=() proceeding nl_printed=false
+
+  # Print newline to visually separate updates
+  printf >&2 '\n' && nl_printed=true
 
   # Populate list of repos
   while read -r dpl_repo; do dpl_repos+=( "$dpl_repo" )
@@ -195,11 +198,12 @@ __updating__update_dpls()
   for dpl_repo in "${dpl_repos[@]}"; do
 
     # Print newline to visually separate updates
-    printf >&2 '\n'
+    $nl_printed || printf >&2 '\n'
 
     # Print announcement
     dprint_ode "${D_PRINTC_OPTS_NRM[@]}" -c "$YELLOW" -- \
       '>>>' 'Updating' ':' "Deployment repo at: $dpl_repo"
+    nl_printed=false
 
     # Prompt user
     if [ "$D_BLANKET_ANSWER" = true ]; then proceeding=true
