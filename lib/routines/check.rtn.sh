@@ -319,6 +319,9 @@ __check_dpls()
       # Hold your breath…
       source "$divinedpl_filepath"
 
+      # Immediately after sourcing, ensure all assets are copied
+      __prepare_dpl_assets || proceeding=false
+
     fi
 
     # Check if deployment is installed and report
