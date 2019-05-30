@@ -210,8 +210,6 @@ __check_dpls()
     unset -f dcheck
     unset -f dinstall
     unset -f dremove
-    # Expose $D_DPL_DIR variable to deployment
-    D_DPL_DIR="$( dirname -- "$divinedpl_filepath" )"
 
     # Extract name assignment from *.dpl.sh file (first one wins)
     read -r name < <( sed -n "s/$D_DPL_NAME_REGEX/\1/p" \
@@ -274,7 +272,8 @@ __check_dpls()
 
     ## Unless given a ‘-y’ option (or unless aa_mode is enabled), prompt for 
     #. user’s approval
-    if $proceeding && [ "$aa_mode" = true -o "$D_BLANKET_ANSWER" != true ]; then
+    if $proceeding && [ "$aa_mode" = true -o "$D_BLANKET_ANSWER" != true ]
+    then
 
       # Print message about the upcoming checking
       dprint_ode "${D_PRINTC_OPTS_NM[@]}" -c "$YELLOW" -- \
@@ -305,16 +304,22 @@ __check_dpls()
 
     fi
 
-    # Source the *.dpl.sh file
+    # Source the *.dpl.sh file and do all pre- and post- sourcing tasks
     if $proceeding; then
-      # Print informative message for potential debugging of errors
+
+      # Expose variables to deployment
+      D_NAME="$name"
+      D_DPL_DIR="$( dirname -- "$divinedpl_filepath" )"
+      D_DPL_ASSETS_DIR="$D_ASSETS_DIR/$D_NAME"
+      D_DPL_BACKUPS_DIR="$D_BACKUPS_DIR/$D_NAME"
+
+      # Print debug message
       dprint_debug "Sourcing: $divinedpl_filepath"
+
       # Hold your breath…
       source "$divinedpl_filepath"
-    fi
 
-    # Expose name to deployment (in the form extracted)
-    D_NAME="$name"
+    fi
 
     # Check if deployment is installed and report
     if $proceeding; then
