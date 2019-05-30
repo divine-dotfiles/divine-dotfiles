@@ -67,6 +67,12 @@ __perform_add()
 
   fi
 
+  # Ensure root stashing is available, but make do without it as well
+  dstash --root ready || {
+    dprint_debug 'Root stash is not available' \
+      -n 'Cloned repositories will not be registered for auto-updates'
+  }
+
   # Storage & status variables
   local dpl_arg
   local arg_success
@@ -159,7 +165,7 @@ __adding__attempt_github_repo()
   local repo_arg="$1"
 
   # Storage variables
-  local user_repo is_builtin=false temp_ready=false
+  local user_repo is_builtin=false temp_ready=false cloned_repo=false
 
   # Accept one of two patterns: ‘builtin_repo_name’ and ‘username/repo’
   if [[ $repo_arg =~ ^[0-9A-Za-z_.-]+$ ]]; then
@@ -220,6 +226,7 @@ __adding__attempt_github_repo()
         }
       
       # Set status
+      cloned_repo=true
       temp_ready=true
 
     else
@@ -337,6 +344,19 @@ __adding__attempt_github_repo()
       return 1
     }
 
+    # If repository was cloned, record this to root stash
+    if $cloned_repo; then
+      if dstash -rs add dpl_repos "$perm_dest"; then
+        dprint_debug 'Recorded location of cloned repository in root stash:' \
+          -i "$perm_dest"
+      else
+        dprint_debug \
+          'Failed to record location of cloned repository in root stash:' \
+          -i "$perm_dest" \
+          -n 'Update routine will be unable to update this repository'
+      fi
+    fi
+
     # All done: announce and return
     dprint_debug 'Successfully added Github-hosted deployments from:' \
       -i "https://github.com/${user_repo}" \
@@ -441,6 +461,17 @@ __adding__attempt_local_repo()
       # Return
       return 1
     }
+
+    # Record in root stash
+    if dstash -rs add dpl_repos "$perm_dest"; then
+      dprint_debug 'Recorded location of cloned repository in root stash:' \
+        -i "$perm_dest"
+    else
+      dprint_debug \
+        'Failed to record location of cloned repository in root stash:' \
+        -i "$perm_dest" \
+        -n 'Update routine will be unable to update this repository'
+    fi
 
     # All done: announce and return
     dprint_debug 'Successfully added local git-controlled deployments from:' \

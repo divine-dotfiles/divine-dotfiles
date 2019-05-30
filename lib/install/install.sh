@@ -370,7 +370,7 @@ __install_shortcut()
   if $shortcut_installed; then
 
     # Keep record of installation location
-    if dstash_set 'di_shortcut' "$shortcut_filepath"; then
+    if dstash_root_set di_shortcut "$shortcut_filepath"; then
       dprint_debug 'Stored shortcut location in root stash'
     else
       dprint_debug 'Failed to store shortcut location in root stash' \
@@ -407,6 +407,9 @@ __add_default_dpls()
     return 1
   fi
 
+  # Status variable
+  repo_cloned=false
+
   # Install to deployments directory
   local dpl_dir="$D_INSTALL_PATH/dpl"
 
@@ -416,7 +419,7 @@ __add_default_dpls()
     return 1
   }
 
-  # Create empty installation directory
+  # Re-create empty installation directory
   mkdir -p -- "$dpl_dir" || {
     dprint_debug "Failed to create deployments directory: $dpl_dir"
     return 1
@@ -437,6 +440,9 @@ __add_default_dpls()
             "https://github.com/${user_repo}"
           return 1
         }
+
+      # Set status
+      repo_cloned=true
       
     else
 
@@ -491,6 +497,17 @@ __add_default_dpls()
 
     fi
   
+  fi
+
+  # If repository was cloned, keep record of installation location
+  if $repo_cloned; then
+    if dstash_root_set dpl_repos "$dpl_dir"; then
+      dprint_debug 'Recorded location of default deployments in root stash'
+    else
+      dprint_debug \
+        'Failed to record location of default deployments in root stash' \
+        'Update routine will be unable to update default deployments'
+    fi
   fi
 
   # If gotten here, all is good
@@ -587,7 +604,7 @@ dprompt_key()
   if $yes; then return 0; else return 1; fi
 }
 
-dstash_set()
+dstash_root_set()
 {
   # Key variables
   local stash_dirpath="$D_INSTALL_PATH/backups"

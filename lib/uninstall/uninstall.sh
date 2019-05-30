@@ -110,10 +110,10 @@ __locate_installations()
     && D_SHORTCUT_FILEPATHS+=( "$D_SHORTCUT_FILEPATH" )
 
   # Try to figure location of shortcut command
-  if dstash_get di_shortcut; then
+  if dstash_root_get di_shortcut; then
 
     # Extract stashed record
-    shortcut_filepath="$( dstash_get di_shortcut )"
+    shortcut_filepath="$( dstash_root_get di_shortcut )"
 
     # Check shortcut and add to global variable
     __check_shortcut_filepath "$shortcut_filepath" \
@@ -157,7 +157,7 @@ __check_shortcut_filepath()
 
 __uninstall_homebrew()
 {
-  if dstash_get installed_homebrew; then
+  if dstash_root_get installed_homebrew; then
 
     ## Homebrew has been previously auto-installed. This could only have 
     #. happened on macOS, so assume macOS environment.
@@ -339,7 +339,7 @@ dprompt_key()
   if $yes; then return 0; else return 1; fi
 }
 
-dstash_get()
+dstash_root_get()
 {
   # Key variables
   local stash_dirpath="$D_INSTALL_PATH/backups"
