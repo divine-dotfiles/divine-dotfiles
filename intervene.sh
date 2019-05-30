@@ -665,7 +665,7 @@ __perform_routine()
     add)
       __load routine add;;
     update)
-      __load routine fmwk-update;;
+      __load routine update;;
     *)
       return 1;;
   esac

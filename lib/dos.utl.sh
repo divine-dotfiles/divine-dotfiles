@@ -375,7 +375,7 @@ __populate_os_pkgmgr()
           # Check exit code and print status message
           if [ $? -eq 0 ]; then
             printf >&2 '%s\n' 'Successfully installed Homebrew'
-            dstash -rs set installed_homebrew
+            dstash -r -s set installed_homebrew
           else
             printf >&2 '%s\n' 'Failed to install Homebrew'
           fi

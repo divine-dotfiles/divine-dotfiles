@@ -346,7 +346,7 @@ __adding__attempt_github_repo()
 
     # If repository was cloned, record this to root stash
     if $cloned_repo; then
-      if dstash -rs add dpl_repos "$perm_dest"; then
+      if dstash -r -s add dpl_repos "$perm_dest"; then
         dprint_debug 'Recorded location of cloned repository in root stash:' \
           -i "$perm_dest"
       else
@@ -463,7 +463,7 @@ __adding__attempt_local_repo()
     }
 
     # Record in root stash
-    if dstash -rs add dpl_repos "$perm_dest"; then
+    if dstash -r -s add dpl_repos "$perm_dest"; then
       dprint_debug 'Recorded location of cloned repository in root stash:' \
         -i "$perm_dest"
     else
