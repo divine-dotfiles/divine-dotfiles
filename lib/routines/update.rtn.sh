@@ -50,7 +50,7 @@ __updating__main()
   esac
 
   # Update deployment repositories and analyze return status
-  __updating__update_fmwk; case $? in
+  __updating__update_dpls; case $? in
     0)  all_failed=false; all_skipped=false;;
     1)  all_updated=false; all_skipped=false
         all_failed=false; some_failed=true;;
