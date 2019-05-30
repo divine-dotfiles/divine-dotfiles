@@ -523,6 +523,7 @@ __populate_globals()
     "util dln" \
     "helper dln" \
     "helper cp" \
+    "helper assets" \
   ); readonly D_DEPENDENCIES
 
   # Path to Divinefile
