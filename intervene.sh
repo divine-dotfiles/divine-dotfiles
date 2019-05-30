@@ -532,8 +532,11 @@ __populate_globals()
   # Path to deployments directory
   readonly D_DEPLOYMENTS_DIR="$D_DIR/dpl"
 
-  # Filepath suffix for *.dpl.sh files
-  readonly D_DPL_SH_SUFFIX='*.dpl.sh'
+  # Filename suffix and pattern for deployment files
+  readonly D_DPL_SH_SUFFIX='.dpl.sh'
+
+  # Filename suffix and pattern for asset manifest files
+  readonly D_ASSETS_SUFFIX='.assets'
 
   # Prefix for backup files created by deployments
   readonly D_BACKUP_PREFIX='.dvn-backup-'

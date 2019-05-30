@@ -480,7 +480,7 @@ __locate_dpl_sh_files()
     D_DEPLOYMENTS["$priority"]+="$divinedpl_filepath;"
 
   done < <( find -L "$D_DEPLOYMENTS_DIR" -mindepth 1 -maxdepth 14 \
-    -name "$D_DPL_SH_SUFFIX" -print0 )
+    -name "*$D_DPL_SH_SUFFIX" -print0 )
 
   return 0
 }

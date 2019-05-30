@@ -584,7 +584,7 @@ __adding__attempt_local_file()
 
   # Check if argument conforms to deployment naming
   local dpl_file_name="$( basename -- "$dpl_file_arg" )"
-  [[ $dpl_file_name == $D_DPL_SH_SUFFIX \
+  [[ $dpl_file_name == *$D_DPL_SH_SUFFIX \
     || $dpl_file_name == $D_DIVINEFILE_NAME ]] || return 1
   
   # Announce start
@@ -676,7 +676,7 @@ __adding__check_for_deployments()
     }
 
   done < <( find -L "$dir_path" -mindepth 1 -maxdepth 10 \
-    -name "$D_DPL_SH_SUFFIX" -print0 )
+    -name "*$D_DPL_SH_SUFFIX" -print0 )
 
   # No deployment files: announce and return
   dprint_debug 'Failed to detect any deployment files in:' -i "$src_path"
