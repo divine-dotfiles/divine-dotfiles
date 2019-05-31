@@ -73,6 +73,9 @@ __perform_add()
       -n 'Cloned repositories will not be registered for auto-updates'
   }
 
+  # Load assemble routine, which is crucial for checking added deployments
+  __load routine assemble
+
   # Storage & status variables
   local dpl_arg
   local arg_success
@@ -325,13 +328,10 @@ __adding__attempt_github_repo()
   # If succeeded to get repo to temp dir, go for the kill
   if $temp_ready; then
 
-    # Check whether directory to be added contains any deployments
-    __adding__check_for_deployments "$temp_dest" \
+    # Prompt user for possible clobbering, and clobber if required, run checks
+    __adding__run_checks_and_prompts "$perm_dest" "$temp_dest" \
       "https://github.com/${user_repo}" \
       || { rm -rf -- "$temp_dest"; return 1; }
-
-    # Prompt user for possible clobbering, and clobber if required
-    __adding__clobber_check "$perm_dest" || return 1
 
     # Finally, move cloned repository to intended location
     mv -n -- "$temp_dest" "$perm_dest" || {
@@ -356,6 +356,10 @@ __adding__attempt_github_repo()
           -n 'Update routine will be unable to update this repository'
       fi
     fi
+
+    # Also, prepare any of the possible assets
+    __merge_added_deployments "$perm_dest"
+    __process_all_manifests_in_main_dir
 
     # All done: announce and return
     dprint_debug 'Successfully added Github-hosted deployments from:' \
@@ -444,12 +448,9 @@ __adding__attempt_local_repo()
         return 1
       }
     
-    # Check whether directory to be added contains any deployments
-    __adding__check_for_deployments "$temp_dest" "$repo_path"  \
+    # Prompt user for possible clobbering, and clobber if required, run checks
+    __adding__run_checks_and_prompts "$perm_dest" "$temp_dest" "$repo_path" \
       || { rm -rf -- "$temp_dest"; return 1; }
-
-    # Prompt user for possible clobbering, and clobber if required
-    __adding__clobber_check "$perm_dest" || return 1
 
     # Finally, move cloned repository to intended location
     mv -n -- "$temp_dest" "$perm_dest" || {
@@ -472,6 +473,10 @@ __adding__attempt_local_repo()
         -i "$perm_dest" \
         -n 'Update routine will be unable to update this repository'
     fi
+
+    # Also, prepare any of the possible assets
+    __merge_added_deployments "$perm_dest"
+    __process_all_manifests_in_main_dir
 
     # All done: announce and return
     dprint_debug 'Successfully added local git-controlled deployments from:' \
@@ -533,12 +538,9 @@ __adding__attempt_local_dir()
     "Detected ${BOLD}local directory${NORMAL} at:" -i "$dir_path" \
       || return 1
 
-  # Check whether directory to be added contains any deployments
-  __adding__check_for_deployments "$dir_path" "$dir_path" \
+  # Prompt user for possible clobbering, and clobber if required, run checks
+  __adding__run_checks_and_prompts "$perm_dest" "$dir_path" "$dir_path" \
     || return 1
-
-  # Prompt user for possible clobbering, and clobber if required
-  __adding__clobber_check "$perm_dest" || return 1
 
   # Finally, link/copy directory to intended location
   if $D_ADD_LINK; then
@@ -558,6 +560,10 @@ __adding__attempt_local_dir()
       return 1
     }
   fi
+
+  # Also, prepare any of the possible assets
+  __merge_added_deployments "$perm_dest"
+  __process_all_manifests_in_main_dir
 
   # All done: announce and return
   dprint_debug 'Successfully added local deployments directory at:' \
@@ -604,6 +610,9 @@ __adding__attempt_local_file()
   # Attach filename
   dpl_file_path+="/$dpl_file_name"
 
+  # Construct temporary directory path
+  local temp_dest="$( mktemp -d )"
+
   # Construct permanent destination
   local perm_dest
   case $D_ADD_MODE in
@@ -620,10 +629,23 @@ __adding__attempt_local_file()
   dprompt_key --bare --answer "$D_BLANKET_ANSWER" --prompt "$prompt" -- \
     "Detected ${BOLD}local deployment file${NORMAL} at:" \
     -i "$dpl_file_path" \
+    -n 'Warning: standalone deployments are added without accompanying files' \
+    -n 'Make sure this deployment does not have any file dependencies' \
       || return 1
 
+  # Copy file to temporary directory for checks
+  cp -n -- "$dpl_file_path" "$temp_dest/$dpl_file_name" || {
+    # Announce failure to copy
+    dprint_debug 'Failed to copy local deployment file at:' \
+      -i "$dpl_file_path" -n 'to temporary location at:' \
+      -i "$temp_dest/$dpl_file_name"
+    # Return
+    return 1
+  }
+
   # Prompt user for possible clobbering, and clobber if required
-  __adding__clobber_check "$perm_dest" || return 1
+  __adding__run_checks_and_prompts "$perm_dest" "$temp_dest" "$dpl_file_path" \
+    || { rm -rf -- "$temp_dest"; return 1; }
 
   # Finally, link/copy deployment file to intended location
   if $D_ADD_LINK; then
@@ -683,7 +705,10 @@ __adding__check_for_deployments()
   return 1
 }
 
-#>  __adding__clobber_check PATH
+#>  __adding__run_checks_and_prompts PATH TEMP_DIR SRC_PATH
+#
+## Checks whether TEMP_DIR contains any deployments, and whether those 
+#. deployments are valid and add-able
 #
 ## Prompts user whether they indeed want to clobber (pre-erase) path that 
 #. already exists. Given positive answer, proceeds with removal, and returns 
@@ -693,10 +718,27 @@ __adding__check_for_deployments()
 #.  0 - User confirms
 #.  1 - User declines, or removal of directory failed
 #
-__adding__clobber_check()
+__adding__run_checks_and_prompts()
 {
   # Extract clobber path
-  local clobber_path="$1"
+  local clobber_path="$1"; shift
+
+  # Set global path that contains deployments staged for addition
+  D_ADD_DIR="$1"; shift
+
+  # Extract source path
+  local src_path="$1"; shift
+
+  # Survey deployments in add dir
+  __locate_dpl_sh_files --add-dir; case $? in
+    1)  dprint_debug 'Failed to detect any deployment files in:' -i "$src_path"
+        return 1;;
+    2)  return 1;;
+    *)  :;;
+  esac
+
+  # Immediately check deployments being added
+  __validate_dpls_in_add_dir || return 1
 
   # Status variable
   local yes=false
@@ -755,7 +797,7 @@ __adding__clobber_check()
       }
 
       # Pre-erased successfully
-      return 0
+
     
     else
 
@@ -781,9 +823,17 @@ __adding__clobber_check()
     fi
 
     # All good
-    return 0
   
   fi
+
+  ## Finally, survey current content of main dpl dir and check if deployments 
+  #. being added are merge-able
+  __locate_dpl_sh_files; case $? in 2) return 1;; *) :;; esac
+  __validate_dpls_in_main_dir || return 1
+  __validate_dpls_before_adding || return 1
+
+  # Finally, if made it here, return success
+  return 0
 }
 
 #>  __adding__check_or_install UTIL_NAME

@@ -66,7 +66,7 @@ __perform_check()
 #> __check_pkgs PRIORITY_LEVEL
 #
 ## For the given priority level, check if packages are installed, one by one, 
-#. using their names, which have been previously assembled in $D_PACKAGES array
+#. using their names, which have been previously assembled in $D_PKG_QUEUE array
 #
 ## Requires:
 #.  * Divine Bash utils: dOS (dps.utl.sh)
@@ -97,10 +97,14 @@ __check_pkgs()
 
   # Storage variables
   local task_desc task_name proceeding
-  local chunks pkgname mode
+  local pkg_str chunks=() pkgname mode
 
-  # Split package names on ‘;’
-  IFS=';' read -r -a chunks <<<"${D_PACKAGES[$priority]%;}"
+  # Split package names on $D_DELIM
+  pkg_str="${D_PKG_QUEUE[$priority]}"
+  while [[ $pkg_str ]]; do
+    chunks+=( "${pkg_str%%"$D_DELIM"*}" )
+    pkg_str="${pkg_str#*"$D_DELIM"}"
+  done
 
   # Iterate over package names
   for pkgname in "${chunks[@]}"; do
@@ -162,7 +166,7 @@ __check_pkgs()
 #
 ## For the given priority level, checks whether deployments are installed, one 
 #. by one, using their *.dpl.sh files, paths to which have been previously 
-#. assembled in $D_DEPLOYMENTS array
+#. assembled in $D_DPL_QUEUE array
 #
 ## Requires:
 #.  * Divine Bash utils: dOS (dps.utl.sh)
@@ -187,12 +191,16 @@ __check_dpls()
 
   # Storage variables
   local task_desc task_name proceeding
-  local chunks divinedpl_filepath
+  local dpl_str chunks=() divinedpl_filepath
   local name desc warning mode
   local aa_mode dpl_status
 
-  # Split *.dpl.sh filepaths on ‘;’
-  IFS=';' read -r -a chunks <<<"${D_DEPLOYMENTS[$priority]%;}"
+  # Split *.dpl.sh filepaths on $D_DELIM
+  dpl_str="${D_DPL_QUEUE[$priority]}"
+  while [[ $dpl_str ]]; do
+    chunks+=( "${dpl_str%%"$D_DELIM"*}" )
+    dpl_str="${dpl_str#*"$D_DELIM"}"
+  done
 
   # Iterate over *.dpl.sh filepaths
   for divinedpl_filepath in "${chunks[@]}"; do
@@ -309,6 +317,8 @@ __check_dpls()
 
       # Expose variables to deployment
       D_NAME="$name"
+      D_DPL_FILE="$divinedpl_filepath"
+      D_DPL_MANIFEST="${divinedpl_filepath%$D_DPL_SH_SUFFIX}$D_ASSETS_SUFFIX"
       D_DPL_DIR="$( dirname -- "$divinedpl_filepath" )"
       D_DPL_ASSETS_DIR="$D_ASSETS_DIR/$D_NAME"
       D_DPL_BACKUPS_DIR="$D_BACKUPS_DIR/$D_NAME"
@@ -320,7 +330,7 @@ __check_dpls()
       source "$divinedpl_filepath"
 
       # Immediately after sourcing, ensure all assets are copied
-      __prepare_dpl_assets || proceeding=false
+      __process_manifest_of_current_dpl || proceeding=false
 
     fi
 

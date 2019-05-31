@@ -544,6 +544,9 @@ __populate_globals()
   # Name for stash files
   readonly D_STASH_FILENAME="stash.cfg"
 
+  # Textual delimiter for internal use
+  readonly D_DELIM=';;;'
+
   # Regex for extracting D_NAME from *.dpl.sh file
   readonly D_DPL_NAME_REGEX='D_NAME=\(.*\)'
 
