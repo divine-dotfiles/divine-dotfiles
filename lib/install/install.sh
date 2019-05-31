@@ -407,113 +407,11 @@ __add_default_dpls()
     return 1
   fi
 
-  # Status variable
-  repo_cloned=false
+  # Run adding routine
+  "$D_INSTALL_PATH"/intervene.sh add "$user_repo" --yes
 
-  # Install to deployments directory
-  local dpl_dir="$D_INSTALL_PATH/dpl"
-
-  # Remove current (almost empty) deployments directory
-  rm -rf -- "$dpl_dir" || {
-    dprint_debug "Failed to pre-erase directory: $dpl_dir"
-    return 1
-  }
-
-  # Re-create empty installation directory
-  mkdir -p -- "$dpl_dir" || {
-    dprint_debug "Failed to create deployments directory: $dpl_dir"
-    return 1
-  }
-
-  # First, attempt to check existense of repository using git
-  if git --version &>/dev/null; then
-
-    if git ls-remote "https://github.com/${user_repo}.git" -q &>/dev/null; then
-
-      # Both git and remote repo are available
-
-      # Make shallow clone of repository
-      git clone --depth=1 "https://github.com/${user_repo}.git" \
-        "$dpl_dir" &>/dev/null \
-        || {
-          dprint_debug 'Failed to clone default deployments repository at:' \
-            "https://github.com/${user_repo}"
-          return 1
-        }
-
-      # Set status
-      repo_cloned=true
-      
-    else
-
-      # Likely unable to connect to repository
-      dprint_debug 'Failed to connect to default deployments repository at:' \
-        "https://github.com/${user_repo}"
-      return 1
-    
-    fi
-
-  else
-
-    # Git unavailable: download instead
-
-    # Attempt curl and Github API
-    if grep -q 200 < <( curl -I "https://api.github.com/repos/${user_repo}" \
-      2>/dev/null | head -1 ); then
-
-      # Both curl and remote repo are available
-
-      # Download and untar in one fell swoop
-      curl -sL "https://api.github.com/repos/${user_repo}/tarball" \
-        | tar --strip-components=1 -C "$dpl_dir" -xzf -
-      [ $? -eq 0 ] || {
-        dprint_debug 'Failed to download (curl) or extract tarball from:' \
-          "https://api.github.com/repos/${user_repo}/tarball"
-        return 1
-      }
-
-    # Attempt wget and Github API
-    elif grep -q 200 < <( wget -q --spider --server-response \
-      "https://api.github.com/repos/${user_repo}" 2>&1 | head -1 ); then
-
-      # Both wget and remote repo are available
-
-      # Download and untar in one fell swoop
-      wget -qO - "https://api.github.com/repos/${user_repo}/tarball" \
-        | tar --strip-components=1 -C "$dpl_dir" -xzf -
-      [ $? -eq 0 ] || {
-        dprint_debug 'Failed to download (wget) or extract tarball from:' \
-          "https://api.github.com/repos/${user_repo}/tarball"
-        return 1
-      }
-
-    else
-
-      # Either none of the tools were available, or repo does not exist
-      dprint_debug \
-        'Failed to clone or download default deployments repository from:' \
-        "https://github.com/${user_repo}"
-      return 1
-
-    fi
-  
-  fi
-
-  # If repository was cloned, keep record of installation location
-  if $repo_cloned; then
-    if dstash_root_set dpl_repos "$dpl_dir"; then
-      dprint_debug 'Recorded location of default deployments in root stash'
-    else
-      dprint_debug \
-        'Failed to record location of default deployments in root stash' \
-        'Update routine will be unable to update default deployments'
-    fi
-  fi
-
-  # If gotten here, all is good
-  dprint_success 'Successfully added default deployments to:' \
-    "$dpl_dir"
-  return 0
+  # Return whatever routine returns
+  return $?
 }
 
 __run_install()
