@@ -117,6 +117,9 @@ __process_manifest_of_current_dpl()
 
   done
 
+  # Populate global variable
+  D_DPL_ASSETS=( "${dpl_assets[@]}" )
+
   # Return appropriate status
   $all_assets_copied && return 0 || return 1
 }

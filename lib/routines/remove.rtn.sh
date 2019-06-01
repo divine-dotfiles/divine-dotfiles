@@ -406,7 +406,7 @@ __remove_dpls()
 
     fi
 
-    # Source the *.dpl.sh file and do all pre- and post- sourcing tasks
+    # Set up environment immediately before sourcing
     if $proceeding; then
 
       # Expose variables to deployment
@@ -417,14 +417,19 @@ __remove_dpls()
       D_DPL_ASSETS_DIR="$D_ASSETS_DIR/$D_NAME"
       D_DPL_BACKUPS_DIR="$D_BACKUPS_DIR/$D_NAME"
 
+      # Ensure all assets are copied
+      __process_manifest_of_current_dpl || proceeding=false
+
+    fi
+
+    # Source deployment file
+    if $proceeding; then
+
       # Print debug message
       dprint_debug "Sourcing: $divinedpl_filepath"
 
       # Hold your breath…
       source "$divinedpl_filepath"
-
-      # Immediately after sourcing, ensure all assets are copied
-      __process_manifest_of_current_dpl || proceeding=false
 
     fi
 
