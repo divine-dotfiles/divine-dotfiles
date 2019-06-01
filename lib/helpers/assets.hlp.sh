@@ -43,13 +43,31 @@ __process_manifest_of_current_dpl()
   shopt -s nocasematch
 
   # Storage variables
-  local line dpl_assets=()
+  local line dpl_assets=() keep_globbing=true
 
   # Populate list of additional home directories from file
   while IFS='' read -r line || [ -n "$line" ]; do
 
     # Skip empty and comment lines
     [[ -z $line || $line == '#'* || $line == '//'* ]] && continue
+
+    # Check if starting a named section
+    if [[ $line =~ ^\([A-Za-z0-9]+\)\ *$ ]]; then
+
+      # Check if current OS/distro matches section title
+      if [[ $line == "(${OS_FAMILY})"* || $line == "(${OS_DISTRO})"* ]]; then
+        keep_globbing=true
+      else
+        keep_globbing=false
+      fi
+
+      # Done with this line
+      continue
+
+    fi
+
+    # Check if we are still globbing
+    $keep_globbing || continue
     
     # Remove comments and whitespace on both edges
     line="$( printf '%s\n' "$line" | sed \
