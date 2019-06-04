@@ -15,7 +15,7 @@
 ## For reference, see lib/templates/adapters/family.adp.sh
 #
 
-# Implement overriding mechanism for $D_TARGETS
+# Implement overriding mechanism for $D_TARGETS and $D_TARGET_DIR
 __override_d_targets_for_family()
 {
   # Check if $D_TARGETS_CYGWIN contains at least one string
@@ -23,6 +23,14 @@ __override_d_targets_for_family()
 
     # $D_TARGETS_CYGWIN is set: use it instead
     D_TARGETS=( "${D_TARGETS_CYGWIN[@]}" )
+    
+  fi
+
+  # Check if $D_TARGET_DIR_CYGWIN is not empty
+  if [ -n "$D_TARGET_DIR_CYGWIN" ]; then
+
+    # $D_TARGET_DIR_CYGWIN is set: use it instead
+    D_TARGET_DIR="$D_TARGET_DIR_CYGWIN"
     
   fi
 }

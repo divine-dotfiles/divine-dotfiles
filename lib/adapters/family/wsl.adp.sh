@@ -16,7 +16,7 @@
 ## For reference, see lib/templates/adapters/family.adp.sh
 #
 
-# Implement overriding mechanism for $D_TARGETS
+# Implement overriding mechanism for $D_TARGETS and $D_TARGET_DIR
 __override_d_targets_for_family()
 {
   # Start with generic linux override, then try WSL-specific one
@@ -29,11 +29,27 @@ __override_d_targets_for_family()
     
   fi
 
+  # Check if $D_TARGET_DIR_LINUX is not empty
+  if [ -n "$D_TARGET_DIR_LINUX" ]; then
+
+    # $D_TARGET_DIR_LINUX is set: use it instead
+    D_TARGET_DIR="$D_TARGET_DIR_LINUX"
+    
+  fi
+
   # Check if $D_TARGETS_WSL contains at least one string
   if [ ${#D_TARGETS_WSL[@]} -gt 1 -o -n "$D_TARGETS_WSL" ]; then
 
     # $D_TARGETS_WSL is set: use it instead
     D_TARGETS=( "${D_TARGETS_WSL[@]}" )
+    
+  fi
+
+  # Check if $D_TARGET_DIR_WSL is not empty
+  if [ -n "$D_TARGET_DIR_WSL" ]; then
+
+    # $D_TARGET_DIR_WSL is set: use it instead
+    D_TARGET_DIR="$D_TARGET_DIR_WSL"
     
   fi
 }

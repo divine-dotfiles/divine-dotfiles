@@ -36,7 +36,7 @@ if apt-get --version &>/dev/null; then
 
 fi
 
-# Implement overriding mechanism for $D_TARGETS
+# Implement overriding mechanism for $D_TARGETS and $D_TARGET_DIR
 __override_d_targets_for_distro()
 {
   # Check if $D_TARGETS_DEBIAN contains at least one string
@@ -44,6 +44,14 @@ __override_d_targets_for_distro()
 
     # $D_TARGETS_DEBIAN is set: use it instead
     D_TARGETS=( "${D_TARGETS_DEBIAN[@]}" )
+    
+  fi
+
+  # Check if $D_TARGET_DIR_DEBIAN is not empty
+  if [ -n "$D_TARGET_DIR_DEBIAN" ]; then
+
+    # $D_TARGET_DIR_DEBIAN is set: use it instead
+    D_TARGET_DIR=( "${D_TARGET_DIR_DEBIAN[@]}" )
     
   fi
 }

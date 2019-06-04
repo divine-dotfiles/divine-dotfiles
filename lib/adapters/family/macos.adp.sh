@@ -15,9 +15,9 @@
 ## For reference, see lib/templates/adapters/family.adp.sh
 #
 
-# Implement overriding mechanism for $D_TARGETS
+# Implement overriding mechanism for $D_TARGETS and $D_TARGET_DIR
 __override_d_targets_for_family()
 {
-  # On macOS $D_TARGETS is overridden by __override_d_targets_for_distro
+  # On macOS targets are overridden by __override_d_targets_for_distro
   :
 }

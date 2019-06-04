@@ -52,42 +52,35 @@
 #
 dln_check()
 {
-  # Override $D_TARGETS for current OS family, if that variable is non-empty
-  case "$OS_FAMILY" in
-    linux)
-      [ ${#D_TARGETS_LINUX[@]} -gt 1 -o -n "$D_TARGETS_LINUX" ] \
-        && D_TARGETS=( "${D_TARGETS_LINUX[@]}" );;
-    wsl)
-      [ ${#D_TARGETS_WSL[@]} -gt 1 -o -n "$D_TARGETS_WSL" ] \
-        && D_TARGETS=( "${D_TARGETS_WSL[@]}" );;
-    bsd)
-      [ ${#D_TARGETS_BSD[@]} -gt 1 -o -n "$D_TARGETS_BSD" ] \
-        && D_TARGETS=( "${D_TARGETS_BSD[@]}" );;
-    macos)
-      [ ${#D_TARGETS_MACOS[@]} -gt 1 -o -n "$D_TARGETS_MACOS" ] \
-        && D_TARGETS=( "${D_TARGETS_MACOS[@]}" );;
-    *)
-      # Don’t override anything
-      :;;
-  esac
+  # Override targets for current OS family, if that variable is non-empty
+  __override_d_targets_for_family
 
-  # Override $D_TARGETS for current OS distro, if that variable is non-empty
-  case "$OS_DISTRO" in
-    ubuntu)
-      [ ${#D_TARGETS_UBUNTU[@]} -gt 1 -o -n "$D_TARGETS_UBUNTU" ] \
-        && D_TARGETS=( "${D_TARGETS_UBUNTU[@]}" );;
-    debian)
-      [ ${#D_TARGETS_DEBIAN[@]} -gt 1 -o -n "$D_TARGETS_DEBIAN" ] \
-        && D_TARGETS=( "${D_TARGETS_DEBIAN[@]}" );;
-    fedora)
-      [ ${#D_TARGETS_FEDORA[@]} -gt 1 -o -n "$D_TARGETS_FEDORA" ] \
-        && D_TARGETS=( "${D_TARGETS_FEDORA[@]}" );;
-    *)
-      # Don’t override anything
-      :;;
-  esac
+  # Override targets for current OS distro, if that variable is non-empty
+  __override_d_targets_for_distro
 
-  # Check if $D_TARGETS has ended up empty
+  # If $D_TARGETS is thus far empty, try another trick
+  if ! [ ${#D_TARGETS[@]} -gt 1 -o -n "$D_TARGETS" ] \
+    && [ -n "$D_TARGET_DIR" ] \
+    && [ ${#D_DPL_ASSETS_REL[@]} -gt 0 ]
+  then
+
+    # Initialize $D_TARGETS to empty array
+    D_TARGETS=()
+
+    # Storage variable
+    local relative_path
+
+    # Iterate over relative asset paths
+    for relative_path in "${D_DPL_ASSETS_REL[@]}"; do
+
+      # Construct path to target and add it
+      D_TARGETS+=( "$D_TARGET_DIR/$relative_path" )
+
+    done
+
+  fi
+
+  # Check if $D_TARGETS has still ended up empty
   [ ${#D_TARGETS[@]} -gt 1 -o -n "$D_TARGETS" ] || {
     local detected_os="$OS_FAMILY"
     [ -n "$OS_DISTRO" ] && detected_os+=" ($OS_DISTRO)"

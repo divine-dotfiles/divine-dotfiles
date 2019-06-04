@@ -15,7 +15,7 @@
 ## For reference, see lib/templates/adapters/family.adp.sh
 #
 
-# Implement overriding mechanism for $D_TARGETS
+# Implement overriding mechanism for $D_TARGETS and $D_TARGET_DIR
 __override_d_targets_for_family()
 {
   # Check if $D_TARGETS_LINUX contains at least one string
@@ -23,6 +23,14 @@ __override_d_targets_for_family()
 
     # $D_TARGETS_LINUX is set: use it instead
     D_TARGETS=( "${D_TARGETS_LINUX[@]}" )
+    
+  fi
+
+  # Check if $D_TARGET_DIR_LINUX is not empty
+  if [ -n "$D_TARGET_DIR_LINUX" ]; then
+
+    # $D_TARGET_DIR_LINUX is set: use it instead
+    D_TARGET_DIR="$D_TARGET_DIR_LINUX"
     
   fi
 }
