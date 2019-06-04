@@ -52,10 +52,10 @@ __process_manifest_of_current_dpl()
     [[ -z $line || $line == '#'* || $line == '//'* ]] && continue
 
     # Check if starting a named section
-    if [[ $line =~ ^\([A-Za-z0-9]+\)\ *$ ]]; then
+    if [[ $line =~ ^\ *\([A-Za-z0-9]+\)\ *$ ]]; then
 
       # Check if current OS/distro matches section title
-      if [[ $line == "(${OS_FAMILY})"* || $line == "(${OS_DISTRO})"* ]]; then
+      if [[ $line == *"(${OS_FAMILY})"* || $line == *"(${OS_DISTRO})"* ]]; then
         keep_globbing=true
       else
         keep_globbing=false
@@ -98,7 +98,7 @@ __process_manifest_of_current_dpl()
     src_path="$D_DPL_DIR/$relative_path"
     dest_path="$D_DPL_ASSETS_DIR/$relative_path"
 
-    # Check source is readable
+    # Check if source is readable
     if [ -r "$src_path" ]; then
 
       # Check if destination path exists
