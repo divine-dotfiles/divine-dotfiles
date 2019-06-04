@@ -43,8 +43,8 @@ __main()
   __populate_os_distro
   unset -f __populate_os_distro
   
-  __populate_os_pkgmgr
-  unset -f __populate_os_pkgmgr
+  __load_os_adapter
+  unset -f __load_os_adapter
 }
 
 #>  __populate_os_family
@@ -277,22 +277,23 @@ __populate_os_distro()
   fi
 }
 
-#>  __populate_os_pkgmgr
+#>  __load_os_adapter
 #
-## Detects particular OS package management utility and stores its name in a 
-#. read-only global variable. This function is meant to be expanded for 
-#. particular required utilities.
+## Scans adapters dir for files ‘$OS_FAMILY.adp.sh’ and ‘$OS_DISTRO.adp.sh’ and 
+#. sources each, if found, in that order. After sourcing both, ensures as best 
+#. it can that required functions are implemented, or terminates the script.
 #
 ## Requires:
+#.  $OS_FAMILY  - From __populate_os_family
 #.  $OS_DISTRO  - From __populate_os_distro
 #
 ## Provides into the global scope:
-#.  $OS_PKGMGR  - (read-only) Name of the package management utility available 
-#.                on the current system, e.g.:
-#.                  * ‘brew’    (macOS)
-#.                  * ‘apt-get’ (Debian, Ubuntu)
-#.                  * ‘dnf’     (Fedora)
-#.                  * ‘yum’     (older Fedora)
+#.  $OS_PKGMGR  - (read-only) Widely recognized name of package management 
+#.                utility available on the current system, e.g.:
+#.                  * ‘brew’    - macOS
+#.                  * ‘apt-get’ - Debian, Ubuntu
+#.                  * ‘dnf’     - Fedora
+#.                  * ‘yum’     - older Fedora
 #.                  * unset     - Not recognized
 #.  os_pkgmgr - Thin wrapper around system’s package manager. Accepts the 
 #.              following commands as first argument: ‘dupdate’, ‘dcheck’, 
@@ -302,217 +303,167 @@ __populate_os_distro()
 #.              returns, or -1 for unrecognized package manager.
 #
 ## Returns:
-#.  0 - Variable populated successfully
-#.  1 - Could not re-assign the variable (already assigned)
-#.  2 - Could not reliably recognize the utility
+#.  0 - Adapter loaded successfully
+#.  1 - Non-fatal problem with adapter
+#.  2 - Arguably fatal problem with adapter
 #
 ## Prints:
 #.  stdout: *nothing*
-#.  stderr: As little as possible
+#.  stderr: Error descriptions
 #
-__populate_os_pkgmgr()
+__load_os_adapter()
 {
-  # Storage variable
-  local os_pkgmgr
+  # Set up variables
+  local family_adapter distro_adapter
+
+  # Status variables
+  local all_good=true should_halt=false
+
+  # If OS family is detected and family adapter exists, source it
+  if [ -n "$OS_FAMILY" ]; then
+
+    # Compose path to adapter
+    family_adapter="${D_ADAPTERS_FAMILY_DIR}/${OS_FAMILY}${D_ADAPTER_SUFFIX}"
+
+    # Check if it is a readable file
+    if [ -r "$family_adapter" -a -f "$family_adapter"]; then
+
+      source "$family_adapter"
+
+    else
+
+      # Report error
+      $D_QUIET || printf >&2 '%s: %s\n' "${FUNCNAME[0]}" \
+        "No adapter detected for current OS family: $OS_FAMILY"
+
+    fi
+
+  fi
+
+  # If OS distro is detected and distro adapter exists, source it
+  if [ -n "$OS_DISTRO" ]; then
+
+    # Compose path to adapter
+    distro_adapter="${D_ADAPTERS_DISTRO_DIR}/${OS_DISTRO}${D_ADAPTER_SUFFIX}"
+
+    # Check if it is a readable file
+    if [ -r "$distro_adapter" -a -f "$distro_adapter"]; then
+
+      source "$distro_adapter"
+
+    else
+
+      # Report error
+      $D_QUIET || printf >&2 '%s: %s\n' "${FUNCNAME[0]}" \
+        "No adapter detected for current OS distro: $OS_DISTRO"
+
+    fi
+
+  fi
 
   # Store current case sensitivity setting, then turn it off
   local restore_nocasematch="$( shopt -p nocasematch )"
   shopt -s nocasematch
 
-  ## Detect particular package manager, if it is supported
-  #
-  ## This section of the code should be extended according to particular needs.
-  #. E.g., if one requires particular workflows for macOS’s brew, Ubuntu’s or 
-  #. Debian’s apt-get, then these three utilities should be 
-  #. detected here, possibly among others.
-  #
-  local return_code=0
-  case "$OS_DISTRO" in
-    macos)
+  # Check if __print_os_pkgmgr is implemented
+  if declare -f __print_os_pkgmgr &>/dev/null; then
 
-      # (Special case) Offer to install Homebrew
-      if ! HOMEBREW_NO_AUTO_UPDATE=1 brew --version &>/dev/null \
-        && dstash --root ready &>/dev/null
-      then
+    # Storage variable
+    local os_pkgmgr="$( __print_os_pkgmgr 2>/dev/null || exit $? )"
 
-        # Inform user of the tragic circumstances
-        printf >&2 '%s\n' \
-          'Failed to detect Homebrew (package manager for macOS)'
-        printf >&2 '  %s\n' \
-          'https://brew.sh/'
+    # Check if __print_os_pkgmgr ran without a snag
+    if [ $? -eq 0 ]; then
 
-        # Prompt user
-        local yes=false
-        if [ "$D_BLANKET_ANSWER" = true ]; then yes=true
-        elif [ "$D_BLANKET_ANSWER" = false ]; then yes=false
-        else
+      # Check if os_pkgmgr is properly detected
+      if [ -z "$os_pkgmgr" ]; then
 
-          # Print question
-          printf >&2 '%s' 'Would you like to install it? [y/n] '
+        # Failed to detect OS package manager: not fatal, but should be noted
+        printf >&2 '%s: %s %s\n' "${FUNCNAME[0]}" \
+          'Package manager is not recognized for current OS:' \
+          "$OS_FAMILY ($OS_DISTRO)"
+        all_good=false
 
-          # Await answer
-          while true; do
-            read -rsn1 input
-            [[ $input =~ ^(y|Y)$ ]] && { printf 'y'; yes=true;  break; }
-            [[ $input =~ ^(n|N)$ ]] && { printf 'n'; yes=false; break; }
-          done
-          printf '\n'
+      elif [[ $os_pkgmgr = $OS_PKGMGR ]]; then
 
-        fi
+        # $OS_PKGMGR is set to correct value: ensure it is read-only
+        ( unset OS_PKGMGR 2>/dev/null ) && readonly OS_PKGMGR
+        all_good=false
 
-        # Check if user accepted
-        if $yes; then
+      elif ( unset OS_PKGMGR 2>/dev/null ); then
 
-          # Announce installation
-          printf >&2 '%s\n' 'Installing Homebrew'
+        # $OS_PKGMGR is set to incorrect value but is writable: set and make
+        readonly OS_PKGMGR="$os_pkgmgr"
+        all_good=false
+      
+      else
 
-          # Proceed with automated installation
-          /usr/bin/ruby -e \
-            "$( curl -fsSL \
-            https://raw.githubusercontent.com/Homebrew/install/master/install \
-            )" </dev/null
-
-          # Check exit code and print status message
-          if [ $? -eq 0 ]; then
-            printf >&2 '%s\n' 'Successfully installed Homebrew'
-            dstash -r -s set installed_homebrew
-          else
-            printf >&2 '%s\n' 'Failed to install Homebrew'
-          fi
-
-        else
-
-          # Proceeding without Homebrew
-          printf >&2 '%s\n' 'Proceeding without Homebrew'
-
-        fi
-
+        # $OS_PKGMGR is set to incorrect value and is read-only: report error
+        printf >&2 '%s: %s\n' "${FUNCNAME[0]}" \
+          '$OS_PKGMGR is already set to incorrect value and is read-only'
+        printf >&2 '%s: %s\n' 'Detected OS package manager    ' "$os_pkgmgr"
+        printf >&2 '%s: %s\n' 'Content of $OS_PKGMGR variable ' "$OS_PKGMGR"
+        printf >&2 '%s: %s\n' 'Detected OS                    ' \
+          "$OS_FAMILY ($OS_DISTRO)"
+        all_good=false
+        should_halt=true
+      
       fi
 
-      # Trying for macOS’s brew
-      if HOMEBREW_NO_AUTO_UPDATE=1 brew --version &>/dev/null; then
+    else
 
-        # Set global variable
-        os_pkgmgr='brew'
+      # Function __print_os_pkgmgr returned non-zero
+      printf >&2 '%s: %s %s\n' "${FUNCNAME[0]}" \
+          'Failed to detect package manager on current OS:' \
+          "$OS_FAMILY ($OS_DISTRO)"
+      all_good=false
 
-        # Implement wrapper aroung package manager
-        os_pkgmgr() {
-          case "$1" in
-            dupdate)  brew update; brew upgrade;;
-            dcheck)   shift
-                      HOMEBREW_NO_AUTO_UPDATE=1 brew list "$@" &>/dev/null;;
-            dinstall) shift; brew install "$@";;
-            dremove)  shift; brew uninstall "$@";;
-            *)        return 1;;
-          esac
-        }
+    fi
 
-      fi
-      ;;
-    ubuntu|debian)
-      # Trying for Ubuntu or Debian’s apt-get
-      if apt-get --version &>/dev/null; then
+  else
 
-        # Set global variable
-        os_pkgmgr='apt-get'
+    # Function __print_os_pkgmgr is not implemented
+    printf >&2 '%s: %s %s\n' "${FUNCNAME[0]}" \
+      'Package manager is not supported on current OS:' \
+      "$OS_FAMILY ($OS_DISTRO)"
+    all_good=false
 
-        # Implement wrapper aroung package manager
-        os_pkgmgr() {
-          case "$1" in
-            dupdate)  sudo apt-get update -yq; sudo apt-get upgrade -yq;;
-            dcheck)   shift; dpkg-query -l "$@" &>/dev/null;;
-            dinstall) shift; sudo apt-get install -yq "$@";;
-            dremove)  shift; sudo apt-get remove -yq "$@";;
-            *)        return 1;;
-          esac
-        }
+  fi
 
-      fi
-      ;;
-    fedora)
-      # Trying for Fedora’s dnf
-      if dnf --version &>/dev/null; then
+  # Check if adapter implements os_pkgmgr function
+  if ! declare -f os_pkgmgr &>/dev/null; then
 
-        # Set global variable
-        os_pkgmgr='dnf'
+    # Not implemented: report and implement dummy wrapper
+    printf >&2 '%s: %s %s\n' "${FUNCNAME[0]}" \
+      'Package manager wrapper is not implemented on current OS:' \
+      "$OS_FAMILY ($OS_DISTRO)"
+    os_pkgmgr() { return -1; }
+    all_good=false
 
-        # Implement wrapper aroung package manager
-        os_pkgmgr() {
-          case "$1" in
-            dupdate)  sudo dnf upgrade -yq;;
-            dcheck)   shift; sudo dnf list --installed "$@" &>/dev/null;;
-            dinstall) shift; sudo dnf install -yq "$@";;
-            dremove)  shift; sudo dnf remove -yq "$@";;
-            *)        return 1;;
-          esac
-        }
+  fi
 
-      # Or else for Fedora’s older yum
-      elif yum --version &>/dev/null; then
+  # Check if adapter implements __override_d_targets_for_distro function
+  if ! declare -f __override_d_targets_for_distro &>/dev/null; then
 
-        # Set global variable
-        os_pkgmgr='yum'
+    # Not implemented: implement dummy function
+    __override_d_targets_for_distro() { return 1; }
 
-        # Implement wrapper aroung package manager
-        os_pkgmgr() {
-          case "$1" in
-            dupdate)  sudo yum update -y;;
-            dcheck)   shift; sudo yum list installed "$@" &>/dev/null;;
-            dinstall) shift; sudo yum install -y "$@";;
-            dremove)  shift; sudo yum remove -y "$@";;
-            *)        return 1;;
-          esac
-        }
+  fi
 
-      fi
-      ;;
-    *)
-      # If not certain, do not touch global variables at all
-      return_code=2
-      ;;
-  esac
+  # Check if adapter implements __override_d_targets_for_family function
+  if ! declare -f __override_d_targets_for_family &>/dev/null; then
+
+    # Not implemented: implement dummy function
+    __override_d_targets_for_family() { return 1; }
+
+  fi
 
   # Restore case sensitivity
   eval "$restore_nocasematch"
 
-  # Report and return
-  if [ -z "$os_pkgmgr" ]; then
-
-    # Failed to detect OS package manager: not fatal, but should be noted
-    printf >&2 '%s: %s\n' "${FUNCNAME[0]}" \
-      'Current OS package manager is not recognized'
-
-    # Implement dummy wrapper
-    os_pkgmgr() { return -1; }
-
-    return 2
-
-  elif [ "$os_pkgmgr" = "$OS_PKGMGR" ]; then
-
-    # $OS_PKGMGR is set to correct value: ensure it is read-only
-    ( unset OS_PKGMGR 2>/dev/null ) && readonly OS_PKGMGR
-    return 0
-
-  elif ( unset OS_PKGMGR 2>/dev/null ); then
-
-    # $OS_PKGMGR is set to incorrect value but is not read-only: set and make
-    readonly OS_PKGMGR="$os_pkgmgr"
-    return 0
-  
-  else
-
-    # $OS_PKGMGR is set to incorrect value and is read-only: report error
-    printf >&2 '%s: %s\n' "${FUNCNAME[0]}" \
-      '$OS_PKGMGR is already set to incorrect value and is read-only'
-    printf >&2 '%s: %s\n' 'Detected OS package manager    ' "$os_pkgmgr"
-    printf >&2 '%s: %s\n' 'Content of $OS_PKGMGR variable ' "$OS_PKGMGR"
-
-    # Implement dummy wrapper
-    os_pkgmgr() { return -1; }
-
-    return 1
-  
-  fi
+  # Return
+  if $all_good; then return 0
+  elif $should_halt; then return 2
+  else return 1; fi
 }
 
 __main

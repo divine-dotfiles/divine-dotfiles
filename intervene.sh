@@ -497,6 +497,12 @@ __populate_globals()
   # Path to lib directory
   readonly D_LIB_DIR="$D_DIR/lib"
 
+  # Path to adapters directory and adapter file suffix
+  readonly D_ADAPTERS_DIR="$D_LIB_DIR/adapters"
+  readonly D_ADAPTERS_FAMILY_DIR="$D_ADAPTERS_DIR/family"
+  readonly D_ADAPTERS_DISTRO_DIR="$D_ADAPTERS_DIR/distro"
+  readonly D_ADAPTER_SUFFIX=".adp.sh"
+
   # Path to routines directory and routine file suffix
   readonly D_ROUTINES_DIR="$D_LIB_DIR/routines"
   readonly D_ROUTINE_SUFFIX=".rtn.sh"
