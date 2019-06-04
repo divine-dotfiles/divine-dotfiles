@@ -10,6 +10,9 @@ main()
   # Main installation
   if __pull_github_repo; then
 
+    # Create 'assets' and 'dpl' directories
+    __create_empty_dirs
+
     # Optional: install shortcut command ('di' by default)
     __install_shortcut
 
@@ -232,6 +235,19 @@ __pull_github_repo()
     "Successfully installed ${BOLD}Divine.dotfiles${NORMAL} to:" \
     "$D_INSTALL_PATH"
   return 0
+}
+
+__create_empty_dirs()
+{
+  # Create assets directory for future use
+  mkdir -p -- "$D_INSTALL_PATH/assets" || {
+    dprint_debug "Failed to create directory: $D_INSTALL_PATH/assets"
+  }
+
+  # Create deployments directory for future use
+  mkdir -p -- "$D_INSTALL_PATH/dpl" || {
+    dprint_debug "Failed to create directory: $D_INSTALL_PATH/dpl"
+  }
 }
 
 __install_shortcut()
