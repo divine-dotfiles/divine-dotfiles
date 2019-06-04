@@ -18,28 +18,28 @@
 
 #>  cp_check
 #
-## Checks whether every file in $D_TO[_*] (single path or array thereof) is 
-#. currently a copy of corresponding file in $D_FROM
+## Checks whether every file in $D_TARGETS[_*] (single path or array thereof) 
+#. is currently a copy of corresponding file in $D_DPL_ASSETS
 #
 ## Returns appropriate status based on overall state of installation, prints 
 #. warnings when warranted. If in doubt, prefers to prompt user on how to 
 #. proceed.
 #
 ## Requires:
-#.  $D_FROM       - (array ok) Locations of replacement files
-#.  $D_TO         - (array ok) Locations of files to be replaced
-#.  $D_TO_LINUX   - (array ok) Overrides $D_TO on Linux
-#.  $D_TO_WSL     - (array ok) Overrides $D_TO on WSL
-#.  $D_TO_BSD     - (array ok) Overrides $D_TO on BSD
-#.  $D_TO_MACOS   - (array ok) Overrides $D_TO on macOS
-#.  $D_TO_UBUNTU  - (array ok) Overrides $D_TO on Ubuntu
-#.  $D_TO_DEBIAN  - (array ok) Overrides $D_TO on Debian
-#.  $D_TO_FEDORA  - (array ok) Overrides $D_TO on Fedora
+#.  $D_DPL_ASSETS       - (array ok) Locations of replacement files
+#.  $D_TARGETS          - (array ok) Locations of files to be replaced
+#.  $D_TARGETS_LINUX    - (array ok) Overrides $D_TARGETS on Linux
+#.  $D_TARGETS_WSL      - (array ok) Overrides $D_TARGETS on WSL
+#.  $D_TARGETS_BSD      - (array ok) Overrides $D_TARGETS on BSD
+#.  $D_TARGETS_MACOS    - (array ok) Overrides $D_TARGETS on macOS
+#.  $D_TARGETS_UBUNTU   - (array ok) Overrides $D_TARGETS on Ubuntu
+#.  $D_TARGETS_DEBIAN   - (array ok) Overrides $D_TARGETS on Debian
+#.  $D_TARGETS_FEDORA   - (array ok) Overrides $D_TARGETS on Fedora
 #.  `dos.utl.sh`
 #
 ## Provides into the global scope:
-#.  $D_TO         - (array) $D_TO, possibly overridden for current OS
-#.  $D_BACKUPS    - (array) Paths to where to put backups of replaced files
+#.  $D_TARGETS  - (array) $D_TARGETS, possibly overridden for current OS
+#.  $D_BACKUPS  - (array) Paths to where to put backups of replaced files
 #
 ## Returns:
 #.  Values supported by dcheck function in *.dpl.sh
@@ -53,47 +53,47 @@ cp_check()
   # This one will rely on stashing
   dstash ready || return 3
 
-  # Override $D_TO for current OS family, if specific variable is non-empty
+  # Override $D_TARGETS for current OS family, if specific variable is non-empty
   case "$OS_FAMILY" in
     linux)
-      [ ${#D_TO_LINUX[@]} -gt 1 -o -n "$D_TO_LINUX" ] \
-        && D_TO=( "${D_TO_LINUX[@]}" );;
+      [ ${#D_TARGETS_LINUX[@]} -gt 1 -o -n "$D_TARGETS_LINUX" ] \
+        && D_TARGETS=( "${D_TARGETS_LINUX[@]}" );;
     wsl)
-      [ ${#D_TO_WSL[@]} -gt 1 -o -n "$D_TO_WSL" ] \
-        && D_TO=( "${D_TO_WSL[@]}" );;
+      [ ${#D_TARGETS_WSL[@]} -gt 1 -o -n "$D_TARGETS_WSL" ] \
+        && D_TARGETS=( "${D_TARGETS_WSL[@]}" );;
     bsd)
-      [ ${#D_TO_BSD[@]} -gt 1 -o -n "$D_TO_BSD" ] \
-        && D_TO=( "${D_TO_BSD[@]}" );;
+      [ ${#D_TARGETS_BSD[@]} -gt 1 -o -n "$D_TARGETS_BSD" ] \
+        && D_TARGETS=( "${D_TARGETS_BSD[@]}" );;
     macos)
-      [ ${#D_TO_MACOS[@]} -gt 1 -o -n "$D_TO_MACOS" ] \
-        && D_TO=( "${D_TO_MACOS[@]}" );;
+      [ ${#D_TARGETS_MACOS[@]} -gt 1 -o -n "$D_TARGETS_MACOS" ] \
+        && D_TARGETS=( "${D_TARGETS_MACOS[@]}" );;
     *)
       # Don’t override anything
       :;;
   esac
 
-  # Override $D_TO for current OS distro, if specific variable is non-empty
+  # Override $D_TARGETS for current OS distro, if specific variable is non-empty
   case "$OS_DISTRO" in
     ubuntu)
-      [ ${#D_TO_UBUNTU[@]} -gt 1 -o -n "$D_TO_UBUNTU" ] \
-        && D_TO=( "${D_TO_UBUNTU[@]}" );;
+      [ ${#D_TARGETS_UBUNTU[@]} -gt 1 -o -n "$D_TARGETS_UBUNTU" ] \
+        && D_TARGETS=( "${D_TARGETS_UBUNTU[@]}" );;
     debian)
-      [ ${#D_TO_DEBIAN[@]} -gt 1 -o -n "$D_TO_DEBIAN" ] \
-        && D_TO=( "${D_TO_DEBIAN[@]}" );;
+      [ ${#D_TARGETS_DEBIAN[@]} -gt 1 -o -n "$D_TARGETS_DEBIAN" ] \
+        && D_TARGETS=( "${D_TARGETS_DEBIAN[@]}" );;
     fedora)
-      [ ${#D_TO_FEDORA[@]} -gt 1 -o -n "$D_TO_FEDORA" ] \
-        && D_TO=( "${D_TO_FEDORA[@]}" );;
+      [ ${#D_TARGETS_FEDORA[@]} -gt 1 -o -n "$D_TARGETS_FEDORA" ] \
+        && D_TARGETS=( "${D_TARGETS_FEDORA[@]}" );;
     *)
       # Don’t override anything
       :;;
   esac
 
-  # Check if $D_TO has ended up empty
-  [ ${#D_TO[@]} -gt 1 -o -n "$D_TO" ] || {
+  # Check if $D_TARGETS has ended up empty
+  [ ${#D_TARGETS[@]} -gt 1 -o -n "$D_TARGETS" ] || {
     local detected_os="$OS_FAMILY"
     [ -n "$OS_DISTRO" ] && detected_os+=" ($OS_DISTRO)"
     dprint_debug \
-      'List of paths to replace ($D_TO) is empty for detected system:' \
+      'List of paths to replace ($D_TARGETS) is empty for detected system:' \
       "$detected_os"
     return 3
   }
@@ -108,15 +108,15 @@ cp_check()
   D_USER_OR_OS=true
 
   # Retrieve number of paths to work with (largest size wins)
-  [ ${#D_TO[@]} -ge ${#D_FROM[@]} ] \
-    && D_NUM_OF_PAIRS=${#D_TO[@]} || D_NUM_OF_PAIRS=${#D_FROM[@]}
+  [ ${#D_TARGETS[@]} -ge ${#D_DPL_ASSETS[@]} ] \
+    && D_NUM_OF_PAIRS=${#D_TARGETS[@]} || D_NUM_OF_PAIRS=${#D_DPL_ASSETS[@]}
 
   # Iterate over pairs of paths
   for (( i=0; i<$D_NUM_OF_PAIRS; i++ )); do
 
     # Retrieve/construct three paths
-    to_path="${D_TO[$i]}"
-    from_path="${D_FROM[$i]}"
+    to_path="${D_TARGETS[$i]}"
+    from_path="${D_DPL_ASSETS[$i]}"
     to_md5="$( dmd5 -s "$to_path" 2>/dev/null )"
     backup_path="$D_BACKUPS_DIR/$D_NAME/$to_md5"
 
@@ -206,8 +206,8 @@ cp_check()
   # Check if there were any good pairs
   if $good_pairs_exist; then
     # Overwrite global arrays with filtered paths
-    D_TO=( "${new_d_to[@]}" )
-    D_FROM=( "${new_d_from[@]}" )
+    D_TARGETS=( "${new_d_to[@]}" )
+    D_DPL_ASSETS=( "${new_d_from[@]}" )
   else
     # If there were no good pairs, print loud warning and signal irrelevant
     dprint_skip -l 'Not a single workable source-destination pair provided'
@@ -228,13 +228,13 @@ cp_check()
 
 #>  cp_install
 #
-## Copies each original file in $D_FROM to its respective destination location 
-#. in $D_TO, moving pre-existing files to corresponging backup locations in 
-#. $D_BACKUPS.
+## Copies each original file in $D_DPL_ASSETS to its respective destination 
+#. location in $D_TARGETS, moving pre-existing files to corresponging backup 
+#. locations in $D_BACKUPS.
 #
 ## Requires:
-#.  $D_FROM       - (array ok) Source filepaths
-#.  $D_TO         - (array ok) Destination filepaths on current OS
+#.  $D_DPL_ASSETS - (array ok) Source filepaths
+#.  $D_TARGETS    - (array ok) Destination filepaths on current OS
 #.  $D_BACKUPS    - (array ok) Backup locations
 #
 ## Returns:
@@ -255,8 +255,8 @@ cp_install()
   for (( i=0; i<$D_NUM_OF_PAIRS; i++ )); do
 
     # Retrieve/construct three paths
-    to_path="${D_TO[$i]}"
-    from_path="${D_FROM[$i]}"
+    to_path="${D_TARGETS[$i]}"
+    from_path="${D_DPL_ASSETS[$i]}"
     backup_path="${D_BACKUPS[$i]}"
     to_md5="$( basename -- "$backup_path" )"
 
@@ -364,11 +364,11 @@ cp_install()
 
 #>  cp_restore
 #
-## Removes each path in $D_TO that has record of previous copying, then moves 
-#. corresponding path in $D_BACKUPS to its original location
+## Removes each path in $D_TARGETS that has record of previous copying, then 
+#. moves corresponding path in $D_BACKUPS to its original location
 #
 ## Requires:
-#.  $D_TO         - (array ok) Paths to be restored on current OS
+#.  $D_TARGETS    - (array ok) Paths to be restored on current OS
 #.  $D_BACKUPS    - (array ok) Backup locations
 #.  `dln.utl.sh`
 #
@@ -390,8 +390,8 @@ cp_restore()
   for (( i=$D_NUM_OF_PAIRS-1; i>=0; i-- )); do
 
     # Retrieve/construct three paths
-    to_path="${D_TO[$i]}"
-    from_path="${D_FROM[$i]}"
+    to_path="${D_TARGETS[$i]}"
+    from_path="${D_DPL_ASSETS[$i]}"
     backup_path="${D_BACKUPS[$i]}"
     to_md5="$( basename -- "$backup_path" )"
 

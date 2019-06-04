@@ -4,22 +4,22 @@ D_PRIORITY=4096
 D_FLAGS=
 D_WARNING=
 
-# Paths to replacement files (string or array)
-D_REPLACEMENTS=
+# Paths to replacement files (string or array thereof)
+D_DPL_ASSETS=
 
-# Paths to files to be replaced (string or array)
-D_ORIG=
+# Paths to files to be replaced (string or array thereof)
+D_TARGETS=
 
-# OS family-specific overrides for $D_ORIG (narrow defeats broad)
-D_ORIG_LINUX=
-D_ORIG_WSL=
-D_ORIG_BSD=
-D_ORIG_MACOS=
+# OS family-specific overrides for $D_TARGETS (narrow defeats broad)
+D_TARGETS_LINUX=
+D_TARGETS_WSL=
+D_TARGETS_BSD=
+D_TARGETS_MACOS=
 
-# OS distro-specific overrides for $D_ORIG (narrow defeats broad)
-D_ORIG_UBUNTU=
-D_ORIG_DEBIAN=
-D_ORIG_FEDORA=
+# OS distro-specific overrides for $D_TARGETS (narrow defeats broad)
+D_TARGETS_UBUNTU=
+D_TARGETS_DEBIAN=
+D_TARGETS_FEDORA=
 
 dcheck()    { dln_check;    }
 dinstall()  { dln_install;  }
