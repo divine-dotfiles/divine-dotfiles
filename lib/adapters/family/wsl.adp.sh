@@ -19,6 +19,16 @@
 # Implement overriding mechanism for $D_TARGETS
 __override_d_targets_for_family()
 {
+  # Start with generic linux override, then try WSL-specific one
+  
+  # Check if $D_TARGETS_LINUX contains at least one string
+  if [ ${#D_TARGETS_LINUX[@]} -gt 1 -o -n "$D_TARGETS_LINUX" ]; then
+
+    # $D_TARGETS_LINUX is set: use it instead
+    D_TARGETS=( "${D_TARGETS_LINUX[@]}" )
+    
+  fi
+
   # Check if $D_TARGETS_WSL contains at least one string
   if [ ${#D_TARGETS_WSL[@]} -gt 1 -o -n "$D_TARGETS_WSL" ]; then
 
