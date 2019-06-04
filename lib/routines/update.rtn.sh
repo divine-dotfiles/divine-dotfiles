@@ -380,7 +380,14 @@ __updating__update_fmwk_via_git()
 #
 __updating__update_fmwk_via_tar()
 {
-  # Set download location
+  # Only attempt ‘crude’ update with --force option
+  if ! $D_FORCE; then
+    dprint_debug \
+      "'Crude' update (downloading repo) is only available with --force option"
+    return 1
+  fi
+
+  # Set user/repository to download from
   local user_repo='no-simpler/divine-dotfiles'
 
   # Prompt user
