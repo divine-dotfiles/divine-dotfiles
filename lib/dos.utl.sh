@@ -326,7 +326,7 @@ __load_os_adapter()
     family_adapter="${D_ADAPTERS_FAMILY_DIR}/${OS_FAMILY}${D_ADAPTER_SUFFIX}"
 
     # Check if it is a readable file
-    if [ -r "$family_adapter" -a -f "$family_adapter"]; then
+    if [ -r "$family_adapter" -a -f "$family_adapter" ]; then
 
       source "$family_adapter"
 
@@ -347,7 +347,7 @@ __load_os_adapter()
     distro_adapter="${D_ADAPTERS_DISTRO_DIR}/${OS_DISTRO}${D_ADAPTER_SUFFIX}"
 
     # Check if it is a readable file
-    if [ -r "$distro_adapter" -a -f "$distro_adapter"]; then
+    if [ -r "$distro_adapter" -a -f "$distro_adapter" ]; then
 
       source "$distro_adapter"
 
