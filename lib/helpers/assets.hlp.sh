@@ -43,9 +43,9 @@ __process_manifest_of_current_dpl()
   shopt -s nocasematch
 
   # Storage variables
-  local line dpl_assets_rel=() dpl_assets=() keep_globbing=true
+  local line dpl_asset_patterns=() keep_globbing=true
 
-  # Populate list of additional home directories from file
+  # Read asset manifest line by line
   while IFS='' read -r line || [ -n "$line" ]; do
 
     # Skip empty and comment lines
@@ -77,70 +77,77 @@ __process_manifest_of_current_dpl()
       -e 's/[[:space:]]*$//' )"
     
     # Add whatever is left, if there is anything
-    [ -n "$line" ] && dpl_assets_rel+=( "$line" )
+    [ -n "$line" ] && dpl_asset_patterns+=( "$line" )
 
   done <"$D_DPL_MANIFEST"
 
   # Restore case sensitivity
   eval "$restore_nocasematch"
 
-  # Check if $dpl_assets_rel has at least one entry
-  [ ${#dpl_assets_rel[@]} -gt 0 ] || return 0
+  # Check if $dpl_asset_patterns has at least one entry
+  [ ${#dpl_asset_patterns[@]} -gt 0 ] || return 0
 
   # Storage and status variables
-  local relative_path src_path dest_path dest_parent_path
+  local path_pattern relative_path src_path dest_path dest_parent_path
   local all_assets_readable=true all_assets_copied=true
 
-  # Iterate over $dpl_assets_rel entries
-  for relative_path in "${dpl_assets_rel[@]}"; do
+  # Start populating global variables
+  D_DPL_ASSETS_REL=()
+  D_DPL_ASSETS=()
 
-    # Compose absolute paths
-    src_path="$D_DPL_DIR/$relative_path"
-    dest_path="$D_DPL_ASSETS_DIR/$relative_path"
+  # Iterate over $dpl_asset_patterns entries
+  for path_pattern in "${dpl_asset_patterns[@]}"; do
 
-    # Check if source is readable
-    if [ -r "$src_path" ]; then
+    # Iterate over find results on that pattern
+    while IFS= read -r -d $'\0' src_path; do
 
-      # Check if destination path exists
-      if ! [ -e "$dest_path" ]; then
+      # Compose absolute paths
+      relative_path="${src_path#"$D_DPL_DIR/"}"
+      dest_path="$D_DPL_ASSETS_DIR/$relative_path"
 
-        # Compose destination’s parent path
-        dest_parent_path="$( dirname -- "$dest_path" )"
+      # Check if source is readable
+      if [ -r "$src_path" ]; then
 
-        # Ensure target directory is available
-        mkdir -p -- "$dest_parent_path" &>/dev/null || {
-          dprint_failure -l "Failed to create directory: $dest_parent_path"
-          all_assets_copied=false
-          continue
-        }
+        # Check if destination path exists
+        if ! [ -e "$dest_path" ]; then
 
-        # Copy initial version to assets directory
-        cp -Rn -- "$src_path" "$dest_path" &>/dev/null || {
-          dprint_failure -l "Failed to copy: $src_path" -n "to: $dest_path"
-          all_assets_copied=false
-          continue
-        }
+          # Compose destination’s parent path
+          dest_parent_path="$( dirname -- "$dest_path" )"
 
-        dpl_assets+=( "$dest_path" )
+          # Ensure target directory is available
+          mkdir -p -- "$dest_parent_path" &>/dev/null || {
+            dprint_failure -l "Failed to create directory: $dest_parent_path"
+            all_assets_copied=false
+            continue
+          }
+
+          # Copy initial version to assets directory
+          cp -Rn -- "$src_path" "$dest_path" &>/dev/null || {
+            dprint_failure -l "Failed to copy: $src_path" -n "to: $dest_path"
+            all_assets_copied=false
+            continue
+          }
+
+        fi
+
+        # Destination is in place: push onto global containers
+        D_DPL_ASSETS_REL+=( "$relative_path" )
+        D_DPL_ASSETS+=( "$dest_path" )
+
+      else
+
+        # Report error
+        dprint_failure -l "Unreadable deployment asset: $src_path"
+        all_assets_readable=false
+
+        # Nevertheless if destination path exists (might be pre-copied)
+        if ! [ -e "$dest_path" ]; then all_assets_copied=false; fi
 
       fi
 
-    else
-
-      # Report error
-      dprint_failure -l "Unreadable deployment asset: $src_path"
-      all_assets_readable=false
-
-      # Nevertheless if destination path exists (might be pre-copied)
-      if ! [ -e "$dest_path" ]; then all_assets_copied=false; fi
-
-    fi
+    done < <( find -L "$D_DPL_DIR" -path "$D_DPL_DIR/$path_pattern" -print0 )
 
   done
-
-  # Populate global variables
-  D_DPL_ASSETS_REL=( "${dpl_assets_rel[@]}" )
-  D_DPL_ASSETS=( "${dpl_assets[@]}" )
 
   # Return appropriate status
   $all_assets_copied && return 0 || return 1

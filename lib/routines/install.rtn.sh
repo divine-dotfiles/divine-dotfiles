@@ -385,7 +385,7 @@ __install_dpls()
 
     fi
 
-    # Set up environment immediately before sourcing
+    # Set up environment, source deployment file, process assets
     if $proceeding; then
 
       # Expose variables to deployment
@@ -396,19 +396,14 @@ __install_dpls()
       D_DPL_ASSETS_DIR="$D_ASSETS_DIR/$D_NAME"
       D_DPL_BACKUPS_DIR="$D_BACKUPS_DIR/$D_NAME"
 
-      # Ensure all assets are copied
-      __process_manifest_of_current_dpl || proceeding=false
-
-    fi
-
-    # Source deployment file
-    if $proceeding; then
-
       # Print debug message
       dprint_debug "Sourcing: $divinedpl_filepath"
 
       # Hold your breath…
       source "$divinedpl_filepath"
+
+      # Ensure all assets are copied
+      __process_manifest_of_current_dpl || proceeding=false
 
     fi
 
