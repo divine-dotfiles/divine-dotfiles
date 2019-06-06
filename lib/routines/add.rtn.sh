@@ -28,11 +28,11 @@
 __perform_add()
 {
   # Announce beginning
-  if [ "$D_BLANKET_ANSWER" = false ]; then
-    dprint_plaque -pcw "$WHITE" "$D_PLAQUE_WIDTH" \
+  if [ "$D_OPT_ANSWER" = false ]; then
+    dprint_plaque -pcw "$WHITE" "$D_CONST_PLAQUE_WIDTH" \
       -- '‘Adding’ deployments'
   else
-    dprint_plaque -pcw "$GREEN" "$D_PLAQUE_WIDTH" \
+    dprint_plaque -pcw "$GREEN" "$D_CONST_PLAQUE_WIDTH" \
       -- 'Adding deployments'
   fi
 
@@ -41,7 +41,7 @@ __perform_add()
   NO_GITHUB=false
 
   # Unless just linking: check if git is available and offer to install it
-  if ! $D_ADD_LINK; then
+  if ! $D_OPT_ADD_LINK; then
 
     # Check if git is available (possibly install it)
     if ! __adding__check_or_install git; then
@@ -82,7 +82,7 @@ __perform_add()
   local added_anything=false errors_encountered=false
 
   # Iterate over script arguments
-  for dpl_arg in "${D_ARGS[@]}"; do
+  for dpl_arg in "${D_REQ_ARGS[@]}"; do
 
     # Set default status
     arg_success=true
@@ -91,11 +91,11 @@ __perform_add()
     printf >&2 '\n'
 
     # Announce start
-    dprint_ode "${D_PRINTC_OPTS_NRM[@]}" -c "$YELLOW" -- \
+    dprint_ode "${D_ODE_NORMAL[@]}" -c "$YELLOW" -- \
       '>>>' 'Processing' ':' "$dpl_arg"
 
     # Process each argument sequentially until the first hit
-    if $D_ADD_LINK; then
+    if $D_OPT_ADD_LINK; then
       __adding__attempt_local_dir "$dpl_arg" \
         || __adding__attempt_local_file "$dpl_arg" \
         || arg_success=false
@@ -110,11 +110,11 @@ __perform_add()
     # Report and set status
     if $arg_success; then
       added_anything=true
-      dprint_ode "${D_PRINTC_OPTS_NRM[@]}" -c "$GREEN" -- \
+      dprint_ode "${D_ODE_NORMAL[@]}" -c "$GREEN" -- \
         'vvv' 'Success' ':' "$dpl_arg"
     else
       errors_encountered=true
-      dprint_ode "${D_PRINTC_OPTS_NRM[@]}" -c "$RED" -- \
+      dprint_ode "${D_ODE_NORMAL[@]}" -c "$RED" -- \
         'xxx' 'Failed' ':' "$dpl_arg"
     fi
 
@@ -122,27 +122,27 @@ __perform_add()
 
   # Announce routine completion
   printf >&2 '\n'
-  if [ "$D_BLANKET_ANSWER" = false ]; then
-    dprint_plaque -pcw "$WHITE" "$D_PLAQUE_WIDTH" \
+  if [ "$D_OPT_ANSWER" = false ]; then
+    dprint_plaque -pcw "$WHITE" "$D_CONST_PLAQUE_WIDTH" \
       -- 'Finished ‘adding’ deployments'
     return 3
   elif $added_anything; then
     if $errors_encountered; then
-      dprint_plaque -pcw "$YELLOW" "$D_PLAQUE_WIDTH" \
+      dprint_plaque -pcw "$YELLOW" "$D_CONST_PLAQUE_WIDTH" \
         -- 'Successfully added some deployments'
       return 1
     else
-      dprint_plaque -pcw "$GREEN" "$D_PLAQUE_WIDTH" \
+      dprint_plaque -pcw "$GREEN" "$D_CONST_PLAQUE_WIDTH" \
         -- 'Successfully added all deployments'
       return 0
     fi
   else
     if $errors_encountered; then
-      dprint_plaque -pcw "$RED" "$D_PLAQUE_WIDTH" \
+      dprint_plaque -pcw "$RED" "$D_CONST_PLAQUE_WIDTH" \
         -- 'Failed to add deployments'
       return 2
     else
-      dprint_plaque -pcw "$WHITE" "$D_PLAQUE_WIDTH" \
+      dprint_plaque -pcw "$WHITE" "$D_CONST_PLAQUE_WIDTH" \
         -- 'Nothing to do'
       return 3
     fi
@@ -189,16 +189,16 @@ __adding__attempt_github_repo()
 
   # Construct permanent destination
   local perm_dest
-  case $D_ADD_MODE in
+  case $D_OPT_ADD_MODE in
     normal)
       if $is_builtin; then
-        perm_dest="$D_DEPLOYMENTS_DIR/repos/divine/$repo_arg"
+        perm_dest="$D_FMWK_DIR_DPLS/repos/divine/$repo_arg"
       else
-        perm_dest="$D_DEPLOYMENTS_DIR/repos/github/$repo_arg"
+        perm_dest="$D_FMWK_DIR_DPLS/repos/github/$repo_arg"
       fi
       ;;
-    flat) perm_dest="$D_DEPLOYMENTS_DIR/$( basename -- "$repo_arg" )";;
-    root) perm_dest="$D_DEPLOYMENTS_DIR";;
+    flat) perm_dest="$D_FMWK_DIR_DPLS/$( basename -- "$repo_arg" )";;
+    root) perm_dest="$D_FMWK_DIR_DPLS";;
     *)    return 1;;
   esac
 
@@ -210,7 +210,7 @@ __adding__attempt_github_repo()
       # Both git and remote repo are available
 
       # Prompt user about the addition
-      dprompt_key --bare --answer "$D_BLANKET_ANSWER" --prompt 'Clone it?' -- \
+      dprompt_key --bare --answer "$D_OPT_ANSWER" --prompt 'Clone it?' -- \
         "Detected ${BOLD}Github repository${NORMAL} at:" \
         -i "https://github.com/${user_repo}" || return 1
 
@@ -244,11 +244,11 @@ __adding__attempt_github_repo()
   else
 
     # Not cloning repository, tinker with destination paths again
-    if [ "$D_ADD_MODE" = normal ]; then
+    if [ "$D_OPT_ADD_MODE" = normal ]; then
       if $is_builtin; then
-        perm_dest="$D_DEPLOYMENTS_DIR/imported/divine/$repo_arg"
+        perm_dest="$D_FMWK_DIR_DPLS/imported/divine/$repo_arg"
       else
-        perm_dest="$D_DEPLOYMENTS_DIR/imported/github/$repo_arg"
+        perm_dest="$D_FMWK_DIR_DPLS/imported/github/$repo_arg"
       fi
     fi
 
@@ -259,7 +259,7 @@ __adding__attempt_github_repo()
       # Both curl and remote repo are available
 
       # Prompt user about the addition
-      dprompt_key --bare --answer "$D_BLANKET_ANSWER" --prompt 'Download it?' \
+      dprompt_key --bare --answer "$D_OPT_ANSWER" --prompt 'Download it?' \
         -- "Detected ${BOLD}Github repository${NORMAL} (tarball) at:" \
         -i "https://github.com/${user_repo}" || return 1
 
@@ -290,7 +290,7 @@ __adding__attempt_github_repo()
       # Both wget and remote repo are available
 
       # Prompt user about the addition
-      dprompt_key --bare --answer "$D_BLANKET_ANSWER" --prompt 'Download it?' \
+      dprompt_key --bare --answer "$D_OPT_ANSWER" --prompt 'Download it?' \
         -- "Detected ${BOLD}Github repository${NORMAL} (tarball) at:" \
         -i "https://github.com/${user_repo}" || return 1
 
@@ -416,13 +416,13 @@ __adding__attempt_local_repo()
 
   # Construct permanent destination
   local perm_dest
-  case $D_ADD_MODE in
+  case $D_OPT_ADD_MODE in
     normal)
-      perm_dest="$D_DEPLOYMENTS_DIR/repos/local/$( basename \
+      perm_dest="$D_FMWK_DIR_DPLS/repos/local/$( basename \
         -- "$repo_path" )"
       ;;
-    flat) perm_dest="$D_DEPLOYMENTS_DIR/$( basename -- "$repo_path" )";;
-    root) perm_dest="$D_DEPLOYMENTS_DIR";;
+    flat) perm_dest="$D_FMWK_DIR_DPLS/$( basename -- "$repo_path" )";;
+    root) perm_dest="$D_FMWK_DIR_DPLS";;
     *)    return 1;;
   esac
 
@@ -432,7 +432,7 @@ __adding__attempt_local_repo()
     # Both git and local repo are available
 
     # Prompt user about the addition
-    dprompt_key --bare --answer "$D_BLANKET_ANSWER" --prompt 'Clone it?' -- \
+    dprompt_key --bare --answer "$D_OPT_ANSWER" --prompt 'Clone it?' -- \
       "Detected ${BOLD}local git repository${NORMAL} at:" -i "$repo_path" \
         || return 1
 
@@ -523,18 +523,18 @@ __adding__attempt_local_dir()
 
   # Construct permanent destination
   local perm_dest
-  case $D_ADD_MODE in
+  case $D_OPT_ADD_MODE in
     normal)
-      perm_dest="$D_DEPLOYMENTS_DIR/imported/$( basename -- "$dir_path" )"
+      perm_dest="$D_FMWK_DIR_DPLS/imported/$( basename -- "$dir_path" )"
       ;;
-    flat) perm_dest="$D_DEPLOYMENTS_DIR/$( basename -- "$dir_path" )";;
-    root) perm_dest="$D_DEPLOYMENTS_DIR";;
+    flat) perm_dest="$D_FMWK_DIR_DPLS/$( basename -- "$dir_path" )";;
+    root) perm_dest="$D_FMWK_DIR_DPLS";;
     *)    return 1;;
   esac
 
   # Prompt user about the addition
-  local prompt; $D_ADD_LINK && prompt='Link it?' || prompt='Copy it?'
-  dprompt_key --bare --answer "$D_BLANKET_ANSWER" --prompt "$prompt" -- \
+  local prompt; $D_OPT_ADD_LINK && prompt='Link it?' || prompt='Copy it?'
+  dprompt_key --bare --answer "$D_OPT_ANSWER" --prompt "$prompt" -- \
     "Detected ${BOLD}local directory${NORMAL} at:" -i "$dir_path" \
       || return 1
 
@@ -543,7 +543,7 @@ __adding__attempt_local_dir()
     || return 1
 
   # Finally, link/copy directory to intended location
-  if $D_ADD_LINK; then
+  if $D_OPT_ADD_LINK; then
     dln -- "$dir_path" "$perm_dest" || {
       # Announce failure to link
       dprint_debug 'Failed to link deployments from local directory at:' \
@@ -590,8 +590,8 @@ __adding__attempt_local_file()
 
   # Check if argument conforms to deployment naming
   local dpl_file_name="$( basename -- "$dpl_file_arg" )"
-  [[ $dpl_file_name == *$D_DPL_SH_SUFFIX \
-    || $dpl_file_name == $D_DIVINEFILE_NAME ]] || return 1
+  [[ $dpl_file_name == *$D_SUFFIX_DPL_SH \
+    || $dpl_file_name == $D_CONST_NAME_DIVINEFILE ]] || return 1
   
   # Announce start
   dprint_debug 'Interpreting as local deployment file'
@@ -615,18 +615,18 @@ __adding__attempt_local_file()
 
   # Construct permanent destination
   local perm_dest
-  case $D_ADD_MODE in
+  case $D_OPT_ADD_MODE in
     normal)
-      perm_dest="$D_DEPLOYMENTS_DIR/imported/standalone/$dpl_file_name"
+      perm_dest="$D_FMWK_DIR_DPLS/imported/standalone/$dpl_file_name"
       ;;
-    flat) perm_dest="$D_DEPLOYMENTS_DIR/standalone/$dpl_file_name";;
-    root) perm_dest="$D_DEPLOYMENTS_DIR/$dpl_file_name";;
+    flat) perm_dest="$D_FMWK_DIR_DPLS/standalone/$dpl_file_name";;
+    root) perm_dest="$D_FMWK_DIR_DPLS/$dpl_file_name";;
     *)    return 1;;
   esac
 
   # Prompt user about the addition
-  local prompt; $D_ADD_LINK && prompt='Link it?' || prompt='Copy it?'
-  dprompt_key --bare --answer "$D_BLANKET_ANSWER" --prompt "$prompt" -- \
+  local prompt; $D_OPT_ADD_LINK && prompt='Link it?' || prompt='Copy it?'
+  dprompt_key --bare --answer "$D_OPT_ANSWER" --prompt "$prompt" -- \
     "Detected ${BOLD}local deployment file${NORMAL} at:" \
     -i "$dpl_file_path" \
     -n 'Warning: standalone deployments are added without accompanying files' \
@@ -648,7 +648,7 @@ __adding__attempt_local_file()
     || { rm -rf -- "$temp_dest"; return 1; }
 
   # Finally, link/copy deployment file to intended location
-  if $D_ADD_LINK; then
+  if $D_OPT_ADD_LINK; then
     dln -- "$dpl_file_path" "$perm_dest" || {
       # Announce failure to link
       dprint_debug 'Failed to link local deployment file at:' \
@@ -698,7 +698,7 @@ __adding__check_for_deployments()
     }
 
   done < <( find -L "$dir_path" -mindepth 1 -maxdepth 10 \
-    -name "*$D_DPL_SH_SUFFIX" -print0 )
+    -name "*$D_SUFFIX_DPL_SH" -print0 )
 
   # No deployment files: announce and return
   dprint_debug 'Failed to detect any deployment files in:' -i "$src_path"
@@ -752,7 +752,7 @@ __adding__run_checks_and_prompts()
     [ -L "$clobber_path" ] && clobber_type="symlinked $clobber_type"
 
     # Compose pre-defined answer
-    local answer="$D_BLANKET_ANSWER"
+    local answer="$D_OPT_ANSWER"
 
     # Compose prompt description
     local prompt_desc=()
@@ -769,7 +769,7 @@ __adding__run_checks_and_prompts()
     fi
 
     # Further still for deployments directory
-    if [ "$clobber_path" = "$D_DEPLOYMENTS_DIR" ]; then
+    if [ "$clobber_path" = "$D_FMWK_DIR_DPLS" ]; then
 
       if [ -L "$clobber_path" ]; then
         prompt_desc+=( \
@@ -782,7 +782,7 @@ __adding__run_checks_and_prompts()
       fi
 
       # If clobbering deployments directory, blanket answer is not enough
-      [ "$D_BLANKET_ANSWER" = true ] && answer=
+      [ "$D_OPT_ANSWER" = true ] && answer=
 
     fi
 
@@ -867,7 +867,7 @@ __adding__check_or_install()
   else
 
     # Prompt user for whether to install utility
-    if dprompt_key --bare --answer "$D_BLANKET_ANSWER" \
+    if dprompt_key --bare --answer "$D_OPT_ANSWER" \
       "Package manager $OS_PKGMGR is available" \
       --prompt "Install $util_name using $OS_PKGMGR?"
     then

@@ -29,11 +29,11 @@
 __perform_check()
 {
   # Announce beginning
-  if [ "$D_BLANKET_ANSWER" = false ]; then
-    dprint_plaque -pcw "$WHITE" "$D_PLAQUE_WIDTH" \
+  if [ "$D_OPT_ANSWER" = false ]; then
+    dprint_plaque -pcw "$WHITE" "$D_CONST_PLAQUE_WIDTH" \
       -- '‘Checking’ Divine intervention'
   else
-    dprint_plaque -pcw "$GREEN" "$D_PLAQUE_WIDTH" \
+    dprint_plaque -pcw "$GREEN" "$D_CONST_PLAQUE_WIDTH" \
       -- 'Checking Divine intervention'
   fi
 
@@ -41,7 +41,7 @@ __perform_check()
   local priority
 
   # Iterate over taken priorities
-  for priority in "${!D_TASK_QUEUE[@]}"; do
+  for priority in "${!D_QUEUE_TASKS[@]}"; do
 
     # Install packages if asked to
     __check_pkgs "$priority"
@@ -53,11 +53,11 @@ __perform_check()
 
   # Announce completion
   printf '\n'
-  if [ "$D_BLANKET_ANSWER" = false ]; then
-    dprint_plaque -pcw "$WHITE" "$D_PLAQUE_WIDTH" \
+  if [ "$D_OPT_ANSWER" = false ]; then
+    dprint_plaque -pcw "$WHITE" "$D_CONST_PLAQUE_WIDTH" \
       -- 'Successfully ‘checked’ Divine intervention'
   else
-    dprint_plaque -pcw "$GREEN" "$D_PLAQUE_WIDTH" \
+    dprint_plaque -pcw "$GREEN" "$D_CONST_PLAQUE_WIDTH" \
       -- 'Successfully checked Divine intervention'
   fi
   return 0
@@ -66,7 +66,8 @@ __perform_check()
 #> __check_pkgs PRIORITY_LEVEL
 #
 ## For the given priority level, check if packages are installed, one by one, 
-#. using their names, which have been previously assembled in $D_PKG_QUEUE array
+#. using their names, which have been previously assembled in $D_QUEUE_PKGS 
+#. array
 #
 ## Requires:
 #.  * Divine Bash utils: dOS (dps.utl.sh)
@@ -83,7 +84,7 @@ __perform_check()
 __check_pkgs()
 {
   # Check whether packages are asked for
-  $D_PKGS || return 1
+  $D_REQ_PACKAGES || return 1
 
   # Check whether package manager has been detected
   [ -n "$OS_PKGMGR" ] || return 1
@@ -99,11 +100,11 @@ __check_pkgs()
   local task_desc task_name proceeding
   local pkg_str chunks=() pkgname mode
 
-  # Split package names on $D_DELIM
-  pkg_str="${D_PKG_QUEUE[$priority]}"
+  # Split package names on $D_CONST_DELIMITER
+  pkg_str="${D_QUEUE_PKGS[$priority]}"
   while [[ $pkg_str ]]; do
-    chunks+=( "${pkg_str%%"$D_DELIM"*}" )
-    pkg_str="${pkg_str#*"$D_DELIM"}"
+    chunks+=( "${pkg_str%%"$D_CONST_DELIMITER"*}" )
+    pkg_str="${pkg_str#*"$D_CONST_DELIMITER"}"
   done
 
   # Iterate over package names
@@ -122,14 +123,14 @@ __check_pkgs()
 
     # Prefix priority
     task_desc="$( printf \
-      "(%${D_MAX_PRIORITY_LEN}d) %s\n" \
+      "(%${D_REQ_MAX_PRIORITY_LEN}d) %s\n" \
       "$priority" "$task_desc" )"
 
     # Local flag for whether to proceed
     proceeding=true
 
     # Don’t proceed if ‘-n’ option is given
-    [ "$D_BLANKET_ANSWER" = false ] && proceeding=false
+    [ "$D_OPT_ANSWER" = false ] && proceeding=false
 
     # Print newline to visually separate tasks
     printf '\n'
@@ -140,20 +141,20 @@ __check_pkgs()
         # Check if record of installation exists in root stash
         if dstash --root --skip-checks has "pkg_$( dmd5 -s "$pkgname" )"; then
           # Installed by this framework
-          dprint_ode "${D_PRINTC_OPTS_NM[@]}" -c "$GREEN" -- \
+          dprint_ode "${D_ODE_NAME[@]}" -c "$GREEN" -- \
             'vvv' 'Installed' ':' "$task_desc" "$task_name"
         else
           # Installed by user or OS
           task_name="$task_name (installed by user or OS)"
-          dprint_ode "${D_PRINTC_OPTS_NM[@]}" -c "$MAGENTA" -- \
+          dprint_ode "${D_ODE_NAME[@]}" -c "$MAGENTA" -- \
             '~~~' 'Installed' ':' "$task_desc" "$task_name"
         fi
       else
-        dprint_ode "${D_PRINTC_OPTS_NM[@]}" -c "$RED" -- \
+        dprint_ode "${D_ODE_NAME[@]}" -c "$RED" -- \
           'xxx' 'Not installed' ':' "$task_desc" "$task_name"
       fi
     else
-      dprint_ode "${D_PRINTC_OPTS_NM[@]}" -c "$WHITE" -- \
+      dprint_ode "${D_ODE_NAME[@]}" -c "$WHITE" -- \
         '---' 'Skipped' ':' "$task_desc" "$task_name"
     fi
 
@@ -166,7 +167,7 @@ __check_pkgs()
 #
 ## For the given priority level, checks whether deployments are installed, one 
 #. by one, using their *.dpl.sh files, paths to which have been previously 
-#. assembled in $D_DPL_QUEUE array
+#. assembled in $D_QUEUE_DPLS array
 #
 ## Requires:
 #.  * Divine Bash utils: dOS (dps.utl.sh)
@@ -195,11 +196,11 @@ __check_dpls()
   local name desc warning mode
   local aa_mode dpl_status
 
-  # Split *.dpl.sh filepaths on $D_DELIM
-  dpl_str="${D_DPL_QUEUE[$priority]}"
+  # Split *.dpl.sh filepaths on $D_CONST_DELIMITER
+  dpl_str="${D_QUEUE_DPLS[$priority]}"
   while [[ $dpl_str ]]; do
-    chunks+=( "${dpl_str%%"$D_DELIM"*}" )
-    dpl_str="${dpl_str#*"$D_DELIM"}"
+    chunks+=( "${dpl_str%%"$D_CONST_DELIMITER"*}" )
+    dpl_str="${dpl_str#*"$D_CONST_DELIMITER"}"
   done
 
   # Iterate over *.dpl.sh filepaths
@@ -220,7 +221,7 @@ __check_dpls()
     unset -f dremove
 
     # Extract name assignment from *.dpl.sh file (first one wins)
-    read -r name < <( sed -n "s/$D_DPL_NAME_REGEX/\1/p" \
+    read -r name < <( sed -n "s/$D_REGEX_DPL_NAME/\1/p" \
       <"$divinedpl_filepath" )
     # Process name
     # Trim name, removing quotes if any
@@ -231,31 +232,31 @@ __check_dpls()
     [ -n "$name" ] || {
       # Fall back to name precefing *.dpl.sh suffix
       name="$( basename -- "$divinedpl_filepath" )"
-      name=${name%$D_DPL_SH_SUFFIX}
+      name=${name%$D_SUFFIX_DPL_SH}
     }
 
     # Extract description assignment from *.dpl.sh file (first one wins)
-    read -r desc < <( sed -n "s/$D_DPL_DESC_REGEX/\1/p" \
+    read -r desc < <( sed -n "s/$D_REGEX_DPL_DESC/\1/p" \
       <"$divinedpl_filepath" )
     # Process description
     # Trim description, removing quotes if any
     desc="$( dtrim -Q -- "$desc" )"
 
     # Extract warning assignment from *.dpl.sh file (first one wins)
-    read -r warning < <( sed -n "s/$D_DPL_WARNING_REGEX/\1/p" \
+    read -r warning < <( sed -n "s/$D_REGEX_DPL_WARNING/\1/p" \
       <"$divinedpl_filepath" )
     # Process warning
     # Trim warning, removing quotes if any
     warning="$( dtrim -Q -- "$warning" )"
 
     # Extract mode assignment from *.dpl.sh file (first one wins)
-    read -r mode < <( sed -n "s/$D_DPL_FLAGS_REGEX/\1/p" \
+    read -r mode < <( sed -n "s/$D_REGEX_DPL_FLAGS/\1/p" \
       <"$divinedpl_filepath" )
     # Process mode
     # Trim mode, removing quotes if any
     mode="$( dtrim -Q -- "$mode" )"
 
-    # Process $D_FLAGS
+    # Process $D_DPL_FLAGS
     aa_mode=false
     [[ $mode = *a* ]] && aa_mode=true
     [[ $mode = *c* ]] && aa_mode=true
@@ -266,42 +267,42 @@ __check_dpls()
 
     # Prefix priority
     task_desc="$( printf \
-      "(%${D_MAX_PRIORITY_LEN}d) %s\n" \
+      "(%${D_REQ_MAX_PRIORITY_LEN}d) %s\n" \
       "$priority" "$task_desc" )"
 
     # Local flag for whether to proceed
     proceeding=true
 
     # Don’t proceed if ‘-n’ option is given
-    [ "$D_BLANKET_ANSWER" = false ] && proceeding=false
+    [ "$D_OPT_ANSWER" = false ] && proceeding=false
 
     # Print newline to visually separate tasks
     printf '\n'
 
     ## Unless given a ‘-y’ option (or unless aa_mode is enabled), prompt for 
     #. user’s approval
-    if $proceeding && [ "$aa_mode" = true -o "$D_BLANKET_ANSWER" != true ]
+    if $proceeding && [ "$aa_mode" = true -o "$D_OPT_ANSWER" != true ]
     then
 
       # Print message about the upcoming checking
-      dprint_ode "${D_PRINTC_OPTS_NM[@]}" -c "$YELLOW" -- \
+      dprint_ode "${D_ODE_NAME[@]}" -c "$YELLOW" -- \
         '>>>' 'Checking' ':' "$task_desc" "$task_name" \
         && intro_printed=true
       # In verbose mode, print location of script to be sourced
       dprint_debug "Location: $divinedpl_filepath"
       # If description is available, show it
-      [ -n "$desc" ] && dprint_ode "${D_PRINTC_OPTS_DSC[@]}" -- \
+      [ -n "$desc" ] && dprint_ode "${D_ODE_DESC[@]}" -- \
         '' 'Description' ':' "$desc"
       # If warning is relevant, show it
       [ -n "$warning" -a "$aa_mode" = true ] \
-        && dprint_ode "${D_PRINTC_OPTS_WRN[@]}" -c "$RED" -- \
+        && dprint_ode "${D_ODE_WARN[@]}" -c "$RED" -- \
           '' 'Warning' ':' "$warning"
 
       # Prompt slightly differs depending on whether ‘always ask’ is enabled
       if $aa_mode; then
-        dprint_ode "${D_PRINTC_OPTS_DNG[@]}" -c "$RED" -- '!!!' 'Danger' ': '
+        dprint_ode "${D_ODE_DANGER[@]}" -c "$RED" -- '!!!' 'Danger' ': '
       else
-        dprint_ode "${D_PRINTC_OPTS_PMT[@]}" -- '' 'Confirm' ': '
+        dprint_ode "${D_ODE_PROMPT[@]}" -- '' 'Confirm' ': '
       fi
 
       # Prompt user
@@ -316,12 +317,12 @@ __check_dpls()
     if $proceeding; then
 
       # Expose variables to deployment
-      D_NAME="$name"
-      D_DPL_FILE="$divinedpl_filepath"
-      D_DPL_MANIFEST="${divinedpl_filepath%$D_DPL_SH_SUFFIX}$D_ASSETS_SUFFIX"
+      D_DPL_NAME="$name"
+      D_DPL_SH_PATH="$divinedpl_filepath"
+      D_DPL_MNF_PATH="${divinedpl_filepath%$D_SUFFIX_DPL_SH}$D_SUFFIX_DPL_MNF"
       D_DPL_DIR="$( dirname -- "$divinedpl_filepath" )"
-      D_DPL_ASSETS_DIR="$D_ASSETS_DIR/$D_NAME"
-      D_DPL_BACKUPS_DIR="$D_BACKUPS_DIR/$D_NAME"
+      D_DPL_ASSETS_DIR="$D_FMWK_DIR_ASSETS/$D_DPL_NAME"
+      D_DPL_BACKUPS_DIR="$D_FMWK_DIR_BACKUPS/$D_DPL_NAME"
 
       # Print debug message
       dprint_debug "Sourcing: $divinedpl_filepath"
@@ -349,36 +350,36 @@ __check_dpls()
         1)
           if [ "$D_USER_OR_OS" = true ]; then
             task_name="$task_name (installed by user or OS)"
-            dprint_ode "${D_PRINTC_OPTS_NM[@]}" -c "$MAGENTA" -- \
+            dprint_ode "${D_ODE_NAME[@]}" -c "$MAGENTA" -- \
               '~~~' 'Installed' ':' "$task_desc" "$task_name"
           else
-            dprint_ode "${D_PRINTC_OPTS_NM[@]}" -c "$GREEN" -- \
+            dprint_ode "${D_ODE_NAME[@]}" -c "$GREEN" -- \
               'vvv' 'Installed' ':' "$task_desc" "$task_name"
           fi
           ;;
         2)
-          dprint_ode "${D_PRINTC_OPTS_NM[@]}" -c "$RED" -- \
+          dprint_ode "${D_ODE_NAME[@]}" -c "$RED" -- \
             'xxx' 'Not installed' ':' "$task_desc" "$task_name"
           ;;
         3)
-          dprint_ode "${D_PRINTC_OPTS_NM[@]}" -c "$MAGENTA" -- \
+          dprint_ode "${D_ODE_NAME[@]}" -c "$MAGENTA" -- \
             '~~~' 'Irrelevant' ':' "$task_desc" "$task_name"
           ;;
         4)
           if [ "$D_USER_OR_OS" = true ]; then
             task_name="$task_name (partly installed by user or OS)"
           fi
-          dprint_ode "${D_PRINTC_OPTS_NM[@]}" -c "$YELLOW" -- \
+          dprint_ode "${D_ODE_NAME[@]}" -c "$YELLOW" -- \
             'vx-' 'Partly installed' ':' "$task_desc" "$task_name"
           ;;
         *)
-          dprint_ode "${D_PRINTC_OPTS_NM[@]}" -c "$BLUE" -- \
+          dprint_ode "${D_ODE_NAME[@]}" -c "$BLUE" -- \
             '???' 'Unknown' ':' "$task_desc" "$task_name"
           ;;
       esac
 
     else
-      dprint_ode "${D_PRINTC_OPTS_NM[@]}" -c "$WHITE" -- \
+      dprint_ode "${D_ODE_NAME[@]}" -c "$WHITE" -- \
         '---' 'Skipped' ':' "$task_desc" "$task_name"
     fi
 

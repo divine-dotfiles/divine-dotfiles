@@ -59,9 +59,9 @@ dstash()
     __dstash_pre_flight_checks $root || return 2
   else
     # Without checks, just populate necessary paths
-    local stash_dirpath="$D_BACKUPS_DIR"
-    [ "$root" = -r ] || stash_dirpath+="/$D_NAME"
-    D_STASH_FILEPATH="$stash_dirpath/$D_STASH_FILENAME"
+    local stash_dirpath="$D_FMWK_DIR_BACKUPS"
+    [ "$root" = -r ] || stash_dirpath+="/$D_DPL_NAME"
+    D_STASH_FILEPATH="$stash_dirpath/$D_CONST_NAME_STASHFILE"
     D_STASH_MD5_FILEPATH="$D_STASH_FILEPATH.md5"
   fi
 
@@ -318,24 +318,24 @@ __dstash_pre_flight_checks()
     root=true
   }
 
-  # Check that $D_BACKUPS_DIR is populated
-  [ -n "$D_BACKUPS_DIR" ] || {
+  # Check that $D_FMWK_DIR_BACKUPS is populated
+  [ -n "$D_FMWK_DIR_BACKUPS" ] || {
     dprint_debug "$( basename -- "${BASH_SOURCE[0]}" ):" \
-      'Stashing accessed without $D_BACKUPS_DIR populated'
+      'Stashing accessed without $D_FMWK_DIR_BACKUPS populated'
     return 1
   }
 
-  # Check that $D_STASH_FILENAME is populated
-  [ -n "$D_STASH_FILENAME" ] || {
+  # Check that $D_CONST_NAME_STASHFILE is populated
+  [ -n "$D_CONST_NAME_STASHFILE" ] || {
     dprint_debug "$( basename -- "${BASH_SOURCE[0]}" ):" \
-      'Stashing accessed without $D_STASH_FILENAME populated'
+      'Stashing accessed without $D_CONST_NAME_STASHFILE populated'
     return 1
   }
 
-  # Non-root: check if within deployment by ensuring $D_NAME is populated
-  [ "$root" = false -a -z "$D_NAME" ] && {
+  # Non-root: check if within deployment by ensuring $D_DPL_NAME is populated
+  [ "$root" = false -a -z "$D_DPL_NAME" ] && {
     dprint_debug "$( basename -- "${BASH_SOURCE[0]}" ):" \
-      'Stashing accessed without $D_NAME populated'
+      'Stashing accessed without $D_DPL_NAME populated'
     return 1
   }
 
@@ -372,8 +372,8 @@ __dstash_pre_flight_checks()
   }
 
   # Establish directory path for stash
-  local stash_dirpath="$D_BACKUPS_DIR"
-  [ "$root" = false ] && stash_dirpath+="/$D_NAME"
+  local stash_dirpath="$D_FMWK_DIR_BACKUPS"
+  [ "$root" = false ] && stash_dirpath+="/$D_DPL_NAME"
 
   # Ensure directory for this deployment exists
   mkdir -p -- "$stash_dirpath" || {
@@ -383,7 +383,7 @@ __dstash_pre_flight_checks()
   }
 
   # Compose path to stash file and its checksum file
-  local stash_filepath="$stash_dirpath/$D_STASH_FILENAME"
+  local stash_filepath="$stash_dirpath/$D_CONST_NAME_STASHFILE"
   local stash_md5_filepath="$stash_filepath.md5"
 
   # Ensure both stash files are not a directory
@@ -528,7 +528,7 @@ __dstash_check_md5()
   fi
 
   # Prompt user and return appropriately
-  if dprompt_key --color "$RED" --answer "$D_BLANKET_ANSWER" \
+  if dprompt_key --color "$RED" --answer "$D_OPT_ANSWER" \
     --prompt "$prompt_question" -- "${prompt_desc[@]}"
   then
     dprint_debug 'Working with unverified stash'

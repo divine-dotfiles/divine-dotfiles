@@ -15,22 +15,23 @@
 ## For reference, see lib/templates/adapters/family.adp.sh
 #
 
-# Implement overriding mechanism for $D_TARGETS and $D_TARGET_DIR
+# Implement overriding mechanism for $D_DPL_TARGET_PATHS and $D_DPL_TARGET_DIR
 __override_d_targets_for_family()
 {
-  # Check if $D_TARGETS_BSD contains at least one string
-  if [ ${#D_TARGETS_BSD[@]} -gt 1 -o -n "$D_TARGETS_BSD" ]; then
+  # Check if $D_DPL_TARGET_PATHS_BSD contains at least one string
+  if [ ${#D_DPL_TARGET_PATHS_BSD[@]} -gt 1 \
+    -o -n "$D_DPL_TARGET_PATHS_BSD" ]; then
 
-    # $D_TARGETS_BSD is set: use it instead
-    D_TARGETS=( "${D_TARGETS_BSD[@]}" )
+    # $D_DPL_TARGET_PATHS_BSD is set: use it instead
+    D_DPL_TARGET_PATHS=( "${D_DPL_TARGET_PATHS_BSD[@]}" )
     
   fi
 
-  # Check if $D_TARGET_DIR_BSD is not empty
-  if [ -n "$D_TARGET_DIR_BSD" ]; then
+  # Check if $D_DPL_TARGET_DIR_BSD is not empty
+  if [ -n "$D_DPL_TARGET_DIR_BSD" ]; then
 
-    # $D_TARGET_DIR_BSD is set: use it instead
-    D_TARGET_DIR="$D_TARGET_DIR_BSD"
+    # $D_DPL_TARGET_DIR_BSD is set: use it instead
+    D_DPL_TARGET_DIR="$D_DPL_TARGET_DIR_BSD"
     
   fi
 }

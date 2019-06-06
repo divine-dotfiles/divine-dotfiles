@@ -37,22 +37,23 @@ if HOMEBREW_NO_AUTO_UPDATE=1 brew --version &>/dev/null; then
 
 fi
 
-# Implement overriding mechanism for $D_TARGETS and $D_TARGET_DIR
+# Implement overriding mechanism for $D_DPL_TARGET_PATHS and $D_DPL_TARGET_DIR
 __override_d_targets_for_distro()
 {
-  # Check if $D_TARGETS_MACOS contains at least one string
-  if [ ${#D_TARGETS_MACOS[@]} -gt 1 -o -n "$D_TARGETS_MACOS" ]; then
+  # Check if $D_DPL_TARGET_PATHS_MACOS contains at least one string
+  if [ ${#D_DPL_TARGET_PATHS_MACOS[@]} -gt 1 \
+    -o -n "$D_DPL_TARGET_PATHS_MACOS" ]; then
 
-    # $D_TARGETS_MACOS is set: use it instead
-    D_TARGETS=( "${D_TARGETS_MACOS[@]}" )
+    # $D_DPL_TARGET_PATHS_MACOS is set: use it instead
+    D_DPL_TARGET_PATHS=( "${D_DPL_TARGET_PATHS_MACOS[@]}" )
     
   fi
 
-  # Check if $D_TARGET_DIR_MACOS is not empty
-  if [ -n "$D_TARGET_DIR_MACOS" ]; then
+  # Check if $D_DPL_TARGET_DIR_MACOS is not empty
+  if [ -n "$D_DPL_TARGET_DIR_MACOS" ]; then
 
-    # $D_TARGET_DIR_MACOS is set: use it instead
-    D_TARGET_DIR=( "${D_TARGET_DIR_MACOS[@]}" )
+    # $D_DPL_TARGET_DIR_MACOS is set: use it instead
+    D_DPL_TARGET_DIR=( "${D_DPL_TARGET_DIR_MACOS[@]}" )
     
   fi
 }
@@ -74,8 +75,8 @@ __offer_to_install_brew()
 
   # Prompt user
   local yes=false
-  if [ "$D_BLANKET_ANSWER" = true ]; then yes=true
-  elif [ "$D_BLANKET_ANSWER" = false ]; then yes=false
+  if [ "$D_OPT_ANSWER" = true ]; then yes=true
+  elif [ "$D_OPT_ANSWER" = false ]; then yes=false
   else
 
     # Print question

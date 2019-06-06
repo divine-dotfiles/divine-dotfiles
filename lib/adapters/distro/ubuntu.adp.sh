@@ -36,22 +36,23 @@ if apt-get --version &>/dev/null; then
 
 fi
 
-# Implement overriding mechanism for $D_TARGETS and $D_TARGET_DIR
+# Implement overriding mechanism for $D_DPL_TARGET_PATHS and $D_DPL_TARGET_DIR
 __override_d_targets_for_distro()
 {
-  # Check if $D_TARGETS_UBUNTU contains at least one string
-  if [ ${#D_TARGETS_UBUNTU[@]} -gt 1 -o -n "$D_TARGETS_UBUNTU" ]; then
+  # Check if $D_DPL_TARGET_PATHS_UBUNTU contains at least one string
+  if [ ${#D_DPL_TARGET_PATHS_UBUNTU[@]} -gt 1 \
+    -o -n "$D_DPL_TARGET_PATHS_UBUNTU" ]; then
 
-    # $D_TARGETS_UBUNTU is set: use it instead
-    D_TARGETS=( "${D_TARGETS_UBUNTU[@]}" )
+    # $D_DPL_TARGET_PATHS_UBUNTU is set: use it instead
+    D_DPL_TARGET_PATHS=( "${D_DPL_TARGET_PATHS_UBUNTU[@]}" )
     
   fi
 
-  # Check if $D_TARGET_DIR_UBUNTU is not empty
-  if [ -n "$D_TARGET_DIR_UBUNTU" ]; then
+  # Check if $D_DPL_TARGET_DIR_UBUNTU is not empty
+  if [ -n "$D_DPL_TARGET_DIR_UBUNTU" ]; then
 
-    # $D_TARGET_DIR_UBUNTU is set: use it instead
-    D_TARGET_DIR=( "${D_TARGET_DIR_UBUNTU[@]}" )
+    # $D_DPL_TARGET_DIR_UBUNTU is set: use it instead
+    D_DPL_TARGET_DIR=( "${D_DPL_TARGET_DIR_UBUNTU[@]}" )
     
   fi
 }

@@ -18,30 +18,23 @@
 
 #>  dln_check
 #
-## Checks whether every original file in $D_TARGETS[_*] (single path or array 
-#. thereof) is currently replaced with a symlink pointing to corresponding 
-#. replacement in $D_DPL_ASSETS.
+## Checks whether every original file in $D_DPL_TARGET_PATHS[_*] (single path 
+#. or array thereof) is currently replaced with a symlink pointing to 
+#. corresponding replacement in $D_DPL_ASSET_PATHS.
 #
 ## Returns appropriate status based on overall state of installation, prints 
 #. warnings when warranted. If in doubt, prefers to prompt user on how to 
 #. proceed.
 #
 ## Requires:
-#.  $D_DPL_ASSETS       - (array ok) Locations of replacement files
-#.  $D_TARGETS          - (array ok) Locations of files to be replaced
-#.  $D_TARGETS_LINUX    - (array ok) Overrides $D_TARGETS on Linux
-#.  $D_TARGETS_WSL      - (array ok) Overrides $D_TARGETS on WSL
-#.  $D_TARGETS_BSD      - (array ok) Overrides $D_TARGETS on BSD
-#.  $D_TARGETS_MACOS    - (array ok) Overrides $D_TARGETS on macOS
-#.  $D_TARGETS_UBUNTU   - (array ok) Overrides $D_TARGETS on Ubuntu
-#.  $D_TARGETS_DEBIAN   - (array ok) Overrides $D_TARGETS on Debian
-#.  $D_TARGETS_FEDORA   - (array ok) Overrides $D_TARGETS on Fedora
+#.  $D_DPL_ASSET_PATHS          - (array ok) Locations of replacement files
+#.  $D_DPL_TARGET_PATHS         - (array ok) Locations of files to be replaced
 #.  `dos.utl.sh`
 #.  `dln.utl.sh`
 #
 ## Provides into the global scope:
-#.  $D_TARGETS    - (array) $D_TARGETS, possibly overridden for current OS
-#.  $D_BACKUPS    - (array) Paths to where to put backups of replaced files
+#.  $D_DPL_TARGET_PATHS    - (array) Version after overrides for current OS
+#.  $D_DPL_BACKUP_PATHS    - (array) Paths to where to put backups
 #
 ## Returns:
 #.  Values supported by dcheck function in *.dpl.sh
@@ -58,34 +51,34 @@ dln_check()
   # Override targets for current OS distro, if that variable is non-empty
   __override_d_targets_for_distro
 
-  # If $D_TARGETS is thus far empty, try another trick
-  if ! [ ${#D_TARGETS[@]} -gt 1 -o -n "$D_TARGETS" ] \
-    && [ -n "$D_TARGET_DIR" ] \
-    && [ ${#D_DPL_ASSETS_REL[@]} -gt 0 ]
+  # If $D_DPL_TARGET_PATHS is thus far empty, try another trick
+  if ! [ ${#D_DPL_TARGET_PATHS[@]} -gt 1 -o -n "$D_DPL_TARGET_PATHS" ] \
+    && [ -n "$D_DPL_TARGET_DIR" ] \
+    && [ ${#D_DPL_ASSET_RELPATHS[@]} -gt 0 ]
   then
 
-    # Initialize $D_TARGETS to empty array
-    D_TARGETS=()
+    # Initialize $D_DPL_TARGET_PATHS to empty array
+    D_DPL_TARGET_PATHS=()
 
     # Storage variable
     local relative_path
 
     # Iterate over relative asset paths
-    for relative_path in "${D_DPL_ASSETS_REL[@]}"; do
+    for relative_path in "${D_DPL_ASSET_RELPATHS[@]}"; do
 
       # Construct path to target and add it
-      D_TARGETS+=( "$D_TARGET_DIR/$relative_path" )
+      D_DPL_TARGET_PATHS+=( "$D_DPL_TARGET_DIR/$relative_path" )
 
     done
 
   fi
 
-  # Check if $D_TARGETS has still ended up empty
-  [ ${#D_TARGETS[@]} -gt 1 -o -n "$D_TARGETS" ] || {
+  # Check if $D_DPL_TARGET_PATHS has still ended up empty
+  [ ${#D_DPL_TARGET_PATHS[@]} -gt 1 -o -n "$D_DPL_TARGET_PATHS" ] || {
     local detected_os="$OS_FAMILY"
     [ -n "$OS_DISTRO" ] && detected_os+=" ($OS_DISTRO)"
     dprint_debug \
-      'List of paths to replace ($D_TARGETS) is empty for detected system:' \
+      'Empty list of paths to replace ($D_DPL_TARGET_PATHS) for detected OS:' \
       "$detected_os"
     return 3
   }
@@ -96,20 +89,21 @@ dln_check()
   local i
   local orig_path replacement_path orig_md5 backup_path
   local new_d_orig=() new_d_replacements=()
-  D_BACKUPS=()
+  D_DPL_BACKUP_PATHS=()
 
   # Retrieve number of paths to work with (largest size wins)
-  [ ${#D_TARGETS[@]} -ge ${#D_DPL_ASSETS[@]} ] \
-    && D_NUM_OF_PAIRS=${#D_TARGETS[@]} || D_NUM_OF_PAIRS=${#D_DPL_ASSETS[@]}
+  [ ${#D_DPL_TARGET_PATHS[@]} -ge ${#D_DPL_ASSET_PATHS[@]} ] \
+    && D_NUM_OF_PAIRS=${#D_DPL_TARGET_PATHS[@]} \
+    || D_NUM_OF_PAIRS=${#D_DPL_ASSET_PATHS[@]}
 
   # Iterate over pairs of paths
   for (( i=0; i<$D_NUM_OF_PAIRS; i++ )); do
 
     # Retrieve/construct three paths
-    orig_path="${D_TARGETS[$i]}"
-    replacement_path="${D_DPL_ASSETS[$i]}"
+    orig_path="${D_DPL_TARGET_PATHS[$i]}"
+    replacement_path="${D_DPL_ASSET_PATHS[$i]}"
     orig_md5="$( dmd5 -s "$orig_path" 2>/dev/null )"
-    backup_path="$D_BACKUPS_DIR/$D_NAME/$orig_md5"
+    backup_path="$D_FMWK_DIR_BACKUPS/$D_DPL_NAME/$orig_md5"
 
     # Check if original and replacement paths are both not empty
     [ -n "$orig_path" -a -n "$replacement_path" ] || {
@@ -135,7 +129,7 @@ dln_check()
     good_pairs_exist=true
     new_d_orig+=( "$orig_path" )
     new_d_replacements+=( "$replacement_path" )
-    D_BACKUPS+=( "$backup_path" )
+    D_DPL_BACKUP_PATHS+=( "$backup_path" )
 
     # Check if replacement is installed
     if dln -?q -- "$replacement_path" "$orig_path" "$backup_path"; then
@@ -176,8 +170,8 @@ dln_check()
   # Check if there were any good pairs
   if $good_pairs_exist; then
     # Overwrite global arrays with filtered paths
-    D_TARGETS=( "${new_d_orig[@]}" )
-    D_DPL_ASSETS=( "${new_d_replacements[@]}" )
+    D_DPL_TARGET_PATHS=( "${new_d_orig[@]}" )
+    D_DPL_ASSET_PATHS=( "${new_d_replacements[@]}" )
   else
     # If there were no good pairs, print loud warning and signal irrelevant
     dprint_skip -l 'Not a single workable replacement provided'
@@ -192,14 +186,14 @@ dln_check()
 
 #>  dln_install
 #
-## Moves each target file in $D_TARGETS to its respective backup location in 
-#. $D_BACKUPS; replaces each with a symlink pointing to respective replacement 
-#. in $D_DPL_ASSETS.
+## Moves each target file in $D_DPL_TARGET_PATHS to its respective backup 
+#. location in $D_DPL_BACKUP_PATHS; replaces each with a symlink pointing to 
+#. respective replacement in $D_DPL_ASSET_PATHS.
 #
 ## Requires:
-#.  $D_DPL_ASSETS     - (array ok) Locations to symlink to
-#.  $D_TARGETS        - (array ok) Paths to back up and replace on current OS
-#.  $D_BACKUPS        - (array ok) Backup locations
+#.  $D_DPL_ASSET_PATHS    - (array ok) Locations to symlink to
+#.  $D_DPL_TARGET_PATHS   - (array ok) Paths to back up and replace
+#.  $D_DPL_BACKUP_PATHS   - (array ok) Backup locations
 #.  `dln.utl.sh`
 #
 ## Returns:
@@ -220,13 +214,14 @@ dln_install()
   for (( i=0; i<$D_NUM_OF_PAIRS; i++ )); do
 
     # Retrieve/construct three paths
-    orig_path="${D_TARGETS[$i]}"
-    replacement_path="${D_DPL_ASSETS[$i]}"
-    backup_path="${D_BACKUPS[$i]}"
+    orig_path="${D_DPL_TARGET_PATHS[$i]}"
+    replacement_path="${D_DPL_ASSET_PATHS[$i]}"
+    backup_path="${D_DPL_BACKUP_PATHS[$i]}"
     orig_md5="$( basename -- "$backup_path" )"
 
     # Check if desired set-up is in place (but only if not forcing)
-    if ! $D_FORCE && dln -?q -- "$replacement_path" "$orig_path" "$backup_path"
+    if ! $D_OPT_FORCE \
+      && dln -?q -- "$replacement_path" "$orig_path" "$backup_path"
     then
 
       # Replacement is already installed, with backup
@@ -236,7 +231,7 @@ dln_install()
     else
 
       # Check if it’s just backup that is missing (but only if not forcing)
-      if ! $D_FORCE && dln -?q -- "$replacement_path" "$orig_path"; then
+      if ! $D_OPT_FORCE && dln -?q -- "$replacement_path" "$orig_path"; then
 
         # Replacement is already installed, without backup
         all_newly_installed=false
@@ -293,14 +288,14 @@ dln_install()
 
 #>  dln_restore
 #
-## Removes each path in $D_TARGETS that is a symlink pointing to respective 
-#. replacement in $D_DPL_ASSETS. Where possible, restores original file from 
-#. corresponding backup location in $D_BACKUPS.
+## Removes each path in $D_DPL_TARGET_PATHS that is a symlink pointing to 
+#. respective replacement in $D_DPL_ASSET_PATHS. Where possible, restores 
+#. original file from corresponding backup location in $D_DPL_BACKUP_PATHS.
 #
 ## Requires:
-#.  $D_DPL_ASSETS     - (array ok) Locations currently symlinked to
-#.  $D_TARGETS        - (array ok) Paths to be restored on current OS
-#.  $D_BACKUPS        - (array ok) Backup locations
+#.  $D_DPL_ASSET_PATHS    - (array ok) Locations currently symlinked to
+#.  $D_DPL_TARGET_PATHS   - (array ok) Paths to be restored
+#.  $D_DPL_BACKUP_PATHS   - (array ok) Backup locations
 #.  `dln.utl.sh`
 #
 ## Returns:
@@ -321,9 +316,9 @@ dln_restore()
   for (( i=$D_NUM_OF_PAIRS-1; i>=0; i-- )); do
 
     # Retrieve/construct three paths
-    orig_path="${D_TARGETS[$i]}"
-    replacement_path="${D_DPL_ASSETS[$i]}"
-    backup_path="${D_BACKUPS[$i]}"
+    orig_path="${D_DPL_TARGET_PATHS[$i]}"
+    replacement_path="${D_DPL_ASSET_PATHS[$i]}"
+    backup_path="${D_DPL_BACKUP_PATHS[$i]}"
     orig_md5="$( basename -- "$backup_path" )"
 
     # Check if replacement appears to be installed
@@ -387,7 +382,7 @@ dln_restore()
         # No installation detected
 
         # Check if forcing
-        if $D_FORCE; then
+        if $D_OPT_FORCE; then
 
           # Remove as best as possible
 

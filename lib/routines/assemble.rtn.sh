@@ -23,7 +23,7 @@
 #
 __assemble_main()
 {
-  case $D_ROUTINE in
+  case $D_REQ_ROUTINE in
     install)    __assemble_tasks_for_main_routines;;
     remove)     __assemble_tasks_for_main_routines;;
     refresh)    __assemble_tasks_for_main_routines;;
@@ -35,20 +35,20 @@ __assemble_main()
 #>  __assemble_tasks_for_main_routines
 #
 ## Collects tasks to be performed from these files:
-#.  * Divinefile    - Located in directories under $D_DEPLOYMENTS_DIR
-#.  * *.dpl.sh      - Located in directories under $D_DEPLOYMENTS_DIR
+#.  * Divinefile    - Located in directories under $D_FMWK_DIR_DPLS
+#.  * *.dpl.sh      - Located in directories under $D_FMWK_DIR_DPLS
 #
 ## Provides into the global scope:
-#.  $D_TASK_QUEUE       - Array: each taken priority contains a string 'taken'
-#.  $D_PKG_QUEUE        - Array: each priority taken by at least one package 
-#.                        contains delimited list of package names
-#.  $D_DPL_QUEUE        - Array: each priority taken by at least one deployment 
-#.                        contains delimited list of absolute canonical paths 
-#.                        to *.dpl.sh files
-#.  $D_DPL_NAMES        - Array of taken deployment names
-#.  $D_DPL_NAME_PATHS   - Array: index of each taken deployment name from 
-#.                        $D_DPL_NAMES contains delimited list of paths to 
-#.                        deployment files
+#.  $D_QUEUE_TASKS    - (array) each taken priority contains a string 'taken'
+#.  $D_QUEUE_PKGS     - (array) Each priority taken by at least one package 
+#.                      contains delimited list of package names
+#.  $D_QUEUE_DPLS     - (array) Each priority taken by at least one deployment 
+#.                      contains delimited list of absolute canonical paths to 
+#.                      *.dpl.sh files
+#.  $D_DPL_NAMES      - (array) Taken deployment names
+#.  $D_DPL_NAME_PATHS - (array) Index of each taken deployment name from 
+#.                      $D_DPL_NAMES contains delimited list of paths to 
+#.                      deployment files
 #
 ## Returns:
 #.  0 - Arrays assembled successfully
@@ -60,9 +60,9 @@ __assemble_main()
 __assemble_tasks_for_main_routines()
 {
   # Global storage arrays
-  D_TASK_QUEUE=()
-  D_PKG_QUEUE=()
-  D_DPL_QUEUE=()
+  D_QUEUE_TASKS=()
+  D_QUEUE_PKGS=()
+  D_QUEUE_DPLS=()
   D_DPL_NAMES=()
   D_DPL_NAME_PATHS=()
 
@@ -70,21 +70,21 @@ __assemble_tasks_for_main_routines()
   __parse_divinefile
 
   # If there are packages to process, ensure root stash is ready
-  if [ ${#D_PKG_QUEUE[@]} -gt 0 ] && ! dstash --root ready; then
+  if [ ${#D_QUEUE_PKGS[@]} -gt 0 ] && ! dstash --root ready; then
     # No root stash — no packages
     printf >&2 '%s: %s: %s\n' \
       "$( basename -- "${BASH_SOURCE[0]}" )" \
       'Divinefile will not be processed' \
       'Root stash is not available'
     # Erase all collected packages
-    D_PKG_QUEUE=()
+    D_QUEUE_PKGS=()
   fi
 
   # Locate *.dpl.sh files and check return status
   __locate_dpl_sh_files; case $? in 2) exit 1;; *) :;; esac
 
   # Check if any tasks were found
-  if [ ${#D_TASK_QUEUE[@]} -eq 0 ]; then
+  if [ ${#D_QUEUE_TASKS[@]} -eq 0 ]; then
     printf >&2 '%s: %s: %s\n' \
       "$( basename -- "${BASH_SOURCE[0]}" )" \
       'Nothing to do' \
@@ -103,51 +103,51 @@ __assemble_tasks_for_main_routines()
 
   # Detect largest priority and number of digits in it
   local largest_priority
-  for largest_priority in "${!D_TASK_QUEUE[@]}"; do :; done
-  D_MAX_PRIORITY_LEN=${#largest_priority}
-  readonly D_MAX_PRIORITY_LEN
+  for largest_priority in "${!D_QUEUE_TASKS[@]}"; do :; done
+  D_REQ_MAX_PRIORITY_LEN=${#largest_priority}
+  readonly D_REQ_MAX_PRIORITY_LEN
 
   # dprint_ode options for name announcements during package updating
-  local priority_field_width=$(( D_MAX_PRIORITY_LEN + 3 + 19 ))
+  local priority_field_width=$(( D_REQ_MAX_PRIORITY_LEN + 3 + 19 ))
   local name_field_width=$(( 57 - 1 - priority_field_width ))
-  D_PRINTC_OPTS_UP=( \
-    "${D_PRINTC_OPTS_NRM[@]}" \
+  D_ODE_UPDATE=( \
+    "${D_ODE_NORMAL[@]}" \
     --width-4 "$priority_field_width" \
     --width-5 "$name_field_width" \
     --effects-5 b \
-  ); readonly D_PRINTC_OPTS_UP
+  ); readonly D_ODE_UPDATE
 
   # dprint_ode options for package/deployment name announcements
-  priority_field_width=$(( D_MAX_PRIORITY_LEN + 3 + 10 ))
+  priority_field_width=$(( D_REQ_MAX_PRIORITY_LEN + 3 + 10 ))
   name_field_width=$(( 57 - 1 - priority_field_width ))
-  D_PRINTC_OPTS_NM=( \
-    "${D_PRINTC_OPTS_NRM[@]}" \
+  D_ODE_NAME=( \
+    "${D_ODE_NORMAL[@]}" \
     --width-4 "$priority_field_width" \
     --width-5 "$name_field_width" \
     --effects-5 b \
-  ); readonly D_PRINTC_OPTS_NM
+  ); readonly D_ODE_NAME
 
   # Mark assembled containers read-only
-  readonly D_TASK_QUEUE
-  readonly D_PKG_QUEUE
-  readonly D_DPL_QUEUE
+  readonly D_QUEUE_TASKS
+  readonly D_QUEUE_PKGS
+  readonly D_QUEUE_DPLS
 
   return 0
 }
 
 #>  __survey_deployments_before_adding [--no-main]
 #
-## Collects deployments in $D_DEPLOYMENTS_DIR and validates them, then does the 
+## Collects deployments in $D_FMWK_DIR_DPLS and validates them, then does the 
 #. same in $D_ADD_DIR, and finally analyzes possibility of merging the two set 
 #. of deployments.
 #
 ## Provides into the global scope:
-#.  $D_DPL_NAMES        - Array of taken deployment names
-#.  $D_DPL_NAME_PATHS   - Array: index of each taken deployment name from 
+#.  $D_DPL_NAMES        - (array) Taken deployment names
+#.  $D_DPL_NAME_PATHS   - (array) Index of each taken deployment name from 
 #.                        $D_DPL_NAMES contains delimited list of paths to 
 #.                        deployment files
-#.  $D_ADD_NAMES        - Array of deployment names to be added
-#.  $D_ADD_NAME_PATHS   - Array: index of each deployment name from 
+#.  $D_ADD_NAMES        - (array) Deployment names to be added
+#.  $D_ADD_NAME_PATHS   - (array) Index of each deployment name from 
 #.                        $D_ADD_NAMES contains delimited list of paths to 
 #.                        deployment files
 #
@@ -193,16 +193,16 @@ __survey_deployments_before_adding()
 #. deployments directory
 #
 ## Requires:
-#.  $D_PKGS                 - From __parse_arguments
-#.  $D_DEFAULT_PRIORITY     - From __populate_globals
+#.  $D_REQ_PACKAGES         - From __parse_arguments
+#.  $D_CONST_DEF_PRIORITY   - From __populate_globals
 #.  $OS_PKGMGR              - From Divine Bash utils: dOS (dos.utl.sh)
 #
 ## Modifies in the global scope:
-#.  $D_TASK_QUEUE   - Associative array with each taken priority paired with an 
-#.                    empty string
-#.  $D_PKG_QUEUE    - Associative array with each priority taken by at least 
-#.                    one package paired with a semicolon-separated list of 
-#.                    package names
+#.  $D_QUEUE_TASKS    - Associative array with each taken priority paired with 
+#.                      an empty string
+#.  $D_QUEUE_PKGS     - Associative array with each priority taken by at least 
+#.                      one package paired with a semicolon-separated list of 
+#.                      package names
 #
 ## Returns:
 #.  0 - Arrays populated successfully
@@ -221,7 +221,7 @@ __parse_divinefile()
 
   ## Check if list of deployments has been provided, and whether Divinefile is 
   #. in it
-  $D_PKGS || return 3
+  $D_REQ_PACKAGES || return 3
 
   # Store current case sensitivity setting, then turn it off
   local restore_nocasematch="$( shopt -p nocasematch )"
@@ -270,7 +270,7 @@ __parse_divinefile()
       fi
 
       # Detect whether priority is acceptable
-      [[ $priority =~ ^[0-9]+$ ]] || priority="$D_DEFAULT_PRIORITY"
+      [[ $priority =~ ^[0-9]+$ ]] || priority="$D_CONST_DEF_PRIORITY"
 
       # Detect whether mode is acceptable
       [[ $mode =~ ^[airc]+$ ]] || mode=
@@ -313,10 +313,10 @@ __parse_divinefile()
         [ -n "$chunk" ] || continue
 
         # Name containing delimiter — continue
-        [[ $chunk == *"$D_DELIM"* ]] && continue
+        [[ $chunk == *"$D_CONST_DELIMITER"* ]] && continue
 
         # Add current priority to task queue
-        D_TASK_QUEUE["$priority"]='taken'
+        D_QUEUE_TASKS["$priority"]='taken'
 
         # If some mode is enabled, prefix it
         if [ -n "$mode" ]; then
@@ -327,7 +327,7 @@ __parse_divinefile()
         fi
 
         # Add current package to packages queue
-        D_PKG_QUEUE["$priority"]+="$chunk$D_DELIM"
+        D_QUEUE_PKGS["$priority"]+="$chunk$D_CONST_DELIMITER"
 
       # Done iterating over package names
       done
@@ -336,8 +336,8 @@ __parse_divinefile()
     done 10<"$divinefile_path"
 
   # Done iterating over Divinefiles in deployments directory
-  done < <( find -L "$D_DEPLOYMENTS_DIR" -mindepth 1 -maxdepth 14 \
-    -name "$D_DIVINEFILE_NAME" -print0 )
+  done < <( find -L "$D_FMWK_DIR_DPLS" -mindepth 1 -maxdepth 14 \
+    -name "$D_CONST_NAME_DIVINEFILE" -print0 )
 
   # Restore case sensitivity
   eval "$restore_nocasematch"
@@ -347,38 +347,38 @@ __parse_divinefile()
 
 #> __locate_dpl_sh_files [--add-dir]
 #
-## Collects deployments from *.dpl.sh files located under $D_DEPLOYMENTS_DIR, 
-#. or $D_ADD_DIR, if $D_ROUTINE is set to 'add'
+## Collects deployments from *.dpl.sh files located under $D_FMWK_DIR_DPLS, 
+#. or $D_ADD_DIR, if $D_REQ_ROUTINE is set to 'add'
 #
 ## Requires:
-#.  $D_DEPLOYMENTS_DIR      - From __populate_globals
-#.  $D_DPL_SH_SUFFIX        - From __populate_globals
-#.  $D_DPL_NAME_REGEX       - From __populate_globals
-#.  $D_DPL_PRIORITY_REGEX   - From __populate_globals
-#.  $D_DEFAULT_PRIORITY     - From __populate_globals
+#.  $D_FMWK_DIR_DPLS        - From __populate_globals
+#.  $D_SUFFIX_DPL_SH        - From __populate_globals
+#.  $D_REGEX_DPL_NAME       - From __populate_globals
+#.  $D_REGEX_DPL_PRIORITY   - From __populate_globals
+#.  $D_CONST_DEF_PRIORITY   - From __populate_globals
 #
 ## Modifies in the global scope (with normal routines):
-#.  $D_DPL_NAMES        - Array of taken deployment names
-#.  $D_DPL_NAME_PATHS   - Array: index of each taken deployment name from 
+#.  $D_DPL_NAMES        - (array) Taken deployment names
+#.  $D_DPL_NAME_PATHS   - (array) Index of each taken deployment name from 
 #.                        $D_DPL_NAMES contains delimited list of paths to 
 #.                        deployment files
 #
 ## Modifies in the global scope (when 'add' routine):
-#.  $D_ADD_NAMES        - Array of deployment names to be added
-#.  $D_ADD_NAME_PATHS   - Array: index of each deployment name from 
+#.  $D_ADD_NAMES        - (array) Deployment names to be added
+#.  $D_ADD_NAME_PATHS   - (array) Index of each deployment name from 
 #.                        $D_ADD_NAMES contains delimited list of paths to 
 #.                        deployment files
 #
 ## Modifies in the global scope (without --no-task-queue option):
-#.  $D_TASK_QUEUE       - Array: each taken priority contains a string 'taken'
-#.  $D_DPL_QUEUE        - Array: each priority taken by at least one deployment 
+#.  $D_QUEUE_TASKS      - (array) Taken priority contains a string 'taken'
+#.  $D_QUEUE_DPLS       - (array) Priority taken by at least one deployment 
 #.                        contains delimited list of absolute canonical paths 
 #.                        to *.dpl.sh files
 #
 ## Returns:
 #.  0 - Arrays populated successfully
-#.  1 - Failed to access $D_DEPLOYMENTS_DIR or zero deployments found
-#.  2 - Detected deployment file containing $D_DELIM in its path
+#.  1 - Failed to access $D_FMWK_DIR_DPLS or zero deployments found
+#.  2 - Detected deployment file containing $D_CONST_DELIMITER in its path
 #
 ## Prints:
 #.  stdout: *nothing*
@@ -387,7 +387,7 @@ __parse_divinefile()
 __locate_dpl_sh_files()
 {
   # Quickly parse arguments
-  local dpl_dir="$D_DEPLOYMENTS_DIR" using_add_dir=false
+  local dpl_dir="$D_FMWK_DIR_DPLS" using_add_dir=false
   [ "$1" = '--add-dir' ] && { dpl_dir="$D_ADD_DIR"; using_add_dir=true; }
 
   # Check if deployments directory is readable
@@ -410,12 +410,12 @@ __locate_dpl_sh_files()
     # Extract directory containing *.dpl.sh file
     dirpath="$( dirname -- "$divinedpl_filepath" )"
 
-    # If file path contains reserved delimiter $D_DELIM, skip
-    [[ $divinedpl_filepath == *"$D_DELIM"* ]] && {
+    # If file path contains reserved delimiter $D_CONST_DELIMITER, skip
+    [[ $divinedpl_filepath == *"$D_CONST_DELIMITER"* ]] && {
       printf >&2 '%s\n  %s\n\n%s\n' \
-        "Deployment file path containing '$D_DELIM' found at:" \
+        "Deployment file path containing '$D_CONST_DELIMITER' found at:" \
         "$divinedpl_filepath" \
-        "String '$D_DELIM' is reserved internal delimiter"
+        "String '$D_CONST_DELIMITER' is reserved internal delimiter"
       return 2
     }
 
@@ -423,7 +423,7 @@ __locate_dpl_sh_files()
     name= priority=
 
     # Extract name assignment from *.dpl.sh file (first one wins)
-    read -r name < <( sed -n "s/$D_DPL_NAME_REGEX/\1/p" \
+    read -r name < <( sed -n "s/$D_REGEX_DPL_NAME/\1/p" \
       <"$divinedpl_filepath" )
 
     # Process name if it is present
@@ -435,7 +435,7 @@ __locate_dpl_sh_files()
     [ -n "$name" ] || {
       # Fall back to name precefing *.dpl.sh suffix
       name="$( basename -- "$divinedpl_filepath" )"
-      name=${name%$D_DPL_SH_SUFFIX}
+      name=${name%$D_SUFFIX_DPL_SH}
     }
 
     # Turn off case sensitivity for upcoming tests
@@ -455,7 +455,7 @@ __locate_dpl_sh_files()
         name_already_taken=true
 
         # Add path to list of them
-        d_dpl_name_paths[$j]+="$divinedpl_filepath$D_DELIM"
+        d_dpl_name_paths[$j]+="$divinedpl_filepath$D_CONST_DELIMITER"
       
       fi
 
@@ -464,30 +464,30 @@ __locate_dpl_sh_files()
     # If name is new, add it as new
     if ! $name_already_taken; then
       d_dpl_names+=( "$name" )
-      d_dpl_name_paths+=( "$divinedpl_filepath$D_DELIM" )
+      d_dpl_name_paths+=( "$divinedpl_filepath$D_CONST_DELIMITER" )
     fi
 
     # Restore case sensitivity
     eval "$restore_nocasematch"
 
     # Continue on only in normal routines
-    [ "$D_ROUTINE" = add ] && continue
+    [ "$D_REQ_ROUTINE" = add ] && continue
 
     # Plan to queue up this *.dpl.sh
     adding=true
 
     # If filtering, filter
-    if $D_FILTERING; then
+    if $D_REQ_FILTER; then
 
       # Extract flags assignment from *.dpl.sh file (first one wins)
-      read -r flags < <( sed -n "s/$D_DPL_FLAGS_REGEX/\1/p" \
+      read -r flags < <( sed -n "s/$D_REGEX_DPL_FLAGS/\1/p" \
         <"$divinedpl_filepath" )
       # Process flags
       # Trim flags, removing quotes if any
       flags="$( dtrim -Q -- "$flags" )"
 
       # Check for filtering mode
-      if $D_INVERSE_FILTER; then
+      if $D_OPT_INVERSE; then
 
         # Inverse filtering: Whatever is listed in arguments is filtered out
 
@@ -495,7 +495,7 @@ __locate_dpl_sh_files()
         shopt -s nocasematch
 
         # Iterate over arguments
-        for arg in "${D_ARGS[@]}"; do
+        for arg in "${D_REQ_ARGS[@]}"; do
           # Check if argument is empty
           [ -n "$arg" ] || continue
           # If this deployment is specifically rejected, remove it
@@ -503,7 +503,7 @@ __locate_dpl_sh_files()
         done
 
         # Also, iterate over groups
-        for arg in "${D_GROUPS[@]}"; do
+        for arg in "${D_REQ_GROUPS[@]}"; do
           # Check if argument is empty
           [ -n "$arg" ] || continue
           # If this deployment belongs to rejected group, remove it
@@ -524,7 +524,7 @@ __locate_dpl_sh_files()
         shopt -s nocasematch
 
         # Iterate over arguments
-        for arg in "${D_ARGS[@]}"; do
+        for arg in "${D_REQ_ARGS[@]}"; do
           # Check if argument is empty
           [ -n "$arg" ] || continue
           # If this deployment is specifically requested, add it
@@ -532,7 +532,7 @@ __locate_dpl_sh_files()
         done
 
         # Also, iterate over groups
-        for arg in "${D_GROUPS[@]}"; do
+        for arg in "${D_REQ_GROUPS[@]}"; do
           # Check if argument is empty
           [ -n "$arg" ] || continue
           # If this deployment belongs to requested group, add it
@@ -550,7 +550,7 @@ __locate_dpl_sh_files()
     $adding || continue
 
     # Extract priority assignment from *.dpl.sh file (first one wins)
-    read -r priority < <( sed -n "s/$D_DPL_PRIORITY_REGEX/\1/p" \
+    read -r priority < <( sed -n "s/$D_REGEX_DPL_PRIORITY/\1/p" \
       <"$divinedpl_filepath" )
 
     # Process priority if it is present
@@ -559,16 +559,16 @@ __locate_dpl_sh_files()
     # Remove leading zeroes if any
     priority="$( sed 's/^0*//' <<<"$priority" )"
     # Detect whether priority is acceptable
-    [[ $priority =~ ^[0-9]+$ ]] || priority="$D_DEFAULT_PRIORITY"
+    [[ $priority =~ ^[0-9]+$ ]] || priority="$D_CONST_DEF_PRIORITY"
 
     # Mark current priority as taken
-    D_TASK_QUEUE["$priority"]='taken'
+    D_QUEUE_TASKS["$priority"]='taken'
 
     # Queue up current deployment
-    D_DPL_QUEUE["$priority"]+="$divinedpl_filepath$D_DELIM"
+    D_QUEUE_DPLS["$priority"]+="$divinedpl_filepath$D_CONST_DELIMITER"
 
   done < <( find -L "$dpl_dir" -mindepth 1 -maxdepth 14 \
-    -name "*$D_DPL_SH_SUFFIX" -print0 )
+    -name "*$D_SUFFIX_DPL_SH" -print0 )
 
   # Check how many deployments are found (before filtering)
   if [ ${#d_dpl_names[@]} -eq 0 ]; then return 1; fi
@@ -617,8 +617,8 @@ __validate_dpls_in_main_dir()
     # Collect paths to deployment files with this name
     dpl_arr=()
     while [[ $dpl_str ]]; do
-      dpl_arr+=( "${dpl_str%%"$D_DELIM"*}" )
-      dpl_str="${dpl_str#*"$D_DELIM"}"
+      dpl_arr+=( "${dpl_str%%"$D_CONST_DELIMITER"*}" )
+      dpl_str="${dpl_str#*"$D_CONST_DELIMITER"}"
     done
 
     # Validate name
@@ -676,9 +676,9 @@ __validate_dpls_in_add_dir()
     # Collect paths to deployment files with this name
     add_arr=()
     while [[ $add_str ]]; do
-      temp="${add_str%%"$D_DELIM"*}"
+      temp="${add_str%%"$D_CONST_DELIMITER"*}"
       add_arr+=( "${temp#"$D_ADD_DIR/"}" )
-      add_str="${add_str#*"$D_DELIM"}"
+      add_str="${add_str#*"$D_CONST_DELIMITER"}"
     done
 
     # Validate name
@@ -744,9 +744,9 @@ __validate_dpls_before_adding()
     # Collect paths to deployment files with this name
     add_arr=()
     while [[ $add_str ]]; do
-      temp="${add_str%%"$D_DELIM"*}"
+      temp="${add_str%%"$D_CONST_DELIMITER"*}"
       add_arr+=( "${temp#"$D_ADD_DIR/"}" )
-      add_str="${add_str#*"$D_DELIM"}"
+      add_str="${add_str#*"$D_CONST_DELIMITER"}"
     done
 
     # Turn off case sensitivity for upcoming tests
@@ -767,8 +767,8 @@ __validate_dpls_before_adding()
 
       # Collect paths to deployment files with this name
       while [[ $dpl_str ]]; do
-        dpl_arr+=( "${dpl_str%%"$D_DELIM"*}" )
-        dpl_str="${dpl_str#*"$D_DELIM"}"
+        dpl_arr+=( "${dpl_str%%"$D_CONST_DELIMITER"*}" )
+        dpl_str="${dpl_str#*"$D_CONST_DELIMITER"}"
       done
 
       # First match is enough

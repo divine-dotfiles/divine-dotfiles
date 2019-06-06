@@ -25,10 +25,10 @@
 ## In verbose mode: from given chunks and line breaks composes and prints a 
 #. message themed as a debug line. Chunks are separated by single space.
 #
-## In quiet mode ($D_QUIET): does nothing.
+## In quiet mode ($D_OPT_QUIET): does nothing.
 #
 ## Options:
-#.  -l  - (must be first) Ignore global $D_QUIET and always print
+#.  -l  - (must be first) Ignore global $D_OPT_QUIET and always print
 #.  -n  - (must be first or second) Prepend empty line to any other output
 #
 ## Parameters:
@@ -47,7 +47,7 @@
 dprint_debug()
 {
   # Check options
-  [ "$1" = -l ] && shift || { [ "$D_QUIET" = true ] && return 1; }
+  [ "$1" = -l ] && shift || { [ "$D_OPT_QUIET" = true ] && return 1; }
   [ "$1" = -n ] && { printf >&2 '\n'; shift; }
 
   # Save formatting
@@ -67,10 +67,10 @@ dprint_debug()
 #. message themed as an announcement of new stage in a process. Chunks are 
 #. separated by single space.
 #
-## In quiet mode ($D_QUIET): does nothing.
+## In quiet mode ($D_OPT_QUIET): does nothing.
 #
 ## Options:
-#.  -l  - (must be first) Ignore global $D_QUIET and always print
+#.  -l  - (must be first) Ignore global $D_OPT_QUIET and always print
 #.  -n  - (must be first or second) Prepend empty line to any other output
 #
 ## Parameters:
@@ -89,7 +89,7 @@ dprint_debug()
 dprint_start()
 {
   # Check options
-  [ "$1" = -l ] && shift || { [ "$D_QUIET" = true ] && return 1; }
+  [ "$1" = -l ] && shift || { [ "$D_OPT_QUIET" = true ] && return 1; }
   [ "$1" = -n ] && { printf >&2 '\n'; shift; }
 
   # Compose message from arguments and print it all on the go
@@ -105,10 +105,10 @@ dprint_start()
 #. message themed as an announcement of skipped stage in a process. Chunks are 
 #. separated by single space.
 #
-## In quiet mode ($D_QUIET): does nothing.
+## In quiet mode ($D_OPT_QUIET): does nothing.
 #
 ## Options:
-#.  -l  - (must be first) Ignore global $D_QUIET and always print
+#.  -l  - (must be first) Ignore global $D_OPT_QUIET and always print
 #.  -n  - (must be first or second) Prepend empty line to any other output
 #
 ## Parameters:
@@ -127,7 +127,7 @@ dprint_start()
 dprint_skip()
 {
   # Check options
-  [ "$1" = -l ] && shift || { [ "$D_QUIET" = true ] && return 1; }
+  [ "$1" = -l ] && shift || { [ "$D_OPT_QUIET" = true ] && return 1; }
   [ "$1" = -n ] && { printf >&2 '\n'; shift; }
 
   # Compose message from arguments and print it all on the go
@@ -143,10 +143,10 @@ dprint_skip()
 #. message themed as an announcement of successfully completed stage in a 
 #. process. Chunks are separated by single space.
 #
-## In quiet mode ($D_QUIET): does nothing.
+## In quiet mode ($D_OPT_QUIET): does nothing.
 #
 ## Options:
-#.  -l  - (must be first) Ignore global $D_QUIET and always print
+#.  -l  - (must be first) Ignore global $D_OPT_QUIET and always print
 #.  -n  - (must be first or second) Prepend empty line to any other output
 #
 ## Parameters:
@@ -165,7 +165,7 @@ dprint_skip()
 dprint_success()
 {
   # Check options
-  [ "$1" = -l ] && shift || { [ "$D_QUIET" = true ] && return 1; }
+  [ "$1" = -l ] && shift || { [ "$D_OPT_QUIET" = true ] && return 1; }
   [ "$1" = -n ] && { printf >&2 '\n'; shift; }
 
   # Compose message from arguments and print it all on the go
@@ -181,10 +181,10 @@ dprint_success()
 #. message themed as an announcement of failed stage in a process. Chunks are 
 #. separated by single space.
 #
-## In quiet mode ($D_QUIET): does nothing.
+## In quiet mode ($D_OPT_QUIET): does nothing.
 #
 ## Options:
-#.  -l  - (must be first) Ignore global $D_QUIET and always print
+#.  -l  - (must be first) Ignore global $D_OPT_QUIET and always print
 #.  -n  - (must be first or second) Prepend empty line to any other output
 #
 ## Parameters:
@@ -203,7 +203,7 @@ dprint_success()
 dprint_failure()
 {
   # Check options
-  [ "$1" = -l ] && shift || { [ "$D_QUIET" = true ] && return 1; }
+  [ "$1" = -l ] && shift || { [ "$D_OPT_QUIET" = true ] && return 1; }
   [ "$1" = -n ] && { printf >&2 '\n'; shift; }
 
   # Compose message from arguments and print it all on the go

@@ -15,22 +15,23 @@
 ## For reference, see lib/templates/adapters/family.adp.sh
 #
 
-# Implement overriding mechanism for $D_TARGETS and $D_TARGET_DIR
+# Implement overriding mechanism for $D_DPL_TARGET_PATHS and $D_DPL_TARGET_DIR
 __override_d_targets_for_family()
 {
-  # Check if $D_TARGETS_CYGWIN contains at least one string
-  if [ ${#D_TARGETS_CYGWIN[@]} -gt 1 -o -n "$D_TARGETS_CYGWIN" ]; then
+  # Check if $D_DPL_TARGET_PATHS_CYGWIN contains at least one string
+  if [ ${#D_DPL_TARGET_PATHS_CYGWIN[@]} -gt 1 \
+    -o -n "$D_DPL_TARGET_PATHS_CYGWIN" ]; then
 
-    # $D_TARGETS_CYGWIN is set: use it instead
-    D_TARGETS=( "${D_TARGETS_CYGWIN[@]}" )
+    # $D_DPL_TARGET_PATHS_CYGWIN is set: use it instead
+    D_DPL_TARGET_PATHS=( "${D_DPL_TARGET_PATHS_CYGWIN[@]}" )
     
   fi
 
-  # Check if $D_TARGET_DIR_CYGWIN is not empty
-  if [ -n "$D_TARGET_DIR_CYGWIN" ]; then
+  # Check if $D_DPL_TARGET_DIR_CYGWIN is not empty
+  if [ -n "$D_DPL_TARGET_DIR_CYGWIN" ]; then
 
-    # $D_TARGET_DIR_CYGWIN is set: use it instead
-    D_TARGET_DIR="$D_TARGET_DIR_CYGWIN"
+    # $D_DPL_TARGET_DIR_CYGWIN is set: use it instead
+    D_DPL_TARGET_DIR="$D_DPL_TARGET_DIR_CYGWIN"
     
   fi
 }

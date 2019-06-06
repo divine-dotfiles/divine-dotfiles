@@ -1,8 +1,8 @@
-D_NAME=
-D_DESC=
-D_PRIORITY=4096
-D_FLAGS=
-D_WARNING=
+D_DPL_NAME=
+D_DPL_DESC=
+D_DPL_PRIORITY=4096
+D_DPL_FLAGS=
+D_DPL_WARNING=
 
 ## Exit codes and their meaning:
 #.  0 - Unknown

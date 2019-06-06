@@ -21,25 +21,29 @@
 #
 ## Expect these global variables to be available to this script during Divine 
 #. intervention:
-#.  $D_DIR      - (read-only) Absolute canonical path to directory containing 
+#.  $D_FMWK_DIR - (read-only) Absolute canonical path to directory containing 
 #.                ‘intervene.sh’ script that is currently being executed
 #.  $D_DPL_DIR  - Absolute canonical path to directory of this deployment, 
 #.                i.e., directory containing this script
-#.  $D_BACKUPS_DIR
+#.  $D_FMWK_DIR_BACKUPS
 #.              - Absolute canonical path to backups directory
-#.  $D_LIB_DIR  - Absolute canonical path to lib directory
-#.  $D_ROUTINE  - (read-only) The routine currently being executed. Either 
+#.  $D_FMWK_DIR_LIB
+#.              - Absolute canonical path to lib directory
+#.  $D_REQ_ROUTINE
+#.              - (read-only) The routine currently being executed. Either 
 #.                ‘install’ or ‘remove’.
-#.  $D_BLANKET_ANSWER
+#.  $D_OPT_ANSWER
 #.              - (read-only) If user has given a blanket answer, this variable 
 #.                will be populated with either ‘y’ or ‘n’, otherwise empty
-#.  $D_QUIET    - (read-only) This variable will contain either ‘true’ or 
+#.  $D_OPT_QUIET
+#.              - (read-only) This variable will contain either ‘true’ or 
 #.                ‘false’ (never empty) based on user’s verbosity setting
-#.  $D_FILTERING
+#.  $D_REQ_FILTER
 #.              - (read-only) This variable will contain either ‘true’ or 
 #.                ‘false’ (never empty) based on whether user has listed 
 #.                specific deployments to run (evidently, this one included)
-#.  $D_PKGS     - (read-only) This variable will contain either ‘true’ or 
+#.  $D_REQ_PACKAGES
+#.              - (read-only) This variable will contain either ‘true’ or 
 #.                ‘false’ (never empty) based on whether packages are processed 
 #.                during this Divine intervention
 #.  $OS_FAMILY  - (read-only) Broad description of the current OS type, e.g.:
@@ -82,7 +86,7 @@
 #. undesired side-effects.
 #
 
-#> $D_NAME
+#> $D_DPL_NAME
 #
 ## Name of this deployment
 #
@@ -93,9 +97,9 @@
 #. interpreter, but is rather extracted using a regular expression. Quotes are 
 #. allowed (they are stripped in processing).
 #
-D_NAME=
+D_DPL_NAME=
 
-#> $D_DESC
+#> $D_DPL_DESC
 #
 ## Description of this deployment, shown before prompting for confirmation
 #
@@ -105,9 +109,9 @@ D_NAME=
 #. interpreter, but is rather extracted using a regular expression. Quotes are 
 #. allowed (they are stripped in processing).
 #
-D_DESC=
+D_DPL_DESC=
 
-#> $D_PRIORITY
+#> $D_DPL_PRIORITY
 #
 ## Priority of this deployment
 #
@@ -121,9 +125,9 @@ D_DESC=
 #. interpreter, but is rather extracted using a regular expression. Quotes are 
 #. allowed (they are stripped in processing).
 #
-D_PRIORITY=4096
+D_DPL_PRIORITY=4096
 
-#> $D_FLAGS
+#> $D_DPL_FLAGS
 #
 ## A flag is a character that causes special treatment of this deployment. This 
 #. variable may contain any number of flags. Repetition is insignificant. 
@@ -143,13 +147,13 @@ D_PRIORITY=4096
 #. interpreter, but is rather extracted using a regular expression. Quotes are 
 #. allowed (they are stripped in processing).
 #
-D_FLAGS=
+D_DPL_FLAGS=
 
-#> $D_WARNING
+#> $D_DPL_WARNING
 #
 ## Warning shown before prompting for confirmation, but only if relevant flag 
-#. in $D_FLAGS is in effect. E.g., if deployment is marked with ‘i’ flag, this 
-#. warning will be shown before every installation.
+#. in $D_DPL_FLAGS is in effect. E.g., if deployment is marked with ‘i’ flag, 
+#. this warning will be shown before every installation.
 #
 ## One line only. Trimmed on both sides. If empty, no warning is shown.
 #
@@ -157,7 +161,7 @@ D_FLAGS=
 #. interpreter, but is rather extracted using a regular expression. Quotes are 
 #. allowed (they are stripped in processing).
 #
-D_WARNING=
+D_DPL_WARNING=
 
 #> dcheck
 #
@@ -189,7 +193,7 @@ D_WARNING=
 #.                      again about whether they are sure they want to proceed. 
 #.                      This additional prompt is not affected by ‘--yes’ 
 #.                      command line option.
-#.  $D_WARNING        - If $D_ASK_AGAIN is set to 'true', this textual warning 
+#.  $D_DPL_WARNING    - If $D_ASK_AGAIN is set to 'true', this textual warning 
 #.                      will be printed. Use this to explain possible 
 #.                      consequences.
 #.  $D_USER_OR_OS     - Set this one to 'true' to signal that all parts of 

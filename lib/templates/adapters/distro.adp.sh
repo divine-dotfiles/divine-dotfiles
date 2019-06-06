@@ -74,19 +74,21 @@ fi
 
 #>  __override_d_targets_for_distro
 #
-## Provides a way for deployments to override $D_TARGETS global variable, which 
-#. is used by helper functions in dln.hlp.sh and cp.hlp.sh. This function is 
-#. called before contents of $D_TARGETS is settled upon.
+## Provides a way for deployments to override $D_DPL_TARGET_PATHS global 
+#. variable, which is used by helper functions in dln.hlp.sh and cp.hlp.sh. 
+#. This function is called before contents of $D_DPL_TARGET_PATHS is settled 
+#. upon.
 #
 __override_d_targets_for_distro()
 {
   # Below is example implementation for Ubuntu distribution
 
-  # Check if $D_TARGETS_UBUNTU contains at least one string
-  if [ ${#D_TARGETS_UBUNTU[@]} -gt 1 -o -n "$D_TARGETS_UBUNTU" ]; then
+  # Check if $D_DPL_TARGET_PATHS_UBUNTU contains at least one string
+  if [ ${#D_DPL_TARGET_PATHS_UBUNTU[@]} -gt 1 \
+    -o -n "$D_DPL_TARGET_PATHS_UBUNTU" ]; then
 
-    # $D_TARGETS_UBUNTU is set: use it instead
-    D_TARGETS=( "${D_TARGETS_UBUNTU[@]}" )
+    # $D_DPL_TARGET_PATHS_UBUNTU is set: use it instead
+    D_DPL_TARGET_PATHS=( "${D_DPL_TARGET_PATHS_UBUNTU[@]}" )
     
   fi
 }

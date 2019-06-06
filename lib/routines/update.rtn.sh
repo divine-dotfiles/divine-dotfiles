@@ -28,11 +28,11 @@
 __updating__main()
 {
   # Announce beginning
-  if [ "$D_BLANKET_ANSWER" = false ]; then
-    dprint_plaque -pcw "$WHITE" "$D_PLAQUE_WIDTH" \
+  if [ "$D_OPT_ANSWER" = false ]; then
+    dprint_plaque -pcw "$WHITE" "$D_CONST_PLAQUE_WIDTH" \
       -- '‘Updating’ Divine.dotfiles framework'
   else
-    dprint_plaque -pcw "$GREEN" "$D_PLAQUE_WIDTH" \
+    dprint_plaque -pcw "$GREEN" "$D_CONST_PLAQUE_WIDTH" \
       -- 'Updating Divine.dotfiles framework'
   fi
 
@@ -62,28 +62,28 @@ __updating__main()
   printf >&2 '\n'
 
   # Report result
-  if [ "$D_BLANKET_ANSWER" = false ]; then
-    dprint_plaque -pcw "$WHITE" "$D_PLAQUE_WIDTH" \
+  if [ "$D_OPT_ANSWER" = false ]; then
+    dprint_plaque -pcw "$WHITE" "$D_CONST_PLAQUE_WIDTH" \
       -- 'Finished ‘updating’ Divine.dotfiles framework'
     return 2
   elif $all_skipped; then
-    dprint_plaque -pcw "$WHITE" "$D_PLAQUE_WIDTH" \
+    dprint_plaque -pcw "$WHITE" "$D_CONST_PLAQUE_WIDTH" \
       -- 'Skipped updating Divine.dotfiles framework'
     return 2
   elif $all_updated; then
-    dprint_plaque -pcw "$GREEN" "$D_PLAQUE_WIDTH" \
+    dprint_plaque -pcw "$GREEN" "$D_CONST_PLAQUE_WIDTH" \
       -- 'Finished updating Divine.dotfiles framework'
     return 0
   elif $all_failed; then
-    dprint_plaque -pcw "$RED" "$D_PLAQUE_WIDTH" \
+    dprint_plaque -pcw "$RED" "$D_CONST_PLAQUE_WIDTH" \
       -- 'Failed to update Divine.dotfiles framework'
     return 1
   elif $some_failed; then
-    dprint_plaque -pcw "$YELLOW" "$D_PLAQUE_WIDTH" \
+    dprint_plaque -pcw "$YELLOW" "$D_CONST_PLAQUE_WIDTH" \
       -- 'Partly updated Divine.dotfiles framework'
     return 1
   else
-    dprint_plaque -pcw "$GREEN" "$D_PLAQUE_WIDTH" \
+    dprint_plaque -pcw "$GREEN" "$D_CONST_PLAQUE_WIDTH" \
       -- 'Finished updating Divine.dotfiles framework'
     return 0
   fi
@@ -107,15 +107,15 @@ __updating__update_fmwk()
   if $UPDATING_FMWK; then
 
     # Print announcement
-    dprint_ode "${D_PRINTC_OPTS_NRM[@]}" -c "$YELLOW" -- \
+    dprint_ode "${D_ODE_NORMAL[@]}" -c "$YELLOW" -- \
       '>>>' 'Updating' ':' 'Divine.dotfiles framework'
 
     # Prompt user
-    if [ "$D_BLANKET_ANSWER" = true ]; then UPDATING_FMWK=true
-    elif [ "$D_BLANKET_ANSWER" = false ]; then UPDATING_FMWK=false
+    if [ "$D_OPT_ANSWER" = true ]; then UPDATING_FMWK=true
+    elif [ "$D_OPT_ANSWER" = false ]; then UPDATING_FMWK=false
     else
       # Prompt
-      dprint_ode "${D_PRINTC_OPTS_PMT[@]}" -- '' 'Confirm' ': '
+      dprint_ode "${D_ODE_PROMPT[@]}" -- '' 'Confirm' ': '
       dprompt_key --bare && UPDATING_FMWK=true || UPDATING_FMWK=false
     fi
 
@@ -124,7 +124,7 @@ __updating__update_fmwk()
   # Check if still updating at this point
   if ! $UPDATING_FMWK; then
     # Announce skiping and return
-    dprint_ode "${D_PRINTC_OPTS_NRM[@]}" -c "$WHITE" -- \
+    dprint_ode "${D_ODE_NORMAL[@]}" -c "$WHITE" -- \
       '---' 'Skipped updating' ':' 'Divine.dotfiles framework'
     return 2
   fi
@@ -135,8 +135,8 @@ __updating__update_fmwk()
   # If github is not available, no updating
   if $NO_GITHUB; then
     dprint_debug 'Unable to update: missing necessary tools'
-  elif ! [ -d "$D_DIR" -a -r "$D_DIR" ]; then
-    dprint_debug "Not a readable directory: $D_DIR"
+  elif ! [ -d "$D_FMWK_DIR" -a -r "$D_FMWK_DIR" ]; then
+    dprint_debug "Not a readable directory: $D_FMWK_DIR"
   else
     # Do update proper, one way or another
     if __updating__update_fmwk_via_git || __updating__update_fmwk_via_tar
@@ -147,11 +147,11 @@ __updating__update_fmwk()
 
   # Report result
   if $updated_successfully; then
-    dprint_ode "${D_PRINTC_OPTS_NRM[@]}" -c "$GREEN" -- \
+    dprint_ode "${D_ODE_NORMAL[@]}" -c "$GREEN" -- \
       'vvv' 'Updated' ':' 'Divine.dotfiles framework'
     return 0
   else
-    dprint_ode "${D_PRINTC_OPTS_NRM[@]}" -c "$RED" -- \
+    dprint_ode "${D_ODE_NORMAL[@]}" -c "$RED" -- \
       'xxx' 'Failed to update' ':' 'Divine.dotfiles framework'
     return 1
   fi
@@ -189,7 +189,7 @@ __updating__update_dpls()
   # Check if proceeding
   if ! $UPDATING_DPLS; then
     # Announce skiping and return
-    dprint_ode "${D_PRINTC_OPTS_NRM[@]}" -c "$WHITE" -- \
+    dprint_ode "${D_ODE_NORMAL[@]}" -c "$WHITE" -- \
       '---' 'Skipped updating' ':' 'Deployment repositories'
     return 3
   fi
@@ -201,23 +201,23 @@ __updating__update_dpls()
     $nl_printed || printf >&2 '\n'
 
     # Print announcement
-    dprint_ode "${D_PRINTC_OPTS_NRM[@]}" -c "$YELLOW" -- \
+    dprint_ode "${D_ODE_NORMAL[@]}" -c "$YELLOW" -- \
       '>>>' 'Updating' ':' "Deployment repo at: $dpl_repo"
     nl_printed=false
 
     # Prompt user
-    if [ "$D_BLANKET_ANSWER" = true ]; then proceeding=true
-    elif [ "$D_BLANKET_ANSWER" = false ]; then proceeding=false
+    if [ "$D_OPT_ANSWER" = true ]; then proceeding=true
+    elif [ "$D_OPT_ANSWER" = false ]; then proceeding=false
     else
       # Prompt
-      dprint_ode "${D_PRINTC_OPTS_PMT[@]}" -- '' 'Confirm' ': '
+      dprint_ode "${D_ODE_PROMPT[@]}" -- '' 'Confirm' ': '
       dprompt_key --bare && proceeding=true || proceeding=false
     fi
 
     # Check if still updating at this point
     if ! $proceeding; then
       # Announce and skip
-      dprint_ode "${D_PRINTC_OPTS_NRM[@]}" -c "$WHITE" -- \
+      dprint_ode "${D_ODE_NORMAL[@]}" -c "$WHITE" -- \
         '---' 'Skipped updating' ':' "Deployment repo at: $dpl_repo"
       all_updated=false
       all_failed=false
@@ -232,7 +232,7 @@ __updating__update_dpls()
     else
       # Do update proper
       if __updating__update_dpl_repo_via_git "$dpl_repo"; then
-        dprint_ode "${D_PRINTC_OPTS_NRM[@]}" -c "$GREEN" -- \
+        dprint_ode "${D_ODE_NORMAL[@]}" -c "$GREEN" -- \
           'vvv' 'Updated' ':' "Deployment repo at: $dpl_repo"
         all_failed=false
         all_skipped=false
@@ -241,7 +241,7 @@ __updating__update_dpls()
     fi
 
     # If gotten here: not updated
-    dprint_ode "${D_PRINTC_OPTS_NRM[@]}" -c "$RED" -- \
+    dprint_ode "${D_ODE_NORMAL[@]}" -c "$RED" -- \
       'xxx' 'Failed to update' ':' "Deployment repo at: $dpl_repo"
     all_updated=false
     all_skipped=false
@@ -273,13 +273,13 @@ __updating__detect_environment()
   NO_GITHUB=false
 
   # Check if there are any arguments provided to the script
-  if [ "$D_BLANKET_ANSWER" = false ]; then
+  if [ "$D_OPT_ANSWER" = false ]; then
 
     # Updating nothing
     UPDATING_FMWK=false
     UPDATING_DPLS=false
 
-  elif [ ${#D_ARGS[@]} -eq 0 ]; then
+  elif [ ${#D_REQ_ARGS[@]} -eq 0 ]; then
     
     # No arguments: update everything
     UPDATING_FMWK=true
@@ -289,7 +289,7 @@ __updating__detect_environment()
 
     # Iterate over arguments to figure out what to update
     local arg
-    for arg in "${D_ARGS[@]}"; do
+    for arg in "${D_REQ_ARGS[@]}"; do
       case $arg in
         a|all)                    UPDATING_FMWK=true
                                   UPDATING_DPLS=true;;
@@ -345,26 +345,26 @@ __updating__update_fmwk_via_git()
     return 1
   }
 
-  # Ensure $D_DIR is a git repo
-  git ls-remote "$D_DIR" -q &>/dev/null || {
-    dprint_debug 'Not a git repository:' -i "$D_DIR"
+  # Ensure $D_FMWK_DIR is a git repo
+  git ls-remote "$D_FMWK_DIR" -q &>/dev/null || {
+    dprint_debug 'Not a git repository:' -i "$D_FMWK_DIR"
     return 1
   }
 
-  # Change into $D_DIR
-  cd -- "$D_DIR" || {
-    dprint_debug "Unable to cd into $D_DIR"
+  # Change into $D_FMWK_DIR
+  cd -- "$D_FMWK_DIR" || {
+    dprint_debug "Unable to cd into $D_FMWK_DIR"
     return 1
   }
 
   # Pull and rebase and check for errors
   if git pull --rebase --stat origin master; then
     dprint_debug 'Successfully pulled from Github repo to:' \
-      -i "$D_DIR"
+      -i "$D_FMWK_DIR"
     return 0
   else
     dprint_debug 'There was an error while pulling from Github repo to:' \
-      -i "$D_DIR"
+      -i "$D_FMWK_DIR"
     return 1
   fi
 }
@@ -381,7 +381,7 @@ __updating__update_fmwk_via_git()
 __updating__update_fmwk_via_tar()
 {
   # Only attempt ‘crude’ update with --force option
-  if ! $D_FORCE; then
+  if ! $D_OPT_FORCE; then
     dprint_debug \
       "'Crude' update (downloading repo) is only available with --force option"
     return 1
@@ -391,10 +391,10 @@ __updating__update_fmwk_via_tar()
   local user_repo='no-simpler/divine-dotfiles'
 
   # Prompt user
-  if ! dprompt_key --bare -p 'Attempt to download?' -a "$D_BLANKET_ANSWER" -- \
+  if ! dprompt_key --bare -p 'Attempt to download?' -a "$D_OPT_ANSWER" -- \
     'It is possible to download a fresh copy of Divine.dotfiles from:' \
     -i "https://github.com/${user_repo}" \
-    -n 'and overwrite files in your framework directory at:' -i "$D_DIR" \
+    -n 'and overwrite files in your framework directory at:' -i "$D_FMWK_DIR" \
     -n 'thus performing a ‘crude’ update'
   then
     dprint_debug 'Refused to perform ‘crude’ update'
@@ -472,10 +472,10 @@ __updating__update_fmwk_via_tar()
   if $temp_ready; then
 
     # Prompt user for possible clobbering, and clobber if required
-    if ! dprompt_key --bare -p 'Overwrite files?' -a "$D_BLANKET_ANSWER" -- \
+    if ! dprompt_key --bare -p 'Overwrite files?' -a "$D_OPT_ANSWER" -- \
       'Fresh copy of Divine.dotfiles has been downloaded to temp dir at:' \
       -i "$TEMP_DEST" \
-      -n 'and is ready to be copied over existing files in:' -i "$D_DIR"
+      -n 'and is ready to be copied over existing files in:' -i "$D_FMWK_DIR"
     then
       # Try to clean up
       rm -rf -- "$TEMP_DEST"
@@ -507,7 +507,7 @@ __updating__update_fmwk_via_tar()
     # All done: announce and return
     dprint_debug \
       'Successfully overwritten all Divine.dotfiles components at:' \
-      -i "$D_DIR"
+      -i "$D_FMWK_DIR"
     return 0
   
   else
@@ -521,8 +521,8 @@ __updating__update_fmwk_via_tar()
 
 #>  __updating__overwrite_fmwk_file FULL_PATH
 #
-## Copies given file to $D_DIR, overwriting existing file there. $TEMP_DEST is 
-#. expected to be a prefix within FULL_PATH.
+## Copies given file to $D_FMWK_DIR, overwriting existing file there. 
+#. $TEMP_DEST is expected to be a prefix within FULL_PATH.
 #
 ## Returns:
 #.  0 - Successfully did the job
@@ -537,7 +537,7 @@ __updating__overwrite_fmwk_file()
   local relative="${from#$TEMP_DEST}"
 
   # Construct 'to' path
-  local to="$D_DIR/$relative"
+  local to="$D_FMWK_DIR/$relative"
 
   # Pre-erase existing file
   if [ -e "$to" ]; then
@@ -591,7 +591,7 @@ __updating__update_dpl_repo_via_git()
   # Extract path to repository being updated
   local repo_path="$1"; shift
 
-  # Ensure $D_DIR is a git repo
+  # Ensure $D_FMWK_DIR is a git repo
   git ls-remote "$repo_path" -q &>/dev/null || {
     dprint_debug 'Not a git repository:' -i "$repo_path"
     return 1
@@ -646,7 +646,7 @@ __updating__check_or_install()
   else
 
     # Prompt user for whether to install utility
-    if dprompt_key --bare --answer "$D_BLANKET_ANSWER" \
+    if dprompt_key --bare --answer "$D_OPT_ANSWER" \
       "Package manager $OS_PKGMGR is available" \
       --prompt "Install $util_name using $OS_PKGMGR?"
     then

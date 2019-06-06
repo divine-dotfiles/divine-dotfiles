@@ -14,7 +14,7 @@
 
 #>  __process_manifest_of_current_dpl
 #
-## Looks for manifest file at path stored in $D_DPL_MANIFEST. Reads it line by 
+## Looks for manifest file at path stored in $D_DPL_MNF_PATH. Reads it line by 
 #. line, ignores empty lines and lines starting with hash (‘#’) or double-slash 
 #. (‘//’).
 #
@@ -25,7 +25,7 @@
 #. version control. Does not overwrite anything (user’s data takes priority).
 #
 ## Requires:
-#.  $D_DPL_MANIFEST     - Path to assets manifest file
+#.  $D_DPL_MNF_PATH     - Path to assets manifest file
 #.  $D_DPL_DIR          - Path to resolve initial asset paths against
 #.  $D_DPL_ASSETS_DIR   - Path to compose target asset paths against
 #
@@ -36,7 +36,7 @@
 __process_manifest_of_current_dpl()
 {
   # Check if manifest is a readable file
-  [ -r "$D_DPL_MANIFEST" -a -f "$D_DPL_MANIFEST" ] || return 0
+  [ -r "$D_DPL_MNF_PATH" -a -f "$D_DPL_MNF_PATH" ] || return 0
 
   # Store current case sensitivity setting, then turn it off
   local restore_nocasematch="$( shopt -p nocasematch )"
@@ -79,7 +79,7 @@ __process_manifest_of_current_dpl()
     # Add whatever is left, if there is anything
     [ -n "$line" ] && dpl_asset_patterns+=( "$line" )
 
-  done <"$D_DPL_MANIFEST"
+  done <"$D_DPL_MNF_PATH"
 
   # Restore case sensitivity
   eval "$restore_nocasematch"
@@ -92,8 +92,8 @@ __process_manifest_of_current_dpl()
   local all_assets_readable=true all_assets_copied=true
 
   # Start populating global variables
-  D_DPL_ASSETS_REL=()
-  D_DPL_ASSETS=()
+  D_DPL_ASSET_RELPATHS=()
+  D_DPL_ASSET_PATHS=()
 
   # Iterate over $dpl_asset_patterns entries
   for path_pattern in "${dpl_asset_patterns[@]}"; do
@@ -131,8 +131,8 @@ __process_manifest_of_current_dpl()
         fi
 
         # Destination is in place: push onto global containers
-        D_DPL_ASSETS_REL+=( "$relative_path" )
-        D_DPL_ASSETS+=( "$dest_path" )
+        D_DPL_ASSET_RELPATHS+=( "$relative_path" )
+        D_DPL_ASSET_PATHS+=( "$dest_path" )
 
       else
 
@@ -179,12 +179,12 @@ __process_all_manifests_in_main_dir()
 
     # Extract name and path
     name="${D_DPL_NAMES[$i]}"
-    path="${D_DPL_NAME_PATHS[$i]%"$D_DELIM"}"
+    path="${D_DPL_NAME_PATHS[$i]%"$D_CONST_DELIMITER"}"
 
     # Set up necessary variables
-    D_DPL_MANIFEST="${path%$D_DPL_SH_SUFFIX}$D_ASSETS_SUFFIX"
+    D_DPL_MNF_PATH="${path%$D_SUFFIX_DPL_SH}$D_SUFFIX_DPL_MNF"
     D_DPL_DIR="$( dirname -- "$path" )"
-    D_DPL_ASSETS_DIR="$D_ASSETS_DIR/$name"
+    D_DPL_ASSETS_DIR="$D_FMWK_DIR_ASSETS/$name"
 
     # Do the deed
     __process_manifest_of_current_dpl || all_good=false

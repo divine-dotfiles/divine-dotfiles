@@ -64,7 +64,7 @@ __declare_global_colors()
 __parse_arguments()
 {
   # Define global storage for option values
-  D_QUIET=false           # Be verbose by default
+  D_OPT_QUIET=false       # Be verbose by default
   D_INSTALL_FRAMEWORK=    # Whether to install framework itself
   D_INSTALL_SHORTCUT=     # Whether to install shortcut symlink
   D_ADD_DEFAULTS=         # Whether to add default deployments
@@ -76,8 +76,8 @@ __parse_arguments()
   # Parse arguments
   for arg in "${args[@]}"; do
     case "$arg" in
-      --quiet)            D_QUIET=true;;
-      --verbose)          D_QUIET=false;;
+      --quiet)            D_OPT_QUIET=true;;
+      --verbose)          D_OPT_QUIET=false;;
       --framework-yes)    D_INSTALL_FRAMEWORK=true;;
       --framework-no)     D_INSTALL_FRAMEWORK=false;;
       --shortcut-yes)     D_INSTALL_SHORTCUT=true;;
@@ -301,7 +301,7 @@ __install_shortcut()
 
       # Check if name is valid
       [[ $new_cmd_name =~ ^[a-z0-9]+$ ]] || {
-        $D_QUIET || printf >&2 '%s\n' 'Use letters and digits only'
+        $D_OPT_QUIET || printf >&2 '%s\n' 'Use letters and digits only'
         continue
       }
 
@@ -451,7 +451,7 @@ __run_install()
 
 dprint_debug()
 {
-  $D_QUIET && return 0
+  $D_OPT_QUIET && return 0
   printf >&2 "\n${CYAN}%s %s${NORMAL}\n" "==>" "$1"; shift
   while [ $# -gt 0 ]
   do printf >&2 "    ${CYAN}%s${NORMAL}\n" "$1"; shift; done; return 0
@@ -459,28 +459,28 @@ dprint_debug()
 
 dprint_start()
 {
-  $D_QUIET && return 0
+  $D_OPT_QUIET && return 0
   printf >&2 '\n%s %s\n' "${BOLD}${YELLOW}==>${NORMAL}" "$1"; shift
   while [ $# -gt 0 ]; do printf >&2 '    %s\n' "$1"; shift; done; return 0
 }
 
 dprint_skip()
 {
-  $D_QUIET && return 0
+  $D_OPT_QUIET && return 0
   printf >&2 '\n%s %s\n' "${BOLD}${WHITE}==>${NORMAL}" "$1"; shift
   while [ $# -gt 0 ]; do printf >&2 '    %s\n' "$1"; shift; done; return 0
 }
 
 dprint_success()
 {
-  $D_QUIET && return 0
+  $D_OPT_QUIET && return 0
   printf >&2 '\n%s %s\n' "${BOLD}${GREEN}==>${NORMAL}" "$1"; shift
   while [ $# -gt 0 ]; do printf >&2 '    %s\n' "$1"; shift; done; return 0
 }
 
 dprint_failure()
 {
-  $D_QUIET && return 0
+  $D_OPT_QUIET && return 0
   printf >&2 '\n%s %s\n' "${BOLD}${RED}==>${NORMAL}" "$1"; shift
   while [ $# -gt 0 ]; do printf >&2 '    %s\n' "$1"; shift; done; return 0
 }

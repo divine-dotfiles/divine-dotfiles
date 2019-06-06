@@ -32,7 +32,7 @@
 __update_pkgs()
 {
   # Only if packages are to be touched at all
-  if $D_PKGS; then
+  if $D_REQ_PACKAGES; then
 
     # Name current task
     local task_desc='Update packages via'
@@ -40,7 +40,7 @@ __update_pkgs()
 
     # Prefix priority
     task_desc="$( printf \
-      "(%${D_MAX_PRIORITY_LEN}d) %s\n" 0 "$task_desc" )"
+      "(%${D_REQ_MAX_PRIORITY_LEN}d) %s\n" 0 "$task_desc" )"
 
     # Local flag for whether to proceed
     local proceeding=true
@@ -52,20 +52,20 @@ __update_pkgs()
     }
 
     # Don’t proceed if ‘-n’ option is given
-    [ "$D_BLANKET_ANSWER" = false ] && proceeding=false
+    [ "$D_OPT_ANSWER" = false ] && proceeding=false
 
     # Print newline to visually separate tasks
     printf '\n'
 
     # Print message about the upcoming installation
     if $proceeding; then
-      dprint_ode "${D_PRINTC_OPTS_UP[@]}" -c "$YELLOW" -- \
+      dprint_ode "${D_ODE_UPDATE[@]}" -c "$YELLOW" -- \
         '>>>' 'Installing' ':' "$task_desc" "$task_name"
     fi
 
     # Unless given a ‘-y’ option, prompt for user’s approval
-    if $proceeding && [ "$D_BLANKET_ANSWER" != true ]; then
-      dprint_ode "${D_PRINTC_OPTS_PMT[@]}" -- '' 'Confirm' ': '
+    if $proceeding && [ "$D_OPT_ANSWER" != true ]; then
+      dprint_ode "${D_ODE_PROMPT[@]}" -- '' 'Confirm' ': '
       dprompt_key --bare && proceeding=true || {
         task_name="$task_name (declined by user)"
         proceeding=false
@@ -76,14 +76,14 @@ __update_pkgs()
     if $proceeding; then
       os_pkgmgr dupdate
       if [ $? -eq 0 ]; then
-        dprint_ode "${D_PRINTC_OPTS_UP[@]}" -c "$GREEN" -- \
+        dprint_ode "${D_ODE_UPDATE[@]}" -c "$GREEN" -- \
           'vvv' 'Installed' ':' "$task_desc" "$task_name"
       else
-        dprint_ode "${D_PRINTC_OPTS_UP[@]}" -c "$RED" -- \
+        dprint_ode "${D_ODE_UPDATE[@]}" -c "$RED" -- \
           'xxx' 'Failed' ':' "$task_desc" "$task_name"
       fi
     else
-      dprint_ode "${D_PRINTC_OPTS_UP[@]}" -c "$WHITE" -- \
+      dprint_ode "${D_ODE_UPDATE[@]}" -c "$WHITE" -- \
         '---' 'Skipped' ':' "$task_desc" "$task_name"
     fi
 
