@@ -4,22 +4,16 @@ D_DPL_PRIORITY=4096
 D_DPL_FLAGS=
 D_DPL_WARNING=
 
-# Paths to replacement files (string or array thereof)
-D_DPL_ASSET_PATHS=
+# Use asset manifest (‘*.dpl.mnf’ file) to list replacement files
 
-# Paths to files to be replaced (string or array thereof)
+# For target paths, either set them individually (path or array thereof)…
 D_DPL_TARGET_PATHS=
+# …or provide target dir for all assets
+D_DPL_TARGET_DIR=
 
-# OS family-specific overrides for $D_DPL_TARGET_PATHS (narrow defeats broad)
+# Both kinds of $D_DPL_TARGET_* accept OS-specific overrides, e.g.:
 D_DPL_TARGET_PATHS_LINUX=
-D_DPL_TARGET_PATHS_WSL=
-D_DPL_TARGET_PATHS_BSD=
-D_DPL_TARGET_PATHS_MACOS=
-
-# OS distro-specific overrides for $D_DPL_TARGET_PATHS (narrow defeats broad)
-D_DPL_TARGET_PATHS_UBUNTU=
-D_DPL_TARGET_PATHS_DEBIAN=
-D_DPL_TARGET_PATHS_FEDORA=
+D_DPL_TARGET_DIR_UBUNTU=
 
 dcheck()    { __dln_hlp__dcheck;    }
 dinstall()  { __dln_hlp__dinstall;  }

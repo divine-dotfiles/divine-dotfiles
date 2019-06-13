@@ -45,6 +45,70 @@
 #
 __dln_hlp__dcheck()
 {
+  # Redirect functions
+  __d__queue_hlp__pre_process()       { __dln_hlp__pre_process;       }
+  __d__queue_hlp__item_is_installed() { __dln_hlp__item_is_installed; }
+
+  # Delegate to helper
+  __queue_hlp__dcheck
+}
+
+#>  __dln_hlp__dinstall
+#
+## Moves each target file in $D_DPL_TARGET_PATHS to its respective backup 
+#. location in $D_DPL_BACKUP_PATHS; replaces each with a symlink pointing to 
+#. respective replacement in $D_DPL_ASSET_PATHS.
+#
+## Requires:
+#.  $D_DPL_ASSET_PATHS    - (array ok) Locations to symlink to
+#.  $D_DPL_TARGET_PATHS   - (array ok) Paths to back up and replace
+#.  $D_DPL_BACKUP_PATHS   - (array ok) Backup locations
+#.  `dln.utl.sh`
+#
+## Returns:
+#.  Values supported by dinstall function in *.dpl.sh
+#
+## Prints:
+#.  Status messages for user
+#
+__dln_hlp__dinstall()
+{
+  # Redirect functions
+  __d__queue_hlp__install_item()      { __dln_hlp__install_item;      }
+
+  # Delegate to helper
+  __queue_hlp__dinstall
+}
+
+#>  __dln_hlp__dremove
+#
+## Removes each path in $D_DPL_TARGET_PATHS that is a symlink pointing to 
+#. respective replacement in $D_DPL_ASSET_PATHS. Where possible, restores 
+#. original file from corresponding backup location in $D_DPL_BACKUP_PATHS.
+#
+## Requires:
+#.  $D_DPL_ASSET_PATHS    - (array ok) Locations currently symlinked to
+#.  $D_DPL_TARGET_PATHS   - (array ok) Paths to be restored
+#.  $D_DPL_BACKUP_PATHS   - (array ok) Backup locations
+#.  `dln.utl.sh`
+#
+## Returns:
+#.  Values supported by dremove function in *.dpl.sh
+#
+## Prints:
+#.  Status messages for user
+#
+__dln_hlp__dremove()
+{
+  # Redirect functions
+  __d__queue_hlp__remove_item()       { __dln_hlp__remove_item;       }
+
+  # Delegate to helper
+  __queue_hlp__dremove
+}
+
+__dln_hlp__pre_process()
+{
   # Override targets for current OS family, if that variable is non-empty
   __override_d_targets_for_family
 
@@ -73,396 +137,179 @@ __dln_hlp__dcheck()
 
   fi
 
-  # Check if $D_DPL_TARGET_PATHS has still ended up empty
+  # Check if $D_DPL_TARGET_PATHS still ended up empty
   [ ${#D_DPL_TARGET_PATHS[@]} -gt 1 -o -n "$D_DPL_TARGET_PATHS" ] || {
     local detected_os="$OS_FAMILY"
     [ -n "$OS_DISTRO" ] && detected_os+=" ($OS_DISTRO)"
     dprint_debug \
       'Empty list of paths to replace ($D_DPL_TARGET_PATHS) for detected OS:' \
       "$detected_os"
+    return 1
+  }
+}
+
+__dln_hlp__item_is_installed()
+{
+  # Storage variables
+  local target_path="${D_DPL_TARGET_PATHS[$D_DPL_ITEM_NUM]}"
+  local asset_path="${D_DPL_ASSET_PATHS[$D_DPL_ITEM_NUM]}"
+  local backup_path="$D_DPL_BACKUPS_DIR/$D_DPL_ITEM_STASH_KEY"
+
+  # Check if original and replacement paths are both not empty
+  [ -n "$target_path" -a -n "$asset_path" ] || {
+    dprint_debug "Skipped an unworkable asset: $D_DPL_ITEM_TITLE"
     return 3
   }
 
-  # Storage variables
-  local all_installed=true all_not_installed=true
-  local good_pairs_exist=false
-  local i
-  local orig_path replacement_path orig_md5 backup_path
-  local new_d_orig=() new_d_replacements=()
-  D_DPL_BACKUP_PATHS=()
-
-  # Retrieve number of paths to work with (largest size wins)
-  [ ${#D_DPL_TARGET_PATHS[@]} -ge ${#D_DPL_ASSET_PATHS[@]} ] \
-    && D_NUM_OF_PAIRS=${#D_DPL_TARGET_PATHS[@]} \
-    || D_NUM_OF_PAIRS=${#D_DPL_ASSET_PATHS[@]}
-
-  # Iterate over pairs of paths
-  for (( i=0; i<$D_NUM_OF_PAIRS; i++ )); do
-
-    # Retrieve/construct three paths
-    orig_path="${D_DPL_TARGET_PATHS[$i]}"
-    replacement_path="${D_DPL_ASSET_PATHS[$i]}"
-    orig_md5="$( dmd5 -s "$orig_path" 2>/dev/null )"
-    backup_path="$D_FMWK_DIR_BACKUPS/$D_DPL_NAME/$orig_md5"
-
-    # Check if original and replacement paths are both not empty
-    [ -n "$orig_path" -a -n "$replacement_path" ] || {
-      dprint_debug 'Skipped an unworkable pair of paths:' \
-        -i "'$orig_path' - '$replacement_path'"
-      continue
-    }
-
-    # If replacement file/dir is not readable, skip it
-    [ -r "$replacement_path" ] || {
-      dprint_debug "Skipped an unreadable replacement at: $replacement_path"
-      continue
-    }
-
-    # Check if md5 is correctly calculated
-    [ ${#orig_md5} -eq 32 ] || {
-      dprint_debug 'Failed to calculate md5 checksum for text string:' \
-        "'$orig_path'"
-      return 3
-    }
-
-    # Past initial checks, it is at least a good pair
-    good_pairs_exist=true
-    new_d_orig+=( "$orig_path" )
-    new_d_replacements+=( "$replacement_path" )
-    D_DPL_BACKUP_PATHS+=( "$backup_path" )
-
-    # Check if replacement is installed
-    if dln -?q -- "$replacement_path" "$orig_path" "$backup_path"; then
-
-      # Replacement is installed with backup
-      all_not_installed=false
-
-    else
-
-      # Check if it’s just backup that is missing
-      if dln -?q -- "$replacement_path" "$orig_path"; then
-
-        # Replacement is installed without backup
-        all_not_installed=false
-
-      else
-
-        # Replacement is not installed
-        all_installed=false
-
-        # Check if backup path exists, which would be abnormal
-        if [ -e "$backup_path" ]; then
-
-          # Report abnormal configuration
-          dprint_debug -l 'Despite no record of previous linking of:' \
-            "$orig_path" -n "to: $replacement_path" \
-            -n "backup exists at: $backup_path" \
-            -n '(Force remove to restore orphaned backups)'
-
-        fi
-
-      fi
-
-    fi
-
-  done
-
-  # Check if there were any good pairs
-  if $good_pairs_exist; then
-    # Overwrite global arrays with filtered paths
-    D_DPL_TARGET_PATHS=( "${new_d_orig[@]}" )
-    D_DPL_ASSET_PATHS=( "${new_d_replacements[@]}" )
-  else
-    # If there were no good pairs, print loud warning and signal irrelevant
-    dprint_skip -l 'Not a single workable replacement provided'
+  # If replacement file/dir is not readable, skip it
+  [ -r "$asset_path" ] || {
+    dprint_debug "Skipped an unreadable asset at: $asset_path"
     return 3
-  fi
+  }
 
-  # Deliver unanimous verdict or prompt user
-  if $all_installed; then return 1
-  elif $all_not_installed; then return 2
-  else return 4; fi
-}
+  # Check if replacement is installed
+  if dln -?q -- "$asset_path" "$target_path" "$backup_path"; then
 
-#>  __dln_hlp__dinstall
-#
-## Moves each target file in $D_DPL_TARGET_PATHS to its respective backup 
-#. location in $D_DPL_BACKUP_PATHS; replaces each with a symlink pointing to 
-#. respective replacement in $D_DPL_ASSET_PATHS.
-#
-## Requires:
-#.  $D_DPL_ASSET_PATHS    - (array ok) Locations to symlink to
-#.  $D_DPL_TARGET_PATHS   - (array ok) Paths to back up and replace
-#.  $D_DPL_BACKUP_PATHS   - (array ok) Backup locations
-#.  `dln.utl.sh`
-#
-## Returns:
-#.  Values supported by dinstall function in *.dpl.sh
-#
-## Prints:
-#.  Status messages for user
-#
-__dln_hlp__dinstall()
-{
-  # Storage variables
-  local all_newly_installed=true all_already_installed=true all_failed=true
-  local some_failed=false
-  local i
-  local orig_path replacement_path orig_md5 backup_path
+    # Replacement is installed with backup
+    return 1
 
-  # Iterate over pairs of paths
-  for (( i=0; i<$D_NUM_OF_PAIRS; i++ )); do
+  else
 
-    # Retrieve/construct three paths
-    orig_path="${D_DPL_TARGET_PATHS[$i]}"
-    replacement_path="${D_DPL_ASSET_PATHS[$i]}"
-    backup_path="${D_DPL_BACKUP_PATHS[$i]}"
-    orig_md5="$( basename -- "$backup_path" )"
+    # Check if it’s just backup that is missing
+    if dln -?q -- "$asset_path" "$target_path"; then
 
-    # Check if desired set-up is in place (but only if not forcing)
-    if ! $D_OPT_FORCE \
-      && dln -?q -- "$replacement_path" "$orig_path" "$backup_path"
-    then
-
-      # Replacement is already installed, with backup
-      all_newly_installed=false
-      all_failed=false
+      # Replacement is installed without backup
+      return 1
 
     else
 
-      # Check if it’s just backup that is missing (but only if not forcing)
-      if ! $D_OPT_FORCE && dln -?q -- "$replacement_path" "$orig_path"; then
+      # Replacement is not installed
 
-        # Replacement is already installed, without backup
-        all_newly_installed=false
-        all_failed=false
+      # Check if backup path exists, which would be abnormal
+      if [ -e "$backup_path" ]; then
 
-      else
-
-        # No installation or forcing: install it
-        all_already_installed=false
-
-        # Attempt to install
-        if dln -f -- "$replacement_path" "$orig_path" "$backup_path"; then
-
-          # Flip switches
-          dprint_debug "Replaced path at: $orig_path" \
-            -n "with symlink to: $replacement_path"
-          all_failed=false
-
-        else
-
-          # Failed to install for some reason
-          dprint_debug "Failed to replace path at: $orig_path" \
-            -n "with symlink to: $replacement_path"
-
-          # Flip switches
-          all_newly_installed=false
-          some_failed=true
-
-        fi
+        # Report abnormal configuration
+        dprint_debug 'Despite lack of symlink from:' \
+          "$target_path" -n "to: $asset_path" \
+          -n "backup exists at: $backup_path" \
+          -n '(Force remove to restore orphaned backups)'
 
       fi
 
+      # Return appropriate status
+      return 2
+
     fi
 
-  done
-
-  # Print messages as appropriate and return status
-  if $all_newly_installed; then
-    return 0
-  elif $all_already_installed; then
-    dprint_skip -l 'All replacements were already installed'
-    return 0
-  elif $all_failed; then
-    dprint_failure -l 'Failed to install all replacements'
-    return 1
-  elif $some_failed; then
-    dprint_failure -l 'Failed to install some replacements'
-    return 1
-  else
-    dprint_skip -l 'Some replacements were already installed'
-    return 0
   fi
 }
 
-#>  __dln_hlp__dremove
-#
-## Removes each path in $D_DPL_TARGET_PATHS that is a symlink pointing to 
-#. respective replacement in $D_DPL_ASSET_PATHS. Where possible, restores 
-#. original file from corresponding backup location in $D_DPL_BACKUP_PATHS.
-#
-## Requires:
-#.  $D_DPL_ASSET_PATHS    - (array ok) Locations currently symlinked to
-#.  $D_DPL_TARGET_PATHS   - (array ok) Paths to be restored
-#.  $D_DPL_BACKUP_PATHS   - (array ok) Backup locations
-#.  `dln.utl.sh`
-#
-## Returns:
-#.  Values supported by dremove function in *.dpl.sh
-#
-## Prints:
-#.  Status messages for user
-#
-__dln_hlp__dremove()
+__dln_hlp__install_item()
 {
   # Storage variables
-  local all_newly_removed=true all_already_removed=true all_failed=true
-  local some_failed=false
-  local i
-  local orig_path replacement_path orig_md5 backup_path
+  local target_path="${D_DPL_TARGET_PATHS[$D_DPL_ITEM_NUM]}"
+  local asset_path="${D_DPL_ASSET_PATHS[$D_DPL_ITEM_NUM]}"
+  local backup_path="$D_DPL_BACKUPS_DIR/$D_DPL_ITEM_STASH_KEY"
 
-  # Iterate over pairs of paths in reverse order, just for kicks
-  for (( i=$D_NUM_OF_PAIRS-1; i>=0; i-- )); do
+  # Attempt to install
+  if dln -f -- "$asset_path" "$target_path" "$backup_path"; then
 
-    # Retrieve/construct three paths
-    orig_path="${D_DPL_TARGET_PATHS[$i]}"
-    replacement_path="${D_DPL_ASSET_PATHS[$i]}"
-    backup_path="${D_DPL_BACKUP_PATHS[$i]}"
-    orig_md5="$( basename -- "$backup_path" )"
+    # Return success
+    return 0
 
-    # Check if replacement appears to be installed
-    if dln -?q -- "$replacement_path" "$orig_path" "$backup_path"; then
+  else
 
-      # Replacement is evidently installed
-      all_already_removed=false
+    # Report and return
+    dprint_debug "Failed to replace path at: $target_path" \
+      -n "with symlink to: $asset_path"
+    return 1
+
+  fi
+}
+
+__dln_hlp__remove_item()
+{
+  # Storage variables
+  local target_path="${D_DPL_TARGET_PATHS[$D_DPL_ITEM_NUM]}"
+  local asset_path="${D_DPL_ASSET_PATHS[$D_DPL_ITEM_NUM]}"
+  local backup_path="$D_DPL_BACKUPS_DIR/$D_DPL_ITEM_STASH_KEY"
+
+  # Check if replacement appears to be installed
+  if dln -?q -- "$asset_path" "$target_path" "$backup_path"; then
+
+    # Attempt to remove
+    if dln -fr -- "$asset_path" "$target_path" "$backup_path"; then
+
+      # Return success
+      return 0
+
+    else
+
+      # Report and return failure
+      dprint_debug "Failed to undo replacement of: $target_path" \
+        -n "with symlink to: $asset_path" \
+        -n "and restore backup from: $backup_path"
+      return 1
+
+    fi
+
+  else
+
+    # Check if it’s just backup that is missing
+    if dln -?q -- "$asset_path" "$target_path"; then
 
       # Attempt to remove
-      if dln -fr -- "$replacement_path" "$orig_path" "$backup_path"; then
+      if dln -fr -- "$asset_path" "$target_path"; then
 
-        # Report and flip switches
-        dprint_debug "Undid replacement of: $orig_path" \
-          -n "with symlink to: $replacement_path" \
-          -n "and restored backup from: $backup_path"
-        all_failed=false
+        # Return success
+        return 0
 
       else
 
-        # Failed to remove for some reason
-        dprint_debug "Failed to undo replacement of: $orig_path" \
-          -n "with symlink to: $replacement_path" \
-          -n "and restore backup from: $backup_path"
-
-        # Flip switches
-        all_newly_removed=false
-        some_failed=true
-
-      fi
-
-    else
-
-      # Check if it’s just backup that is missing
-      if dln -?q -- "$replacement_path" "$orig_path"; then
-
-        # Still a valid previous installation
-        all_already_removed=false
-        
-        # Attempt to remove
-        if dln -fr -- "$replacement_path" "$orig_path"; then
-
-          # Report and flip switches
-          dprint_debug 'Undid replacement of:' "$orig_path" \
-            -n 'with symlink to:' "$replacement_path"
-          all_failed=false
-
-        else
-
-          # Failed to remove for some reason
-          dprint_debug 'Failed to undo replacement of:' "$orig_path" \
-            -n 'with symlink to:' "$replacement_path"
-
-          # Flip switches
-          all_newly_removed=false
-          some_failed=true
-
-        fi
-
-      else
-
-        # No installation detected
-
-        # Check if forcing
-        if $D_OPT_FORCE; then
-
-          # Remove as best as possible
-
-          # Check if backup path exists
-          if [ -e "$backup_path" ]; then
-
-            # Backup exists
-
-            # Remove whatever sits on original location and check status
-            if rm -rf -- "$orig_path"; then
-
-              # Report
-              dprint_debug "Clobbered original path at: $orig_path"
-
-            else
-
-              # Report and skip
-              dprint_debug "Failed to clobber original path at: $orig_path" \
-                -n "while restoring backup from: $backup_path"
-
-              # Flip switches and move on
-              all_already_removed=false
-              all_newly_removed=false
-              some_failed=true
-              continue
-
-            fi
-
-            # Move backup path to original location, and check status
-            if mv -n -- "$backup_path" "$orig_path"; then
-
-              # Report and flip switches
-              dprint_debug "Restored backup from: $backup_path" \
-                -n "to its original location at: $orig_path"
-              all_already_removed=false
-              all_failed=false
-            
-            else
-
-              # Report
-              dprint_debug "Failed to restore backup from: $backup_path" \
-                -n "to its original location at: $orig_path"
-              
-              # Flip switches
-              all_already_removed=false
-              all_newly_removed=false
-              some_failed=true
-
-            fi
-          
-          fi
-
-        else
-
-          # No installation detected and not forcing: job’s done
-          all_newly_removed=false
-          all_failed=false
-
-        fi
+        # Report and return failure
+        dprint_debug 'Failed to undo replacement of:' "$target_path" \
+          -n 'with symlink to:' "$asset_path" -n '(no backup detected)'
+        return 1
 
       fi
 
     fi
 
-  done
-
-  # Print messages as appropriate and return status
-  if $all_newly_removed; then
-    return 0
-  elif $all_already_removed; then
-    dprint_skip -l 'All replacements were already undone'
-    return 0
-  elif $all_failed; then
-    dprint_failure -l 'Failed to undo all replacements'
-    return 1
-  elif $some_failed; then
-    dprint_failure -l 'Failed to undo some replacements'
-    return 1
-  else
-    dprint_skip -l 'Some replacements were already undone'
-    return 0
   fi
+
+  # If got here and being forced, try to restore orphaned backup
+  if $D_DPL_ITEM_IS_FORCED && [ -e "$backup_path" ]; then
+
+    # Remove whatever sits on original location and check status
+    if ! rm -rf -- "$target_path"; then
+
+      # Report and return failure
+      dprint_debug "Failed to clobber original path at: $target_path" \
+        -n "while restoring backup from: $backup_path"
+      return 1
+
+    fi
+
+    # Move backup path to original location, and check status
+    if mv -n -- "$backup_path" "$target_path"; then
+
+      # Report and return success
+      dprint_debug "Restored orphaned backup from: $backup_path" \
+        -n "to its original location at: $target_path"
+      return 0
+    
+    else
+
+      # Report and return failure
+      dprint_debug "Failed to move orphaned backup from: $backup_path" \
+        -n "to its original location at: $target_path"
+      return 1
+
+    fi
+  
+  fi
+
+  # Otherwise, there is nothing to do with this item
+  dprint_debug "Nothing to remove/restore for item: $D_DPL_ITEM_TITLE"
+  return 0
 }
