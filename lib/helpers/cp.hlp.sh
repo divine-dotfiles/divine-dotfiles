@@ -16,7 +16,7 @@
 #. name are backed up to backups directory and restored upon removal.
 #
 
-#>  cp_check
+#>  __cp_hlp__dcheck
 #
 ## Checks whether every file in $D_DPL_TARGET_PATHS[_*] (single path or array 
 #. thereof) is currently a copy of corresponding file in $D_DPL_ASSET_PATHS
@@ -41,7 +41,7 @@
 #.  stdout: *nothing*
 #.  stderr: Error descriptions
 #
-cp_check()
+__cp_hlp__dcheck()
 {
   # This one will rely on stashing
   dstash ready || return 3
@@ -213,7 +213,7 @@ cp_check()
   fi
 }
 
-#>  cp_install
+#>  __cp_hlp__dinstall
 #
 ## Copies each file in $D_DPL_ASSET_PATHS to respective destination path in 
 #. $D_DPL_TARGET_PATHS, moving pre-existing files to corresponging backup 
@@ -230,7 +230,7 @@ cp_check()
 ## Prints:
 #.  Status messages for user
 #
-cp_install()
+__cp_hlp__dinstall()
 {
   # Storage variables
   local all_newly_installed=true all_already_installed=true all_failed=true
@@ -349,7 +349,7 @@ cp_install()
   fi
 }
 
-#>  cp_restore
+#>  __cp_hlp__dremove
 #
 ## Removes each path in $D_DPL_TARGET_PATHS that has record of previous 
 #. copying, then moves corresponding path in $D_DPL_BACKUP_PATHS to its 
@@ -366,7 +366,7 @@ cp_install()
 ## Prints:
 #.  Status messages for user
 #
-cp_restore()
+__cp_hlp__dremove()
 {
   # Storage variables
   local all_newly_restored=true all_already_restored=true all_failed=true

@@ -16,7 +16,7 @@
 #. on removal.
 #
 
-#>  dln_check
+#>  __dln_hlp__dcheck
 #
 ## Checks whether every original file in $D_DPL_TARGET_PATHS[_*] (single path 
 #. or array thereof) is currently replaced with a symlink pointing to 
@@ -43,7 +43,7 @@
 #.  stdout: *nothing*
 #.  stderr: Error descriptions
 #
-dln_check()
+__dln_hlp__dcheck()
 {
   # Override targets for current OS family, if that variable is non-empty
   __override_d_targets_for_family
@@ -184,7 +184,7 @@ dln_check()
   else return 4; fi
 }
 
-#>  dln_install
+#>  __dln_hlp__dinstall
 #
 ## Moves each target file in $D_DPL_TARGET_PATHS to its respective backup 
 #. location in $D_DPL_BACKUP_PATHS; replaces each with a symlink pointing to 
@@ -202,7 +202,7 @@ dln_check()
 ## Prints:
 #.  Status messages for user
 #
-dln_install()
+__dln_hlp__dinstall()
 {
   # Storage variables
   local all_newly_installed=true all_already_installed=true all_failed=true
@@ -286,7 +286,7 @@ dln_install()
   fi
 }
 
-#>  dln_restore
+#>  __dln_hlp__dremove
 #
 ## Removes each path in $D_DPL_TARGET_PATHS that is a symlink pointing to 
 #. respective replacement in $D_DPL_ASSET_PATHS. Where possible, restores 
@@ -304,7 +304,7 @@ dln_install()
 ## Prints:
 #.  Status messages for user
 #
-dln_restore()
+__dln_hlp__dremove()
 {
   # Storage variables
   local all_newly_removed=true all_already_removed=true all_failed=true

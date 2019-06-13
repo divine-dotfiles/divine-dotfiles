@@ -519,11 +519,14 @@ __populate_globals()
   readonly D_FMWK_DIR_HELPERS="$D_FMWK_DIR_LIB/helpers"
   readonly D_SUFFIX_HELPER=".hlp.sh"
 
-  # Filename suffix and pattern for deployment files
+  # Filename suffix for deployment files
   readonly D_SUFFIX_DPL_SH='.dpl.sh'
 
-  # Filename suffix and pattern for asset manifest files
-  readonly D_SUFFIX_DPL_MNF='.assets'
+  # Filename suffix for asset manifest files
+  readonly D_SUFFIX_DPL_MNF='.dpl.mnf'
+
+  # Filename suffix for main queue files
+  readonly D_SUFFIX_DPL_QUE='.dpl.que'
 
   # Prefix for backup files created by deployments
   readonly D_PREFIX_BACKUP='.dvn-backup-'
@@ -540,6 +543,7 @@ __populate_globals()
     "util dreadlink" \
     "util dmv" \
     "util dln" \
+    "helper queue" \
     "helper dln" \
     "helper cp" \
     "helper assets" \

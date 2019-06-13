@@ -21,6 +21,6 @@ D_DPL_TARGET_PATHS_UBUNTU=
 D_DPL_TARGET_PATHS_DEBIAN=
 D_DPL_TARGET_PATHS_FEDORA=
 
-dcheck()    { cp_check;    }
-dinstall()  { cp_install;  }
-dremove()   { cp_restore;  }
+dcheck()    { __cp_hlp__dcheck;    }
+dinstall()  { __cp_hlp__dinstall;  }
+dremove()   { __cp_hlp__dremove;   }

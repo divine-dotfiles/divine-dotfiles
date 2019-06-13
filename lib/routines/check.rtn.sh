@@ -322,6 +322,7 @@ __check_dpls()
       D_DPL_NAME="$name"
       D_DPL_SH_PATH="$divinedpl_filepath"
       D_DPL_MNF_PATH="${divinedpl_filepath%$D_SUFFIX_DPL_SH}$D_SUFFIX_DPL_MNF"
+      D_DPL_QUE_PATH="${divinedpl_filepath%$D_SUFFIX_DPL_SH}$D_SUFFIX_DPL_QUE"
       D_DPL_DIR="$( dirname -- "$divinedpl_filepath" )"
       D_DPL_ASSETS_DIR="$D_FMWK_DIR_ASSETS/$D_DPL_NAME"
       D_DPL_BACKUPS_DIR="$D_FMWK_DIR_BACKUPS/$D_DPL_NAME"
@@ -332,8 +333,8 @@ __check_dpls()
       # Hold your breath…
       source "$divinedpl_filepath"
 
-      # Ensure all assets are copied
-      __process_manifest_of_current_dpl || proceeding=false
+      # Ensure all assets are copied and main queue is filled
+      __process_keyfiles_of_current_dpl || proceeding=false
 
     fi
 
