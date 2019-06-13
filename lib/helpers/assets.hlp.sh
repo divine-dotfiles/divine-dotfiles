@@ -54,7 +54,7 @@ __process_keyfiles_of_current_dpl()
 
       # Glob line and check status
       line="$( __glob_line "$line" "$keep_globbing" || exit $? )"; case $? in
-        0)  dpl_main_queue_items+=( "$line" )
+        0)  dpl_main_queue_items+=( "$line" );;
         1)  keep_globbing=true;;
         2)  keep_globbing=false;;
         *)  :;;
@@ -128,7 +128,7 @@ __process_manifest_of_current_dpl()
 
     # Glob line and check status
     line="$( __glob_line "$line" "$keep_globbing" || exit $? )"; case $? in
-      0)  dpl_asset_patterns+=( "$line" )
+      0)  dpl_asset_patterns+=( "$line" );;
       1)  keep_globbing=true;;
       2)  keep_globbing=false;;
       *)  :;;
