@@ -14,6 +14,12 @@
 
 __queue_hlp__dcheck()
 {
+  # Launch pre-processing
+  if ! __d__queue_hlp__pre_process; then
+    dprint_debug 'Queue pre-processing signaled error'
+    return 3
+  fi
+  
   # Check if deployment’s main queue is empty
   if ! [ ${#D_DPL_QUEUE_MAIN[@]} -gt 1 -o -n "$D_DPL_QUEUE_MAIN" ]; then
     dprint_debug 'Main queue is empty ($D_DPL_QUEUE_MAIN)'
@@ -23,12 +29,6 @@ __queue_hlp__dcheck()
   # Rely on stashing (it is expected to be used by implementation)
   dstash ready || return 3
 
-  # Launch pre-processing
-  if ! __d__queue_hlp__pre_process; then
-    dprint_debug 'Queue pre-processing signaled error'
-    return 3
-  fi
-  
   # Storage and status variables
   local all_installed=true all_not_installed=true all_unknown=true
   local good_items_exist=false some_installed=false
