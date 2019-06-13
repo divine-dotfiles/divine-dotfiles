@@ -22,6 +22,21 @@ dremove()   { __queue_hlp__dremove;   }
 #.                            item if not for ‘--force’ option; otherwise 
 #.                            ‘false’
 
+#>  __d__queue_hlp__pre_process
+#
+## Allows to perform arbitrary actions before items in queue are checked
+#
+## This function is called once for entire deployment
+#
+## Returns:
+#.  0 - Pre-processing succeeded
+#.  1 - Otherwise: do not proceed with this deployment
+#
+__d__queue_hlp__pre_process()
+{
+  :
+}
+
 #>  __d__queue_hlp__provide_stash_key
 #
 ## Gives user a chance to set custom stash key for queue item. Also, can signal 
@@ -69,9 +84,9 @@ __d__queue_hlp__item_is_installed()
   :
 }
 
-#>  __d__queue_hlp__post_process_queue
+#>  __d__queue_hlp__post_process
 #
-## Allows to perform arbitrary actions after every item in queue has been 
+## Allows to perform arbitrary actions after all items in queue have been 
 #. checked
 #
 ## This function is called once for entire deployment
@@ -80,7 +95,7 @@ __d__queue_hlp__item_is_installed()
 #.  0 - Post-processing succeeded
 #.  1 - Otherwise: do not proceed with this deployment
 #
-__d__queue_hlp__post_process_queue()
+__d__queue_hlp__post_process()
 {
   :
 }

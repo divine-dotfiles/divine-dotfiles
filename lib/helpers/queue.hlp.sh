@@ -22,6 +22,12 @@ __queue_hlp__dcheck()
 
   # Rely on stashing (it is expected to be used by implementation)
   dstash ready || return 3
+
+  # Launch pre-processing
+  if ! __d__queue_hlp__pre_process; then
+    dprint_debug 'Queue pre-processing signaled error'
+    return 3
+  fi
   
   # Storage and status variables
   local all_installed=true all_not_installed=true all_unknown=true
@@ -40,8 +46,8 @@ __queue_hlp__dcheck()
   if ! declare -f __d__queue_hlp__provide_stash_key &>/dev/null; then
     __d__queue_hlp__provide_stash_key() { :; }
   fi
-  if ! declare -f __d__queue_hlp__post_process_queue &>/dev/null; then
-    __d__queue_hlp__post_process_queue() { :; }
+  if ! declare -f __d__queue_hlp__post_process &>/dev/null; then
+    __d__queue_hlp__post_process() { :; }
   fi
 
   # Iterate over items in deployment’s main queue
@@ -205,7 +211,7 @@ __queue_hlp__dcheck()
   fi
 
   # Launch post-processing
-  if ! __d__queue_hlp__post_process_queue; then
+  if ! __d__queue_hlp__post_process; then
     dprint_debug 'Queue post-processing signaled error'
     return 3
   fi

@@ -22,6 +22,13 @@ dremove()   { __queue_hlp__dremove;   }
 #.                            item if not for ‘--force’ option; otherwise 
 #.                            ‘false’
 
+## Exit codes and their meaning:
+#.  1 - Do not proceed with this deployment
+__d__queue_hlp__pre_process()
+{
+  :
+}
+
 ## Global variable to set:
 #.  $D_DPL_ITEM_STASH_KEY - Custom stash key for current item
 ## Exit codes and their meaning:
@@ -43,7 +50,7 @@ __d__queue_hlp__item_is_installed()
 
 ## Exit codes and their meaning:
 #.  1 - Do not proceed with this deployment
-__d__queue_hlp__post_process_queue()
+__d__queue_hlp__post_process()
 {
   :
 }
