@@ -31,7 +31,7 @@ __queue_hlp__dcheck()
 
   # Storage and status variables
   local all_installed=true all_not_installed=true all_unknown=true
-  local good_items_exist=false some_installed=false
+  local good_items_exist=false some_installed=false should_prompt_again=false
   local item_stash_key
 
   # Global storage variables
@@ -119,6 +119,7 @@ __queue_hlp__dcheck()
             ;;
         3)  # Bad item: set flag, report error, and skip item
             __queue_hlp__current_item set is_invalid
+            should_prompt_again=true
             dprint_debug "Invalid item '$D_DPL_ITEM_TITLE' (bad check results)"
             continue
             ;;
@@ -153,12 +154,15 @@ __queue_hlp__dcheck()
             __queue_hlp__current_item set can_be_installed
             all_installed=false
             all_unknown=false
+            should_prompt_again=true
             dprint_debug "Item '$D_DPL_ITEM_TITLE' has stash record" \
               'but is actually not installed'
             ;;
         3)  # Bad item: set flag, report error, and skip item
             __queue_hlp__current_item set is_invalid
+            should_prompt_again=true
             dprint_debug "Invalid item '$D_DPL_ITEM_TITLE' (bad check results)"
+            continue
             ;;
       esac
 
@@ -189,7 +193,9 @@ __queue_hlp__dcheck()
             ;;
         3)  # Bad item: set flag, report error, and skip item
             __queue_hlp__current_item set is_invalid
+            should_prompt_again=true
             dprint_debug "Invalid item '$D_DPL_ITEM_TITLE' (bad check results)"
+            continue
             ;;
       esac
 
@@ -214,6 +220,12 @@ __queue_hlp__dcheck()
   if ! __d__queue_hlp__post_process; then
     dprint_debug 'Queue post-processing signaled error'
     return 3
+  fi
+
+  # Check if additional user prompt is warranted
+  if $should_prompt_again; then
+    D_ASK_AGAIN=true
+    D_WARNING='There are some irregularities with this deployment'
   fi
 
   # Return appropriately
