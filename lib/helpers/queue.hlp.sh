@@ -14,8 +14,10 @@
 
 __queue_hlp__dcheck()
 {
-  # Launch pre-processing
-  if ! __d__queue_hlp__pre_process; then
+  # Launch pre-processing if it is implemented
+  if declare -f __d__queue_hlp__pre_process &>/dev/null \
+    && ! __d__queue_hlp__pre_process
+  then
     dprint_debug 'Queue pre-processing signaled error'
     return 3
   fi
