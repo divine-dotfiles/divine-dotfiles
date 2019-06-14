@@ -156,7 +156,9 @@ __cp_hlp__item_is_installed()
 
   # Check if source and destination paths are both not empty
   [ -n "$to_path" -a -n "$from_path" ] || {
-    dprint_debug "Skipped an unworkable asset: $D_DPL_ITEM_TITLE"
+    dprint_debug "Skipped an unworkable asset: $D_DPL_ITEM_TITLE" \
+      -n "Source path: $from_path" \
+      -n "Destination path: $to_path"
     return 3
   }
 
