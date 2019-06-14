@@ -147,9 +147,9 @@ __cp_hlp__pre_process()
 __cp_hlp__item_is_installed()
 {
   # Storage variables
-  to_path="${D_DPL_TARGET_PATHS[$D_DPL_ITEM_NUM]}"
-  from_path="${D_DPL_ASSET_PATHS[$D_DPL_ITEM_NUM]}"
-  backup_path="$D_DPL_BACKUPS_DIR/$D_DPL_ITEM_STASH_KEY"
+  local to_path="${D_DPL_TARGET_PATHS[$D_DPL_ITEM_NUM]}"
+  local from_path="${D_DPL_ASSET_PATHS[$D_DPL_ITEM_NUM]}"
+  local backup_path="$D_DPL_BACKUPS_DIR/$D_DPL_ITEM_STASH_KEY"
 
   # Check if source and destination paths are both not empty
   [ -n "$to_path" -a -n "$from_path" ] || {
@@ -193,9 +193,10 @@ __cp_hlp__item_is_installed()
 __cp_hlp__install_item()
 {
   # Storage variables
-  to_path="${D_DPL_TARGET_PATHS[$D_DPL_ITEM_NUM]}"
-  from_path="${D_DPL_ASSET_PATHS[$D_DPL_ITEM_NUM]}"
-  backup_path="$D_DPL_BACKUPS_DIR/$D_DPL_ITEM_STASH_KEY"
+  local to_path="${D_DPL_TARGET_PATHS[$D_DPL_ITEM_NUM]}"
+  local from_path="${D_DPL_ASSET_PATHS[$D_DPL_ITEM_NUM]}"
+  local backup_path="$D_DPL_BACKUPS_DIR/$D_DPL_ITEM_STASH_KEY"
+  local to_parent_dir="$( dirname -- "$to_path" )"
 
   # Check if something already exists at destination path
   if [ -e "$to_path" ]; then
@@ -227,10 +228,48 @@ __cp_hlp__install_item()
 
     fi
 
+  else
+
+    # Nothing exists at destination path: ensure parent directory exists
+    if ! [ -d "$to_parent_dir" ]; then
+
+      # Locate existing parent directory
+      local to_existing_parent_dir="$( dirname -- "$to_parent_dir" )"
+      while [ ! -d "$to_existing_parent_dir" ]; do
+        to_existing_parent_dir="$( dirname -- "$to_existing_parent_dir" )"
+      done
+
+      # Try to create destination directory
+      if [ -w "$to_existing_parent_dir" ]; then
+        mkdir -p -- "$to_parent_dir"
+      else
+        sudo mkdir -p -- "$to_parent_dir"
+      fi
+
+      # Check if directory has been created
+      if [ $? -ne 0 ]; then
+
+        # Failed to create destination parent dir: abandon this copying
+        dprint_debug 'Failed to create destination parent directory:' \
+          -i "$to_parent_dir" \
+          -n '(Skipping this source/destination pair)'
+        return 1
+
+      fi
+
+    fi
+
   fi
 
   # Copy source path to destination path and check status
-  if cp -Rn -- "$from_path" "$to_path"; then
+  if [ -w "$to_parent_dir" ]; then
+    cp -Rn -- "$from_path" "$to_path"
+  else
+    sudo cp -Rn -- "$from_path" "$to_path"
+  fi
+
+  # Check if copying is successful
+  if [ $? -eq 0 ]; then
 
     # Return success
     return 0
@@ -247,15 +286,52 @@ __cp_hlp__install_item()
 __cp_hlp__remove_item()
 {
   # Storage variables
-  to_path="${D_DPL_TARGET_PATHS[$D_DPL_ITEM_NUM]}"
-  from_path="${D_DPL_ASSET_PATHS[$D_DPL_ITEM_NUM]}"
-  backup_path="$D_DPL_BACKUPS_DIR/$D_DPL_ITEM_STASH_KEY"
+  local to_path="${D_DPL_TARGET_PATHS[$D_DPL_ITEM_NUM]}"
+  local from_path="${D_DPL_ASSET_PATHS[$D_DPL_ITEM_NUM]}"
+  local backup_path="$D_DPL_BACKUPS_DIR/$D_DPL_ITEM_STASH_KEY"
+  local to_parent_dir="$( dirname -- "$to_path" )"
+
+  # Ensure destination parent directory exists
+  if ! [ -d "$to_parent_dir" ]; then
+
+    # Locate existing parent directory
+    local to_existing_parent_dir="$( dirname -- "$to_parent_dir" )"
+    while [ ! -d "$to_existing_parent_dir" ]; do
+      to_existing_parent_dir="$( dirname -- "$to_existing_parent_dir" )"
+    done
+
+    # Try to create destination directory
+    if [ -w "$to_existing_parent_dir" ]; then
+      mkdir -p -- "$to_parent_dir"
+    else
+      sudo mkdir -p -- "$to_parent_dir"
+    fi
+
+    # Check if directory has been created
+    if [ $? -ne 0 ]; then
+
+      # Failed to create destination parent dir: abandon this copying
+      dprint_debug 'Failed to create destination parent directory:' \
+        -i "$to_parent_dir" \
+        -n '(Skipping this source/destination pair)'
+      return 1
+
+    fi
+
+  fi
 
   # Check if destination path exists
   if [ -e "$to_path" ]; then
 
     # Remove destination path and check status
-    if ! rm -rf -- "$to_path"; then
+    if [ -w "$to_parent_dir" ]; then
+      rm -rf -- "$to_path"
+    else
+      sudo rm -rf -- "$to_path"
+    fi
+
+    # Check status
+    if [ $? -ne 0 ]; then
 
       # Report and return failure
       dprint_debug "Failed to erase destination path: $to_path" \
@@ -270,7 +346,14 @@ __cp_hlp__remove_item()
   if [ -e "$backup_path" ]; then
 
     # Move backup path to its original path and check status
-    if ! mv -n -- "$backup_path" "$to_path"; then
+    if [ -w "$to_parent_dir" ]; then
+      mv -n -- "$backup_path" "$to_path"
+    else
+      sudo mv -n -- "$backup_path" "$to_path"
+    fi
+
+    # Check status
+    if [ $? -ne 0 ]; then
 
       # Report and return failure
       dprint_debug "Failed to move backup: $backup_path" \
