@@ -138,14 +138,17 @@ __dln_hlp__pre_process()
   fi
 
   # Check if $D_DPL_TARGET_PATHS still ended up empty
-  [ ${#D_DPL_TARGET_PATHS[@]} -gt 1 -o -n "$D_DPL_TARGET_PATHS" ] || {
+  if ! [ ${#D_DPL_TARGET_PATHS[@]} -gt 1 -o -n "$D_DPL_TARGET_PATHS" ]; then
+
+    # Report and return failure
     local detected_os="$OS_FAMILY"
     [ -n "$OS_DISTRO" ] && detected_os+=" ($OS_DISTRO)"
     dprint_debug \
       'Empty list of paths to replace ($D_DPL_TARGET_PATHS) for detected OS:' \
       "$detected_os"
     return 1
-  }
+    
+  fi
 }
 
 __dln_hlp__item_is_installed()

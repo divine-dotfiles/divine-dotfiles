@@ -78,6 +78,11 @@ __process_keyfiles_of_current_dpl()
 
     D_DPL_QUEUE_MAIN=( "${D_DPL_ASSET_RELPATHS[@]}" )
 
+  elif [ ${#D_DPL_ASSET_PATHS[@]} -gt 1 -o -n "$D_DPL_ASSET_PATHS" ]
+  then
+
+    D_DPL_QUEUE_MAIN=( "${D_DPL_ASSET_PATHS[@]}" )
+
   else
 
     # No way to pre-fill main queue
