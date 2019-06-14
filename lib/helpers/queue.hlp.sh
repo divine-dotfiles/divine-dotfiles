@@ -185,7 +185,7 @@ __queue_hlp__dcheck()
             some_installed=true
             all_not_installed=false
             all_unknown=false
-            dprint_debug "Item '$D_DPL_ITEM_TITLE' is already installed" \
+            dprint_debug "Item '$D_DPL_ITEM_TITLE' is installed" \
               'without stash resord'
             ;;
         2)  # Item is not recorded and not installed
