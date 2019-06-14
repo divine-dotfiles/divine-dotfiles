@@ -114,7 +114,16 @@ __process_keyfiles_of_current_dpl()
 __process_manifest_of_current_dpl()
 {
   # Check if manifest is a readable file
-  [ -r "$D_DPL_MNF_PATH" -a -f "$D_DPL_MNF_PATH" ] || return 0
+  if ! [ -r "$D_DPL_MNF_PATH" -a -f "$D_DPL_MNF_PATH" ]; then
+    dprint_debug 'No asset manifest'
+    return 0
+  fi
+
+  # Check if directory of current deployment is readable
+  if ! [ -r "$D_DPL_DIR" -a -d "$D_DPL_DIR" ]; then
+    dprint_failure -l "Unreadable directory of current deployment: $D_DPL_DIR"
+    return 1
+  fi
 
   # Store current case sensitivity setting, then turn it off
   local restore_nocasematch="$( shopt -p nocasematch )"
