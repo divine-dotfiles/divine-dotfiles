@@ -119,6 +119,8 @@ __d__queue_hlp__post_process()
 #.  0 - Item is now installed
 #.  1 - Item is now not installed
 #.  2 - Item turned out to be invalid and should not be touched at all
+#.  3 - Item is now installed, and no further installations are necessary
+#.  4 - Item is now not installed, and no further installations are necessary
 #
 __d__queue_hlp__install_item()
 {
@@ -144,6 +146,9 @@ __d__queue_hlp__install_item()
 #.  0 - Item is now removed
 #.  1 - Item is now not removed (installed)
 #.  2 - Item turned out to be invalid and should not be touched at all
+#.  3 - Item is now removed, and no further removals are necessary
+#.  4 - Item is now not removed (installed), and no further removals are 
+#.      necessary
 #
 __d__queue_hlp__remove_item()
 {

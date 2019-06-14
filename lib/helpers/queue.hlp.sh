@@ -242,7 +242,8 @@ __queue_hlp__dinstall()
 {
   # Storage and status variables
   local all_newly_installed=true all_already_installed=true all_failed=true
-  local good_items_exist=false some_failed=false
+  local good_items_exist=false some_failed=false early_exit=false
+  local exit_code
 
   # If necessary functions are not implemented: implement a dummy
   if ! declare -f __d__queue_hlp__install_item &>/dev/null; then
@@ -267,25 +268,32 @@ __queue_hlp__dinstall()
     if __queue_hlp__current_item can_be_installed; then
 
       # Item is considered not installed: install it
-      __d__queue_hlp__install_item; case $? in
-        0)  # Installed successfully
-            all_already_installed=false
-            all_failed=false
-            dstash -s set "$D_DPL_ITEM_STASH_KEY" "$D_DPL_ITEM_STASH_VALUE"
-            dprint_debug "Installed item '$D_DPL_ITEM_TITLE'"
-            ;;
-        1)  # Failed to install
-            all_newly_installed=false
-            all_already_installed=false
-            some_failed=true
-            dprint_debug "Failed to install item '$D_DPL_ITEM_TITLE'"
-            ;;
-        2)  # Item found to be invalid during installation
-            dprint_debug "Item '$D_DPL_ITEM_TITLE' found to be invalid" \
-              'during installation'
-            continue
-            ;;
+      __d__queue_hlp__install_item; exit_code=$?; case $exit_code in
+        0|3)  # Installed successfully
+              all_already_installed=false
+              all_failed=false
+              dstash -s set "$D_DPL_ITEM_STASH_KEY" "$D_DPL_ITEM_STASH_VALUE"
+              dprint_debug "Installed item '$D_DPL_ITEM_TITLE'"
+              ;;
+        1|4)  # Failed to install
+              all_newly_installed=false
+              all_already_installed=false
+              some_failed=true
+              dprint_debug "Failed to install item '$D_DPL_ITEM_TITLE'"
+              ;;
+        2)    # Item found to be invalid during installation
+              dprint_debug "Item '$D_DPL_ITEM_TITLE' found to be invalid" \
+                'during installation'
+              continue
+              ;;
       esac
+
+      # Check if early exit was requested and item is not last
+      if [ $exit_code -eq 3 -o $exit_code -eq 4 ] \
+        && (( D_DPL_ITEM_NUM < ( ${#D_DPL_QUEUE_MAIN[@]} - 1 ) ))
+      then
+        early_exit=true
+      fi
 
     elif $D_OPT_FORCE; then
 
@@ -293,25 +301,32 @@ __queue_hlp__dinstall()
       D_DPL_ITEM_IS_FORCED=true
 
       # Item is considered already installed, but user forces installation
-      __d__queue_hlp__install_item; case $? in
-        0)  # Re-installed successfully
-            all_newly_installed=false
-            all_failed=false
-            dstash -s set "$D_DPL_ITEM_STASH_KEY" "$D_DPL_ITEM_STASH_VALUE"
-            dprint_debug "Re-installed item '$D_DPL_ITEM_TITLE'"
-            ;;
-        1)  # Failed to re-install
-            all_newly_installed=false
-            all_already_installed=false
-            some_failed=true
-            dprint_debug "Failed to re-install item '$D_DPL_ITEM_TITLE'"
-            ;;
-        2)  # Item found to be invalid during installation
-            dprint_debug "Item '$D_DPL_ITEM_TITLE' found to be invalid" \
-              'during re-installation'
-            continue
-            ;;
+      __d__queue_hlp__install_item; exit_code=$?; case $exit_code in
+        0|3)  # Re-installed successfully
+              all_newly_installed=false
+              all_failed=false
+              dstash -s set "$D_DPL_ITEM_STASH_KEY" "$D_DPL_ITEM_STASH_VALUE"
+              dprint_debug "Re-installed item '$D_DPL_ITEM_TITLE'"
+              ;;
+        1|4)  # Failed to re-install
+              all_newly_installed=false
+              all_already_installed=false
+              some_failed=true
+              dprint_debug "Failed to re-install item '$D_DPL_ITEM_TITLE'"
+              ;;
+        2)    # Item found to be invalid during installation
+              dprint_debug "Item '$D_DPL_ITEM_TITLE' found to be invalid" \
+                'during re-installation'
+              continue
+              ;;
       esac
+
+      # Check if early exit was requested and item is not last
+      if [ $exit_code -eq 3 -o $exit_code -eq 4 ] \
+        && (( D_DPL_ITEM_NUM < ( ${#D_DPL_QUEUE_MAIN[@]} - 1 ) ))
+      then
+        early_exit=true
+      fi
 
     else
 
@@ -323,6 +338,9 @@ __queue_hlp__dinstall()
 
     # If made it to here, current item is deemed okay-ish
     good_items_exist=true
+
+    # If early exit is requested, break the cycle
+    $early_exit && break
   
   # Done iterating over items in deployment’s main queue
   done
@@ -331,6 +349,11 @@ __queue_hlp__dinstall()
   if ! $good_items_exist; then
     dprint_debug 'Not a single input item valid for installation'
     return 2
+  fi
+
+  # Check if early exit occurred
+  if $early_exit; then
+    dprint_skip -l 'Installation halted before all items were processed'
   fi
 
   # Return appropriately
@@ -354,7 +377,8 @@ __queue_hlp__dremove()
 {
   # Storage and status variables
   local all_newly_removed=true all_already_removed=true all_failed=true
-  local good_items_exist=false some_failed=false
+  local good_items_exist=false some_failed=false early_exit=false
+  local exit_code
 
   # If necessary functions are not implemented: implement a dummy
   if ! declare -f __d__queue_hlp__remove_item &>/dev/null; then
@@ -379,25 +403,32 @@ __queue_hlp__dremove()
     if __queue_hlp__current_item can_be_removed; then
 
       # Item is considered installed: remove it
-      __d__queue_hlp__remove_item; case $? in
-        0)  # Removed successfully
-            all_already_removed=false
-            all_failed=false
-            dstash -s unset "$D_DPL_ITEM_STASH_KEY"
-            dprint_debug "Removed item '$D_DPL_ITEM_TITLE'"
-            ;;
-        1)  # Failed to remove
-            all_newly_removed=false
-            all_already_removed=false
-            some_failed=true
-            dprint_debug "Failed to remove item '$D_DPL_ITEM_TITLE'"
-            ;;
-        2)  # Item found to be invalid during installation
-            dprint_debug "Item '$D_DPL_ITEM_TITLE' found to be invalid" \
-              'during removal'
-            continue
-            ;;
+      __d__queue_hlp__remove_item; exit_code=$?; case $exit_code in
+        0|3)  # Removed successfully
+              all_already_removed=false
+              all_failed=false
+              dstash -s unset "$D_DPL_ITEM_STASH_KEY"
+              dprint_debug "Removed item '$D_DPL_ITEM_TITLE'"
+              ;;
+        1|4)  # Failed to remove
+              all_newly_removed=false
+              all_already_removed=false
+              some_failed=true
+              dprint_debug "Failed to remove item '$D_DPL_ITEM_TITLE'"
+              ;;
+        2)    # Item found to be invalid during installation
+              dprint_debug "Item '$D_DPL_ITEM_TITLE' found to be invalid" \
+                'during removal'
+              continue
+              ;;
       esac
+
+      # Check if early exit was requested and item is not last
+      if [ $exit_code -eq 3 -o $exit_code -eq 4 ] \
+        && (( D_DPL_ITEM_NUM > 0 ))
+      then
+        early_exit=true
+      fi
 
     elif $D_OPT_FORCE; then
 
@@ -405,25 +436,32 @@ __queue_hlp__dremove()
       D_DPL_ITEM_IS_FORCED=true
 
       # Item is considered already not installed, but user forces removal
-      __d__queue_hlp__remove_item; case $? in
-        0)  # Re-removed successfully
-            all_newly_removed=false
-            all_failed=false
-            dstash -s unset "$D_DPL_ITEM_STASH_KEY"
-            dprint_debug "Re-removed item '$D_DPL_ITEM_TITLE'"
-            ;;
-        1)  # Failed to re-remove
-            all_newly_removed=false
-            all_already_removed=false
-            some_failed=true
-            dprint_debug "Failed to re-remove item '$D_DPL_ITEM_TITLE'"
-            ;;
-        2)  # Item found to be invalid during installation
-            dprint_debug "Item '$D_DPL_ITEM_TITLE' found to be invalid" \
-              'during re-removal'
-            continue
-            ;;
+      __d__queue_hlp__remove_item; exit_code=$?; case $exit_code in
+        0|3)  # Re-removed successfully
+              all_newly_removed=false
+              all_failed=false
+              dstash -s unset "$D_DPL_ITEM_STASH_KEY"
+              dprint_debug "Re-removed item '$D_DPL_ITEM_TITLE'"
+              ;;
+        1|4)  # Failed to re-remove
+              all_newly_removed=false
+              all_already_removed=false
+              some_failed=true
+              dprint_debug "Failed to re-remove item '$D_DPL_ITEM_TITLE'"
+              ;;
+        2)    # Item found to be invalid during installation
+              dprint_debug "Item '$D_DPL_ITEM_TITLE' found to be invalid" \
+                'during re-removal'
+              continue
+              ;;
       esac
+
+      # Check if early exit was requested and item is not last
+      if [ $exit_code -eq 3 -o $exit_code -eq 4 ] \
+        && (( D_DPL_ITEM_NUM > 0 ))
+      then
+        early_exit=true
+      fi
 
     else
 
@@ -435,6 +473,9 @@ __queue_hlp__dremove()
 
     # If made it to here, current item is deemed okay-ish
     good_items_exist=true
+
+    # If early exit is requested, break the cycle
+    $early_exit && break
   
   # Done iterating over items in deployment’s main queue
   done
@@ -443,6 +484,11 @@ __queue_hlp__dremove()
   if ! $good_items_exist; then
     dprint_debug 'Not a single input item valid for removal'
     return 2
+  fi
+
+  # Check if early exit occurred
+  if $early_exit; then
+    dprint_skip -l 'Removal halted before all items were processed'
   fi
 
   # Return appropriately

@@ -11,33 +11,6 @@ dcheck()    { __queue_hlp__dcheck;    }
 dinstall()  { __queue_hlp__dinstall;  }
 dremove()   { __queue_hlp__dremove;   }
 
-## List of globals used:
-#.  $D_DPL_QUEUE_MAIN       - Queue of deployment’s items (parts)
-#.  $D_DPL_ITEM_NUM         - Index of current item in $D_DPL_QUEUE_MAIN
-#.  $D_DPL_ITEM_TITLE       - Content of $D_DPL_QUEUE_MAIN for current item
-#.  $D_DPL_ITEM_STASH_KEY   - Stash key for current item
-#.  $D_DPL_ITEM_STASH_VALUE - Stash value for current item
-#.  $D_DPL_ITEM_IS_FORCED   - This variable is set to ‘true’ if installation/
-#.                            removal would not have been called for current 
-#.                            item if not for ‘--force’ option; otherwise 
-#.                            ‘false’
-
-## Exit codes and their meaning:
-#.  1 - Do not proceed with this deployment
-__d__queue_hlp__pre_process()
-{
-  :
-}
-
-## Global variable to set:
-#.  $D_DPL_ITEM_STASH_KEY - Custom stash key for current item
-## Exit codes and their meaning:
-#.  1 - Disable stashing for current item
-__d__queue_hlp__provide_stash_key()
-{
-  :
-}
-
 ## Exit codes and their meaning:
 #.  0 - Unknown
 #.  1 - Installed
@@ -49,16 +22,11 @@ __d__queue_hlp__item_is_installed()
 }
 
 ## Exit codes and their meaning:
-#.  1 - Do not proceed with this deployment
-__d__queue_hlp__post_process()
-{
-  :
-}
-
-## Exit codes and their meaning:
 #.  0 - Successfully installed
 #.  1 - Failed to install
 #.  2 - Invalid item
+#.  3 - Success: stop any further installations
+#.  4 - Failure: stop any further installations
 __d__queue_hlp__install_item()
 {
   :
@@ -68,6 +36,8 @@ __d__queue_hlp__install_item()
 #.  0 - Successfully removed
 #.  1 - Failed to remove
 #.  2 - Invalid item
+#.  3 - Success: stop any further removals
+#.  4 - Failure: stop any further removals
 __d__queue_hlp__remove_item()
 {
   :
