@@ -163,12 +163,14 @@ __process_manifest_of_current_dpl()
   for path_pattern in "${dpl_asset_patterns[@]}"; do
 
     # Check if pattern is intended as regex or solid path
-    if [[ $path_pattern == '* '* ]]; then
+    if [[ $path_pattern == '[*] '* ]] || [[ $path_pattern == '[regex] '* ]]
+    then
 
       # Pattern is regex
 
       # Clean up pattern
-      path_pattern="${path_pattern#'*'}"
+      path_pattern="${path_pattern#'[*]'}"
+      path_pattern="${path_pattern#'[regex]'}"
       path_pattern="$( printf '%s\n' "$path_pattern" | sed \
         -e 's/^[[:space:]]*//' )"
 

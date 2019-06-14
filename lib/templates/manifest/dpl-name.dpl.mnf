@@ -12,10 +12,11 @@
 #
 ## One path/pattern is written per line.
 #
-## For line to be interpreted as regular expression, it must begin with an 
-#. asterisk ('*') followed by at least one space. Within a regex, only four 
-#. special symbols are recognized: '[', ']', '*', and '?'. (In fact, under the 
-#. hood, the pattern is used as '-path' primary for 'find' utility.)
+## For line to be interpreted as regular expression, it must begin with '[*]' 
+#. or '[regex]' (both without quotes) followed by at least one space. Within a 
+#. regex, only four special symbols are recognized: '[', ']', '*', and '?'. 
+#. (In fact, under the hood, the pattern is used as '-path' primary for 'find' 
+#. utility.)
 #
 ## Note, that when an asset is listed as a regular path, its presence is 
 #. enforced by the framework, i.e., deployment will not work unless all such 
