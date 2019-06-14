@@ -239,23 +239,22 @@ __copy_asset()
 
     fi
 
-    # Destination is in place: push onto global containers
-    D_DPL_ASSET_RELPATHS+=( "$relative_path" )
-    D_DPL_ASSET_PATHS+=( "$dest_path" )
-
   else
 
     # Report error
     dprint_failure -l "Unreadable deployment asset: $src_path"
 
     # Nevertheless check if destination path exists (might be pre-copied)
-    if [ -e "$dest_path" ]; then
-      return 0
-    else
-      return 1
-    fi
+    if ! [ -e "$dest_path" ]; then return 1; fi
 
   fi
+
+  # Destination is in place: push onto global containers
+  D_DPL_ASSET_RELPATHS+=( "$relative_path" )
+  D_DPL_ASSET_PATHS+=( "$dest_path" )
+
+  # Return success
+  return 0
 }
 
 #>  __process_all_manifests_in_main_dir
