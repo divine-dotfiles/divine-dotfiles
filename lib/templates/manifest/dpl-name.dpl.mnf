@@ -1,0 +1,33 @@
+## This is an annotated example of an asset manifest. It is simply a list of 
+#. files required by a particular deployment.
+#
+## By default, manifest file must be placed next to deployment file and named 
+#. identically, except for changing ‘.dpl.sh’ suffix to ‘dpl.mnf’. 
+#. Alternatively, full path to manifest file may be provided in the root of 
+#. deployment file by assigning it to global variable $D_DPL_MNF_PATH.
+#
+## Paths to deployment assets must be written relative to deployment directory, 
+#. as recorded in $D_DPL_DIR. A path may be written explicitly, or using a 
+#. simplified regular expression.
+#
+## One path/pattern is written per line.
+#
+## For line to be interpreted as regular expression, it must begin with an 
+#. asterisk ('*') followed by at least one space. Within a regex, only four 
+#. special symbols are recognized: '[', ']', '*', and '?'. (In fact, under the 
+#. hood, the pattern is used as '-path' primary for 'find' utility.)
+#
+## Note, that when an asset is listed as a regular path, its presence is 
+#. enforced by the framework, i.e., deployment will not work unless all such 
+#. assets are present into deployment’s asset directory. However, when an asset 
+#. is listed as a regular expression, its presence is not enforced at all.
+#
+
+# Below are examples of regular assets:
+fileA.cfg
+fileB.cfg
+file/in/subdir
+
+# Below are examples of regex assets:
+* file[0-9].txt
+* some/*.files

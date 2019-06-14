@@ -153,7 +153,7 @@ __process_manifest_of_current_dpl()
 
   # Storage and status variables
   local path_pattern relative_path src_path dest_path dest_parent_path
-  local all_assets_readable=true all_assets_copied=true
+  local all_assets_copied=true
 
   # Start populating global variables
   D_DPL_ASSET_RELPATHS=()
@@ -162,59 +162,98 @@ __process_manifest_of_current_dpl()
   # Iterate over $dpl_asset_patterns entries
   for path_pattern in "${dpl_asset_patterns[@]}"; do
 
-    # Iterate over find results on that pattern
-    while IFS= read -r -d $'\0' src_path; do
+    # Check if pattern is intended as regex or solid path
+    if [[ $path_pattern == '* '* ]]; then
 
-      # Compose absolute paths
-      relative_path="${src_path#"$D_DPL_DIR/"}"
-      dest_path="$D_DPL_ASSETS_DIR/$relative_path"
+      # Pattern is regex
 
-      # Check if source is readable
-      if [ -r "$src_path" ]; then
+      # Clean up pattern
+      path_pattern="${path_pattern#'*'}"
+      path_pattern="$( printf '%s\n' "$path_pattern" | sed \
+        -e 's/^[[:space:]]*//' )"
 
-        # Check if destination path exists
-        if ! [ -e "$dest_path" ]; then
+      # Iterate over find results on that pattern
+      while IFS= read -r -d $'\0' src_path; do
 
-          # Compose destination’s parent path
-          dest_parent_path="$( dirname -- "$dest_path" )"
+        # Compose absolute paths
+        relative_path="${src_path#"$D_DPL_DIR/"}"
+        dest_path="$D_DPL_ASSETS_DIR/$relative_path"
 
-          # Ensure target directory is available
-          mkdir -p -- "$dest_parent_path" &>/dev/null || {
-            dprint_failure -l "Failed to create directory: $dest_parent_path"
-            all_assets_copied=false
-            continue
-          }
+        # Copy asset (for find results it is expected to always return 0)
+        __copy_asset "$relative_path" "$src_path" "$dest_path" \
+          || all_assets_copied=false
 
-          # Copy initial version to assets directory
-          cp -Rn -- "$src_path" "$dest_path" &>/dev/null || {
-            dprint_failure -l "Failed to copy: $src_path" -n "to: $dest_path"
-            all_assets_copied=false
-            continue
-          }
+      done < <( find -L "$D_DPL_DIR" -path "$D_DPL_DIR/$path_pattern" -print0 )
+    
+    else
 
-        fi
+      # Pattern is solid path
 
-        # Destination is in place: push onto global containers
-        D_DPL_ASSET_RELPATHS+=( "$relative_path" )
-        D_DPL_ASSET_PATHS+=( "$dest_path" )
-
-      else
-
-        # Report error
-        dprint_failure -l "Unreadable deployment asset: $src_path"
-        all_assets_readable=false
-
-        # Nevertheless check if destination path exists (might be pre-copied)
-        if ! [ -e "$dest_path" ]; then all_assets_copied=false; fi
-
-      fi
-
-    done < <( find -L "$D_DPL_DIR" -path "$D_DPL_DIR/$path_pattern" -print0 )
+      # Copy asset
+      __copy_asset "$path_pattern" "$D_DPL_DIR/$path_pattern" \
+        "$D_DPL_ASSETS_DIR/$path_pattern" || all_assets_copied=false
+    
+    fi
 
   done
 
-  # Return appropriate status
+  # Return appropriate code
   $all_assets_copied && return 0 || return 1
+}
+
+#>  __copy_asset REL_PATH SRC_PATH DEST_PATH
+#
+## Returns:
+#.  0 - Asset is in place as required
+#.  1 - Otherwise
+#
+__copy_asset()
+{
+  # Compose absolute paths
+  local relative_path="$1"; shift
+  local src_path="$1"; shift
+  local dest_path="$1"; shift
+
+  # Check if source is readable
+  if [ -r "$src_path" ]; then
+
+    # Check if destination path exists
+    if ! [ -e "$dest_path" ]; then
+
+      # Compose destination’s parent path
+      dest_parent_path="$( dirname -- "$dest_path" )"
+
+      # Ensure target directory is available
+      mkdir -p -- "$dest_parent_path" &>/dev/null || {
+        dprint_failure -l "Failed to create directory: $dest_parent_path"
+        return 1
+      }
+
+      # Copy initial version to assets directory
+      cp -Rn -- "$src_path" "$dest_path" &>/dev/null || {
+        dprint_failure -l "Failed to copy: $src_path" -n "to: $dest_path"
+        return 1
+      }
+
+    fi
+
+    # Destination is in place: push onto global containers
+    D_DPL_ASSET_RELPATHS+=( "$relative_path" )
+    D_DPL_ASSET_PATHS+=( "$dest_path" )
+
+  else
+
+    # Report error
+    dprint_failure -l "Unreadable deployment asset: $src_path"
+
+    # Nevertheless check if destination path exists (might be pre-copied)
+    if [ -e "$dest_path" ]; then
+      return 0
+    else
+      return 1
+    fi
+
+  fi
 }
 
 #>  __process_all_manifests_in_main_dir
