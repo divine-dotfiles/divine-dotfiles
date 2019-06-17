@@ -319,11 +319,18 @@ __glob_line()
   # Extract line from first argument
   local line="$1"; shift
 
-  # Skip empty and comment lines
-  [[ -z $line || $line == '#'* || $line == '//'* ]] && return 3
+  # Remove comments and whitespace on both edges
+  line="$( printf '%s\n' "$line" | sed \
+    -e 's/[#].*$//' \
+    -e 's|//.*$||' \
+    -e 's/^[[:space:]]*//' \
+    -e 's/[[:space:]]*$//' )"
+  
+  # Skip empty lines
+  [ -z "$line" ] && return 3
 
   # Check if starting a named section
-  if [[ $line =~ ^\ *\([A-Za-z0-9]+\)\ *$ ]]; then
+  if [[ $line =~ ^\([A-Za-z0-9]+\)$ ]]; then
 
     # Check if current OS/distro matches section title
     if [[ $line == *"(${OS_FAMILY})"* || $line == *"(${OS_DISTRO})"* ]]
@@ -338,13 +345,6 @@ __glob_line()
   # Check if we are still globbing
   local keep_globbing="$1"; shift
   $keep_globbing || return 3
-  
-  # Remove comments and whitespace on both edges
-  line="$( printf '%s\n' "$line" | sed \
-    -e 's/[#].*$//' \
-    -e 's|//.*$||' \
-    -e 's/^[[:space:]]*//' \
-    -e 's/[[:space:]]*$//' )"
   
   # Check if anything is left
   if [ -n "$line" ]; then
