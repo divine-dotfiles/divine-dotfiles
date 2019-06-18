@@ -12,7 +12,7 @@
 ## Helper function that prepares deployment’s assets
 #
 
-#>  __process_keyfiles_of_current_dpl
+#>  __process_manifests_of_current_dpl
 #
 ## Looks for asset manifest at $D_DPL_MNF_PATH and for main queue file at 
 #. $D_DPL_QUE_PATH. First, processes manifest (copies assets and fills global 
@@ -24,74 +24,19 @@
 #.  0 - Assets are successfully processed, while main queue is composed as best 
 #.      as possible
 #.  1 - Otherwise
-__process_keyfiles_of_current_dpl()
+__process_manifests_of_current_dpl()
 {
-  # First, process manifest of current deployment
-  __process_manifest_of_current_dpl || return 1
+  # First, process asset manifest of current deployment (must return zero)
+  __process_asset_manifest_of_current_dpl || return 1
 
-  # Then, check if main queue is already filled up
-  if [ ${#D_DPL_QUEUE_MAIN[@]} -gt 1 -o -n "$D_DPL_QUEUE_MAIN" ]; then
+  # Second, process queue manifest of current deployment (may fail freely)
+  __process_queue_manifest_of_current_dpl
 
-    # Main queue is already touched, nothing to do:
-    return 0
-
-  fi
-
-  # Main queue is not filled: try various methods
-
-  # Check if main queue file is readable
-  if [ -r "$D_DPL_QUE_PATH" -a -f "$D_DPL_QUE_PATH" ]; then
-
-    # Store current case sensitivity setting, then turn it off
-    local restore_nocasematch="$( shopt -p nocasematch )"
-    shopt -s nocasematch
-
-    # Storage variables
-    local line dpl_main_queue_items=() keep_globbing=true
-
-    # Read asset manifest line by line
-    while IFS='' read -r line || [ -n "$line" ]; do
-
-      # Glob line and check status
-      line="$( __glob_line "$line" "$keep_globbing" || exit $? )"; case $? in
-        0)  dpl_main_queue_items+=( "$line" );;
-        1)  keep_globbing=true;;
-        2)  keep_globbing=false;;
-        *)  :;;
-      esac
-
-    done <"$D_DPL_QUE_PATH"
-
-    # Restore case sensitivity
-    eval "$restore_nocasematch"
-
-    # Check if $dpl_main_queue_items has at least one entry
-    if [ ${#dpl_main_queue_items[@]} -gt 0 ]; then
-
-      # Assign collected items to main queue
-      D_DPL_QUEUE_MAIN=( "${dpl_main_queue_items[@]}" )
-    
-    fi
-
-  elif [ ${#D_DPL_ASSET_RELPATHS[@]} -gt 1 -o -n "$D_DPL_ASSET_RELPATHS" ]
-  then
-
-    D_DPL_QUEUE_MAIN=( "${D_DPL_ASSET_RELPATHS[@]}" )
-
-  elif [ ${#D_DPL_ASSET_PATHS[@]} -gt 1 -o -n "$D_DPL_ASSET_PATHS" ]
-  then
-
-    D_DPL_QUEUE_MAIN=( "${D_DPL_ASSET_PATHS[@]}" )
-
-  else
-
-    # No way to pre-fill main queue
-    return 0
-
-  fi
+  # If gotten here, return success
+  return 0
 }
 
-#>  __process_manifest_of_current_dpl
+#>  __process_asset_manifest_of_current_dpl
 #
 ## Looks for manifest file at path stored in $D_DPL_MNF_PATH. Reads it line by 
 #. line, ignores empty lines and lines starting with hash (‘#’) or double-slash 
@@ -116,7 +61,7 @@ __process_keyfiles_of_current_dpl()
 #.  0 - Task performed: all assets now exist in assets directory
 #.  1 - Otherwise
 #
-__process_manifest_of_current_dpl()
+__process_asset_manifest_of_current_dpl()
 {
   # Check if manifest is a readable file
   if ! [ -r "$D_DPL_MNF_PATH" -a -f "$D_DPL_MNF_PATH" ]; then
@@ -208,6 +153,92 @@ __process_manifest_of_current_dpl()
   $all_assets_copied && return 0 || return 1
 }
 
+#>  __process_queue_manifest_of_current_dpl
+#
+## Looks for manifest file at path stored in $D_DPL_QUE_PATH. Reads it line by 
+#. line, ignores empty lines and lines starting with hash (‘#’) or double-slash 
+#. (‘//’).
+#
+## All other lines are interpreted as textual main queue entries, with which it 
+#. populates the array $D_DPL_QUEUE_MAIN.
+#
+## If queue manifest is not available, tries two other methods: copying either 
+#. absolute or relative paths to asset files (attempts are made in that order).
+#
+## Requires:
+#.  $D_DPL_QUE_PATH     - Path to queue manifest file
+#
+## Provides into the global scope:
+#.  $D_DPL_QUEUE_MAIN   - Array of main queue entries
+#
+## Returns:
+#.  0 - Task performed: main queue is populated
+#.  1 - Otherwise
+#
+__process_queue_manifest_of_current_dpl()
+{
+  # Check if main queue is already filled up
+  if [ ${#D_DPL_QUEUE_MAIN[@]} -gt 1 -o -n "$D_DPL_QUEUE_MAIN" ]; then
+
+    # Main queue is already touched, nothing to do:
+    return 0
+
+  fi
+
+  # Main queue is not filled: try various methods
+
+  # Check if main queue file is readable
+  if [ -r "$D_DPL_QUE_PATH" -a -f "$D_DPL_QUE_PATH" ]; then
+
+    # Store current case sensitivity setting, then turn it off
+    local restore_nocasematch="$( shopt -p nocasematch )"
+    shopt -s nocasematch
+
+    # Storage variables
+    local line dpl_main_queue_items=() keep_globbing=true
+
+    # Read asset manifest line by line
+    while IFS='' read -r line || [ -n "$line" ]; do
+
+      # Glob line and check status
+      line="$( __glob_line "$line" "$keep_globbing" || exit $? )"; case $? in
+        0)  dpl_main_queue_items+=( "$line" );;
+        1)  keep_globbing=true;;
+        2)  keep_globbing=false;;
+        *)  :;;
+      esac
+
+    done <"$D_DPL_QUE_PATH"
+
+    # Restore case sensitivity
+    eval "$restore_nocasematch"
+
+    # Check if $dpl_main_queue_items has at least one entry
+    if [ ${#dpl_main_queue_items[@]} -gt 0 ]; then
+
+      # Assign collected items to main queue
+      D_DPL_QUEUE_MAIN=( "${dpl_main_queue_items[@]}" )
+    
+    fi
+
+  elif [ ${#D_DPL_ASSET_RELPATHS[@]} -gt 1 -o -n "$D_DPL_ASSET_RELPATHS" ]
+  then
+
+    D_DPL_QUEUE_MAIN=( "${D_DPL_ASSET_RELPATHS[@]}" )
+
+  elif [ ${#D_DPL_ASSET_PATHS[@]} -gt 1 -o -n "$D_DPL_ASSET_PATHS" ]
+  then
+
+    D_DPL_QUEUE_MAIN=( "${D_DPL_ASSET_PATHS[@]}" )
+
+  else
+
+    # No way to pre-fill main queue
+    return 1
+
+  fi
+}
+
 #>  __copy_asset REL_PATH SRC_PATH DEST_PATH
 #
 ## Returns:
@@ -262,10 +293,10 @@ __copy_asset()
   return 0
 }
 
-#>  __process_all_manifests_in_main_dir
+#>  __process_all_asset_manifests_in_main_dir
 #
 ## Processes every valid manifest file in a main deployments directory, using
-#. __process_manifest_of_current_dpl function.
+#. __process_asset_manifest_of_current_dpl function.
 #
 ## Requires:
 #.  $D_DPL_NAMES        - Array of taken deployment names
@@ -277,7 +308,7 @@ __copy_asset()
 #.  0 - Every manifest found is successfully processed
 #.  1 - At least one manifest caused problems
 #
-__process_all_manifests_in_main_dir()
+__process_all_asset_manifests_in_main_dir()
 {
   # Status and dtorage variables
   local name path manifest_path i
@@ -296,7 +327,7 @@ __process_all_manifests_in_main_dir()
     D_DPL_ASSETS_DIR="$D_FMWK_DIR_ASSETS/$name"
 
     # Do the deed
-    __process_manifest_of_current_dpl || all_good=false
+    __process_asset_manifest_of_current_dpl || all_good=false
 
   done
 

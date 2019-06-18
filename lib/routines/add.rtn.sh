@@ -359,7 +359,7 @@ __adding__attempt_github_repo()
 
     # Also, prepare any of the possible assets
     __merge_added_deployments "$perm_dest"
-    __process_all_manifests_in_main_dir
+    __process_all_asset_manifests_in_main_dir
 
     # All done: announce and return
     dprint_debug 'Successfully added Github-hosted deployments from:' \
@@ -476,7 +476,7 @@ __adding__attempt_local_repo()
 
     # Also, prepare any of the possible assets
     __merge_added_deployments "$perm_dest"
-    __process_all_manifests_in_main_dir
+    __process_all_asset_manifests_in_main_dir
 
     # All done: announce and return
     dprint_debug 'Successfully added local git-controlled deployments from:' \
@@ -563,7 +563,7 @@ __adding__attempt_local_dir()
 
   # Also, prepare any of the possible assets
   __merge_added_deployments "$perm_dest"
-  __process_all_manifests_in_main_dir
+  __process_all_asset_manifests_in_main_dir
 
   # All done: announce and return
   dprint_debug 'Successfully added local deployments directory at:' \

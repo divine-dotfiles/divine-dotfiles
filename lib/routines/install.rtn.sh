@@ -406,7 +406,7 @@ __install_dpls()
       source "$divinedpl_filepath"
 
       # Ensure all assets are copied and main queue is filled
-      __process_keyfiles_of_current_dpl || proceeding=false
+      __process_manifests_of_current_dpl || proceeding=false
 
     fi
 
