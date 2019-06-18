@@ -44,7 +44,7 @@
 #.    * priority: 4096 (default)
 #.    * packages: git
 #
-#>  300 pr) node | apt-get: nodejs npm
+#>  300 r) node | apt-get: nodejs npm
 #.      Means:
 #.    * priority: 300
 #.    * mode: ‘always prompt before removing’
@@ -52,13 +52,12 @@
 #.    * packages (anywhere else): node
 #
 ## For more complex installations, e.g., involving particular versions or 
-#. special package manager options, look at deployments. Sample deployment 
-#. files are available in lib/templates
+#. special package manager options, look at deployments
 #
 
 # Bread & butter
 300) git
 303) vim
 
-# zsh as an alternative shell
+# zsh, an alternative to Bash
 1000) zsh

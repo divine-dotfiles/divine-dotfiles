@@ -11,7 +11,7 @@
 #
 ## Helper functions for deployments based on template ‘link-files.dpl.sh’
 #
-## Replaces some files (e.g., config file) with symlinks to provided 
+## Replaces arbitrary files (e.g., config files) with symlinks to provided 
 #. replacements. Creates backup of each replaced file. Restores original set-up 
 #. on removal.
 #
@@ -45,9 +45,35 @@
 #
 __dln_hlp__dcheck()
 {
-  # Redirect functions
-  __d__queue_hlp__pre_process()       { __dln_hlp__pre_process;       }
+  # Redirect pre-processing
+  __d__queue_hlp__pre_process()
+  {
+    # Try user-provided helper
+    if declare -f __d__dln_hlp__pre_process &>/dev/null \
+      && ! __d__dln_hlp__pre_process
+    then
+      dprint_debug 'Queue pre-processing signaled error'
+      return 3
+    fi
+
+    # Redirect to built-in helper
+    __dln_hlp__pre_process
+  }
+
+  # Redirect item check to built-in helper
   __d__queue_hlp__item_is_installed() { __dln_hlp__item_is_installed; }
+
+  # Redirect post-processing
+  __d__queue_hlp__post_process()
+  {
+    # Try user-provided helper
+    if declare -f __d__dln_hlp__post_process &>/dev/null \
+      && ! __d__dln_hlp__post_process
+    then
+      dprint_debug 'Queue post-processing signaled error'
+      return 3
+    fi
+  }
 
   # Delegate to helper
   __queue_hlp__dcheck
@@ -73,8 +99,20 @@ __dln_hlp__dcheck()
 #
 __dln_hlp__dinstall()
 {
-  # Redirect functions
-  __d__queue_hlp__install_item()      { __dln_hlp__install_item;      }
+  # Redirect installation with optional pre-processing
+  __d__queue_hlp__install_item()
+  {
+    # Try user-provided helper
+    if declare -f __d__dln_hlp__install_item &>/dev/null \
+      && ! __d__dln_hlp__install_item
+    then
+      dprint_debug 'Pre-installation signaled error'
+      return 2
+    fi
+
+    # Redirect to built-in helper
+    __dln_hlp__install_item
+  }
 
   # Delegate to helper
   __queue_hlp__dinstall
@@ -100,8 +138,20 @@ __dln_hlp__dinstall()
 #
 __dln_hlp__dremove()
 {
-  # Redirect functions
-  __d__queue_hlp__remove_item()       { __dln_hlp__remove_item;       }
+  # Redirect removal with optional pre-processing
+  __d__queue_hlp__remove_item()
+  {
+    # Try user-provided helper
+    if declare -f __d__dln_hlp__remove_item &>/dev/null \
+      && ! __d__dln_hlp__remove_item
+    then
+      dprint_debug 'Pre-removal signaled error'
+      return 2
+    fi
+
+    # Redirect to built-in helper
+    __dln_hlp__remove_item
+  }
 
   # Delegate to helper
   __queue_hlp__dremove

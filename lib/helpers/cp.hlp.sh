@@ -11,9 +11,9 @@
 #
 ## Helper functions for deployments based on template ‘copy-files.dpl.sh’
 #
-## Copies provided files (e.g., font files) to provided locations (e.g., into 
-#. OS’s fonts directory). Pre-existing files at destination directory with same 
-#. name are backed up to backups directory and restored upon removal.
+## Copies arbitrary files (e.g., font files) to provided locations (e.g., into 
+#. OS’s fonts directory). Creates backup of each replaced file. Restores 
+#. original set-up on removal.
 #
 
 #>  __cp_hlp__dcheck
@@ -43,9 +43,35 @@
 #
 __cp_hlp__dcheck()
 {
-  # Redirect functions
-  __d__queue_hlp__pre_process()       { __cp_hlp__pre_process;        }
+  # Redirect pre-processing
+  __d__queue_hlp__pre_process()
+  {
+    # Try user-provided helper
+    if declare -f __d__cp_hlp__pre_process &>/dev/null \
+      && ! __d__cp_hlp__pre_process
+    then
+      dprint_debug 'Queue pre-processing signaled error'
+      return 3
+    fi
+
+    # Redirect to built-in helper
+    __cp_hlp__pre_process
+  }
+
+  # Redirect item check to built-in helper
   __d__queue_hlp__item_is_installed() { __cp_hlp__item_is_installed;  }
+
+  # Redirect post-processing
+  __d__queue_hlp__post_process()
+  {
+    # Try user-provided helper
+    if declare -f __d__cp_hlp__post_process &>/dev/null \
+      && ! __d__cp_hlp__post_process
+    then
+      dprint_debug 'Queue post-processing signaled error'
+      return 3
+    fi
+  }
 
   # Delegate to helper
   __queue_hlp__dcheck
@@ -70,8 +96,20 @@ __cp_hlp__dcheck()
 #
 __cp_hlp__dinstall()
 {
-  # Redirect functions
-  __d__queue_hlp__install_item()      { __cp_hlp__install_item;       }
+  # Redirect installation with optional pre-processing
+  __d__queue_hlp__install_item()
+  {
+    # Try user-provided helper
+    if declare -f __d__cp_hlp__install_item &>/dev/null \
+      && ! __d__cp_hlp__install_item
+    then
+      dprint_debug 'Pre-installation signaled error'
+      return 2
+    fi
+
+    # Redirect to built-in helper
+    __cp_hlp__install_item
+  }
 
   # Delegate to helper
   __queue_hlp__dinstall
@@ -96,8 +134,20 @@ __cp_hlp__dinstall()
 #
 __cp_hlp__dremove()
 {
-  # Redirect functions
-  __d__queue_hlp__remove_item()       { __cp_hlp__remove_item;        }
+  # Redirect removal with optional pre-processing
+  __d__queue_hlp__remove_item()
+  {
+    # Try user-provided helper
+    if declare -f __d__cp_hlp__remove_item &>/dev/null \
+      && ! __d__cp_hlp__remove_item
+    then
+      dprint_debug 'Pre-removal signaled error'
+      return 2
+    fi
+
+    # Redirect to built-in helper
+    __cp_hlp__remove_item
+  }
 
   # Delegate to helper
   __queue_hlp__dremove

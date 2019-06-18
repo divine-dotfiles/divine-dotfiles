@@ -12,6 +12,12 @@
 #
 ## One path/pattern is written per line.
 #
+## A line consisting of a word enclosed in parentheses is a section head. Lines 
+#. in a section are only considered if the heading matches current OS family or 
+#. distribution ($OS_FAMILY & $OS_DISTRO, see dos.utl.sh for reference). Lines 
+#. that are not restricted to a particular OS should appear before any section 
+#. head.
+#
 ## For line to be interpreted as regular expression, it must begin with '[*]' 
 #. or '[regex]' (both without quotes) followed by at least one space. Within a 
 #. regex, only four special symbols are recognized: '[', ']', '*', and '?'. 
@@ -30,5 +36,10 @@ fileB.cfg
 file/in/subdir
 
 # Below are examples of regex assets:
-* file[0-9].txt
-* some/*.files
+[*]     file[0-9].txt
+[regex] some/*.files
+
+
+(debian) # Section head (lines below are only considered on Debian)
+        file-only-on-debian.ext
+[*]     dir/only/on/*.debian
