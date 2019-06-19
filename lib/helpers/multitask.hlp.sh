@@ -257,10 +257,13 @@ __catch_dinstall_code()
           ;;
     100)  # Emergency: reboot needed
           return 100
+          ;;
     101)  # Emergency: user attention needed
           return 101
+          ;;
     666)  # Emergency: critical failure
           return 666
+          ;;
     *)    # Installed: flip flags
           for i in 1 2; do D_DPL_TASK_STATUS_SUMMARY[$i]=false; done
           ;;
@@ -390,10 +393,13 @@ __catch_dremove_code()
           ;;
     100)  # Emergency: reboot needed
           return 100
+          ;;
     101)  # Emergency: user attention needed
           return 101
+          ;;
     666)  # Emergency: critical failure
           return 666
+          ;;
     *)    # Installed: flip flags
           for i in 1 2; do D_DPL_TASK_STATUS_SUMMARY[$i]=false; done
           ;;
