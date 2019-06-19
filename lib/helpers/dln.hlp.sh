@@ -49,11 +49,8 @@ __dln_hlp__dcheck()
   __d__queue_hlp__pre_process()
   {
     # Try user-provided helper
-    if declare -f __d__dln_hlp__pre_process &>/dev/null \
-      && ! __d__dln_hlp__pre_process
-    then
-      dprint_debug 'Queue pre-processing signaled error'
-      return 3
+    if declare -f __d__dln_hlp__pre_process &>/dev/null; then
+      __d__dln_hlp__pre_process || return 1
     fi
 
     # Redirect to built-in helper
@@ -67,11 +64,10 @@ __dln_hlp__dcheck()
   __d__queue_hlp__post_process()
   {
     # Try user-provided helper
-    if declare -f __d__dln_hlp__post_process &>/dev/null \
-      && ! __d__dln_hlp__post_process
-    then
-      dprint_debug 'Queue post-processing signaled error'
-      return 3
+    if declare -f __d__dln_hlp__post_process &>/dev/null; then
+      __d__dln_hlp__post_process
+    else
+      :
     fi
   }
 
@@ -199,6 +195,9 @@ __dln_hlp__pre_process()
     return 1
     
   fi
+
+  # Return
+  return 0
 }
 
 __dln_hlp__item_is_installed()
@@ -210,13 +209,32 @@ __dln_hlp__item_is_installed()
 
   # Check if original and replacement paths are both not empty
   [ -n "$target_path" -a -n "$asset_path" ] || {
-    dprint_debug "Skipped an unworkable asset: $D_DPL_ITEM_TITLE"
+
+    # Compose debug output
+    local output
+    if [ -z "$target_path" ]; then
+      if [ -z "$asset_path" ]; then
+        output='empty paths for asset and target'
+      else
+        output='empty target path'
+      fi
+    else
+      if [ -z "$asset_path" ]; then
+        output='empty asset path'
+      else
+        :
+      fi
+    fi
+
+    # Report and return
+    dprint_debug "$D_DPL_ITEM_TITLE: $output"
     return 3
+    
   }
 
   # If replacement file/dir is not readable, skip it
   [ -r "$asset_path" ] || {
-    dprint_debug "Skipped an unreadable asset at: $asset_path"
+    dprint_debug "Unreadable asset at: $asset_path"
     return 3
   }
 
@@ -224,6 +242,7 @@ __dln_hlp__item_is_installed()
   if dln -?q -- "$asset_path" "$target_path" "$backup_path"; then
 
     # Replacement is installed with backup
+    # dprint_debug "Backup stored at: $backup_path"
     return 1
 
   else
@@ -241,12 +260,11 @@ __dln_hlp__item_is_installed()
       # Check if backup path exists, which would be abnormal
       if [ -e "$backup_path" ]; then
 
-        # Report abnormal configuration
-        dprint_debug 'Despite lack of symlink from:' \
-          "$target_path" -n "to: $asset_path" \
-          -n "backup exists at: $backup_path" \
-          -n '(Force remove to restore orphaned backups)'
-
+        # Report not installed with orphaned backup
+        dprint_debug "Orphaned backup: $backup_path" \
+          -n "of target path: $target_path"
+          -n "(force-remove to restore)"
+        
       fi
 
       # Return appropriate status
@@ -273,8 +291,9 @@ __dln_hlp__install_item()
   else
 
     # Report and return
-    dprint_debug "Failed to replace path at: $target_path" \
-      -n "with symlink to: $asset_path"
+    dprint_debug 'Error on creating symlink' \
+      -n "from: $target_path" -n "to: $asset_path" \
+      -n 'and backing up to:' -i "$backup_path"
     return 1
 
   fi
@@ -294,14 +313,15 @@ __dln_hlp__remove_item()
     if dln -fr -- "$asset_path" "$target_path" "$backup_path"; then
 
       # Return success
+      # dprint_debug "Backup restored to: $target_path"
       return 0
 
     else
 
       # Report and return failure
-      dprint_debug "Failed to undo replacement of: $target_path" \
-        -n "with symlink to: $asset_path" \
-        -n "and restore backup from: $backup_path"
+      dprint_debug 'Error on removing symlink' \
+          -n "from: $target_path" -n "to: $asset_path" \
+          -n 'and restoring backup from:' -i "$backup_path"
       return 1
 
     fi
@@ -320,8 +340,8 @@ __dln_hlp__remove_item()
       else
 
         # Report and return failure
-        dprint_debug 'Failed to undo replacement of:' "$target_path" \
-          -n 'with symlink to:' "$asset_path" -n '(no backup detected)'
+        dprint_debug 'Error on removing symlink' \
+          -n "from: $target_path" -n "to: $asset_path"
         return 1
 
       fi
@@ -337,8 +357,8 @@ __dln_hlp__remove_item()
     if ! rm -rf -- "$target_path"; then
 
       # Report and return failure
-      dprint_debug "Failed to clobber original path at: $target_path" \
-        -n "while restoring backup from: $backup_path"
+      dprint_debug 'Error on clobbering path:' \
+        -n "$target_path" -n "while restoring orphaned backup"
       return 1
 
     fi
@@ -347,15 +367,14 @@ __dln_hlp__remove_item()
     if mv -n -- "$backup_path" "$target_path"; then
 
       # Report and return success
-      dprint_debug "Restored orphaned backup from: $backup_path" \
-        -n "to its original location at: $target_path"
+      dprint_debug "Restored orphaned backup to: $target_path"
       return 0
     
     else
 
       # Report and return failure
-      dprint_debug "Failed to move orphaned backup from: $backup_path" \
-        -n "to its original location at: $target_path"
+      dprint_debug 'Error on moving orphaned backup' \
+        -n "from: $backup_path" -n "to: $backup_path"
       return 1
 
     fi
@@ -363,6 +382,6 @@ __dln_hlp__remove_item()
   fi
 
   # Otherwise, there is nothing to do with this item
-  dprint_debug "Nothing to remove/restore for item: $D_DPL_ITEM_TITLE"
+  dprint_debug "$D_DPL_ITEM_TITLE: Nothing to remove/restore"
   return 0
 }

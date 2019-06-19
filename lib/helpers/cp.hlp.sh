@@ -47,11 +47,8 @@ __cp_hlp__dcheck()
   __d__queue_hlp__pre_process()
   {
     # Try user-provided helper
-    if declare -f __d__cp_hlp__pre_process &>/dev/null \
-      && ! __d__cp_hlp__pre_process
-    then
-      dprint_debug 'Queue pre-processing signaled error'
-      return 3
+    if declare -f __d__cp_hlp__pre_process &>/dev/null; then
+      __d__cp_hlp__pre_process || return 1
     fi
 
     # Redirect to built-in helper
@@ -65,11 +62,10 @@ __cp_hlp__dcheck()
   __d__queue_hlp__post_process()
   {
     # Try user-provided helper
-    if declare -f __d__cp_hlp__post_process &>/dev/null \
-      && ! __d__cp_hlp__post_process
-    then
-      dprint_debug 'Queue post-processing signaled error'
-      return 3
+    if declare -f __d__cp_hlp__post_process &>/dev/null; then
+      __d__cp_hlp__post_process
+    else
+      :
     fi
   }
 
@@ -195,6 +191,9 @@ __cp_hlp__pre_process()
     return 1
 
   fi
+
+  # Return
+  return 0
 }
 
 __cp_hlp__item_is_installed()
@@ -206,36 +205,52 @@ __cp_hlp__item_is_installed()
 
   # Check if source and destination paths are both not empty
   [ -n "$to_path" -a -n "$from_path" ] || {
-    dprint_debug "Skipped an unworkable asset: $D_DPL_ITEM_TITLE" \
-      -n "Source path: $from_path" \
-      -n "Destination path: $to_path"
+
+    # Compose debug output
+    local output
+    if [ -z "$from_path" ]; then
+      if [ -z "$to_path" ]; then
+        output='empty paths for source and destination'
+      else
+        output='empty source path'
+      fi
+    else
+      if [ -z "$to_path" ]; then
+        output='empty destination path'
+      else
+        :
+      fi
+    fi
+
+    # Report and return
+    dprint_debug "$D_DPL_ITEM_TITLE: $output"
     return 3
+
   }
 
   # If source filepath is not readable, skip it
   [ -r "$from_path" ] || {
-    dprint_debug "Skipped an unreadable asset at: $from_path"
+    dprint_debug "Unreadable source at: $from_path"
     return 3
   }
 
   # Check if there is a copy at destination path
   if [ -e "$to_path" ]; then
 
-    # Destination exists, so it is assumed to have been copied
+    # Destination exists, so it is assumed installed
     return 1
   
   else
 
-    # Destination does not exist, so it is assumed to have not been copied
+    # Destination does not exist, so it is assumed not installed
     
     # Check if backup path exists, which would be abnormal
-    if [ -r "$backup_path" ]; then
+    if [ -e "$backup_path" ]; then
 
       # Report abnormal configuration
-      dprint_debug 'Despite lack of copy of original from:' \
-        "$target_path" -n "to: $asset_path" \
-        -n "backup exists at: $backup_path" \
-        -n '(Force remove to restore orphaned backups)'
+      dprint_debug "Orphaned backup: $backup_path" \
+        -n "of target path: $to_path"
+        -n "(force-remove to restore)"
 
     fi
 
@@ -263,9 +278,8 @@ __cp_hlp__install_item()
       if ! rm -rf -- "$backup_path"; then
 
         # Failed to clobber pre-existing backup: abandon this copying
-        dprint_debug "Failed to clobber backup at: $backup_path" \
-          -n "of destination path at: $to_path" \
-          -n '(Skipping this source/destination pair)'
+        dprint_debug 'Error on clobbering path:' \
+          -n "$backup_path" -n "while removing old backup"
         return 1
       
       fi
@@ -276,9 +290,8 @@ __cp_hlp__install_item()
     if ! mv -n -- "$to_path" "$backup_path"; then
 
       # Failed to back up destination path: abandon this copying
-      dprint_debug "Failed to back up destination path at: $to_path" \
-        -n "to: $backup_path" \
-        -n '(Skipping this source/destination pair)'
+      dprint_debug 'Error on moving pre-existing target' \
+        -n "from: $to_path" -n "to: $backup_path"
       return 1
 
     fi
@@ -305,9 +318,8 @@ __cp_hlp__install_item()
       if [ $? -ne 0 ]; then
 
         # Failed to create destination parent dir: abandon this copying
-        dprint_debug 'Failed to create destination parent directory:' \
-          -i "$to_parent_dir" \
-          -n '(Skipping this source/destination pair)'
+        dprint_debug 'Error on creating parent destination directory:' \
+          -i "$to_parent_dir"
         return 1
 
       fi
@@ -332,7 +344,8 @@ __cp_hlp__install_item()
   else
 
     # Report and return failure
-    dprint_debug "Failed to copy from: $from_path" -n "to: $to_path"
+    dprint_debug 'Error on copying asset' \
+      -n "from: $from_path" -n "to: $to_path"
     return 1
 
   fi
@@ -366,9 +379,8 @@ __cp_hlp__remove_item()
     if [ $? -ne 0 ]; then
 
       # Failed to create destination parent dir: abandon this copying
-      dprint_debug 'Failed to create destination parent directory:' \
-        -i "$to_parent_dir" \
-        -n '(Skipping this source/destination pair)'
+      dprint_debug 'Error on creating parent destination directory:' \
+        -i "$to_parent_dir"
       return 1
 
     fi
@@ -389,8 +401,8 @@ __cp_hlp__remove_item()
     if [ $? -ne 0 ]; then
 
       # Report and return failure
-      dprint_debug "Failed to erase destination path: $to_path" \
-        -n "that corresponds to source path: $from_path"
+      dprint_debug 'Error on clobbering destination path:' \
+        -n "$to_path"
       return 1
 
     fi
@@ -411,8 +423,8 @@ __cp_hlp__remove_item()
     if [ $? -ne 0 ]; then
 
       # Report and return failure
-      dprint_debug "Failed to move backup: $backup_path" \
-        -n "to its original location at: $to_path"
+      dprint_debug 'Error on moving backup' \
+        -n "from: $backup_path" -n "to: $to_path"
       return 1
     
     fi
