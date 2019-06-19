@@ -53,7 +53,7 @@ __queue_hlp__dcheck()
   fi
 
   # Announce checking
-  dprint_debug 'Checking queue items'
+  dprint_debug -n 'Checking queue items'
 
   # Iterate over items in deployment’s main queue
   for (( D_DPL_ITEM_NUM=0; \
@@ -258,7 +258,7 @@ __queue_hlp__dinstall()
   fi
 
   # Announce installing
-  dprint_debug 'Installing queue items'
+  dprint_debug -n 'Installing queue items'
 
   # Iterate over items in deployment’s main queue
   for (( D_DPL_ITEM_NUM=0; \
@@ -394,7 +394,7 @@ __queue_hlp__dremove()
   fi
 
   # Announce removing
-  dprint_debug 'Removing queue items'
+  dprint_debug -n 'Removing queue items'
 
   # Iterate over items in deployment’s main queue
   for (( D_DPL_ITEM_NUM=${#D_DPL_QUEUE_MAIN[@]}-1; \
