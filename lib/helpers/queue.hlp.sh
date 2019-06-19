@@ -555,6 +555,10 @@ __queue_hlp__current_item()
 #
 debug_queue_item()
 {
+  local width=24
   local title="$1"; shift
-  dprint_debug "${title:0:24}: $D_DPL_ITEM_TITLE" "$@"
+  if [ ${#title} -le $width ]; then
+    title="$( printf "%-${width}s" "$title" )"
+  fi
+  dprint_debug "${title:0:$width}: $D_DPL_ITEM_TITLE" "$@"
 }
