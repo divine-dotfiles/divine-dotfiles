@@ -546,6 +546,7 @@ __populate_globals()
     "helper queue" \
     "helper dln" \
     "helper cp" \
+    "helper multitask" \
     "helper assets" \
   ); readonly D_QUEUE_DEPENDENCIES
 
