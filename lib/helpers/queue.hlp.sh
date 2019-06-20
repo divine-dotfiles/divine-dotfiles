@@ -78,7 +78,7 @@ __queue_hlp__dcheck()
   fi
 
   # Announce checking
-  dprint_debug -n "Checking queue items $min-$max"
+  dprint_debug -n "Checking queue items $min-$max (queue section #$secnum)"
 
   # Iterate over items in deployment’s main queue
   for (( D_DPL_ITEM_NUM=$min; D_DPL_ITEM_NUM<$max; D_DPL_ITEM_NUM++ )); do
@@ -306,7 +306,7 @@ __queue_hlp__dinstall()
   fi
 
   # Announce checking
-  dprint_debug -n "Installing queue items $min-$max"
+  dprint_debug -n "Installing queue items $min-$max (queue section #$secnum)"
 
   # Iterate over items in deployment’s main queue
   for (( D_DPL_ITEM_NUM=$min; D_DPL_ITEM_NUM<$max; D_DPL_ITEM_NUM++ )); do
@@ -477,7 +477,7 @@ __queue_hlp__dremove()
   fi
 
   # Announce checking
-  dprint_debug -n "Removing queue items $min-$max"
+  dprint_debug -n "Removing queue items $min-$max (queue section #$secnum)"
 
   # Iterate over items in deployment’s main queue (in reverse order)
   for (( D_DPL_ITEM_NUM=$max-1; D_DPL_ITEM_NUM>=$min; D_DPL_ITEM_NUM-- )); do
