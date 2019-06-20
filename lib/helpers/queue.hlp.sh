@@ -44,8 +44,6 @@ __queue_hlp__dcheck()
   local item_stash_key
 
   # Global storage variables
-  D_DPL_QUEUE_FLAGS=()
-  D_DPL_QUEUE_STASH_KEYS=()
   D_USER_OR_OS=true
 
   # If necessary functions are not implemented: implement a dummy
