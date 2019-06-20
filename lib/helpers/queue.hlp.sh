@@ -14,6 +14,13 @@
 
 __queue_hlp__dcheck()
 {
+  # Initialize or increment section number
+  if [ -z ${D_DPL_QUEUE_CURRENT_SECTION_NUM+isset} ]; then
+    D_DPL_QUEUE_CURRENT_SECTION_NUM=( 0 0 )
+  else
+    (( ++D_DPL_QUEUE_CURRENT_SECTION_NUM[0] ))
+  fi
+
   # Launch pre-processing if it is implemented
   if declare -f __d__queue_hlp__pre_process &>/dev/null \
     && ! __d__queue_hlp__pre_process
@@ -52,13 +59,31 @@ __queue_hlp__dcheck()
     __d__queue_hlp__post_process() { :; }
   fi
 
+  # Calculate section edges
+  local min max secnum=${D_DPL_QUEUE_CURRENT_SECTION_NUM[0]}
+
+  # Calculate low edge
+  if [ $secnum -eq 0 ]; then min=0
+  else
+    if [[ ${D_DPL_QUEUE_SEPARATORS[$secnum]} =~ ^[0-9]+$ ]]; then
+      min=${#D_DPL_QUEUE_MAIN[@]}
+    else
+      min=${D_DPL_QUEUE_SEPARATORS[$secnum]}
+    fi
+  fi
+
+  # Calculate high edge
+  if [[ ${D_DPL_QUEUE_SEPARATORS[$secnum + 1]} =~ ^[0-9]+$ ]]; then
+    max=${#D_DPL_QUEUE_MAIN[@]}
+  else
+    max=${D_DPL_QUEUE_SEPARATORS[$secnum + 1]}
+  fi
+
   # Announce checking
-  dprint_debug -n 'Checking queue items'
+  dprint_debug -n "Checking queue items $min-$max"
 
   # Iterate over items in deployment’s main queue
-  for (( D_DPL_ITEM_NUM=0; \
-    D_DPL_ITEM_NUM<${#D_DPL_QUEUE_MAIN[@]}; \
-    D_DPL_ITEM_NUM++ )); do
+  for (( D_DPL_ITEM_NUM=$min; D_DPL_ITEM_NUM<$max; D_DPL_ITEM_NUM++ )); do
 
     # Prepare global variables
     D_DPL_ITEM_TITLE="${D_DPL_QUEUE_MAIN[$D_DPL_ITEM_NUM]}"
@@ -247,6 +272,13 @@ __queue_hlp__dcheck()
 
 __queue_hlp__dinstall()
 {
+  # Initialize or increment section number
+  if [ -z ${D_DPL_QUEUE_CURRENT_SECTION_NUM+isset} ]; then
+    D_DPL_QUEUE_CURRENT_SECTION_NUM=( 0 0 )
+  else
+    (( ++D_DPL_QUEUE_CURRENT_SECTION_NUM[1] ))
+  fi
+
   # Storage and status variables
   local all_newly_installed=true all_already_installed=true all_failed=true
   local good_items_exist=false some_failed=false early_exit=false
@@ -257,13 +289,31 @@ __queue_hlp__dinstall()
     __d__queue_hlp__install_item() { :; }
   fi
 
-  # Announce installing
-  dprint_debug -n 'Installing queue items'
+  # Calculate section edges
+  local min max secnum=${D_DPL_QUEUE_CURRENT_SECTION_NUM[1]}
+
+  # Calculate low edge
+  if [ $secnum -eq 0 ]; then min=0
+  else
+    if [[ ${D_DPL_QUEUE_SEPARATORS[$secnum]} =~ ^[0-9]+$ ]]; then
+      min=${#D_DPL_QUEUE_MAIN[@]}
+    else
+      min=${D_DPL_QUEUE_SEPARATORS[$secnum]}
+    fi
+  fi
+
+  # Calculate high edge
+  if [[ ${D_DPL_QUEUE_SEPARATORS[$secnum + 1]} =~ ^[0-9]+$ ]]; then
+    max=${#D_DPL_QUEUE_MAIN[@]}
+  else
+    max=${D_DPL_QUEUE_SEPARATORS[$secnum + 1]}
+  fi
+
+  # Announce checking
+  dprint_debug -n "Installing queue items $min-$max"
 
   # Iterate over items in deployment’s main queue
-  for (( D_DPL_ITEM_NUM=0; \
-    D_DPL_ITEM_NUM<${#D_DPL_QUEUE_MAIN[@]}; \
-    D_DPL_ITEM_NUM++ )); do
+  for (( D_DPL_ITEM_NUM=$min; D_DPL_ITEM_NUM<$max; D_DPL_ITEM_NUM++ )); do
 
     # If queue item is invalid: skip silently
     if __queue_hlp__current_item is_invalid; then continue; fi
@@ -395,6 +445,13 @@ __queue_hlp__dinstall()
 
 __queue_hlp__dremove()
 {
+  # Initialize or increment section number
+  if [ -z ${D_DPL_QUEUE_CURRENT_SECTION_NUM+isset} ]; then
+    D_DPL_QUEUE_CURRENT_SECTION_NUM=( 0 0 )
+  else
+    (( ++D_DPL_QUEUE_CURRENT_SECTION_NUM[1] ))
+  fi
+
   # Storage and status variables
   local all_newly_removed=true all_already_removed=true all_failed=true
   local good_items_exist=false some_failed=false early_exit=false
@@ -405,13 +462,31 @@ __queue_hlp__dremove()
     __d__queue_hlp__remove_item() { :; }
   fi
 
-  # Announce removing
-  dprint_debug -n 'Removing queue items'
+  # Calculate section edges
+  local min max secnum=${D_DPL_QUEUE_CURRENT_SECTION_NUM[1]}
 
-  # Iterate over items in deployment’s main queue
-  for (( D_DPL_ITEM_NUM=${#D_DPL_QUEUE_MAIN[@]}-1; \
-    D_DPL_ITEM_NUM>=0; \
-    D_DPL_ITEM_NUM-- )); do
+  # Calculate low edge
+  if [ $secnum -eq 0 ]; then min=0
+  else
+    if [[ ${D_DPL_QUEUE_SEPARATORS[$secnum]} =~ ^[0-9]+$ ]]; then
+      min=${#D_DPL_QUEUE_MAIN[@]}
+    else
+      min=${D_DPL_QUEUE_SEPARATORS[$secnum]}
+    fi
+  fi
+
+  # Calculate high edge
+  if [[ ${D_DPL_QUEUE_SEPARATORS[$secnum + 1]} =~ ^[0-9]+$ ]]; then
+    max=${#D_DPL_QUEUE_MAIN[@]}
+  else
+    max=${D_DPL_QUEUE_SEPARATORS[$secnum + 1]}
+  fi
+
+  # Announce checking
+  dprint_debug -n "Removing queue items $min-$max"
+
+  # Iterate over items in deployment’s main queue (in reverse order)
+  for (( D_DPL_ITEM_NUM=$max-1; D_DPL_ITEM_NUM>=$min; D_DPL_ITEM_NUM-- )); do
 
     # If queue item is invalid: skip silently
     if __queue_hlp__current_item is_invalid; then continue; fi
@@ -585,4 +660,31 @@ debug_queue_item()
     title="$( printf "%-${width}s" "$title" )"
   fi
   dprint_debug "${title:0:$width}: $D_DPL_ITEM_TITLE" "$@"
+}
+
+#>  __split_queue [POSITION]
+#
+## Adds a separation point into the queue either at current length (to continue 
+#. populating the next section of the queue), or at a given length. Queue 
+#. helpers process first available queue segment and move to the next one only 
+#. on next iteration.
+#
+__split_queue()
+{
+  # Grab argument
+  local position="$1"; shift
+
+  # Flip debug flag
+  D_DPL_QUEUE_IS_SPLIT=true
+
+  # Check if argument is numeric and less than current queue length
+  if [[ $position =~ ^[0-9]+$ ]] && [ $position -lt ${#D_DPL_QUEUE_MAIN[@]} ]
+  then
+    D_DPL_QUEUE_SEPARATORS+=( $position )
+    return 0
+  fi
+
+  # Otherwise, just add separation point at current queue length
+  D_DPL_QUEUE_SEPARATORS+=( ${#D_DPL_QUEUE_MAIN[@]} )
+  return 0
 }
