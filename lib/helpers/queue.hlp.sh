@@ -270,9 +270,21 @@ __queue_hlp__dinstall()
 
     # Prepare global variables
     D_DPL_ITEM_TITLE="${D_DPL_QUEUE_MAIN[$D_DPL_ITEM_NUM]}"
-    D_DPL_ITEM_STASH_KEY="${D_DPL_QUEUE_STASH_KEYS[$D_DPL_ITEM_NUM]}"
-    D_DPL_ITEM_STASH_VALUE="$( dstash -s get "$D_DPL_ITEM_STASH_KEY" )"
     D_DPL_ITEM_IS_FORCED=false
+    if __queue_hlp__current_item uses_stash; then
+      D_DPL_ITEM_STASH_KEY="${D_DPL_QUEUE_STASH_KEYS[$D_DPL_ITEM_NUM]}"
+      if dstash -s has "$D_DPL_ITEM_STASH_KEY"; then
+        D_DPL_ITEM_STASH_FLAG=true
+        D_DPL_ITEM_STASH_VALUE="$( dstash -s get "$D_DPL_ITEM_STASH_KEY" )"
+      else
+        D_DPL_ITEM_STASH_FLAG=false
+        D_DPL_ITEM_STASH_VALUE=
+      fi
+    else
+      unset D_DPL_ITEM_STASH_KEY
+      unset D_DPL_ITEM_STASH_FLAG
+      unset D_DPL_ITEM_STASH_VALUE
+    fi
 
     # Perform an action based on options available
     if __queue_hlp__current_item can_be_installed; then
@@ -406,9 +418,21 @@ __queue_hlp__dremove()
 
     # Prepare global variables
     D_DPL_ITEM_TITLE="${D_DPL_QUEUE_MAIN[$D_DPL_ITEM_NUM]}"
-    D_DPL_ITEM_STASH_KEY="${D_DPL_QUEUE_STASH_KEYS[$D_DPL_ITEM_NUM]}"
-    D_DPL_ITEM_STASH_VALUE="$( dstash -s get "$D_DPL_ITEM_STASH_KEY" )"
     D_DPL_ITEM_IS_FORCED=false
+    if __queue_hlp__current_item uses_stash; then
+      D_DPL_ITEM_STASH_KEY="${D_DPL_QUEUE_STASH_KEYS[$D_DPL_ITEM_NUM]}"
+      if dstash -s has "$D_DPL_ITEM_STASH_KEY"; then
+        D_DPL_ITEM_STASH_FLAG=true
+        D_DPL_ITEM_STASH_VALUE="$( dstash -s get "$D_DPL_ITEM_STASH_KEY" )"
+      else
+        D_DPL_ITEM_STASH_FLAG=false
+        D_DPL_ITEM_STASH_VALUE=
+      fi
+    else
+      unset D_DPL_ITEM_STASH_KEY
+      unset D_DPL_ITEM_STASH_FLAG
+      unset D_DPL_ITEM_STASH_VALUE
+    fi
 
     # Perform an action based on options available
     if __queue_hlp__current_item can_be_removed; then

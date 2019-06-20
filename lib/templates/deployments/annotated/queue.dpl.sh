@@ -42,8 +42,7 @@ D_DPL_WARNING=
 #.  $D_DPL_ITEM_TITLE       - Content of $D_DPL_QUEUE_MAIN for current item
 #.  $D_DPL_ITEM_STASH_KEY   - Stash key for current item
 #.  $D_DPL_ITEM_STASH_VALUE - Stash value for current item
-#.  $D_DPL_ITEM_STASH_FLAG  - Maintained during dcheck:
-#.                            ‘true’ if stash record exists
+#.  $D_DPL_ITEM_STASH_FLAG  - ‘true’ if stash record exists
 #.                            ‘false’ if stash record does not exist
 #.                            unset if stash is not used for this
 #.  $D_DPL_ITEM_IS_FORCED   - This variable is set to ‘true’ if installation/
