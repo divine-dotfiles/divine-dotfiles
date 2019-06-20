@@ -443,8 +443,8 @@ __install_dpls()
 
     fi
 
-    # Check if dpl requested another prompt by setting $D_ASK_AGAIN to 'true'
-    if $proceeding && [ "$D_ASK_AGAIN" = true ]; then
+    # Check if dpl requested another prompt
+    if $proceeding && [ "$D_ANOTHER_PROMPT" = true ]; then
 
       # Print descriptive introduction, if haven’t already
       if ! $intro_printed; then
@@ -455,9 +455,9 @@ __install_dpls()
       fi
 
       # If there was a warning provided, print it
-      if [ -n "$D_DPL_WARNING" ]; then
+      if [ -n "$D_ANOTHER_WARNING" ]; then
         dprint_ode "${D_ODE_WARN[@]}" -c "$RED" -- \
-          '' 'Warning' ':' "$D_DPL_WARNING"
+          '' 'Warning' ':' "$D_ANOTHER_WARNING"
       fi
 
       # Prompt user

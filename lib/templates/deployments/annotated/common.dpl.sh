@@ -189,22 +189,22 @@ D_DPL_WARNING=
 #.      that deployment is halfway between installed and not installed.
 #
 ## Optional global variables:
-#.  $D_ASK_AGAIN      - Set this one to 'true' to ensure that user is prompted 
-#.                      again about whether they are sure they want to proceed. 
-#.                      This additional prompt is not affected by ‘--yes’ 
-#.                      command line option.
-#.  $D_DPL_WARNING    - If $D_ASK_AGAIN is set to 'true', this textual warning 
-#.                      will be printed. Use this to explain possible 
-#.                      consequences.
-#.  $D_USER_OR_OS     - Set this one to 'true' to signal that all parts of 
-#.                      current deployment that are detected to be already 
-#.                      installed, have been installed by user or OS, not by 
-#.                      this framework. This affects following return codes:
-#.                        * 1 (installed) — removes ability to remove
-#.                        * 4 (partly installed) — removes ability to remove
-#.                      In both cases output is modified to inform user.
-#.                      This is useful for deployments designed to not touch 
-#.                      anything done by user manually.
+#.  $D_ANOTHER_PROMPT   - Set this one to 'true' to ensure that user is 
+#.                        prompted again about whether they are sure they want 
+#.                        to proceed. This additional prompt is not affected by 
+#.                        ‘--yes’ command line option.
+#.  $D_ANOTHER_WARNING  - If $D_ANOTHER_PROMPT is set to 'true', this textual 
+#.                        warning will be printed. Use this to explain possible 
+#.                        consequences.
+#.  $D_USER_OR_OS       - Set this one to 'true' to signal that all parts of 
+#.                        current deployment that are detected to be already 
+#.                        installed, have been installed by user or OS, not by 
+#.                        this framework. This affects following return codes:
+#.                          * 1 (installed) — removes ability to remove
+#.                          * 4 (partly installed) — removes ability to remove
+#.                        In both cases output is modified to inform user.
+#.                        This is useful for deployments designed to not touch 
+#.                        anything done by user manually.
 #
 ## The following table summarizes how dcheck affects framework behavior:
 #. +-----------------------------------------------------------------+

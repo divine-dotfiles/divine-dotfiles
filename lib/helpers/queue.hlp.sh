@@ -256,8 +256,8 @@ __queue_hlp__dcheck()
 
   # Check if additional user prompt is warranted
   if $should_prompt_again; then
-    D_ASK_AGAIN=true
-    D_WARNING='Irregularities detected with this deployment'
+    D_ANOTHER_PROMPT=true
+    D_ANOTHER_WARNING='Irregularities detected with this deployment'
   fi
 
   # Return appropriately
