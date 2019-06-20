@@ -64,19 +64,17 @@ __queue_hlp__dcheck()
 
   # Calculate low edge
   if [ $secnum -eq 0 ]; then min=0
+  elif [[ ${D_DPL_QUEUE_SEPARATORS[$secnum]} =~ ^[0-9]+$ ]]; then
+    min=${D_DPL_QUEUE_SEPARATORS[$secnum]}
   else
-    if [[ ${D_DPL_QUEUE_SEPARATORS[$secnum]} =~ ^[0-9]+$ ]]; then
-      min=${#D_DPL_QUEUE_MAIN[@]}
-    else
-      min=${D_DPL_QUEUE_SEPARATORS[$secnum]}
-    fi
+    min=${#D_DPL_QUEUE_MAIN[@]}
   fi
 
   # Calculate high edge
-  if [[ ${D_DPL_QUEUE_SEPARATORS[$secnum + 1]} =~ ^[0-9]+$ ]]; then
-    max=${#D_DPL_QUEUE_MAIN[@]}
+  if [[ ${D_DPL_QUEUE_SEPARATORS[$secnum+1]} =~ ^[0-9]+$ ]]; then
+    max=${D_DPL_QUEUE_SEPARATORS[$secnum+1]}
   else
-    max=${D_DPL_QUEUE_SEPARATORS[$secnum + 1]}
+    max=${#D_DPL_QUEUE_MAIN[@]}
   fi
 
   # Announce checking
@@ -294,19 +292,17 @@ __queue_hlp__dinstall()
 
   # Calculate low edge
   if [ $secnum -eq 0 ]; then min=0
+  elif [[ ${D_DPL_QUEUE_SEPARATORS[$secnum]} =~ ^[0-9]+$ ]]; then
+    min=${D_DPL_QUEUE_SEPARATORS[$secnum]}
   else
-    if [[ ${D_DPL_QUEUE_SEPARATORS[$secnum]} =~ ^[0-9]+$ ]]; then
-      min=${#D_DPL_QUEUE_MAIN[@]}
-    else
-      min=${D_DPL_QUEUE_SEPARATORS[$secnum]}
-    fi
+    min=${#D_DPL_QUEUE_MAIN[@]}
   fi
 
   # Calculate high edge
-  if [[ ${D_DPL_QUEUE_SEPARATORS[$secnum + 1]} =~ ^[0-9]+$ ]]; then
-    max=${#D_DPL_QUEUE_MAIN[@]}
+  if [[ ${D_DPL_QUEUE_SEPARATORS[$secnum+1]} =~ ^[0-9]+$ ]]; then
+    max=${D_DPL_QUEUE_SEPARATORS[$secnum+1]}
   else
-    max=${D_DPL_QUEUE_SEPARATORS[$secnum + 1]}
+    max=${#D_DPL_QUEUE_MAIN[@]}
   fi
 
   # Announce checking
@@ -467,19 +463,17 @@ __queue_hlp__dremove()
 
   # Calculate low edge
   if [ $secnum -eq 0 ]; then min=0
+  elif [[ ${D_DPL_QUEUE_SEPARATORS[$secnum]} =~ ^[0-9]+$ ]]; then
+    min=${D_DPL_QUEUE_SEPARATORS[$secnum]}
   else
-    if [[ ${D_DPL_QUEUE_SEPARATORS[$secnum]} =~ ^[0-9]+$ ]]; then
-      min=${#D_DPL_QUEUE_MAIN[@]}
-    else
-      min=${D_DPL_QUEUE_SEPARATORS[$secnum]}
-    fi
+    min=${#D_DPL_QUEUE_MAIN[@]}
   fi
 
   # Calculate high edge
-  if [[ ${D_DPL_QUEUE_SEPARATORS[$secnum + 1]} =~ ^[0-9]+$ ]]; then
-    max=${#D_DPL_QUEUE_MAIN[@]}
+  if [[ ${D_DPL_QUEUE_SEPARATORS[$secnum+1]} =~ ^[0-9]+$ ]]; then
+    max=${D_DPL_QUEUE_SEPARATORS[$secnum+1]}
   else
-    max=${D_DPL_QUEUE_SEPARATORS[$secnum + 1]}
+    max=${#D_DPL_QUEUE_MAIN[@]}
   fi
 
   # Announce checking
