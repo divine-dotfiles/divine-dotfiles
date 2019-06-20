@@ -177,8 +177,10 @@ __updating__update_dpls()
   printf >&2 '\n' && nl_printed=true
 
   # Populate list of repos
-  while read -r dpl_repo; do dpl_repos+=( "$dpl_repo" )
-  done < <( dstash -r -s list dpl_repos )
+  if dstash -r -s has dpl_repos; then
+    while read -r dpl_repo; do dpl_repos+=( "$dpl_repo" )
+    done < <( dstash -r -s list dpl_repos )
+  fi
 
   # Check if list is empty
   [ ${#dpl_repos[@]} -eq 0 ] && {
