@@ -399,6 +399,7 @@ __queue_hlp__dinstall()
       # Item is considered already installed, and that’s the end of it
       all_newly_installed=false
       all_failed=false
+      debug_queue_item 'Already installed'
     
     fi
 
@@ -567,9 +568,10 @@ __queue_hlp__dremove()
 
     else
 
-      # Item is considered already installed, and that’s the end of it
+      # Item is considered already not installed, and that’s the end of it
       all_newly_removed=false
       all_failed=false
+      debug_queue_item 'Already not installed'
     
     fi
 
