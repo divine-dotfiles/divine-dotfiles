@@ -15,8 +15,8 @@
 __queue_hlp__dcheck()
 {
   # Initialize or increment section number
-  if [ -z ${D_DPL_QUEUE_CURRENT_SECTION_NUM+isset} ]; then
-    D_DPL_QUEUE_CURRENT_SECTION_NUM=( 0 0 )
+  if [ -z ${D_DPL_QUEUE_CURRENT_SECTION_NUM[0]+isset} ]; then
+    D_DPL_QUEUE_CURRENT_SECTION_NUM[0]=0
   else
     (( ++D_DPL_QUEUE_CURRENT_SECTION_NUM[0] ))
   fi
@@ -271,8 +271,8 @@ __queue_hlp__dcheck()
 __queue_hlp__dinstall()
 {
   # Initialize or increment section number
-  if [ -z ${D_DPL_QUEUE_CURRENT_SECTION_NUM+isset} ]; then
-    D_DPL_QUEUE_CURRENT_SECTION_NUM=( 0 0 )
+  if [ -z ${D_DPL_QUEUE_CURRENT_SECTION_NUM[1]+isset} ]; then
+    D_DPL_QUEUE_CURRENT_SECTION_NUM[1]=0
   else
     (( ++D_DPL_QUEUE_CURRENT_SECTION_NUM[1] ))
   fi
@@ -442,8 +442,8 @@ __queue_hlp__dinstall()
 __queue_hlp__dremove()
 {
   # Initialize or increment section number
-  if [ -z ${D_DPL_QUEUE_CURRENT_SECTION_NUM+isset} ]; then
-    D_DPL_QUEUE_CURRENT_SECTION_NUM=( 0 0 )
+  if [ -z ${D_DPL_QUEUE_CURRENT_SECTION_NUM[1]+isset} ]; then
+    D_DPL_QUEUE_CURRENT_SECTION_NUM[1]=0
   else
     (( ++D_DPL_QUEUE_CURRENT_SECTION_NUM[1] ))
   fi
