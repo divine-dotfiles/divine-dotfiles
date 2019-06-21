@@ -48,13 +48,13 @@ __dln_hlp__dcheck()
   # Redirect pre-processing
   __d__queue_hlp__pre_process()
   {
+    # Redirect to built-in helper
+    __dln_hlp__pre_process
+
     # Try user-provided helper
     if declare -f __d__dln_hlp__pre_process &>/dev/null; then
       __d__dln_hlp__pre_process || return 1
     fi
-
-    # Redirect to built-in helper
-    __dln_hlp__pre_process
   }
 
   # Redirect item check to built-in helper
