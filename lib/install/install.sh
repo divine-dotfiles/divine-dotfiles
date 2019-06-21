@@ -409,7 +409,7 @@ __install_shortcut()
 __add_default_dpls()
 {
   # Store location of default deployments repository
-  local user_repo='no-simpler/divine-dpl-default'
+  local user_repo='no-simpler/divine-dpl-classics'
 
   # Offer to install default deployments
   if ! dprompt_key "$D_ADD_DEFAULTS" 'Add?' \
