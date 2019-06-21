@@ -16,13 +16,13 @@ main()
     # Optional: install shortcut command ('di' by default)
     __install_shortcut
 
-    # Optional: pull default set of deployments
-    if __add_default_dpls; then
+    # Optional: pull grail 'classics' (default set of deployments)
+    if __add_grail_classics; then
       # Optional: run ‘di install --yes’
       __run_install \
-        || dprint_failure 'Failed to install default deployments'
+        || dprint_failure 'Failed while running installation routine'
     else
-      dprint_failure 'Failed to add default deployments'
+      dprint_failure "Failed to add grail 'classics'"
     fi
 
     # Report success
@@ -67,7 +67,7 @@ __parse_arguments()
   D_OPT_QUIET=false       # Be verbose by default
   D_INSTALL_FRAMEWORK=    # Whether to install framework itself
   D_INSTALL_SHORTCUT=     # Whether to install shortcut symlink
-  D_ADD_DEFAULTS=         # Whether to add default deployments
+  D_ADD_GRAIL_CLASSICS=   # Whether to add default deployments
   D_RUN_INSTALL=          # Whether to run di install --yes
 
   # Extract arguments passed to this script (they start at $0)
@@ -76,27 +76,27 @@ __parse_arguments()
   # Parse arguments
   for arg in "${args[@]}"; do
     case "$arg" in
-      --quiet)            D_OPT_QUIET=true;;
-      --verbose)          D_OPT_QUIET=false;;
-      --framework-yes)    D_INSTALL_FRAMEWORK=true;;
-      --framework-no)     D_INSTALL_FRAMEWORK=false;;
-      --shortcut-yes)     D_INSTALL_SHORTCUT=true;;
-      --shortcut-no)      D_INSTALL_SHORTCUT=false;;
-      --add-defaults-yes) D_ADD_DEFAULTS=true;;
-      --add-defaults-no)  D_ADD_DEFAULTS=false;;
-      --run-install-yes)  D_RUN_INSTALL=true;;
-      --run-install-no)   D_RUN_INSTALL=false;;
-      --yes)              D_INSTALL_FRAMEWORK=true
-                          D_INSTALL_SHORTCUT=true
-                          D_ADD_DEFAULTS=true
-                          D_RUN_INSTALL=true
-                          ;;
-      --no)               D_INSTALL_FRAMEWORK=false
-                          D_INSTALL_SHORTCUT=false
-                          D_ADD_DEFAULTS=false
-                          D_RUN_INSTALL=false
-                          ;;
-      *)                  :;;
+      --quiet)              D_OPT_QUIET=true;;
+      --verbose)            D_OPT_QUIET=false;;
+      --framework-yes)      D_INSTALL_FRAMEWORK=true;;
+      --framework-no)       D_INSTALL_FRAMEWORK=false;;
+      --shortcut-yes)       D_INSTALL_SHORTCUT=true;;
+      --shortcut-no)        D_INSTALL_SHORTCUT=false;;
+      --grail-classics-yes) D_ADD_GRAIL_CLASSICS=true;;
+      --grail-classics-no)  D_ADD_GRAIL_CLASSICS=false;;
+      --run-install-yes)    D_RUN_INSTALL=true;;
+      --run-install-no)     D_RUN_INSTALL=false;;
+      --yes)                D_INSTALL_FRAMEWORK=true
+                            D_INSTALL_SHORTCUT=true
+                            D_ADD_GRAIL_CLASSICS=true
+                            D_RUN_INSTALL=true
+                            ;;
+      --no)                 D_INSTALL_FRAMEWORK=false
+                            D_INSTALL_SHORTCUT=false
+                            D_ADD_GRAIL_CLASSICS=false
+                            D_RUN_INSTALL=false
+                            ;;
+      *)                    :;;
     esac
   done
 }
@@ -406,13 +406,13 @@ __install_shortcut()
   fi
 }
 
-__add_default_dpls()
+__add_grail_classics()
 {
   # Store location of default deployments repository
-  local user_repo='no-simpler/divine-dpl-classics'
+  local user_repo='no-simpler/grail-classics'
 
   # Offer to install default deployments
-  if ! dprompt_key "$D_ADD_DEFAULTS" 'Add?' \
+  if ! dprompt_key "$D_ADD_GRAIL_CLASSICS" 'Add?' \
     '[optional] Default set of deployments from:' \
     "https://github.com/${user_repo}" \
     'Deployments are only added, not installed' \

@@ -249,7 +249,8 @@ DESCRIPTION
     ${bold}Adding routine${normal}
 
     - Accepts deployments in four forms:
-      - Built-in Github repo in the form 'NAME' (='no-simpler/divine-dpl-NAME')
+      - Built-in Github repo in the form 'NAME' (which translates to Github
+        repo 'no-simpler/grail-NAME')
       - Github repo in the form 'username/repository'
       - Path to local git repository or directory
       - Path to local deployment file
@@ -280,15 +281,16 @@ OPTIONS
     -n, --no        Assume negatory answer to every prompt. In effect, skips 
                     every task.
 
-    -f, --force     By default, framework does NOT intend to:
+    -f, --force     By default, framework tries NOT to:
                       * re-install something that appears already installed;
-                      * remove something that appears already removed;
+                      * remove something that appears not installed;
                       * remove something that appears installed by means other 
                         than this framework.
                     This option signals that such considerations are to be 
-                    forgone. Note that it is mostly up to authors of 
-                    deployments to honor this option. Divine.dotfiles default 
-                    deployments are designed with this option in mind.
+                    forgone. Note, however, that it is mostly up to authors of 
+                    deployments to honor this option. Divine grails (deployment 
+                    packs, distributed separately) are designed with this 
+                    option in mind.
 
     -t, --flat      (only for adding routine)
                     For all other routines this is a no-opt.

@@ -173,7 +173,7 @@ __adding__attempt_github_repo()
   # Accept one of two patterns: ‘builtin_repo_name’ and ‘username/repo’
   if [[ $repo_arg =~ ^[0-9A-Za-z_.-]+$ ]]; then
     is_builtin=true
-    user_repo="no-simpler/divine-dpl-$repo_arg"
+    user_repo="no-simpler/grail-$repo_arg"
   elif [[ $repo_arg =~ ^[0-9A-Za-z_.-]+/[0-9A-Za-z_.-]+$ ]]; then
     user_repo="$repo_arg"
   else
