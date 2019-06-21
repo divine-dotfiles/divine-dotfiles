@@ -518,7 +518,7 @@ __populate_globals()
   readonly D_FMWK_DIR_BACKUPS
 
   # Path to deployments directory
-  D_FMWK_DIR_DPLS="$D_FMWK_DIR/dpl"
+  D_FMWK_DIR_DPLS="$D_FMWK_DIR/dpls"
   if [ -d "$D_DPLS_DIR" -a -r "$D_DPLS_DIR" \
     -a "$D_FMWK_DIR_DPLS" != "$D_DPLS_DIR" ]; then
 

@@ -245,8 +245,8 @@ __create_empty_dirs()
   }
 
   # Create deployments directory for future use
-  mkdir -p -- "$D_INSTALL_PATH/dpl" || {
-    dprint_debug "Failed to create directory: $D_INSTALL_PATH/dpl"
+  mkdir -p -- "$D_INSTALL_PATH/dpls" || {
+    dprint_debug "Failed to create directory: $D_INSTALL_PATH/dpls"
   }
 }
 
