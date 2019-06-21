@@ -490,16 +490,49 @@ __populate_globals()
   readonly D_FMWK_NAME='Divine.dotfiles'
 
   # Path to assets directory
-  readonly D_FMWK_DIR_ASSETS="$D_FMWK_DIR/assets"
+  D_FMWK_DIR_ASSETS="$D_FMWK_DIR/assets"
+  if [ -d "$D_ASSETS_DIR" -a -r "$D_ASSETS_DIR" \
+    -a "$D_FMWK_DIR_ASSETS" != "$D_ASSETS_DIR" ]; then
+
+    # Announce and override
+    $D_OPT_QUIET || printf >&2 '%s: %s\n' \
+      'Assets dir overridden     :' \
+      "$D_ASSETS_DIR"
+    D_FMWK_DIR_ASSETS="$D_ASSETS_DIR"
+  
+  fi
+  readonly D_FMWK_DIR_ASSETS
 
   # Path to backups directory
-  readonly D_FMWK_DIR_BACKUPS="$D_FMWK_DIR/backups"
+  D_FMWK_DIR_BACKUPS="$D_FMWK_DIR/backups"
+  if [ -d "$D_BACKUPS_DIR" -a -r "$D_BACKUPS_DIR" \
+    -a "$D_FMWK_DIR_BACKUPS" != "$D_BACKUPS_DIR" ]; then
+
+    # Announce and override
+    $D_OPT_QUIET || printf >&2 '%s: %s\n' \
+      'Backups dir overridden    :' \
+      "$D_BACKUPS_DIR"
+    D_FMWK_DIR_BACKUPS="$D_BACKUPS_DIR"
+  
+  fi
+  readonly D_FMWK_DIR_BACKUPS
+
+  # Path to deployments directory
+  D_FMWK_DIR_DPLS="$D_FMWK_DIR/dpl"
+  if [ -d "$D_DPLS_DIR" -a -r "$D_DPLS_DIR" \
+    -a "$D_FMWK_DIR_DPLS" != "$D_DPLS_DIR" ]; then
+
+    # Announce and override
+    $D_OPT_QUIET || printf >&2 '%s: %s\n' \
+      'Deployments dir overridden:' \
+      "$D_DPLS_DIR"
+    D_FMWK_DIR_DPLS="$D_DPLS_DIR"
+  
+  fi
+  readonly D_FMWK_DIR_DPLS
 
   # Path to lib directory
   readonly D_FMWK_DIR_LIB="$D_FMWK_DIR/lib"
-
-  # Path to deployments directory
-  readonly D_FMWK_DIR_DPLS="$D_FMWK_DIR/dpl"
 
   # Path to adapters directory and adapter file suffix
   readonly D_FMWK_DIR_ADAPTERS="$D_FMWK_DIR_LIB/adapters"
