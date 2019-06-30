@@ -509,7 +509,7 @@ __populate_d_dir_fmwk()
 
     # Accept $D_DIR override: make sure it is read-only
     $D_OPT_QUIET || printf >&2 '%s: %s\n' \
-      'Divine dir overridden:' \
+      'Divine dir overridden' \
       "$D_DIR"
     readonly D_DIR
 

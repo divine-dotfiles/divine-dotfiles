@@ -273,18 +273,30 @@ __updating__update_dpls()
   # Print newline to visually separate updates
   printf >&2 '\n' && nl_printed=true
 
-  # Populate list of repos
-  if dstash -g -s has dpl_repos; then
-    while read -r dpl_repo; do
-      dpl_repos+=( "$dpl_repo" )
-    done < <( dstash -g -s list dpl_repos )
+  # Check if grail stash is available (required for deployment repositories)
+  if $UPDATING_DPLS && ! dstash --grail ready; then
+    # No deployment updates for you
+    dprint_debug 'Grail stash is not available: no deployment updates'
+    UPDATING_DPLS=false
   fi
 
-  # Check if list is empty
-  [ ${#dpl_repos[@]} -eq 0 ] && {
-    dprint_debug 'No deployment repositories recorded in Grail stash'
-    UPDATING_DPLS=false
-  }
+  # Check if proceeding
+  if $UPDATING_DPLS; then
+
+    # Populate list of repos
+    if dstash -g -s has dpl_repos; then
+      while read -r dpl_repo; do
+        dpl_repos+=( "$dpl_repo" )
+      done < <( dstash -g -s list dpl_repos )
+    fi
+
+    # Check if list is empty
+    [ ${#dpl_repos[@]} -eq 0 ] && {
+      dprint_debug 'No deployment repositories recorded in Grail stash'
+      UPDATING_DPLS=false
+    }
+
+  fi
 
   # Check if proceeding
   if ! $UPDATING_DPLS; then
@@ -404,13 +416,6 @@ __updating__detect_environment()
       esac
     done
 
-  fi
-
-  # Check if grail stash is available (required for deployment repositories)
-  if $UPDATING_DPLS && ! dstash --grail ready; then
-    # No deployment updates for you
-    dprint_debug 'Grail stash is not available: no deployment updates'
-    UPDATING_DPLS=false
   fi
 
   # Check if necessary tools are available and offer to install them
