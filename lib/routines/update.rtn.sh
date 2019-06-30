@@ -282,7 +282,7 @@ __updating__update_dpls()
 
   # Check if list is empty
   [ ${#dpl_repos[@]} -eq 0 ] && {
-    dprint_debug 'No deployment repositories recorded in root stash'
+    dprint_debug 'No deployment repositories recorded in Grail stash'
     UPDATING_DPLS=false
   }
 
@@ -294,7 +294,7 @@ __updating__update_dpls()
     return 3
   fi
 
-  # Iterate over list of cloned deployment repositories from root stash
+  # Iterate over list of cloned deployment repositories from Grail stash
   for dpl_repo in "${dpl_repos[@]}"; do
 
     # Print newline to visually separate updates
