@@ -36,7 +36,7 @@ __declare_global_colors()
 {
   # Colorize output (shamelessly stolen off oh-my-zsh)
   local num_of_colors
-  if command -v tput &>/dev/null; then num_of_colors=$( tput colors ); fi
+  if type -P tput &>/dev/null; then num_of_colors=$( tput colors ); fi
   if [ -t 1 ] && [ -n "$num_of_colors" ] && [ "$num_of_colors" -ge 8 ]; then
     RED="$( tput setaf 1 )"
     GREEN="$( tput setaf 2 )"
@@ -98,7 +98,6 @@ __locate_installations()
   fi
   
   # Storage variables
-  local shortcut_memo_path="$D_INSTALL_PATH/lib/uninstall/shortcut-location"
   local shortcut_filepath
 
   # Set global variable
@@ -342,8 +341,8 @@ dprompt_key()
 dstash_root_get()
 {
   # Key variables
-  local stash_dirpath="$D_INSTALL_PATH/backups"
-  local stash_filepath="$stash_dirpath/stash.cfg"
+  local stash_dirpath="$D_INSTALL_PATH/state/stash"
+  local stash_filepath="$stash_dirpath/.dstash.cfg"
   local stash_md5_filepath="$stash_filepath.md5"
 
   # If stash file does not exist, return immediately

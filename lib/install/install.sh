@@ -16,13 +16,13 @@ main()
     # Optional: install shortcut command ('di' by default)
     __install_shortcut
 
-    # Optional: pull grail 'classics' (default set of deployments)
-    if __add_grail_classics; then
+    # Optional: pull Divine deployments 'core' package (default packages)
+    if __attach_dpls_core; then
       # Optional: run ‘di install --yes’
       __run_install \
         || dprint_failure 'Failed while running installation routine'
     else
-      dprint_failure "Failed to add grail 'classics'"
+      dprint_failure "Failed to attach Divine deployments 'core' package"
     fi
 
     # Report success
@@ -39,7 +39,7 @@ __declare_global_colors()
 {
   # Colorize output (shamelessly stolen off oh-my-zsh)
   local num_of_colors
-  if command -v tput &>/dev/null; then num_of_colors=$( tput colors ); fi
+  if type -P tput &>/dev/null; then num_of_colors=$( tput colors ); fi
   if [ -t 1 ] && [ -n "$num_of_colors" ] && [ "$num_of_colors" -ge 8 ]; then
     RED="$( tput setaf 1 )"
     GREEN="$( tput setaf 2 )"
@@ -67,7 +67,7 @@ __parse_arguments()
   D_OPT_QUIET=false       # Be verbose by default
   D_INSTALL_FRAMEWORK=    # Whether to install framework itself
   D_INSTALL_SHORTCUT=     # Whether to install shortcut symlink
-  D_ADD_GRAIL_CLASSICS=   # Whether to add default deployments
+  D_ATTACH_DPLS_CORE=     # Whether to attach default deployments
   D_RUN_INSTALL=          # Whether to run di install --yes
 
   # Extract arguments passed to this script (they start at $0)
@@ -82,18 +82,18 @@ __parse_arguments()
       --framework-no)       D_INSTALL_FRAMEWORK=false;;
       --shortcut-yes)       D_INSTALL_SHORTCUT=true;;
       --shortcut-no)        D_INSTALL_SHORTCUT=false;;
-      --grail-classics-yes) D_ADD_GRAIL_CLASSICS=true;;
-      --grail-classics-no)  D_ADD_GRAIL_CLASSICS=false;;
+      --dpls-core-yes)      D_ATTACH_DPLS_CORE=true;;
+      --dpls-core-no)       D_ATTACH_DPLS_CORE=false;;
       --run-install-yes)    D_RUN_INSTALL=true;;
       --run-install-no)     D_RUN_INSTALL=false;;
       --yes)                D_INSTALL_FRAMEWORK=true
                             D_INSTALL_SHORTCUT=true
-                            D_ADD_GRAIL_CLASSICS=true
+                            D_ATTACH_DPLS_CORE=true
                             D_RUN_INSTALL=true
                             ;;
       --no)                 D_INSTALL_FRAMEWORK=false
                             D_INSTALL_SHORTCUT=false
-                            D_ADD_GRAIL_CLASSICS=false
+                            D_ATTACH_DPLS_CORE=false
                             D_RUN_INSTALL=false
                             ;;
       *)                    :;;
@@ -107,7 +107,7 @@ __pull_github_repo()
   local user_repo="no-simpler/divine-dotfiles"
 
   # Install to home directory unless overridden
-  [ -n "$"D_INSTALL_PATH" ] || D_INSTALL_PATH="$HOME/.divine"/backups"
+  [ -n "$D_INSTALL_PATH" ] || D_INSTALL_PATH="$HOME/.divine"
   dprint_debug "Installation directory: $D_INSTALL_PATH"
 
   # Check if installation directory already exists
@@ -115,7 +115,7 @@ __pull_github_repo()
     dprint_debug 'Installation directory already exists; refusing to overwrite'
     return 1
   elif [ -e "$D_INSTALL_PATH" ]; then
-    dprint_debug 'Installation directory is a file; refusing to overwrite'
+    dprint_debug 'Installation path already exists; refusing to overwrite'
     return 1
   fi
 
@@ -239,15 +239,27 @@ __pull_github_repo()
 
 __create_empty_dirs()
 {
-  # Create assets directory for future use
-  mkdir -p -- "$D_INSTALL_PATH/assets" || {
-    dprint_debug "Failed to create directory: $D_INSTALL_PATH/assets"
-  }
+  # Storage variables
+  local dirs_to_create dir_to_create
 
-  # Create deployments directory for future use
-  mkdir -p -- "$D_INSTALL_PATH/dpls" || {
-    dprint_debug "Failed to create directory: $D_INSTALL_PATH/dpls"
-  }
+  # Assemble list of directories
+  dirs_to_create=( \
+    "$D_INSTALL_PATH/grail/assets" \
+    "$D_INSTALL_PATH/grail/dpls" \
+    "$D_INSTALL_PATH/state/backups" \
+    "$D_INSTALL_PATH/state/stash" \
+    "$D_INSTALL_PATH/state/dpl-repos" \
+  )
+
+  # Create each directory for future use
+  for dir_to_create in "${dirs_to_create[@]}"; do
+
+    # Create directory, or announce failure
+    mkdir -p -- "$dir_to_create" || {
+      dprint_debug "Failed to create directory: $dir_to_create"
+    }
+
+  done
 }
 
 __install_shortcut()
@@ -367,8 +379,8 @@ __install_shortcut()
       fi
     else
       # No write permission: try sudo
-      if sudo ln -s -- "$D_INSTALL_PATH/intervene.sh" "$shortcut_filepath" \
-        &>/dev/null
+      if sudo ln -s -- "$D_INSTALL_PATH/intervene.sh" \
+        "$shortcut_filepath" &>/dev/null
       then
         shortcut_installed=true; break
       else
@@ -406,25 +418,25 @@ __install_shortcut()
   fi
 }
 
-__add_grail_classics()
+__attach_dpls_core()
 {
   # Store location of default deployments repository
-  local user_repo='no-simpler/grail-classics'
+  local user_repo='no-simpler/divine-dpls-core'
 
   # Offer to install default deployments
-  if ! dprompt_key "$D_ADD_GRAIL_CLASSICS" 'Add?' \
+  if ! dprompt_key "$D_ATTACH_DPLS_CORE" 'Attach?' \
     '[optional] Default set of deployments from:' \
     "https://github.com/${user_repo}" \
-    'Deployments are only added, not installed' \
+    'Deployments are only attached, not installed' \
     'Default deployments are safe and fully removable'
   then
-    dprint_skip 'Refused to add default set of deployments from:' \
+    dprint_skip 'Refused to attach default set of deployments from:' \
       "https://github.com/${user_repo}"
     return 1
   fi
 
-  # Run adding routine
-  "$D_INSTALL_PATH"/intervene.sh add "$user_repo" --yes
+  # Run attach routine
+  "$D_INSTALL_PATH"/intervene.sh attach "$user_repo" --yes
 
   # Return whatever routine returns
   return $?
@@ -435,7 +447,7 @@ __run_install()
   # Offer to install default deployments
   if ! dprompt_key "$D_RUN_INSTALL" 'Install?' \
     '[optional] Install default deployments' \
-    'Deployments added in previous step will be installed' \
+    'Deployments attached in previous step will be installed' \
     'Default deployments are safe and fully removable'
   then
     dprint_skip 'Refused to install default deployments'
@@ -521,8 +533,8 @@ dprompt_key()
 dstash_root_set()
 {
   # Key variables
-  local stash_dirpath="$D_INSTALL_PATH/backups"
-  local stash_filepath="$stash_dirpath/stash.cfg"
+  local stash_dirpath="$D_INSTALL_PATH/state/stash"
+  local stash_filepath="$stash_dirpath/.dstash.cfg"
   local stash_md5_filepath="$stash_filepath.md5"
 
   # Root stash file must be empty (as this is fresh installation)

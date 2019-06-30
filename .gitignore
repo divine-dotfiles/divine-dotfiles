@@ -4,16 +4,11 @@
 # Except root files
 !/.gitignore
 !/intervene.sh
-!/README.adoc
 !/LICENSE
+!/README.adoc
 
 # Keep lib directory with all of its content
 !/lib/
-
-# Keep backups directory without content
-!/backups/
-/backups/*
-!/backups/.gitkeep
 
 # End manual ignores
 

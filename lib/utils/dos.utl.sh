@@ -323,7 +323,7 @@ __load_os_adapter()
   if [ -n "$OS_FAMILY" ]; then
 
     # Compose path to adapter
-    family_adapter="${D_FMWK_DIR_ADP_FAMILY}/${OS_FAMILY}${D_SUFFIX_ADAPTER}"
+    family_adapter="${D_DIR_ADP_FAMILY}/${OS_FAMILY}${D_SUFFIX_ADAPTER}"
 
     # Check if it is a readable file
     if [ -r "$family_adapter" -a -f "$family_adapter" ]; then
@@ -344,7 +344,7 @@ __load_os_adapter()
   if [ -n "$OS_DISTRO" ]; then
 
     # Compose path to adapter
-    distro_adapter="${D_FMWK_DIR_ADP_DISTRO}/${OS_DISTRO}${D_SUFFIX_ADAPTER}"
+    distro_adapter="${D_DIR_ADP_DISTRO}/${OS_DISTRO}${D_SUFFIX_ADAPTER}"
 
     # Check if it is a readable file
     if [ -r "$distro_adapter" -a -f "$distro_adapter" ]; then

@@ -16,7 +16,7 @@
 #. own stash. Stash is a specially named text file in backups directory.
 #
 
-#> dstash ready|has|set|add|get|list|unset|clear [-rs] [ KEY [VALUE] ]
+#> dstash ready|has|set|add|get|list|unset|clear [-rgs] [ KEY [VALUE] ]
 #
 ## Main stashing command. Dispatches task based on first non-opt argument.
 #
@@ -24,6 +24,11 @@
 #. plus '_' and '-'.
 #
 ## Options:
+#.  -g|--grail  - Use grail stash, instead of box-specific. Grail stash is 
+#.                stored in grail directory, where it is set to be carried 
+#.                between machines using Divine.ditfiles. For example, grail 
+#.                stash is used to record which deployment distributions are 
+#.                added by user.
 #.  -r|-root  - Use root stash, instead of deployment-specific. Root stash is 
 #.              used, for example, during installation of Divine.dotfiles 
 #.              framework itself.
@@ -38,7 +43,7 @@
 #.  add KEY [VALUE]   - Add another VALUE to KEY; VALUE can be empty
 #.  get KEY           - Print first value of KEY to stdout
 #.  list KEY          - Print each value of KEY on a line to stdout
-#.  unset KEY         - Remove KEY from stash completely
+#.  unset KEY [VALUE] - Remove KEY from stash where set to VALUE, or completely
 #.  clear             - Clear stash entirely
 #
 ## Returns:
@@ -49,18 +54,40 @@
 dstash()
 {
   # Parse options
-  local args=() root= checks=true; while (($#)); do
-    case $1 in -r|--root) root=-r;; -s|--skip-checks) checks=false;; 
-    *) args+=("$1");; esac; shift; done
+  local args=() stash_mode= do_checks=true i opt
+  while (($#)); do
+    case $1 in
+      -g|--grail)         stash_mode=-g;;
+      -r|--root)          stash_mode=-r;;
+      -s|--skip-checks)   do_checks=false;;
+      -?*)                for i in $( seq 2 ${#1} ); do
+                            opt="${1:i-1:1}"
+                            case $opt in
+                              g)  stash_mode=-g;;
+                              r)  stash_mode=-r;;
+                              s)  do_checks=false;;
+                              *)  dprint_debug \
+                                  "dstash called with illegal option -- $opt"
+                                  return 1;;
+                            esac
+                          done;;
+      *)                  args+=("$1");;
+    esac
+    shift
+  done
   set -- "${args[@]}"
 
   # Perform pre-flight checks first, unless ordered to skip
-  if $checks; then
-    __dstash_pre_flight_checks $root || return 2
+  if $do_checks; then
+    __dstash_pre_flight_checks $stash_mode || return 2
   else
     # Without checks, just populate necessary paths
-    local stash_dirpath="$D_FMWK_DIR_BACKUPS"
-    [ "$root" = -r ] || stash_dirpath+="/$D_DPL_NAME"
+    local stash_dirpath
+    case $stash_mode in
+      -g) stash_dirpath="$D_DIR_GRAIL";;
+      -r) stash_dirpath="$D_DIR_STASH";;
+      *)  stash_dirpath="$D_DIR_STASH/$D_DPL_NAME";;
+    esac
     D_STASH_FILEPATH="$stash_dirpath/$D_CONST_NAME_STASHFILE"
     D_STASH_MD5_FILEPATH="$D_STASH_FILEPATH.md5"
   fi
@@ -177,8 +204,8 @@ __dstash_add()
 
 #> __dstash_get KEY
 #
-## Prints value of provided KEY to stdout. If key does not exist prints nothing 
-#. and returns non-zero. Extra arguments are ignored.
+## Prints first value assigned to KEY to stdout. If key does not exist prints 
+#. nothing and returns non-zero. Extra arguments are ignored.
 #
 ## Options:
 #.  -s  - (first arg) Skip argument checks (for internal calls)
@@ -197,8 +224,8 @@ __dstash_get()
 
   # If key is currently not set, return status
   __dstash_has -s "$1" || {
-    dprint_debug \
-      'Tried to get key:' -i "$1" -n 'from stash, but it is currently not set'
+    dprint_debug 'Tried to get key:' -i "$1" \
+      -n 'from stash, but it is currently not set'
     return 1
   }
 
@@ -243,8 +270,8 @@ __dstash_list()
 
   # If key is currently not set, return status
   __dstash_has -s "$1" || {
-    dprint_debug \
-      'Tried to list key:' -i "$1" -n 'from stash, but it is currently not set'
+    dprint_debug 'Tried to list key:' -i "$1" \
+      -n 'from stash, but it is currently not set'
     return 1
   }
 
@@ -268,10 +295,9 @@ __dstash_list()
   }
 }
 
-#> __dstash_unset [-s] KEY
+#> __dstash_unset [-s] KEY [VALUE]
 #
-## Unsets key by invalidating all previous assignments in stash file. Extra 
-#. arguments are ignored.
+## Unsets all instances of key or only those instances that are set to VALUE
 #
 ## Options:
 #.  -s  - (first arg) Skip argument checks (for internal calls)
@@ -288,10 +314,33 @@ __dstash_unset()
   # Validate arguments
   if [ "$1" = -s ]; then shift; else __dstash_validate_key "$1" || return 1; fi
 
-  # Invalidate all previous assignment records
-  perl -i -pe "s|^($1=.*)\$|// \$1|g" -- "$D_STASH_FILEPATH" || {
-    dprint_debug 'Failed to remove key:' -i "$1" \
-      -n 'in stash file at:' -i "$D_STASH_FILEPATH"
+  # Make temporary file
+  local temp="$( mktemp )"
+
+  # Storage variable
+  local line
+
+  # Perform one of two routines depending on whether second argument is given
+  if [ -n "$2" ]; then
+
+    # Make a new stash file, but without lines where $1 is assigned value $2
+    while read -r line; do
+      [ "$line" = "$1=$2" ] || printf '%s\n' "$line"
+    done <"$D_STASH_FILEPATH" >"$temp"
+
+  else
+
+    # Make a new stash file, but without lines where $1 is assigned any value
+    while read -r line; do
+      [[ $line = "$1="* ]] || printf '%s\n' "$line"
+    done <"$D_STASH_FILEPATH" >"$temp"
+
+  fi
+
+  # Move temp to location of install file
+  mv -f -- "$temp" "$D_STASH_FILEPATH" || {
+    dprint_debug "Failed to move temp file from: $temp" \
+      -n "to: $D_STASH_FILEPATH"
     return 1
   }
 
@@ -299,12 +348,13 @@ __dstash_unset()
   __dstash_store_md5; return 0
 }
 
-#>  __dstash_pre_flight_checks [-r]
+#>  __dstash_pre_flight_checks [-r|-g]
 #
 ## Helper function that ensures that stashing is good to go
 #
 ## Options:
 #.  -r    - Use root stash, instead of deployment-specific
+#.  -g    - Use grail stash, instead of box-specific
 #
 ## Returns:
 #.  0 - Ready for stashing
@@ -312,16 +362,22 @@ __dstash_unset()
 #
 __dstash_pre_flight_checks()
 {
-  # Establish whether using root stash
-  local root=false; [ "$1" = '-r' ] && {
-    dprint_debug 'Working with root stash'
-    root=true
-  }
+  # Establish whether using root, or grail, or deployment-specific stash
+  local stash_mode
+  case $1 in
+    -g) dprint_debug 'Working with grail stash'
+        stash_mode=grail
+        ;;
+    -r) dprint_debug 'Working with root stash'
+        stash_mode=root
+        ;;
+    *)  :;;
+  esac
 
-  # Check that $D_FMWK_DIR_BACKUPS is populated
-  [ -n "$D_FMWK_DIR_BACKUPS" ] || {
+  # Check that $D_DIR_STASH is populated
+  [ -n "$D_DIR_STASH" ] || {
     dprint_debug "$( basename -- "${BASH_SOURCE[0]}" ):" \
-      'Stashing accessed without $D_FMWK_DIR_BACKUPS populated'
+      'Stashing accessed without $D_DIR_STASH populated'
     return 1
   }
 
@@ -332,18 +388,10 @@ __dstash_pre_flight_checks()
     return 1
   }
 
-  # Non-root: check if within deployment by ensuring $D_DPL_NAME is populated
-  [ "$root" = false -a -z "$D_DPL_NAME" ] && {
+  # Check if within deployment by ensuring $D_DPL_NAME is populated
+  [ -z "$stash_mode" -a -z "$D_DPL_NAME" ] && {
     dprint_debug "$( basename -- "${BASH_SOURCE[0]}" ):" \
       'Stashing accessed without $D_DPL_NAME populated'
-    return 1
-  }
-
-  # Check if perl command is available
-  type -P perl &>/dev/null || {
-    dprint_debug "$( basename -- "${BASH_SOURCE[0]}" ):" \
-      'perl command is not found in $PATH' \
-      -n 'Stashing is not available without perl'
     return 1
   }
 
@@ -372,10 +420,14 @@ __dstash_pre_flight_checks()
   }
 
   # Establish directory path for stash
-  local stash_dirpath="$D_FMWK_DIR_BACKUPS"
-  [ "$root" = false ] && stash_dirpath+="/$D_DPL_NAME"
+  local stash_dirpath
+  case $stash_mode in
+    grail)  stash_dirpath="$D_DIR_GRAIL";;
+    root)   stash_dirpath="$D_DIR_STASH";;
+    *)      stash_dirpath="$D_DIR_STASH/$D_DPL_NAME";;
+  esac
 
-  # Ensure directory for this deployment exists
+  # Ensure directory for this stash exists
   mkdir -p -- "$stash_dirpath" || {
     dprint_debug "$( basename -- "${BASH_SOURCE[0]}" ):" \
       'Failed to create stash directory at:' -i "$stash_dirpath"
@@ -386,7 +438,7 @@ __dstash_pre_flight_checks()
   local stash_filepath="$stash_dirpath/$D_CONST_NAME_STASHFILE"
   local stash_md5_filepath="$stash_filepath.md5"
 
-  # Ensure both stash files are not a directory
+  # Ensure both stash files are not directories
   [ -d "$stash_filepath" ] && {
     dprint_debug "$( basename -- "${BASH_SOURCE[0]}" ):" \
       'Stash filepath occupied by a directory:' -i "$stash_filepath"

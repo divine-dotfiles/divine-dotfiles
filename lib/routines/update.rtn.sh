@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#:title:        Divine Bash routine: fmwk-update
+#:title:        Divine Bash routine: update
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revnumber:    0.0.1-SNAPSHOT
@@ -9,7 +9,8 @@
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
 #
-## Updates Divine.dotfiles framework
+## Updates Divine.dotfiles framework, cloned deployment repositories, and Grail 
+#. directory itself if it is a cloned repository
 #
 
 #>  __updating__main
@@ -27,6 +28,9 @@
 #
 __updating__main()
 {
+  # Make sure dpl-repos are in order
+  __sort_out_dpl_repos || exit 1
+  
   # Announce beginning
   if [ "$D_OPT_ANSWER" = false ]; then
     dprint_plaque -pcw "$WHITE" "$D_CONST_PLAQUE_WIDTH" \
@@ -44,6 +48,13 @@ __updating__main()
 
   # Update framework and analyze return status
   __updating__update_fmwk; case $? in
+    0)  all_failed=false; all_skipped=false;;
+    1)  all_updated=false; all_skipped=false; some_failed=true;;
+    2)  all_updated=false; all_failed=false;;
+  esac
+
+  # Update Grail directory and analyze return status
+  __updating__update_grail; case $? in
     0)  all_failed=false; all_skipped=false;;
     1)  all_updated=false; all_skipped=false; some_failed=true;;
     2)  all_updated=false; all_failed=false;;
@@ -133,10 +144,10 @@ __updating__update_fmwk()
   local updated_successfully=false
 
   # If github is not available, no updating
-  if $NO_GITHUB; then
+  if ! $GITHUB_AVAILABLE; then
     dprint_debug 'Unable to update: missing necessary tools'
-  elif ! [ -d "$D_FMWK_DIR" -a -r "$D_FMWK_DIR" ]; then
-    dprint_debug "Not a readable directory: $D_FMWK_DIR"
+  elif ! [ -d "$D_DIR_FMWK" -a -r "$D_DIR_FMWK" ]; then
+    dprint_debug "Not a readable directory: $D_DIR_FMWK"
   else
     # Do update proper, one way or another
     if __updating__update_fmwk_via_git || __updating__update_fmwk_via_tar
@@ -157,6 +168,92 @@ __updating__update_fmwk()
   fi
 }
 
+#>  __updating__update_grail
+#
+## Attempts to update Grail directory by means available
+#
+## Returns:
+#.  0 - Updated successfully
+#.  1 - Failed to update
+#.  2 - Skipped completely, e.g., not requested
+#
+__updating__update_grail()
+{
+  # Print newline to visually separate updates
+  printf >&2 '\n'
+
+  # Check if git is available (its the only means of Grail dir update)
+  $GIT_AVAILABLE || UPDATING_GRAIL=false
+
+  if $UPDATING_GRAIL; then
+
+    # Check if Grail directory is a repository at all
+    if git ls-remote "$D_DIR_GRAIL" -q &>/dev/null; then
+
+      # Change into $D_DIR_GRAIL
+      cd -- "$D_DIR_GRAIL" || {
+        dprint_debug "Unable to cd into $D_DIR_GRAIL"
+        return 1
+      }
+
+      # Check if Grail repository has ‘origin’ remote
+      if ! git remote | grep -Fxq origin &>/dev/null; then
+
+        # Repository without remote: no way to update
+        dprint_debug 'Grail repository does not have a remote to pull from:' \
+          -i "$D_DIR_GRAIL"
+        UPDATING_GRAIL=false
+
+      fi
+
+    else
+
+      # Not a repository: no way to update
+      dprint_debug 'Grail directory is not a git repository:' \
+        -i "$D_DIR_GRAIL"
+      UPDATING_GRAIL=false
+
+    fi
+
+  fi
+
+  if $UPDATING_GRAIL; then
+
+    # Print announcement
+    dprint_ode "${D_ODE_NORMAL[@]}" -c "$YELLOW" -- \
+      '>>>' 'Updating' ':' 'Grail directory'
+
+    # Prompt user
+    if [ "$D_OPT_ANSWER" = true ]; then UPDATING_GRAIL=true
+    elif [ "$D_OPT_ANSWER" = false ]; then UPDATING_GRAIL=false
+    else
+      # Prompt
+      dprint_ode "${D_ODE_PROMPT[@]}" -- '' 'Confirm' ': '
+      dprompt_key --bare && UPDATING_GRAIL=true || UPDATING_GRAIL=false
+    fi
+
+  fi
+
+  # Check if still updating at this point
+  if ! $UPDATING_GRAIL; then
+    # Announce skiping and return
+    dprint_ode "${D_ODE_NORMAL[@]}" -c "$WHITE" -- \
+      '---' 'Skipped updating' ':' 'Grail directory'
+    return 2
+  fi
+
+  # Do update proper and check result
+  if __updating__update_grail_via_git; then
+    dprint_ode "${D_ODE_NORMAL[@]}" -c "$GREEN" -- \
+      'vvv' 'Updated' ':' 'Grail directory'
+    return 0
+  else
+    dprint_ode "${D_ODE_NORMAL[@]}" -c "$RED" -- \
+      'xxx' 'Failed to update' ':' 'Grail directory'
+    return 1
+  fi
+}
+
 #>  __updating__update_dpls
 #
 ## Attempts to update deployment repositories by means available
@@ -171,15 +268,16 @@ __updating__update_dpls()
 {
   # Storage and status variables
   local all_updated=true all_failed=true all_skipped=true some_failed=false
-  local dpl_repo dpl_repos=() proceeding nl_printed=false
+  local dpl_repo_dir dpl_repo dpl_repos=() proceeding nl_printed=false
 
   # Print newline to visually separate updates
   printf >&2 '\n' && nl_printed=true
 
   # Populate list of repos
-  if dstash -r -s has dpl_repos; then
-    while read -r dpl_repo; do dpl_repos+=( "$dpl_repo" )
-    done < <( dstash -r -s list dpl_repos )
+  if dstash -g -s has dpl_repos; then
+    while read -r dpl_repo; do
+      dpl_repos+=( "$dpl_repo" )
+    done < <( dstash -g -s list dpl_repos )
   fi
 
   # Check if list is empty
@@ -204,7 +302,7 @@ __updating__update_dpls()
 
     # Print announcement
     dprint_ode "${D_ODE_NORMAL[@]}" -c "$YELLOW" -- \
-      '>>>' 'Updating' ':' "Deployment repo at: $dpl_repo"
+      '>>>' 'Updating' ':' "Deployment repo '$dpl_repo'"
     nl_printed=false
 
     # Prompt user
@@ -220,22 +318,22 @@ __updating__update_dpls()
     if ! $proceeding; then
       # Announce and skip
       dprint_ode "${D_ODE_NORMAL[@]}" -c "$WHITE" -- \
-        '---' 'Skipped updating' ':' "Deployment repo at: $dpl_repo"
+        '---' 'Skipped updating' ':' "Deployment repo '$dpl_repo'"
       all_updated=false
       all_failed=false
       continue
     fi
 
     # If github is not available, no updating
-    if $NO_GITHUB; then
+    if ! $GITHUB_AVAILABLE; then
       dprint_debug 'Unable to update: missing necessary tools'
-    elif ! [ -d "$dpl_repo" -a -r "$dpl_repo" ]; then
-      dprint_debug "Not a readable directory: $dpl_repo"
     else
       # Do update proper
-      if __updating__update_dpl_repo_via_git "$dpl_repo"; then
+      if __updating__update_dpl_repo_via_git "$D_DIR_DPL_REPOS/$dpl_repo" \
+        || __updating__update_dpl_repo_via_tar "$dpl_repo"
+      then
         dprint_ode "${D_ODE_NORMAL[@]}" -c "$GREEN" -- \
-          'vvv' 'Updated' ':' "Deployment repo at: $dpl_repo"
+          'vvv' 'Updated' ':' "Deployment repo '$dpl_repo'"
         all_failed=false
         all_skipped=false
         continue
@@ -244,7 +342,7 @@ __updating__update_dpls()
 
     # If gotten here: not updated
     dprint_ode "${D_ODE_NORMAL[@]}" -c "$RED" -- \
-      'xxx' 'Failed to update' ':' "Deployment repo at: $dpl_repo"
+      'xxx' 'Failed to update' ':' "Deployment repo '$dpl_repo'"
     all_updated=false
     all_skipped=false
     some_failed=true
@@ -271,8 +369,9 @@ __updating__detect_environment()
   # Initialize global status variables
   UPDATING_FMWK=false
   UPDATING_DPLS=false
-  NO_GIT=false
-  NO_GITHUB=false
+  UPDATING_GRAIL=false
+  GIT_AVAILABLE=true
+  GITHUB_AVAILABLE=true
 
   # Check if there are any arguments provided to the script
   if [ "$D_OPT_ANSWER" = false ]; then
@@ -280,12 +379,14 @@ __updating__detect_environment()
     # Updating nothing
     UPDATING_FMWK=false
     UPDATING_DPLS=false
+    UPDATING_GRAIL=false
 
   elif [ ${#D_REQ_ARGS[@]} -eq 0 ]; then
     
     # No arguments: update everything
     UPDATING_FMWK=true
     UPDATING_DPLS=true
+    UPDATING_GRAIL=true
 
   else
 
@@ -294,18 +395,21 @@ __updating__detect_environment()
     for arg in "${D_REQ_ARGS[@]}"; do
       case $arg in
         a|all)                    UPDATING_FMWK=true
-                                  UPDATING_DPLS=true;;
+                                  UPDATING_DPLS=true
+                                  UPDATING_GRAIL=true;;
         f|fmwk|framework)         UPDATING_FMWK=true;;
         d|dpl|dpls|deployments)   UPDATING_DPLS=true;;
+        g|grail)                  UPDATING_GRAIL=true;;
         *)                        :;;
       esac
     done
 
   fi
 
-  # Check if root stash is available (required for deployment repositories)
-  if ! dstash --root ready; then
+  # Check if grail stash is available (required for deployment repositories)
+  if $UPDATING_DPLS && ! dstash --grail ready; then
     # No deployment updates for you
+    dprint_debug 'Grail stash is not available: no deployment updates'
     UPDATING_DPLS=false
   fi
 
@@ -313,18 +417,19 @@ __updating__detect_environment()
   if ! __updating__check_or_install git; then
 
     # Inform of the issue
-    dprint_debug 'Repository cloning will not be available'
-    NO_GIT=true
+    dprint_debug 'Updates via git pull will not be available'
+    GIT_AVAILABLE=false
 
-    # Check of curl/wget are available (for downloading Github tarballs)
+    # Check of curl/wget+tar are available (for downloading Github tarballs)
     if ! curl --version &>/dev/null && ! wget --version &>/dev/null; then
       dprint_debug 'Neither curl nor wget is detected'
-      dprint_debug 'Github repositories will not be available'
-      NO_GITHUB=true
-    # Check if tar is available (for extracting Github tarballs)
+      dprint_debug \
+        "'Crude' updates via re-downloading Github repo will not be available"
+      GITHUB_AVAILABLE=false
     elif ! __updating__check_or_install tar; then
-      dprint_debug 'Github repositories will not be available'
-      NO_GITHUB=true
+      dprint_debug \
+        "'Crude' updates via re-downloading Github repo will not be available"
+      GITHUB_AVAILABLE=false
     fi
   fi
 
@@ -342,31 +447,59 @@ __updating__detect_environment()
 __updating__update_fmwk_via_git()
 {
   # Check if git has been previously detected as unavailable
-  $NO_GIT && {
+  $GIT_AVAILABLE || {
     dprint_debug 'Unable to update via git'
     return 1
   }
 
-  # Ensure $D_FMWK_DIR is a git repo
-  git ls-remote "$D_FMWK_DIR" -q &>/dev/null || {
-    dprint_debug 'Not a git repository:' -i "$D_FMWK_DIR"
+  # Ensure $D_DIR_FMWK is a git repo
+  git ls-remote "$D_DIR_FMWK" -q &>/dev/null || {
+    dprint_debug 'Not a git repository:' -i "$D_DIR_FMWK"
     return 1
   }
 
-  # Change into $D_FMWK_DIR
-  cd -- "$D_FMWK_DIR" || {
-    dprint_debug "Unable to cd into $D_FMWK_DIR"
+  # Change into $D_DIR_FMWK
+  cd -- "$D_DIR_FMWK" || {
+    dprint_debug "Unable to cd into $D_DIR_FMWK"
     return 1
   }
 
   # Pull and rebase and check for errors
   if git pull --rebase --stat origin master; then
     dprint_debug 'Successfully pulled from Github repo to:' \
-      -i "$D_FMWK_DIR"
+      -i "$D_DIR_FMWK"
     return 0
   else
     dprint_debug 'There was an error while pulling from Github repo to:' \
-      -i "$D_FMWK_DIR"
+      -i "$D_DIR_FMWK"
+    return 1
+  fi
+}
+
+#>  __updating__update_grail_via_git
+#
+## Tries to pull & rebase from remote git repo
+#
+## Returns:
+#.  0 - Successfully updated
+#.  1 - Otherwise
+#
+__updating__update_grail_via_git()
+{
+  # Change into $D_DIR_GRAIL
+  cd -- "$D_DIR_GRAIL" || {
+    dprint_debug "Unable to cd into $D_DIR_GRAIL"
+    return 1
+  }
+
+  # Pull and rebase and check for errors
+  if git pull --rebase --stat origin master; then
+    dprint_debug 'Successfully pulled from remote to:' \
+      -i "$D_DIR_GRAIL"
+    return 0
+  else
+    dprint_debug 'There was an error while pulling from remote to:' \
+      -i "$D_DIR_GRAIL"
     return 1
   fi
 }
@@ -392,22 +525,19 @@ __updating__update_fmwk_via_tar()
   # Set user/repository to download from
   local user_repo='no-simpler/divine-dotfiles'
 
+  # Compose temporary destination directory
+  local temp_dest="$( mktemp -d )"
+
   # Prompt user
   if ! dprompt_key --bare -p 'Attempt to download?' -a "$D_OPT_ANSWER" -- \
     'It is possible to download a fresh copy of Divine.dotfiles from:' \
     -i "https://github.com/${user_repo}" \
-    -n 'and overwrite files in your framework directory at:' -i "$D_FMWK_DIR" \
+    -n 'and overwrite files in your framework directory at:' -i "$D_DIR_FMWK" \
     -n 'thus performing a ‘crude’ update'
   then
     dprint_debug 'Refused to perform ‘crude’ update'
     return 1
   fi
-
-  # Construct temporary destination path (as global var)
-  TEMP_DEST="$( mktemp -d )"
-
-  # Status variable
-  local temp_ready=false
 
   # Attempt curl and Github API
   if grep -q 200 < <( curl -I "https://api.github.com/repos/${user_repo}" \
@@ -417,7 +547,7 @@ __updating__update_fmwk_via_tar()
 
     # Download and untar in one fell swoop
     curl -sL "https://api.github.com/repos/${user_repo}/tarball" \
-      | tar --strip-components=1 -C "$TEMP_DEST" -xzf -
+      | tar --strip-components=1 -C "$temp_dest" -xzf -
     
     # Check status
     [ $? -eq 0 ] || {
@@ -425,16 +555,13 @@ __updating__update_fmwk_via_tar()
       dprint_debug \
         'Failed to download (curl) or extract tarball repository at:' \
         -i "https://api.github.com/repos/${user_repo}/tarball" \
-        -n 'to temporary directory at:' -i "$TEMP_DEST"
+        -n 'to temporary directory at:' -i "$temp_dest"
       # Try to clean up
-      rm -rf -- "$TEMP_DEST"
+      rm -rf -- "$temp_dest"
       # Return
       return 1
     }
   
-    # Set status
-    temp_ready=true
-
   # Attempt wget and Github API
   elif grep -q 200 < <( wget -q --spider --server-response \
     "https://api.github.com/repos/${user_repo}" 2>&1 | head -1 ); then
@@ -443,7 +570,7 @@ __updating__update_fmwk_via_tar()
 
     # Download and untar in one fell swoop
     wget -qO - "https://api.github.com/repos/${user_repo}/tarball" \
-      | tar --strip-components=1 -C "$TEMP_DEST" -xzf -
+      | tar --strip-components=1 -C "$temp_dest" -xzf -
     
     # Check status
     [ $? -eq 0 ] || {
@@ -451,16 +578,13 @@ __updating__update_fmwk_via_tar()
       dprint_debug \
         'Failed to download (wget) or extract tarball repository at:' \
         -i "https://api.github.com/repos/${user_repo}/tarball" \
-        -n 'to temporary directory at:' -i "$TEMP_DEST"
+        -n 'to temporary directory at:' -i "$temp_dest"
       # Try to clean up
-      rm -rf -- "$TEMP_DEST"
+      rm -rf -- "$temp_dest"
       # Return
       return 1
     }
     
-    # Set status
-    temp_ready=true
-
   else
 
     # Repository is inaccessible
@@ -470,108 +594,74 @@ __updating__update_fmwk_via_tar()
 
   fi
 
-  # If succeeded in getting repo to temp dir, copy and overwrite files
-  if $temp_ready; then
+  # Prompt user for possible clobbering, and clobber if required
+  if ! dprompt_key --bare -p 'Overwrite files?' -a "$D_OPT_ANSWER" -- \
+    'Fresh copy of Divine.dotfiles has been downloaded to temp dir at:' \
+    -i "$temp_dest" \
+    -n 'and is ready to be copied over existing files in:' -i "$D_DIR_FMWK"
+  then
+    # Try to clean up
+    rm -rf -- "$temp_dest"
+    # Report and return
+    dprint_debug 'Refused to perform ‘crude’ update'
+    return 1
+  fi
 
-    # Prompt user for possible clobbering, and clobber if required
-    if ! dprompt_key --bare -p 'Overwrite files?' -a "$D_OPT_ANSWER" -- \
-      'Fresh copy of Divine.dotfiles has been downloaded to temp dir at:' \
-      -i "$TEMP_DEST" \
-      -n 'and is ready to be copied over existing files in:' -i "$D_FMWK_DIR"
-    then
-      # Try to clean up
-      rm -rf -- "$TEMP_DEST"
-      # Report and return
-      dprint_debug 'Refused to perform ‘crude’ update'
-      return 1
+  # Make sure directory exists
+  mkdir -p -- "$D_DIR_FMWK" || {
+    # Try to clean up
+    rm -rf -- "$temp_dest"
+    # Report and return
+    dprint_debug "Failed to create destination directory at:" \
+      -i "$D_DIR_FMWK"
+    return 1
+  }
+  
+  # Storage variables
+  local src_path rel_path tgt_path
+
+  # Copy files and directories at root level
+  while IFS= read -r -d $'\0' src_path; do
+
+    # Extract relative path
+    rel_path="${src_path#"$temp_dest/"}"
+
+    # Construct target path
+    tgt_path="$D_DIR_FMWK/$rel_path"
+
+    # Pre-erase existing file
+    if [ -e "$tgt_path" ]; then
+      rm -rf -- "$tgt_path" || {
+        # Try to clean up
+        rm -rf -- "$temp_dest"
+        # Report and return
+        dprint_debug "Failed to overwrite existing file '$rel_path' at:" \
+          -i "$tgt_path"
+        return 1
+      }
     fi
 
-    # Storage variables
-    local from relative to
-
-    # Copy root files (not direcoties)
-    while IFS= read -r -d $'\0' from; do
-      # Do the job on the file
-      __updating__overwrite_fmwk_file "$from" || return 1
-    done < <( find "$TEMP_DEST" -mindepth 1 -maxdepth 1 \
-      -type f -print0 )
-
-    # Copy files (not directories) in lib/ dir, down to considerable depth
-    while IFS= read -r -d $'\0' from; do
-      # Do the job on the file
-      __updating__overwrite_fmwk_file "$from" || return 1
-    done < <( find "$TEMP_DEST/lib" -mindepth 1 -maxdepth 10 \
-      -type f -print0 )
-
-    # Clean up
-    rm -rf -- "$TEMP_DEST"
-
-    # All done: announce and return
-    dprint_debug \
-      'Successfully overwritten all Divine.dotfiles components at:' \
-      -i "$D_FMWK_DIR"
-    return 0
-  
-  else
-
-    # Somehow got here without successfully pulling repo: return error
-    dprint_debug 'Not supposed to get here'
-    return 1
-  
-  fi
-}
-
-#>  __updating__overwrite_fmwk_file FULL_PATH
-#
-## Copies given file to $D_FMWK_DIR, overwriting existing file there. 
-#. $TEMP_DEST is expected to be a prefix within FULL_PATH.
-#
-## Returns:
-#.  0 - Successfully did the job
-#.  1 - There was a fatal error (halt the update)
-#
-__updating__overwrite_fmwk_file()
-{
-  # Extract args
-  local from="$1"; shift
-
-  # Extract relative path
-  local relative="${from#$TEMP_DEST}"
-
-  # Construct 'to' path
-  local to="$D_FMWK_DIR/$relative"
-
-  # Pre-erase existing file
-  if [ -e "$to" ]; then
-    rm -rf -- "$to" || {
+    # Move new file
+    mv -n -- "$src_path" "$tgt_path" || {
       # Try to clean up
-      rm -rf -- "$TEMP_DEST"
+      rm -rf -- "$temp_dest"
       # Report and return
-      dprint_debug "Failed to overwrite existing file '$relative' at:" \
-        -i "$to"
+      dprint_debug "Failed to move file '$rel_path' from:" \
+          -i "$src_path" -n 'to:' -i "$tgt_path"
       return 1
     }
-  fi
 
-  # Make sure parent directory for destination exists
-  mkdir -p -- "$( dirname -- "$to" )" || {
-    # Try to clean up
-    rm -rf -- "$TEMP_DEST"
-    # Report and return
-    dprint_debug "Failed to create parent destination directory at:" \
-      -i "$to"
-    return 1
-  }
+  done < <( find "$temp_dest" -mindepth 1 -maxdepth 1 \
+    \( -type f -or -type d \) -print0 )
 
-  # Move new file
-  mv -n -- "$from" "$to" || {
-    # Try to clean up
-    rm -rf -- "$TEMP_DEST"
-    # Report and return
-    dprint_debug "Failed to move file '$relative' from:" \
-        -i "$from" -n 'to:' -i "$to"
-    return 1
-  }
+  # Clean up
+  rm -rf -- "$temp_dest"
+
+  # All done: announce and return
+  dprint_debug \
+    'Successfully overwritten all Divine.dotfiles components at:' \
+    -i "$D_DIR_FMWK"
+  return 0
 }
 
 #>  __updating__update_dpl_repo_via_git PATH
@@ -585,7 +675,7 @@ __updating__overwrite_fmwk_file()
 __updating__update_dpl_repo_via_git()
 {
   # Check if git has been previously detected as unavailable
-  $NO_GIT && {
+  $GIT_AVAILABLE || {
     dprint_debug 'Unable to update via git'
     return 1
   }
@@ -593,7 +683,7 @@ __updating__update_dpl_repo_via_git()
   # Extract path to repository being updated
   local repo_path="$1"; shift
 
-  # Ensure $D_FMWK_DIR is a git repo
+  # Ensure $D_DIR_FMWK is a git repo
   git ls-remote "$repo_path" -q &>/dev/null || {
     dprint_debug 'Not a git repository:' -i "$repo_path"
     return 1
@@ -617,6 +707,169 @@ __updating__update_dpl_repo_via_git()
   fi
 }
 
+#>  __updating__update_dpl_repo_via_tar USER_REPO
+#
+## Prompts, then tries to download Github tarball and extract it over existing 
+#. files
+#
+## Returns:
+#.  0 - Successfully updated
+#.  1 - Otherwise
+#
+__updating__update_dpl_repo_via_tar()
+{
+  # Only attempt ‘crude’ update with --force option
+  if ! $D_OPT_FORCE; then
+    dprint_debug \
+      "'Crude' update (downloading repo) is only available with --force option"
+    return 1
+  fi
+
+  # Set user/repository to download from
+  local user_repo="$1"; shift
+
+  # Compose temporary destination directory
+  local temp_dest="$( mktemp -d )"
+
+  # Compose permanent destination directory
+  local perm_dest="$D_DIR_DPL_REPOS/$user_repo"
+
+  # Prompt user
+  if ! dprompt_key --bare -p 'Attempt to download?' -a "$D_OPT_ANSWER" -- \
+    'It is possible to download a fresh copy of deployments from:' \
+    -i "https://github.com/${user_repo}" \
+    -n 'and overwrite files in your directory at:' -i "$perm_dest" \
+    -n 'thus performing a ‘crude’ update'
+  then
+    dprint_debug 'Refused to perform ‘crude’ update'
+    return 1
+  fi
+
+  # Attempt curl and Github API
+  if grep -q 200 < <( curl -I "https://api.github.com/repos/${user_repo}" \
+    2>/dev/null | head -1 ); then
+
+    # Both curl and remote repo are available
+
+    # Download and untar in one fell swoop
+    curl -sL "https://api.github.com/repos/${user_repo}/tarball" \
+      | tar --strip-components=1 -C "$temp_dest" -xzf -
+    
+    # Check status
+    [ $? -eq 0 ] || {
+      # Announce failure to download
+      dprint_debug \
+        'Failed to download (curl) or extract tarball repository at:' \
+        -i "https://api.github.com/repos/${user_repo}/tarball" \
+        -n 'to temporary directory at:' -i "$temp_dest"
+      # Try to clean up
+      rm -rf -- "$temp_dest"
+      # Return
+      return 1
+    }
+  
+  # Attempt wget and Github API
+  elif grep -q 200 < <( wget -q --spider --server-response \
+    "https://api.github.com/repos/${user_repo}" 2>&1 | head -1 ); then
+
+    # Both wget and remote repo are available
+
+    # Download and untar in one fell swoop
+    wget -qO - "https://api.github.com/repos/${user_repo}/tarball" \
+      | tar --strip-components=1 -C "$temp_dest" -xzf -
+    
+    # Check status
+    [ $? -eq 0 ] || {
+      # Announce failure to download
+      dprint_debug \
+        'Failed to download (wget) or extract tarball repository at:' \
+        -i "https://api.github.com/repos/${user_repo}/tarball" \
+        -n 'to temporary directory at:' -i "$temp_dest"
+      # Try to clean up
+      rm -rf -- "$temp_dest"
+      # Return
+      return 1
+    }
+    
+  else
+
+    # Repository is inaccessible
+    dprint_debug 'Unable to access repository at:' \
+      -i "https://github.com/${user_repo}"
+    return 1
+
+  fi
+
+  # Prompt user for possible clobbering, and clobber if required
+  if ! dprompt_key --bare -p 'Overwrite files?' -a "$D_OPT_ANSWER" -- \
+    'Fresh copy of repository has been downloaded to temp dir at:' \
+    -i "$temp_dest" \
+    -n 'and is ready to be copied over existing files in:' -i "$perm_dest"
+  then
+    # Try to clean up
+    rm -rf -- "$temp_dest"
+    # Report and return
+    dprint_debug 'Refused to perform ‘crude’ update'
+    return 1
+  fi
+
+  # Make sure directory exists
+  mkdir -p -- "$D_DIR_DPL_REPOS/$user_repo" || {
+    # Try to clean up
+    rm -rf -- "$temp_dest"
+    # Report and return
+    dprint_debug "Failed to create destination directory at:" \
+      -i "$D_DIR_DPL_REPOS/$user_repo"
+    return 1
+  }
+
+  # Storage variables
+  local src_path rel_path tgt_path
+
+  # Copy files and directories at root level
+  while IFS= read -r -d $'\0' src_path; do
+
+    # Extract relative path
+    rel_path="${src_path#"$temp_dest/"}"
+
+    # Construct target path
+    tgt_path="$D_DIR_DPL_REPOS/$user_repo/$rel_path"
+
+    # Pre-erase existing file
+    if [ -e "$tgt_path" ]; then
+      rm -rf -- "$tgt_path" || {
+        # Try to clean up
+        rm -rf -- "$temp_dest"
+        # Report and return
+        dprint_debug "Failed to overwrite existing file '$rel_path' at:" \
+          -i "$tgt_path"
+        return 1
+      }
+    fi
+
+    # Move new file
+    mv -n -- "$src_path" "$tgt_path" || {
+      # Try to clean up
+      rm -rf -- "$temp_dest"
+      # Report and return
+      dprint_debug "Failed to move file '$rel_path' from:" \
+          -i "$src_path" -n 'to:' -i "$tgt_path"
+      return 1
+    }
+
+  done < <( find "$temp_dest" -mindepth 1 -maxdepth 1 \
+    \( -type f -or -type d \) -print0 )
+
+  # Clean up
+  rm -rf -- "$temp_dest"
+
+  # All done: announce and return
+  dprint_debug \
+    'Successfully overwritten all deployment files at:' \
+    -i "$D_DIR_DPL_REPOS/$user_repo"
+  return 0
+}
+
 #>  __updating__check_or_install UTIL_NAME
 #
 ## Checks whether UTIL_NAME is available and, if not, offers to install it 
@@ -631,8 +884,12 @@ __updating__check_or_install()
   # Extract util name
   local util_name="$1"
 
-  # If command by that name is available, return zero immediately
-  command -v "$util_name" &>/dev/null && return 0
+  # If command by that name is available on $PATH, return zero immediately
+  case $util_name in
+    git)  git --version &>/dev/null;;
+    tar)  tar --version &>/dev/null;;
+  esac
+  [ $? -eq 0 ] && return 0
 
   # Print initial warning
   dprint_debug "Failed to detect $util_name executable"

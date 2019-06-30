@@ -2,9 +2,9 @@
 #:title:        Divine Bash script: intervene
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    1.6.0-RELEASE
-#:revdate:      2019.05.14
-#:revremark:    Streamline adding routine
+#:revnumber:    1.7.0-RELEASE
+#:revdate:      2019.06.30
+#:revremark:    Major compartmentalization
 #:created_at:   2018.03.25
 
 ## Launches the Divine intervention
@@ -16,11 +16,11 @@
 # Driver function
 __main()
 {
+  # Ensure system dependencies are present
+  __check_system_dependencies
+
   # Process received arguments
   __parse_arguments "$@"
-
-  # Resolve absolute canonical path to the directory containing this script
-  __populate_fmwk_dir
 
   # Define constant globals
   __populate_globals
@@ -30,6 +30,20 @@ __main()
 
   # Perform requested routine
   __perform_routine
+}
+
+#>  __check_system_dependencies
+#
+## Ensures current system has all expected utilities installed, or exits the 
+#. script
+#
+## Returns:
+#.  0 - All system dependencies are present and accessible
+#.  1 - (script exit) Otherwise
+#
+__check_system_dependencies()
+{
+  :
 }
 
 ## __parse_arguments [ARG]…
@@ -51,8 +65,7 @@ __parse_arguments()
   D_OPT_FORCE=false         # Flag for forceful mode
   D_OPT_QUIET=true          # Verbosity setting
   D_OPT_ANSWER=             # Blanket answer to all prompts
-  D_OPT_ADD_MODE=normal     # Flag for how to organize added deployments
-  D_OPT_ADD_LINK=false      # Flag for whether copy or symlink non-repos
+  D_OPT_PLUG_LINK=false     # Flag for whether copy or symlink Grail dir
 
   # Parse the first argument
   case "$1" in
@@ -60,7 +73,9 @@ __parse_arguments()
     r|remove)     D_REQ_ROUTINE=remove;;
     f|refresh)    D_REQ_ROUTINE=refresh;;
     c|check)      D_REQ_ROUTINE=check;;
-    a|add)        D_REQ_ROUTINE=add;;
+    a|attach)     D_REQ_ROUTINE=attach;;
+    d|detach)     D_REQ_ROUTINE=detach;;
+    p|plug)       D_REQ_ROUTINE=plug;;
     u|update)     D_REQ_ROUTINE=update;;
     -h|--help)    __show_help_and_exit;;
     --version)    __show_version_and_exit;;
@@ -82,7 +97,7 @@ __parse_arguments()
   # Parse remaining args for supported options
   while [ $# -gt 0 ]; do
     # If delimiter encountered, add arg and continue
-    $delim && { D_REQ_ARGS+=("$1"); shift; continue; }
+    $delim && { [ -n "$1" ] && D_REQ_ARGS+=("$1"); shift; continue; }
     # Otherwise, parse options
     case "$1" in
       --)                 delim=true;;
@@ -95,9 +110,7 @@ __parse_arguments()
       -e|--except)        D_OPT_INVERSE=true;;
       -q|--quiet)         D_OPT_QUIET=true;;
       -v|--verbose)       D_OPT_QUIET=false;;
-      -t|--flat)          D_OPT_ADD_MODE=flat;;
-      -r|--root)          D_OPT_ADD_MODE=root;;
-      -l|--link)          D_OPT_ADD_LINK=true;;
+      -l|--link)          D_OPT_PLUG_LINK=true;;
       -*)                 for i in $( seq 2 ${#1} ); do
                             opt="${1:i-1:1}"
                             case $opt in
@@ -109,9 +122,7 @@ __parse_arguments()
                               e)  D_OPT_INVERSE=true;;
                               q)  D_OPT_QUIET=true;;
                               v)  D_OPT_QUIET=false;;
-                              t)  D_OPT_ADD_MODE=flat;;
-                              r)  D_OPT_ADD_MODE=root;;
-                              l)  D_OPT_ADD_LINK=true;;
+                              l)  D_OPT_PLUG_LINK=true;;
                               *)  printf >&2 '%s: Illegal option -- %s\n\n' \
                                     "$( basename -- "${BASH_SOURCE[0]}" )" \
                                     "$opt"
@@ -119,7 +130,7 @@ __parse_arguments()
                             esac
                           done;;
       [0-9]|!)            D_REQ_GROUPS+=("$1");;
-      *)                  D_REQ_ARGS+=("$1");;
+      *)                  [ -n "$1" ] && D_REQ_ARGS+=("$1");;
     esac; shift
   done
 
@@ -128,13 +139,12 @@ __parse_arguments()
   readonly D_OPT_ANSWER
   readonly D_OPT_FORCE
   readonly D_OPT_INVERSE
+  readonly D_OPT_PLUG_LINK
   readonly D_REQ_GROUPS
   readonly D_REQ_ARGS
-  readonly D_OPT_ADD_MODE
-  readonly D_OPT_ADD_LINK
 
   # In some routines: skip early
-  [ "$D_REQ_ROUTINE" = add -o "$D_REQ_ROUTINE" = update ] && return 0
+  [[ $D_REQ_ROUTINE =~ ^(attach|detach|plug|update)$ ]] && return 0
 
   # Check if there are workable arguments
   if [ ${#D_REQ_ARGS[@]} -gt 0 -o ${#D_REQ_GROUPS[@]} -gt 0 ]; then
@@ -196,12 +206,15 @@ NAME
     ${bold}${script_name}${normal} - launch Divine intervention
 
 SYNOPSIS
-    ${script_name} i[nstall]|r[emove] [-ynqveif]… [--] [TASK]…
-    ${script_name} f|refresh          [-ynqveif]… [--] [TASK]…
-    ${script_name} c[heck]            [-ynqvei]…  [--] [TASK]…
+    ${script_name} ${bold}i${normal}[nstall]                [-ynqveif]… [--] [TASK]…
+    ${script_name} ${bold}r${normal}[emove]                 [-ynqveif]… [--] [TASK]…
+    ${script_name} ${bold}f${normal}|refresh                [-ynqveif]… [--] [TASK]…
+    ${script_name} ${bold}c${normal}[heck]                  [-ynqvei]…  [--] [TASK]…
 
-    ${script_name} a[dd]              [-yntrl]…    [--] [REPO]…
-    ${script_name} u[pdate]           [-yn]…
+    ${script_name} ${bold}a${normal}[ttach]                 [-yn]…      [--] REPO…
+    ${script_name} ${bold}d${normal}[etach]                 [-yn]…      [--] REPO…
+    ${script_name} ${bold}p${normal}[lug]                   [-ynl]…     [--] REPO/DIR
+    ${script_name} ${bold}u${normal}[pdate]                 [-yn]…      [--] [TASK]…
 
     ${script_name} --version
     ${script_name} -h|--help
@@ -211,7 +224,7 @@ DESCRIPTION
     
     Launch with '-n' option for a harmless introductory dry run.
 
-    ${bold}Installation routine${normal}
+    ${bold}'Install' routine${normal} - installs tasks
 
     - Collects tasks from two sources:
       - Package names from 'Divinefile'
@@ -222,7 +235,7 @@ DESCRIPTION
       - ${bold}Installs${normal} packages using system’s package manager
       - ${bold}Installs${normal} deployments using 'dinstall' function in each
 
-    ${bold}Removal routine${normal}
+    ${bold}'Remove' routine${normal} - removes tasks
 
     - Collects tasks from two sources:
       - Package names from 'Divinefile'
@@ -233,12 +246,12 @@ DESCRIPTION
       - ${bold}Removes${normal} deployments using 'dremove' function in each
       - ${bold}Removes${normal} packages using system’s package manager
     
-    ${bold}Refreshing routine${normal}
+    ${bold}'Refresh' routine${normal} - removes, then installs tasks
 
-    - Performs removal routine
-    - Performs installation routine
+    - Performs removal routine on requested tasks
+    - Performs installation routine on requested tasks
 
-    ${bold}Checking routine${normal}
+    ${bold}'Check' routine${normal} - checks status of tasks
 
     - Collects tasks from two sources:
       - Package names from 'Divinefile'
@@ -246,20 +259,41 @@ DESCRIPTION
     - Sorts tasks by priority (${bold}ascending${normal} integer order)
     - Prints whether each task is installed or not
 
-    ${bold}Adding routine${normal}
+    ${bold}'Attach' routine${normal} - imports deployments from Github
 
-    - Accepts deployments in four forms:
-      - Built-in Github repo in the form 'NAME' (which translates to Github
-        repo 'no-simpler/grail-NAME')
-      - Github repo in the form 'username/repository'
-      - Path to local git repository or directory
-      - Path to local deployment file
-    - Makes shallow clones of repositories or copies deployment containers into 
-      deployments directory
-    - Segregates additions based on where they are added from
+    - Accepts deployments in two forms:
+      - Divine deployment package in the form 'NAME' (which translates to 
+        Github repo 'no-simpler/divine-dpls-NAME')
+      - Third-party deployment package (Github repo) in the form 
+        'username/repository'
+    - Makes shallow clones of repositories or downloads them into internal 
+      directory
+    - Records source of successfull clone/download in Grail directory for 
+      future replication
     - Prompts before overwriting
 
-    ${bold}Updating routine${normal}
+    ${bold}'Detach' routine${normal} - removes deployments previously imported from Github
+
+    - Accepts deployments in any of two forms:
+      - Divine Github repository with deployments in the form 'NAME' (which 
+        translates to 'no-simpler/divine-dpls-NAME')
+      - Github repository with deployments in the form 'username/repository'
+    - If such a repository is currently present, removes it
+    - Clears record of this repository in Grail directory
+
+    ${bold}'Plug' routine${normal} - replaces Grail directory
+
+    - Allows to quickly plug-in pre-made (and possibly version controlled) 
+      version of Grail directory, containing user assets and custom deployments
+    - Accepts Grail directory in any of three forms:
+      - Github repository in the form 'username/repository'
+      - Address of a git repository
+      - Path to a directory
+    - Makes shallow clones of repositories or downloads them into a built-in 
+      directory
+    - Prompts before overwriting
+
+    ${bold}'Update' routine${normal} - updates framework, deployment repos, and Grail
 
     - Updates framework by either pulling from repository or re-downloading and 
       overwriting files one by one
@@ -271,7 +305,8 @@ DESCRIPTION
 
     Whenever a list of tasks is provided, only those tasks are performed. Task 
     names are case insensitive. Name 'divinefile' is reserved to refer to 
-    Divinefile processing. Other names refer to deployments.
+    processing of Divinefiles. Other names refer to deployments or deployment 
+    groups.
 
 OPTIONS
     -y, --yes       Assume affirmative answer to every prompt. Deployments may 
@@ -288,30 +323,17 @@ OPTIONS
                         than this framework.
                     This option signals that such considerations are to be 
                     forgone. Note, however, that it is mostly up to authors of 
-                    deployments to honor this option. Divine grails (deployment 
-                    packs, distributed separately) are designed with this 
-                    option in mind.
+                    deployments to honor this option. Divine deployments 
+                    (distributed separately) are designed with this option in 
+                    mind.
 
-    -t, --flat      (only for adding routine)
-                    For all other routines this is a no-opt.
-                    Make each addition a directory directly under deployments 
-                    directory, as opposed to grouping additions into 
-                    subdirectories by type.
-
-    -r, --root      (only for adding routine)
-                    For all other routines this is a no-opt.
-                    Replace entire deployments directory itself with deployment 
-                    directory being added. Standalone deployments are copied to 
-                    root of deployments directory without erasing it.
-
-    -l, --link      (only for adding routine)
-                    For all other routines this is a no-opt.
-                    Prefer to symlink local deployment files and directories, 
-                    and do not try to clone or download repositories.
-                    For adding remote deployments this is a no-opt.
+    -l, --link      ('plug' routine only, otherwise no-opt)
+                    Prefer to symlink external Grail directory and avoid 
+                    cloning or downloading repositories.
 
     -e, --except, -i, --inverse
-                    Inverse task list: filter out tasks included in it
+                    Inverse task list: filter out tasks included in it, instead 
+                    of filtering them in
 
     -q, --quiet     (default) Decreases amount of status messages
 
@@ -361,14 +383,18 @@ __show_usage_and_exit()
 
   local usage_tip script_name="$( basename -- "${BASH_SOURCE[0]}" )"
   read -r -d '' usage_tip << EOF
-Usage: ${bold}${script_name}${normal} ${bold}i${normal}|${bold}install${normal} [-ynqveif] [TASK]…   - Launch installation
-   or: ${bold}${script_name}${normal} ${bold}r${normal}|${bold}remove${normal}  [-ynqveif] [TASK]…   - Launch removal
-   or: ${bold}${script_name}${normal} ${bold}f${normal}|${bold}refresh${normal} [-ynqveif] [TASK]…   - Launch refreshing
-   or: ${bold}${script_name}${normal} ${bold}c${normal}|${bold}check${normal}   [-ynqvei]  [TASK]…   - Launch checking
-   or: ${bold}${script_name}${normal} ${bold}a${normal}|${bold}add${normal}     [-yntrl]   [SRC]…    - Add deployment from repo/dir/file
-   or: ${bold}${script_name}${normal} ${bold}u${normal}|${bold}update${normal}  [-yn]                - Update framework
-   or: ${bold}${script_name}${normal} --version                      - Show script version
-   or: ${bold}${script_name}${normal} -h|--help                      - Show help summary
+Usage: ${bold}${script_name}${normal} ${bold}i${normal}|${bold}install${normal}   [-ynqveif] [TASK]…  - Launch installation
+   or: ${bold}${script_name}${normal} ${bold}r${normal}|${bold}remove${normal}    [-ynqveif] [TASK]…  - Launch removal
+   or: ${bold}${script_name}${normal} ${bold}f${normal}|${bold}refresh${normal}   [-ynqveif] [TASK]…  - Launch removal, then installation
+   or: ${bold}${script_name}${normal} ${bold}c${normal}|${bold}check${normal}     [-ynqvei]  [TASK]…  - Launch checking
+
+   or: ${bold}${script_name}${normal} ${bold}a${normal}|${bold}attach${normal}    [-yn]      REPO…    - Add deployment(s) from Github repo
+   or: ${bold}${script_name}${normal} ${bold}d${normal}|${bold}detach${normal}    [-yn]      REPO…    - Remove previously attached repo
+   or: ${bold}${script_name}${normal} ${bold}p${normal}|${bold}plug${normal}      [-ynl]     REPO/DIR - Plug Grail from repo or dir
+   or: ${bold}${script_name}${normal} ${bold}u${normal}|${bold}update${normal}    [-yn]      [TASK]…  - Update framework
+
+   or: ${bold}${script_name}${normal} --version                       - Show script version
+   or: ${bold}${script_name}${normal} -h|--help                       - Show help summary
 EOF
 
   # Print usage tip
@@ -398,7 +424,7 @@ __show_version_and_exit()
 
   local version_msg
   read -r -d '' version_msg << EOF
-${bold}$( basename -- "${BASH_SOURCE[0]}" )${normal} 1.6.0
+${bold}$( basename -- "${BASH_SOURCE[0]}" )${normal} 1.7.0
 Part of ${bold}Divine.dotfiles${normal} <https://github.com/no-simpler/divine-dotfiles>
 This is free software: you are free to change and redistribute it
 There is NO WARRANTY, to the extent permitted by law
@@ -410,10 +436,13 @@ EOF
   exit 0
 }
 
-#> __populate_fmwk_dir
+#> __populate_d_dir_fmwk
 #
-## Resolves absolute location of the script in which this function is *defined* 
-#. and stores it globally, unless it is already occupied and readonly.
+## Resolves absolute path to directory containing this script, stores it in a 
+#. global read-only variable as the location of the framework. Also, populates 
+#. another global variable with absolute path to directory containing framework 
+#. directory, which is referred to as divine directory, and may be overridden 
+#. by user.
 #
 ## Requires:
 #.  Bash >=3.2
@@ -421,22 +450,34 @@ EOF
 ## Parameters:
 #.  *none*
 #
+## Uses in the global scope:
+#.  $D_DIR        - user-provided override for $D_DIR below
+#
 ## Provides into the global scope:
-#.  $D_FMWK_DIR   - (read-only) Absolute path to directory containing 
-#.                  ${BASH_SOURCE[0]}, all symlinks resolved.
+#.  $D_DIR_FMWK   - (read-only) Absolute path to directory containing this 
+#.                  script (technically, value of ${BASH_SOURCE[0]}), all 
+#.                  symlinks resolved.
+#.  $D_DIR        - (read-only) Absolute path to directory containing grail and 
+#.                  state directories. By default it is same as $D_DIR_FMWK. 
+#.                  User is allowed to override this path.
+#.                  
 #
 ## Returns:
-#.  Status of assignment of $D_FMWK_DIR variable
-#.  1 - (script exit) $D_FMWK_DIR is already set and is NOT overwritten.
+#.  0 - Both assignments successful
+#.  1 - (script exit) User provided invalid override for $D_DIR
 #
 ## Prints:
 #.  stdout: *nothing*
 #.  stderr: Error descriptions
 #
-__populate_fmwk_dir()
+__populate_d_dir_fmwk()
 {
-  # (Possibly relative) path to this script and a temp var
-  local filename="${BASH_SOURCE[0]}" dirpath d_dir
+  # Storage variables
+  local filename="${BASH_SOURCE[0]}" dirpath d_dir_fmwk d_dir
+
+  #
+  # Set $D_DIR_FMWK
+  #
 
   # Resolve all base symlinks
   while [ -L "$filename" ]; do
@@ -446,28 +487,46 @@ __populate_fmwk_dir()
   done
 
   # Also, resolve any non-base symlinks remaining in the path
-  d_dir="$( cd -P "$( dirname -- "$filename" )" &>/dev/null && pwd )"
+  d_dir_fmwk="$( cd -P "$( dirname -- "$filename" )" &>/dev/null && pwd )"
 
-  # Ensure global read-only variable with this path is set
-  if [ "$d_dir" = "$D_FMWK_DIR" ]; then
+  # Ensure global read-only variable with $D_DIR_FMWK path is set
+  readonly D_DIR_FMWK="$d_dir_fmwk"
 
-    # $D_FMWK_DIR is set to correct value: ensure it is read-only
-    ( unset D_FMWK_DIR 2>/dev/null ) && readonly D_FMWK_DIR
+  #
+  # Set $D_DIR
+  #
 
-  elif ( unset D_FMWK_DIR 2>/dev/null ); then
+  # Make default value
+  d_dir="$d_dir_fmwk"
 
-    # $D_FMWK_DIR is set to incorrect value but is not read-only: set and make
-    readonly D_FMWK_DIR="$d_dir"
+  # Check if global read-only variable with $D_DIR path is set
+  if [ -z ${D_DIR+isset} ]; then
+
+    # $D_DIR is not set: set it up
+    readonly D_DIR="$d_dir"
   
   else
 
-    # $D_FMWK_DIR is set to incorrect value and is read-only: error out
-    printf >&2 '%s: %s: %s\n' \
-      "$( basename -- "${BASH_SOURCE[0]}" )" \
-      'Fatal error' \
-      '$D_FMWK_DIR is already set to incorrect value and is read-only'
-    exit 1
-  
+    # $D_DIR is set to some value: check if it is a writable directory
+    if mkdir -p -- "$D_DIR" && [ -w "$D_DIR" ]; then
+
+      # Acceptable $D_DIR override: make sure it is read-only
+      $D_OPT_QUIET || printf >&2 '%s: %s\n' \
+        'Divine dir overridden     :' \
+        "$D_DIR"
+      readonly D_DIR
+
+    else
+
+      # $D_DIR not a writable directory: erroneous override
+      printf >&2 '%s: %s: %s\n' \
+        "$( basename -- "${BASH_SOURCE[0]}" )" \
+        'Fatal error' \
+        'Invalid $D_DIR override (not a writable directory)'
+      exit 1
+
+    fi
+
   fi
 }
 
@@ -491,67 +550,39 @@ __populate_globals()
   # Framework displayed name
   readonly D_FMWK_NAME='Divine.dotfiles'
 
-  # Path to assets directory
-  D_FMWK_DIR_ASSETS="$D_FMWK_DIR/assets"
-  if [ -d "$D_ASSETS_DIR" -a -r "$D_ASSETS_DIR" \
-    -a "$D_FMWK_DIR_ASSETS" != "$D_ASSETS_DIR" ]; then
+  # Paths to directories within $D_DIR
+  __populate_d_dir_fmwk
+  readonly D_DIR_GRAIL="$D_DIR/grail"
+  readonly D_DIR_STATE="$D_DIR/state"
 
-    # Announce and override
-    $D_OPT_QUIET || printf >&2 '%s: %s\n' \
-      'Assets dir overridden     :' \
-      "$D_ASSETS_DIR"
-    D_FMWK_DIR_ASSETS="$D_ASSETS_DIR"
-  
-  fi
-  readonly D_FMWK_DIR_ASSETS
+  # Paths to directories within $D_DIR_FMWK
+  readonly D_DIR_LIB="$D_DIR_FMWK/lib"
 
-  # Path to backups directory
-  D_FMWK_DIR_BACKUPS="$D_FMWK_DIR/backups"
-  if [ -d "$D_BACKUPS_DIR" -a -r "$D_BACKUPS_DIR" \
-    -a "$D_FMWK_DIR_BACKUPS" != "$D_BACKUPS_DIR" ]; then
+  # Paths to directories within $D_DIR_GRAIL
+  readonly D_DIR_ASSETS="$D_DIR_GRAIL/assets"
+  readonly D_DIR_DPLS="$D_DIR_GRAIL/dpls"
 
-    # Announce and override
-    $D_OPT_QUIET || printf >&2 '%s: %s\n' \
-      'Backups dir overridden    :' \
-      "$D_BACKUPS_DIR"
-    D_FMWK_DIR_BACKUPS="$D_BACKUPS_DIR"
-  
-  fi
-  readonly D_FMWK_DIR_BACKUPS
-
-  # Path to deployments directory
-  D_FMWK_DIR_DPLS="$D_FMWK_DIR/dpls"
-  if [ -d "$D_DPLS_DIR" -a -r "$D_DPLS_DIR" \
-    -a "$D_FMWK_DIR_DPLS" != "$D_DPLS_DIR" ]; then
-
-    # Announce and override
-    $D_OPT_QUIET || printf >&2 '%s: %s\n' \
-      'Deployments dir overridden:' \
-      "$D_DPLS_DIR"
-    D_FMWK_DIR_DPLS="$D_DPLS_DIR"
-  
-  fi
-  readonly D_FMWK_DIR_DPLS
-
-  # Path to lib directory
-  readonly D_FMWK_DIR_LIB="$D_FMWK_DIR/lib"
+  # Paths to directories within $D_DIR_STATE
+  readonly D_DIR_BACKUPS="$D_DIR_STATE/backups"
+  readonly D_DIR_STASH="$D_DIR_STATE/stash"
+  readonly D_DIR_DPL_REPOS="$D_DIR_STATE/dpl-repos"
 
   # Path to adapters directory and adapter file suffix
-  readonly D_FMWK_DIR_ADAPTERS="$D_FMWK_DIR_LIB/adapters"
-  readonly D_FMWK_DIR_ADP_FAMILY="$D_FMWK_DIR_ADAPTERS/family"
-  readonly D_FMWK_DIR_ADP_DISTRO="$D_FMWK_DIR_ADAPTERS/distro"
+  readonly D_DIR_ADAPTERS="$D_DIR_LIB/adapters"
+  readonly D_DIR_ADP_FAMILY="$D_DIR_ADAPTERS/family"
+  readonly D_DIR_ADP_DISTRO="$D_DIR_ADAPTERS/distro"
   readonly D_SUFFIX_ADAPTER=".adp.sh"
 
   # Path to routines directory and routine file suffix
-  readonly D_FMWK_DIR_ROUTINES="$D_FMWK_DIR_LIB/routines"
+  readonly D_DIR_ROUTINES="$D_DIR_LIB/routines"
   readonly D_SUFFIX_ROUTINE=".rtn.sh"
 
-  # Path to directory containing Bash utility scripts util file suffix
-  readonly D_FMWK_DIR_UTILS="$D_FMWK_DIR_LIB"
+  # Path to directory containing Bash utility scripts and util file suffix
+  readonly D_DIR_UTILS="$D_DIR_LIB/utils"
   readonly D_SUFFIX_UTIL=".utl.sh"
 
   # Path to directory containing Bash helper functions and helper suffix
-  readonly D_FMWK_DIR_HELPERS="$D_FMWK_DIR_LIB/helpers"
+  readonly D_DIR_HELPERS="$D_DIR_LIB/helpers"
   readonly D_SUFFIX_HELPER=".hlp.sh"
 
   # Filename suffix for deployment files
@@ -560,11 +591,8 @@ __populate_globals()
   # Filename suffix for asset manifest files
   readonly D_SUFFIX_DPL_MNF='.dpl.mnf'
 
-  # Filename suffix for main queue files
+  # Filename suffix for main queue manifest files
   readonly D_SUFFIX_DPL_QUE='.dpl.que'
-
-  # Prefix for backup files created by deployments
-  readonly D_PREFIX_BACKUP='.dvn-backup-'
 
   # Ordered list of script’s utility and helper dependencies
   D_QUEUE_DEPENDENCIES=( \
@@ -589,7 +617,7 @@ __populate_globals()
   readonly D_CONST_NAME_DIVINEFILE='Divinefile'
   
   # Name for stash files
-  readonly D_CONST_NAME_STASHFILE="stash.cfg"
+  readonly D_CONST_NAME_STASHFILE=".dstash.cfg"
 
   # Default task priority
   readonly D_CONST_DEF_PRIORITY=4096
@@ -702,6 +730,10 @@ __import_dependencies()
 #
 __perform_routine()
 {
+  # Always pre-load dpl-repos routine
+  __load routine dpl-repos
+
+  # Fork based on routine
   case $D_REQ_ROUTINE in
     install)
       __load routine assemble
@@ -715,8 +747,14 @@ __perform_routine()
     check)
       __load routine assemble
       __load routine check;;
-    add)
-      __load routine add;;
+    attach)
+      __load routine assemble
+      __load routine attach;;
+    detach)
+      __load routine detach;;
+    plug)
+      __load routine assemble
+      __load routine plug;;
     update)
       __load routine update;;
     *)
@@ -745,9 +783,9 @@ __load()
 {
   # Check type and compose filepath accordingly
   local type="$1"; shift; local name="$1" filepath; case $type in
-    routine)  filepath="${D_FMWK_DIR_ROUTINES}/${name}${D_SUFFIX_ROUTINE}";;
-    util)     filepath="${D_FMWK_DIR_UTILS}/${name}${D_SUFFIX_UTIL}";;
-    helper)   filepath="${D_FMWK_DIR_HELPERS}/${name}${D_SUFFIX_HELPER}";;
+    routine)  filepath="${D_DIR_ROUTINES}/${name}${D_SUFFIX_ROUTINE}";;
+    util)     filepath="${D_DIR_UTILS}/${name}${D_SUFFIX_UTIL}";;
+    helper)   filepath="${D_DIR_HELPERS}/${name}${D_SUFFIX_HELPER}";;
     *)        printf >&2 '%s: %s\n' "${FUNCNAME[0]}" \
                 "Called with illegal type argument: '$type'"; exit 1;;
   esac; shift

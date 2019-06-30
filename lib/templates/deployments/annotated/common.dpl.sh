@@ -21,13 +21,13 @@
 #
 ## Expect these global variables to be available to this script during Divine 
 #. intervention:
-#.  $D_FMWK_DIR - (read-only) Absolute canonical path to directory containing 
+#.  $D_DIR_FMWK - (read-only) Absolute canonical path to directory containing 
 #.                ‘intervene.sh’ script that is currently being executed
 #.  $D_DPL_DIR  - Absolute canonical path to directory of this deployment, 
 #.                i.e., directory containing this script
-#.  $D_FMWK_DIR_BACKUPS
+#.  $D_DIR_BACKUPS
 #.              - Absolute canonical path to backups directory
-#.  $D_FMWK_DIR_LIB
+#.  $D_DIR_LIB
 #.              - Absolute canonical path to lib directory
 #.  $D_REQ_ROUTINE
 #.              - (read-only) The routine currently being executed. Either 

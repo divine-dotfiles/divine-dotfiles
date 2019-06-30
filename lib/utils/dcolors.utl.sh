@@ -62,7 +62,7 @@ __declare_global_colors()
   local num_of_colors
 
   # Get number of colors supported by terminal
-  if command -v tput &>/dev/null; then num_of_colors=$( tput colors ); fi
+  if type -P tput &>/dev/null; then num_of_colors=$( tput colors ); fi
 
   # Status variable
   local return_code=0

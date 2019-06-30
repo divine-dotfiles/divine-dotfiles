@@ -293,38 +293,37 @@ __copy_asset()
   return 0
 }
 
-#>  __process_all_asset_manifests_in_main_dir
+#>  __process_all_asset_manifests_in_dpl_dirs
 #
 ## Processes every valid manifest file in a main deployments directory, using
 #. __process_asset_manifest_of_current_dpl function.
 #
 ## Requires:
-#.  $D_DPL_NAMES        - Array of taken deployment names
-#.  $D_DPL_NAME_PATHS   - Array: index of each taken deployment name from 
-#.                        $D_DPL_NAMES contains delimited list of paths to 
-#.                        deployment files
+#.  $D_DPL_NAMES_IN_FMWK_DIRS - (array) Names of deployments in framework dirs
+#.  $D_DPL_PATHS_IN_FMWK_DIRS - (array) Index of each name contains delimited 
+#.                              list of paths to deployment files
 #
 ## Returns:
 #.  0 - Every manifest found is successfully processed
 #.  1 - At least one manifest caused problems
 #
-__process_all_asset_manifests_in_main_dir()
+__process_all_asset_manifests_in_dpl_dirs()
 {
   # Status and dtorage variables
   local name path manifest_path i
   local all_good=true
 
   # Iterate over names
-  for (( i=0; i<${#D_DPL_NAMES[@]}; i++ )); do
+  for (( i=0; i<${#D_DPL_NAMES_IN_FMWK_DIRS[@]}; i++ )); do
 
     # Extract name and path
-    name="${D_DPL_NAMES[$i]}"
-    path="${D_DPL_NAME_PATHS[$i]%"$D_CONST_DELIMITER"}"
+    name="${D_DPL_NAMES_IN_FMWK_DIRS[$i]}"
+    path="${D_DPL_PATHS_IN_FMWK_DIRS[$i]%"$D_CONST_DELIMITER"}"
 
     # Set up necessary variables
     D_DPL_MNF_PATH="${path%$D_SUFFIX_DPL_SH}$D_SUFFIX_DPL_MNF"
     D_DPL_DIR="$( dirname -- "$path" )"
-    D_DPL_ASSETS_DIR="$D_FMWK_DIR_ASSETS/$name"
+    D_DPL_ASSETS_DIR="$D_DIR_ASSETS/$name"
 
     # Do the deed
     __process_asset_manifest_of_current_dpl || all_good=false
