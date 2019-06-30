@@ -41,9 +41,11 @@ __sort_out_dpl_repos()
   fi
 
   # Load results of scanning repo directory
-  while IFS= read -r -d $'\0' actual_repo_dir; do
-    actual_repo_dirs+=( "$actual_repo_dir" )
-  done < <( find "$D_DIR_DPL_REPOS" -mindepth 2 -maxdepth 2 -type d -print0 )
+  if [ -r "$D_DIR_DPL_REPOS" -a -d "$D_DIR_DPL_REPOS" ]; then
+    while IFS= read -r -d $'\0' actual_repo_dir; do
+      actual_repo_dirs+=( "$actual_repo_dir" )
+    done < <( find "$D_DIR_DPL_REPOS" -mindepth 2 -maxdepth 2 -type d -print0 )
+  fi
 
   # Iterate over recorded repositories
   for (( i=0; i<${#recorded_user_repos[@]}; i++ )); do

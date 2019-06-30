@@ -307,7 +307,7 @@ __scan_for_divinefiles()
   # Iterate over given directories
   for dpl_dir_path do
 
-    # Check if deployments directory is readable
+    # Check if given directory is readable
     [ -r "$dpl_dir_path" -a -d "$dpl_dir_path" ] || continue
 
     # Iterate over every Divinefile in that deployments dir
@@ -419,7 +419,7 @@ __scan_for_divinefiles()
       # Done iterating over lines in Divinefile 
       done 10<"$divinefile_path"
 
-    # Done iterating over Divinefiles in deployments directory
+    # Done iterating over every Divinefile in that deployments dir
     done < <( find -L "$dpl_dir_path" -mindepth 1 -maxdepth 14 \
       -name "$D_CONST_NAME_DIVINEFILE" -print0 )
 

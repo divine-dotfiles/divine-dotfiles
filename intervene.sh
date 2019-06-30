@@ -507,25 +507,29 @@ __populate_d_dir_fmwk()
   
   else
 
-    # $D_DIR is set to some value: check if it is a writable directory
-    if mkdir -p -- "$D_DIR" && [ -w "$D_DIR" ]; then
+    # Accept $D_DIR override: make sure it is read-only
+    $D_OPT_QUIET || printf >&2 '%s: %s\n' \
+      'Divine dir overridden:' \
+      "$D_DIR"
+    readonly D_DIR
 
-      # Acceptable $D_DIR override: make sure it is read-only
-      $D_OPT_QUIET || printf >&2 '%s: %s\n' \
-        'Divine dir overridden     :' \
-        "$D_DIR"
-      readonly D_DIR
+  fi
 
-    else
+  # $D_DIR is now set: check if it is a writable directory
+  if mkdir -p -- "$D_DIR" && [ -w "$D_DIR" ]; then
 
-      # $D_DIR not a writable directory: erroneous override
-      printf >&2 '%s: %s: %s\n' \
-        "$( basename -- "${BASH_SOURCE[0]}" )" \
-        'Fatal error' \
-        'Invalid $D_DIR override (not a writable directory)'
-      exit 1
+    # Acceptable $D_DIR path
+    :
 
-    fi
+  else
+
+    # $D_DIR not a writable directory: unwork-able value
+    printf >&2 '%s: %s: %s:\n  %s\n' \
+      "$( basename -- "${BASH_SOURCE[0]}" )" \
+      'Fatal error' \
+      '$D_DIR is not a writable directory' \
+      "$D_DIR"
+    exit 1
 
   fi
 }
