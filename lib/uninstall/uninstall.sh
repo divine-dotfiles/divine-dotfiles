@@ -10,6 +10,12 @@ main()
   # Main removal
   if __locate_installations; then
 
+    # Prompt for removal of all installed deployments
+    if ! __prompt_remove_all; then
+      dprint_failure 'Terminating uninstallation'
+      return 1
+    fi
+
     # Remove possible stash-recorded Homebrew installation
     __uninstall_homebrew
 
@@ -62,7 +68,8 @@ __parse_arguments()
 {
   # Define global storage for option values
   D_OPT_QUIET=false       # Be verbose by default
-  D_REMOVE_ALL=           # Whether to perform removal
+  D_RUN_REMOVE_ALL=       # Whether to attempt to remove all deployments
+  D_REMOVE_FMWK=          # Whether to perform removal of framework
 
   # Extract arguments passed to this script (they start at $0)
   local args=( "$0" "$@" ) arg
@@ -72,8 +79,16 @@ __parse_arguments()
     case "$arg" in
       --quiet)            D_OPT_QUIET=true;;
       --verbose)          D_OPT_QUIET=false;;
-      --yes)              D_REMOVE_ALL=true;;
-      --no)               D_REMOVE_ALL=false;;
+      --framework-yes)    D_REMOVE_FMWK=true;;
+      --framework-no)     D_REMOVE_FMWK=false;;
+      --run-remove-yes)   D_RUN_REMOVE_ALL=true;;
+      --run-remove-no)    D_RUN_REMOVE_ALL=false;;
+      --yes)              D_REMOVE_FMWK=true
+                          D_RUN_REMOVE_ALL=true
+                          ;;
+      --no)               D_REMOVE_FMWK=false
+                          D_RUN_REMOVE_ALL=false
+                          ;;
       *)                  :;;
     esac
   done
@@ -154,6 +169,33 @@ __check_shortcut_filepath()
   fi
 }
 
+__prompt_remove_all()
+{
+  # Offer to remove deployments
+  dprompt_key "$D_RUN_REMOVE_ALL" --or-quit 'Remove?' \
+    '[optional] Remove deployments' \
+    'Framework will attempt to remove all deployments currently present'
+
+  # Check exit status
+  case $? in
+    0)  :;;
+    1)  dprint_skip 'Refused to remove deployments'
+        return 0
+        ;;
+    *)  return 1;;
+  esac
+
+  # Run installation
+  "$D_INSTALL_PATH"/intervene.sh remove --yes
+  "$D_INSTALL_PATH"/intervene.sh remove --yes !
+
+  # Is user happy?
+  dprompt_key "$D_RUN_REMOVE_ALL" 'Proceed?' 'Removal completed'
+
+  # Return zero always
+  return $?
+}
+
 __uninstall_homebrew()
 {
   if dstash_root_get installed_homebrew; then
@@ -195,7 +237,7 @@ __erase_d_dir()
   local name="${BOLD}Divine.dotfiles${NORMAL}"
 
   # Offer to uninstall framework
-  if dprompt_key "$D_REMOVE_ALL" 'Uninstall?' \
+  if dprompt_key "$D_REMOVE_FMWK" --main-rm 'Uninstall?' \
     "${name} Bash framework installed at:" \
     "$D_INSTALL_PATH"
   then
@@ -302,6 +344,8 @@ dprompt_key()
 {
   # Extract predefined answer
   local predefined_answer="$1"; shift
+  local main_rm=false; [ "$1" = '--main-rm' ] && { main_rm=true; shift; }
+  local or_quit=false; [ "$1" = '--or-quit' ] && { or_quit=true; shift; }
 
   # Check predefined answer
   if [ "$predefined_answer" = true ]; then return 0
@@ -319,11 +363,14 @@ dprompt_key()
   while [ $# -gt 0 ]; do printf >&2 '    %s\n' "$1"; shift; done
 
   # Print additional uninstallation-specific warning
-  printf >&2 '\n%s %s\n' "${BOLD}${RED}${REVERSE} CAREFUL ${NORMAL}" \
-    'This will completely erase installation directory'
+  $main_rm && \
+    printf >&2 '\n%s %s\n' "${BOLD}${RED}${REVERSE} CAREFUL ${NORMAL}" \
+      'This will completely erase installation directory'
 
   # Print prompt
-  printf >&2 '\n%s [y/n] ' \
+  local choices
+  $or_quit && choices+=' [y/n/q]' || choices+=' [y/n]'
+  printf >&2 "\n%s $choices " \
     "${BOLD}${YELLOW}${REVERSE} ${prompt_text} ${NORMAL}"
 
   # Await answer
@@ -331,6 +378,7 @@ dprompt_key()
     read -rsn1 input
     [[ $input =~ ^(y|Y)$ ]] && { printf >&2 'y'; yes=true;  break; }
     [[ $input =~ ^(n|N)$ ]] && { printf >&2 'n'; yes=false; break; }
+    $or_quit && [[ $input =~ ^(q|Q)$ ]] && { printf >&2 'q'; return 2; }
   done
   printf >&2 '\n'
 

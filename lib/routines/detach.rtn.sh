@@ -140,21 +140,22 @@ __detach__attempt_github_repo()
     if [ -d "$perm_dest" ]; then
 
       # Prompt user
-      if dprompt_key --bare --prompt 'Erase?' --answer "$D_OPT_ANSWER" -- \
-        'About to erase directory of cloned deployment repository at:' \
-        -i "$perm_dest"
+      if dprompt_key --bare --prompt 'Detach?' --answer "$D_OPT_ANSWER" -- \
+        'About to remove attached deployments at:' \
+        -i "$perm_dest" \
+        '(Please, make sure deployments are removed from the system.)'
       then
 
         # Attempt to remove it
         if rm -rf -- "$perm_dest"; then
 
-          dprint_debug 'Removed directory of cloned repository at:' \
+          dprint_debug 'Removed attached deployments at:' \
             -i "$perm_dest"
 
         else
 
           # Failed to remove: report and return error
-          dprint_debug 'Failed to remove directory of cloned repository at:' \
+          dprint_debug 'Failed to remove attached deployments at:' \
             -i "$perm_dest"
           return 1
 

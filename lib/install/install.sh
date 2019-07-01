@@ -442,12 +442,12 @@ __attach_dpls_core()
   # Store location of default deployments repository
   local user_repo='no-simpler/divine-dpls-core'
 
-  # Offer to install default deployments
+  # Offer to install core package
   if ! dprompt_key "$D_ATTACH_DPLS_CORE" 'Attach?' \
     '[optional] Default set of deployments from:' \
     "https://github.com/${user_repo}" \
     'Deployments are only attached, not installed' \
-    'Default deployments are safe and fully removable'
+    'Divine deployments are generally safe and fully removable'
   then
     dprint_skip 'Refused to attach default set of deployments from:' \
       "https://github.com/${user_repo}"
@@ -468,7 +468,7 @@ __attach_requested_dpls()
 
   # Offer to install requested deployments
   if ! dprompt_key "$D_ATTACH_REQUESTED_DPLS" 'Attach?' \
-    'Additional deployments, as requested within installation command'
+    '[optional] Attach additional deployments, as requested in command line'
   then
     dprint_skip 'Refused to attach additional deployments'
     return 1
@@ -483,13 +483,13 @@ __attach_requested_dpls()
 
 __run_install()
 {
-  # Offer to install default deployments
+  # Offer to install deployments
   if ! dprompt_key "$D_RUN_INSTALL" 'Install?' \
-    '[optional] Install default deployments' \
-    'Deployments attached in previous step will be installed' \
-    'Default deployments are safe and fully removable'
+    '[optional] Install deployments' \
+    'Deployments attached in previous step(s) will be installed' \
+    'Divine deployments are generally safe and fully removable'
   then
-    dprint_skip 'Refused to install default deployments'
+    dprint_skip 'Refused to install deployments'
     return 1
   fi
 
