@@ -9,8 +9,8 @@
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
 #
-## Updates Divine.dotfiles framework, cloned deployment repositories, and Grail 
-#. directory itself if it is a cloned repository
+## Updates Divine.dotfiles framework, attached deployment repositories, and 
+#. Grail directory itself if it is a cloned repository
 #
 
 #>  __updating__main
@@ -60,7 +60,7 @@ __updating__main()
     2)  all_updated=false; all_failed=false;;
   esac
 
-  # Update deployment repositories and analyze return status
+  # Update attached deployment repositories and analyze return status
   __updating__update_dpls; case $? in
     0)  all_failed=false; all_skipped=false;;
     1)  all_updated=false; all_skipped=false
@@ -256,7 +256,7 @@ __updating__update_grail()
 
 #>  __updating__update_dpls
 #
-## Attempts to update deployment repositories by means available
+## Attempts to update attached deployment repositories by means available
 #
 ## Returns:
 #.  0 - Successfully updated all recorded repositories
@@ -302,7 +302,7 @@ __updating__update_dpls()
   if ! $UPDATING_DPLS; then
     # Announce skiping and return
     dprint_ode "${D_ODE_NORMAL[@]}" -c "$WHITE" -- \
-      '---' 'Skipped updating' ':' 'Deployment repositories'
+      '---' 'Skipped updating' ':' 'Attached deployment repositories'
     return 3
   fi
 
@@ -314,7 +314,7 @@ __updating__update_dpls()
 
     # Print announcement
     dprint_ode "${D_ODE_NORMAL[@]}" -c "$YELLOW" -- \
-      '>>>' 'Updating' ':' "Deployment repo '$dpl_repo'"
+      '>>>' 'Updating' ':' "Dpls repo '$dpl_repo'"
     nl_printed=false
 
     # Prompt user
@@ -330,7 +330,7 @@ __updating__update_dpls()
     if ! $proceeding; then
       # Announce and skip
       dprint_ode "${D_ODE_NORMAL[@]}" -c "$WHITE" -- \
-        '---' 'Skipped updating' ':' "Deployment repo '$dpl_repo'"
+        '---' 'Skipped updating' ':' "Dpls repo '$dpl_repo'"
       all_updated=false
       all_failed=false
       continue
@@ -345,7 +345,7 @@ __updating__update_dpls()
         || __updating__update_dpl_repo_via_tar "$dpl_repo"
       then
         dprint_ode "${D_ODE_NORMAL[@]}" -c "$GREEN" -- \
-          'vvv' 'Updated' ':' "Deployment repo '$dpl_repo'"
+          'vvv' 'Updated' ':' "Dpls repo '$dpl_repo'"
         all_failed=false
         all_skipped=false
         continue
@@ -354,7 +354,7 @@ __updating__update_dpls()
 
     # If gotten here: not updated
     dprint_ode "${D_ODE_NORMAL[@]}" -c "$RED" -- \
-      'xxx' 'Failed to update' ':' "Deployment repo '$dpl_repo'"
+      'xxx' 'Failed to update' ':' "Dpls repo '$dpl_repo'"
     all_updated=false
     all_skipped=false
     some_failed=true
