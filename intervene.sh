@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revnumber:    1.7.0-RELEASE
-#:revdate:      2019.06.30
+#:revdate:      2019.07.01
 #:revremark:    Major compartmentalization
 #:created_at:   2018.03.25
 
@@ -43,7 +43,174 @@ __main()
 #
 __check_system_dependencies()
 {
-  :
+  # Status variable
+  local all_good=true
+  
+  # Test containers
+  local test_bed
+
+  #
+  # find
+  #
+
+  # Test: this command must find just root path '/'
+  test_bed="$( \
+    find -L / -path / -name / -mindepth 0 -maxdepth 0 \
+      \( -type f -or -type d \) -print0 2>/dev/null \
+      || exit $? \
+    )"
+
+  # Check if all is well
+  if [ $? -ne 0 -o "$test_bed" != '/' ]; then
+
+    # Announce failure
+    printf >&2 '%s: %s: %s\n' \
+      "$( basename -- "${BASH_SOURCE[0]}" )" \
+      'Missing system dependency:' \
+      'find'
+
+    # Flip flag
+    all_good=false
+
+  fi
+
+  #
+  # grep
+  #
+
+  # Status variable for grep
+  local grep_good=true
+
+  # grep no. 1
+
+  # Test: this command must match line 'Be Eg'
+  test_bed="$( \
+    grep ^'Be E' <<'EOF' 2>/dev/null || exit 1
+bEe
+Be Eg
+be e
+EOF \
+    )"
+
+  # Check if all is well
+  [ $? -ne 0 -o "$test_bed" != 'Be Eg' ] && grep_good=false
+
+  # grep no. 2
+
+  # Test: this command must match nothing (no literal matches)
+  grep -Fxq 'ma*A' <<'EOF' 2>/dev/null && grep_good=false
+maA
+maRa
+maRA
+ma*a
+EOF
+
+  # Test: this command must match line 'ma*a' (case insensitive match)
+  grep -Fxqi 'ma*A' <<'EOF' 2>/dev/null || grep_good=false
+maA
+maRa
+maRA
+ma*a
+EOF
+
+  # grep conclusion
+
+  # Check if all is well
+  if ! $grep_good; then
+
+    # Announce failure
+    printf >&2 '%s: %s: %s\n' \
+      "$( basename -- "${BASH_SOURCE[0]}" )" \
+      'Missing system dependency:' \
+      'grep'
+
+    # Flip flag
+    all_good=false
+
+  fi
+
+  #
+  # sed
+  #
+
+  # Status variable for sed
+  local sed_good=true
+
+  # sed no. 1
+
+  # Test: this command must yield string 'may t'
+  test_bed="$( \
+    sed <<<'  may t  // brittle # maro' 2>/dev/null \
+      -e 's/[#].*$//' \
+      -e 's|//.*$||' \
+      -e 's/^[[:space:]]*//' \
+      -e 's/[[:space:]]*$//' \
+      || exit $?
+    )"
+  
+  # Check if all is well
+  [ $? -ne 0 -o "$test_bed" != 'may t' ] && sed_good=false
+
+  # sed no. 1
+
+  # Test: this command must yield string ‘battered’ without quotes around it
+  if sed -r &>/dev/null; then
+    test_bed="$( \
+      sed -nre 's/^"(.*)"$/\1/p' 2>/dev/null <<<'"battered"' || exit $? \
+      )"
+  else
+    test_bed="$( \
+      sed -nEe 's/^"(.*)"$/\1/p' 2>/dev/null <<<'"battered"' || exit $? \
+      )"
+  fi
+
+  # Check if all is well
+  [ $? -ne 0 -o "$test_bed" != 'battered' ] && sed_good=false
+
+  # sed conclusion
+
+  # Check if all is well
+  if ! $sed_good; then
+
+    # Announce failure
+    printf >&2 '%s: %s: %s\n' \
+      "$( basename -- "${BASH_SOURCE[0]}" )" \
+      'Missing system dependency:' \
+      'sed'
+
+    # Flip flag
+    all_good=false
+
+  fi
+
+  #
+  # awk
+  #
+
+  # Test: this command must yield string ‘halt’
+  test_bed="$( \
+    awk -F  '=' '{print $3}' <<<'go==halt=pry' || exit $? \
+    )"
+
+  # Check if all is well
+  if [ $? -ne 0 -o "$test_bed" != 'halt' ]; then
+
+    # Announce failure
+    printf >&2 '%s: %s: %s\n' \
+      "$( basename -- "${BASH_SOURCE[0]}" )" \
+      'Missing system dependency:' \
+      'awk'
+
+    # Flip flag
+    all_good=false
+
+  fi
+
+  #
+  # Shocking conclusion
+  #
+
+  if $all_good; then return 0; else exit 1; fi
 }
 
 ## __parse_arguments [ARG]…
@@ -295,11 +462,13 @@ DESCRIPTION
 
     ${bold}'Update' routine${normal} - updates framework, deployment repos, and Grail
 
-    - Updates framework by either pulling from repository or re-downloading and 
-      overwriting files one by one
-    - Optionally, also tries to pull from remote for every repository currently 
-      in deployments directory
-    - Ignores arguments
+    - Accepts following tasks:
+      - 'f'/'fmwk'/'framework'    : framework itself
+      - 'd'/'dpls'/'deployments'  : all attached deployments
+      - 'g'/'grail'               : Grail directory
+      - 'a'/'all'                 : (same as empty task list) all of the above
+    - Updates each task by either pulling from repository or re-downloading and 
+      overwriting files one by one (where possible)
 
     ${bold}Task list${normal}
 
@@ -391,7 +560,7 @@ Usage: ${bold}${script_name}${normal} ${bold}i${normal}|${bold}install${normal} 
    or: ${bold}${script_name}${normal} ${bold}a${normal}|${bold}attach${normal}    [-yn]      REPO…    - Add deployment(s) from Github repo
    or: ${bold}${script_name}${normal} ${bold}d${normal}|${bold}detach${normal}    [-yn]      REPO…    - Remove previously attached repo
    or: ${bold}${script_name}${normal} ${bold}p${normal}|${bold}plug${normal}      [-ynl]     REPO/DIR - Plug Grail from repo or dir
-   or: ${bold}${script_name}${normal} ${bold}u${normal}|${bold}update${normal}    [-yn]      [TASK]…  - Update framework
+   or: ${bold}${script_name}${normal} ${bold}u${normal}|${bold}update${normal}    [-yn]      [TASK]…  - Update framework/deployments/Grail
 
    or: ${bold}${script_name}${normal} --version                       - Show script version
    or: ${bold}${script_name}${normal} -h|--help                       - Show help summary
@@ -855,5 +1024,4 @@ __unset_d_funcs()
   done < <( grep ^'declare -f __d__' < <( declare -F ) )
 }
 
-# Launch driver function
 __main "$@"
