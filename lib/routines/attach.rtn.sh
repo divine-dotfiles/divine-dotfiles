@@ -20,10 +20,9 @@
 ## Performs attach routine
 #
 ## Returns:
-#.  0 - Routine performed, all arguments attached successfully
-#.  1 - Routine performed, only some arguments attached successfully
-#.  2 - Routine performed, none of the arguments attached
-#.  3 - Routine terminated with nothing to do
+#.  0 - Routine performed, at least one argument attached
+#.  1 - Routine performed, failed to attach any of the arguments
+#.  2 - Routine terminated with nothing to do
 #
 __perform_attach()
 {
@@ -68,7 +67,7 @@ __perform_attach()
     printf >&2 '\n'
     dprint_plaque -pcw "$RED" "$D_CONST_PLAQUE_WIDTH" \
       -- 'Failed to attach deployments'
-    return 3
+    return 1
   }
 
   # Ensure grail stashing is available
@@ -109,12 +108,12 @@ __perform_attach()
   if [ "$D_OPT_ANSWER" = false ]; then
     dprint_plaque -pcw "$WHITE" "$D_CONST_PLAQUE_WIDTH" \
       -- 'Finished ‘attaching’ deployments'
-    return 3
+    return 2
   elif $attached_anything; then
     if $errors_encountered; then
       dprint_plaque -pcw "$YELLOW" "$D_CONST_PLAQUE_WIDTH" \
         -- 'Successfully attached some deployments'
-      return 1
+      return 0
     else
       dprint_plaque -pcw "$GREEN" "$D_CONST_PLAQUE_WIDTH" \
         -- 'Successfully attached all deployments'
@@ -124,11 +123,11 @@ __perform_attach()
     if $errors_encountered; then
       dprint_plaque -pcw "$RED" "$D_CONST_PLAQUE_WIDTH" \
         -- 'Failed to attach deployments'
-      return 2
+      return 1
     else
       dprint_plaque -pcw "$WHITE" "$D_CONST_PLAQUE_WIDTH" \
         -- 'Nothing to do'
-      return 3
+      return 2
     fi
   fi
 }

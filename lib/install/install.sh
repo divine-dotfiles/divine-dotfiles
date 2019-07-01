@@ -16,13 +16,26 @@ main()
     # Optional: install shortcut command ('di' by default)
     __install_shortcut
 
+    # Status flag
+    local anything_attached=false
+
     # Optional: pull Divine deployments 'core' package (default packages)
     if __attach_dpls_core; then
-      # Optional: run ‘di install --yes’
-      __run_install \
-        || dprint_failure 'Failed while running installation routine'
+      dprint_success "Attached Divine deployments 'core' package"
+      anything_attached=true
     else
       dprint_failure "Failed to attach Divine deployments 'core' package"
+    fi
+
+    # Optional: pull deployment repos requested through installation args
+    if __attach_requested_dpls; then
+      anything_attached=true
+    fi
+
+    # Optional: if any deployments were attached, run ‘di install --yes’
+    if $anything_attached; then
+      __run_install \
+        || dprint_failure 'Failed while running installation routine'
     fi
 
     # Report success
@@ -64,11 +77,13 @@ __declare_global_colors()
 __parse_arguments()
 {
   # Define global storage for option values
-  D_OPT_QUIET=false       # Be verbose by default
-  D_INSTALL_FRAMEWORK=    # Whether to install framework itself
-  D_INSTALL_SHORTCUT=     # Whether to install shortcut symlink
-  D_ATTACH_DPLS_CORE=     # Whether to attach default deployments
-  D_RUN_INSTALL=          # Whether to run di install --yes
+  D_OPT_QUIET=false         # Be verbose by default
+  D_INSTALL_FRAMEWORK=      # Whether to install framework itself
+  D_INSTALL_SHORTCUT=       # Whether to install shortcut symlink
+  D_ATTACH_DPLS_CORE=       # Whether to attach default deployments
+  D_ATTACH_REQUESTED_DPLS=  # Whether to attach default deployments
+  D_RUN_INSTALL=            # Whether to run di install --yes
+  D_REQUESTED_DPLS=()       # Storage for user-requested attachments
 
   # Extract arguments passed to this script (they start at $0)
   local args=( "$0" "$@" ) arg
@@ -84,19 +99,23 @@ __parse_arguments()
       --shortcut-no)        D_INSTALL_SHORTCUT=false;;
       --dpls-core-yes)      D_ATTACH_DPLS_CORE=true;;
       --dpls-core-no)       D_ATTACH_DPLS_CORE=false;;
+      --requested-dpls-yes) D_ATTACH_REQUESTED_DPLS=true;;
+      --requested-dpls-no)  D_ATTACH_REQUESTED_DPLS=false;;
       --run-install-yes)    D_RUN_INSTALL=true;;
       --run-install-no)     D_RUN_INSTALL=false;;
       --yes)                D_INSTALL_FRAMEWORK=true
                             D_INSTALL_SHORTCUT=true
                             D_ATTACH_DPLS_CORE=true
+                            D_ATTACH_REQUESTED_DPLS=true
                             D_RUN_INSTALL=true
                             ;;
       --no)                 D_INSTALL_FRAMEWORK=false
                             D_INSTALL_SHORTCUT=false
                             D_ATTACH_DPLS_CORE=false
+                            D_ATTACH_REQUESTED_DPLS=false
                             D_RUN_INSTALL=false
                             ;;
-      *)                    :;;
+      *)                    D_REQUESTED_DPLS+=( "$arg" );;
     esac
   done
 }
@@ -437,6 +456,26 @@ __attach_dpls_core()
 
   # Run attach routine
   "$D_INSTALL_PATH"/intervene.sh attach "$user_repo" --yes
+
+  # Return whatever routine returns
+  return $?
+}
+
+__attach_requested_dpls()
+{
+  # If no arguments are provided, skip silently
+  [ ${#D_REQUESTED_DPLS[@]} -eq 0 ] && return 1
+
+  # Offer to install requested deployments
+  if ! dprompt_key "$D_ATTACH_REQUESTED_DPLS" 'Attach?' \
+    'Additional deployments, as requested within installation command'
+  then
+    dprint_skip 'Refused to attach additional deployments'
+    return 1
+  fi
+
+  # Run attach routine
+  "$D_INSTALL_PATH"/intervene.sh attach "${D_REQUESTED_DPLS[@]}" --yes
 
   # Return whatever routine returns
   return $?
