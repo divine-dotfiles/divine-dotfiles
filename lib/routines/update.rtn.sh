@@ -302,7 +302,7 @@ __updating__update_dpls()
   if ! $UPDATING_DPLS; then
     # Announce skiping and return
     dprint_ode "${D_ODE_NORMAL[@]}" -c "$WHITE" -- \
-      '---' 'Skipped updating' ':' 'Attached deployment repositories'
+      '---' 'Skipped updating' ':' 'Attached deployments'
     return 3
   fi
 
