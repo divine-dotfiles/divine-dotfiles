@@ -281,20 +281,28 @@ __check_dpls()
     # Print newline to visually separate tasks
     printf '\n'
 
-    ## Unless given a ‘-y’ option (or unless aa_mode is enabled), prompt for 
-    #. user’s approval
-    if $proceeding && [ "$aa_mode" = true -o "$D_OPT_ANSWER" != true ]
+    # Conditionally print intro
+    if $proceeding && [ "$aa_mode" = true -o "$D_OPT_ANSWER" != true \
+      -o "$D_OPT_QUIET" = false ]
     then
 
       # Print message about the upcoming checking
       dprint_ode "${D_ODE_NAME[@]}" -c "$YELLOW" -- \
         '>>>' 'Checking' ':' "$task_desc" "$task_name" \
         && intro_printed=true
-      # In verbose mode, print location of script to be sourced
-      dprint_debug "Location: $divinedpl_filepath"
       # If description is available, show it
       [ -n "$desc" ] && dprint_ode "${D_ODE_DESC[@]}" -- \
         '' 'Description' ':' "$desc"
+
+    fi
+
+    ## Unless given a ‘-y’ option (or unless aa_mode is enabled), prompt for 
+    #. user’s approval
+    if $proceeding && [ "$aa_mode" = true -o "$D_OPT_ANSWER" != true ]
+    then
+
+      # In verbose mode, print location of script to be sourced
+      dprint_debug "Location: $divinedpl_filepath"
       # If warning is relevant, show it
       [ -n "$warning" -a "$aa_mode" = true ] \
         && dprint_ode "${D_ODE_WARN[@]}" -c "$RED" -- \
