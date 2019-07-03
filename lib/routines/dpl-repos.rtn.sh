@@ -30,7 +30,7 @@ __sort_out_dpl_repos()
 
   # Storage variables
   local i recorded_user_repos=() recorded_user_repo user_repo
-  local j actual_repo_dirs=() actual_repo_dir
+  local j actual_repo_dirs=() actual_repo_dir actual_repo_count
   local all_good=true
 
   # Load records of attached deployment repositories
@@ -47,8 +47,11 @@ __sort_out_dpl_repos()
     done < <( find "$D_DIR_DPL_REPOS" -mindepth 2 -maxdepth 2 -type d -print0 )
   fi
 
+  # Extract count of actual dirs
+  actual_repo_count=${#recorded_user_repos[@]}
+
   # Iterate over recorded repositories
-  for (( i=0; i<${#recorded_user_repos[@]}; i++ )); do
+  for (( i=0; i<$actual_repo_count; i++ )); do
 
     # Extract array member
     recorded_user_repo="${recorded_user_repos[$i]}"
