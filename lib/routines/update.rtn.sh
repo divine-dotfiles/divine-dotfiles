@@ -118,8 +118,10 @@ __updating__update_fmwk()
   if $UPDATING_FMWK; then
 
     # Print announcement
-    dprint_ode "${D_ODE_NORMAL[@]}" -c "$YELLOW" -- \
-      '>>>' 'Updating' ':' 'Divine.dotfiles framework'
+    if [ "$D_OPT_QUIET" = false -o -z "$D_OPT_ANSWER" ]; then
+      dprint_ode "${D_ODE_NORMAL[@]}" -c "$YELLOW" -- \
+        '>>>' 'Updating' ':' "${BOLD}Divine.dotfiles framework${NORMAL}"
+    fi
 
     # Prompt user
     if [ "$D_OPT_ANSWER" = true ]; then UPDATING_FMWK=true
@@ -136,7 +138,7 @@ __updating__update_fmwk()
   if ! $UPDATING_FMWK; then
     # Announce skiping and return
     dprint_ode "${D_ODE_NORMAL[@]}" -c "$WHITE" -- \
-      '---' 'Skipped updating' ':' 'Divine.dotfiles framework'
+      '---' 'Skipped updating' ':' "${BOLD}Divine.dotfiles framework${NORMAL}"
     return 2
   fi
 
@@ -159,11 +161,11 @@ __updating__update_fmwk()
   # Report result
   if $updated_successfully; then
     dprint_ode "${D_ODE_NORMAL[@]}" -c "$GREEN" -- \
-      'vvv' 'Updated' ':' 'Divine.dotfiles framework'
+      'vvv' 'Updated' ':' "${BOLD}Divine.dotfiles framework${NORMAL}"
     return 0
   else
     dprint_ode "${D_ODE_NORMAL[@]}" -c "$RED" -- \
-      'xxx' 'Failed to update' ':' 'Divine.dotfiles framework'
+      'xxx' 'Failed to update' ':' "${BOLD}Divine.dotfiles framework${NORMAL}"
     return 1
   fi
 }
@@ -220,8 +222,10 @@ __updating__update_grail()
   if $UPDATING_GRAIL; then
 
     # Print announcement
-    dprint_ode "${D_ODE_NORMAL[@]}" -c "$YELLOW" -- \
-      '>>>' 'Updating' ':' 'Grail directory'
+    if [ "$D_OPT_QUIET" = false -o -z "$D_OPT_ANSWER" ]; then
+      dprint_ode "${D_ODE_NORMAL[@]}" -c "$YELLOW" -- \
+        '>>>' 'Updating' ':' "${BOLD}Grail directory${NORMAL}"
+    fi
 
     # Prompt user
     if [ "$D_OPT_ANSWER" = true ]; then UPDATING_GRAIL=true
@@ -238,18 +242,18 @@ __updating__update_grail()
   if ! $UPDATING_GRAIL; then
     # Announce skiping and return
     dprint_ode "${D_ODE_NORMAL[@]}" -c "$WHITE" -- \
-      '---' 'Skipped updating' ':' 'Grail directory'
+      '---' 'Skipped updating' ':' "${BOLD}Grail directory${NORMAL}"
     return 2
   fi
 
   # Do update proper and check result
   if __updating__update_grail_via_git; then
     dprint_ode "${D_ODE_NORMAL[@]}" -c "$GREEN" -- \
-      'vvv' 'Updated' ':' 'Grail directory'
+      'vvv' 'Updated' ':' "${BOLD}Grail directory${NORMAL}"
     return 0
   else
     dprint_ode "${D_ODE_NORMAL[@]}" -c "$RED" -- \
-      'xxx' 'Failed to update' ':' 'Grail directory'
+      'xxx' 'Failed to update' ':' "${BOLD}Grail directory${NORMAL}"
     return 1
   fi
 }
@@ -311,11 +315,13 @@ __updating__update_dpls()
 
     # Print newline to visually separate updates
     $nl_printed || printf >&2 '\n'
+    nl_printed=false
 
     # Print announcement
-    dprint_ode "${D_ODE_NORMAL[@]}" -c "$YELLOW" -- \
-      '>>>' 'Updating' ':' "Dpls repo '$dpl_repo'"
-    nl_printed=false
+    if [ "$D_OPT_QUIET" = false -o -z "$D_OPT_ANSWER" ]; then
+      dprint_ode "${D_ODE_NORMAL[@]}" -c "$YELLOW" -- \
+        '>>>' 'Updating' ':' "Dpls repo ${BOLD}'$dpl_repo'${NORMAL}"
+    fi
 
     # Prompt user
     if [ "$D_OPT_ANSWER" = true ]; then proceeding=true
@@ -330,7 +336,7 @@ __updating__update_dpls()
     if ! $proceeding; then
       # Announce and skip
       dprint_ode "${D_ODE_NORMAL[@]}" -c "$WHITE" -- \
-        '---' 'Skipped updating' ':' "Dpls repo '$dpl_repo'"
+        '---' 'Skipped updating' ':' "Dpls repo ${BOLD}'$dpl_repo'${NORMAL}"
       all_updated=false
       all_failed=false
       continue
@@ -345,7 +351,7 @@ __updating__update_dpls()
         || __updating__update_dpl_repo_via_tar "$dpl_repo"
       then
         dprint_ode "${D_ODE_NORMAL[@]}" -c "$GREEN" -- \
-          'vvv' 'Updated' ':' "Dpls repo '$dpl_repo'"
+          'vvv' 'Updated' ':' "Dpls repo ${BOLD}'$dpl_repo'${NORMAL}"
         all_failed=false
         all_skipped=false
         continue
@@ -354,7 +360,7 @@ __updating__update_dpls()
 
     # If gotten here: not updated
     dprint_ode "${D_ODE_NORMAL[@]}" -c "$RED" -- \
-      'xxx' 'Failed to update' ':' "Dpls repo '$dpl_repo'"
+      'xxx' 'Failed to update' ':' "Dpls repo ${BOLD}'$dpl_repo'${NORMAL}"
     all_updated=false
     all_skipped=false
     some_failed=true
@@ -469,15 +475,19 @@ __updating__update_fmwk_via_git()
     return 1
   }
 
-  # Pull and rebase and check for errors
-  if git pull --rebase --stat origin master &>/dev/null; then
-    dprint_debug 'Successfully pulled from Github repo to:' \
-      -i "$D_DIR_FMWK"
-    return 0
+  # Pull and rebase and check for errors (control verbosity)
+  if $D_OPT_QUIET; then
+    git pull --rebase --stat origin master &>/dev/null && return 0 || return 1
   else
-    dprint_debug 'There was an error while pulling from Github repo to:' \
-      -i "$D_DIR_FMWK"
-    return 1
+    if git pull --rebase --stat origin master; then
+      dprint_debug 'Successfully pulled from Github repo to:' \
+        -i "$D_DIR_FMWK"
+      return 0
+    else
+      dprint_debug 'There was an error while pulling from Github repo to:' \
+        -i "$D_DIR_FMWK"
+      return 1
+    fi
   fi
 }
 
@@ -497,15 +507,19 @@ __updating__update_grail_via_git()
     return 1
   }
 
-  # Pull and rebase and check for errors
-  if git pull --rebase --stat origin master &>/dev/null; then
-    dprint_debug 'Successfully pulled from remote to:' \
-      -i "$D_DIR_GRAIL"
-    return 0
+  # Pull and rebase and check for errors (control verbosity)
+  if $D_OPT_QUIET; then
+    git pull --rebase --stat origin master &>/dev/null && return 0 || return 1
   else
-    dprint_debug 'There was an error while pulling from remote to:' \
-      -i "$D_DIR_GRAIL"
-    return 1
+    if git pull --rebase --stat origin master; then
+      dprint_debug 'Successfully pulled from remote to:' \
+        -i "$D_DIR_GRAIL"
+      return 0
+    else
+      dprint_debug 'There was an error while pulling from remote to:' \
+        -i "$D_DIR_GRAIL"
+      return 1
+    fi
   fi
 }
 
@@ -700,15 +714,19 @@ __updating__update_dpl_repo_via_git()
     return 1
   }
 
-  # Pull and rebase and check for errors
-  if git pull --rebase --stat origin master &>/dev/null; then
-    dprint_debug 'Successfully pulled from remote repo to:' \
-      -i "$repo_path"
-    return 0
+  # Pull and rebase and check for errors (control verbosity)
+  if $D_OPT_QUIET; then
+    git pull --rebase --stat origin master &>/dev/null && return 0 || return 1
   else
-    dprint_debug 'There was an error while pulling from remote repo to:' \
-      -i "$repo_path"
-    return 1
+    if git pull --rebase --stat origin master; then
+      dprint_debug 'Successfully pulled from remote repo to:' \
+        -i "$repo_path"
+      return 0
+    else
+      dprint_debug 'There was an error while pulling from remote repo to:' \
+        -i "$repo_path"
+      return 1
+    fi
   fi
 }
 
