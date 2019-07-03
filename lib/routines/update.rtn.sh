@@ -320,7 +320,7 @@ __updating__update_dpls()
     # Print announcement
     if [ "$D_OPT_QUIET" = false -o -z "$D_OPT_ANSWER" ]; then
       dprint_ode "${D_ODE_NORMAL[@]}" -c "$YELLOW" -- \
-        '>>>' 'Updating' ':' "Dpls repo ${BOLD}'$dpl_repo'${NORMAL}"
+        '>>>' 'Updating' ':' "Dpls repo '$dpl_repo'"
     fi
 
     # Prompt user
@@ -336,7 +336,7 @@ __updating__update_dpls()
     if ! $proceeding; then
       # Announce and skip
       dprint_ode "${D_ODE_NORMAL[@]}" -c "$WHITE" -- \
-        '---' 'Skipped updating' ':' "Dpls repo ${BOLD}'$dpl_repo'${NORMAL}"
+        '---' 'Skipped updating' ':' "Dpls repo '$dpl_repo'"
       all_updated=false
       all_failed=false
       continue
@@ -351,7 +351,7 @@ __updating__update_dpls()
         || __updating__update_dpl_repo_via_tar "$dpl_repo"
       then
         dprint_ode "${D_ODE_NORMAL[@]}" -c "$GREEN" -- \
-          'vvv' 'Updated' ':' "Dpls repo ${BOLD}'$dpl_repo'${NORMAL}"
+          'vvv' 'Updated' ':' "Dpls repo '$dpl_repo'"
         all_failed=false
         all_skipped=false
         continue
@@ -360,7 +360,7 @@ __updating__update_dpls()
 
     # If gotten here: not updated
     dprint_ode "${D_ODE_NORMAL[@]}" -c "$RED" -- \
-      'xxx' 'Failed to update' ':' "Dpls repo ${BOLD}'$dpl_repo'${NORMAL}"
+      'xxx' 'Failed to update' ':' "Dpls repo '$dpl_repo'"
     all_updated=false
     all_skipped=false
     some_failed=true
