@@ -308,7 +308,7 @@ __process_all_asset_manifests_in_dpl_dirs()
 #.  $D_DPL_MANIFEST_LINE_FLAGS    - (array) For each extracted line, this array 
 #.                                  will contain its char flags as a string at 
 #.                                  the same index
-#.  $D_DPL_MANIFESR_LINE_PREFIXES - (array) For each extracted line, this array 
+#.  $D_DPL_MANIFEST_LINE_PREFIXES - (array) For each extracted line, this array 
 #.                                  will contain its prefix at the same index
 #
 ## Returns:
@@ -320,7 +320,7 @@ __process_manifest()
   # Initialize container arrays
   D_DPL_MANIFEST_LINES=()
   D_DPL_MANIFEST_LINE_FLAGS=()
-  D_DPL_MANIFESR_LINE_PREFIXES=()
+  D_DPL_MANIFEST_LINE_PREFIXES=()
 
   # Extract path
   local mnf_filepath="$1"; shift
@@ -459,7 +459,7 @@ __process_manifest()
     [ -n "$flags" ] && D_DPL_MANIFEST_LINE_FLAGS[$counter]="$flags"
 
     # Also, prefixes
-    [ -n "$prefix" ] && D_DPL_MANIFESR_LINE_PREFIXES[$counter]="$prefix"
+    [ -n "$prefix" ] && D_DPL_MANIFEST_LINE_PREFIXES[$counter]="$prefix"
 
     # Increment counter for next line
     (( ++counter ))
