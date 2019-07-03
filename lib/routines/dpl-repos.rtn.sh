@@ -48,16 +48,16 @@ __sort_out_dpl_repos()
   fi
 
   # Extract count of actual dirs
-  actual_repo_count=${#recorded_user_repos[@]}
+  actual_repo_count=${#actual_repo_dirs[@]}
 
   # Iterate over recorded repositories
-  for (( i=0; i<$actual_repo_count; i++ )); do
+  for (( i=0; i<${#recorded_user_repos[@]}; i++ )); do
 
     # Extract array member
     recorded_user_repo="${recorded_user_repos[$i]}"
 
     # Iterate over detected repo directories
-    for (( j=0; j<${#actual_repo_dirs[@]}; j++ )); do
+    for (( j=0; j<$actual_repo_count; j++ )); do
 
       # Extract array member
       actual_repo_dir="${actual_repo_dirs[$j]}"
