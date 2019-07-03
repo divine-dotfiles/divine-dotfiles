@@ -11,16 +11,18 @@
 #
 ## One entry is written per line.
 #
-## A line consisting of a word enclosed in parentheses is a section head. Lines 
-#. in a section are only considered if the heading matches current OS family or 
-#. distribution ($OS_FAMILY & $OS_DISTRO, see dos.utl.sh for reference). Lines 
-#. that are not restricted to a particular OS should appear before any section 
-#. head.
+## A line enclosed in a pair of parentheses is a section head. A section head 
+#. changes how lines are interpreted until the next section head changes that 
+#. again.
 #
-## Note, that when an asset is listed as a regular path, its presence is 
-#. enforced by the framework, i.e., deployment will not work unless all such 
-#. assets are present into deployment’s asset directory. However, when an asset 
-#. is listed as a regular expression, its presence is not enforced at all.
+## Section head may force the following lines to only be considered if detected 
+#. OS ($OS_FAMILY or $OS_DISTRO, see dos.utl.sh for reference) matches at least 
+#. one of vertical bar-delimited options provided in section head:
+#>  ( linux | wsl )
+#. Lines that are not restricted to a particular OS should appear before any 
+#. OS-restricting section head.
+#
+## Whitespace is generally permitted between words and delimiters.
 #
 
 # Below are examples of regular queue items:
@@ -28,8 +30,7 @@ wake_up
 do_stuff
 hit_sack
 
-
-(linux) # Section head (lines below are only considered on Linux)
+(linux|macos) # Section head: lines below are only considered on Linux or macOS
 wake_up_linuxy
 do_stuff_all_gnu_like
 hit_sack_torvaldsy
