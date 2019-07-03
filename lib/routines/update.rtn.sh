@@ -470,7 +470,7 @@ __updating__update_fmwk_via_git()
   }
 
   # Pull and rebase and check for errors
-  if git pull --rebase --stat origin master; then
+  if git pull --rebase --stat origin master &>/dev/null; then
     dprint_debug 'Successfully pulled from Github repo to:' \
       -i "$D_DIR_FMWK"
     return 0
@@ -498,7 +498,7 @@ __updating__update_grail_via_git()
   }
 
   # Pull and rebase and check for errors
-  if git pull --rebase --stat origin master; then
+  if git pull --rebase --stat origin master &>/dev/null; then
     dprint_debug 'Successfully pulled from remote to:' \
       -i "$D_DIR_GRAIL"
     return 0
@@ -701,7 +701,7 @@ __updating__update_dpl_repo_via_git()
   }
 
   # Pull and rebase and check for errors
-  if git pull --rebase --stat origin master; then
+  if git pull --rebase --stat origin master &>/dev/null; then
     dprint_debug 'Successfully pulled from remote repo to:' \
       -i "$repo_path"
     return 0
