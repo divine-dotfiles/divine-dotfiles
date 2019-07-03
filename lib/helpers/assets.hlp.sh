@@ -63,90 +63,73 @@ __process_manifests_of_current_dpl()
 #
 __process_asset_manifest_of_current_dpl()
 {
-  # Check if manifest is a readable file
-  if ! [ -r "$D_DPL_MNF_PATH" -a -f "$D_DPL_MNF_PATH" ]; then
-    dprint_debug 'No asset manifest'
-    return 0
-  fi
-
   # Check if directory of current deployment is readable
   if ! [ -r "$D_DPL_DIR" -a -d "$D_DPL_DIR" ]; then
     dprint_failure -l "Unreadable directory of current deployment: $D_DPL_DIR"
     return 1
   fi
 
-  # Store current case sensitivity setting, then turn it off
-  local restore_nocasematch="$( shopt -p nocasematch )"
-  shopt -s nocasematch
+  # Parse manifest file
+  __process_manifest "$D_DPL_MNF_PATH" || {
+    dprint_debug 'No asset manifest'
+    return 0
+  }
 
-  # Storage variables
-  local line dpl_asset_patterns=() keep_globbing=true
-
-  # Read asset manifest line by line
-  while IFS='' read -r line || [ -n "$line" ]; do
-
-    # Glob line and check status
-    line="$( __glob_line "$line" "$keep_globbing" || exit $? )"; case $? in
-      0)  dpl_asset_patterns+=( "$line" );;
-      1)  keep_globbing=true;;
-      2)  keep_globbing=false;;
-      *)  :;;
-    esac
-
-  done <"$D_DPL_MNF_PATH"
-
-  # Restore case sensitivity
-  eval "$restore_nocasematch"
-
-  # Check if $dpl_asset_patterns has at least one entry
-  [ ${#dpl_asset_patterns[@]} -gt 0 ] || return 0
+  # Check if $D_DPL_MANIFEST_LINES has at least one entry
+  [ ${#D_DPL_MANIFEST_LINES[@]} -gt 0 ] || return 0
 
   # Storage and status variables
-  local path_pattern relative_path src_path dest_path dest_parent_path
+  local i path_pattern path_prefix relative_path
+  local src_path dest_path dest_parent_path
   local all_assets_copied=true
 
   # Start populating global variables
   D_DPL_ASSET_RELPATHS=()
   D_DPL_ASSET_PATHS=()
 
-  # Iterate over $dpl_asset_patterns entries
-  for path_pattern in "${dpl_asset_patterns[@]}"; do
+  # Iterate over $D_DPL_MANIFEST_LINES entries
+  for (( i=0; i<${#D_DPL_MANIFEST_LINES[@]}; i++ )); do
+
+    # Extract path/pattern
+    path_pattern="${D_DPL_MANIFEST_LINES[$i]}"
+
+    # Extract prefix
+    if [ -z ${D_DPL_MANIFEST_LINE_PREFIXES[$i]+isset} ]; then
+      path_prefix=
+    else
+      path_prefix="/${D_DPL_MANIFEST_LINE_PREFIXES[$i]}"
+    fi
 
     # Check if pattern is intended as regex or solid path
-    if [[ $path_pattern == '[*] '* ]] || [[ $path_pattern == '[regex] '* ]]
-    then
+    if [[ ${D_DPL_MANIFEST_LINE_FLAGS[$i]} = *r* ]]; then
 
-      # Pattern is regex
-
-      # Clean up pattern
-      path_pattern="${path_pattern#'[*]'}"
-      path_pattern="${path_pattern#'[regex]'}"
-      path_pattern="$( printf '%s\n' "$path_pattern" | sed \
-        -e 's/^[[:space:]]*//' )"
+      # Line is intended as RegEx pattern
 
       # Iterate over find results on that pattern
       while IFS= read -r -d $'\0' src_path; do
 
         # Compose absolute paths
-        relative_path="${src_path#"$D_DPL_DIR/"}"
+        relative_path="${src_path#"${D_DPL_DIR}${path_prefix}/"}"
         dest_path="$D_DPL_ASSETS_DIR/$relative_path"
 
         # Copy asset (for find results it is expected to always return 0)
         __copy_asset "$relative_path" "$src_path" "$dest_path" \
           || all_assets_copied=false
 
-      done < <( find -L "$D_DPL_DIR" -path "$D_DPL_DIR/$path_pattern" -print0 )
+      done < <( find -L "$D_DPL_DIR" \
+        -path "${D_DPL_DIR}${path_prefix}/$path_pattern" -print0 )
     
     else
 
-      # Pattern is solid path
+      # Line is intended as solid path
 
       # Copy asset
-      __copy_asset "$path_pattern" "$D_DPL_DIR/$path_pattern" \
+      __copy_asset "$path_pattern" "${D_DPL_DIR}${path_prefix}/$path_pattern" \
         "$D_DPL_ASSETS_DIR/$path_pattern" || all_assets_copied=false
     
     fi
 
+  # Done iterating over $D_DPL_MANIFEST_LINES entries
   done
 
   # Return appropriate code
@@ -188,49 +171,29 @@ __process_queue_manifest_of_current_dpl()
   # Main queue is not filled: try various methods
 
   # Check if main queue file is readable
-  if [ -r "$D_DPL_QUE_PATH" -a -f "$D_DPL_QUE_PATH" ]; then
+  if __process_manifest "$D_DPL_QUE_PATH"; then
 
-    # Store current case sensitivity setting, then turn it off
-    local restore_nocasematch="$( shopt -p nocasematch )"
-    shopt -s nocasematch
-
-    # Storage variables
-    local line dpl_main_queue_items=() keep_globbing=true
-
-    # Read asset manifest line by line
-    while IFS='' read -r line || [ -n "$line" ]; do
-
-      # Glob line and check status
-      line="$( __glob_line "$line" "$keep_globbing" || exit $? )"; case $? in
-        0)  dpl_main_queue_items+=( "$line" );;
-        1)  keep_globbing=true;;
-        2)  keep_globbing=false;;
-        *)  :;;
-      esac
-
-    done <"$D_DPL_QUE_PATH"
-
-    # Restore case sensitivity
-    eval "$restore_nocasematch"
-
-    # Check if $dpl_main_queue_items has at least one entry
-    if [ ${#dpl_main_queue_items[@]} -gt 0 ]; then
+    # Check if $D_DPL_MANIFEST_LINES has at least one entry
+    if [ ${#D_DPL_MANIFEST_LINES[@]} -gt 0 ]; then
 
       # Assign collected items to main queue
-      D_DPL_QUEUE_MAIN=( "${dpl_main_queue_items[@]}" )
+      D_DPL_QUEUE_MAIN=( "${D_DPL_MANIFEST_LINES[@]}" )
     
     fi
 
+  # Otherwise, try to derive main queue from relative asset paths
   elif [ ${#D_DPL_ASSET_RELPATHS[@]} -gt 1 -o -n "$D_DPL_ASSET_RELPATHS" ]
   then
 
     D_DPL_QUEUE_MAIN=( "${D_DPL_ASSET_RELPATHS[@]}" )
 
+  # Otherwise, try to derive main queue from absolute asset paths
   elif [ ${#D_DPL_ASSET_PATHS[@]} -gt 1 -o -n "$D_DPL_ASSET_PATHS" ]
   then
 
     D_DPL_QUEUE_MAIN=( "${D_DPL_ASSET_PATHS[@]}" )
 
+  # Otherwise, give up
   else
 
     # No way to pre-fill main queue
@@ -334,58 +297,179 @@ __process_all_asset_manifests_in_dpl_dirs()
   $all_good && return 0 || return 1
 }
 
-#>  __glob_line LINE KEEP_GLOBBING
+#>  __process_manifest PATH
 #
-## Processes line of a key file
+## Processes manifest file at PATH and populates two global arrays with results
+#
+## Modifies in the global scope:
+#.  $D_DPL_MANIFEST_LINES         - (array) Non-empty lines from manifest file 
+#.                                  that are relavant for the current OS. Each 
+#.                                  line is trimmed of whitespace on both ends.
+#.  $D_DPL_MANIFEST_LINE_FLAGS    - (array) For each extracted line, this array 
+#.                                  will contain its char flags as a string at 
+#.                                  the same index
+#.  $D_DPL_MANIFESR_LINE_PREFIXES - (array) For each extracted line, this array 
+#.                                  will contain its prefix at the same index
 #
 ## Returns:
-#.  0 - Printed out regular line
-#.  1 - Processed section head, should start globbing
-#.  2 - Processed section head, should stop globbing
-#.  3 - Nothing to process
+#.  0 - Manifest processed, arrays populated
+#.  1 - Manifest file could not be accessed
 #
-__glob_line()
+__process_manifest()
 {
-  # Extract line from first argument
-  local line="$1"; shift
+  # Initialize container arrays
+  D_DPL_MANIFEST_LINES=()
+  D_DPL_MANIFEST_LINE_FLAGS=()
+  D_DPL_MANIFESR_LINE_PREFIXES=()
 
-  # Remove comments and whitespace on both edges
-  line="$( printf '%s\n' "$line" | sed \
-    -e 's/[#].*$//' \
-    -e 's|//.*$||' \
-    -e 's/^[[:space:]]*//' \
-    -e 's/[[:space:]]*$//' )"
-  
-  # Skip empty lines
-  [ -z "$line" ] && return 3
+  # Extract path
+  local mnf_filepath="$1"; shift
 
-  # Check if starting a named section
-  if [[ $line =~ ^\([A-Za-z0-9]+\)$ ]]; then
+  # Check if manifest if a readable file, or return immediately
+  [ -r "$mnf_filepath" -a -f "$mnf_filepath" ] || return 1
 
-    # Check if current OS/distro matches section title
-    if [[ $line == *"(${OS_FAMILY})"* || $line == *"(${OS_DISTRO})"* ]]
-    then
-      return 1
-    else
-      return 2
+  # Storage variables
+  local line chunks chunk tmp counter=0
+  local prefix= flags=
+  local keep_globbing=true
+
+  # Store current case sensitivity setting, then turn it off
+  local restore_nocasematch="$( shopt -p nocasematch )"
+  shopt -s nocasematch
+
+  # Iterate over lines in manifest file
+  while IFS='' read -r line || [ -n "$line" ]; do
+
+    # Remove comments, then remove whitespace on both ends
+    line="$( sed \
+      -e 's/[#].*$//' \
+      -e 's|//.*$||' \
+      -e 's/^[[:space:]]*//' \
+      -e 's/[[:space:]]*$//' \
+      <<<"$line" \
+      )"
+    
+    # Quick exit for empty lines
+    [ -n "$line" ] || continue
+
+    # Check if current line is a title line
+    if [[ $line = \(*\) ]]; then
+
+      # Strip parentheses
+      line="${line:1:${#line}-2}"
+
+      # Check if content of parentheses sets a prefix
+      if [[ $line =~ ^\ *prefix\ *: ]]; then
+
+        # Extract prefix
+        IFS=':' read -r tmp prefix <<<"$line"
+
+        # Strip whitespace on both ends
+        prefix="$( sed \
+          -e 's/^[[:space:]]*//' \
+          -e 's/[[:space:]]*$//' \
+          <<<"$prefix" \
+          )"
+        
+      # Otherwise, treat content of parentheses as list of applicable OS’s
+      else
+
+        # Split content of parentheses into vertical bar-separated chunks
+        IFS='|' read -r -a chunks <<<"$line"
+
+        # Set default for $keep_globbing
+        keep_globbing=false
+
+        # Iterate over vertical bar-separated chunks of title line
+        for chunk in "${chunks[@]}"; do
+
+          # Check if detected OS matches current chunk
+          if [[ $chunk =~ ^\ *$OS_FAMILY\ *$ ]] \
+            || [[ $chunk =~ ^\ *$OS_DISTRO\ *$ ]]
+          then
+
+            # Flip flag and stop further chunk processing
+            keep_globbing=true
+            break
+
+          fi
+        
+        # Done iterating over vertical bar-separated chunks of title line
+        done
+      
+      fi
+
+      # For title lines, no further processing
+      continue
+
     fi
 
-  fi
+    # Check whether to proceed with globbing
+    $keep_globbing || continue
 
-  # Check if we are still globbing
-  local keep_globbing="$1"; shift
-  $keep_globbing || return 3
-  
-  # Check if anything is left
-  if [ -n "$line" ]; then
+    # Set flags to empty string
+    flags=
 
-    # Print and return
-    printf '%s\n' "$line"
-    return 0
+    ## If line starts with escaped opening parenthesis or escaped escape char, 
+    #. strip one escape char. If line starts with regular opening parenthesis 
+    #. and contains closing one, extract flags from within.
+    #
+    if [[ $line = \\\(* ]]; then line="${line:1}"
+    elif [[ $line = \\\\* ]]; then line="${line:1}"
+    elif [[ $line = \(*\)* ]]; then
 
-  else
+      # Strip opening parenthesis
+      line="${line:1}"
 
-    return 3
+      # Break the line on first occurrence of closing parenthesis
+      IFS=')' read -r flags line <<<"$line"
 
-  fi
+    fi
+
+    # Strip whitespace from both ends of line
+    line="$( sed \
+      -e 's/^[[:space:]]*//' \
+      -e 's/[[:space:]]*$//' \
+      <<<"$line" \
+      )"
+    
+    # Check if there is a line to speak of
+    if [ -n "$line" ]; then
+
+      # Add to global array
+      D_DPL_MANIFEST_LINES[$counter]="$line"
+
+    else
+
+      # Continue to next line
+      continue
+
+    fi
+
+    # Strip whitespace from both ends of flags, same with slashes
+    [ -n "$flags" ] && flags="$( sed \
+      -e 's/^[[:space:]]*//' \
+      -e 's/[[:space:]]*$//' \
+      -e 's/^\/*//' \
+      -e 's/\/*$//' \
+      <<<"$flags" \
+      )"
+
+    # If still some flags left, add them to global array
+    [ -n "$flags" ] && D_DPL_MANIFEST_LINE_FLAGS[$counter]="$flags"
+
+    # Also, prefixes
+    [ -n "$prefix" ] && D_DPL_MANIFESR_LINE_PREFIXES[$counter]="$prefix"
+
+    # Increment counter for next line
+    (( ++counter ))
+
+  # Done iterating over lines in manifest file
+  done <"$mnf_filepath"
+
+  # Restore case sensitivity
+  eval "$restore_nocasematch"
+
+  # Return success
+  return 0
 }
