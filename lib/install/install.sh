@@ -86,7 +86,8 @@ __parse_arguments()
   D_REQUESTED_DPLS=()       # Storage for user-requested attachments
 
   # Extract arguments passed to this script (they start at $0)
-  local args=( "$0" "$@" ) arg
+  local args=() arg
+  [[ $0 = *bash ]] || args=( "$0" "$@" )
 
   # Parse arguments
   for arg in "${args[@]}"; do
