@@ -85,12 +85,9 @@ __parse_arguments()
   D_RUN_INSTALL=            # Whether to run di install --yes
   D_REQUESTED_DPLS=()       # Storage for user-requested attachments
 
-  # Extract arguments passed to this script (they start at $0)
-  local args=() arg
-  [[ $0 = *bash ]] || args=( "$0" "$@" )
-
   # Parse arguments
-  for arg in "${args[@]}"; do
+  local arg
+  for arg do
     case "$arg" in
       --quiet)              D_OPT_QUIET=true;;
       --verbose)            D_OPT_QUIET=false;;
