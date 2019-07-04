@@ -85,11 +85,11 @@ __check_system_dependencies()
 
   # Test: this command must match line 'Be Eg'
   test_bed="$( \
-    grep ^'Be E' <<'EOF' 2>/dev/null || exit 1
+    grep ^'Be E' <<'EOF' 2>/dev/null || exit 1 \
 bEe
 Be Eg
 be e
-EOF \
+EOF
     )"
 
   # Check if all is well
