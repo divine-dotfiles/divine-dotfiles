@@ -47,18 +47,18 @@ __check_system_dependencies()
   local all_good=true
   
   # Test containers
-  local test_bed
+  local test_bed tmp
 
   #
   # find
   #
 
   # Test: this command must find just root path '/'
-  test_bed="$( \
-    find -L / -path / -name / -mindepth 0 -maxdepth 0 \
-      \( -type f -or -type d \) -print0 2>/dev/null \
-      || exit $? \
-    )"
+  while IFS= read -r -d $'\0' tmp; do
+    test_bed="$tmp"
+  done < <( find -L / -path / -name / -mindepth 0 -maxdepth 0 \
+    \( -type f -or -type d \) -print0 2>/dev/null \
+    || exit $? )
 
   # Check if all is well
   if [ $? -ne 0 -o "$test_bed" != '/' ]; then
