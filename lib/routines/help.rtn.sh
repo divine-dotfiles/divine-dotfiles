@@ -62,9 +62,9 @@ DESCRIPTION
 
     ${bold}'Install' routine${normal} - installs tasks
 
-    - Collects tasks from two sources:
-      - Package names from 'Divinefile'
-      - '*.dpl.sh' files from 'deployments' directory
+    - Collects tasks from two sources in 'grail/dpls' directory:
+      - Package names from special files named 'Divinefile'
+      - Deployments from special scripts named '*.dpl.sh'
     - Sorts tasks by priority (${bold}ascending${normal} integer order)
     - Updates installed packages using system’s package manager
     - Performs tasks in order:
@@ -73,9 +73,9 @@ DESCRIPTION
 
     ${bold}'Remove' routine${normal} - removes tasks
 
-    - Collects tasks from two sources:
-      - Package names from 'Divinefile'
-      - '*.dpl.sh' files from 'deployments' directory
+    - Collects tasks from two sources in 'grail/dpls' directory:
+      - Package names from special files named 'Divinefile'
+      - Deployments from special scripts named '*.dpl.sh'
     - ${bold}Reverse${normal}-sorts tasks by priority (${bold}descending${normal} integer order)
     - Updates installed packages using system’s package manager
     - Performs tasks in order:
@@ -89,52 +89,54 @@ DESCRIPTION
 
     ${bold}'Check' routine${normal} - checks status of tasks
 
-    - Collects tasks from two sources:
-      - Package names from 'Divinefile'
-      - '*.dpl.sh' files from 'deployments' directory
+    - Collects tasks from two sources in 'grail/dpls' directory:
+      - Package names from special files named 'Divinefile'
+      - Deployments from special scripts named '*.dpl.sh'
     - Sorts tasks by priority (${bold}ascending${normal} integer order)
-    - Prints whether each task is installed or not
+    - Checks and reports whether each task appears installed or not
 
     ${bold}'Attach' routine${normal} - imports deployments from Github
 
-    - Accepts deployments in two forms:
+    - Accepts deployments in any of two forms:
       - Divine deployment package in the form 'NAME' (which translates to 
-        Github repo 'no-simpler/divine-dpls-NAME')
-      - Third-party deployment package (Github repo) in the form 
+        Github repository 'no-simpler/divine-dpls-NAME')
+      - Third-party deployment package (Github repository) in the form 
         'username/repository'
     - Makes shallow clones of repositories or downloads them into internal 
       directory
     - Records source of successfull clone/download in Grail directory for 
-      future replication
+      future replication/updating
     - Prompts before overwriting
 
-    ${bold}'Detach' routine${normal} - removes deployments previously imported from Github
+    ${bold}'Detach' routine${normal} - removes previously imported Github deployments
 
     - Accepts deployments in any of two forms:
-      - Divine Github repository with deployments in the form 'NAME' (which 
-        translates to 'no-simpler/divine-dpls-NAME')
-      - Github repository with deployments in the form 'username/repository'
-    - If such a repository is currently present, removes it
-    - Clears record of this repository in Grail directory
+      - Divine deployment package in the form 'NAME' (which translates to 
+        Github repository 'no-simpler/divine-dpls-NAME')
+      - Third-party deployment package (Github repository) in the form 
+        'username/repository'
+    - If such a repository is currently attached, removes it
+    - Clears record of this repository from Grail directory
 
     ${bold}'Plug' routine${normal} - replaces Grail directory
 
     - Allows to quickly plug-in pre-made (and possibly version controlled) 
-      version of Grail directory, containing user assets and custom deployments
+      version of Grail directory, containing user’s assets and deployments
     - Accepts Grail directory in any of three forms:
       - Github repository in the form 'username/repository'
       - Address of a git repository
       - Path to a directory
     - Makes shallow clones of repositories or downloads them into a built-in 
-      directory
+      directory; in case of plain directories — makes a copy or, optionally, a 
+      symlink
     - Prompts before overwriting
 
     ${bold}'Update' routine${normal} - updates framework, deployment repos, and Grail
 
-    - Accepts following tasks:
+    - Accepts following tasks (as arguments):
       - 'f'/'fmwk'/'framework'    : framework itself
+      - 'g'/'grail'               : Grail directory (if it is cloned)
       - 'd'/'dpls'/'deployments'  : all attached deployments
-      - 'g'/'grail'               : Grail directory
       - 'a'/'all'                 : (same as empty task list) all of the above
     - Updates each task by either pulling from repository or re-downloading and 
       overwriting files one by one (where possible)
@@ -142,9 +144,9 @@ DESCRIPTION
     ${bold}Task list${normal}
 
     Whenever a list of tasks is provided, only those tasks are performed. Task 
-    names are case insensitive. Name 'divinefile' is reserved to refer to 
-    processing of Divinefiles. Other names refer to deployments or deployment 
-    groups.
+    names are case insensitive. Names 'Divinefile'/'dfile'/'df' are reserved to 
+    refer to processing of Divinefiles. Other names refer to deployments or 
+    deployment groups.
 
 OPTIONS
     -y, --yes       Assume affirmative answer to every prompt. Deployments may 
