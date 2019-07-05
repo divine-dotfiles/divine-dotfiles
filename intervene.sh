@@ -16,11 +16,11 @@
 # Driver function
 __main()
 {
-  # Process received arguments
-  __parse_arguments "$@"
-
   # Define constant globals
   __populate_globals
+
+  # Process received arguments
+  __parse_arguments "$@"
 
   # Import required dependencies (utilities and helpers)
   __import_dependencies
@@ -288,37 +288,6 @@ __populate_d_dir_fmwk()
   fi
 }
 
-#> __import_dependencies
-#
-## Straight-forward helper that sources utilities and helpers this script 
-#. depends on, in order. Terminates the script on failing to source a utility 
-#. (hard dependencies).
-#
-## Requires:
-#.  $D_QUEUE_DEPENDENCIES   - From __populate_globals
-#
-## Returns:
-#.  0 - All dependencies successfully sourced
-#.  1 - (script exit) Failed to source a dependency
-#
-## Prints:
-#.  stdout: *nothing*
-#.  stderr: Error descriptions
-#
-__import_dependencies()
-{
-  # Storage variable
-  local dependency
-
-  # Iterate over dependencies
-  for dependency in "${D_QUEUE_DEPENDENCIES[@]}"; do
-
-    # Load dependency or halt script
-    __load $dependency || exit 1
-
-  done
-}
-
 ## __parse_arguments [ARG]…
 #
 ## Parses arguments that were passed to this script
@@ -451,6 +420,37 @@ __parse_arguments()
   readonly D_REQ_PACKAGES
 }
 
+#> __import_dependencies
+#
+## Straight-forward helper that sources utilities and helpers this script 
+#. depends on, in order. Terminates the script on failing to source a utility 
+#. (hard dependencies).
+#
+## Requires:
+#.  $D_QUEUE_DEPENDENCIES   - From __populate_globals
+#
+## Returns:
+#.  0 - All dependencies successfully sourced
+#.  1 - (script exit) Failed to source a dependency
+#
+## Prints:
+#.  stdout: *nothing*
+#.  stderr: Error descriptions
+#
+__import_dependencies()
+{
+  # Storage variable
+  local dependency
+
+  # Iterate over dependencies
+  for dependency in "${D_QUEUE_DEPENDENCIES[@]}"; do
+
+    # Load dependency or halt script
+    __load $dependency || exit 1
+
+  done
+}
+
 #> __perform_routine
 #
 ## Sub-driver function
@@ -514,8 +514,8 @@ __load()
     procedure)  filepath="${D_DIR_PROCEDURES}/${name}${D_SUFFIX_PROCEDURE}";;
     util)       filepath="${D_DIR_UTILS}/${name}${D_SUFFIX_UTIL}";;
     helper)     filepath="${D_DIR_HELPERS}/${name}${D_SUFFIX_HELPER}";;
-    *)        printf >&2 '%s: %s\n' "${FUNCNAME[0]}" \
-                "Called with illegal type argument: '$type'"; exit 1;;
+    *)          printf >&2 '%s: %s\n' "${FUNCNAME[0]}" \
+                  "Called with illegal type argument: '$type'"; exit 1;;
   esac; shift
 
   # Check if file exists and source it
