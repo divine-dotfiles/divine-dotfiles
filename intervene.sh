@@ -16,14 +16,14 @@
 # Driver function
 __main()
 {
+  # Process received arguments
+  __parse_arguments "$@"
+
   # Define constant globals
   __populate_globals
 
   # Import required dependencies (utilities and helpers)
   __import_dependencies
-
-  # Process received arguments
-  __parse_arguments "$@"
 
   # Perform requested routine
   __perform_routine
