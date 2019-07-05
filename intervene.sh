@@ -16,691 +16,17 @@
 # Driver function
 __main()
 {
-  # Ensure system dependencies are present
-  __check_system_dependencies
-
-  # Process received arguments
-  __parse_arguments "$@"
-
   # Define constant globals
   __populate_globals
 
   # Import required dependencies (utilities and helpers)
   __import_dependencies
 
+  # Process received arguments
+  __parse_arguments "$@"
+
   # Perform requested routine
   __perform_routine
-}
-
-#>  __check_system_dependencies
-#
-## Ensures current system has all expected utilities installed, or exits the 
-#. script
-#
-## Returns:
-#.  0 - All system dependencies are present and accessible
-#.  1 - (script exit) Otherwise
-#
-__check_system_dependencies()
-{
-  # Status variable
-  local all_good=true
-  
-  # Test containers
-  local test_bed tmp
-
-  #
-  # find
-  #
-
-  # Test: this command must find just root path '/'
-  while IFS= read -r -d $'\0' tmp; do
-    test_bed="$tmp"
-  done < <( find -L / -path / -name / -mindepth 0 -maxdepth 0 \
-    \( -type f -or -type d \) -print0 2>/dev/null \
-    || exit $? )
-
-  # Check if all is well
-  if [ $? -ne 0 -o "$test_bed" != '/' ]; then
-
-    # Announce failure
-    printf >&2 '%s: %s: %s\n' \
-      "$( basename -- "${BASH_SOURCE[0]}" )" \
-      'Missing system dependency:' \
-      'find'
-
-    # Flip flag
-    all_good=false
-
-  fi
-
-  #
-  # grep
-  #
-
-  # Status variable for grep
-  local grep_good=true
-
-  # grep no. 1
-
-  # Test: this command must match line 'Be Eg'
-  test_bed="$( \
-    grep ^'Be E' <<'EOF' 2>/dev/null || exit 1 \
-bEe
-Be Eg
-be e
-EOF
-    )"
-
-  # Check if all is well
-  [ $? -ne 0 -o "$test_bed" != 'Be Eg' ] && grep_good=false
-
-  # grep no. 2
-
-  # Test: this command must match nothing (no literal matches)
-  grep -Fxq 'ma*A' <<'EOF' 2>/dev/null && grep_good=false
-maA
-maRa
-maRA
-ma*a
-EOF
-
-  # Test: this command must match line 'ma*a' (case insensitive match)
-  grep -Fxqi 'ma*A' <<'EOF' 2>/dev/null || grep_good=false
-maA
-maRa
-maRA
-ma*a
-EOF
-
-  # grep conclusion
-
-  # Check if all is well
-  if ! $grep_good; then
-
-    # Announce failure
-    printf >&2 '%s: %s: %s\n' \
-      "$( basename -- "${BASH_SOURCE[0]}" )" \
-      'Missing system dependency:' \
-      'grep'
-
-    # Flip flag
-    all_good=false
-
-  fi
-
-  #
-  # sed
-  #
-
-  # Status variable for sed
-  local sed_good=true
-
-  # sed no. 1
-
-  # Test: this command must yield string 'may t'
-  test_bed="$( \
-    sed <<<'  may t  // brittle # maro' 2>/dev/null \
-      -e 's/[#].*$//' \
-      -e 's|//.*$||' \
-      -e 's/^[[:space:]]*//' \
-      -e 's/[[:space:]]*$//' \
-      || exit $?
-    )"
-  
-  # Check if all is well
-  [ $? -ne 0 -o "$test_bed" != 'may t' ] && sed_good=false
-
-  # sed no. 1
-
-  # Test: this command must yield string ‘battered’ without quotes around it
-  if sed -r &>/dev/null; then
-    test_bed="$( \
-      sed -nre 's/^"(.*)"$/\1/p' 2>/dev/null <<<'"battered"' || exit $? \
-      )"
-  else
-    test_bed="$( \
-      sed -nEe 's/^"(.*)"$/\1/p' 2>/dev/null <<<'"battered"' || exit $? \
-      )"
-  fi
-
-  # Check if all is well
-  [ $? -ne 0 -o "$test_bed" != 'battered' ] && sed_good=false
-
-  # sed conclusion
-
-  # Check if all is well
-  if ! $sed_good; then
-
-    # Announce failure
-    printf >&2 '%s: %s: %s\n' \
-      "$( basename -- "${BASH_SOURCE[0]}" )" \
-      'Missing system dependency:' \
-      'sed'
-
-    # Flip flag
-    all_good=false
-
-  fi
-
-  #
-  # awk
-  #
-
-  # Test: this command must yield string ‘halt’
-  test_bed="$( \
-    awk -F  '=' '{print $3}' <<<'go==halt=pry' || exit $? \
-    )"
-
-  # Check if all is well
-  if [ $? -ne 0 -o "$test_bed" != 'halt' ]; then
-
-    # Announce failure
-    printf >&2 '%s: %s: %s\n' \
-      "$( basename -- "${BASH_SOURCE[0]}" )" \
-      'Missing system dependency:' \
-      'awk'
-
-    # Flip flag
-    all_good=false
-
-  fi
-
-  #
-  # Shocking conclusion
-  #
-
-  if $all_good; then return 0; else exit 1; fi
-}
-
-## __parse_arguments [ARG]…
-#
-## Parses arguments that were passed to this script
-#
-__parse_arguments()
-{
-  # Global indicators of current request’s attributes
-  D_REQ_ROUTINE=            # Routine to perform
-  D_REQ_GROUPS=()           # Array of groups listed
-  D_REQ_ARGS=()             # Array of non-option arguments
-  D_REQ_FILTER=false        # Flag for whether particular tasks are requested
-  D_REQ_PACKAGES=true       # Flag for whether Divinefile is to be processed
-  D_REQ_MAX_PRIORITY_LEN=0  # Number of digits in largest priority
-  
-  # Global flags for optionscommand line options
-  D_OPT_INVERSE=false       # Flag for whether filtering is inverted
-  D_OPT_FORCE=false         # Flag for forceful mode
-  D_OPT_QUIET=true          # Verbosity setting
-  D_OPT_ANSWER=             # Blanket answer to all prompts
-  D_OPT_PLUG_LINK=false     # Flag for whether copy or symlink Grail dir
-
-  # Parse the first argument
-  case "$1" in
-    i|install)    D_REQ_ROUTINE=install;;
-    r|remove)     D_REQ_ROUTINE=remove;;
-    f|refresh)    D_REQ_ROUTINE=refresh;;
-    c|check)      D_REQ_ROUTINE=check;;
-    a|attach)     D_REQ_ROUTINE=attach;;
-    d|detach)     D_REQ_ROUTINE=detach;;
-    p|plug)       D_REQ_ROUTINE=plug;;
-    u|update)     D_REQ_ROUTINE=update;;
-    -h|--help)    __show_help_and_exit;;
-    --version)    __show_version_and_exit;;
-    '')           __show_usage_and_exit;;
-    *)            printf >&2 '%s: Illegal routine -- %s\n\n' \
-                    "$( basename -- "${BASH_SOURCE[0]}" )" \
-                    "$1"          
-                  __show_usage_and_exit
-                  ;;
-  esac
-  shift
-
-  # Freeze some variables
-  readonly D_REQ_ROUTINE
-  
-  # Storage variables
-  local delim=false i opt restore_nocasematch arg
-
-  # Parse remaining args for supported options
-  while [ $# -gt 0 ]; do
-    # If delimiter encountered, add arg and continue
-    $delim && { [ -n "$1" ] && D_REQ_ARGS+=("$1"); shift; continue; }
-    # Otherwise, parse options
-    case "$1" in
-      --)                 delim=true;;
-      -h|--help)          __show_help_and_exit;;
-      --version)          __show_version_and_exit;;
-      -y|--yes)           D_OPT_ANSWER=true;;
-      -n|--no)            D_OPT_ANSWER=false;;
-      -f|--force)         D_OPT_FORCE=true;;
-      -i|--inverse)       D_OPT_INVERSE=true;;
-      -e|--except)        D_OPT_INVERSE=true;;
-      -q|--quiet)         D_OPT_QUIET=true;;
-      -v|--verbose)       D_OPT_QUIET=false;;
-      -l|--link)          D_OPT_PLUG_LINK=true;;
-      -*)                 for i in $( seq 2 ${#1} ); do
-                            opt="${1:i-1:1}"
-                            case $opt in
-                              h)  __show_help_and_exit;;
-                              y)  D_OPT_ANSWER=true;;
-                              n)  D_OPT_ANSWER=false;;
-                              f)  D_OPT_FORCE=true;;
-                              i)  D_OPT_INVERSE=true;;
-                              e)  D_OPT_INVERSE=true;;
-                              q)  D_OPT_QUIET=true;;
-                              v)  D_OPT_QUIET=false;;
-                              l)  D_OPT_PLUG_LINK=true;;
-                              *)  printf >&2 '%s: Illegal option -- %s\n\n' \
-                                    "$( basename -- "${BASH_SOURCE[0]}" )" \
-                                    "$opt"
-                                  __show_usage_and_exit;;
-                            esac
-                          done;;
-      [0-9]|!)            D_REQ_GROUPS+=("$1");;
-      *)                  [ -n "$1" ] && D_REQ_ARGS+=("$1");;
-    esac; shift
-  done
-
-  # Freeze some variables
-  readonly D_OPT_QUIET
-  readonly D_OPT_ANSWER
-  readonly D_OPT_FORCE
-  readonly D_OPT_INVERSE
-  readonly D_OPT_PLUG_LINK
-  readonly D_REQ_GROUPS
-  readonly D_REQ_ARGS
-
-  # In some routines: skip early
-  [[ $D_REQ_ROUTINE =~ ^(attach|detach|plug|update)$ ]] && return 0
-
-  # Check if there are workable arguments
-  if [ ${#D_REQ_ARGS[@]} -gt 0 -o ${#D_REQ_GROUPS[@]} -gt 0 ]; then
-  
-    # There will be some form of filtering
-    D_REQ_FILTER=true
-
-    # In regular filtering, packages are not processed unless asked to
-    # In inverse filtering, packages are processed unless asked not to
-    $D_OPT_INVERSE || D_REQ_PACKAGES=false
-
-    # Store current case sensitivity setting, then turn it off
-    restore_nocasematch="$( shopt -p nocasematch )"
-    shopt -s nocasematch
-
-    # Iterate over arguments
-    for arg in "${D_REQ_ARGS[@]}"; do
-      # If Divinefile is asked for, flip the relevant flag
-      [[ $arg =~ ^(Divinefile|dfile|df)$ ]] && {
-        $D_OPT_INVERSE && D_REQ_PACKAGES=false || D_REQ_PACKAGES=true
-      }
-    done
-
-    # Restore case sensitivity
-    eval "$restore_nocasematch"
-
-  fi
-
-  # Freeze some variables
-  readonly D_REQ_FILTER
-  readonly D_REQ_PACKAGES
-}
-
-#> __show_help_and_exit
-#
-## This function is meant to be called whenever help is explicitly requested. 
-#. Prints out a summary of usage scenarios and valid options.
-#
-## Parameters:
-#.  *none*
-#
-## Returns:
-#.  0 - (script exit) Always
-#
-## Prints:
-#.  stdout: Help summary
-#.  stderr: As little as possible
-#
-__show_help_and_exit()
-{
-  # Add bolding if available
-  local bold normal
-  if which tput &>/dev/null; then bold=$(tput bold); normal=$(tput sgr0); fi
-
-  # Store help summary in a variable
-  local help script_name="$( basename -- "${BASH_SOURCE[0]}" )"
-  read -r -d '' help << EOF
-NAME
-    ${bold}${script_name}${normal} - launch Divine intervention
-
-SYNOPSIS
-    ${script_name} ${bold}i${normal}[nstall]                [-ynqveif]… [--] [TASK]…
-    ${script_name} ${bold}r${normal}[emove]                 [-ynqveif]… [--] [TASK]…
-    ${script_name} ${bold}f${normal}|refresh                [-ynqveif]… [--] [TASK]…
-    ${script_name} ${bold}c${normal}[heck]                  [-ynqvei]…  [--] [TASK]…
-
-    ${script_name} ${bold}a${normal}[ttach]                 [-yn]…      [--] REPO…
-    ${script_name} ${bold}d${normal}[etach]                 [-yn]…      [--] REPO…
-    ${script_name} ${bold}p${normal}[lug]                   [-ynl]…     [--] REPO/DIR
-    ${script_name} ${bold}u${normal}[pdate]                 [-yn]…      [--] [TASK]…
-
-    ${script_name} --version
-    ${script_name} -h|--help
-
-DESCRIPTION
-    Modular cross-platform dotfiles framework. Works wherever Bash does.
-    
-    Launch with '-n' option for a harmless introductory dry run.
-
-    ${bold}'Install' routine${normal} - installs tasks
-
-    - Collects tasks from two sources:
-      - Package names from 'Divinefile'
-      - '*.dpl.sh' files from 'deployments' directory
-    - Sorts tasks by priority (${bold}ascending${normal} integer order)
-    - Updates installed packages using system’s package manager
-    - Performs tasks in order:
-      - ${bold}Installs${normal} packages using system’s package manager
-      - ${bold}Installs${normal} deployments using 'dinstall' function in each
-
-    ${bold}'Remove' routine${normal} - removes tasks
-
-    - Collects tasks from two sources:
-      - Package names from 'Divinefile'
-      - '*.dpl.sh' files from 'deployments' directory
-    - ${bold}Reverse${normal}-sorts tasks by priority (${bold}descending${normal} integer order)
-    - Updates installed packages using system’s package manager
-    - Performs tasks in order:
-      - ${bold}Removes${normal} deployments using 'dremove' function in each
-      - ${bold}Removes${normal} packages using system’s package manager
-    
-    ${bold}'Refresh' routine${normal} - removes, then installs tasks
-
-    - Performs removal routine on requested tasks
-    - Performs installation routine on requested tasks
-
-    ${bold}'Check' routine${normal} - checks status of tasks
-
-    - Collects tasks from two sources:
-      - Package names from 'Divinefile'
-      - '*.dpl.sh' files from 'deployments' directory
-    - Sorts tasks by priority (${bold}ascending${normal} integer order)
-    - Prints whether each task is installed or not
-
-    ${bold}'Attach' routine${normal} - imports deployments from Github
-
-    - Accepts deployments in two forms:
-      - Divine deployment package in the form 'NAME' (which translates to 
-        Github repo 'no-simpler/divine-dpls-NAME')
-      - Third-party deployment package (Github repo) in the form 
-        'username/repository'
-    - Makes shallow clones of repositories or downloads them into internal 
-      directory
-    - Records source of successfull clone/download in Grail directory for 
-      future replication
-    - Prompts before overwriting
-
-    ${bold}'Detach' routine${normal} - removes deployments previously imported from Github
-
-    - Accepts deployments in any of two forms:
-      - Divine Github repository with deployments in the form 'NAME' (which 
-        translates to 'no-simpler/divine-dpls-NAME')
-      - Github repository with deployments in the form 'username/repository'
-    - If such a repository is currently present, removes it
-    - Clears record of this repository in Grail directory
-
-    ${bold}'Plug' routine${normal} - replaces Grail directory
-
-    - Allows to quickly plug-in pre-made (and possibly version controlled) 
-      version of Grail directory, containing user assets and custom deployments
-    - Accepts Grail directory in any of three forms:
-      - Github repository in the form 'username/repository'
-      - Address of a git repository
-      - Path to a directory
-    - Makes shallow clones of repositories or downloads them into a built-in 
-      directory
-    - Prompts before overwriting
-
-    ${bold}'Update' routine${normal} - updates framework, deployment repos, and Grail
-
-    - Accepts following tasks:
-      - 'f'/'fmwk'/'framework'    : framework itself
-      - 'd'/'dpls'/'deployments'  : all attached deployments
-      - 'g'/'grail'               : Grail directory
-      - 'a'/'all'                 : (same as empty task list) all of the above
-    - Updates each task by either pulling from repository or re-downloading and 
-      overwriting files one by one (where possible)
-
-    ${bold}Task list${normal}
-
-    Whenever a list of tasks is provided, only those tasks are performed. Task 
-    names are case insensitive. Name 'divinefile' is reserved to refer to 
-    processing of Divinefiles. Other names refer to deployments or deployment 
-    groups.
-
-OPTIONS
-    -y, --yes       Assume affirmative answer to every prompt. Deployments may 
-                    override this option to make sure that user is prompted 
-                    every time.
-
-    -n, --no        Assume negatory answer to every prompt. In effect, skips 
-                    every task.
-
-    -f, --force     By default, framework tries NOT to:
-                      * re-install something that appears already installed;
-                      * remove something that appears not installed;
-                      * remove something that appears installed by means other 
-                        than this framework.
-                    This option signals that such considerations are to be 
-                    forgone. Note, however, that it is mostly up to authors of 
-                    deployments to honor this option. Divine deployments 
-                    (distributed separately) are designed with this option in 
-                    mind.
-
-    -l, --link      ('plug' routine only, otherwise no-opt)
-                    Prefer to symlink external Grail directory and avoid 
-                    cloning or downloading repositories.
-
-    -e, --except, -i, --inverse
-                    Inverse task list: filter out tasks included in it, instead 
-                    of filtering them in
-
-    -q, --quiet     (default) Decreases amount of status messages
-
-    -v, --verbose   Increases amount of status messages
-
-    --version       Show script version
-
-    -h, --help      Show this help summary
-
-AUTHOR
-    ${bold}Grove Pyree${normal} <grayarea@protonmail.ch>
-
-    Part of ${bold}Divine.dotfiles${normal} <https://github.com/no-simpler/divine-dotfiles>
-
-    This is free software: you are free to change and redistribute it.
-    There is NO WARRANTY, to the extent permitted by law.
-EOF
-
-  # Print help summary
-  if which less &>/dev/null; then
-    less <<<"$help"
-  else
-    printf '%s\n' "$help"
-  fi
-  exit 0
-}
-
-#> __show_usage_and_exit
-#
-## Shows usage tip end exits with code 1
-#
-## Parameters:
-#.  *none*
-#
-## Returns:
-#.  1 - (script exit) Always
-#
-## Prints:
-#.  stdout: *nothing*
-#.  stderr: Usage tip
-#
-__show_usage_and_exit()
-{
-  # Add bolding if available
-  local bold normal
-  if which tput &>/dev/null; then bold=$(tput bold); normal=$(tput sgr0); fi
-
-  local usage_tip script_name="$( basename -- "${BASH_SOURCE[0]}" )"
-  read -r -d '' usage_tip << EOF
-Usage: ${bold}${script_name}${normal} ${bold}i${normal}|${bold}install${normal}   [-ynqveif] [TASK]…  - Launch installation
-   or: ${bold}${script_name}${normal} ${bold}r${normal}|${bold}remove${normal}    [-ynqveif] [TASK]…  - Launch removal
-   or: ${bold}${script_name}${normal} ${bold}f${normal}|${bold}refresh${normal}   [-ynqveif] [TASK]…  - Launch removal, then installation
-   or: ${bold}${script_name}${normal} ${bold}c${normal}|${bold}check${normal}     [-ynqvei]  [TASK]…  - Launch checking
-
-   or: ${bold}${script_name}${normal} ${bold}a${normal}|${bold}attach${normal}    [-yn]      REPO…    - Add deployment(s) from Github repo
-   or: ${bold}${script_name}${normal} ${bold}d${normal}|${bold}detach${normal}    [-yn]      REPO…    - Remove previously attached repo
-   or: ${bold}${script_name}${normal} ${bold}p${normal}|${bold}plug${normal}      [-ynl]     REPO/DIR - Plug Grail from repo or dir
-   or: ${bold}${script_name}${normal} ${bold}u${normal}|${bold}update${normal}    [-yn]      [TASK]…  - Update framework/deployments/Grail
-
-   or: ${bold}${script_name}${normal} --version                       - Show script version
-   or: ${bold}${script_name}${normal} -h|--help                       - Show help summary
-EOF
-
-  # Print usage tip
-  printf >&2 '%s\n' "$usage_tip"
-  exit 1
-}
-
-#> __show_version_and_exit
-#
-## Shows script version and exits with code 0
-#
-## Parameters:
-#.  *none*
-#
-## Returns:
-#.  0 - (script exit) Always
-#
-## Prints:
-#.  stdout: Version message
-#.  stderr: As little as possible
-#
-__show_version_and_exit()
-{
-  # Add bolding if available
-  local bold normal
-  if which tput &>/dev/null; then bold=$(tput bold); normal=$(tput sgr0); fi
-
-  local version_msg
-  read -r -d '' version_msg << EOF
-${bold}$( basename -- "${BASH_SOURCE[0]}" )${normal} 1.7.0
-Part of ${bold}Divine.dotfiles${normal} <https://github.com/no-simpler/divine-dotfiles>
-This is free software: you are free to change and redistribute it
-There is NO WARRANTY, to the extent permitted by law
-
-Written by ${bold}Grove Pyree${normal} <grayarea@protonmail.ch>
-EOF
-  # Print version message
-  printf '%s\n' "$version_msg"
-  exit 0
-}
-
-#> __populate_d_dir_fmwk
-#
-## Resolves absolute path to directory containing this script, stores it in a 
-#. global read-only variable as the location of the framework. Also, populates 
-#. another global variable with absolute path to directory containing framework 
-#. directory, which is referred to as divine directory, and may be overridden 
-#. by user.
-#
-## Requires:
-#.  Bash >=3.2
-#
-## Parameters:
-#.  *none*
-#
-## Uses in the global scope:
-#.  $D_DIR        - user-provided override for $D_DIR below
-#
-## Provides into the global scope:
-#.  $D_DIR_FMWK   - (read-only) Absolute path to directory containing this 
-#.                  script (technically, value of ${BASH_SOURCE[0]}), all 
-#.                  symlinks resolved.
-#.  $D_DIR        - (read-only) Absolute path to directory containing grail and 
-#.                  state directories. By default it is same as $D_DIR_FMWK. 
-#.                  User is allowed to override this path.
-#.                  
-#
-## Returns:
-#.  0 - Both assignments successful
-#.  1 - (script exit) User provided invalid override for $D_DIR
-#
-## Prints:
-#.  stdout: *nothing*
-#.  stderr: Error descriptions
-#
-__populate_d_dir_fmwk()
-{
-  # Storage variables
-  local filename="${BASH_SOURCE[0]}" dirpath d_dir_fmwk d_dir
-
-  #
-  # Set $D_DIR_FMWK
-  #
-
-  # Resolve all base symlinks
-  while [ -L "$filename" ]; do
-    dirpath="$( cd -P "$( dirname -- "$filename" )" &>/dev/null && pwd )"
-    filename="$( readlink -- "$filename" )"
-    [[ $filename != /* ]] && filename="$dirpath/$filename"
-  done
-
-  # Also, resolve any non-base symlinks remaining in the path
-  d_dir_fmwk="$( cd -P "$( dirname -- "$filename" )" &>/dev/null && pwd )"
-
-  # Ensure global read-only variable with $D_DIR_FMWK path is set
-  readonly D_DIR_FMWK="$d_dir_fmwk"
-
-  #
-  # Set $D_DIR
-  #
-
-  # Make default value
-  d_dir="$d_dir_fmwk"
-
-  # Check if global read-only variable with $D_DIR path is set
-  if [ -z ${D_DIR+isset} ]; then
-
-    # $D_DIR is not set: set it up
-    readonly D_DIR="$d_dir"
-  
-  else
-
-    # Accept $D_DIR override: make sure it is read-only
-    printf >&2 '%s: %s\n' \
-      'Divine dir overridden' \
-      "$D_DIR"
-    readonly D_DIR
-
-  fi
-
-  # $D_DIR is now set: check if it is a writable directory
-  if mkdir -p -- "$D_DIR" && [ -w "$D_DIR" ]; then
-
-    # Acceptable $D_DIR path
-    :
-
-  else
-
-    # $D_DIR not a writable directory: unwork-able value
-    printf >&2 '%s: %s: %s:\n  %s\n' \
-      "$( basename -- "${BASH_SOURCE[0]}" )" \
-      'Fatal error' \
-      '$D_DIR is not a writable directory' \
-      "$D_DIR"
-    exit 1
-
-  fi
 }
 
 #> __populate_globals
@@ -771,23 +97,24 @@ __populate_globals()
   # Filename suffix for main queue manifest files
   readonly D_SUFFIX_DPL_QUE='.dpl.que'
 
-  # Ordered list of script’s utility and helper dependencies
+  # Ordered list of script’s internal dependencies
   D_QUEUE_DEPENDENCIES=( \
-    "util dcolors" \
-    "util dprint" \
-    "util dprompt" \
-    "util dmd5" \
-    "helper dstash" \
-    "util dos" \
-    "util dtrim" \
-    "util dreadlink" \
-    "util dmv" \
-    "util dln" \
-    "helper queue" \
-    "helper dln" \
-    "helper cp" \
-    "helper multitask" \
-    "helper assets" \
+    'procedure dep-check' \
+    'util dcolors' \
+    'util dprint' \
+    'util dprompt' \
+    'util dmd5' \
+    'helper dstash' \
+    'util dos' \
+    'util dtrim' \
+    'util dreadlink' \
+    'util dmv' \
+    'util dln' \
+    'helper queue' \
+    'helper dln' \
+    'helper cp' \
+    'helper multitask' \
+    'helper assets' \
   ); readonly D_QUEUE_DEPENDENCIES
 
   # Name of Divinefile
@@ -870,6 +197,97 @@ __populate_globals()
   return 0
 }
 
+#> __populate_d_dir_fmwk
+#
+## Resolves absolute path to directory containing this script, stores it in a 
+#. global read-only variable as the location of the framework. Also, populates 
+#. another global variable with absolute path to directory containing framework 
+#. directory, which is referred to as divine directory, and may be overridden 
+#. by user.
+#
+## Uses in the global scope:
+#.  $D_DIR        - user-provided override for $D_DIR below
+#
+## Provides into the global scope:
+#.  $D_DIR_FMWK   - (read-only) Absolute path to directory containing this 
+#.                  script (technically, value of ${BASH_SOURCE[0]}), all 
+#.                  symlinks resolved.
+#.  $D_DIR        - (read-only) Absolute path to directory containing grail and 
+#.                  state directories. By default it is same as $D_DIR_FMWK. 
+#.                  User is allowed to override this path.
+#
+## Returns:
+#.  0 - Both assignments successful
+#.  1 - (script exit) User provided invalid override for $D_DIR
+#
+## Prints:
+#.  stdout: *nothing*
+#.  stderr: Error descriptions
+#
+__populate_d_dir_fmwk()
+{
+  # Storage variables
+  local filename="${BASH_SOURCE[0]}" dirpath d_dir_fmwk d_dir
+
+  #
+  # Set $D_DIR_FMWK
+  #
+
+  # Resolve all base symlinks
+  while [ -L "$filename" ]; do
+    dirpath="$( cd -P "$( dirname -- "$filename" )" &>/dev/null && pwd )"
+    filename="$( readlink -- "$filename" )"
+    [[ $filename != /* ]] && filename="$dirpath/$filename"
+  done
+
+  # Also, resolve any non-base symlinks remaining in the path
+  d_dir_fmwk="$( cd -P "$( dirname -- "$filename" )" &>/dev/null && pwd )"
+
+  # Ensure global read-only variable with $D_DIR_FMWK path is set
+  readonly D_DIR_FMWK="$d_dir_fmwk"
+
+  #
+  # Set $D_DIR
+  #
+
+  # Make default value
+  d_dir="$d_dir_fmwk"
+
+  # Check if global read-only variable with $D_DIR path is set
+  if [ -z ${D_DIR+isset} ]; then
+
+    # $D_DIR is not set: set it up
+    readonly D_DIR="$d_dir"
+  
+  else
+
+    # Accept $D_DIR override: make sure it is read-only
+    printf >&2 '%s: %s\n' \
+      'Divine dir overridden' \
+      "$D_DIR"
+    readonly D_DIR
+
+  fi
+
+  # $D_DIR is now set: check if it is a writable directory
+  if mkdir -p -- "$D_DIR" && [ -w "$D_DIR" ]; then
+
+    # Acceptable $D_DIR path
+    :
+
+  else
+
+    # $D_DIR not a writable directory: unwork-able value
+    printf >&2 '%s: %s: %s:\n  %s\n' \
+      "$( basename -- "${BASH_SOURCE[0]}" )" \
+      'Fatal error' \
+      '$D_DIR is not a writable directory' \
+      "$D_DIR"
+    exit 1
+
+  fi
+}
+
 #> __import_dependencies
 #
 ## Straight-forward helper that sources utilities and helpers this script 
@@ -899,6 +317,138 @@ __import_dependencies()
     __load $dependency || exit 1
 
   done
+}
+
+## __parse_arguments [ARG]…
+#
+## Parses arguments that were passed to this script
+#
+__parse_arguments()
+{
+  # Global indicators of current request’s attributes
+  D_REQ_ROUTINE=            # Routine to perform
+  D_REQ_GROUPS=()           # Array of groups listed
+  D_REQ_ARGS=()             # Array of non-option arguments
+  D_REQ_FILTER=false        # Flag for whether particular tasks are requested
+  D_REQ_PACKAGES=true       # Flag for whether Divinefile is to be processed
+  D_REQ_MAX_PRIORITY_LEN=0  # Number of digits in largest priority
+  
+  # Global flags for optionscommand line options
+  D_OPT_INVERSE=false       # Flag for whether filtering is inverted
+  D_OPT_FORCE=false         # Flag for forceful mode
+  D_OPT_QUIET=true          # Verbosity setting
+  D_OPT_ANSWER=             # Blanket answer to all prompts
+  D_OPT_PLUG_LINK=false     # Flag for whether copy or symlink Grail dir
+
+  # Parse the first argument
+  case "$1" in
+    i|install)    D_REQ_ROUTINE=install;;
+    r|remove)     D_REQ_ROUTINE=remove;;
+    f|refresh)    D_REQ_ROUTINE=refresh;;
+    c|check)      D_REQ_ROUTINE=check;;
+    a|attach)     D_REQ_ROUTINE=attach;;
+    d|detach)     D_REQ_ROUTINE=detach;;
+    p|plug)       D_REQ_ROUTINE=plug;;
+    u|update)     D_REQ_ROUTINE=update;;
+    -h|--help)    __load routine help;;
+    --version)    __load routine version;;
+    '')           __load routine usage;;
+    *)            printf >&2 '%s: Illegal routine -- %s\n\n' \
+                    "$( basename -- "${BASH_SOURCE[0]}" )" \
+                    "$1"          
+                  __load routine usage
+                  ;;
+  esac
+  shift
+
+  # Freeze some variables
+  readonly D_REQ_ROUTINE
+  
+  # Storage variables
+  local delim=false i opt restore_nocasematch arg
+
+  # Parse remaining args for supported options
+  while [ $# -gt 0 ]; do
+    # If delimiter encountered, add arg and continue
+    $delim && { [ -n "$1" ] && D_REQ_ARGS+=("$1"); shift; continue; }
+    # Otherwise, parse options
+    case "$1" in
+      --)                 delim=true;;
+      -h|--help)          __load routine help;;
+      --version)          __load routine version;;
+      -y|--yes)           D_OPT_ANSWER=true;;
+      -n|--no)            D_OPT_ANSWER=false;;
+      -f|--force)         D_OPT_FORCE=true;;
+      -i|--inverse)       D_OPT_INVERSE=true;;
+      -e|--except)        D_OPT_INVERSE=true;;
+      -q|--quiet)         D_OPT_QUIET=true;;
+      -v|--verbose)       D_OPT_QUIET=false;;
+      -l|--link)          D_OPT_PLUG_LINK=true;;
+      -*)                 for i in $( seq 2 ${#1} ); do
+                            opt="${1:i-1:1}"
+                            case $opt in
+                              h)  __load routine help;;
+                              y)  D_OPT_ANSWER=true;;
+                              n)  D_OPT_ANSWER=false;;
+                              f)  D_OPT_FORCE=true;;
+                              i)  D_OPT_INVERSE=true;;
+                              e)  D_OPT_INVERSE=true;;
+                              q)  D_OPT_QUIET=true;;
+                              v)  D_OPT_QUIET=false;;
+                              l)  D_OPT_PLUG_LINK=true;;
+                              *)  printf >&2 '%s: Illegal option -- %s\n\n' \
+                                    "$( basename -- "${BASH_SOURCE[0]}" )" \
+                                    "$opt"
+                                  __load routine usage;;
+                            esac
+                          done;;
+      [0-9]|!)            D_REQ_GROUPS+=("$1");;
+      *)                  [ -n "$1" ] && D_REQ_ARGS+=("$1");;
+    esac; shift
+  done
+
+  # Freeze some variables
+  readonly D_OPT_QUIET
+  readonly D_OPT_ANSWER
+  readonly D_OPT_FORCE
+  readonly D_OPT_INVERSE
+  readonly D_OPT_PLUG_LINK
+  readonly D_REQ_GROUPS
+  readonly D_REQ_ARGS
+
+  # In some routines: skip early
+  [[ $D_REQ_ROUTINE =~ ^(attach|detach|plug|update)$ ]] && return 0
+
+  # Check if there are workable arguments
+  if [ ${#D_REQ_ARGS[@]} -gt 0 -o ${#D_REQ_GROUPS[@]} -gt 0 ]; then
+  
+    # There will be some form of filtering
+    D_REQ_FILTER=true
+
+    # In regular filtering, packages are not processed unless asked to
+    # In inverse filtering, packages are processed unless asked not to
+    $D_OPT_INVERSE || D_REQ_PACKAGES=false
+
+    # Store current case sensitivity setting, then turn it off
+    restore_nocasematch="$( shopt -p nocasematch )"
+    shopt -s nocasematch
+
+    # Iterate over arguments
+    for arg in "${D_REQ_ARGS[@]}"; do
+      # If Divinefile is asked for, flip the relevant flag
+      [[ $arg =~ ^(Divinefile|dfile|df)$ ]] && {
+        $D_OPT_INVERSE && D_REQ_PACKAGES=false || D_REQ_PACKAGES=true
+      }
+    done
+
+    # Restore case sensitivity
+    eval "$restore_nocasematch"
+
+  fi
+
+  # Freeze some variables
+  readonly D_REQ_FILTER
+  readonly D_REQ_PACKAGES
 }
 
 #> __perform_routine
