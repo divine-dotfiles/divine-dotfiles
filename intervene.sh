@@ -750,6 +750,10 @@ __populate_globals()
   readonly D_DIR_ROUTINES="$D_DIR_LIB/routines"
   readonly D_SUFFIX_ROUTINE=".rtn.sh"
 
+  # Path to procedures directory and procedure file suffix
+  readonly D_DIR_PROCEDURES="$D_DIR_LIB/procedures"
+  readonly D_SUFFIX_PROCEDURE=".pcd.sh"
+
   # Path to directory containing Bash utility scripts and util file suffix
   readonly D_DIR_UTILS="$D_DIR_LIB/utils"
   readonly D_SUFFIX_UTIL=".utl.sh"
@@ -956,9 +960,10 @@ __load()
 {
   # Check type and compose filepath accordingly
   local type="$1"; shift; local name="$1" filepath; case $type in
-    routine)  filepath="${D_DIR_ROUTINES}/${name}${D_SUFFIX_ROUTINE}";;
-    util)     filepath="${D_DIR_UTILS}/${name}${D_SUFFIX_UTIL}";;
-    helper)   filepath="${D_DIR_HELPERS}/${name}${D_SUFFIX_HELPER}";;
+    routine)    filepath="${D_DIR_ROUTINES}/${name}${D_SUFFIX_ROUTINE}";;
+    procedure)  filepath="${D_DIR_PROCEDURES}/${name}${D_SUFFIX_PROCEDURE}";;
+    util)       filepath="${D_DIR_UTILS}/${name}${D_SUFFIX_UTIL}";;
+    helper)     filepath="${D_DIR_HELPERS}/${name}${D_SUFFIX_HELPER}";;
     *)        printf >&2 '%s: %s\n' "${FUNCNAME[0]}" \
                 "Called with illegal type argument: '$type'"; exit 1;;
   esac; shift
