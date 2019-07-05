@@ -47,7 +47,7 @@ __check_system_dependencies()
 
     # Announce failure
     printf >&2 '%s: %s: %s\n' \
-      "$( basename -- "${BASH_SOURCE[0]}" )" \
+      "$D_FMWK_NAME" \
       'Missing system dependency:' \
       'find'
 
@@ -102,7 +102,7 @@ EOF
 
     # Announce failure
     printf >&2 '%s: %s: %s\n' \
-      "$( basename -- "${BASH_SOURCE[0]}" )" \
+      "$D_FMWK_NAME" \
       'Missing system dependency:' \
       'grep'
 
@@ -156,7 +156,7 @@ EOF
 
     # Announce failure
     printf >&2 '%s: %s: %s\n' \
-      "$( basename -- "${BASH_SOURCE[0]}" )" \
+      "$D_FMWK_NAME" \
       'Missing system dependency:' \
       'sed'
 
@@ -179,7 +179,7 @@ EOF
 
     # Announce failure
     printf >&2 '%s: %s: %s\n' \
-      "$( basename -- "${BASH_SOURCE[0]}" )" \
+      "$D_FMWK_NAME" \
       'Missing system dependency:' \
       'awk'
 

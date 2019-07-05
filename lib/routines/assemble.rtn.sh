@@ -128,7 +128,7 @@ __main__assemble_all_tasks()
   # Check if any tasks were found
   if [ ${#D_QUEUE_TASKS[@]} -eq 0 ]; then
     printf >&2 '%s: %s: %s\n' \
-      "$( basename -- "${BASH_SOURCE[0]}" )" \
+      "$D_FMWK_NAME" \
       'Nothing to do' \
       'Not a single task matches given criteria'
     exit 0
@@ -137,7 +137,7 @@ __main__assemble_all_tasks()
   # Validate deployments
   if ! __validate_detected_dpls --fmwk-dir; then
     printf >&2 '%s: %s: %s\n' \
-      "$( basename -- "${BASH_SOURCE[0]}" )" \
+      "$D_FMWK_NAME" \
       'Fatal error:' \
       'Illegal state of deployment directories'
     exit 1
@@ -227,7 +227,7 @@ __main__validate_dpl_dirs()
   # Validate deployments
   if ! __validate_detected_dpls --fmwk-dir; then
     printf >&2 '%s: %s: %s\n' \
-      "$( basename -- "${BASH_SOURCE[0]}" )" \
+      "$D_FMWK_NAME" \
       'Fatal error:' \
       'Illegal state of deployment directories'
     exit 1

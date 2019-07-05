@@ -46,8 +46,11 @@ __main()
 #
 __populate_globals()
 {
-  # Framework displayed name
+  # Framework’s displayed name
   readonly D_FMWK_NAME='Divine.dotfiles'
+
+  # Executable’s displayed name
+  readonly D_EXEC_NAME="$( basename -- "${BASH_SOURCE[0]}" )"
 
   # Paths to directories within $D_DIR
   __populate_d_dir_fmwk
@@ -279,7 +282,7 @@ __populate_d_dir_fmwk()
 
     # $D_DIR not a writable directory: unwork-able value
     printf >&2 '%s: %s: %s:\n  %s\n' \
-      "$( basename -- "${BASH_SOURCE[0]}" )" \
+      "$D_FMWK_NAME" \
       'Fatal error' \
       '$D_DIR is not a writable directory' \
       "$D_DIR"
@@ -323,7 +326,7 @@ __parse_arguments()
     --version)    __load routine version;;
     '')           __load routine usage;;
     *)            printf >&2 '%s: Illegal routine -- %s\n\n' \
-                    "$( basename -- "${BASH_SOURCE[0]}" )" \
+                    "$D_FMWK_NAME" \
                     "$1"          
                   __load routine usage
                   ;;
@@ -366,7 +369,7 @@ __parse_arguments()
                               v)  D_OPT_QUIET=false;;
                               l)  D_OPT_PLUG_LINK=true;;
                               *)  printf >&2 '%s: Illegal option -- %s\n\n' \
-                                    "$( basename -- "${BASH_SOURCE[0]}" )" \
+                                    "$D_FMWK_NAME" \
                                     "$opt"
                                   __load routine usage;;
                             esac

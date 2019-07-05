@@ -34,20 +34,20 @@ __show_usage_and_exit()
   local bold normal
   if which tput &>/dev/null; then bold=$(tput bold); normal=$(tput sgr0); fi
 
-  local usage_tip script_name="$( basename -- "${BASH_SOURCE[0]}" )"
+  local usage_tip
   read -r -d '' usage_tip << EOF
-Usage: ${bold}${script_name}${normal} ${bold}i${normal}|${bold}install${normal}   [-ynqveif] [TASK]…  - Launch installation
-   or: ${bold}${script_name}${normal} ${bold}r${normal}|${bold}remove${normal}    [-ynqveif] [TASK]…  - Launch removal
-   or: ${bold}${script_name}${normal} ${bold}f${normal}|${bold}refresh${normal}   [-ynqveif] [TASK]…  - Launch removal, then installation
-   or: ${bold}${script_name}${normal} ${bold}c${normal}|${bold}check${normal}     [-ynqvei]  [TASK]…  - Launch checking
+Usage: ${bold}${D_EXEC_NAME}${normal} ${bold}i${normal}|${bold}install${normal}   [-ynqveif] [TASK]…  - Launch installation
+   or: ${bold}${D_EXEC_NAME}${normal} ${bold}r${normal}|${bold}remove${normal}    [-ynqveif] [TASK]…  - Launch removal
+   or: ${bold}${D_EXEC_NAME}${normal} ${bold}f${normal}|${bold}refresh${normal}   [-ynqveif] [TASK]…  - Launch removal, then installation
+   or: ${bold}${D_EXEC_NAME}${normal} ${bold}c${normal}|${bold}check${normal}     [-ynqvei]  [TASK]…  - Launch checking
 
-   or: ${bold}${script_name}${normal} ${bold}a${normal}|${bold}attach${normal}    [-yn]      REPO…    - Add deployment(s) from Github repo
-   or: ${bold}${script_name}${normal} ${bold}d${normal}|${bold}detach${normal}    [-yn]      REPO…    - Remove previously attached repo
-   or: ${bold}${script_name}${normal} ${bold}p${normal}|${bold}plug${normal}      [-ynl]     REPO/DIR - Plug Grail from repo or dir
-   or: ${bold}${script_name}${normal} ${bold}u${normal}|${bold}update${normal}    [-yn]      [TASK]…  - Update framework/deployments/Grail
+   or: ${bold}${D_EXEC_NAME}${normal} ${bold}a${normal}|${bold}attach${normal}    [-yn]      REPO…    - Add deployment(s) from Github repo
+   or: ${bold}${D_EXEC_NAME}${normal} ${bold}d${normal}|${bold}detach${normal}    [-yn]      REPO…    - Remove previously attached repo
+   or: ${bold}${D_EXEC_NAME}${normal} ${bold}p${normal}|${bold}plug${normal}      [-ynl]     REPO/DIR - Plug Grail from repo or dir
+   or: ${bold}${D_EXEC_NAME}${normal} ${bold}u${normal}|${bold}update${normal}    [-yn]      [TASK]…  - Update framework/deployments/Grail
 
-   or: ${bold}${script_name}${normal} --version                       - Show script version
-   or: ${bold}${script_name}${normal} -h|--help                       - Show help summary
+   or: ${bold}${D_EXEC_NAME}${normal} --version                       - Show script version
+   or: ${bold}${D_EXEC_NAME}${normal} -h|--help                       - Show help summary
 EOF
 
   # Print usage tip

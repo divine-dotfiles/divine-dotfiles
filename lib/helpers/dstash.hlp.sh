@@ -376,28 +376,28 @@ __dstash_pre_flight_checks()
 
   # Check that $D_DIR_STASH is populated
   [ -n "$D_DIR_STASH" ] || {
-    dprint_debug "$( basename -- "${BASH_SOURCE[0]}" ):" \
+    dprint_debug "$D_FMWK_NAME:" \
       'Stashing accessed without $D_DIR_STASH populated'
     return 1
   }
 
   # Check that $D_CONST_NAME_STASHFILE is populated
   [ -n "$D_CONST_NAME_STASHFILE" ] || {
-    dprint_debug "$( basename -- "${BASH_SOURCE[0]}" ):" \
+    dprint_debug "$D_FMWK_NAME:" \
       'Stashing accessed without $D_CONST_NAME_STASHFILE populated'
     return 1
   }
 
   # Check if within deployment by ensuring $D_DPL_NAME is populated
   [ -z "$stash_mode" -a -z "$D_DPL_NAME" ] && {
-    dprint_debug "$( basename -- "${BASH_SOURCE[0]}" ):" \
+    dprint_debug "$D_FMWK_NAME:" \
       'Stashing accessed without $D_DPL_NAME populated'
     return 1
   }
 
   # Check if grep command is available
   type -P grep &>/dev/null || {
-    dprint_debug "$( basename -- "${BASH_SOURCE[0]}" ):" \
+    dprint_debug "$D_FMWK_NAME:" \
       'grep command is not found in $PATH' \
       -n 'Stashing is not available without grep'
     return 1
@@ -405,7 +405,7 @@ __dstash_pre_flight_checks()
 
   # Check if head command is available
   type -P head &>/dev/null || {
-    dprint_debug "$( basename -- "${BASH_SOURCE[0]}" ):" \
+    dprint_debug "$D_FMWK_NAME:" \
       'head command is not found in $PATH' \
       -n 'Stashing is not available without head'
     return 1
@@ -413,7 +413,7 @@ __dstash_pre_flight_checks()
 
   # Check if md5 checking works
   dmd5 -s &>/dev/null || {
-    dprint_debug "$( basename -- "${BASH_SOURCE[0]}" ):" \
+    dprint_debug "$D_FMWK_NAME:" \
       'Unable to verify md5 checksums' \
       -n 'Stashing is not available without means of checksum verification'
     return 1
@@ -429,7 +429,7 @@ __dstash_pre_flight_checks()
 
   # Ensure directory for this stash exists
   mkdir -p -- "$stash_dirpath" || {
-    dprint_debug "$( basename -- "${BASH_SOURCE[0]}" ):" \
+    dprint_debug "$D_FMWK_NAME:" \
       'Failed to create stash directory at:' -i "$stash_dirpath"
     return 1
   }
@@ -440,12 +440,12 @@ __dstash_pre_flight_checks()
 
   # Ensure both stash files are not directories
   [ -d "$stash_filepath" ] && {
-    dprint_debug "$( basename -- "${BASH_SOURCE[0]}" ):" \
+    dprint_debug "$D_FMWK_NAME:" \
       'Stash filepath occupied by a directory:' -i "$stash_filepath"
     return 1
   }
   [ -d "$stash_md5_filepath" ] && {
-    dprint_debug "$( basename -- "${BASH_SOURCE[0]}" ):" \
+    dprint_debug "$D_FMWK_NAME:" \
       'Stash checksum filepath occupied by a directory:' \
       -i "$stash_md5_filepath"
     return 1
@@ -454,12 +454,12 @@ __dstash_pre_flight_checks()
   # If stash file does not yet exist, create it and record checksum
   if [ ! -e "$stash_filepath" ]; then
     touch -- "$stash_filepath" || {
-      dprint_debug "$( basename -- "${BASH_SOURCE[0]}" ):" \
+      dprint_debug "$D_FMWK_NAME:" \
         'Failed to create fresh stash file at:' -i "$stash_filepath"
       return 1
     }
     dmd5 "$stash_filepath" >"$stash_md5_filepath" || {
-      dprint_debug "$( basename -- "${BASH_SOURCE[0]}" ):" \
+      dprint_debug "$D_FMWK_NAME:" \
         'Failed to create stash md5 checksum file at:' -i "$stash_md5_filepath"
       return 1
     }
@@ -467,12 +467,12 @@ __dstash_pre_flight_checks()
 
   # Ensure stash file and checksum file are both writable files
   [ -f "$stash_filepath" -a -w "$stash_filepath" ] || {
-    dprint_debug "$( basename -- "${BASH_SOURCE[0]}" ):" \
+    dprint_debug "$D_FMWK_NAME:" \
       'Stash filepath is not a writable file:' -i "$stash_filepath"
     return 1
   }
   [ -f "$stash_md5_filepath" -a -w "$stash_md5_filepath" ] || {
-    dprint_debug "$( basename -- "${BASH_SOURCE[0]}" ):" \
+    dprint_debug "$D_FMWK_NAME:" \
       'Stash md5 checksum filepath is not a writable file:' \
       -i "$stash_md5_filepath"
     return 1
@@ -531,7 +531,7 @@ __dstash_store_md5()
 {
   # Store current md5 checksum to intended file, or report error
   dmd5 "$D_STASH_FILEPATH" >"$D_STASH_MD5_FILEPATH" || {
-    dprint_debug "$( basename -- "${BASH_SOURCE[0]}" ):" \
+    dprint_debug "$D_FMWK_NAME:" \
       'Failed to create md5 checksum file at:' -i "$D_STASH_MD5_FILEPATH"
     return 1
   }
