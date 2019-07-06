@@ -70,12 +70,6 @@ __perform_attach()
     return 1
   }
 
-  # Ensure grail stashing is available
-  dstash --grail ready || {
-    dprint_debug 'Grail stash is not available'
-    dprint_debug 'No way to register attached reporitories'
-  }
-
   # Storage & status variables
   local dpl_arg
   local attached_anything=false errors_encountered=false

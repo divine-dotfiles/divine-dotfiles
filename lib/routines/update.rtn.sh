@@ -277,13 +277,6 @@ __updating__update_dpls()
   # Print newline to visually separate updates
   printf >&2 '\n' && nl_printed=true
 
-  # Check if grail stash is available (required for deployment repositories)
-  if $UPDATING_DPLS && ! dstash --grail ready; then
-    # No deployment updates for you
-    dprint_debug 'Grail stash is not available: no deployment updates'
-    UPDATING_DPLS=false
-  fi
-
   # Check if proceeding
   if $UPDATING_DPLS; then
 

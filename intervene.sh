@@ -108,6 +108,7 @@ __populate_globals()
     'util dprompt' \
     'util dmd5' \
     'helper dstash' \
+    'procedure pre-flight-checks' \
     'util dos' \
     'util dtrim' \
     'util dreadlink' \

@@ -25,9 +25,6 @@
 #
 __sort_out_dpl_repos()
 {
-  # Ensure Grail stash is available
-  dstash --grail ready || return 1
-
   # Storage variables
   local i recorded_user_repos=() recorded_user_repo user_repo
   local j actual_repo_dirs=() actual_repo_dir actual_repo_count

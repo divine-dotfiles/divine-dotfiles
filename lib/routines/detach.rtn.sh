@@ -39,12 +39,6 @@ __perform_detach()
       -- 'Detaching deployments'
   fi
 
-  # Ensure grail stashing is available
-  dstash --grail ready || {
-    dprint_debug 'Grail stash is not available'
-    dprint_debug 'No way to clear record of previously attached reporitories'
-  }
-
   # Storage & status variables
   local dpl_arg
   local detached_anything=false errors_encountered=false

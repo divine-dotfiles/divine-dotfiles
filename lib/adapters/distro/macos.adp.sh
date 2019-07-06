@@ -66,9 +66,6 @@ __offer_to_install_brew()
     return 0
   fi
 
-  # Only proceed if root stash is available
-  dstash --root ready &>/dev/null || return 1
-
   # Inform user of the tragic circumstances
   printf >&2 '%s\n' \
     'Failed to detect Homebrew (package manager for macOS, https://brew.sh/)'

@@ -79,16 +79,8 @@ __main__assemble_all_tasks()
 
   # Check return code
   case $? in
-    0)  # Some packages collected: ensure root stash is available
-        if ! dstash --root ready; then
-          # No root stash — no packages
-          dprint_debug 'Divinefiles will not be processed' \
-            'because root stash is not available'
-          # Return queues to virgin state
-          D_QUEUE_TASKS=()
-          D_QUEUE_PKGS=()
-        fi
-        ;;
+    0)  # Some packages collected: all is good
+        :;;
     1)  # Zero packages detected for current package manager
         dprint_debug 'Divinefiles collectively contain no packages' \
           "for current package manager ($OS_PKGMGR)"
