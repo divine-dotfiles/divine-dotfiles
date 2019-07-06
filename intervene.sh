@@ -311,6 +311,7 @@ __parse_arguments()
   # Global flags for optionscommand line options
   D_OPT_INVERSE=false       # Flag for whether filtering is inverted
   D_OPT_FORCE=false         # Flag for forceful mode
+  D_OPT_EXCLAM=false        # Flag for whether include ‘!’-dpls by default
   D_OPT_QUIET=true          # Verbosity setting
   D_OPT_ANSWER=             # Blanket answer to all prompts
   D_OPT_PLUG_LINK=false     # Flag for whether copy or symlink Grail dir
@@ -353,8 +354,8 @@ __parse_arguments()
       -y|--yes)           D_OPT_ANSWER=true;;
       -n|--no)            D_OPT_ANSWER=false;;
       -f|--force)         D_OPT_FORCE=true;;
-      -i|--inverse)       D_OPT_INVERSE=true;;
       -e|--except)        D_OPT_INVERSE=true;;
+      -w|--with-!)        D_OPT_EXCLAM=true;;
       -q|--quiet)         D_OPT_QUIET=true;;
       -v|--verbose)       D_OPT_QUIET=false;;
       -l|--link)          D_OPT_PLUG_LINK=true;;
@@ -365,8 +366,8 @@ __parse_arguments()
                               y)  D_OPT_ANSWER=true;;
                               n)  D_OPT_ANSWER=false;;
                               f)  D_OPT_FORCE=true;;
-                              i)  D_OPT_INVERSE=true;;
                               e)  D_OPT_INVERSE=true;;
+                              w)  D_OPT_EXCLAM=true;;
                               q)  D_OPT_QUIET=true;;
                               v)  D_OPT_QUIET=false;;
                               l)  D_OPT_PLUG_LINK=true;;
@@ -386,11 +387,12 @@ __parse_arguments()
   readonly D_OPT_ANSWER
   readonly D_OPT_FORCE
   readonly D_OPT_INVERSE
+  readonly D_OPT_EXCLAM
   readonly D_OPT_PLUG_LINK
   readonly D_REQ_GROUPS
   readonly D_REQ_ARGS
 
-  # In some routines: skip early
+  # In some routines: return early
   [[ $D_REQ_ROUTINE =~ ^(attach|detach|plug|update)$ ]] && return 0
 
   # Check if there are workable arguments

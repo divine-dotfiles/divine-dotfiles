@@ -42,9 +42,9 @@ NAME
     ${bold}${D_EXEC_NAME}${normal} - launch Divine intervention
 
 SYNOPSIS
-    $D_EXEC_NAME ${bold}i${normal}[nstall]                [-ynqveif]… [--] [TASK]…
-    $D_EXEC_NAME ${bold}r${normal}[emove]                 [-ynqveif]… [--] [TASK]…
-    $D_EXEC_NAME ${bold}c${normal}[heck]                  [-ynqvei]…  [--] [TASK]…
+    $D_EXEC_NAME ${bold}i${normal}[nstall]                [-ynqvewf]… [--] [TASK]…
+    $D_EXEC_NAME ${bold}r${normal}[emove]                 [-ynqvewf]… [--] [TASK]…
+    $D_EXEC_NAME ${bold}c${normal}[heck]                  [-ynqvew]…  [--] [TASK]…
 
     $D_EXEC_NAME ${bold}a${normal}[ttach]                 [-yn]…      [--] REPO…
     $D_EXEC_NAME ${bold}d${normal}[etach]                 [-yn]…      [--] REPO…
@@ -161,13 +161,16 @@ OPTIONS
                     (distributed separately) are designed with this option in 
                     mind.
 
+    -e, --except    (if no args are provided to the script, this is no-opt)
+                    Inverse task list: filter out tasks included in it, instead 
+                    of filtering them in
+
+    -w, --with-!    By default, framework filters out deployments containing 
+                    ‘!’ flag. This option removes that behavior.
+
     -l, --link      ('plug' routine only, otherwise no-opt)
                     Prefer to symlink external Grail directory and avoid 
                     cloning or downloading repositories.
-
-    -e, --except, -i, --inverse
-                    Inverse task list: filter out tasks included in it, instead 
-                    of filtering them in
 
     -q, --quiet     (default) Decreases amount of status messages
 

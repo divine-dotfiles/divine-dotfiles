@@ -667,8 +667,8 @@ __run_dpl_through_filters()
 
       # Inverse filtering: Whatever is listed in arguments is filtered out
 
-      # In inverse mode always reject deployments in ‘!’ group
-      [[ $flags == *'!'* ]] && return 1
+      # Always reject deployments in ‘!’ group, unless asked not to
+      $D_OPT_EXCLAM || [[ $flags == *'!'* ]] && return 1
 
       # Iterate over groups
       for arg in "${D_REQ_GROUPS[@]}"; do
@@ -694,20 +694,24 @@ __run_dpl_through_filters()
 
       # Iterate over groups
       for arg in "${D_REQ_GROUPS[@]}"; do
-        # If this deployment belongs to requested group, mark it
-        [[ $flags == *"$arg"* ]] && group_matched=true
+        # Check if this deployment belongs to requested group
+        if [[ $flags == *"$arg"* ]]; then
+          # Either return immediately, or just mark it for now
+          $D_OPT_EXCLAM && return 0 || group_matched=true
+        fi
         # Also, remember, if ‘!’ group is requested
         [ "$arg" = '!' ] && exclam_requested=true
       done
 
-      # Check if group matched
+      # Check if group matched 
       if $group_matched; then
         # Check if ‘!’ group has been requested
         if $exclam_requested; then
-          # Group match is always valid
+          # Group matched and ‘!’ group is explicitly requested: valid match
           return 0
         else
-          # Group match is only valid if dpl is not marked with ‘!’ flag
+          ## Group matched, but ‘!’ group is not explicitly requested: match is 
+          #. only valid if dpl is not marked with ‘!’ flag
           [[ $flags == *'!'* ]] || return 0
         fi
       fi
@@ -725,8 +729,12 @@ __run_dpl_through_filters()
 
   else
 
-    # If not filtering, just filter out ‘!’-flagged dpls
-    [[ $flags == *'!'* ]] && return 1 || return 0
+    # If not filtering, just filter out ‘!’-flagged dpls, unless asked not to
+    if $D_OPT_EXCLAM; then
+      return 0
+    else
+      [[ $flags == *'!'* ]] && return 1 || return 0
+    fi
 
   fi
 }
