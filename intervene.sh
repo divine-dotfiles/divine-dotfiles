@@ -102,7 +102,7 @@ __populate_globals()
 
   # Ordered list of script’s internal dependencies
   D_QUEUE_DEPENDENCIES=( \
-    'procedure dep-check' \
+    'procedure dep-checks' \
     'util dcolors' \
     'util dprint' \
     'util dprompt' \

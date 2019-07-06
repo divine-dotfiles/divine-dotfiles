@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#:title:        Divine Bash procedure: dep-check
+#:title:        Divine Bash procedure: dep-checks
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revnumber:    0.0.1-SNAPSHOT
