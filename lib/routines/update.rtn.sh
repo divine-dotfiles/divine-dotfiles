@@ -418,23 +418,13 @@ __updating__detect_environment()
   fi
 
   # Check if necessary tools are available and offer to install them
-  if ! __updating__check_or_install git; then
+  if ! git --version &>/dev/null; then
 
     # Inform of the issue
-    dprint_debug 'Updates via git pull will not be available'
+    dprint_debug 'Failed to detect git' \
+        -n 'Updates via git pull will not be available'
     GIT_AVAILABLE=false
-
-    # Check of curl/wget+tar are available (for downloading Github tarballs)
-    if ! curl --version &>/dev/null && ! wget --version &>/dev/null; then
-      dprint_debug 'Neither curl nor wget is detected'
-      dprint_debug \
-        "'Crude' updates via re-downloading Github repo will not be available"
-      GITHUB_AVAILABLE=false
-    elif ! __updating__check_or_install tar; then
-      dprint_debug \
-        "'Crude' updates via re-downloading Github repo will not be available"
-      GITHUB_AVAILABLE=false
-    fi
+    
   fi
 
   return 0
@@ -884,72 +874,6 @@ __updating__update_dpl_repo_via_tar()
     'Successfully overwritten all deployment files at:' \
     -i "$D_DIR_DPL_REPOS/$user_repo"
   return 0
-}
-
-#>  __updating__check_or_install UTIL_NAME
-#
-## Checks whether UTIL_NAME is available and, if not, offers to install it 
-#. using system’s package manager, if it is available
-#
-## Returns:
-#.  0 - UTIL_NAME is available or successfully installed
-#.  1 - UTIL_NAME is not available or failed to install
-#
-__updating__check_or_install()
-{
-  # Extract util name
-  local util_name="$1"
-
-  # If command by that name is available on $PATH, return zero immediately
-  case $util_name in
-    git)  git --version &>/dev/null;;
-    tar)  tar --version &>/dev/null;;
-  esac
-  [ $? -eq 0 ] && return 0
-
-  # Print initial warning
-  dprint_debug "Failed to detect $util_name executable"
-
-  # Check if $OS_PKGMGR is detected
-  if [ -z ${OS_PKGMGR+isset} ]; then
-
-    # No option to install: report and return
-    dprint_debug \
-      "Unable to auto-install $util_name (no supported package manager)"
-    return 1
-  
-  else
-
-    # Prompt user for whether to install utility
-    if dprompt_key --bare --answer "$D_OPT_ANSWER" \
-      "Package manager $OS_PKGMGR is available" \
-      --prompt "Install $util_name using $OS_PKGMGR?"
-    then
-
-      # Announce installation
-      dprint_debug "Installing $util_name"
-
-      # Attempt installation
-      os_pkgmgr dinstall "$util_name"
-
-      # Check status code of installation
-      if [ $? -eq 0 ]; then
-        dprint_debug "Successfully installed $util_name"
-        return 0
-      else
-        dprint_debug "Failed to install $util_name"
-        return 1
-      fi
-
-    else
-
-      # Announce refusal to install and return
-      dprint_debug "Proceeding without $util_name"
-      return 1
-
-    fi
-
-  fi
 }
 
 __updating__main

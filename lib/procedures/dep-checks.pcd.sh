@@ -196,3 +196,4 @@ EOF
 }
 
 __check_system_dependencies
+unset -f __check_system_dependencies
