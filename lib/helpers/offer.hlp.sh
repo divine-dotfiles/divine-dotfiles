@@ -78,7 +78,7 @@ __offer_util()
             dprint_success -l "Successfully installed $util_name"
 
             # Make record of installation
-            if dstash -r -s add util_installed "$util_name"
+            if dstash -r -s add util_installed "$util_name"; then
               dprint_debug "Recorded installation to root stash"
             else
               dprint_failure -l \
