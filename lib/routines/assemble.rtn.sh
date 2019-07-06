@@ -24,7 +24,7 @@
 __main_assemble()
 {
   case $D_REQ_ROUTINE in
-    install|remove|refresh|check)
+    install|remove|check)
                 __main__assemble_all_tasks;;
     attach)     __main__validate_dpl_dirs "$D_DIR_DPLS" "$D_DIR_DPL_REPOS";;
     plug)       :;;

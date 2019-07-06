@@ -44,7 +44,6 @@ NAME
 SYNOPSIS
     $D_EXEC_NAME ${bold}i${normal}[nstall]                [-ynqveif]… [--] [TASK]…
     $D_EXEC_NAME ${bold}r${normal}[emove]                 [-ynqveif]… [--] [TASK]…
-    $D_EXEC_NAME ${bold}f${normal}|refresh                [-ynqveif]… [--] [TASK]…
     $D_EXEC_NAME ${bold}c${normal}[heck]                  [-ynqvei]…  [--] [TASK]…
 
     $D_EXEC_NAME ${bold}a${normal}[ttach]                 [-yn]…      [--] REPO…
@@ -82,11 +81,6 @@ DESCRIPTION
       - ${bold}Removes${normal} deployments using 'dremove' function in each
       - ${bold}Removes${normal} packages using system’s package manager
     
-    ${bold}'Refresh' routine${normal} - removes, then installs tasks
-
-    - Performs removal routine on requested tasks
-    - Performs installation routine on requested tasks
-
     ${bold}'Check' routine${normal} - checks status of tasks
 
     - Collects tasks from two sources in 'grail/dpls' directory:

@@ -319,7 +319,6 @@ __parse_arguments()
   case "$1" in
     i|install)    D_REQ_ROUTINE=install;;
     r|remove)     D_REQ_ROUTINE=remove;;
-    f|refresh)    D_REQ_ROUTINE=refresh;;
     c|check)      D_REQ_ROUTINE=check;;
     a|attach)     D_REQ_ROUTINE=attach;;
     d|detach)     D_REQ_ROUTINE=detach;;
@@ -474,9 +473,6 @@ __perform_routine()
     remove)
       __load routine assemble
       __load routine remove;;
-    refresh)
-      __load routine assemble
-      __load routine remove && printf '\n' && __load routine install;;
     check)
       __load routine assemble
       __load routine check;;

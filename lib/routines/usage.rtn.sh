@@ -38,7 +38,6 @@ __show_usage_and_exit()
   read -r -d '' usage_tip << EOF
 Usage: ${bold}${D_EXEC_NAME}${normal} ${bold}i${normal}|${bold}install${normal}   [-ynqveif] [TASK]…  - Launch installation
    or: ${bold}${D_EXEC_NAME}${normal} ${bold}r${normal}|${bold}remove${normal}    [-ynqveif] [TASK]…  - Launch removal
-   or: ${bold}${D_EXEC_NAME}${normal} ${bold}f${normal}|${bold}refresh${normal}   [-ynqveif] [TASK]…  - Launch removal, then installation
    or: ${bold}${D_EXEC_NAME}${normal} ${bold}c${normal}|${bold}check${normal}     [-ynqvei]  [TASK]…  - Launch checking
 
    or: ${bold}${D_EXEC_NAME}${normal} ${bold}a${normal}|${bold}attach${normal}    [-yn]      REPO…    - Add deployment(s) from Github repo
