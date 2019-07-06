@@ -25,12 +25,23 @@
 #
 __run_util_offers()
 {
-  # Run these checks only for routines that inherently use git
+  # Fork depending on routine
   case $D_REQ_ROUTINE in
-    attach|plug|update)   :;;
+    attach) __offer_git_and_friends; unset -f __offer_git_and_friends;;
+    plug)   __offer_git_and_friends; unset -f __offer_git_and_friends;;
+    update) __offer_git_and_friends; unset -f __offer_git_and_friends;;
+    cecf357ed9fed1037eb906633a4299ba)
+            __remove_all_offered_utils;;
     *)  return 0;;
   esac
+}
 
+#>  __offer_git_and_friends
+#
+## Offers various tools for working with git repositories
+#
+__offer_git_and_friends()
+{
   # Try to sell git as an essential tool for working with this framework
   if ! git --version &>/dev/null; then
     
@@ -111,6 +122,97 @@ __run_util_offers()
     fi
 
   fi
+}
+
+#>  __remove_all_offered_utils
+#
+## Removes previously offered and subsequently installed utils
+#
+__remove_all_offered_utils()
+{
+  # Check if there are any utilities recorded
+  if ! dstash -r -s has installed_util; then
+    # Exit successfully
+    exit 0
+  fi
+
+  # Check if $OS_PKGMGR is detected
+  if [ -z ${OS_PKGMGR+isset} ]; then
+
+    # No option to uninstall: report and exit
+    dprint_failure -l \
+      "Unable to un-install utilities (no supported package manager)"
+    exit 1
+
+  fi
+
+  # Storage variable
+  local installed_utils=() installed_util
+
+  # Read list from stash
+  while read -r installed_util; do
+    installed_utils+=( "$installed_util" )
+  done < <( dstash -r -s list installed_util )
+
+  # Status variable
+  local all_good=true
+
+  # Iterate over installed utils
+  for installed_util in "${installed_utils[@]}"; do
+
+    # Prompt user for whether to un-install utility
+    dprompt_key --bare --or-quit --answer "$D_REMOVE_UTILS" \
+      --prompt "Un-install $installed_util using $OS_PKGMGR?"
+
+    # Check status
+    case $? in
+      0)  # Agreed to un-install
+
+          # Announce un-installation
+          dprint_debug "Un-installing $installed_util"
+
+          # Attempt un-installation
+          if os_pkgmgr dremove "$installed_util"; then
+
+            # Announce
+            dprint_success -l "Successfully un-installed $installed_util"
+
+          else
+
+            # Announce and remember failure
+            dprint_failure -l "Failed to un-install $installed_util"
+            all_good=false
+            
+          fi
+
+          # Done with un-installation
+          ;;
+
+      1)  # Refused to un-install
+
+          # Announce refusal to un-install and return
+          dprint_skip -l "Refused to un-install $installed_util"
+          return 1
+
+          # Done with refusal
+          ;;
+      
+      *)  # Refused to proceed at all
+
+          # Announce exiting and exit
+          dprint_failure -l \
+            "Refused to un-install $installed_util or proceed without doing so"
+          exit 1
+
+          # Done with exiting
+          ;;
+    esac
+
+  # Done iterating over installed utils
+  done
+
+  # Exit with appropriate status
+  $all_good && exit 0 || exit 1
 }
 
 __run_util_offers

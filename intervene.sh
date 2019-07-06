@@ -325,6 +325,8 @@ __parse_arguments()
     d|detach)     D_REQ_ROUTINE=detach;;
     p|plug)       D_REQ_ROUTINE=plug;;
     u|update)     D_REQ_ROUTINE=update;;
+    cecf357ed9fed1037eb906633a4299ba)
+                  D_REQ_ROUTINE=cecf357ed9fed1037eb906633a4299ba;;
     -h|--help)    __load routine help;;
     --version)    __load routine version;;
     '')           __load routine usage;;
@@ -392,8 +394,11 @@ __parse_arguments()
   readonly D_REQ_GROUPS
   readonly D_REQ_ARGS
 
-  # In some routines: return early
-  [[ $D_REQ_ROUTINE =~ ^(attach|detach|plug|update)$ ]] && return 0
+  # Early return for some routines
+  case $D_REQ_ROUTINE in
+    attach|detach|plug|update)          return 0;;
+    cecf357ed9fed1037eb906633a4299ba)   return 0;;
+  esac
 
   # Check if there are workable arguments
   if [ ${#D_REQ_ARGS[@]} -gt 0 -o ${#D_REQ_GROUPS[@]} -gt 0 ]; then

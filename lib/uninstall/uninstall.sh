@@ -10,14 +10,17 @@ main()
   # Main removal
   if __locate_installations; then
 
-    # Prompt for removal of all installed deployments
-    if ! __prompt_remove_all; then
+    ## Pre-removal tasks:
+    #.  * Run removal routine on all installed deployments
+    #.  * Remove possible stash-recorded Homebrew installation
+    #.  * Remove possible stash-recorded optional utility installations
+    if ! __remove_all_dpls \
+      || ! __uninstall_homebrew \
+      || ! __uninstall_utils
+    then
       dprint_failure 'Terminating uninstallation'
       return 1
     fi
-
-    # Remove possible stash-recorded Homebrew installation
-    __uninstall_homebrew
 
     # Erase Divine.dotfiles directory
     if __erase_d_dir; then
@@ -68,8 +71,10 @@ __parse_arguments()
 {
   # Define global storage for option values
   D_OPT_QUIET=false       # Be verbose by default
-  D_RUN_REMOVE_ALL=       # Whether to attempt to remove all deployments
   D_REMOVE_FMWK=          # Whether to perform removal of framework
+  D_REMOVE_UTILS=         # Whether to perform removal of utils
+  D_REMOVE_BREW=          # Whether to perform removal of Homebrew
+  D_RUN_REMOVE_ALL=       # Whether to attempt to remove all deployments
 
   # Extract arguments passed to this script (they start at $0)
   local args=( "$0" "$@" ) arg
@@ -81,12 +86,20 @@ __parse_arguments()
       --verbose)          D_OPT_QUIET=false;;
       --framework-yes)    D_REMOVE_FMWK=true;;
       --framework-no)     D_REMOVE_FMWK=false;;
+      --utils-yes)        D_REMOVE_UTILS=true;;
+      --utils-no)         D_REMOVE_UTILS=false;;
+      --brew-yes)         D_REMOVE_BREW=true;;
+      --brew-no)          D_REMOVE_BREW=false;;
       --run-remove-yes)   D_RUN_REMOVE_ALL=true;;
       --run-remove-no)    D_RUN_REMOVE_ALL=false;;
       --yes)              D_REMOVE_FMWK=true
+                          D_REMOVE_UTILS=true
+                          D_REMOVE_BREW=true
                           D_RUN_REMOVE_ALL=true
                           ;;
       --no)               D_REMOVE_FMWK=false
+                          D_REMOVE_UTILS=false
+                          D_REMOVE_BREW=false
                           D_RUN_REMOVE_ALL=false
                           ;;
       *)                  :;;
@@ -169,12 +182,12 @@ __check_shortcut_filepath()
   fi
 }
 
-__prompt_remove_all()
+__remove_all_dpls()
 {
   # Offer to remove deployments
   dprompt_key "$D_RUN_REMOVE_ALL" --or-quit 'Remove?' \
-    '[optional] Remove deployments' \
-    'Framework will attempt to remove all deployments currently present'
+    '[optional] Run removal routine' \
+    'Framework will run removal routine on all deployments currently present'
 
   # Check exit status
   case $? in
@@ -182,23 +195,45 @@ __prompt_remove_all()
     1)  dprint_skip 'Refused to remove deployments'
         return 0
         ;;
-    *)  return 1;;
+    *)  dprint_skip 'Refused to remove deployments'
+        return 1;;
   esac
 
   # Run installation
-  "$D_INSTALL_PATH"/intervene.sh remove --yes
-  "$D_INSTALL_PATH"/intervene.sh remove --yes !
+  "$D_INSTALL_PATH"/intervene.sh remove --with-! --yes
+
+  # Report status
+  if [ $? -eq 0 ]; then
+    dprint_success 'Successfully removed all current deployments'
+  else
+    dprint_failure 'Failed to remove all current deployments'
+  fi
 
   # Is user happy?
-  dprompt_key "$D_RUN_REMOVE_ALL" 'Proceed?' 'Removal completed'
+  dprompt_key "$D_RUN_REMOVE_ALL" 'Proceed with uninstallation?'
 
-  # Return zero always
+  # Return status based on user’s choice
   return $?
 }
 
 __uninstall_homebrew()
 {
   if dstash_root_get installed_homebrew; then
+
+    # Offer to remove deployments
+    dprompt_key "$D_REMOVE_BREW" --or-quit 'Remove?' \
+      '[optional] Remove Homebrew' \
+      'Detected Homebrew that has been installed by this framework'
+
+    # Check exit status
+    case $? in
+      0)  :;;
+      1)  dprint_skip 'Refused to remove Homebrew'
+          return 0
+          ;;
+      *)  dprint_skip 'Refused to remove Homebrew'
+          return 1;;
+    esac
 
     ## Homebrew has been previously auto-installed. This could only have 
     #. happened on macOS, so assume macOS environment.
@@ -216,17 +251,66 @@ __uninstall_homebrew()
     # Execute script
     $tmpdir/uninstall --force
 
-    # Check exit code
+    # Report status
     if [ $? -eq 0 ]; then
-      dprint_success 'Homebrew has been uninstalled'
+      dprint_success 'Successfully removed Homebrew'
     else
-      dprint_failure 'Failed to uninstall Homebrew'
+      dprint_failure 'Failed to remove Homebrew'
     fi
+
+    # Is user happy?
+    dprompt_key "$D_REMOVE_BREW" 'Proceed with uninstallation?'
+
+    # Return status based on user’s choice
+    return $?
 
   else
 
-    # Report no record
-    dprint_skip 'No record of previously auto-installed Homebrew'
+    # No record: just return a-ok
+    return 0
+
+  fi
+}
+
+__uninstall_utils()
+{
+  if dstash_root_get installed_util; then
+
+    # Offer to remove deployments
+    dprompt_key "$D_REMOVE_UTILS" --or-quit 'Remove?' \
+      '[optional] Remove optional utilities' \
+      'Detected optional utilities that has been installed by this framework'
+
+    # Check exit status
+    case $? in
+      0)  :;;
+      1)  dprint_skip 'Refused to remove utilities'
+          return 0
+          ;;
+      *)  dprint_skip 'Refused to remove utilities'
+          return 1;;
+    esac
+
+    # Run removal
+    "$D_INSTALL_PATH"/intervene.sh cecf357ed9fed1037eb906633a4299ba
+
+    # Report status
+    if [ $? -eq 0 ]; then
+      dprint_success 'Successfully removed optional utilities'
+    else
+      dprint_failure 'Failed to remove optional utilities'
+    fi
+
+    # Is user happy?
+    dprompt_key "$D_REMOVE_UTILS" 'Proceed with uninstallation?'
+
+    # Return status based on user’s choice
+    return $?
+
+  else
+
+    # No record: just return a-ok
+    return 0
 
   fi
 }
@@ -394,16 +478,14 @@ dstash_root_get()
   local stash_md5_filepath="$stash_filepath.md5"
 
   # If stash file does not exist, return immediately
-  if [ ! -e "$stash_filepath" ]; then
-    return 1
-  fi
+  if [ ! -e "$stash_filepath" ]; then return 1; fi
 
   # Check that stash file has valid checksum
   local calculated_md5="$( dmd5 "$D_STASH_FILEPATH" )"
   local stored_md5="$( head -1 -- "$D_STASH_MD5_FILEPATH" 2>/dev/null )"
   [ "$calculated_md5" = "$stored_md5" ] || return 1
 
-  # Check if requested key exists
+  # Check if requested key exists and print it if it is
   if grep -q ^"$1"= -- "$stash_filepath" &>/dev/null; then
     local value
     value="$( grep ^"$1"= -- "$stash_filepath" 2>/dev/null \

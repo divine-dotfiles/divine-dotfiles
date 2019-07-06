@@ -78,7 +78,7 @@ __offer_util()
             dprint_success -l "Successfully installed $util_name"
 
             # Make record of installation
-            if dstash -r -s add util_installed "$util_name"; then
+            if dstash -r -s add installed_util "$util_name"; then
               dprint_debug "Recorded installation to root stash"
             else
               dprint_failure -l \
@@ -111,7 +111,8 @@ __offer_util()
       *)  # Refused to proceed at all
 
           # Announce exiting and exit the script
-          dprint_failure -l "Refused to proceed without $util_name"
+          dprint_failure -l \
+            "Refused to install $util_name or proceed without it"
           if $exit_on_q; then exit 1; else return 2; fi
 
           # Done with exiting
