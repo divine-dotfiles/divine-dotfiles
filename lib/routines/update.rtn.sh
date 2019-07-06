@@ -340,7 +340,7 @@ __updating__update_dpls()
       dprint_debug 'Unable to update: missing necessary tools'
     else
       # Do update proper
-      if __updating__update_dpl_repo_via_git "$D_DIR_DPL_REPOS/$dpl_repo" \
+      if __updating__update_dpl_repo_via_git "$dpl_repo" \
         || __updating__update_dpl_repo_via_tar "$dpl_repo"
       then
         dprint_ode "${D_ODE_NORMAL[@]}" -c "$GREEN" -- \
@@ -446,11 +446,73 @@ __updating__update_fmwk_via_git()
     return 1
   }
 
-  # Ensure $D_DIR_FMWK is a git repo
-  git ls-remote "$D_DIR_FMWK" -q &>/dev/null || {
-    dprint_debug 'Not a git repository:' -i "$D_DIR_FMWK"
-    return 1
-  }
+  # Check if $D_DIR_FMWK is a git repo
+  if ! git ls-remote "$D_DIR_FMWK" -q &>/dev/null; then
+
+    # Announce
+    dprint_debug 'Not a git repository:' -i "$D_DIR_FMWK" -n \
+      'Attempting to clobber existing directory and clone repository instead'
+
+    # Store location of Divine.dotfiles repository
+    local user_repo="no-simpler/divine-dotfiles"
+
+    # Check if Divine.dotfiles repository is accessible
+    if ! git ls-remote "https://github.com/${user_repo}.git" -q &>/dev/null
+    then
+
+      # Announce and return failure
+      dprint_debug 'Github repo is inaccessible at:' \
+        -i "https://github.com/${user_repo}"
+      return 1
+    
+    fi
+    
+    # Remove framework directory entirely
+    if ! rm -rf -- "$D_DIR_FMWK"; then
+
+      # Announce and return failure
+      dprint_debug \
+        'Failed to clobber current non-git framework directory at:' \
+        -i "$D_DIR_FMWK"
+      return 1
+
+    fi
+
+    # Create empty directory instead
+    if ! mkdir -p -- "$D_DIR_FMWK"; then
+
+      # Announce and return total loss (shouldn’t happen really)
+      dprint_failure -l \
+        'Failed to create empty directory for git-controlled framework:' \
+        -i "$D_DIR_FMWK" \
+        -n 'Divine.dotfiles installation is fatally damaged!'
+      return 1
+  
+    fi
+
+    # Make shallow clone of repository
+    if git clone --depth=1 "https://github.com/${user_repo}.git" \
+      "$D_DIR_FMWK" &>/dev/null
+    then
+
+      dprint_debug 'Successfully cloned Github repo at:' \
+        -i "https://github.com/${user_repo}" \
+        -n "to: $D_DIR_FMWK"
+      return 0
+
+    else
+
+      # Announce and return total loss (shouldn’t happen really)
+      dprint_failure -l \
+        'Failed to clone Github repo at:' \
+        -i "https://github.com/${user_repo}" \
+        -n "to: $D_DIR_FMWK" \
+        -n 'Divine.dotfiles installation is fatally damaged!'
+      return 1
+
+    fi
+
+  fi
 
   # Change into $D_DIR_FMWK
   cd -- "$D_DIR_FMWK" || {
@@ -666,7 +728,7 @@ __updating__update_fmwk_via_tar()
   return 0
 }
 
-#>  __updating__update_dpl_repo_via_git PATH
+#>  __updating__update_dpl_repo_via_git USER_REPO
 #
 ## Tries to pull & rebase from remote Github repo
 #
@@ -683,13 +745,73 @@ __updating__update_dpl_repo_via_git()
   }
 
   # Extract path to repository being updated
-  local repo_path="$1"; shift
+  local user_repo="$1"; shift
+  local repo_path="$D_DIR_DPL_REPOS/$user_repo"
 
-  # Ensure $D_DIR_FMWK is a git repo
-  git ls-remote "$repo_path" -q &>/dev/null || {
-    dprint_debug 'Not a git repository:' -i "$repo_path"
-    return 1
-  }
+  # Check if dpls directory is a git repo
+  if ! git ls-remote "$repo_path" -q &>/dev/null; then
+
+    # Announce
+    dprint_debug 'Not a git repository:' -i "$repo_path" -n \
+      'Attempting to clobber existing directory and clone repository instead'
+
+    # Check if remote repository is accessible
+    if ! git ls-remote "https://github.com/${user_repo}.git" -q &>/dev/null
+    then
+
+      # Announce and return failure
+      dprint_debug 'Github repo is inaccessible at:' \
+        -i "https://github.com/${user_repo}"
+      return 1
+    
+    fi
+    
+    # Remove deployments directory entirely
+    if ! rm -rf -- "$repo_path"; then
+
+      # Announce and return failure
+      dprint_debug \
+        'Failed to clobber current non-git deployments directory at:' \
+        -i "$repo_path"
+      return 1
+
+    fi
+
+    # Create empty directory instead
+    if ! mkdir -p -- "$repo_path"; then
+
+      # Announce and return total loss (shouldn’t happen really)
+      dprint_failure -l \
+        'Failed to create empty directory for git-controlled deployments:' \
+        -i "$repo_path" \
+        -n 'Directory of attached deployments is fatally damaged!'
+      return 1
+  
+    fi
+
+    # Make shallow clone of repository
+    if git clone --depth=1 "https://github.com/${user_repo}.git" \
+      "$repo_path" &>/dev/null
+    then
+
+      dprint_debug 'Successfully cloned Github repo at:' \
+        -i "https://github.com/${user_repo}" \
+        -n "to: $repo_path"
+      return 0
+
+    else
+
+      # Announce and return total loss (shouldn’t happen really)
+      dprint_failure -l \
+        'Failed to clone Github repo at:' \
+        -i "https://github.com/${user_repo}" \
+        -n "to: $repo_path" \
+        -n 'Directory of attached deployments is fatally damaged!'
+      return 1
+
+    fi
+
+  fi
 
   # Change into $repo_path
   cd -- "$repo_path" || {
