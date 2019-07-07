@@ -624,7 +624,7 @@ dstash_root_add()
   fi
 
   # Append record at the end, update stored checksum
-  printf '%s\n' "$1=$2" >>"$D_STASH_FILEPATH"
+  printf '%s\n' "$1=$2" >>"$stash_filepath"
   dmd5 "$stash_filepath" >"$stash_md5_filepath"
 }
 
