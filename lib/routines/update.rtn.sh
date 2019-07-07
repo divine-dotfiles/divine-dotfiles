@@ -538,7 +538,12 @@ __updating__update_fmwk_via_git()
       fi
 
       # Check if moved successfully
-      if ! $moved_successfully; then
+      if $moved_successfully; then
+
+        # Remove temp dir for good measure
+        rm -rf -- "$temp_dir"
+
+      else
 
         # Announce failure but continue normally
         dprint_failure -l \
