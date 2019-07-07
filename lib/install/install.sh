@@ -537,7 +537,8 @@ __attach_requested_dpls()
   fi
 }
 
-
+__run_install()
+{
   # Offer to install deployments
   if dprompt_key "$D_RUN_INSTALL" 'Install?' \
     '[optional] Run installation routine on attached deployments' \
@@ -553,15 +554,15 @@ __attach_requested_dpls()
   # Run installation
     if $D_OPT_QUIET; then
     if [ "$D_ATTACH_DPLS_CORE" = true ]; then
-      "$D_INSTALL_PATH"/intervene.sh install -w --yes
+      "$D_INSTALL_PATH"/intervene.sh install --with-! --yes
     else
-      "$D_INSTALL_PATH"/intervene.sh install -w
+      "$D_INSTALL_PATH"/intervene.sh install --with-!
     fi
   else
     if [ "$D_ATTACH_DPLS_CORE" = true ]; then
-      "$D_INSTALL_PATH"/intervene.sh install -w --yes --verbose
+      "$D_INSTALL_PATH"/intervene.sh install --with-! --yes --verbose
     else
-      "$D_INSTALL_PATH"/intervene.sh install -w --verbose
+      "$D_INSTALL_PATH"/intervene.sh install --with-! --verbose
     fi
   fi
 
