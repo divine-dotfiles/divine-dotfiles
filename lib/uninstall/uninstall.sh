@@ -228,7 +228,8 @@ __remove_all_dpls()
   fi
 
   # Is user happy?
-  dprompt_key "$D_RUN_REMOVE_ALL" 'Proceed with uninstallation?'
+  dprompt_key "$D_RUN_REMOVE_ALL" 'Proceed with uninstallation?' \
+    'Please, confirm whether previous stage ran satisfactory'
 
   # Return status based on user’s choice
   return $?
@@ -278,7 +279,8 @@ __uninstall_homebrew()
     fi
 
     # Is user happy?
-    dprompt_key "$D_REMOVE_BREW" 'Proceed with uninstallation?'
+    dprompt_key "$D_REMOVE_BREW" 'Proceed with uninstallation?' \
+      'Please, confirm whether previous stage ran satisfactory'
 
     # Return status based on user’s choice
     return $?
@@ -336,7 +338,8 @@ __uninstall_utils()
     fi
 
     # Is user happy?
-    dprompt_key "$D_REMOVE_UTILS" 'Proceed with uninstallation?'
+    dprompt_key "$D_REMOVE_UTILS" 'Proceed with uninstallation?' \
+      'Please, confirm whether previous stage ran satisfactory'
 
     # Return status based on user’s choice
     return $?
