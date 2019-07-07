@@ -61,7 +61,7 @@ __offer_util()
   else
 
     # Prompt user for whether to install utility
-    dprompt_key --bare --or-quit \
+    dprompt_key --bare --or-quit --answer "$D_OPT_ANSWER" \
       --prompt "Install $util_name using $OS_PKGMGR?"
 
     # Check status

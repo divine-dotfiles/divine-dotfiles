@@ -415,7 +415,7 @@ __install_shortcut()
   if $shortcut_installed; then
 
     # Keep record of installation location
-    if dstash_root_set di_shortcut "$shortcut_filepath"; then
+    if dstash_root_add di_shortcut "$shortcut_filepath"; then
       dprint_debug 'Stored shortcut location in root stash'
     else
       dprint_debug 'Failed to store shortcut location in root stash' \
@@ -453,7 +453,19 @@ __attach_dpls_core()
   fi
 
   # Run attach routine
-  "$D_INSTALL_PATH"/intervene.sh attach "$user_repo" --yes
+  if $D_OPT_QUIET; then
+    if [ "$D_ATTACH_DPLS_CORE" = true ]; then
+      "$D_INSTALL_PATH"/intervene.sh attach "$user_repo" --yes
+    else
+      "$D_INSTALL_PATH"/intervene.sh attach "$user_repo"
+    fi
+  else
+    if [ "$D_ATTACH_DPLS_CORE" = true ]; then
+      "$D_INSTALL_PATH"/intervene.sh attach "$user_repo" --yes --verbose
+    else
+      "$D_INSTALL_PATH"/intervene.sh attach "$user_repo" --verbose
+    fi
+  fi
 
   # Return whatever routine returns
   return $?
@@ -473,7 +485,20 @@ __attach_requested_dpls()
   fi
 
   # Run attach routine
-  "$D_INSTALL_PATH"/intervene.sh attach "${D_REQUESTED_DPLS[@]}" --yes
+  if $D_OPT_QUIET; then
+    if [ "$D_ATTACH_DPLS_CORE" = true ]; then
+      "$D_INSTALL_PATH"/intervene.sh attach "${D_REQUESTED_DPLS[@]}" --yes
+    else
+      "$D_INSTALL_PATH"/intervene.sh attach "${D_REQUESTED_DPLS[@]}"
+    fi
+  else
+    if [ "$D_ATTACH_DPLS_CORE" = true ]; then
+      "$D_INSTALL_PATH"/intervene.sh attach "${D_REQUESTED_DPLS[@]}" \
+        --yes --verbose
+    else
+      "$D_INSTALL_PATH"/intervene.sh attach "${D_REQUESTED_DPLS[@]}" --verbose
+    fi
+  fi
 
   # Return whatever routine returns
   return $?
@@ -492,7 +517,19 @@ __run_install()
   fi
 
   # Run installation
-  "$D_INSTALL_PATH"/intervene.sh install --yes
+    if $D_OPT_QUIET; then
+    if [ "$D_ATTACH_DPLS_CORE" = true ]; then
+      "$D_INSTALL_PATH"/intervene.sh install --yes
+    else
+      "$D_INSTALL_PATH"/intervene.sh install
+    fi
+  else
+    if [ "$D_ATTACH_DPLS_CORE" = true ]; then
+      "$D_INSTALL_PATH"/intervene.sh install --yes --verbose
+    else
+      "$D_INSTALL_PATH"/intervene.sh install --verbose
+    fi
+  fi
 
   # Return zero always
   return 0
@@ -567,27 +604,26 @@ dprompt_key()
   if $yes; then return 0; else return 1; fi
 }
 
-dstash_root_set()
+dstash_root_add()
 {
   # Key variables
   local stash_dirpath="$D_INSTALL_PATH/state/stash"
   local stash_filepath="$stash_dirpath/.dstash.cfg"
   local stash_md5_filepath="$stash_filepath.md5"
 
-  # Root stash file must be empty (as this is fresh installation)
+  # Check if root stash file exists
   if [ -e "$stash_filepath" ]; then
-    return 1
+    # Stash file exists: check that proper checksum is stored for it
+    [ "$( dmd5 "$stash_filepath" )" \
+      = "$( head -1 -- "$stash_md5_filepath" 2>/dev/null )" ] \
+      || return 1
   else
+    # No stash file: create fresh one and store its checksum
     touch -- "$stash_filepath"
     dmd5 "$stash_filepath" >"$stash_md5_filepath"
   fi
 
-  # Check that stash file has valid checksum
-  local calculated_md5="$( dmd5 "$D_STASH_FILEPATH" )"
-  local stored_md5="$( head -1 -- "$D_STASH_MD5_FILEPATH" 2>/dev/null )"
-  [ "$calculated_md5" = "$stored_md5" ] || return 1
-
-  # Append record at the end, update stored md5
+  # Append record at the end, update stored checksum
   printf '%s\n' "$1=$2" >>"$D_STASH_FILEPATH"
   dmd5 "$stash_filepath" >"$stash_md5_filepath"
 }
