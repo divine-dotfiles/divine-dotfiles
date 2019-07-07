@@ -113,6 +113,9 @@ __locate_installations()
   [ -n "$D_INSTALL_PATH" ] || D_INSTALL_PATH="$HOME/.divine"
   dprint_debug "Installation directory: $D_INSTALL_PATH"
 
+  # Announce start
+  dprint_start 'Collecting information about Divine.dotfiles installation'
+
   # Rely on existence of ‘intervene.sh’ within the dir
   if [ ! -e "$D_INSTALL_PATH" ]; then
     dprint_debug 'Installation directory does not exist; nothing to remove'
@@ -154,7 +157,9 @@ __locate_installations()
     
   fi
 
-  # All done
+  # Report and return
+  dprint_success \
+    'Successfully collected information about Divine.dotfiles installation'
   return 0
 }
 
@@ -196,7 +201,8 @@ __remove_all_dpls()
         return 0
         ;;
     *)  dprint_skip 'Refused to run removal routine on all deployments'
-        return 1;;
+        return 1
+        ;;
   esac
 
   # Run installation
@@ -244,7 +250,8 @@ __uninstall_homebrew()
           return 0
           ;;
       *)  dprint_skip 'Refused to remove Homebrew'
-          return 1;;
+          return 1
+          ;;
     esac
 
     ## Homebrew has been previously auto-installed. This could only have 
@@ -300,7 +307,8 @@ __uninstall_utils()
           return 0
           ;;
       *)  dprint_skip 'Refused to remove optional utilities'
-          return 1;;
+          return 1
+          ;;
     esac
 
     # Run removal
@@ -358,7 +366,7 @@ __erase_d_dir()
 
   # Straight-forward enough
   rm -rf "$D_INSTALL_PATH" || {
-    dprint_debug "Failed to erase directory at: $D_INSTALL_PATH"
+    dprint_failure "Failed to erase directory at: $D_INSTALL_PATH"
     return 1
   }
 
@@ -370,6 +378,11 @@ __erase_d_dir()
 
 __uninstall_shortcut()
 {
+  # Announce start
+  if [ ${#D_SHORTCUT_FILEPATHS[@]} -gt 0 ]; then
+    dprint_start 'Removing shortcut command'
+  fi
+
   # Iterate over detected shortcut paths
   local shortcut_filepath anything_removed=false errors_encountered=false
 

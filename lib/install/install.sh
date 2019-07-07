@@ -256,8 +256,11 @@ __pull_github_repo()
 
 __create_empty_dirs()
 {
+  # Announce start
+  dprint_start 'Creating empty working directories'
+
   # Storage variables
-  local dirs_to_create dir_to_create
+  local dirs_to_create dir_to_create all_good=true
 
   # Assemble list of directories
   dirs_to_create=( \
@@ -272,11 +275,23 @@ __create_empty_dirs()
   for dir_to_create in "${dirs_to_create[@]}"; do
 
     # Create directory, or announce failure
-    mkdir -p -- "$dir_to_create" || {
+    if mkdir -p -- "$dir_to_create"; then
+      dprint_debug "Created directory: $dir_to_create"
+    else
       dprint_debug "Failed to create directory: $dir_to_create"
-    }
+      all_good=false
+    fi
 
   done
+
+  # Report and return status
+  if $all_good; then
+    dprint_success 'Successfully created empty working directories'
+    return 0
+  else
+    dprint_failure 'Failed to create empty working directories'
+    return 1
+  fi
 }
 
 __install_shortcut()
@@ -289,9 +304,11 @@ __install_shortcut()
   local cmd="${BOLD}${D_SHORTCUT_NAME}${NORMAL}"
 
   # Offer to install shortcut
-  if ! dprompt_key "$D_INSTALL_SHORTCUT" 'Install?' \
+  if dprompt_key "$D_INSTALL_SHORTCUT" 'Install?' \
     "[optional] Shortcut shell command '${cmd}'"
   then
+    dprint_start "Installing shortcut shell command '${cmd}'"
+  else
     dprint_skip "Refused to install shortcut shell command '${cmd}'"
     return 1
   fi
@@ -422,15 +439,18 @@ __install_shortcut()
         'Uninstallation script will be unable to remove shortcut'
     fi
 
-    # Report success
+    # Report and return success
     dprint_success \
       "Successfully installed shortcut shell command '${cmd}' to:" \
       "$shortcut_filepath"
+    return 0
 
   else
 
+    # Report and return failure
     dprint_failure "Failed to install shortcut shell command '${cmd}'" \
       'because none of $PATH directories could take it'
+    return 1
 
   fi
 }
@@ -441,12 +461,15 @@ __attach_dpls_core()
   local user_repo='no-simpler/divine-dpls-core'
 
   # Offer to install core package
-  if ! dprompt_key "$D_ATTACH_DPLS_CORE" 'Attach?' \
+  if dprompt_key "$D_ATTACH_DPLS_CORE" 'Attach?' \
     '[optional] Default set of deployments from:' \
     "https://github.com/${user_repo}" \
     'Deployments are only attached, not installed' \
     'Divine deployments are generally safe and fully removable'
   then
+    dprint_start 'Attaching default set of deployments from:' \
+      "https://github.com/${user_repo}"
+  else
     dprint_skip 'Refused to attach default set of deployments from:' \
       "https://github.com/${user_repo}"
     return 1
@@ -467,8 +490,16 @@ __attach_dpls_core()
     fi
   fi
 
-  # Return whatever routine returns
-  return $?
+  # Report and return status
+  if [ $? -eq 0 ]; then
+    dprint_success 'Successfully attached default set of deployments from:' \
+      "https://github.com/${user_repo}"
+    return 0
+  else
+    dprint_failure 'Failed to attach default set of deployments from:' \
+      "https://github.com/${user_repo}"
+    return 1
+  fi
 }
 
 __attach_requested_dpls()
@@ -477,9 +508,11 @@ __attach_requested_dpls()
   [ ${#D_REQUESTED_DPLS[@]} -eq 0 ] && return 1
 
   # Offer to install requested deployments
-  if ! dprompt_key "$D_ATTACH_REQUESTED_DPLS" 'Attach?' \
+  if dprompt_key "$D_ATTACH_REQUESTED_DPLS" 'Attach?' \
     '[optional] Attach additional deployments, as requested in command line'
   then
+    dprint_start 'Attaching additional deployments'
+  else
     dprint_skip 'Refused to attach additional deployments'
     return 1
   fi
@@ -500,19 +533,27 @@ __attach_requested_dpls()
     fi
   fi
 
-  # Return whatever routine returns
-  return $?
+  # Report and return status
+  if [ $? -eq 0 ]; then
+    dprint_success 'Successfully attached additional deployments'
+    return 0
+  else
+    dprint_failure 'Failed to attach additional deployments'
+    return 1
+  fi
 }
 
 __run_install()
 {
   # Offer to install deployments
-  if ! dprompt_key "$D_RUN_INSTALL" 'Install?' \
-    '[optional] Install deployments' \
+  if dprompt_key "$D_RUN_INSTALL" 'Install?' \
+    '[optional] Run installation routine on attached deployments' \
     'Deployments attached in previous step(s) will be installed' \
     'Divine deployments are generally safe and fully removable'
   then
-    dprint_skip 'Refused to install deployments'
+    dprint_start 'Running installation routine on attached deployments'
+  else
+    dprint_skip 'Refused to run installation routine on attached deployments'
     return 1
   fi
 
@@ -531,8 +572,16 @@ __run_install()
     fi
   fi
 
-  # Return zero always
-  return 0
+  # Report and return status
+  if [ $? -eq 0 ]; then
+    dprint_success \
+      'Successfully ran installation routine on attached deployments'
+    return 0
+  else
+    dprint_failure \
+      'Failed while running installation routine on attached deployments'
+    return 1
+  fi
 }
 
 dprint_debug()
