@@ -191,16 +191,28 @@ __remove_all_dpls()
 
   # Check exit status
   case $? in
-    0)  :;;
-    1)  dprint_skip 'Refused to remove deployments'
+    0)  dprint_start 'Running removal routine on all deployments';;
+    1)  dprint_skip 'Refused to run removal routine on all deployments'
         return 0
         ;;
-    *)  dprint_skip 'Refused to remove deployments'
+    *)  dprint_skip 'Refused to run removal routine on all deployments'
         return 1;;
   esac
 
   # Run installation
-  "$D_INSTALL_PATH"/intervene.sh remove --with-! --yes
+  if $D_OPT_QUIET; then
+    if [ "$D_RUN_REMOVE_ALL" = true ]; then
+      "$D_INSTALL_PATH"/intervene.sh remove --with-! --yes
+    else
+      "$D_INSTALL_PATH"/intervene.sh remove --with-!
+    fi
+  else
+    if [ "$D_RUN_REMOVE_ALL" = true ]; then
+      "$D_INSTALL_PATH"/intervene.sh remove --with-! --yes --verbose
+    else
+      "$D_INSTALL_PATH"/intervene.sh remove --with-! --verbose
+    fi
+  fi
 
   # Report status
   if [ $? -eq 0 ]; then
@@ -227,7 +239,7 @@ __uninstall_homebrew()
 
     # Check exit status
     case $? in
-      0)  :;;
+      0)  dprint_start 'Removing Homebrew';;
       1)  dprint_skip 'Refused to remove Homebrew'
           return 0
           ;;
@@ -283,16 +295,29 @@ __uninstall_utils()
 
     # Check exit status
     case $? in
-      0)  :;;
-      1)  dprint_skip 'Refused to remove utilities'
+      0)  dprint_start 'Removing optional utilities';;
+      1)  dprint_skip 'Refused to remove optional utilities'
           return 0
           ;;
-      *)  dprint_skip 'Refused to remove utilities'
+      *)  dprint_skip 'Refused to remove optional utilities'
           return 1;;
     esac
 
     # Run removal
-    "$D_INSTALL_PATH"/intervene.sh cecf357ed9fed1037eb906633a4299ba
+    if $D_OPT_QUIET; then
+      if [ "$D_REMOVE_UTILS" = true ]; then
+        "$D_INSTALL_PATH"/intervene.sh cecf357ed9fed1037eb906633a4299ba --yes
+      else
+        "$D_INSTALL_PATH"/intervene.sh cecf357ed9fed1037eb906633a4299ba
+      fi
+    else
+      if [ "$D_REMOVE_UTILS" = true ]; then
+        "$D_INSTALL_PATH"/intervene.sh cecf357ed9fed1037eb906633a4299ba \
+          --yes --verbose
+      else
+        "$D_INSTALL_PATH"/intervene.sh cecf357ed9fed1037eb906633a4299ba \
+      fi
+    fi
 
     # Report status
     if [ $? -eq 0 ]; then
