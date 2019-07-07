@@ -416,7 +416,7 @@ __uninstall_shortcut()
 dprint_debug()
 {
   $D_OPT_QUIET && return 0
-  printf >&2 "\n${CYAN}%s %s${NORMAL}\n" "==>" "$1"; shift
+  printf >&2 "${CYAN}%s %s${NORMAL}\n" "==>" "$1"; shift
   while [ $# -gt 0 ]
   do printf >&2 "    ${CYAN}%s${NORMAL}\n" "$1"; shift; done; return 0
 }
@@ -424,28 +424,28 @@ dprint_debug()
 dprint_start()
 {
   $D_OPT_QUIET && return 0
-  printf >&2 '\n%s %s\n' "${BOLD}${YELLOW}==>${NORMAL}" "$1"; shift
+  printf >&2 '%s %s\n' "${BOLD}${YELLOW}==>${NORMAL}" "$1"; shift
   while [ $# -gt 0 ]; do printf >&2 '    %s\n' "$1"; shift; done; return 0
 }
 
 dprint_skip()
 {
   $D_OPT_QUIET && return 0
-  printf >&2 '\n%s %s\n' "${BOLD}${WHITE}==>${NORMAL}" "$1"; shift
+  printf >&2 '%s %s\n' "${BOLD}${WHITE}==>${NORMAL}" "$1"; shift
   while [ $# -gt 0 ]; do printf >&2 '    %s\n' "$1"; shift; done; return 0
 }
 
 dprint_success()
 {
   $D_OPT_QUIET && return 0
-  printf >&2 '\n%s %s\n' "${BOLD}${GREEN}==>${NORMAL}" "$1"; shift
+  printf >&2 '%s %s\n' "${BOLD}${GREEN}==>${NORMAL}" "$1"; shift
   while [ $# -gt 0 ]; do printf >&2 '    %s\n' "$1"; shift; done; return 0
 }
 
 dprint_failure()
 {
   $D_OPT_QUIET && return 0
-  printf >&2 '\n%s %s\n' "${BOLD}${RED}==>${NORMAL}" "$1"; shift
+  printf >&2 '%s %s\n' "${BOLD}${RED}==>${NORMAL}" "$1"; shift
   while [ $# -gt 0 ]; do printf >&2 '    %s\n' "$1"; shift; done; return 0
 }
 
@@ -468,18 +468,18 @@ dprompt_key()
   local yes=false
 
   # Print announcement
-  printf >&2 '\n%s %s\n' "${BOLD}${YELLOW}${REVERSE}==>${NORMAL}" "$1"; shift
+  printf >&2 '%s %s\n' "${BOLD}${YELLOW}${REVERSE}==>${NORMAL}" "$1"; shift
   while [ $# -gt 0 ]; do printf >&2 '    %s\n' "$1"; shift; done
 
   # Print additional uninstallation-specific warning
   $main_rm && \
-    printf >&2 '\n%s %s\n' "${BOLD}${RED}${REVERSE} CAREFUL ${NORMAL}" \
+    printf >&2 '%s %s\n' "${BOLD}${RED}${REVERSE} CAREFUL ${NORMAL}" \
       'This will completely erase installation directory'
 
   # Print prompt
   local choices
   $or_quit && choices+=' [y/n/q]' || choices+=' [y/n]'
-  printf >&2 "\n%s $choices " \
+  printf >&2 "%s $choices " \
     "${BOLD}${YELLOW}${REVERSE} ${prompt_text} ${NORMAL}"
 
   # Await answer

@@ -46,7 +46,7 @@ __offer_git_and_friends()
   if ! git --version &>/dev/null; then
     
     # Print warning
-    dprint_start -l -n 'Failed to detect git on current system' \
+    dprint_start -l 'Failed to detect git on current system' \
       -n 'Having git installed remedies a lot of unnecessary pain'
 
     # Make an offer
@@ -140,7 +140,7 @@ __remove_all_offered_utils()
   if [ -z ${OS_PKGMGR+isset} ]; then
 
     # No option to uninstall: report and exit
-    dprint_failure -l -n \
+    dprint_failure -l \
       "Unable to un-install utilities (no supported package manager)"
     exit 1
 
@@ -161,7 +161,7 @@ __remove_all_offered_utils()
   for installed_util in "${installed_utils[@]}"; do
 
     # Prompt user for whether to un-install utility
-    dprompt_key --bare --or-quit --answer "$D_REMOVE_UTILS" \
+    dprompt_key --bare --or-quit --answer "$D_OPT_ANSWER" \
       --prompt "Un-install $installed_util using $OS_PKGMGR?"
 
     # Check status
@@ -169,18 +169,18 @@ __remove_all_offered_utils()
       0)  # Agreed to un-install
 
           # Announce un-installation
-          dprint_start -l -n "Un-installing $installed_util"
+          dprint_start -l "Un-installing $installed_util"
 
           # Attempt un-installation
           if os_pkgmgr dremove "$installed_util"; then
 
             # Announce
-            dprint_success -l -n "Successfully un-installed $installed_util"
+            dprint_success -l "Successfully un-installed $installed_util"
 
           else
 
             # Announce and remember failure
-            dprint_failure -l -n "Failed to un-install $installed_util"
+            dprint_failure -l "Failed to un-install $installed_util"
             all_good=false
             
           fi
@@ -191,7 +191,7 @@ __remove_all_offered_utils()
       1)  # Refused to un-install
 
           # Announce refusal to un-install and return
-          dprint_skip -l -n "Refused to un-install $installed_util"
+          dprint_skip -l "Refused to un-install $installed_util"
           return 1
 
           # Done with refusal
@@ -200,7 +200,7 @@ __remove_all_offered_utils()
       *)  # Refused to proceed at all
 
           # Announce exiting and exit
-          dprint_failure -l -n \
+          dprint_failure -l \
             "Refused to un-install $installed_util or proceed without doing so"
           exit 1
 
