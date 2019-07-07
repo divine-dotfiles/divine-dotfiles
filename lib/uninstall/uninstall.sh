@@ -298,7 +298,7 @@ __uninstall_utils()
     # Offer to remove deployments
     dprompt_key "$D_REMOVE_UTILS" --or-quit 'Remove?' \
       '[optional] Remove optional utilities' \
-      'Detected optional utilities that has been installed by this framework'
+      'Detected optional utilities that have been installed by this framework'
 
     # Check exit status
     case $? in
