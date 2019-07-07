@@ -30,9 +30,9 @@ if dnf --version &>/dev/null; then
     fi
     case "$1" in
       dupdate)  sudo dnf upgrade -yq;;
-      dcheck)   shift; sudo dnf list --installed "$@" &>/dev/null;;
-      dinstall) shift; sudo dnf install -yq "$@";;
-      dremove)  shift; sudo dnf remove -yq "$@";;
+      dcheck)   shift; sudo dnf list --installed "$1" &>/dev/null;;
+      dinstall) shift; sudo dnf install -yq "$1";;
+      dremove)  shift; sudo dnf remove -yq "$1";;
       *)        return 1;;
     esac
   }
@@ -52,9 +52,9 @@ elif yum --version &>/dev/null; then
     fi
     case "$1" in
       dupdate)  sudo yum update -y;;
-      dcheck)   shift; sudo yum list installed "$@" &>/dev/null;;
-      dinstall) shift; sudo yum install -y "$@";;
-      dremove)  shift; sudo yum remove -y "$@";;
+      dcheck)   shift; sudo yum list installed "$1" &>/dev/null;;
+      dinstall) shift; sudo yum install -y "$1";;
+      dremove)  shift; sudo yum remove -y "$1";;
       *)        return 1;;
     esac
   }

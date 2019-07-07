@@ -28,9 +28,9 @@ if HOMEBREW_NO_AUTO_UPDATE=1 brew --version &>/dev/null; then
     case "$1" in
       dupdate)  brew update; brew upgrade;;
       dcheck)   shift
-                HOMEBREW_NO_AUTO_UPDATE=1 brew list "$@" &>/dev/null;;
-      dinstall) shift; brew install "$@";;
-      dremove)  shift; brew uninstall "$@";;
+                HOMEBREW_NO_AUTO_UPDATE=1 brew list "$1" &>/dev/null;;
+      dinstall) shift; brew install "$1";;
+      dremove)  shift; brew uninstall "$1";;
       *)        return 1;;
     esac
   }

@@ -30,9 +30,9 @@ if apt-get --version &>/dev/null; then
     fi
     case "$1" in
       dupdate)  sudo apt-get update -yq; sudo apt-get upgrade -yq;;
-      dcheck)   shift; dpkg-query -l "$@" &>/dev/null;;
-      dinstall) shift; sudo apt-get install -yq "$@";;
-      dremove)  shift; sudo apt-get remove -yq "$@";;
+      dcheck)   shift; $( dpkg-query -W -f='${Status}\n' "$1" 2>/dev/null | grep -qFx 'install ok installed' );;
+      dinstall) shift; sudo apt-get install -yq "$1";;
+      dremove)  shift; sudo apt-get remove -yq "$1";;
       *)        return 1;;
     esac
   }
