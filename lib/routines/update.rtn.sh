@@ -466,6 +466,34 @@ __updating__update_fmwk_via_git()
       return 1
     
     fi
+
+    # Make temporary destination for grail and state dirs
+    local temp_dir="$( mktemp -d )" moved_successfully=true
+
+    # Move Grail dir to temp location
+    if [ -d "$D_DIR_GRAIL" ]; then
+      if ! mv -n -- "$D_DIR_GRAIL" "$temp_dir/grail"; then
+        moved_successfully=false
+      fi
+    fi
+    
+    # Move state dir to temp location
+    if [ -d "$D_DIR_STATE" ]; then
+      if ! mv -n -- "$D_DIR_STATE" "$temp_dir/state"; then
+        moved_successfully=false
+      fi
+    fi
+
+    # Check if moved successfully
+    if ! $moved_successfully; then
+
+      # Announce and return failure
+      dprint_failure -l \
+        'Failed to move Grail and/or state directories to temp location at:' \
+        -i "$temp_dir" -n 'Please, see to them manually'
+      exit 1
+
+    fi
     
     # Remove framework directory entirely
     if ! rm -rf -- "$D_DIR_FMWK"; then
@@ -495,6 +523,32 @@ __updating__update_fmwk_via_git()
       "$D_DIR_FMWK" &>/dev/null
     then
 
+      # Move Grail dir back from temp location
+      if [ -d "$temp_dir/grail" ]; then
+        if ! mv -n -- "$temp_dir/grail" "$D_DIR_GRAIL"; then
+          moved_successfully=false
+        fi
+      fi
+      
+      # Move state dir back from temp location
+      if [ -d "$temp_dir/state" ]; then
+        if ! mv -n -- "$temp_dir/state" "$D_DIR_STATE"; then
+          moved_successfully=false
+        fi
+      fi
+
+      # Check if moved successfully
+      if ! $moved_successfully; then
+
+        # Announce failure but continue normally
+        dprint_failure -l \
+          'Failed to restore Grail and/or state directories' \
+          'from temp location at:' \
+          -i "$temp_dir" -n 'Please, see to them manually'
+
+      fi
+
+      # Announce success
       dprint_debug 'Successfully cloned Github repo at:' \
         -i "https://github.com/${user_repo}" \
         -n "to: $D_DIR_FMWK"
