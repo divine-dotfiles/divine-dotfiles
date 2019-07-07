@@ -35,7 +35,7 @@ __update_pkgs()
   if $D_REQ_PACKAGES; then
 
     # Name current task
-    local task_desc='Update packages via'
+    local task_desc='System packages via'
     local task_name="'${OS_PKGMGR}'"
 
     # Prefix priority
@@ -60,7 +60,7 @@ __update_pkgs()
     # Print message about the upcoming installation
     if $proceeding; then
       dprint_ode "${D_ODE_UPDATE[@]}" -c "$YELLOW" -- \
-        '>>>' 'Installing' ':' "$task_desc" "$task_name"
+        '>>>' 'Updating' ':' "$task_desc" "$task_name"
     fi
 
     # Unless given a ‘-y’ option, prompt for user’s approval
@@ -77,14 +77,14 @@ __update_pkgs()
       os_pkgmgr dupdate
       if [ $? -eq 0 ]; then
         dprint_ode "${D_ODE_UPDATE[@]}" -c "$GREEN" -- \
-          'vvv' 'Installed' ':' "$task_desc" "$task_name"
+          'vvv' 'Updated' ':' "$task_desc" "$task_name"
       else
         dprint_ode "${D_ODE_UPDATE[@]}" -c "$RED" -- \
-          'xxx' 'Failed' ':' "$task_desc" "$task_name"
+          'xxx' 'Failed to update' ':' "$task_desc" "$task_name"
       fi
     else
       dprint_ode "${D_ODE_UPDATE[@]}" -c "$WHITE" -- \
-        '---' 'Skipped' ':' "$task_desc" "$task_name"
+        '---' 'Skipped updating' ':' "$task_desc" "$task_name"
     fi
 
   fi
