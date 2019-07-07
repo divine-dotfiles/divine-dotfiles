@@ -169,21 +169,21 @@ __check_shortcut_filepath()
   local shortcut_filepath="$1"
 
   # Ensure the shortcut path exists and is a symlink
-  [ -L "$shortcut_filepath" ] || {
+  if ! [ -L "$shortcut_filepath" ]; then
     dprint_debug "Skipping shortcut filepath: $shortcut_filepath" \
       'Not a symlink'
     return 1
-  }
+  fi
 
   # Ensure the link points to ‘intervene.sh’ (if readlink is available)
   if type -P readlink &>/dev/null; then
-    [ "$( readlink -- "$shortcut_filepath" )" \
-      = "$D_INSTALL_PATH/intervene.sh" ] \
-        || {
-          dprint_debug "Skipping shortcut filepath: $shortcut_filepath" \
-            'Not pointing to intervene.sh'
-          return 1
-        }
+    if ! [ "$( readlink -- "$shortcut_filepath" )" \
+      = "$D_INSTALL_PATH/intervene.sh" ]
+    then
+      dprint_debug "Skipping shortcut filepath: $shortcut_filepath" \
+        'Not pointing to intervene.sh'
+      return 1
+    fi
   fi
 }
 
@@ -324,6 +324,7 @@ __uninstall_utils()
           --yes --verbose
       else
         "$D_INSTALL_PATH"/intervene.sh cecf357ed9fed1037eb906633a4299ba \
+          --verbose
       fi
     fi
 
