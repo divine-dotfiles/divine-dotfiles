@@ -386,16 +386,23 @@ __uninstall_shortcut()
 
   # Iterate over detected shortcut paths
   local shortcut_filepath anything_removed=false errors_encountered=false
+  local shortcut_dirpath
 
   for shortcut_filepath in "${D_SHORTCUT_FILEPATHS[@]}"; do
 
     # Announce attempt
     dprint_debug "Attempting to remove shortcut command at: $shortcut_filepath"
 
+    # Extract dirpath
+    shortcut_dirpath="$( dirname -- "$shortcut_filepath" )"
+
     # Remove shortcut, using sudo if need be
-    if [ -w "$( dirname -- "$shortcut_filepath" )" ]; then
+    if [ -w "$shortcut_dirpath" ]; then
       rm -f "$shortcut_filepath"
     else
+      if ! sudo -n true 2>/dev/null; then
+        dprint_start "Removing within $shortcut_dirpath requires sudo password"
+      fi
       sudo rm -f "$shortcut_filepath"
     fi
     

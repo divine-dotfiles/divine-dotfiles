@@ -25,6 +25,9 @@ if dnf --version &>/dev/null; then
   os_pkgmgr()
   {
     # Perform action depending on first argument
+    if ! sudo -n true 2>/dev/null; then
+      dprint_start -l "Working with dnf requires sudo password"
+    fi
     case "$1" in
       dupdate)  sudo dnf upgrade -yq;;
       dcheck)   shift; sudo dnf list --installed "$@" &>/dev/null;;
@@ -44,6 +47,9 @@ elif yum --version &>/dev/null; then
   os_pkgmgr()
   {
     # Perform action depending on first argument
+    if ! sudo -n true 2>/dev/null; then
+      dprint_start -l "Working with yum requires sudo password"
+    fi
     case "$1" in
       dupdate)  sudo yum update -y;;
       dcheck)   shift; sudo yum list installed "$@" &>/dev/null;;

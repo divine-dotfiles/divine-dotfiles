@@ -25,6 +25,9 @@ if apt-get --version &>/dev/null; then
   os_pkgmgr()
   {
     # Perform action depending on first argument
+    if ! sudo -n true 2>/dev/null; then
+      dprint_start -l "Working with apt-get requires sudo password"
+    fi
     case "$1" in
       dupdate)  sudo apt-get update -yq; sudo apt-get upgrade -yq;;
       dcheck)   shift; dpkg-query -l "$@" &>/dev/null;;

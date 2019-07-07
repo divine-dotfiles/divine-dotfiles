@@ -311,6 +311,10 @@ __cp_hlp__install_item()
       if [ -w "$to_existing_parent_dir" ]; then
         mkdir -p -- "$to_parent_dir"
       else
+        if ! sudo -n true 2>/dev/null; then
+          dprint_start -l 'Creating directory within:' \
+            -i "$to_existing_parent_dir" -n 'requires sudo password'
+        fi
         sudo mkdir -p -- "$to_parent_dir"
       fi
 
@@ -332,6 +336,10 @@ __cp_hlp__install_item()
   if [ -w "$to_parent_dir" ]; then
     cp -Rn -- "$from_path" "$to_path"
   else
+    if ! sudo -n true 2>/dev/null; then
+      dprint_start -l 'Copying into:' -i "$to_parent_dir" \
+        -n 'requires sudo password'
+    fi
     sudo cp -Rn -- "$from_path" "$to_path"
   fi
 
@@ -372,6 +380,10 @@ __cp_hlp__remove_item()
     if [ -w "$to_existing_parent_dir" ]; then
       mkdir -p -- "$to_parent_dir"
     else
+      if ! sudo -n true 2>/dev/null; then
+        dprint_start -l 'Creating directory within:' \
+            -i "$to_existing_parent_dir" -n 'requires sudo password'
+      fi
       sudo mkdir -p -- "$to_parent_dir"
     fi
 
@@ -394,6 +406,10 @@ __cp_hlp__remove_item()
     if [ -w "$to_parent_dir" ]; then
       rm -rf -- "$to_path"
     else
+      if ! sudo -n true 2>/dev/null; then
+        dprint_start -l 'Removing within:' \
+          -i "$to_parent_dir" -n 'requires sudo password'
+      fi
       sudo rm -rf -- "$to_path"
     fi
 
@@ -416,6 +432,10 @@ __cp_hlp__remove_item()
     if [ -w "$to_parent_dir" ]; then
       mv -n -- "$backup_path" "$to_path"
     else
+      if ! sudo -n true 2>/dev/null; then
+        dprint_start -l 'Moving into:' \
+          -i "$to_parent_dir" -n 'requires sudo password'
+      fi
       sudo mv -n -- "$backup_path" "$to_path"
     fi
 
