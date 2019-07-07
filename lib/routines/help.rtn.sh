@@ -190,8 +190,8 @@ AUTHOR
 EOF
 
   # Print help summary
-  if which less &>/dev/null; then
-    less <<<"$help"
+  if less --version &>/dev/null; then
+    less -R <<<"$help"
   else
     printf '%s\n' "$help"
   fi

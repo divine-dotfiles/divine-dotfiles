@@ -188,8 +188,8 @@ CREDITS
     or available locally via: info '(coreutils) readlink invocation'
 EOF
     # Print help summary
-    if which less &>/dev/null; then
-      less <<<"$help_msg"
+    if less --version &>/dev/null; then
+      less -R <<<"$help_msg"
     else
       printf '%s\n' "$help_msg"
     fi

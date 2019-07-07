@@ -195,8 +195,8 @@ AUTHOR
     There is NO WARRANTY, to the extent permitted by law.
 EOF
     # Print help summary
-    if which less &>/dev/null; then
-      less <<<"$help_msg"
+    if less --version &>/dev/null; then
+      less -R <<<"$help_msg"
     else
       printf '%s\n' "$help_msg"
     fi
