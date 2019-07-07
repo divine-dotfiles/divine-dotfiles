@@ -553,15 +553,15 @@ __attach_requested_dpls()
   # Run installation
     if $D_OPT_QUIET; then
     if [ "$D_ATTACH_DPLS_CORE" = true ]; then
-      "$D_INSTALL_PATH"/intervene.sh install --yes
+      "$D_INSTALL_PATH"/intervene.sh install --with-! --yes
     else
-      "$D_INSTALL_PATH"/intervene.sh install
+      "$D_INSTALL_PATH"/intervene.sh install --with-!
     fi
   else
     if [ "$D_ATTACH_DPLS_CORE" = true ]; then
-      "$D_INSTALL_PATH"/intervene.sh install --yes --verbose
+      "$D_INSTALL_PATH"/intervene.sh install --with-! --yes --verbose
     else
-      "$D_INSTALL_PATH"/intervene.sh install --verbose
+      "$D_INSTALL_PATH"/intervene.sh install --with-! --verbose
     fi
   fi
 
