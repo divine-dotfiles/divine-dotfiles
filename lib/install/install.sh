@@ -21,10 +21,7 @@ main()
 
     # Optional: pull Divine deployments 'core' package (default packages)
     if __attach_dpls_core; then
-      dprint_success "Attached Divine deployments 'core' package"
       anything_attached=true
-    else
-      dprint_failure "Failed to attach Divine deployments 'core' package"
     fi
 
     # Optional: pull deployment repos requested through installation args
@@ -33,10 +30,7 @@ main()
     fi
 
     # Optional: if any deployments were attached, run ‘di install --yes’
-    if $anything_attached; then
-      __run_install \
-        || dprint_failure 'Failed while running installation routine'
-    fi
+    if $anything_attached; then __run_install; fi
 
     # Report success
     dprint_success 'All done'
@@ -543,8 +537,7 @@ __attach_requested_dpls()
   fi
 }
 
-__run_install()
-{
+
   # Offer to install deployments
   if dprompt_key "$D_RUN_INSTALL" 'Install?' \
     '[optional] Run installation routine on attached deployments' \
