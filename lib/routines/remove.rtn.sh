@@ -41,13 +41,16 @@ __perform_remove()
   __load routine pkgs
 
   # Storage variables
-  local priority reversed_queue
+  local priority array_of_priorities i
 
-  # Reverse the priorities
-  reversed_queue=( $( IFS=$'\n' sort -nr <<<"${!D_QUEUE_TASKS[*]}" ) )
+  # Extract priorities into array
+  array_of_priorities=( "${!D_QUEUE_TASKS[@]}" )
 
-  # Iterate over taken priorities
-  for priority in "${reversed_queue[@]}"; do
+  # Iterate over array of priorities in reverse order
+  for (( i=${#array_of_priorities[@]}-1; i>=0; i-- )); do
+
+    # Extract priority
+    priority="${array_of_priorities[$i]}"
 
     # Remove deployments if asked to
     __remove_dpls "$priority"
