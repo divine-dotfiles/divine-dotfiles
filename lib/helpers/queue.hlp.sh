@@ -22,8 +22,8 @@ __queue_hlp__dcheck()
   fi
 
   # Launch pre-processing if it is implemented
-  if declare -f __d__queue_hlp__pre_process &>/dev/null \
-    && ! __d__queue_hlp__pre_process
+  if declare -f d__queue_hlp__pre_process &>/dev/null \
+    && ! d__queue_hlp__pre_process
   then
     dprint_debug 'Queue pre-processing signaled error'
     return 3
@@ -47,14 +47,14 @@ __queue_hlp__dcheck()
   D_USER_OR_OS=true
 
   # If necessary functions are not implemented: implement a dummy
-  if ! declare -f __d__queue_hlp__item_is_installed &>/dev/null; then
-    __d__queue_hlp__item_is_installed() { :; }
+  if ! declare -f d__queue_hlp__item_is_installed &>/dev/null; then
+    d__queue_hlp__item_is_installed() { :; }
   fi
-  if ! declare -f __d__queue_hlp__provide_stash_key &>/dev/null; then
-    __d__queue_hlp__provide_stash_key() { :; }
+  if ! declare -f d__queue_hlp__provide_stash_key &>/dev/null; then
+    d__queue_hlp__provide_stash_key() { :; }
   fi
-  if ! declare -f __d__queue_hlp__post_process &>/dev/null; then
-    __d__queue_hlp__post_process() { :; }
+  if ! declare -f d__queue_hlp__post_process &>/dev/null; then
+    d__queue_hlp__post_process() { :; }
   fi
 
   # Calculate section edges
@@ -87,7 +87,7 @@ __queue_hlp__dcheck()
     D_DPL_ITEM_STASH_VALUE=
     
     # Allow user a chance to set stash key
-    __d__queue_hlp__provide_stash_key
+    d__queue_hlp__provide_stash_key
 
     # Check if function returned ‘no stash’ signal
     if [ $? -eq 1 ]; then
@@ -125,7 +125,7 @@ __queue_hlp__dcheck()
       unset D_DPL_ITEM_STASH_FLAG
 
       # Check if item is installed
-      __d__queue_hlp__item_is_installed; case $? in
+      d__queue_hlp__item_is_installed; case $? in
         0)  # Item status is unknown
             __queue_hlp__current_item set can_be_installed
             __queue_hlp__current_item set can_be_removed
@@ -164,7 +164,7 @@ __queue_hlp__dcheck()
       D_DPL_ITEM_STASH_VALUE="$( dstash -s get "$D_DPL_ITEM_STASH_KEY" )"
 
       # Check if item is installed as advertised
-      __d__queue_hlp__item_is_installed; case $? in
+      d__queue_hlp__item_is_installed; case $? in
         0)  # Item recorded but status is unknown: assume installed
             __queue_hlp__current_item set can_be_removed
             some_installed=true
@@ -202,7 +202,7 @@ __queue_hlp__dcheck()
       D_DPL_ITEM_STASH_FLAG=false
 
       # Check if item is nevertheless installed
-      __d__queue_hlp__item_is_installed; case $? in
+      d__queue_hlp__item_is_installed; case $? in
         0)  # Item is not recorded and status is unknown: assume not installed
             __queue_hlp__current_item set can_be_installed
             all_installed=false
@@ -247,7 +247,7 @@ __queue_hlp__dcheck()
   fi
 
   # Launch post-processing
-  if ! __d__queue_hlp__post_process; then
+  if ! d__queue_hlp__post_process; then
     dprint_debug 'Queue post-processing signaled error'
     return 3
   fi
@@ -281,8 +281,8 @@ __queue_hlp__dinstall()
   local exit_code
 
   # If necessary functions are not implemented: implement a dummy
-  if ! declare -f __d__queue_hlp__install_item &>/dev/null; then
-    __d__queue_hlp__install_item() { :; }
+  if ! declare -f d__queue_hlp__install_item &>/dev/null; then
+    d__queue_hlp__install_item() { :; }
   fi
 
   # Calculate section edges
@@ -334,7 +334,7 @@ __queue_hlp__dinstall()
     if __queue_hlp__current_item can_be_installed; then
 
       # Item is considered not installed: install it
-      __d__queue_hlp__install_item; exit_code=$?; case $exit_code in
+      d__queue_hlp__install_item; exit_code=$?; case $exit_code in
         0|3)  # Installed successfully
               all_already_installed=false
               all_failed=false
@@ -366,7 +366,7 @@ __queue_hlp__dinstall()
       D_DPL_ITEM_IS_FORCED=true
 
       # Item is considered already installed, but user forces installation
-      __d__queue_hlp__install_item; exit_code=$?; case $exit_code in
+      d__queue_hlp__install_item; exit_code=$?; case $exit_code in
         0|3)  # Re-installed successfully
               all_newly_installed=false
               all_failed=false
@@ -453,8 +453,8 @@ __queue_hlp__dremove()
   local exit_code
 
   # If necessary functions are not implemented: implement a dummy
-  if ! declare -f __d__queue_hlp__remove_item &>/dev/null; then
-    __d__queue_hlp__remove_item() { :; }
+  if ! declare -f d__queue_hlp__remove_item &>/dev/null; then
+    d__queue_hlp__remove_item() { :; }
   fi
 
   # Calculate section edges
@@ -506,7 +506,7 @@ __queue_hlp__dremove()
     if __queue_hlp__current_item can_be_removed; then
 
       # Item is considered installed: remove it
-      __d__queue_hlp__remove_item; exit_code=$?; case $exit_code in
+      d__queue_hlp__remove_item; exit_code=$?; case $exit_code in
         0|3)  # Removed successfully
               all_already_removed=false
               all_failed=false
@@ -538,7 +538,7 @@ __queue_hlp__dremove()
       D_DPL_ITEM_IS_FORCED=true
 
       # Item is considered already not installed, but user forces removal
-      __d__queue_hlp__remove_item; exit_code=$?; case $exit_code in
+      d__queue_hlp__remove_item; exit_code=$?; case $exit_code in
         0|3)  # Re-removed successfully
               all_newly_removed=false
               all_failed=false

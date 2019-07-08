@@ -27,12 +27,12 @@ D_DPL_WARNING=
 #
 ## Functions to implement (all are optional):
 #.  * Executed during checking:
-#.      __d__cp_hlp__pre_process    - Custom queue pre-processing
-#.      __d__cp_hlp__post_process   - Custom queue post-processing
+#.      d__cp_hlp__pre_process    - Custom queue pre-processing
+#.      d__cp_hlp__post_process   - Custom queue post-processing
 #.  * Executed during installation:
-#.      __d__cp_hlp__install_item   - Pre-installation actions for each item
+#.      d__cp_hlp__install_item   - Pre-installation actions for each item
 #.  * Executed during removal:
-#.      __d__cp_hlp__remove_item    - Pre-removal actions for each item
+#.      d__cp_hlp__remove_item    - Pre-removal actions for each item
 #
 ## Variables to take advantage of (maintained by queue helpers):
 #.  $D_DPL_ITEM_NUM         - Index of current item in $D_DPL_QUEUE_MAIN
@@ -79,7 +79,7 @@ dcheck()    { __cp_hlp__dcheck;    }
 dinstall()  { __cp_hlp__dinstall;  }
 dremove()   { __cp_hlp__dremove;   }
 
-#>  __d__cp_hlp__pre_process
+#>  d__cp_hlp__pre_process
 #
 ## Allows to perform arbitrary actions before items in queue are checked
 #
@@ -89,12 +89,12 @@ dremove()   { __cp_hlp__dremove;   }
 #.  0 - Pre-processing succeeded
 #.  1 - Otherwise: do not proceed with this deployment
 #
-__d__cp_hlp__pre_process()
+d__cp_hlp__pre_process()
 {
   :
 }
 
-#>  __d__cp_hlp__post_process
+#>  d__cp_hlp__post_process
 #
 ## Allows to perform arbitrary actions after all items in queue have been 
 #. checked
@@ -105,12 +105,12 @@ __d__cp_hlp__pre_process()
 #.  0 - Post-processing succeeded
 #.  1 - Otherwise: do not proceed with this deployment
 #
-__d__cp_hlp__post_process()
+d__cp_hlp__post_process()
 {
   :
 }
 
-#>  __d__cp_hlp__install_item
+#>  d__cp_hlp__install_item
 #
 ## Performs custom actions before current item is installed
 #
@@ -120,12 +120,12 @@ __d__cp_hlp__post_process()
 #.  0 - Ready for installation
 #.  1 - Otherwise: mark this item as invalid
 #
-__d__cp_hlp__install_item()
+d__cp_hlp__install_item()
 {
   :
 }
 
-#>  __d__cp_hlp__remove_item
+#>  d__cp_hlp__remove_item
 #
 ## Performs custom actions before current item is removed
 #
@@ -135,7 +135,7 @@ __d__cp_hlp__install_item()
 #.  0 - Ready for removal
 #.  1 - Otherwise: mark this item as invalid
 #
-__d__cp_hlp__remove_item()
+d__cp_hlp__remove_item()
 {
   :
 }

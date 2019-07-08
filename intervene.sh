@@ -576,7 +576,7 @@ __unset_d_funcs()
   # Storage variables
   local func_assignment func_name
 
-  # Iterate over currently set funcs, names of which start with '__d__'
+  # Iterate over currently set funcs, names of which start with 'd_'
   while read -r func_assignment; do
 
     # Extract function’s names
@@ -585,7 +585,7 @@ __unset_d_funcs()
     # Unset the function
     unset -f $func_name
     
-  done < <( grep ^'declare -f __d__' < <( declare -F ) )
+  done < <( grep ^'declare -f d_' < <( declare -F ) )
 }
 
 __main "$@"

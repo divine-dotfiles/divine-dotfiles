@@ -46,26 +46,26 @@
 __dln_hlp__dcheck()
 {
   # Redirect pre-processing
-  __d__queue_hlp__pre_process()
+  d__queue_hlp__pre_process()
   {
     # Redirect to built-in helper
     __dln_hlp__pre_process
 
     # Try user-provided helper
-    if declare -f __d__dln_hlp__pre_process &>/dev/null; then
-      __d__dln_hlp__pre_process || return 1
+    if declare -f d__dln_hlp__pre_process &>/dev/null; then
+      d__dln_hlp__pre_process || return 1
     fi
   }
 
   # Redirect item check to built-in helper
-  __d__queue_hlp__item_is_installed() { __dln_hlp__item_is_installed; }
+  d__queue_hlp__item_is_installed() { __dln_hlp__item_is_installed; }
 
   # Redirect post-processing
-  __d__queue_hlp__post_process()
+  d__queue_hlp__post_process()
   {
     # Try user-provided helper
-    if declare -f __d__dln_hlp__post_process &>/dev/null; then
-      __d__dln_hlp__post_process
+    if declare -f d__dln_hlp__post_process &>/dev/null; then
+      d__dln_hlp__post_process
     else
       :
     fi
@@ -96,11 +96,11 @@ __dln_hlp__dcheck()
 __dln_hlp__dinstall()
 {
   # Redirect installation with optional pre-processing
-  __d__queue_hlp__install_item()
+  d__queue_hlp__install_item()
   {
     # Try user-provided helper
-    if declare -f __d__dln_hlp__install_item &>/dev/null \
-      && ! __d__dln_hlp__install_item
+    if declare -f d__dln_hlp__install_item &>/dev/null \
+      && ! d__dln_hlp__install_item
     then
       dprint_debug 'Pre-installation signaled error'
       return 2
@@ -135,11 +135,11 @@ __dln_hlp__dinstall()
 __dln_hlp__dremove()
 {
   # Redirect removal with optional pre-processing
-  __d__queue_hlp__remove_item()
+  d__queue_hlp__remove_item()
   {
     # Try user-provided helper
-    if declare -f __d__dln_hlp__remove_item &>/dev/null \
-      && ! __d__dln_hlp__remove_item
+    if declare -f d__dln_hlp__remove_item &>/dev/null \
+      && ! d__dln_hlp__remove_item
     then
       dprint_debug 'Pre-removal signaled error'
       return 2

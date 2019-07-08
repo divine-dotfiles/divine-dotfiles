@@ -21,19 +21,19 @@ D_DPL_WARNING=
 #
 ## Functions to implement (all are optional):
 #.  * Executed during checking:
-#.      __d__queue_hlp__pre_process         - Executed once, early, before 
+#.      d__queue_hlp__pre_process         - Executed once, early, before 
 #.                                            checking begins
-#.      __d__queue_hlp__provide_stash_key   - Executed for every queue item, 
+#.      d__queue_hlp__provide_stash_key   - Executed for every queue item, 
 #.                                            before checking it
-#.      __d__queue_hlp__item_is_installed   - Executed for every queue item,
+#.      d__queue_hlp__item_is_installed   - Executed for every queue item,
 #.                                            to check it
-#.      __d__queue_hlp__post_process        - Executed once, after all queue 
+#.      d__queue_hlp__post_process        - Executed once, after all queue 
 #.                                            items are checked
 #.  * Executed during installation:
-#.      __d__queue_hlp__install_item        - Executed for every queue item,
+#.      d__queue_hlp__install_item        - Executed for every queue item,
 #.                                            to install it
 #.  * Executed during removal:
-#.      __d__queue_hlp__remove_item         - Executed for every queue item,
+#.      d__queue_hlp__remove_item         - Executed for every queue item,
 #.                                            to remove it. On removal, queue 
 #.                                            is processed in reverse order.
 #
@@ -68,7 +68,7 @@ dcheck()    { __queue_hlp__dcheck;    }
 dinstall()  { __queue_hlp__dinstall;  }
 dremove()   { __queue_hlp__dremove;   }
 
-#>  __d__queue_hlp__pre_process
+#>  d__queue_hlp__pre_process
 #
 ## Allows to perform arbitrary actions before items in queue are checked
 #
@@ -78,12 +78,12 @@ dremove()   { __queue_hlp__dremove;   }
 #.  0 - Pre-processing succeeded
 #.  1 - Otherwise: do not proceed with this deployment
 #
-__d__queue_hlp__pre_process()
+d__queue_hlp__pre_process()
 {
   :
 }
 
-#>  __d__queue_hlp__provide_stash_key
+#>  d__queue_hlp__provide_stash_key
 #
 ## Gives user a chance to set custom stash key for queue item. Also, can signal 
 #. to not use stashing at all for current item.
@@ -101,12 +101,12 @@ __d__queue_hlp__pre_process()
 #.  0 - Normal return code, is ignored
 #.  1 - Disables storing installation records in stash for current item
 #
-__d__queue_hlp__provide_stash_key()
+d__queue_hlp__provide_stash_key()
 {
   :
 }
 
-#>  __d__queue_hlp__item_is_installed
+#>  d__queue_hlp__item_is_installed
 #
 ## Return code of this function signals whether current queue item is to be 
 #. considered installed, not installed, of unknown status, or completely 
@@ -126,12 +126,12 @@ __d__queue_hlp__provide_stash_key()
 #.  2 - Not installed
 #.  3 - Invalid (should not be touched at all)
 #
-__d__queue_hlp__item_is_installed()
+d__queue_hlp__item_is_installed()
 {
   :
 }
 
-#>  __d__queue_hlp__post_process
+#>  d__queue_hlp__post_process
 #
 ## Allows to perform arbitrary actions after all items in queue have been 
 #. checked
@@ -142,12 +142,12 @@ __d__queue_hlp__item_is_installed()
 #.  0 - Post-processing succeeded
 #.  1 - Otherwise: do not proceed with this deployment
 #
-__d__queue_hlp__post_process()
+d__queue_hlp__post_process()
 {
   :
 }
 
-#>  __d__queue_hlp__install_item
+#>  d__queue_hlp__install_item
 #
 ## Installs current queue item
 #
@@ -169,12 +169,12 @@ __d__queue_hlp__post_process()
 #.  3 - Installed successfully, also abort further queue processing
 #.  4 - Failed to install, also abort further queue processing
 #
-__d__queue_hlp__install_item()
+d__queue_hlp__install_item()
 {
   :
 }
 
-#>  __d__queue_hlp__remove_item
+#>  d__queue_hlp__remove_item
 #
 ## Removes current queue item
 #
@@ -196,7 +196,7 @@ __d__queue_hlp__install_item()
 #.  3 - Removed successfully, also abort further queue processing
 #.  4 - Failed to remove, also abort further queue processing
 #
-__d__queue_hlp__remove_item()
+d__queue_hlp__remove_item()
 {
   :
 }
