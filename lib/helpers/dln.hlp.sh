@@ -262,7 +262,7 @@ __dln_hlp__item_is_installed()
 
         # Report not installed with orphaned backup
         dprint_debug "Orphaned backup: $backup_path" \
-          -n "of target path: $target_path"
+          -n "of target path: $target_path" \
           -n "(force-remove to restore)"
         
       fi
