@@ -27,50 +27,35 @@ D_DPL_WARNING=
 ## Below is overall usage pattern for dcheck
 dcheck()
 {
-  # Call each dcheck-like function and then immediately __catch_dcheck_code
-  task1_dcheck; __catch_dcheck_code
-  task2_dcheck; __catch_dcheck_code
-  task3_dcheck; __catch_dcheck_code
+  # Assemble ordered list of prefixes to user-implemented task functions
+  D_DPL_TASK_NAMES+=( task1 )
+  D_DPL_TASK_NAMES+=( task2 )
+  D_DPL_TASK_NAMES+=( task3 )
 
-  # As the last command, call __reconcile_dcheck_codes
-  __reconcile_dcheck_codes
+  # Delegate to built-in helper
+  __multitask_hlp__dcheck
 }
 
-## Below is overall usage pattern for dinstall
-dinstall()
-{
-  # Follow this pattern for each dinstall-like function
-  __task_is_installable && task1_dinstall; __catch_dinstall_code || return $?
-  __task_is_installable && task2_dinstall; __catch_dinstall_code || return $?
-  __task_is_installable && task3_dinstall; __catch_dinstall_code || return $?
-  
-  # As the last command, call __reconcile_dinstall_codes
-  __reconcile_dinstall_codes
-}
+# dinstall and dremove are fully delegated to built-in helpers
+dinstall()  {   __multitask_hlp__dinstall;  }
+dremove()   {   __multitask_hlp__dremove;   }
 
-## Below is overall usage pattern for dremove
-dremove()
-{
-  # Follow this pattern for each dremove-like function
-  __task_is_removable && task1_dremove; __catch_dremove_code || return $?
-  __task_is_removable && task2_dremove; __catch_dremove_code || return $?
-  __task_is_removable && task3_dremove; __catch_dremove_code || return $?
-  
-  # As the last command, call __reconcile_dremove_codes
-  __reconcile_dremove_codes
-}
-
-## Unlike basic deployments, individual primary functions MUST be implemented 
-#. at least in some way for each task
+## Individual primary functions should be named following a pattern:
+#.  * d_{TASK_NAME}_dcheck:     task1 -> d_task1_dcheck
+#.  * d_{TASK_NAME}_dinstall:   task1 -> d_task1_dinstall
+#.  * d_{TASK_NAME}_dremove:    task1 -> d_task1_dremove
 #
-task1_dcheck()    { :; }
-task1_dinstall()  { :; }
-task1_dremove()   { :; }
+## As with normal deployments, it is not necessary for all functions to be 
+#. implemented: default return values are assumed if any are not.
+#
+d_task1_dcheck()    { :; }
+d_task1_dinstall()  { :; }
+d_task1_dremove()   { :; }
 
-task2_dcheck()    { :; }
-task2_dinstall()  { :; }
-task2_dremove()   { :; }
+d_task2_dcheck()    { :; }
+d_task2_dinstall()  { :; }
+d_task2_dremove()   { :; }
 
-task3_dcheck()    { :; }
-task3_dinstall()  { :; }
-task3_dremove()   { :; }
+d_task3_dcheck()    { :; }
+d_task3_dinstall()  { :; }
+d_task3_dremove()   { :; }

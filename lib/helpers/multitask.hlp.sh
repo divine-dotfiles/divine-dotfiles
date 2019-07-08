@@ -12,6 +12,125 @@
 ## Helper functions for deployments that contain multiple sub-deployments
 #
 
+__multitask_hlp__dcheck()
+{
+  # Check whether at least one task name has been provided
+  if [ -z "${D_DPL_TASK_NAMES+isset}" -o ${#D_DPL_TASK_NAMES[@]} -eq 0]; then
+
+    # No tasks: return default code
+    return 0
+
+  fi
+
+  # Storage variables
+  local task_name func_name
+
+  # Iterate over task names
+  for task_name in "${D_DPL_TASK_NAMES[@]}"; do
+
+    # Compose dcheck function name for that task
+    func_name="d_${task_name}_dcheck"
+
+    # If dcheck function is implemented, run it, otherwise run a bogus func
+    if declare -f -- "$func_name" &>/dev/null; then
+      "$func_name"
+    else
+      true
+    fi
+
+    # Catch returned code
+    __catch_dcheck_code
+
+  # Done iterating over task names
+  done
+
+  # As the last command, combine all previously caught dcheck codes
+  __reconcile_dcheck_codes
+}
+
+__multitask_hlp__dinstall()
+{
+  # Check whether at least one task name has been provided
+  if [ -z "${D_DPL_TASK_NAMES+isset}" -o ${#D_DPL_TASK_NAMES[@]} -eq 0]; then
+
+    # No tasks: return default code
+    return 0
+
+  fi
+
+  # Storage variables
+  local task_name func_name
+
+  # Iterate over task names
+  for task_name in "${D_DPL_TASK_NAMES[@]}"; do
+
+    # Compose dinstall function name for that task
+    func_name="d_${task_name}_dinstall"
+
+    # If dinstall function is implemented, run it, otherwise run a bogus func
+    if declare -f -- "$func_name" &>/dev/null; then
+      __task_is_installable && "$func_name"
+    else
+      __task_is_installable && true
+    fi
+
+    # Catch returned code, or return immediately (emergency exit)
+    __catch_dinstall_code || return $?
+
+  # Done iterating over task names
+  done
+
+  # As the last command, combine all previously caught dinstall codes
+  __reconcile_dinstall_codes
+}
+
+__multitask_hlp__dremove()
+{
+  # Check whether at least one task name has been provided
+  if [ -z "${D_DPL_TASK_NAMES+isset}" -o ${#D_DPL_TASK_NAMES[@]} -eq 0]; then
+
+    # No tasks: return default code
+    return 0
+
+  fi
+
+  # Storage variables
+  local task_name func_name i
+
+  # Iterate over task names in reverse order
+  for (( i=$D_DPL_TASK_MAX_NUM; i>=0; i-- )); do
+
+    # Extract task name
+    task_name="${D_DPL_TASK_NAMES[$i]}"
+
+    # Compose dremove function name for that task
+    func_name="d_${task_name}_dremove"
+
+    # If dremove function is implemented, run it, otherwise run a bogus func
+    if declare -f -- "$func_name" &>/dev/null; then
+      __task_is_installable && "$func_name"
+    else
+      __task_is_installable && true
+    fi
+
+    # Catch returned code, or return immediately (emergency exit)
+    __catch_dremove_code || return $?
+
+  # Done iterating over task names in reverse order
+  done
+
+  # As the last command, combine all previously caught dremove codes
+  __reconcile_dremove_codes
+
+  # Follow this pattern for each dremove-like function
+  __task_is_removable && task1_dremove; __catch_dremove_code || return $?
+  __task_is_removable && task2_dremove; __catch_dremove_code || return $?
+  __task_is_removable && task3_dremove; __catch_dremove_code || return $?
+  
+  # As the last command, call __reconcile_dremove_codes
+  __reconcile_dremove_codes
+}
+
 #>  __catch_dcheck_code
 #
 ## Intercepts last returned code ($?) and stores it in global array for future 
@@ -134,7 +253,10 @@ __catch_dcheck_code()
 #
 __reconcile_dcheck_codes()
 {
-  # First off, reset task number counter (for following installations/removals)
+  # Remember total number of tasks
+  D_DPL_TASK_MAX_NUM=$(( $D_DPL_TASK_NUM ))
+
+  # Reset task number counter (for following installations/removals)
   unset D_DPL_TASK_NUM
 
   # Settle user-or-os status
@@ -323,7 +445,11 @@ __task_is_removable()
   unset D_DPL_TASK_IS_FORCED
 
   # Figure out current task number, assuming this function is called once per
-  [ -z ${D_DPL_TASK_NUM+isset} ] && D_DPL_TASK_NUM=0 || (( D_DPL_TASK_NUM++ ))
+  if [ -z ${D_DPL_TASK_NUM+isset} ]; then
+    D_DPL_TASK_NUM="$D_DPL_TASK_MAX_NUM"
+  else
+    (( D_DPL_TASK_NUM-- ))
+  fi
 
   # If task is irrelevant, return immediately
   if __multitask_hlp__current_task is_irrelevant; then return 1; fi

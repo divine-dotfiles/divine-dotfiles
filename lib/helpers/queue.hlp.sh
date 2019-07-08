@@ -440,11 +440,11 @@ __queue_hlp__dinstall()
 
 __queue_hlp__dremove()
 {
-  # Initialize or increment section number
+  # Initialize or decrement section number (reverse order)
   if [ -z ${D_DPL_QUEUE_CURRENT_SECTION_NUM[1]+isset} ]; then
-    D_DPL_QUEUE_CURRENT_SECTION_NUM[1]=0
+    D_DPL_QUEUE_CURRENT_SECTION_NUM[1]="${#D_DPL_QUEUE_SEPARATORS[@]}"
   else
-    (( ++D_DPL_QUEUE_CURRENT_SECTION_NUM[1] ))
+    (( --D_DPL_QUEUE_CURRENT_SECTION_NUM[1] ))
   fi
 
   # Storage and status variables

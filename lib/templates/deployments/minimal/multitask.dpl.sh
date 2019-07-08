@@ -6,39 +6,23 @@ D_DPL_WARNING=
 
 dcheck()
 {
-  task1_dcheck; __catch_dcheck_code
-  task2_dcheck; __catch_dcheck_code
-  task3_dcheck; __catch_dcheck_code
-
-  __reconcile_dcheck_codes
+  D_DPL_TASK_NAMES+=( task1 )
+  D_DPL_TASK_NAMES+=( task2 )
+  D_DPL_TASK_NAMES+=( task3 )
+  __multitask_hlp__dcheck
 }
 
-dinstall()
-{
-  __task_is_installable && task1_dinstall; __catch_dinstall_code || return $?
-  __task_is_installable && task2_dinstall; __catch_dinstall_code || return $?
-  __task_is_installable && task3_dinstall; __catch_dinstall_code || return $?
-  
-  __reconcile_dinstall_codes
-}
+dinstall()  {  __multitask_hlp__dinstall; }
+dremove()   {  __multitask_hlp__dremove;  }
 
-dremove()
-{
-  __task_is_removable && task1_dremove; __catch_dremove_code || return $?
-  __task_is_removable && task2_dremove; __catch_dremove_code || return $?
-  __task_is_removable && task3_dremove; __catch_dremove_code || return $?
-  
-  __reconcile_dremove_codes
-}
+d_task1_dcheck()    { :; }
+d_task1_dinstall()  { :; }
+d_task1_dremove()   { :; }
 
-task1_dcheck()    { :; }
-task1_dinstall()  { :; }
-task1_dremove()   { :; }
+d_task2_dcheck()    { :; }
+d_task2_dinstall()  { :; }
+d_task2_dremove()   { :; }
 
-task2_dcheck()    { :; }
-task2_dinstall()  { :; }
-task2_dremove()   { :; }
-
-task3_dcheck()    { :; }
-task3_dinstall()  { :; }
-task3_dremove()   { :; }
+d_task3_dcheck()    { :; }
+d_task3_dinstall()  { :; }
+d_task3_dremove()   { :; }
