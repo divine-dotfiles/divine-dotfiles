@@ -15,7 +15,7 @@
 __multitask_hlp__dcheck()
 {
   # Check whether at least one task name has been provided
-  if [ -z "${D_DPL_TASK_NAMES+isset}" -o ${#D_DPL_TASK_NAMES[@]} -eq 0]; then
+  if [ -z "${D_DPL_TASK_NAMES+isset}" -o ${#D_DPL_TASK_NAMES[@]} -eq 0 ]; then
 
     # No tasks: return default code
     return 0
