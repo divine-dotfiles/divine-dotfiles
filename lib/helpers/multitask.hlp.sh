@@ -51,7 +51,7 @@ __multitask_hlp__dcheck()
 __multitask_hlp__dinstall()
 {
   # Check whether at least one task name has been provided
-  if [ -z "${D_DPL_TASK_NAMES+isset}" -o ${#D_DPL_TASK_NAMES[@]} -eq 0]; then
+  if [ -z "${D_DPL_TASK_NAMES+isset}" -o ${#D_DPL_TASK_NAMES[@]} -eq 0 ]; then
 
     # No tasks: return default code
     return 0
@@ -87,7 +87,7 @@ __multitask_hlp__dinstall()
 __multitask_hlp__dremove()
 {
   # Check whether at least one task name has been provided
-  if [ -z "${D_DPL_TASK_NAMES+isset}" -o ${#D_DPL_TASK_NAMES[@]} -eq 0]; then
+  if [ -z "${D_DPL_TASK_NAMES+isset}" -o ${#D_DPL_TASK_NAMES[@]} -eq 0 ]; then
 
     # No tasks: return default code
     return 0
