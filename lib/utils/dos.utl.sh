@@ -43,31 +43,29 @@ __main()
   __populate_os_distro
   unset -f __populate_os_distro
   
-  __load_os_adapter
-  unset -f __load_os_adapter
+  __load_os_adapters
+  unset -f __load_os_adapters
 }
 
 #>  __populate_os_family
 #
-## Detects the OS family and stores it in a read-only global variable. Only 
-#. OS’s that are normally thought of as supporting Bash are considered, e.g., 
-#. no Windows.
+## Detects the OS family and stores it in a read-only global variable
 #
 ## Provides into the global scope:
-#.  $OS_FAMILY  - (read-only) Broad description of the current OS type, e.g.:
+#.  $OS_FAMILY  - (read-only) Broad description of the current OS type:
 #.                  * ‘macos’
 #.                  * ‘linux’
-#.                  * ‘wsl’
+#.                  * ‘wsl’ (Windows Subsystem for Linux)
 #.                  * ‘bsd’
 #.                  * ‘solaris’
 #.                  * ‘cygwin’
 #.                  * ‘msys’
-#.                  * unset     - Not recognized
 #
 ## Returns:
 #.  0 - Variable populated successfully
-#.  1 - Could not re-assign the variable (already assigned and read-only)
-#.  2 - Could not reliably recognize the OS
+#.  1 - (script exit) Either of scenarios occurred:
+#.        * Could not re-assign the variable (already assigned and read-only)
+#.        * Could not reliably recognize the OS
 #
 ## Prints:
 #.  stdout: *nothing*
@@ -149,8 +147,8 @@ __populate_os_family()
   if [ -z "$os_family" ]; then
 
     # Failed to detect OS family: not fatal, but should be noted
-    printf >&2 '%s: %s\n' "${FUNCNAME[0]}" 'Failed to detect OS family'
-    return 2
+    dprint_failure -l 'Failed to detect OS family'
+    exit 1
 
   elif [ "$os_family" = "$OS_FAMILY" ]; then
 
@@ -167,11 +165,11 @@ __populate_os_family()
   else
 
     # $OS_FAMILY is set to incorrect value and is read-only: report error
-    printf >&2 '%s: %s\n' "${FUNCNAME[0]}" \
-      '$OS_FAMILY is already set to incorrect value and is read-only'
-    printf >&2 '%s: %s\n' 'Detected OS family             ' "$os_family"
-    printf >&2 '%s: %s\n' 'Content of $OS_FAMILY variable ' "$OS_FAMILY"
-    return 1
+    dprint_failure -l \
+      'Internal variable $OS_FAMILY is already set and is read-only' \
+      "Detected OS family             : $os_family" \
+      "Content of \$OS_FAMILY variable : $OS_FAMILY"
+    exit 1
   
   fi
 }
@@ -249,8 +247,7 @@ __populate_os_distro()
   if [ -z "$os_distro" ]; then
 
     # Failed to detect OS distro: not fatal, but should be noted
-    printf >&2 '%s: %s\n' "${FUNCNAME[0]}" \
-      'Current OS distro is not recognized'
+    dprint_failure -l 'Current OS distro is not recognized'
     return 2
 
   elif [ "$os_distro" = "$OS_DISTRO" ]; then
@@ -268,16 +265,16 @@ __populate_os_distro()
   else
 
     # $OS_DISTRO is set to incorrect value and is read-only: report error
-    printf >&2 '%s: %s\n' "${FUNCNAME[0]}" \
-      '$OS_DISTRO is already set to incorrect value and is read-only'
-    printf >&2 '%s: %s\n' 'Detected OS distro             ' "$os_distro"
-    printf >&2 '%s: %s\n' 'Content of $OS_DISTRO variable ' "$OS_DISTRO"
+    dprint_failure -l \
+      'Internal variable $OS_DISTRO is already set and is read-only' \
+      "Detected OS distro             : $os_distro" \
+      "Content of \$OS_DISTRO variable : $OS_DISTRO"
     return 1
   
   fi
 }
 
-#>  __load_os_adapter
+#>  __load_os_adapters
 #
 ## Scans adapters dir for files ‘$OS_FAMILY.adp.sh’ and ‘$OS_DISTRO.adp.sh’ and 
 #. sources each, if found, in that order. After sourcing both, ensures as best 
@@ -311,13 +308,33 @@ __populate_os_distro()
 #.  stdout: *nothing*
 #.  stderr: Error descriptions
 #
-__load_os_adapter()
+__load_os_adapters()
 {
   # Set up variables
   local family_adapter distro_adapter
 
   # Status variables
   local all_good=true should_halt=false
+
+  # Compose detected OS
+  local detected_os
+  if [ -n "$OS_FAMILY" ]; then
+    if [ -n "$OS_DISTRO" ]; then
+      if [ "$OS_FAMILY" = "$OS_DISTRO" ]; then
+        detected_os="$OS_FAMILY"
+      else
+        detected_os="$OS_FAMILY ($OS_DISTRO)"
+      fi
+    else
+      detected_os="$OS_FAMILY"
+    fi
+  else
+    if [ -n "$OS_DISTRO" ]; then
+      detected_os="$OS_DISTRO"
+    else
+      detected_os='unknown'
+    fi
+  fi
 
   # If OS family is detected and family adapter exists, source it
   if [ -n "$OS_FAMILY" ]; then
@@ -333,8 +350,7 @@ __load_os_adapter()
     else
 
       # Report error
-      $D_OPT_QUIET || printf >&2 '%s: %s\n' "${FUNCNAME[0]}" \
-        "No adapter detected for current OS family: $OS_FAMILY"
+      dprint_failure -l "No adapter detected for current OS family: $OS_FAMILY"
 
     fi
 
@@ -354,8 +370,7 @@ __load_os_adapter()
     else
 
       # Report error
-      $D_OPT_QUIET || printf >&2 '%s: %s\n' "${FUNCNAME[0]}" \
-        "No adapter detected for current OS distro: $OS_DISTRO"
+      dprint_failure -l "No adapter detected for current OS distro: $OS_DISTRO"
 
     fi
 
@@ -378,9 +393,8 @@ __load_os_adapter()
       if [ -z "$os_pkgmgr" ]; then
 
         # Failed to detect OS package manager: not fatal, but should be noted
-        printf >&2 '%s: %s %s\n' "${FUNCNAME[0]}" \
-          'Package manager is not recognized for current OS:' \
-          "$OS_FAMILY ($OS_DISTRO)"
+        dprint_failure -l \
+          "No supported package manager for current OS: $detected_os"
         all_good=false
 
       elif [[ $os_pkgmgr = $OS_PKGMGR ]]; then
@@ -398,12 +412,11 @@ __load_os_adapter()
       else
 
         # $OS_PKGMGR is set to incorrect value and is read-only: report error
-        printf >&2 '%s: %s\n' "${FUNCNAME[0]}" \
-          '$OS_PKGMGR is already set to incorrect value and is read-only'
-        printf >&2 '%s: %s\n' 'Detected OS package manager    ' "$os_pkgmgr"
-        printf >&2 '%s: %s\n' 'Content of $OS_PKGMGR variable ' "$OS_PKGMGR"
-        printf >&2 '%s: %s\n' 'Detected OS                    ' \
-          "$OS_FAMILY ($OS_DISTRO)"
+        dprint_failure -l \
+          'Internal variable $OS_PKGMGR is already set and is read-only' \
+          -n "Detected OS package manager    : $os_pkgmgr" \
+          -n "Content of \$OS_PKGMGR variable : $OS_DISTRO" \
+          -n "Detected OS                    : $detected_os"
         all_good=false
         should_halt=true
       
@@ -412,9 +425,8 @@ __load_os_adapter()
     else
 
       # Function __print_os_pkgmgr returned non-zero
-      printf >&2 '%s: %s %s\n' "${FUNCNAME[0]}" \
-          'Failed to detect package manager on current OS:' \
-          "$OS_FAMILY ($OS_DISTRO)"
+      dprint_failure -l \
+        "Failed while detecting package manager on current OS: $detected_os"
       all_good=false
 
     fi
@@ -422,9 +434,8 @@ __load_os_adapter()
   else
 
     # Function __print_os_pkgmgr is not implemented
-    printf >&2 '%s: %s %s\n' "${FUNCNAME[0]}" \
-      'Package manager is not supported on current OS:' \
-      "$OS_FAMILY ($OS_DISTRO)"
+    dprint_failure -l \
+      "Package manager is not supported on current OS: $detected_os"
     all_good=false
 
   fi
@@ -433,9 +444,8 @@ __load_os_adapter()
   if ! declare -f os_pkgmgr &>/dev/null; then
 
     # Not implemented: report and implement dummy wrapper
-    printf >&2 '%s: %s %s\n' "${FUNCNAME[0]}" \
-      'Package manager wrapper is not implemented on current OS:' \
-      "$OS_FAMILY ($OS_DISTRO)"
+    dprint_failure -l \
+      "Package manager wrapper is not implemented on current OS: $detected_os"
     os_pkgmgr() { return -1; }
     all_good=false
 
