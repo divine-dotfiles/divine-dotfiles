@@ -209,8 +209,26 @@ __install_pkgs()
 
     # Install package
     if $proceeding; then
-      os_pkgmgr dinstall "$pkgname"
-      if [ $? -eq 0 ]; then
+
+      # Launch OS package manager with verbosity in mind
+      if $D_OPT_QUIET; then
+
+        # Launch quietly
+        os_pkgmgr dinstall "$pkgname" &>/dev/null
+
+      else
+
+        # Launch normally, but re-paint output
+        local line
+        os_pkgmgr dinstall "$pkgname" 2>&1 \
+          | while IFS= read -r line || [ -n "$line" ]; do
+          printf "${CYAN}==> %s${NORMAL}\n" "$line"
+        done
+
+      fi
+
+      # Check return status
+      if [ "${PIPESTATUS[0]}" -eq 0 ]; then
         dstash --root --skip-checks set "pkg_$( dmd5 -s "$pkgname" )"
         dprint_ode "${D_ODE_NAME[@]}" -c "$GREEN" -- \
           'vvv' 'Installed' ':' "$task_desc" "$task_name"
@@ -218,9 +236,13 @@ __install_pkgs()
         dprint_ode "${D_ODE_NAME[@]}" -c "$RED" -- \
           'xxx' 'Failed' ':' "$task_desc" "$task_name"
       fi
+
     else
+
+      # Not installing
       dprint_ode "${D_ODE_NAME[@]}" -c "$WHITE" -- \
         '---' 'Skipped' ':' "$task_desc" "$task_name"
+
     fi
 
   done

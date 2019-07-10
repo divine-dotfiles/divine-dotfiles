@@ -71,8 +71,25 @@ __offer_util()
           # Announce installation
           dprint_debug "Installing $util_name"
 
-          # Attempt installation
-          if os_pkgmgr dinstall "$util_name"; then
+          # Launch OS package manager with verbosity in mind
+          if $D_OPT_QUIET; then
+
+            # Launch quietly
+            os_pkgmgr dinstall "$util_name" &>/dev/null
+
+          else
+
+            # Launch normally, but re-paint output
+            local line
+            os_pkgmgr dinstall "$util_name" 2>&1 \
+              | while IFS= read -r line || [ -n "$line" ]; do
+              printf "${CYAN}==> %s${NORMAL}\n" "$line"
+            done
+
+          fi
+
+          # Check return status
+          if [ "${PIPESTATUS[0]}" -eq 0 ]; then
 
             # Announce success
             dprint_success -l "Successfully installed $util_name"

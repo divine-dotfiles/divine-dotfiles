@@ -74,17 +74,38 @@ __update_pkgs()
 
     # Update packages
     if $proceeding; then
-      os_pkgmgr dupdate
-      if [ $? -eq 0 ]; then
+
+      # Launch OS package manager with verbosity in mind
+      if $D_OPT_QUIET; then
+
+        # Launch quietly
+        os_pkgmgr dupdate &>/dev/null
+
+      else
+
+        # Launch normally, but re-paint output
+        local line
+        os_pkgmgr dupdate 2>&1 | while IFS= read -r line || [ -n "$line" ]; do
+          printf "${CYAN}==> %s${NORMAL}\n" "$line"
+        done
+
+      fi
+
+      # Check return status
+      if [ "${PIPESTATUS[0]}" -eq 0 ]; then
         dprint_ode "${D_ODE_UPDATE[@]}" -c "$GREEN" -- \
           'vvv' 'Updated' ':' "$task_desc" "$task_name"
       else
         dprint_ode "${D_ODE_UPDATE[@]}" -c "$RED" -- \
           'xxx' 'Failed to update' ':' "$task_desc" "$task_name"
       fi
+
     else
+
+      # Not updating packages
       dprint_ode "${D_ODE_UPDATE[@]}" -c "$WHITE" -- \
         '---' 'Skipped updating' ':' "$task_desc" "$task_name"
+
     fi
 
   fi

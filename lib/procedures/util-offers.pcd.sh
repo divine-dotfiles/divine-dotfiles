@@ -171,8 +171,25 @@ __remove_all_offered_utils()
           # Announce un-installation
           dprint_start -l "Un-installing $installed_util"
 
-          # Attempt un-installation
-          if os_pkgmgr dremove "$installed_util"; then
+          # Launch OS package manager with verbosity in mind
+          if $D_OPT_QUIET; then
+
+            # Launch quietly
+            os_pkgmgr dremove "$installed_util" &>/dev/null
+
+          else
+
+            # Launch normally, but re-paint output
+            local line
+            os_pkgmgr dremove "$installed_util" 2>&1 \
+              | while IFS= read -r line || [ -n "$line" ]; do
+              printf "${CYAN}==> %s${NORMAL}\n" "$line"
+            done
+
+          fi
+
+          # Check return status
+          if [ "${PIPESTATUS[0]}" -eq 0 ]; then
 
             # Announce
             dprint_success -l "Successfully un-installed $installed_util"

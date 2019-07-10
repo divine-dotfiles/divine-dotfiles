@@ -230,8 +230,26 @@ __remove_pkgs()
 
     # Remove package
     if $proceeding; then
-      os_pkgmgr dremove "$pkgname"
-      if [ $? -eq 0 ]; then
+
+      # Launch OS package manager with verbosity in mind
+      if $D_OPT_QUIET; then
+
+        # Launch quietly
+        os_pkgmgr dremove "$pkgname" &>/dev/null
+
+      else
+
+        # Launch normally, but re-paint output
+        local line
+        os_pkgmgr dremove "$pkgname" 2>&1 \
+          | while IFS= read -r line || [ -n "$line" ]; do
+          printf "${CYAN}==> %s${NORMAL}\n" "$line"
+        done
+
+      fi
+
+      # Check return status
+      if [ "${PIPESTATUS[0]}" -eq 0 ]; then
         dstash --root --skip-checks unset "pkg_$( dmd5 -s "$pkgname" )"
         dprint_ode "${D_ODE_NAME[@]}" -c "$GREEN" -- \
           'vvv' 'Removed' ':' "$task_desc" "$task_name"
@@ -239,9 +257,13 @@ __remove_pkgs()
         dprint_ode "${D_ODE_NAME[@]}" -c "$RED" -- \
           'xxx' 'Failed' ':' "$task_desc" "$task_name"
       fi
+
     else
+
+      # Not removing
       dprint_ode "${D_ODE_NAME[@]}" -c "$WHITE" -- \
         '---' 'Skipped' ':' "$task_desc" "$task_name"
+
     fi
 
   done
