@@ -237,119 +237,139 @@ __remove_all_dpls()
 
 __uninstall_homebrew()
 {
-  if dstash_root_get installed_homebrew; then
+  # Check stash records
+  if ! dstash_root_get installed_homebrew; then
+    # No record of Homebrew installation: silently return a-ok
+    return 0
+  fi
 
-    # Offer to remove deployments
-    dprompt_key "$D_REMOVE_BREW" --or-quit 'Remove?' \
-      '[optional] Remove Homebrew' \
-      'Detected Homebrew that has been installed by this framework'
+  # Offer to remove Homebrew
+  dprompt_key "$D_REMOVE_BREW" --or-quit 'Remove?' \
+    '[optional] Remove Homebrew' \
+    'Detected Homebrew that has been installed by this framework'
 
-    # Check exit status
-    case $? in
-      0)  dprint_start 'Removing Homebrew';;
-      1)  dprint_skip 'Refused to remove Homebrew'
-          return 0
-          ;;
-      *)  dprint_skip 'Refused to remove Homebrew'
-          return 1
-          ;;
-    esac
+  # Check exit status
+  case $? in
+    0)  dprint_start 'Removing Homebrew';;
+    1)  dprint_skip 'Refused to remove Homebrew'
+        return 0
+        ;;
+    *)  dprint_skip 'Refused to remove Homebrew'
+        return 1
+        ;;
+  esac
 
-    ## Homebrew has been previously auto-installed. This could only have 
-    #. happened on macOS, so assume macOS environment.
+  ## Homebrew has been previously auto-installed. This could only have 
+  #. happened on macOS, so assume macOS environment.
 
-    # Make temp dir for the uninstall script
-    local tmpdir=$( mktemp -d )
+  # Make temp dir for the uninstall script
+  local tmpdir=$( mktemp -d )
 
-    # Download script into that directory
-    curl -fsSLo "$tmpdir/uninstall" \
-      https://raw.githubusercontent.com/Homebrew/install/master/uninstall
+  # Download script into that directory
+  if curl -fsSLo "$tmpdir/uninstall" \
+    https://raw.githubusercontent.com/Homebrew/install/master/uninstall
+  then
 
     # Make script executable
-    chmod +x "$tmpdir/uninstall"
-      
-    # Execute script
-    $tmpdir/uninstall --force
+    if chmod +x "$tmpdir/uninstall"; then
 
-    # Report status
-    if [ $? -eq 0 ]; then
-      dprint_success 'Successfully removed Homebrew'
+      # Execute script with verbosity in mind
+      if $D_OPT_QUIET; then
+
+        # Run script quietly
+        $tmpdir/uninstall --force &>/dev/null
+
+      else
+
+        # Run script normally, but re-paint output
+        local line
+        $tmpdir/uninstall --force 2>&1 \
+          | while IFS= read -r line || [ -n "$line" ]; do
+            printf "${CYAN}==> %s${NORMAL}\n" "$line"
+          done
+
+      fi
+
+      # Report status
+      if [ ${PIPESTATUS[0]} -eq 0 ]; then
+        dprint_success 'Successfully removed Homebrew'
+      else
+        dprint_failure 'Failed to remove Homebrew'
+      fi
+
     else
-      dprint_failure 'Failed to remove Homebrew'
+
+      dprint_failure \
+        'Failed to set executable flag on Homebrew uninstallation script'
+
     fi
 
-    # Is user happy?
-    dprompt_key "$D_REMOVE_BREW" 'Proceed with uninstallation?' \
-      'Please, confirm whether previous stage ran satisfactory'
-
-    # Return status based on user’s choice
-    return $?
-
   else
-
-    # No record: just return a-ok
-    return 0
-
+      dprint_failure 'Failed to download Homebrew uninstallation script'
   fi
+
+  # Is user happy?
+  dprompt_key "$D_REMOVE_BREW" 'Proceed with uninstallation?' \
+    'Please, confirm whether previous stage ran satisfactory'
+
+  # Return status based on user’s choice
+  return $?
 }
 
 __uninstall_utils()
 {
-  if dstash_root_get installed_util; then
-
-    # Offer to remove deployments
-    dprompt_key "$D_REMOVE_UTILS" --or-quit 'Remove?' \
-      '[optional] Remove optional utilities' \
-      'Detected optional utilities that have been installed by this framework'
-
-    # Check exit status
-    case $? in
-      0)  dprint_start 'Removing optional utilities';;
-      1)  dprint_skip 'Refused to remove optional utilities'
-          return 0
-          ;;
-      *)  dprint_skip 'Refused to remove optional utilities'
-          return 1
-          ;;
-    esac
-
-    # Run removal
-    if $D_OPT_QUIET; then
-      if [ "$D_REMOVE_UTILS" = true ]; then
-        "$D_INSTALL_PATH"/intervene.sh cecf357ed9fed1037eb906633a4299ba --yes
-      else
-        "$D_INSTALL_PATH"/intervene.sh cecf357ed9fed1037eb906633a4299ba
-      fi
-    else
-      if [ "$D_REMOVE_UTILS" = true ]; then
-        "$D_INSTALL_PATH"/intervene.sh cecf357ed9fed1037eb906633a4299ba \
-          --yes --verbose
-      else
-        "$D_INSTALL_PATH"/intervene.sh cecf357ed9fed1037eb906633a4299ba \
-          --verbose
-      fi
-    fi
-
-    # Report status
-    if [ $? -eq 0 ]; then
-      dprint_success 'Successfully removed optional utilities'
-    else
-      dprint_failure 'Failed to remove optional utilities'
-    fi
-
-    # Is user happy?
-    dprompt_key "$D_REMOVE_UTILS" 'Proceed with uninstallation?' \
-      'Please, confirm whether previous stage ran satisfactory'
-
-    # Return status based on user’s choice
-    return $?
-
-  else
-
-    # No record: just return a-ok
+  # Check stash records
+  if ! dstash_root_get installed_util; then
+    # No record of utility installations: silently return a-ok
     return 0
-
   fi
+
+  # Offer to remove deployments
+  dprompt_key "$D_REMOVE_UTILS" --or-quit 'Remove?' \
+    '[optional] Remove optional utilities' \
+    'Detected optional utilities that have been installed by this framework'
+
+  # Check exit status
+  case $? in
+    0)  dprint_start 'Removing optional utilities';;
+    1)  dprint_skip 'Refused to remove optional utilities'
+        return 0
+        ;;
+    *)  dprint_skip 'Refused to remove optional utilities'
+        return 1
+        ;;
+  esac
+
+  # Run removal
+  if $D_OPT_QUIET; then
+    if [ "$D_REMOVE_UTILS" = true ]; then
+      "$D_INSTALL_PATH"/intervene.sh cecf357ed9fed1037eb906633a4299ba --yes
+    else
+      "$D_INSTALL_PATH"/intervene.sh cecf357ed9fed1037eb906633a4299ba
+    fi
+  else
+    if [ "$D_REMOVE_UTILS" = true ]; then
+      "$D_INSTALL_PATH"/intervene.sh cecf357ed9fed1037eb906633a4299ba \
+        --yes --verbose
+    else
+      "$D_INSTALL_PATH"/intervene.sh cecf357ed9fed1037eb906633a4299ba \
+        --verbose
+    fi
+  fi
+
+  # Report status
+  if [ $? -eq 0 ]; then
+    dprint_success 'Successfully removed optional utilities'
+  else
+    dprint_failure 'Failed to remove optional utilities'
+  fi
+
+  # Is user happy?
+  dprompt_key "$D_REMOVE_UTILS" 'Proceed with uninstallation?' \
+    'Please, confirm whether previous stage ran satisfactory'
+
+  # Return status based on user’s choice
+  return $?
 }
 
 __erase_d_dir()

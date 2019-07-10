@@ -15,7 +15,87 @@
 ## For reference, see lib/templates/adapters/distro.adp.sh
 #
 
-# Check if brew is available
+# Implement helper that offers to install Homebrew, and does it if user agrees
+__offer_to_install_brew()
+{
+  # Check if Homebrew is already installed
+  if HOMEBREW_NO_AUTO_UPDATE=1 brew --version &>/dev/null; then
+    return 0
+  fi
+
+  # Inform user of the tragic circumstances
+  dprint_start -l \
+    'Failed to detect Homebrew (package manager for macOS, https://brew.sh/)'
+
+  # Prompr user
+  if dprompt_key -b --color "$YELLOW" --answer "$D_OPT_ANSWER" \
+    --prompt "Install Homebrew?"
+  then
+
+    # Announce installation
+    dprint_debug 'Installing Homebrew'
+
+    # Launch installation with verbosity in mind
+    if $D_OPT_QUIET; then
+
+      # Launch quietly
+      /usr/bin/ruby -e \
+        "$( curl -fsSL \
+        https://raw.githubusercontent.com/Homebrew/install/master/install \
+        )" </dev/null &>/dev/null
+
+    else
+
+      # Launch normally, but re-paint output
+      local line
+      /usr/bin/ruby -e \
+        "$( curl -fsSL \
+        https://raw.githubusercontent.com/Homebrew/install/master/install \
+        )" </dev/null 2>&1 \
+        | while IFS= read -r line || [ -n "$line" ]; do
+          printf "${CYAN}==> %s${NORMAL}\n" "$line"
+        done
+
+    fi
+
+    # Check exit code and print status message
+    if [ ${PIPESTATUS[0]} -eq 0 ]; then
+
+      # Make record of installation
+      if dstash -r -s add installed_homebrew; then
+        dprint_debug "Recorded installation of Homebrew to root stash"
+      else
+        dprint_failure -l \
+          "Failed to record installation of Homebrew to root stash"
+      fi
+
+      # Announce success
+      dprint_success -l "Successfully installed Homebrew"
+
+      # Return status
+      return 0
+
+    else
+
+      # Announce and return failure
+      dprint_failure -l "Failed to install Homebrew"
+      return 1
+
+    fi
+
+  else
+
+    # Announce refusal to install and return
+    dprint_skip -l "Refused to install Homebrew"
+    return 1
+
+  fi
+}
+
+# Offer to install Homebrew ASAP
+__offer_to_install_brew
+
+# Afterward, check if brew is available
 if HOMEBREW_NO_AUTO_UPDATE=1 brew --version &>/dev/null; then
 
   # Implement printer of package manager’s name
@@ -57,65 +137,3 @@ __override_d_targets_for_distro()
     
   fi
 }
-
-# Implement helper that offers to install Homebrew, and does it if user agrees
-__offer_to_install_brew()
-{
-  # Check if Homebrew is already installed
-  if HOMEBREW_NO_AUTO_UPDATE=1 brew --version &>/dev/null; then
-    return 0
-  fi
-
-  # Inform user of the tragic circumstances
-  printf >&2 '%s\n' \
-    'Failed to detect Homebrew (package manager for macOS, https://brew.sh/)'
-
-  # Prompt user
-  local yes=false
-  if [ "$D_OPT_ANSWER" = true ]; then yes=true
-  elif [ "$D_OPT_ANSWER" = false ]; then yes=false
-  else
-
-    # Print question
-    printf >&2 '%s' 'Would you like to install it? [y/n] '
-
-    # Await answer
-    while true; do
-      read -rsn1 input
-      [[ $input =~ ^(y|Y)$ ]] && { printf 'y'; yes=true;  break; }
-      [[ $input =~ ^(n|N)$ ]] && { printf 'n'; yes=false; break; }
-    done
-    printf '\n'
-
-  fi
-
-  # Check if user accepted
-  if $yes; then
-
-    # Announce installation
-    printf >&2 '%s\n' 'Installing Homebrew'
-
-    # Proceed with automated installation
-    /usr/bin/ruby -e \
-      "$( curl -fsSL \
-      https://raw.githubusercontent.com/Homebrew/install/master/install \
-      )" </dev/null
-
-    # Check exit code and print status message
-    if [ $? -eq 0 ]; then
-      printf >&2 '%s\n' 'Successfully installed Homebrew'
-      dstash -r -s set installed_homebrew
-    else
-      printf >&2 '%s\n' 'Failed to install Homebrew'
-    fi
-
-  else
-
-    # Proceeding without Homebrew
-    printf >&2 '%s\n' 'Proceeding without Homebrew'
-
-  fi
-}
-
-# Run helper as soon as file is sourced
-__offer_to_install_brew

@@ -48,7 +48,7 @@ __offer_util()
   esac; [ $? -eq 0 ] && return 0
 
   # Print initial warning
-  dprint_debug "Failed to detect $util_name executable"
+  dprint_debug "Failed to detect $util_name executable on \$PATH"
 
   # Check if $OS_PKGMGR is detected
   if [ -z ${OS_PKGMGR+isset} ]; then
@@ -61,7 +61,7 @@ __offer_util()
   else
 
     # Prompt user for whether to install utility
-    dprompt_key --bare --or-quit --answer "$D_OPT_ANSWER" \
+    dprompt_key -b --color "$YELLOW" --or-quit --answer "$D_OPT_ANSWER" \
       --prompt "Install $util_name using $OS_PKGMGR?"
 
     # Check status
@@ -91,16 +91,16 @@ __offer_util()
           # Check return status
           if [ "${PIPESTATUS[0]}" -eq 0 ]; then
 
-            # Announce success
-            dprint_success -l "Successfully installed $util_name"
-
             # Make record of installation
             if dstash -r -s add installed_util "$util_name"; then
-              dprint_debug "Recorded installation to root stash"
+              dprint_debug "Recorded installation of $util_name to root stash"
             else
               dprint_failure -l \
                 "Failed to record installation of $util_name to root stash"
             fi
+
+            # Announce success
+            dprint_success -l "Successfully installed $util_name"
 
             # Return status
             return 0
