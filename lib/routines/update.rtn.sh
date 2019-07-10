@@ -581,9 +581,21 @@ __updating__update_fmwk_via_git()
 
   # Pull and rebase and check for errors (control verbosity)
   if $D_OPT_QUIET; then
+
+    # Pull and rebase quietly
     git pull --rebase --stat origin master &>/dev/null && return 0 || return 1
+
   else
-    if git pull --rebase --stat origin master; then
+
+    # Pull and rebase normally, but re-paint output
+    local line
+    git pull --rebase --stat origin master 2>&1 \
+      | while IFS= read -r line || [ -n "$line" ]; do
+      printf "${CYAN}==> %s${NORMAL}\n" "$line"
+    done
+
+    # Check return status
+    if [ "${PIPESTATUS[0]}" -eq 0 ]; then
       dprint_debug 'Successfully pulled from Github repo to:' \
         -i "$D_DIR_FMWK"
       return 0
@@ -592,6 +604,7 @@ __updating__update_fmwk_via_git()
         -i "$D_DIR_FMWK"
       return 1
     fi
+
   fi
 }
 
@@ -613,9 +626,21 @@ __updating__update_grail_via_git()
 
   # Pull and rebase and check for errors (control verbosity)
   if $D_OPT_QUIET; then
+
+    # Pull and rebase quietly
     git pull --rebase --stat origin master &>/dev/null && return 0 || return 1
+
   else
-    if git pull --rebase --stat origin master; then
+
+    # Pull and rebase normally, but re-paint output
+    local line
+    git pull --rebase --stat origin master 2>&1 \
+      | while IFS= read -r line || [ -n "$line" ]; do
+      printf "${CYAN}==> %s${NORMAL}\n" "$line"
+    done
+
+    # Check return status
+    if [ "${PIPESTATUS[0]}" -eq 0 ]; then
       dprint_debug 'Successfully pulled from remote to:' \
         -i "$D_DIR_GRAIL"
       return 0
@@ -624,6 +649,7 @@ __updating__update_grail_via_git()
         -i "$D_DIR_GRAIL"
       return 1
     fi
+
   fi
 }
 
@@ -880,9 +906,21 @@ __updating__update_dpl_repo_via_git()
 
   # Pull and rebase and check for errors (control verbosity)
   if $D_OPT_QUIET; then
+    
+    # Pull and rebase quietly
     git pull --rebase --stat origin master &>/dev/null && return 0 || return 1
+
   else
-    if git pull --rebase --stat origin master; then
+
+    # Pull and rebase normally, but re-paint output
+    local line
+    git pull --rebase --stat origin master 2>&1 \
+      | while IFS= read -r line || [ -n "$line" ]; do
+      printf "${CYAN}==> %s${NORMAL}\n" "$line"
+    done
+
+    # Check return status
+    if [ "${PIPESTATUS[0]}" -eq 0 ]; then
       dprint_debug 'Successfully pulled from remote repo to:' \
         -i "$repo_path"
       return 0
@@ -891,6 +929,7 @@ __updating__update_dpl_repo_via_git()
         -i "$repo_path"
       return 1
     fi
+    
   fi
 }
 
