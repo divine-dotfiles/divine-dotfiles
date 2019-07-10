@@ -59,7 +59,7 @@ __offer_to_install_brew()
     fi
 
     # Check exit code and print status message
-    if [ ${PIPESTATUS[0]} -eq 0 ]; then
+    if [ "${PIPESTATUS[0]}" -eq 0 ]; then
 
       # Make record of installation
       if dstash -r -s add installed_homebrew; then

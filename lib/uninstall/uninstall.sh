@@ -291,7 +291,7 @@ __uninstall_homebrew()
       fi
 
       # Report status
-      if [ ${PIPESTATUS[0]} -eq 0 ]; then
+      if [ "${PIPESTATUS[0]}" -eq 0 ]; then
         dprint_success 'Successfully removed Homebrew'
       else
         dprint_failure 'Failed to remove Homebrew'
