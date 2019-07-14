@@ -108,9 +108,9 @@ __multitask_hlp__dremove()
 
     # If dremove function is implemented, run it, otherwise run a bogus func
     if declare -f -- "$func_name" &>/dev/null; then
-      __task_is_installable && "$func_name"
+      __task_is_removable && "$func_name"
     else
-      __task_is_installable && true
+      __task_is_removable && true
     fi
 
     # Catch returned code, or return immediately (emergency exit)
@@ -120,14 +120,6 @@ __multitask_hlp__dremove()
   done
 
   # As the last command, combine all previously caught dremove codes
-  __reconcile_dremove_codes
-
-  # Follow this pattern for each dremove-like function
-  __task_is_removable && task1_dremove; __catch_dremove_code || return $?
-  __task_is_removable && task2_dremove; __catch_dremove_code || return $?
-  __task_is_removable && task3_dremove; __catch_dremove_code || return $?
-  
-  # As the last command, call __reconcile_dremove_codes
   __reconcile_dremove_codes
 }
 
@@ -161,12 +153,12 @@ __catch_dcheck_code()
     && D_DPL_TASK_STATUS_SUMMARY=( true true true true true )
 
   # Small storage variable
-  local i
+  local j
 
   # Check exit code
   case $last_code in
     1)  # Installed: flip flags
-        for i in 0 2 3 4; do D_DPL_TASK_STATUS_SUMMARY[$i]=false; done
+        for j in 0 2 3 4; do D_DPL_TASK_STATUS_SUMMARY[$j]=false; done
 
         # Check if user-or-os flag is currently set
         if [ "$D_USER_OR_OS" = true ]; then
@@ -188,19 +180,19 @@ __catch_dcheck_code()
         fi
         ;;
     2)  # Not installed: flip flags
-        for i in 0 1 3 4; do D_DPL_TASK_STATUS_SUMMARY[$i]=false; done
+        for j in 0 1 3 4; do D_DPL_TASK_STATUS_SUMMARY[$j]=false; done
 
         # Allow installation
         __multitask_hlp__current_task set can_be_installed
         ;;
     3)  # Irrelevant: flip flags
-        for i in 0 1 2 4; do D_DPL_TASK_STATUS_SUMMARY[$i]=false; done
+        for j in 0 1 2 4; do D_DPL_TASK_STATUS_SUMMARY[$j]=false; done
 
         # Should not be touched
         __multitask_hlp__current_task set is_irrelevant
         ;;
     4)  # Partly installed: flip flags
-        for i in 0 1 2 3; do D_DPL_TASK_STATUS_SUMMARY[$i]=false; done
+        for j in 0 1 2 3; do D_DPL_TASK_STATUS_SUMMARY[$j]=false; done
 
         # Check if user-or-os flag is currently set
         if [ "$D_USER_OR_OS" = true ]; then
@@ -224,7 +216,7 @@ __catch_dcheck_code()
         fi
         ;;
     *)  # Unknown status: flip flags
-        for i in 1 2 3 4; do D_DPL_TASK_STATUS_SUMMARY[$i]=false; done
+        for j in 1 2 3 4; do D_DPL_TASK_STATUS_SUMMARY[$j]=false; done
 
         # Allow installation and removal
         __multitask_hlp__current_task set can_be_installed
@@ -358,24 +350,24 @@ __catch_dinstall_code()
   [ -z ${D_DPL_TASK_STATUS_SUMMARY+isset} ] \
     && D_DPL_TASK_STATUS_SUMMARY=( true true true false )
 
+  # Small storage variable
+  local j
+
   # If task was skipped, flip flags and return
   if __multitask_hlp__current_task is_skipped; then
-    for i in 0 1; do D_DPL_TASK_STATUS_SUMMARY[$i]=false; done
+    for j in 0 1; do D_DPL_TASK_STATUS_SUMMARY[$j]=false; done
     return 0
   fi
-
-  # Small storage variable
-  local i
 
   # Check exit code
   case $last_code in
     1)    # Failed to install: flip flags
-          for i in 0 2; do D_DPL_TASK_STATUS_SUMMARY[$i]=false; done
+          for j in 0 2; do D_DPL_TASK_STATUS_SUMMARY[$j]=false; done
           # Also, mark occurrence of failure
           D_DPL_TASK_STATUS_SUMMARY[3]=true
           ;;
     2)    # Skipped: flip flags
-          for i in 0 1; do D_DPL_TASK_STATUS_SUMMARY[$i]=false; done
+          for j in 0 1; do D_DPL_TASK_STATUS_SUMMARY[$j]=false; done
           ;;
     100)  # Emergency: reboot needed
           return 100
@@ -387,7 +379,7 @@ __catch_dinstall_code()
           return 666
           ;;
     *)    # Installed: flip flags
-          for i in 1 2; do D_DPL_TASK_STATUS_SUMMARY[$i]=false; done
+          for j in 1 2; do D_DPL_TASK_STATUS_SUMMARY[$j]=false; done
           ;;
   esac
 
@@ -498,24 +490,24 @@ __catch_dremove_code()
   [ -z ${D_DPL_TASK_STATUS_SUMMARY+isset} ] \
     && D_DPL_TASK_STATUS_SUMMARY=( true true true false )
 
+  # Small storage variable
+  local j
+
   # If task was skipped, flip flags and return
   if __multitask_hlp__current_task is_skipped; then
-    for i in 0 1; do D_DPL_TASK_STATUS_SUMMARY[$i]=false; done
+    for j in 0 1; do D_DPL_TASK_STATUS_SUMMARY[$j]=false; done
     return 0
   fi
-
-  # Small storage variable
-  local i
 
   # Check exit code
   case $last_code in
     1)    # Failed to install: flip flags
-          for i in 0 2; do D_DPL_TASK_STATUS_SUMMARY[$i]=false; done
+          for j in 0 2; do D_DPL_TASK_STATUS_SUMMARY[$j]=false; done
           # Also, mark occurrence of failure
           D_DPL_TASK_STATUS_SUMMARY[3]=true
           ;;
     2)    # Skipped: flip flags
-          for i in 0 1; do D_DPL_TASK_STATUS_SUMMARY[$i]=false; done
+          for j in 0 1; do D_DPL_TASK_STATUS_SUMMARY[$j]=false; done
           ;;
     100)  # Emergency: reboot needed
           return 100
@@ -527,7 +519,7 @@ __catch_dremove_code()
           return 666
           ;;
     *)    # Installed: flip flags
-          for i in 1 2; do D_DPL_TASK_STATUS_SUMMARY[$i]=false; done
+          for j in 1 2; do D_DPL_TASK_STATUS_SUMMARY[$j]=false; done
           ;;
   esac
 
