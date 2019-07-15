@@ -140,7 +140,7 @@ __locate_installations()
     && D_SHORTCUT_FILEPATHS+=( "$D_SHORTCUT_FILEPATH" )
 
   # Try to figure location of shortcut command
-  if dstash_root_get di_shortcut; then
+  if dstash_root_get di_shortcut &>/dev/null; then
 
     # Extract stashed record
     shortcut_filepath="$( dstash_root_get di_shortcut )"
@@ -238,7 +238,7 @@ __remove_all_dpls()
 __uninstall_homebrew()
 {
   # Check stash records
-  if ! dstash_root_get installed_homebrew; then
+  if ! dstash_root_get installed_homebrew &>/dev/null; then
     # No record of Homebrew installation: silently return a-ok
     return 0
   fi
@@ -319,7 +319,7 @@ __uninstall_homebrew()
 __uninstall_utils()
 {
   # Check stash records
-  if ! dstash_root_get installed_util; then
+  if ! dstash_root_get installed_util &>/dev/null; then
     # No record of utility installations: silently return a-ok
     return 0
   fi
