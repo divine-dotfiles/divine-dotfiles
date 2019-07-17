@@ -325,9 +325,9 @@ __remove_dpls()
     [ -r "$divinedpl_filepath" -a -f "$divinedpl_filepath" ] || continue
 
     # Unset any variables that might have been set by previous deployments
-    __unset_d_vars
+    d__unset_d_vars
     # Unset any functions that might have been set by previous deployments
-    __unset_d_funcs
+    d__unset_d_funcs
     # Empty out storage variables
     name=
     desc=
