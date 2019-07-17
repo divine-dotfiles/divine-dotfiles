@@ -43,10 +43,10 @@ d__print_os_pkgmgr_name() {
 #
 ## Arguments:
 #.  $1  - One of four routines to launch:
-#.          * ‘dupdate’   - update installed packages (other args ignored)
-#.          * ‘dcheck’    - check whether listed packages are installed
-#.          * ‘dinstall’  - install listed packages
-#.          * ‘dremove’   - uninstall listed packages
+#.          * ‘update’   - update installed packages (other args ignored)
+#.          * ‘check’    - check whether listed packages are installed
+#.          * ‘install’  - install listed packages
+#.          * ‘remove’   - uninstall listed packages
 #.  $@  - Packages to work on
 #
 ## Returns:
