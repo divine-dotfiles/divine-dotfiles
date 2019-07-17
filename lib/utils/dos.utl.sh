@@ -19,8 +19,8 @@
 #
 ## Provides into the global scope these functions:
 #.  d__os_pkgmgr - Thin wrapper around system’s package manager. Accepts the 
-#.              following commands as first argument: ‘dupdate’, ‘dcheck’, 
-#.              ‘dinstall’, and ‘dremove’. Remaining arguments are relayed to 
+#.              following commands as first argument: ‘update’, ‘check’, 
+#.              ‘install’, and ‘remove’. Remaining arguments are relayed to 
 #.              package manager verbatim. Avoids prompting for user input 
 #.              (except sudo password). Returns whatever the package manager 
 #.              returns, or -1 for unrecognized package manager.
@@ -293,8 +293,8 @@ __populate_os_distro()
 #.                  * ‘yum’     - older Fedora
 #.                  * unset     - Not recognized
 #.  d__os_pkgmgr - Thin wrapper around system’s package manager. Accepts the 
-#.              following commands as first argument: ‘dupdate’, ‘dcheck’, 
-#.              ‘dinstall’, and ‘dremove’. Remaining arguments are relayed to 
+#.              following commands as first argument: ‘update’, ‘check’, 
+#.              ‘install’, and ‘remove’. Remaining arguments are relayed to 
 #.              package manager verbatim. Avoids prompting for user input 
 #.              (except sudo password). Returns whatever the package manager 
 #.              returns, or -1 for unrecognized package manager.
