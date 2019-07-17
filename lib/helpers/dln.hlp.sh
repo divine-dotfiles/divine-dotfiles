@@ -187,8 +187,8 @@ __dln_hlp__pre_process()
   if ! [ ${#D__DPL_TARGET_PATHS[@]} -gt 1 -o -n "$D__DPL_TARGET_PATHS" ]; then
 
     # Report and return failure
-    local detected_os="$OS_FAMILY"
-    [ -n "$OS_DISTRO" ] && detected_os+=" ($OS_DISTRO)"
+    local detected_os="$D__OS_FAMILY"
+    [ -n "$D__OS_DISTRO" ] && detected_os+=" ($D__OS_DISTRO)"
     dprint_debug \
       'Empty list of paths to replace ($D__DPL_TARGET_PATHS) for detected OS:' \
       "$detected_os"

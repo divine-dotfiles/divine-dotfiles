@@ -121,7 +121,7 @@ __install_pkgs()
   $D__REQ_PACKAGES || return 1
 
   # Check whether package manager has been detected
-  [ -n "$OS_PKGMGR" ] || return 1
+  [ -n "$D__OS_PKGMGR" ] || return 1
 
   # Extract priority
   local priority
@@ -170,7 +170,7 @@ __install_pkgs()
 
     # Don’t proceed if already installed (except when forcing)
     if $proceeding; then
-      if os_pkgmgr dcheck "$pkgname"; then
+      if d__os_pkgmgr check "$pkgname"; then
         task_name="$task_name (already installed)"
         $D__OPT_FORCE || proceeding=false
       fi
@@ -214,13 +214,13 @@ __install_pkgs()
       if $D__OPT_QUIET; then
 
         # Launch quietly
-        os_pkgmgr dinstall "$pkgname" &>/dev/null
+        d__os_pkgmgr install "$pkgname" &>/dev/null
 
       else
 
         # Launch normally, but re-paint output
         local line
-        os_pkgmgr dinstall "$pkgname" 2>&1 \
+        d__os_pkgmgr install "$pkgname" 2>&1 \
           | while IFS= read -r line || [ -n "$line" ]; do
           printf "${CYAN}==> %s${NORMAL}\n" "$line"
         done

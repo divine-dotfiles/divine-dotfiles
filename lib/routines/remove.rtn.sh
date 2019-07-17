@@ -128,7 +128,7 @@ __remove_pkgs()
   $D__REQ_PACKAGES || return 1
 
   # Check whether package manager has been detected
-  [ -n "$OS_PKGMGR" ] || return 1
+  [ -n "$D__OS_PKGMGR" ] || return 1
 
   # Extract priority
   local priority
@@ -180,7 +180,7 @@ __remove_pkgs()
 
     # Don’t proceed if already removed (except when forcing)
     if $proceeding; then
-      if os_pkgmgr dcheck "$pkgname"; then
+      if d__os_pkgmgr check "$pkgname"; then
         if dstash --root --skip-checks has "pkg_$( dmd5 -s "$pkgname" )"; then
           # Installed by this framework: remove
           :
@@ -235,13 +235,13 @@ __remove_pkgs()
       if $D__OPT_QUIET; then
 
         # Launch quietly
-        os_pkgmgr dremove "$pkgname" &>/dev/null
+        d__os_pkgmgr remove "$pkgname" &>/dev/null
 
       else
 
         # Launch normally, but re-paint output
         local line
-        os_pkgmgr dremove "$pkgname" 2>&1 \
+        d__os_pkgmgr remove "$pkgname" 2>&1 \
           | while IFS= read -r line || [ -n "$line" ]; do
           printf "${CYAN}==> %s${NORMAL}\n" "$line"
         done

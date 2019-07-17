@@ -99,18 +99,18 @@ __offer_to_install_brew
 if HOMEBREW_NO_AUTO_UPDATE=1 brew --version &>/dev/null; then
 
   # Implement printer of package manager’s name
-  __print_os_pkgmgr() { printf '%s\n' 'brew'; }
+  d__print_os_pkgmgr_name() { printf '%s\n' 'brew'; }
 
   # Implement wrapper around package manager
-  os_pkgmgr()
+  d__os_pkgmgr()
   {
     # Perform action depending on first argument
     case "$1" in
-      dupdate)  brew update; brew upgrade;;
-      dcheck)   shift
+      update)  brew update; brew upgrade;;
+      check)   shift
                 HOMEBREW_NO_AUTO_UPDATE=1 brew list "$1" &>/dev/null;;
-      dinstall) shift; brew install "$1";;
-      dremove)  shift; brew uninstall "$1";;
+      install) shift; brew install "$1";;
+      remove)  shift; brew uninstall "$1";;
       *)        return 1;;
     esac
   }

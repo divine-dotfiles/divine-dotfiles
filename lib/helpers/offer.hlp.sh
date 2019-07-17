@@ -50,8 +50,8 @@ __offer_util()
   # Print initial warning
   dprint_debug "Failed to detect $util_name executable on \$PATH"
 
-  # Check if $OS_PKGMGR is detected
-  if [ -z ${OS_PKGMGR+isset} ]; then
+  # Check if $D__OS_PKGMGR is detected
+  if [ -z ${D__OS_PKGMGR+isset} ]; then
 
     # No option to install: report and return
     dprint_failure -l \
@@ -62,7 +62,7 @@ __offer_util()
 
     # Prompt user for whether to install utility
     dprompt_key -b --color "$YELLOW" --or-quit --answer "$D__OPT_ANSWER" \
-      --prompt "Install $util_name using $OS_PKGMGR?"
+      --prompt "Install $util_name using $D__OS_PKGMGR?"
 
     # Check status
     case $? in
@@ -75,13 +75,13 @@ __offer_util()
           if $D__OPT_QUIET; then
 
             # Launch quietly
-            os_pkgmgr dinstall "$util_name" &>/dev/null
+            d__os_pkgmgr install "$util_name" &>/dev/null
 
           else
 
             # Launch normally, but re-paint output
             local line
-            os_pkgmgr dinstall "$util_name" 2>&1 \
+            d__os_pkgmgr install "$util_name" 2>&1 \
               | while IFS= read -r line || [ -n "$line" ]; do
               printf "${CYAN}==> %s${NORMAL}\n" "$line"
             done

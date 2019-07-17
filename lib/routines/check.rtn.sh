@@ -87,7 +87,7 @@ __check_pkgs()
   $D__REQ_PACKAGES || return 1
 
   # Check whether package manager has been detected
-  [ -n "$OS_PKGMGR" ] || return 1
+  [ -n "$D__OS_PKGMGR" ] || return 1
 
   # Extract priority
   local priority
@@ -137,7 +137,7 @@ __check_pkgs()
 
     # Perform check
     if $proceeding; then
-      if os_pkgmgr dcheck "$pkgname"; then        
+      if d__os_pkgmgr check "$pkgname"; then        
         # Check if record of installation exists in root stash
         if dstash --root --skip-checks has "pkg_$( dmd5 -s "$pkgname" )"; then
           # Installed by this framework

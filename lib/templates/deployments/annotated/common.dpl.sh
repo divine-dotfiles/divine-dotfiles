@@ -46,7 +46,7 @@
 #.              - (read-only) This variable will contain either ‘true’ or 
 #.                ‘false’ (never empty) based on whether packages are processed 
 #.                during this Divine intervention
-#.  $OS_FAMILY  - (read-only) Broad description of the current OS type, e.g.:
+#.  $D__OS_FAMILY  - (read-only) Broad description of the current OS type, e.g.:
 #.                  * ‘macos’
 #.                  * ‘linux’
 #.                  * ‘wsl’
@@ -55,14 +55,14 @@
 #.                  * ‘cygwin’
 #.                  * ‘msys’
 #.                  * unset     - Not recognized
-#.  $OS_DISTRO  - (read-only) Best guess on the name of the current OS 
+#.  $D__OS_DISTRO  - (read-only) Best guess on the name of the current OS 
 #.                distribution, without version, e.g.:
 #.                  * ‘macos’
 #.                  * ‘ubuntu’
 #.                  * ‘debian’
 #.                  * ‘fedora’
 #.                  * unset     - Not recognized
-#.  $OS_PKGMGR  - (read-only) Name of the package management utility available 
+#.  $D__OS_PKGMGR  - (read-only) Name of the package management utility available 
 #.                on the current system, e.g.:
 #.                  * ‘brew’    (macOS)
 #.                  * ‘apt-get’ (Debian, Ubuntu)

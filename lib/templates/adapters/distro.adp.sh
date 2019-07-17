@@ -13,27 +13,27 @@
 #. interface with particular OS distribution
 #
 ## For adapter file to be sourced and used, it must be named ‘DISTRO.adp.sh’ 
-#. and placed in lib/adapters/distro directory. ‘DISTRO’ must match $OS_DISTRO 
+#. and placed in lib/adapters/distro directory. ‘DISTRO’ must match $D__OS_DISTRO 
 #. variable’s value for distro being adapted for. (See lib/dos.utl.sh for 
-#. reference on $OS_DISTRO).
+#. reference on $D__OS_DISTRO).
 #
 
 # Conditionally implement next two functions (if package manager is available)
 if apt-get --version &>/dev/null; then
 
-#>  __print_os_pkgmgr
+#>  d__print_os_pkgmgr_name
 #
 ## Prints widely recognized name of package manager (e.g., ‘brew’ or ‘yum’) to 
-#. stdout. Printed string will be put into readonly global $OS_PKGMGR.
+#. stdout. Printed string will be put into readonly global $D__OS_PKGMGR.
 #
-__print_os_pkgmgr() {
+d__print_os_pkgmgr_name() {
   # Below is example implementation for Debian
 
   # Print name and return
   printf '%s\n' 'apt-get'
 }
 
-#>  os_pkgmgr dupdate|dcheck|dinstall|dremove [ARG]…
+#>  d__os_pkgmgr update|check|install|remove [ARG]…
 #
 ## Thin wrapper around system’s package manager. Launches one of the four 
 #. routines, which are supported by virtually any package manager out there.
@@ -55,7 +55,7 @@ __print_os_pkgmgr() {
 ## Prints:
 #.  Whatever underlying package manager prints
 #
-os_pkgmgr()
+d__os_pkgmgr()
 {
   # Below is example implementation for apt-get
 
@@ -64,10 +64,10 @@ os_pkgmgr()
     dprint_start -l "Working with apt-get requires sudo password"
   fi
   case "$1" in
-    dupdate)  sudo apt-get update -yq; sudo apt-get upgrade -yq;;
-    dcheck)   shift; $( dpkg-query -W -f='${Status}\n' "$1" 2>/dev/null | grep -qFx 'install ok installed' );;
-    dinstall) shift; sudo apt-get install -yq "$1";;
-    dremove)  shift; sudo apt-get remove -yq "$1";;
+    update)  sudo apt-get update -yq; sudo apt-get upgrade -yq;;
+    check)   shift; $( dpkg-query -W -f='${Status}\n' "$1" 2>/dev/null | grep -qFx 'install ok installed' );;
+    install) shift; sudo apt-get install -yq "$1";;
+    remove)  shift; sudo apt-get remove -yq "$1";;
     *)        return 1;;
   esac
 }

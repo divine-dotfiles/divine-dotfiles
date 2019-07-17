@@ -13,9 +13,9 @@
 #. interface with particular family of operating systems
 #
 ## For adapter file to be sourced and used, it must be named ‘FAMILY.adp.sh’ 
-#. and placed in lib/adapters/family directory. ‘FAMILY’ must match $OS_FAMILY 
+#. and placed in lib/adapters/family directory. ‘FAMILY’ must match $D__OS_FAMILY 
 #. variable’s value for OS family being adapted for. (See lib/dos.utl.sh for 
-#. reference on $OS_FAMILY).
+#. reference on $D__OS_FAMILY).
 #
 
 #>  __override_d_targets_for_family

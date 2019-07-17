@@ -19,20 +19,20 @@
 if apt-get --version &>/dev/null; then
 
   # Implement printer of package manager’s name
-  __print_os_pkgmgr() { printf '%s\n' 'apt-get'; }
+  d__print_os_pkgmgr_name() { printf '%s\n' 'apt-get'; }
 
   # Implement wrapper around package manager
-  os_pkgmgr()
+  d__os_pkgmgr()
   {
     # Perform action depending on first argument
     if ! sudo -n true 2>/dev/null; then
       dprint_start -l "Working with apt-get requires sudo password"
     fi
     case "$1" in
-      dupdate)  sudo apt-get update -yq; sudo apt-get upgrade -yq;;
-      dcheck)   shift; $( dpkg-query -W -f='${Status}\n' "$1" 2>/dev/null | grep -qFx 'install ok installed' );;
-      dinstall) shift; sudo apt-get install -yq "$1";;
-      dremove)  shift; sudo apt-get remove -yq "$1";;
+      update)  sudo apt-get update -yq; sudo apt-get upgrade -yq;;
+      check)   shift; $( dpkg-query -W -f='${Status}\n' "$1" 2>/dev/null | grep -qFx 'install ok installed' );;
+      install) shift; sudo apt-get install -yq "$1";;
+      remove)  shift; sudo apt-get remove -yq "$1";;
       *)        return 1;;
     esac
   }

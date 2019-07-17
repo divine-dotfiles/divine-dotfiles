@@ -136,8 +136,8 @@ __remove_all_offered_utils()
     exit 0
   fi
 
-  # Check if $OS_PKGMGR is detected
-  if [ -z ${OS_PKGMGR+isset} ]; then
+  # Check if $D__OS_PKGMGR is detected
+  if [ -z ${D__OS_PKGMGR+isset} ]; then
 
     # No option to uninstall: report and exit
     dprint_failure -l \
@@ -162,7 +162,7 @@ __remove_all_offered_utils()
 
     # Prompt user for whether to un-install utility
     dprompt_key --bare --or-quit --answer "$D__OPT_ANSWER" \
-      --prompt "Un-install $installed_util using $OS_PKGMGR?"
+      --prompt "Un-install $installed_util using $D__OS_PKGMGR?"
 
     # Check status
     case $? in
@@ -175,13 +175,13 @@ __remove_all_offered_utils()
           if $D__OPT_QUIET; then
 
             # Launch quietly
-            os_pkgmgr dremove "$installed_util" &>/dev/null
+            d__os_pkgmgr remove "$installed_util" &>/dev/null
 
           else
 
             # Launch normally, but re-paint output
             local line
-            os_pkgmgr dremove "$installed_util" 2>&1 \
+            d__os_pkgmgr remove "$installed_util" 2>&1 \
               | while IFS= read -r line || [ -n "$line" ]; do
               printf "${CYAN}==> %s${NORMAL}\n" "$line"
             done

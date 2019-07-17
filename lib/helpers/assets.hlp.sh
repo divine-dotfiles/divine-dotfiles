@@ -384,8 +384,8 @@ __process_manifest()
         for chunk in "${chunks[@]}"; do
 
           # Check if detected OS matches current chunk
-          if [[ $chunk =~ ^\ *$OS_FAMILY\ *$ ]] \
-            || [[ $chunk =~ ^\ *$OS_DISTRO\ *$ ]]
+          if [[ $chunk =~ ^\ *$D__OS_FAMILY\ *$ ]] \
+            || [[ $chunk =~ ^\ *$D__OS_DISTRO\ *$ ]]
           then
 
             # Flip flag and stop further chunk processing

@@ -16,7 +16,7 @@
 
 #> __update_pkgs
 #
-## Shared subroutine that runs update process on detected $OS_PKGMGR
+## Shared subroutine that runs update process on detected $D__OS_PKGMGR
 #
 ## Requires:
 #.  * Divine Bash utils: dOS (dps.utl.sh)
@@ -36,7 +36,7 @@ __update_pkgs()
 
     # Name current task
     local task_desc='System packages via'
-    local task_name="'${OS_PKGMGR}'"
+    local task_name="'${D__OS_PKGMGR}'"
 
     # Prefix priority
     task_desc="$( printf \
@@ -46,7 +46,7 @@ __update_pkgs()
     local proceeding=true
 
     # Don’t proceed if missing package manager
-    [ -z "$OS_PKGMGR" ] && {
+    [ -z "$D__OS_PKGMGR" ] && {
       task_name="$task_name (package manager not found)"
       proceeding=false
     }
@@ -79,13 +79,13 @@ __update_pkgs()
       if $D__OPT_QUIET; then
 
         # Launch quietly
-        os_pkgmgr dupdate &>/dev/null
+        d__os_pkgmgr update &>/dev/null
 
       else
 
         # Launch normally, but re-paint output
         local line
-        os_pkgmgr dupdate 2>&1 | while IFS= read -r line || [ -n "$line" ]; do
+        d__os_pkgmgr update 2>&1 | while IFS= read -r line || [ -n "$line" ]; do
           printf "${CYAN}==> %s${NORMAL}\n" "$line"
         done
 

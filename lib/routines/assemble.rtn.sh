@@ -83,7 +83,7 @@ __main__assemble_all_tasks()
         :;;
     1)  # Zero packages detected for current package manager
         dprint_debug 'Divinefiles collectively contain no packages' \
-          "for current package manager ($OS_PKGMGR)"
+          "for current package manager ($D__OS_PKGMGR)"
         ;;
     2)  # No package manager detected
         dprint_debug 'Divinefiles will not be processed' \
@@ -239,7 +239,7 @@ __main__validate_dpl_dirs()
 #.  $D__DIR_DPLS             - From __populate_globals
 #.  $D__DIR_DPL_REPOS        - From __populate_globals
 #.  $D__CONST_DEF_PRIORITY   - From __populate_globals
-#.  $OS_PKGMGR              - From Divine Bash utils: dOS (dos.utl.sh)
+#.  $D__OS_PKGMGR              - From Divine Bash utils: dOS (dos.utl.sh)
 #
 ## Modifies in the global scope:
 #.  * with ‘--enqueue’ option:
@@ -276,7 +276,7 @@ __scan_for_divinefiles()
   if $enqueueing; then
 
     # Check if there is a package manager detected for this system
-    [ -n "$OS_PKGMGR" ] || return 2
+    [ -n "$D__OS_PKGMGR" ] || return 2
 
     # Check if Divinefile processing is asked for
     $D__REQ_PACKAGES || return 3
@@ -365,8 +365,8 @@ __scan_for_divinefiles()
           # Ignore empty package manager names
           [ -n "$pkgmgr" ] || continue
 
-          # If it matches $OS_PKGMGR (case insensitively), use the alt list
-          if [[ $OS_PKGMGR == $pkgmgr ]]; then
+          # If it matches $D__OS_PKGMGR (case insensitively), use the alt list
+          if [[ $D__OS_PKGMGR == $pkgmgr ]]; then
             list="$( dtrim -- "$altlist" )"
             break  # First match wins
           fi

@@ -11,21 +11,21 @@
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
 #
 ## Provides into the global scope three read-only variables:
-#.  $OS_FAMILY  - (read-only) Broad description of the current OS type.
-#.  $OS_DISTRO  - (read-only) Best guess on the name of the current OS 
+#.  $D__OS_FAMILY  - (read-only) Broad description of the current OS type.
+#.  $D__OS_DISTRO  - (read-only) Best guess on the name of the current OS 
 #.                distribution, without version.
-#.  $OS_PKGMGR  - (read-only) Name of the package management utility available 
+#.  $D__OS_PKGMGR  - (read-only) Name of the package management utility available 
 #.                on the current system.
 #
 ## Provides into the global scope these functions:
-#.  os_pkgmgr - Thin wrapper around system’s package manager. Accepts the 
+#.  d__os_pkgmgr - Thin wrapper around system’s package manager. Accepts the 
 #.              following commands as first argument: ‘dupdate’, ‘dcheck’, 
 #.              ‘dinstall’, and ‘dremove’. Remaining arguments are relayed to 
 #.              package manager verbatim. Avoids prompting for user input 
 #.              (except sudo password). Returns whatever the package manager 
 #.              returns, or -1 for unrecognized package manager.
 #
-## List of supported distros ($OS_DISTRO) and utilities ($OS_PKGMGR) is not 
+## List of supported distros ($D__OS_DISTRO) and utilities ($D__OS_PKGMGR) is not 
 #. meant to be exhaustive, but instead is meant to be easily expandable for 
 #. particular use cases.
 #
@@ -52,7 +52,7 @@ __main()
 ## Detects the OS family and stores it in a read-only global variable
 #
 ## Provides into the global scope:
-#.  $OS_FAMILY  - (read-only) Broad description of the current OS type:
+#.  $D__OS_FAMILY  - (read-only) Broad description of the current OS type:
 #.                  * ‘macos’
 #.                  * ‘linux’
 #.                  * ‘wsl’ (Windows Subsystem for Linux)
@@ -150,25 +150,25 @@ __populate_os_family()
     dprint_failure -l 'Failed to detect OS family'
     exit 1
 
-  elif [ "$os_family" = "$OS_FAMILY" ]; then
+  elif [ "$os_family" = "$D__OS_FAMILY" ]; then
 
-    # $OS_FAMILY is set to correct value: ensure it is read-only
-    ( unset OS_FAMILY 2>/dev/null ) && readonly OS_FAMILY
+    # $D__OS_FAMILY is set to correct value: ensure it is read-only
+    ( unset D__OS_FAMILY 2>/dev/null ) && readonly D__OS_FAMILY
     return 0
 
-  elif ( unset OS_FAMILY 2>/dev/null ); then
+  elif ( unset D__OS_FAMILY 2>/dev/null ); then
 
-    # $OS_FAMILY is set to incorrect value but is not read-only: set and make
-    readonly OS_FAMILY="$os_family"
+    # $D__OS_FAMILY is set to incorrect value but is not read-only: set and make
+    readonly D__OS_FAMILY="$os_family"
     return 0
   
   else
 
-    # $OS_FAMILY is set to incorrect value and is read-only: report error
+    # $D__OS_FAMILY is set to incorrect value and is read-only: report error
     dprint_failure -l \
-      'Internal variable $OS_FAMILY is already set and is read-only' \
+      'Internal variable $D__OS_FAMILY is already set and is read-only' \
       "Detected OS family             : $os_family" \
-      "Content of \$OS_FAMILY variable : $OS_FAMILY"
+      "Content of \$D__OS_FAMILY variable : $D__OS_FAMILY"
     exit 1
   
   fi
@@ -181,10 +181,10 @@ __populate_os_family()
 #. distributions.
 #
 ## Requires:
-#.  $OS_FAMILY  - From __populate_os_family
+#.  $D__OS_FAMILY  - From __populate_os_family
 #
 ## Provides into the global scope:
-#.  $OS_DISTRO  - (read-only) Best guess on the name of the current OS 
+#.  $D__OS_DISTRO  - (read-only) Best guess on the name of the current OS 
 #.                distribution, without version, e.g.:
 #.                  * ‘macos’
 #.                  * ‘ubuntu’
@@ -218,7 +218,7 @@ __populate_os_distro()
   #. others.
   #
   local return_code=0
-  case "$OS_FAMILY" in
+  case "$D__OS_FAMILY" in
     macos)
       # For now, no need for detecting particular macOS version
       os_distro='macos'
@@ -250,25 +250,25 @@ __populate_os_distro()
     dprint_failure -l 'Current OS distro is not recognized'
     return 2
 
-  elif [ "$os_distro" = "$OS_DISTRO" ]; then
+  elif [ "$os_distro" = "$D__OS_DISTRO" ]; then
 
-    # $OS_DISTRO is set to correct value: ensure it is read-only
-    ( unset OS_DISTRO 2>/dev/null ) && readonly OS_DISTRO
+    # $D__OS_DISTRO is set to correct value: ensure it is read-only
+    ( unset D__OS_DISTRO 2>/dev/null ) && readonly D__OS_DISTRO
     return 0
 
-  elif ( unset OS_DISTRO 2>/dev/null ); then
+  elif ( unset D__OS_DISTRO 2>/dev/null ); then
 
-    # $OS_DISTRO is set to incorrect value but is not read-only: set and make
-    readonly OS_DISTRO="$os_distro"
+    # $D__OS_DISTRO is set to incorrect value but is not read-only: set and make
+    readonly D__OS_DISTRO="$os_distro"
     return 0
   
   else
 
-    # $OS_DISTRO is set to incorrect value and is read-only: report error
+    # $D__OS_DISTRO is set to incorrect value and is read-only: report error
     dprint_failure -l \
-      'Internal variable $OS_DISTRO is already set and is read-only' \
+      'Internal variable $D__OS_DISTRO is already set and is read-only' \
       "Detected OS distro             : $os_distro" \
-      "Content of \$OS_DISTRO variable : $OS_DISTRO"
+      "Content of \$D__OS_DISTRO variable : $D__OS_DISTRO"
     return 1
   
   fi
@@ -276,23 +276,23 @@ __populate_os_distro()
 
 #>  __load_os_adapters
 #
-## Scans adapters dir for files ‘$OS_FAMILY.adp.sh’ and ‘$OS_DISTRO.adp.sh’ and 
+## Scans adapters dir for files ‘$D__OS_FAMILY.adp.sh’ and ‘$D__OS_DISTRO.adp.sh’ and 
 #. sources each, if found, in that order. After sourcing both, ensures as best 
 #. it can that required functions are implemented, or terminates the script.
 #
 ## Requires:
-#.  $OS_FAMILY  - From __populate_os_family
-#.  $OS_DISTRO  - From __populate_os_distro
+#.  $D__OS_FAMILY  - From __populate_os_family
+#.  $D__OS_DISTRO  - From __populate_os_distro
 #
 ## Provides into the global scope:
-#.  $OS_PKGMGR  - (read-only) Widely recognized name of package management 
+#.  $D__OS_PKGMGR  - (read-only) Widely recognized name of package management 
 #.                utility available on the current system, e.g.:
 #.                  * ‘brew’    - macOS
 #.                  * ‘apt-get’ - Debian, Ubuntu
 #.                  * ‘dnf’     - Fedora
 #.                  * ‘yum’     - older Fedora
 #.                  * unset     - Not recognized
-#.  os_pkgmgr - Thin wrapper around system’s package manager. Accepts the 
+#.  d__os_pkgmgr - Thin wrapper around system’s package manager. Accepts the 
 #.              following commands as first argument: ‘dupdate’, ‘dcheck’, 
 #.              ‘dinstall’, and ‘dremove’. Remaining arguments are relayed to 
 #.              package manager verbatim. Avoids prompting for user input 
@@ -318,29 +318,29 @@ __load_os_adapters()
 
   # Compose detected OS
   local detected_os
-  if [ -n "$OS_FAMILY" ]; then
-    if [ -n "$OS_DISTRO" ]; then
-      if [ "$OS_FAMILY" = "$OS_DISTRO" ]; then
-        detected_os="$OS_FAMILY"
+  if [ -n "$D__OS_FAMILY" ]; then
+    if [ -n "$D__OS_DISTRO" ]; then
+      if [ "$D__OS_FAMILY" = "$D__OS_DISTRO" ]; then
+        detected_os="$D__OS_FAMILY"
       else
-        detected_os="$OS_FAMILY ($OS_DISTRO)"
+        detected_os="$D__OS_FAMILY ($D__OS_DISTRO)"
       fi
     else
-      detected_os="$OS_FAMILY"
+      detected_os="$D__OS_FAMILY"
     fi
   else
-    if [ -n "$OS_DISTRO" ]; then
-      detected_os="$OS_DISTRO"
+    if [ -n "$D__OS_DISTRO" ]; then
+      detected_os="$D__OS_DISTRO"
     else
       detected_os='unknown'
     fi
   fi
 
   # If OS family is detected and family adapter exists, source it
-  if [ -n "$OS_FAMILY" ]; then
+  if [ -n "$D__OS_FAMILY" ]; then
 
     # Compose path to adapter
-    family_adapter="${D__DIR_ADP_FAMILY}/${OS_FAMILY}${D__SUFFIX_ADAPTER}"
+    family_adapter="${D__DIR_ADP_FAMILY}/${D__OS_FAMILY}${D__SUFFIX_ADAPTER}"
 
     # Check if it is a readable file
     if [ -r "$family_adapter" -a -f "$family_adapter" ]; then
@@ -350,17 +350,17 @@ __load_os_adapters()
     else
 
       # Report error
-      dprint_failure -l "No adapter detected for current OS family: $OS_FAMILY"
+      dprint_failure -l "No adapter detected for current OS family: $D__OS_FAMILY"
 
     fi
 
   fi
 
   # If OS distro is detected and distro adapter exists, source it
-  if [ -n "$OS_DISTRO" ]; then
+  if [ -n "$D__OS_DISTRO" ]; then
 
     # Compose path to adapter
-    distro_adapter="${D__DIR_ADP_DISTRO}/${OS_DISTRO}${D__SUFFIX_ADAPTER}"
+    distro_adapter="${D__DIR_ADP_DISTRO}/${D__OS_DISTRO}${D__SUFFIX_ADAPTER}"
 
     # Check if it is a readable file
     if [ -r "$distro_adapter" -a -f "$distro_adapter" ]; then
@@ -370,7 +370,7 @@ __load_os_adapters()
     else
 
       # Report error
-      dprint_failure -l "No adapter detected for current OS distro: $OS_DISTRO"
+      dprint_failure -l "No adapter detected for current OS distro: $D__OS_DISTRO"
 
     fi
 
@@ -380,16 +380,16 @@ __load_os_adapters()
   local restore_nocasematch="$( shopt -p nocasematch )"
   shopt -s nocasematch
 
-  # Check if __print_os_pkgmgr is implemented
-  if declare -f __print_os_pkgmgr &>/dev/null; then
+  # Check if d__print_os_pkgmgr_name is implemented
+  if declare -f d__print_os_pkgmgr_name &>/dev/null; then
 
     # Storage variable
-    local os_pkgmgr="$( __print_os_pkgmgr 2>/dev/null || exit $? )"
+    local os_pkgmgr="$( d__print_os_pkgmgr_name 2>/dev/null || exit $? )"
 
-    # Check if __print_os_pkgmgr ran without a snag
+    # Check if d__print_os_pkgmgr_name ran without a snag
     if [ $? -eq 0 ]; then
 
-      # Check if os_pkgmgr is properly detected
+      # Check if package manager is properly detected
       if [ -z "$os_pkgmgr" ]; then
 
         # Failed to detect OS package manager: not fatal, but should be noted
@@ -397,25 +397,25 @@ __load_os_adapters()
           "No supported package manager for current OS: $detected_os"
         all_good=false
 
-      elif [[ $os_pkgmgr = $OS_PKGMGR ]]; then
+      elif [[ $os_pkgmgr = $D__OS_PKGMGR ]]; then
 
-        # $OS_PKGMGR is set to correct value: ensure it is read-only
-        ( unset OS_PKGMGR 2>/dev/null ) && readonly OS_PKGMGR
+        # $D__OS_PKGMGR is set to correct value: ensure it is read-only
+        ( unset D__OS_PKGMGR 2>/dev/null ) && readonly D__OS_PKGMGR
         all_good=false
 
-      elif ( unset OS_PKGMGR 2>/dev/null ); then
+      elif ( unset D__OS_PKGMGR 2>/dev/null ); then
 
-        # $OS_PKGMGR is set to incorrect value but is writable: set and make
-        readonly OS_PKGMGR="$os_pkgmgr"
+        # $D__OS_PKGMGR is set to incorrect value but is writable: set and make
+        readonly D__OS_PKGMGR="$os_pkgmgr"
         all_good=false
       
       else
 
-        # $OS_PKGMGR is set to incorrect value and is read-only: report error
+        # $D__OS_PKGMGR is set to incorrect value and is read-only: report error
         dprint_failure -l \
-          'Internal variable $OS_PKGMGR is already set and is read-only' \
+          'Internal variable $D__OS_PKGMGR is already set and is read-only' \
           -n "Detected OS package manager    : $os_pkgmgr" \
-          -n "Content of \$OS_PKGMGR variable : $OS_DISTRO" \
+          -n "Content of \$D__OS_PKGMGR variable : $D__OS_PKGMGR" \
           -n "Detected OS                    : $detected_os"
         all_good=false
         should_halt=true
@@ -424,7 +424,7 @@ __load_os_adapters()
 
     else
 
-      # Function __print_os_pkgmgr returned non-zero
+      # Function d__print_os_pkgmgr_name returned non-zero
       dprint_failure -l \
         "Failed while detecting package manager on current OS: $detected_os"
       all_good=false
@@ -433,20 +433,20 @@ __load_os_adapters()
 
   else
 
-    # Function __print_os_pkgmgr is not implemented
+    # Function d__print_os_pkgmgr_name is not implemented
     dprint_failure -l \
       "Package manager is not supported on current OS: $detected_os"
     all_good=false
 
   fi
 
-  # Check if adapter implements os_pkgmgr function
-  if ! declare -f os_pkgmgr &>/dev/null; then
+  # Check if adapter implements d__os_pkgmgr function
+  if ! declare -f d__os_pkgmgr &>/dev/null; then
 
     # Not implemented: report and implement dummy wrapper
     dprint_failure -l \
       "Package manager wrapper is not implemented on current OS: $detected_os"
-    os_pkgmgr() { return -1; }
+    d__os_pkgmgr() { return -1; }
     all_good=false
 
   fi

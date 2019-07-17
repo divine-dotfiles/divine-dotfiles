@@ -19,20 +19,20 @@
 if dnf --version &>/dev/null; then
 
   # Implement printer of package manager’s name
-  __print_os_pkgmgr() { printf '%s\n' 'dnf'; }
+  d__print_os_pkgmgr_name() { printf '%s\n' 'dnf'; }
 
   # Implement wrapper around package manager
-  os_pkgmgr()
+  d__os_pkgmgr()
   {
     # Perform action depending on first argument
     if ! sudo -n true 2>/dev/null; then
       dprint_start -l "Working with dnf requires sudo password"
     fi
     case "$1" in
-      dupdate)  sudo dnf upgrade -yq;;
-      dcheck)   shift; sudo dnf list --installed "$1" &>/dev/null;;
-      dinstall) shift; sudo dnf install -yq "$1";;
-      dremove)  shift; sudo dnf remove -yq "$1";;
+      update)  sudo dnf upgrade -yq;;
+      check)   shift; sudo dnf list --installed "$1" &>/dev/null;;
+      install) shift; sudo dnf install -yq "$1";;
+      remove)  shift; sudo dnf remove -yq "$1";;
       *)        return 1;;
     esac
   }
@@ -41,20 +41,20 @@ if dnf --version &>/dev/null; then
 elif yum --version &>/dev/null; then
 
   # Implement printer of package manager’s name
-  __print_os_pkgmgr() { printf '%s\n' 'yum'; }
+  d__print_os_pkgmgr_name() { printf '%s\n' 'yum'; }
 
   # Implement wrapper around package manager
-  os_pkgmgr()
+  d__os_pkgmgr()
   {
     # Perform action depending on first argument
     if ! sudo -n true 2>/dev/null; then
       dprint_start -l "Working with yum requires sudo password"
     fi
     case "$1" in
-      dupdate)  sudo yum update -y;;
-      dcheck)   shift; sudo yum list installed "$1" &>/dev/null;;
-      dinstall) shift; sudo yum install -y "$1";;
-      dremove)  shift; sudo yum remove -y "$1";;
+      update)  sudo yum update -y;;
+      check)   shift; sudo yum list installed "$1" &>/dev/null;;
+      install) shift; sudo yum install -y "$1";;
+      remove)  shift; sudo yum remove -y "$1";;
       *)        return 1;;
     esac
   }
