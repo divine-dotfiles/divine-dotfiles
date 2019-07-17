@@ -14,7 +14,7 @@
 ## Shows version note and exits the script
 #
 
-#> __show_version_and_exit
+#> d__show_version_and_exit
 #
 ## Shows script version and exits with code 0
 #
@@ -28,7 +28,7 @@
 #.  stdout: Version message
 #.  stderr: As little as possible
 #
-__show_version_and_exit()
+d__show_version_and_exit()
 {
   # Add bolding if available
   local bold normal
@@ -48,4 +48,4 @@ EOF
   exit 0
 }
 
-__show_version_and_exit
+d__show_version_and_exit

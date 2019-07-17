@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#:title:        Divine Bash procedure: util-offers
+#:title:        Divine Bash procedure: sys-pkg-checks
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revnumber:    0.0.1-SNAPSHOT
@@ -15,7 +15,7 @@
 #. at all possible
 #
 
-#>  __run_util_offers
+#>  d__run_sys_pkg_checks
 #
 ## Driver function
 #
@@ -23,24 +23,23 @@
 #.  0 - Framework is ready to run
 #.  1 - (script exit) Otherwise
 #
-__run_util_offers()
+d__run_sys_pkg_checks()
 {
   # Fork depending on routine
   case $D__REQ_ROUTINE in
-    attach) __offer_git_and_friends; unset -f __offer_git_and_friends;;
-    plug)   __offer_git_and_friends; unset -f __offer_git_and_friends;;
-    update) __offer_git_and_friends; unset -f __offer_git_and_friends;;
+    attach|plug|update)
+      d__offer_git_and_friends; unset -f d__offer_git_and_friends;;
     cecf357ed9fed1037eb906633a4299ba)
-            __remove_all_offered_utils;;
+      d__remove_all_offered_utils;;
     *)  return 0;;
   esac
 }
 
-#>  __offer_git_and_friends
+#>  d__offer_git_and_friends
 #
 ## Offers various tools for working with git repositories
 #
-__offer_git_and_friends()
+d__offer_git_and_friends()
 {
   # Try to sell git as an essential tool for working with this framework
   if ! git --version &>/dev/null; then
@@ -50,7 +49,7 @@ __offer_git_and_friends()
       -n 'Having git installed remedies a lot of unnecessary pain'
 
     # Make an offer
-    if ! __offer_util --exit-on-q git; then
+    if ! d__offer_system_pkg --exit-on-q git; then
 
       # Make announcement
       dprint_start -l 'Proceeding without git'
@@ -77,8 +76,8 @@ __offer_git_and_friends()
         if ! ( $curl_available || $wget_available ); then
           
           # No download tools: at least one is required
-          __offer_util --exit-on-q curl \
-            || __offer_util --exit-on-q wget \
+          d__offer_system_pkg --exit-on-q curl \
+            || d__offer_system_pkg --exit-on-q wget \
             || alt_flow_available=false
         
         fi
@@ -87,7 +86,7 @@ __offer_git_and_friends()
         if $alt_flow_available && ! $tar_available; then
 
           # No tar: it is required
-          __offer_util --exit-on-q tar || alt_flow_available=false
+          d__offer_system_pkg --exit-on-q tar || alt_flow_available=false
 
         fi
 
@@ -124,14 +123,14 @@ __offer_git_and_friends()
   fi
 }
 
-#>  __remove_all_offered_utils
+#>  d__remove_all_offered_utils
 #
 ## Removes previously offered and subsequently installed utils
 #
-__remove_all_offered_utils()
+d__remove_all_offered_utils()
 {
   # Check if there are any utilities recorded
-  if ! dstash -r -s has installed_util; then
+  if ! d__stash -r -s has installed_util; then
     # Exit successfully
     exit 0
   fi
@@ -152,7 +151,7 @@ __remove_all_offered_utils()
   # Read list from stash
   while read -r installed_util; do
     installed_utils+=( "$installed_util" )
-  done < <( dstash -r -s list installed_util )
+  done < <( d__stash -r -s list installed_util )
 
   # Status variable
   local all_good=true
@@ -232,5 +231,5 @@ __remove_all_offered_utils()
   $all_good && exit 0 || exit 1
 }
 
-__run_util_offers
-unset -f __run_util_offers
+d__run_sys_pkg_checks
+unset -f d__run_sys_pkg_checks

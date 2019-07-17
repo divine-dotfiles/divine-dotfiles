@@ -14,7 +14,7 @@
 ## Installs packages and deployments as requested
 #
 
-#> __perform_install
+#> d__perform_install_routine
 #
 ## Performs installation routine
 #
@@ -26,7 +26,7 @@
 #.  0 - Routine performed
 #.  1 - Routine terminated prematurely
 #
-__perform_install()
+d__perform_install_routine()
 {
   # Announce beginning
   if [ "$D__OPT_ANSWER" = false ]; then
@@ -38,7 +38,7 @@ __perform_install()
   fi
 
   # Update packages if touching them at all
-  __load routine pkgs
+  d__load routine pkgs
 
   # Storage variable
   local priority
@@ -47,12 +47,12 @@ __perform_install()
   for priority in "${!D__QUEUE_TASKS[@]}"; do
 
     # Install packages if asked to
-    __install_pkgs "$priority"
+    d__install_pkgs "$priority"
 
     # Install deployments if asked to
-    __install_dpls "$priority"
+    d__install_dpls "$priority"
 
-    # Check if __install_dpls returned special status
+    # Check if d__install_dpls returned special status
     case $? in
       100)
         printf '\n'
@@ -98,7 +98,7 @@ __perform_install()
   return 0
 }
 
-#> __install_pkgs PRIORITY_LEVEL
+#> d__install_pkgs PRIORITY_LEVEL
 #
 ## For the given priority level, installs packages, one by one, using their 
 #. names, which have been previously assembled in $D__QUEUE_PKGS array
@@ -115,7 +115,7 @@ __perform_install()
 #.  stdout: Progress messages
 #.  stderr: As little as possible
 #
-__install_pkgs()
+d__install_pkgs()
 {
   # Check whether packages are asked for
   $D__REQ_PACKAGES || return 1
@@ -229,7 +229,7 @@ __install_pkgs()
 
       # Check return status
       if [ "${PIPESTATUS[0]}" -eq 0 ]; then
-        dstash --root --skip-checks set "pkg_$( dmd5 -s "$pkgname" )"
+        d__stash --root --skip-checks set "pkg_$( dmd5 -s "$pkgname" )"
         dprint_ode "${D__ODE_NAME[@]}" -c "$GREEN" -- \
           'vvv' 'Installed' ':' "$task_desc" "$task_name"
       else
@@ -250,7 +250,7 @@ __install_pkgs()
   return 0
 }
 
-#> __install_dpls PRIORITY_LEVEL
+#> d__install_dpls PRIORITY_LEVEL
 #
 ## For the given priority level, installs deployments, one by one, using their 
 #. *.dpl.sh files, paths to which have been previously assembled in 
@@ -271,7 +271,7 @@ __install_pkgs()
 #.  stdout: Progress messages
 #.  stderr: As little as possible
 #
-__install_dpls()
+d__install_dpls()
 {
   # Extract priority
   local priority
@@ -309,9 +309,9 @@ __install_dpls()
     desc=
     mode=
     # Undefine global functions
-    unset -f dcheck
-    unset -f dinstall
-    unset -f dremove
+    unset -f d_dpl_check
+    unset -f d_dpl_install
+    unset -f d_dpl_remove
 
     # Extract name assignment from *.dpl.sh file (first one wins)
     read -r name < <( sed -n "s/$D__REGEX_DPL_NAME/\1/p" \
@@ -436,16 +436,16 @@ __install_dpls()
       source "$divinedpl_filepath"
 
       # Ensure all assets are copied and main queue is filled
-      __process_manifests_of_current_dpl || proceeding=false
+      d__process_manifests_of_current_dpl || proceeding=false
 
     fi
 
     # Try to figure out, if deployment is already installed
     if $proceeding; then
 
-      # Get return code of dcheck, or fall back to zero
-      if declare -f dcheck &>/dev/null; then
-        dcheck; dpl_status=$?
+      # Get return code of d_dpl_check, or fall back to zero
+      if declare -f d_dpl_check &>/dev/null; then
+        d_dpl_check; dpl_status=$?
       else
         dpl_status=0
       fi
@@ -508,9 +508,9 @@ __install_dpls()
       $intro_printed || dprint_ode "${D__ODE_NAME[@]}" -c "$YELLOW" -- \
         '>>>' 'Installing' ':' "$task_desc" "$task_name"
 
-      # Get return code of dinstall, or fall back to zero
-      if declare -f dinstall &>/dev/null; then
-        dinstall; dpl_status=$?
+      # Get return code of d_dpl_install, or fall back to zero
+      if declare -f d_dpl_install &>/dev/null; then
+        d_dpl_install; dpl_status=$?
       else
         dpl_status=0
       fi
@@ -541,4 +541,4 @@ __install_dpls()
   return 0
 }
 
-__perform_install
+d__perform_install_routine

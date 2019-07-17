@@ -15,9 +15,9 @@
 #.  2. Name the file after whatever you are deploying, e.g., ‘shell-rc.dpl.sh’
 #.  3. Fill out whichever part of the file you need (all are optional), e.g.:
 #.    3.1. Assign provided global variables
-#.    3.2. Implement ‘dcheck’   function following its guidelines
-#.    3.3. Implement ‘dinstall’ function following its guidelines
-#.    3.4. Implement ‘dremove’  function following its guidelines
+#.    3.2. Implement ‘d_dpl_check’   function following its guidelines
+#.    3.3. Implement ‘d_dpl_install’ function following its guidelines
+#.    3.4. Implement ‘d_dpl_remove’  function following its guidelines
 #
 ## Expect these global variables to be available to this script during Divine 
 #. intervention:
@@ -70,9 +70,8 @@
 #.                  * ‘yum’     (older Fedora)
 #.                  * unset     - Not recognized
 #
-## NOTE: To add more recognized OS distributions or package managers, extend 
-#. ‘__populate_os_distro’ and ‘__populate_os_pkgmgr’ functions respectively, 
-#. both implemented in ‘lib/dos.utl.sh’
+## NOTE: To add more recognized OS distributions or package managers, add 
+#. distro adapters to lib/adapters/distro
 #
 ## Also, intervention script scans ‘lib’ directory and sources every file named 
 #. ‘*.utl.sh’ and ‘*.dpl-hlp.sh’. Check those out for various helpful utilities 
@@ -163,7 +162,7 @@ D__DPL_FLAGS=
 #
 D__DPL_WARNING=
 
-#> dcheck
+#> d_dpl_check
 #
 ## Exit code of this function describes current status of this deployment
 #
@@ -206,39 +205,39 @@ D__DPL_WARNING=
 #.                        This is useful for deployments designed to not touch 
 #.                        anything done by user manually.
 #
-## The following table summarizes how dcheck affects framework behavior:
+## The following table summarizes how d_dpl_check affects framework behavior:
 #. +------------------------------------------------------------------+
-#. |       Allowed actions depending on return status of dcheck       |
+#. |       Allowed actions depending on return status of d_dpl_check       |
 #. +------------------------------------------------------------------+
 #. |                    |  normal  | D__USER_OR_OS=true | '-f' option |
 #. +--------------------+----------+--------------------+-------------+
-#. |                    |          |                    |   dinstall  |
+#. |                    |          |                    |   d_dpl_install  |
 #. +          1         +----------+--------------------+-------------+
-#. |     'installed'    |  dremove |                    |    dremove  |
+#. |     'installed'    |  d_dpl_remove |                    |    d_dpl_remove  |
 #. +--------------------+----------+--------------------+-------------+
-#. |                    | dinstall |      dinstall      |   dinstall  |
+#. |                    | d_dpl_install |      d_dpl_install      |   d_dpl_install  |
 #. +          4         +----------+--------------------+-------------+
-#. | 'partly installed' |  dremove |                    |    dremove  |
+#. | 'partly installed' |  d_dpl_remove |                    |    d_dpl_remove  |
 #. +--------------------+----------+--------------------+-------------+
-#. |                    | dinstall |      dinstall      |   dinstall  |
+#. |                    | d_dpl_install |      d_dpl_install      |   d_dpl_install  |
 #. +          2         +----------+--------------------+-------------+
-#. |   'not installed'  |          |                    |    dremove  |
+#. |   'not installed'  |          |                    |    d_dpl_remove  |
 #. +--------------------+----------+--------------------+-------------+
-#. |                    | dinstall |      dinstall      |   dinstall  |
+#. |                    | d_dpl_install |      d_dpl_install      |   d_dpl_install  |
 #. +          0         +----------+--------------------+-------------+
-#. |      'unknown'     |  dremove |       dremove      |    dremove  |
+#. |      'unknown'     |  d_dpl_remove |       d_dpl_remove      |    d_dpl_remove  |
 #. +--------------------+----------+--------------------+-------------+
 #. |                    |          |                    |             |
 #. +          3         +----------+--------------------+-------------+
 #. |    'irrelevant'    |          |                    |             |
 #. +--------------------+----------+--------------------+-------------+
 #
-dcheck()
+d_dpl_check()
 {
   return 0
 }
 
-#> dinstall
+#> d_dpl_install
 #
 ## Installs this deployment
 #
@@ -252,7 +251,7 @@ dcheck()
 #.        up to you of course). The overall installation routine will continue.
 #.  2   - Skipped completely
 #.        Something went wrong, and the whole deployment can be disregarded 
-#.        (skipped). This is in case dcheck hasn’t caught skip condition.
+#.        (skipped). This is in case d_dpl_check hasn’t caught skip condition.
 #.  100 - Reboot needed
 #.        User will be asked for reboot.
 #.        Divine intervention will shut down gracefully without moving on.
@@ -263,12 +262,12 @@ dcheck()
 #.        You are expected to print explanation to the user.
 #.        Divine intervention will shut down without moving on.
 # 
-dinstall()
+d_dpl_install()
 {
   return 0
 }
 
-#> dremove
+#> d_dpl_remove
 #
 ## Removes this deployment
 #
@@ -282,7 +281,7 @@ dinstall()
 #.        up to you of course). The overall removal routine will continue.
 #.  2   - Skipped completely
 #.        Something went wrong, and the whole deployment can be disregarded 
-#.        (skipped). This is in case dcheck hasn’t caught skip condition.
+#.        (skipped). This is in case d_dpl_check hasn’t caught skip condition.
 #.  100 - Reboot needed
 #.        User will be asked for reboot.
 #.        Divine intervention will shut down gracefully without moving on.
@@ -293,7 +292,7 @@ dinstall()
 #.        You are expected to print explanation to the user.
 #.        Divine intervention will shut down without moving on.
 # 
-dremove()
+d_dpl_remove()
 {
   return 0
 }

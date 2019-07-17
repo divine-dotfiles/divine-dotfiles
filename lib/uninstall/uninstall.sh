@@ -1,32 +1,32 @@
 # Driver function
-main()
+d__main()
 {
   # Colorize output
-  __declare_global_colors
+  d__declare_global_colors
 
   # Parse arguments
-  __parse_arguments "$@"
+  d__parse_arguments "$@"
 
   # Main removal
-  if __locate_installations; then
+  if d__locate_installations; then
 
     ## Pre-removal tasks:
     #.  * Run removal routine on all installed deployments
     #.  * Remove possible stash-recorded Homebrew installation
     #.  * Remove possible stash-recorded optional utility installations
-    if ! __remove_all_dpls \
-      || ! __uninstall_homebrew \
-      || ! __uninstall_utils
+    if ! d__remove_all_dpls \
+      || ! d__uninstall_homebrew \
+      || ! d__uninstall_utils
     then
       dprint_failure 'Terminating uninstallation'
       return 1
     fi
 
     # Erase Divine.dotfiles directory
-    if __erase_d_dir; then
+    if d__erase_d_dir; then
 
       # Also, remove shortcut command, if it is present
-      __uninstall_shortcut
+      d__uninstall_shortcut
 
       # Report success
       dprint_success 'All done'
@@ -41,7 +41,7 @@ main()
   return 1
 }
 
-__declare_global_colors()
+d__declare_global_colors()
 {
   # Colorize output (shamelessly stolen off oh-my-zsh)
   local num_of_colors
@@ -67,7 +67,7 @@ __declare_global_colors()
   fi
 }
 
-__parse_arguments()
+d__parse_arguments()
 {
   # Define global storage for option values
   D_QUIET=false       # Be verbose by default
@@ -107,7 +107,7 @@ __parse_arguments()
   done
 }
 
-__locate_installations()
+d__locate_installations()
 {
   # Try the usual installation directory unless overridden
   [ -n "$D_INSTALL_PATH" ] || D_INSTALL_PATH="$HOME/.divine"
@@ -136,7 +136,7 @@ __locate_installations()
 
   # Extract user-provided shortcut path
   [ -n "$D_SHORTCUT_FILEPATH" ] \
-    && __check_shortcut_filepath "$D_SHORTCUT_FILEPATH" \
+    && d__check_shortcut_filepath "$D_SHORTCUT_FILEPATH" \
     && D_SHORTCUT_FILEPATHS+=( "$D_SHORTCUT_FILEPATH" )
 
   # Try to figure location of shortcut command
@@ -146,7 +146,7 @@ __locate_installations()
     shortcut_filepath="$( dstash_root_get di_shortcut )"
 
     # Check shortcut and add to global variable
-    __check_shortcut_filepath "$shortcut_filepath" \
+    d__check_shortcut_filepath "$shortcut_filepath" \
       && D_SHORTCUT_FILEPATHS+=( "$shortcut_filepath" )
   
   else
@@ -163,7 +163,7 @@ __locate_installations()
   return 0
 }
 
-__check_shortcut_filepath()
+d__check_shortcut_filepath()
 {
   # Extract shortcut filepath
   local shortcut_filepath="$1"
@@ -187,7 +187,7 @@ __check_shortcut_filepath()
   fi
 }
 
-__remove_all_dpls()
+d__remove_all_dpls()
 {
   # Offer to remove deployments
   dprompt_key "$D_RUN_REMOVE_ALL" --or-quit 'Remove?' \
@@ -235,7 +235,7 @@ __remove_all_dpls()
   return $?
 }
 
-__uninstall_homebrew()
+d__uninstall_homebrew()
 {
   # Check stash records
   if ! dstash_root_get installed_homebrew &>/dev/null; then
@@ -316,7 +316,7 @@ __uninstall_homebrew()
   return $?
 }
 
-__uninstall_utils()
+d__uninstall_utils()
 {
   # Check stash records
   if ! dstash_root_get installed_util &>/dev/null; then
@@ -372,7 +372,7 @@ __uninstall_utils()
   return $?
 }
 
-__erase_d_dir()
+d__erase_d_dir()
 {
   # Store long-ass reference in digestible name
   local name="${BOLD}Divine.dotfiles${NORMAL}"
@@ -400,7 +400,7 @@ __erase_d_dir()
   return 0
 }
 
-__uninstall_shortcut()
+d__uninstall_shortcut()
 {
   # Announce start
   if [ ${#D_SHORTCUT_FILEPATHS[@]} -gt 0 ]; then
@@ -578,4 +578,4 @@ dmd5()
   return 1
 }
 
-main "$@"
+d__main "$@"

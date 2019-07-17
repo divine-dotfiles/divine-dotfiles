@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#:title:        Divine Bash deployment helpers: assets
+#:title:        Divine Bash deployment helpers: manifests
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revnumber:    0.0.1-SNAPSHOT
@@ -9,10 +9,10 @@
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
 #
-## Helper function that prepares deployment’s assets
+## Helper function that prepares deployment’s asset and queue manifests
 #
 
-#>  __process_manifests_of_current_dpl
+#>  d__process_manifests_of_current_dpl
 #
 ## Looks for asset manifest at $D__DPL_MNF_PATH and for main queue file at 
 #. $D__DPL_QUE_PATH. First, processes manifest (copies assets and fills global 
@@ -24,19 +24,19 @@
 #.  0 - Assets are successfully processed, while main queue is composed as best 
 #.      as possible
 #.  1 - Otherwise
-__process_manifests_of_current_dpl()
+d__process_manifests_of_current_dpl()
 {
   # First, process asset manifest of current deployment (must return zero)
-  __process_asset_manifest_of_current_dpl || return 1
+  d__process_asset_manifest_of_current_dpl || return 1
 
   # Second, process queue manifest of current deployment (may fail freely)
-  __process_queue_manifest_of_current_dpl
+  d__process_queue_manifest_of_current_dpl
 
   # If gotten here, return success
   return 0
 }
 
-#>  __process_asset_manifest_of_current_dpl
+#>  d__process_asset_manifest_of_current_dpl
 #
 ## Looks for manifest file at path stored in $D__DPL_MNF_PATH. Reads it line by 
 #. line, ignores empty lines and lines starting with hash (‘#’) or double-slash 
@@ -61,7 +61,7 @@ __process_manifests_of_current_dpl()
 #.  0 - Task performed: all assets now exist in assets directory
 #.  1 - Otherwise
 #
-__process_asset_manifest_of_current_dpl()
+d__process_asset_manifest_of_current_dpl()
 {
   # Check if directory of current deployment is readable
   if ! [ -r "$D__DPL_DIR" -a -d "$D__DPL_DIR" ]; then
@@ -70,7 +70,7 @@ __process_asset_manifest_of_current_dpl()
   fi
 
   # Parse manifest file
-  __process_manifest "$D__DPL_MNF_PATH" || {
+  d__process_manifest "$D__DPL_MNF_PATH" || {
     dprint_debug 'No asset manifest'
     return 0
   }
@@ -113,7 +113,7 @@ __process_asset_manifest_of_current_dpl()
         dest_path="$D__DPL_ASSETS_DIR/$relative_path"
 
         # Copy asset (for find results it is expected to always return 0)
-        __copy_asset "$relative_path" "$src_path" "$dest_path" \
+        d__copy_asset "$relative_path" "$src_path" "$dest_path" \
           || all_assets_copied=false
 
       done < <( find -L "$D__DPL_DIR" \
@@ -124,7 +124,7 @@ __process_asset_manifest_of_current_dpl()
       # Line is intended as solid path
 
       # Copy asset
-      __copy_asset "$path_pattern" "${D__DPL_DIR}${path_prefix}/$path_pattern" \
+      d__copy_asset "$path_pattern" "${D__DPL_DIR}${path_prefix}/$path_pattern" \
         "$D__DPL_ASSETS_DIR/$path_pattern" || all_assets_copied=false
     
     fi
@@ -136,7 +136,7 @@ __process_asset_manifest_of_current_dpl()
   $all_assets_copied && return 0 || return 1
 }
 
-#>  __process_queue_manifest_of_current_dpl
+#>  d__process_queue_manifest_of_current_dpl
 #
 ## Looks for manifest file at path stored in $D__DPL_QUE_PATH. Reads it line by 
 #. line, ignores empty lines and lines starting with hash (‘#’) or double-slash 
@@ -158,7 +158,7 @@ __process_asset_manifest_of_current_dpl()
 #.  0 - Task performed: main queue is populated
 #.  1 - Otherwise
 #
-__process_queue_manifest_of_current_dpl()
+d__process_queue_manifest_of_current_dpl()
 {
   # Check if main queue is already filled up
   if [ ${#D__DPL_QUEUE_MAIN[@]} -gt 1 -o -n "$D__DPL_QUEUE_MAIN" ]; then
@@ -171,7 +171,7 @@ __process_queue_manifest_of_current_dpl()
   # Main queue is not filled: try various methods
 
   # Check if main queue file is readable
-  if __process_manifest "$D__DPL_QUE_PATH"; then
+  if d__process_manifest "$D__DPL_QUE_PATH"; then
 
     # Check if $D__DPL_MANIFEST_LINES has at least one entry
     if [ ${#D__DPL_MANIFEST_LINES[@]} -gt 0 ]; then
@@ -202,13 +202,13 @@ __process_queue_manifest_of_current_dpl()
   fi
 }
 
-#>  __copy_asset REL_PATH SRC_PATH DEST_PATH
+#>  d__copy_asset REL_PATH SRC_PATH DEST_PATH
 #
 ## Returns:
 #.  0 - Asset is in place as required
 #.  1 - Otherwise
 #
-__copy_asset()
+d__copy_asset()
 {
   # Compose absolute paths
   local relative_path="$1"; shift
@@ -256,10 +256,10 @@ __copy_asset()
   return 0
 }
 
-#>  __process_all_asset_manifests_in_dpl_dirs
+#>  d__process_all_asset_manifests_in_dpl_dirs
 #
 ## Processes every valid manifest file in a main deployments directory, using
-#. __process_asset_manifest_of_current_dpl function.
+#. d__process_asset_manifest_of_current_dpl function.
 #
 ## Requires:
 #.  $D__DPL_NAMES_IN_FMWK_DIRS - (array) Names of deployments in framework dirs
@@ -270,7 +270,7 @@ __copy_asset()
 #.  0 - Every manifest found is successfully processed
 #.  1 - At least one manifest caused problems
 #
-__process_all_asset_manifests_in_dpl_dirs()
+d__process_all_asset_manifests_in_dpl_dirs()
 {
   # Status and dtorage variables
   local name path manifest_path i
@@ -289,7 +289,7 @@ __process_all_asset_manifests_in_dpl_dirs()
     D__DPL_ASSETS_DIR="$D__DIR_ASSETS/$name"
 
     # Do the deed
-    __process_asset_manifest_of_current_dpl || all_good=false
+    d__process_asset_manifest_of_current_dpl || all_good=false
 
   done
 
@@ -297,7 +297,7 @@ __process_all_asset_manifests_in_dpl_dirs()
   $all_good && return 0 || return 1
 }
 
-#>  __process_manifest PATH
+#>  d__process_manifest PATH
 #
 ## Processes manifest file at PATH and populates two global arrays with results
 #
@@ -315,7 +315,7 @@ __process_all_asset_manifests_in_dpl_dirs()
 #.  0 - Manifest processed, arrays populated
 #.  1 - Manifest file could not be accessed
 #
-__process_manifest()
+d__process_manifest()
 {
   # Initialize container arrays
   D__DPL_MANIFEST_LINES=()

@@ -13,9 +13,9 @@
 #. interface with particular OS distribution
 #
 ## For adapter file to be sourced and used, it must be named ‘DISTRO.adp.sh’ 
-#. and placed in lib/adapters/distro directory. ‘DISTRO’ must match $D__OS_DISTRO 
-#. variable’s value for distro being adapted for. (See lib/dos.utl.sh for 
-#. reference on $D__OS_DISTRO).
+#. and placed in lib/adapters/distro directory, where ‘DISTRO’ must match 
+#. $D__OS_DISTRO variable’s value for distro being adapted for. (See 
+#. lib/procedures/detect-os.pcd.sh for reference on $D__OS_DISTRO).
 #
 
 # Conditionally implement next two functions (if package manager is available)
@@ -75,14 +75,14 @@ d__os_pkgmgr()
 # Done with conditional implementations
 fi
 
-#>  __override_d_targets_for_distro
+#>  d__override_dpl_targets_for_os_distro
 #
 ## Provides a way for deployments to override $D__DPL_TARGET_PATHS global 
 #. variable, which is used by helper functions in dln.hlp.sh and cp.hlp.sh. 
 #. This function is called before contents of $D__DPL_TARGET_PATHS is settled 
 #. upon.
 #
-__override_d_targets_for_distro()
+d__override_dpl_targets_for_os_distro()
 {
   # Below is example implementation for Ubuntu distribution
 

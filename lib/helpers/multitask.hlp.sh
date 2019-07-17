@@ -12,7 +12,7 @@
 ## Helper functions for deployments that contain multiple sub-deployments
 #
 
-__multitask_hlp__dcheck()
+d__multitask_check()
 {
   # Check whether at least one task name has been provided
   if [ -z "${D__DPL_TASK_NAMES+isset}" -o ${#D__DPL_TASK_NAMES[@]} -eq 0 ]; then
@@ -28,10 +28,10 @@ __multitask_hlp__dcheck()
   # Iterate over task names
   for task_name in "${D__DPL_TASK_NAMES[@]}"; do
 
-    # Compose dcheck function name for that task
-    func_name="d_${task_name}_dcheck"
+    # Compose d_dpl_check function name for that task
+    func_name="d_${task_name}_check"
 
-    # If dcheck function is implemented, run it, otherwise run a bogus func
+    # If d_dpl_check function is implemented, run it, otherwise run a bogus func
     if declare -f -- "$func_name" &>/dev/null; then
       "$func_name"
     else
@@ -39,16 +39,16 @@ __multitask_hlp__dcheck()
     fi
 
     # Catch returned code
-    __catch_dcheck_code
+    d__multitask_catch_check_code
 
   # Done iterating over task names
   done
 
-  # As the last command, combine all previously caught dcheck codes
-  __reconcile_dcheck_codes
+  # As the last command, combine all previously caught d_dpl_check codes
+  d__multitask_reconcile_check_codes
 }
 
-__multitask_hlp__dinstall()
+d__multitask_install()
 {
   # Check whether at least one task name has been provided
   if [ -z "${D__DPL_TASK_NAMES+isset}" -o ${#D__DPL_TASK_NAMES[@]} -eq 0 ]; then
@@ -64,27 +64,27 @@ __multitask_hlp__dinstall()
   # Iterate over task names
   for task_name in "${D__DPL_TASK_NAMES[@]}"; do
 
-    # Compose dinstall function name for that task
-    func_name="d_${task_name}_dinstall"
+    # Compose d_dpl_install function name for that task
+    func_name="d_${task_name}_install"
 
-    # If dinstall function is implemented, run it, otherwise run a bogus func
+    # If d_dpl_install function is implemented, run it, otherwise run a bogus func
     if declare -f -- "$func_name" &>/dev/null; then
-      __task_is_installable && "$func_name"
+      d__multitask_task_is_installable && "$func_name"
     else
-      __task_is_installable && true
+      d__multitask_task_is_installable && true
     fi
 
     # Catch returned code, or return immediately (emergency exit)
-    __catch_dinstall_code || return $?
+    d__multitask_catch_install_code || return $?
 
   # Done iterating over task names
   done
 
-  # As the last command, combine all previously caught dinstall codes
-  __reconcile_dinstall_codes
+  # As the last command, combine all previously caught d_dpl_install codes
+  d__multitask_reconcile_install_codes
 }
 
-__multitask_hlp__dremove()
+d__multitask_remove()
 {
   # Check whether at least one task name has been provided
   if [ -z "${D__DPL_TASK_NAMES+isset}" -o ${#D__DPL_TASK_NAMES[@]} -eq 0 ]; then
@@ -103,27 +103,27 @@ __multitask_hlp__dremove()
     # Extract task name
     task_name="${D__DPL_TASK_NAMES[$i]}"
 
-    # Compose dremove function name for that task
-    func_name="d_${task_name}_dremove"
+    # Compose d_dpl_remove function name for that task
+    func_name="d_${task_name}_remove"
 
-    # If dremove function is implemented, run it, otherwise run a bogus func
+    # If d_dpl_remove function is implemented, run it, otherwise run a bogus func
     if declare -f -- "$func_name" &>/dev/null; then
-      __task_is_removable && "$func_name"
+      d__multitask_task_is_removable && "$func_name"
     else
-      __task_is_removable && true
+      d__multitask_task_is_removable && true
     fi
 
     # Catch returned code, or return immediately (emergency exit)
-    __catch_dremove_code || return $?
+    d__multitask_catch_remove_code || return $?
 
   # Done iterating over task names in reverse order
   done
 
-  # As the last command, combine all previously caught dremove codes
-  __reconcile_dremove_codes
+  # As the last command, combine all previously caught d_dpl_remove codes
+  d__multitask_reconcile_remove_codes
 }
 
-#>  __catch_dcheck_code
+#>  d__multitask_catch_check_code
 #
 ## Intercepts last returned code ($?) and stores it in global array for future 
 #. reference during installation/removal.
@@ -131,7 +131,7 @@ __multitask_hlp__dremove()
 ## Returns:
 #.  The same return code it received (caught)
 #
-__catch_dcheck_code()
+d__multitask_catch_check_code()
 {
   # Extract last returned code ASAP
   local last_code=$?
@@ -172,7 +172,7 @@ __catch_dcheck_code()
         else
 
           # Installed by framework: allow removal
-          __multitask_hlp__current_task set can_be_removed
+          d__multitask_task_status set can_be_removed
 
           # Definitely not user or OS
           D__DPL_TASK_STATUS_SUMMARY[5]=false
@@ -183,13 +183,13 @@ __catch_dcheck_code()
         for j in 0 1 3 4; do D__DPL_TASK_STATUS_SUMMARY[$j]=false; done
 
         # Allow installation
-        __multitask_hlp__current_task set can_be_installed
+        d__multitask_task_status set can_be_installed
         ;;
     3)  # Irrelevant: flip flags
         for j in 0 1 2 4; do D__DPL_TASK_STATUS_SUMMARY[$j]=false; done
 
         # Should not be touched
-        __multitask_hlp__current_task set is_irrelevant
+        d__multitask_task_status set is_irrelevant
         ;;
     4)  # Partly installed: flip flags
         for j in 0 1 2 3; do D__DPL_TASK_STATUS_SUMMARY[$j]=false; done
@@ -198,7 +198,7 @@ __catch_dcheck_code()
         if [ "$D__USER_OR_OS" = true ]; then
 
           # Partly installed by user or OS: allow installation
-          __multitask_hlp__current_task set can_be_installed
+          d__multitask_task_status set can_be_installed
 
           # Unless some fmwk installations already detected, mark as user or OS
           [ "${D__DPL_TASK_STATUS_SUMMARY[5]}" = false ] \
@@ -207,8 +207,8 @@ __catch_dcheck_code()
         else
 
           # Partly installed by framework: allow installation and removal
-          __multitask_hlp__current_task set can_be_installed
-          __multitask_hlp__current_task set can_be_removed
+          d__multitask_task_status set can_be_installed
+          d__multitask_task_status set can_be_removed
 
           # Definitely not user or OS
           D__DPL_TASK_STATUS_SUMMARY[5]=false
@@ -219,8 +219,8 @@ __catch_dcheck_code()
         for j in 1 2 3 4; do D__DPL_TASK_STATUS_SUMMARY[$j]=false; done
 
         # Allow installation and removal
-        __multitask_hlp__current_task set can_be_installed
-        __multitask_hlp__current_task set can_be_removed
+        d__multitask_task_status set can_be_installed
+        d__multitask_task_status set can_be_removed
 
         # With an unknown, we can’t say it’s all user or OS
         D__DPL_TASK_STATUS_SUMMARY[5]=false
@@ -231,9 +231,9 @@ __catch_dcheck_code()
   return $last_code
 }
 
-#>  __reconcile_dcheck_codes
+#>  d__multitask_reconcile_check_codes
 #
-## Analyzes previously stored return codes of dcheck-like functions and 
+## Analyzes previously stored return codes of d_dpl_check-like functions and 
 #. combines them into a single return code.
 #
 ## Returns:
@@ -243,7 +243,7 @@ __catch_dcheck_code()
 #.  3 - Irrelevant
 #.  4 - Partly installed
 #
-__reconcile_dcheck_codes()
+d__multitask_reconcile_check_codes()
 {
   # Remember total number of tasks
   D__DPL_TASK_MAX_NUM=$(( $D__DPL_TASK_NUM ))
@@ -282,7 +282,7 @@ __reconcile_dcheck_codes()
   return $return_code
 }
 
-#>  __task_is_installable
+#>  d__multitask_task_is_installable
 #
 ## Signals if current task has been previously detected as installable
 #
@@ -295,7 +295,7 @@ __reconcile_dcheck_codes()
 #.  0 - Task may be installed
 #.  1 - Otherwise
 #
-__task_is_installable()
+d__multitask_task_is_installable()
 {
   # Make sure $D__DPL_TASK_IS_FORCED is not inherited from previous tasks
   unset D__DPL_TASK_IS_FORCED
@@ -304,10 +304,10 @@ __task_is_installable()
   [ -z ${D__DPL_TASK_NUM+isset} ] && D__DPL_TASK_NUM=0 || (( D__DPL_TASK_NUM++ ))
 
   # If task is irrelevant, return immediately
-  if __multitask_hlp__current_task is_irrelevant; then return 1; fi
+  if d__multitask_task_status is_irrelevant; then return 1; fi
 
   # Check pre-recorded status
-  if __multitask_hlp__current_task can_be_installed; then
+  if d__multitask_task_status can_be_installed; then
     # Go for it
     return 0
   else
@@ -315,13 +315,13 @@ __task_is_installable()
     if $D__OPT_FORCE; then D__DPL_TASK_IS_FORCED=true; return 0
     else
       # This task will be skipped: set flag and return
-      __multitask_hlp__current_task set is_skipped
+      d__multitask_task_status set is_skipped
       return 1
     fi
   fi
 }
 
-#>  __catch_dinstall_code
+#>  d__multitask_catch_install_code
 #
 ## Intercepts last returned code ($?) and stores it in global array for future 
 #. reference during reconciliation of installation codes.
@@ -332,13 +332,13 @@ __task_is_installable()
 #.  101 - Emergency: user attention needed
 #.  666 - Emergency: critical failure
 #
-__catch_dinstall_code()
+d__multitask_catch_install_code()
 {
   # Extract last returned code ASAP
   local last_code=$?
 
   # If task was irrelevant, don’t bother with anything
-  if __multitask_hlp__current_task is_irrelevant; then return 0; fi
+  if d__multitask_task_status is_irrelevant; then return 0; fi
 
   ## If not already, set up status array of booleans:
   #.  $D__DPL_TASK_STATUS_SUMMARY[0] - true if all tasks were installed
@@ -354,7 +354,7 @@ __catch_dinstall_code()
   local j
 
   # If task was skipped, flip flags and return
-  if __multitask_hlp__current_task is_skipped; then
+  if d__multitask_task_status is_skipped; then
     for j in 0 1; do D__DPL_TASK_STATUS_SUMMARY[$j]=false; done
     return 0
   fi
@@ -387,9 +387,9 @@ __catch_dinstall_code()
   return 0
 }
 
-#>  __reconcile_dinstall_codes
+#>  d__multitask_reconcile_install_codes
 #
-## Analyzes previously stored return codes of dinstall-like functions and 
+## Analyzes previously stored return codes of d_dpl_install-like functions and 
 #. combines them into a single return code.
 #
 ## Returns:
@@ -400,7 +400,7 @@ __catch_dinstall_code()
 #.  101 - User attention needed
 #.  666 - Critical failure
 #
-__reconcile_dinstall_codes()
+d__multitask_reconcile_install_codes()
 {
   # Sequentially check if at least one all-code survived
   if [ "${D__DPL_TASK_STATUS_SUMMARY[0]}" = true ]; then return 0
@@ -418,7 +418,7 @@ __reconcile_dinstall_codes()
   fi
 }
 
-#>  __task_is_removable
+#>  d__multitask_task_is_removable
 #
 ## Signals if current task has been previously detected as removable
 #
@@ -431,7 +431,7 @@ __reconcile_dinstall_codes()
 #.  0 - Task may be removed
 #.  1 - Otherwise
 #
-__task_is_removable()
+d__multitask_task_is_removable()
 {
   # Make sure $D__DPL_TASK_IS_FORCED is not inherited from previous tasks
   unset D__DPL_TASK_IS_FORCED
@@ -444,10 +444,10 @@ __task_is_removable()
   fi
 
   # If task is irrelevant, return immediately
-  if __multitask_hlp__current_task is_irrelevant; then return 1; fi
+  if d__multitask_task_status is_irrelevant; then return 1; fi
 
   # Check pre-recorded status
-  if __multitask_hlp__current_task can_be_removed; then
+  if d__multitask_task_status can_be_removed; then
     # Go for it
     return 0
   else
@@ -455,13 +455,13 @@ __task_is_removable()
     if $D__OPT_FORCE; then D__DPL_TASK_IS_FORCED=true; return 0
     else
       # This task will be skipped: set flag and return
-      __multitask_hlp__current_task set is_skipped
+      d__multitask_task_status set is_skipped
       return 1
     fi
   fi
 }
 
-#>  __catch_dremove_code
+#>  d__multitask_catch_remove_code
 #
 ## Intercepts last returned code ($?) and stores it in global array for future 
 #. reference during reconciliation of removal codes.
@@ -472,13 +472,13 @@ __task_is_removable()
 #.  101 - Emergency: user attention needed
 #.  666 - Emergency: critical failure
 #
-__catch_dremove_code()
+d__multitask_catch_remove_code()
 {
   # Extract last returned code ASAP
   local last_code=$?
 
   # If task was irrelevant, don’t bother with anything
-  if __multitask_hlp__current_task is_irrelevant; then return 0; fi
+  if d__multitask_task_status is_irrelevant; then return 0; fi
 
   ## If not already, set up status array of booleans:
   #.  $D__DPL_TASK_STATUS_SUMMARY[0] - true if all tasks were removed
@@ -494,7 +494,7 @@ __catch_dremove_code()
   local j
 
   # If task was skipped, flip flags and return
-  if __multitask_hlp__current_task is_skipped; then
+  if d__multitask_task_status is_skipped; then
     for j in 0 1; do D__DPL_TASK_STATUS_SUMMARY[$j]=false; done
     return 0
   fi
@@ -527,9 +527,9 @@ __catch_dremove_code()
   return 0
 }
 
-#>  __reconcile_dremove_codes
+#>  d__multitask_reconcile_remove_codes
 #
-## Analyzes previously stored return codes of dremove-like functions and 
+## Analyzes previously stored return codes of d_dpl_remove-like functions and 
 #. combines them into a single return code.
 #
 ## Returns:
@@ -540,7 +540,7 @@ __catch_dremove_code()
 #.  101 - User attention needed
 #.  666 - Critical failure
 #
-__reconcile_dremove_codes()
+d__multitask_reconcile_remove_codes()
 {
   # Sequentially check if at least one all-code survived
   if [ "${D__DPL_TASK_STATUS_SUMMARY[0]}" = true ]; then return 0
@@ -558,11 +558,11 @@ __reconcile_dremove_codes()
   fi
 }
 
-#>  __multitask_hlp__current_task [ set FLAG ] | FLAG
+#>  d__multitask_task_status [ set FLAG ] | FLAG
 #
 ## Convenience wrapper for storing pre-defined boolean flags in global array
 #
-__multitask_hlp__current_task()
+d__multitask_task_status()
 {
   # Check if first argument is the word ‘set’
   if [ "$1" = set ]; then

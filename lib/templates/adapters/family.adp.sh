@@ -13,19 +13,19 @@
 #. interface with particular family of operating systems
 #
 ## For adapter file to be sourced and used, it must be named ‘FAMILY.adp.sh’ 
-#. and placed in lib/adapters/family directory. ‘FAMILY’ must match $D__OS_FAMILY 
-#. variable’s value for OS family being adapted for. (See lib/dos.utl.sh for 
-#. reference on $D__OS_FAMILY).
+#. and placed in lib/adapters/family directory, where ‘FAMILY’ must match 
+#. $D__OS_FAMILY variable’s value for OS family being adapted for. (See 
+#. lib/procedures/detect-os.pcd.sh for reference on $D__OS_FAMILY).
 #
 
-#>  __override_d_targets_for_family
+#>  d__override_dpl_targets_for_os_family
 #
 ## Provides a way for deployments to override $D__DPL_TARGET_PATHS global 
 #. variable, which is used by helper functions in dln.hlp.sh and cp.hlp.sh. 
 #. This function is called before contents of $D__DPL_TARGET_PATHS is settled 
 #. upon.
 #
-__override_d_targets_for_family()
+d__override_dpl_targets_for_os_family()
 {
   # Below is example implementation for BSD family of operating systems
 

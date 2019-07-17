@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#:title:        Divine Bash routine: dpl-repos
+#:title:        Divine Bash procedure: dpl-repo-sync
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revnumber:    0.0.1-SNAPSHOT
@@ -15,15 +15,16 @@
 #. content of dpl-repos directory
 #
 
-#>  __sort_out_dpl_repos
+#>  d__sync_dpl_repos
 #
-## Performs dpl-repos routine
+## Synchronizes stash records of attached deployment repositories with actual 
+#. content of dpl-repos directory
 #
 ## Returns:
 #.  0 - dpl-repos directory is consistent with records, or made so
 #.  1 - Otherwise
 #
-__sort_out_dpl_repos()
+d__sync_dpl_repos()
 {
   # Storage variables
   local i recorded_user_repos=() recorded_user_repo user_repo
@@ -31,10 +32,10 @@ __sort_out_dpl_repos()
   local all_good=true
 
   # Load records of attached deployment repositories
-  if dstash -g -s has dpl_repos; then
+  if d__stash -g -s has dpl_repos; then
     while read -r recorded_user_repo; do
       recorded_user_repos+=( "$recorded_user_repo" )
-    done < <( dstash -g -s list dpl_repos )
+    done < <( d__stash -g -s list dpl_repos )
   fi
 
   # Load results of scanning repo directory
@@ -79,7 +80,7 @@ __sort_out_dpl_repos()
       "Installing missing deployments '$recorded_user_repo'"
 
     # Install and check status
-    if ! __install_dpl_repo "$recorded_user_repo"; then
+    if ! d__sync_attach_dpl_repo "$recorded_user_repo"; then
 
       # Announce failure
       dprint_failure -l \
@@ -107,7 +108,7 @@ __sort_out_dpl_repos()
       "Removing unnecessary deployments '$user_repo'"
 
     # Remove that directory
-    if ! rm -rf -- "$actual_repo_dir"; then
+    if ! d__sync_detach_dpl_repo "$user_repo"; then
 
       # Announce failure
       dprint_failure -l \
@@ -125,7 +126,7 @@ __sort_out_dpl_repos()
   $all_good && return 0 || return 1
 }
 
-#>  __install_dpl_repo REPO
+#>  d__sync_attach_dpl_repo REPO
 #
 ## Attempts to interpret single argument as name of Github repository and pull 
 #. it in. Accepts either full ‘user/repo’ form or short ‘built_in_repo’ form 
@@ -135,7 +136,7 @@ __sort_out_dpl_repos()
 #.  0 - Successfully pulled in deployment repository
 #.  1 - Otherwise
 #
-__install_dpl_repo()
+d__sync_attach_dpl_repo()
 {
   # Extract user/repo
   local user_repo="$1"; shift
@@ -255,7 +256,7 @@ __install_dpl_repo()
   return 0
 }
 
-#>  __remove_dpl_repo REPO
+#>  d__sync_detach_dpl_repo REPO
 #
 ## Attempts to interpret single argument as name of Github repository and 
 #. detach it. Accepts either full ‘user/repo’ form or short ‘built_in_repo’ 
@@ -265,24 +266,10 @@ __install_dpl_repo()
 #.  0 - Successfully detached deployment repository
 #.  1 - Otherwise
 #
-__remove_dpl_repo()
+d__sync_detach_dpl_repo()
 {
   # Extract argument
-  local repo_arg="$1"
-
-  # Storage variables
-  local user_repo
-
-  # Accept one of two patterns: ‘builtin_repo_name’ and ‘username/repo’
-  if [[ $repo_arg =~ ^[0-9A-Za-z_.-]+$ ]]; then
-    user_repo="no-simpler/divine-dpls-$repo_arg"
-  elif [[ $repo_arg =~ ^[0-9A-Za-z_.-]+/[0-9A-Za-z_.-]+$ ]]; then
-    user_repo="$repo_arg"
-  else
-    # Other patterns are not checked against Github
-    dprint_debug "Invalid Github repository handle: $repo_arg"
-    return 1
-  fi
+  local user_repo="$1"
 
   # Construct permanent destination
   local perm_dest="$D__DIR_DPL_REPOS/$user_repo"

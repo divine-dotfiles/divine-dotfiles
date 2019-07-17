@@ -12,7 +12,7 @@
 ## Helper functions for deployments based on template ‘queue.dpl.sh’
 #
 
-__queue_hlp__dcheck()
+d__queue_check()
 {
   # Initialize or increment section number
   if [ -z ${D__DPL_QUEUE_CURRENT_SECTION_NUM[0]+isset} ]; then
@@ -22,8 +22,8 @@ __queue_hlp__dcheck()
   fi
 
   # Launch pre-processing if it is implemented
-  if declare -f d__queue_hlp__pre_process &>/dev/null \
-    && ! d__queue_hlp__pre_process
+  if declare -f d_queue_pre_process &>/dev/null \
+    && ! d_queue_pre_process
   then
     dprint_debug 'Queue pre-processing signaled error'
     return 3
@@ -36,7 +36,7 @@ __queue_hlp__dcheck()
   fi
 
   # Rely on stashing
-  dstash ready || return 3
+  d__stash ready || return 3
 
   # Storage and status variables
   local all_installed=true all_not_installed=true all_unknown=true
@@ -47,14 +47,14 @@ __queue_hlp__dcheck()
   D__USER_OR_OS=true
 
   # If necessary functions are not implemented: implement a dummy
-  if ! declare -f d__queue_hlp__item_is_installed &>/dev/null; then
-    d__queue_hlp__item_is_installed() { :; }
+  if ! declare -f d_queue_item_is_installed &>/dev/null; then
+    d_queue_item_is_installed() { :; }
   fi
-  if ! declare -f d__queue_hlp__provide_stash_key &>/dev/null; then
-    d__queue_hlp__provide_stash_key() { :; }
+  if ! declare -f d_queue_item_pre_check &>/dev/null; then
+    d_queue_item_pre_check() { :; }
   fi
-  if ! declare -f d__queue_hlp__post_process &>/dev/null; then
-    d__queue_hlp__post_process() { :; }
+  if ! declare -f d_queue_post_process &>/dev/null; then
+    d_queue_post_process() { :; }
   fi
 
   # Calculate section edges
@@ -87,7 +87,7 @@ __queue_hlp__dcheck()
     D__DPL_ITEM_STASH_VALUE=
     
     # Allow user a chance to set stash key
-    d__queue_hlp__provide_stash_key
+    d_queue_item_pre_check
 
     # Check if function returned ‘no stash’ signal
     if [ $? -eq 1 ]; then
@@ -99,18 +99,18 @@ __queue_hlp__dcheck()
     else
 
       # Set flag
-      __queue_hlp__current_item set uses_stash
+      d__queue_item_status set uses_stash
 
       # If stash key is empty, generate one
       [ -z "$D__DPL_ITEM_STASH_KEY" ] \
         && D__DPL_ITEM_STASH_KEY="$( dmd5 -s "$D__DPL_ITEM_TITLE" )"
 
       # Validate stash key
-      if ! __dstash_validate_key "$D__DPL_ITEM_STASH_KEY"; then
+      if ! d__stash_validate_key "$D__DPL_ITEM_STASH_KEY"; then
 
         # Set flag, report error, and skip item
-        __queue_hlp__current_item set is_invalid
-        debug_queue_item 'Not checked' \
+        d__queue_item_status set is_invalid
+        d__queue_item_dprint_debug 'Not checked' \
           -n "Bad stash key: '$D__DPL_ITEM_STASH_KEY'"
         continue
 
@@ -119,79 +119,79 @@ __queue_hlp__dcheck()
     fi
 
     # Check stashing is not used for this item
-    if ! __queue_hlp__current_item uses_stash; then
+    if ! d__queue_item_status uses_stash; then
 
       # Not using stash
       unset D__DPL_ITEM_STASH_FLAG
 
       # Check if item is installed
-      d__queue_hlp__item_is_installed; case $? in
+      d_queue_item_is_installed; case $? in
         0)  # Item status is unknown
-            __queue_hlp__current_item set can_be_installed
-            __queue_hlp__current_item set can_be_removed
+            d__queue_item_status set can_be_installed
+            d__queue_item_status set can_be_removed
             all_installed=false
             all_not_installed=false
-            debug_queue_item 'Unknown' '(stash disabled)'
+            d__queue_item_dprint_debug 'Unknown' '(stash disabled)'
             ;;
         1)  # Item is installed
-            __queue_hlp__current_item set can_be_removed
+            d__queue_item_status set can_be_removed
             some_installed=true
             all_not_installed=false
             all_unknown=false
             D__USER_OR_OS=false
-            debug_queue_item 'Installed' '(stash disabled)'
+            d__queue_item_dprint_debug 'Installed' '(stash disabled)'
             ;;
         2)  # Item is not installed
-            __queue_hlp__current_item set can_be_installed
+            d__queue_item_status set can_be_installed
             all_installed=false
             all_unknown=false
-            debug_queue_item 'Not installed' '(stash disabled)'
+            d__queue_item_dprint_debug 'Not installed' '(stash disabled)'
             ;;
         3)  # Bad item: set flag, report error, and skip item
-            __queue_hlp__current_item set is_invalid
+            d__queue_item_status set is_invalid
             should_prompt_again=true
-            debug_queue_item 'Invalid' '(stash disabled)'
+            d__queue_item_dprint_debug 'Invalid' '(stash disabled)'
             continue
             ;;
       esac
     
-    elif dstash -s has "$D__DPL_ITEM_STASH_KEY"; then
+    elif d__stash -s has "$D__DPL_ITEM_STASH_KEY"; then
 
       # Record of installation exists
       D__DPL_ITEM_STASH_FLAG=true
 
       # Populate stash value
-      D__DPL_ITEM_STASH_VALUE="$( dstash -s get "$D__DPL_ITEM_STASH_KEY" )"
+      D__DPL_ITEM_STASH_VALUE="$( d__stash -s get "$D__DPL_ITEM_STASH_KEY" )"
 
       # Check if item is installed as advertised
-      d__queue_hlp__item_is_installed; case $? in
+      d_queue_item_is_installed; case $? in
         0)  # Item recorded but status is unknown: assume installed
-            __queue_hlp__current_item set can_be_removed
+            d__queue_item_status set can_be_removed
             some_installed=true
             all_not_installed=false
             all_unknown=false
             D__USER_OR_OS=false
-            debug_queue_item 'Unknown' '(record exists)'
+            d__queue_item_dprint_debug 'Unknown' '(record exists)'
             ;;
         1)  # Item recorded and installed
-            __queue_hlp__current_item set can_be_removed
+            d__queue_item_status set can_be_removed
             some_installed=true
             all_not_installed=false
             all_unknown=false
             D__USER_OR_OS=false
-            debug_queue_item 'Installed'
+            d__queue_item_dprint_debug 'Installed'
             ;;
         2)  # Item recorded but not installed
-            __queue_hlp__current_item set can_be_installed
+            d__queue_item_status set can_be_installed
             all_installed=false
             all_unknown=false
             should_prompt_again=true
-            debug_queue_item 'Not installed' '(removed by user or OS)'
+            d__queue_item_dprint_debug 'Not installed' '(removed by user or OS)'
             ;;
         3)  # Bad item: set flag, report error, and skip item
-            __queue_hlp__current_item set is_invalid
+            d__queue_item_status set is_invalid
             should_prompt_again=true
-            debug_queue_item 'Invalid' '(record exists)'
+            d__queue_item_dprint_debug 'Invalid' '(record exists)'
             continue
             ;;
       esac
@@ -202,29 +202,29 @@ __queue_hlp__dcheck()
       D__DPL_ITEM_STASH_FLAG=false
 
       # Check if item is nevertheless installed
-      d__queue_hlp__item_is_installed; case $? in
+      d_queue_item_is_installed; case $? in
         0)  # Item is not recorded and status is unknown: assume not installed
-            __queue_hlp__current_item set can_be_installed
+            d__queue_item_status set can_be_installed
             all_installed=false
             all_unknown=false
-            debug_queue_item 'Unknown' '(no record)'
+            d__queue_item_dprint_debug 'Unknown' '(no record)'
             ;;
         1)  # Item is not recorded but is installed
             some_installed=true
             all_not_installed=false
             all_unknown=false
-            debug_queue_item 'Installed' '(by user or OS)'
+            d__queue_item_dprint_debug 'Installed' '(by user or OS)'
             ;;
         2)  # Item is not recorded and not installed
-            __queue_hlp__current_item set can_be_installed
+            d__queue_item_status set can_be_installed
             all_installed=false
             all_unknown=false
-            debug_queue_item 'Not installed'
+            d__queue_item_dprint_debug 'Not installed'
             ;;
         3)  # Bad item: set flag, report error, and skip item
-            __queue_hlp__current_item set is_invalid
+            d__queue_item_status set is_invalid
             should_prompt_again=true
-            debug_queue_item 'Invalid' '(no record)'
+            d__queue_item_dprint_debug 'Invalid' '(no record)'
             continue
             ;;
       esac
@@ -247,7 +247,7 @@ __queue_hlp__dcheck()
   fi
 
   # Launch post-processing
-  if ! d__queue_hlp__post_process; then
+  if ! d_queue_post_process; then
     dprint_debug 'Queue post-processing signaled error'
     return 3
   fi
@@ -266,7 +266,7 @@ __queue_hlp__dcheck()
   else return 2; fi
 }
 
-__queue_hlp__dinstall()
+d__queue_install()
 {
   # Initialize or increment section number
   if [ -z ${D__DPL_QUEUE_CURRENT_SECTION_NUM[1]+isset} ]; then
@@ -281,8 +281,8 @@ __queue_hlp__dinstall()
   local exit_code
 
   # If necessary functions are not implemented: implement a dummy
-  if ! declare -f d__queue_hlp__install_item &>/dev/null; then
-    d__queue_hlp__install_item() { :; }
+  if ! declare -f d_queue_item_install &>/dev/null; then
+    d_queue_item_install() { :; }
   fi
 
   # Calculate section edges
@@ -310,16 +310,16 @@ __queue_hlp__dinstall()
   for (( D__DPL_ITEM_NUM=$min; D__DPL_ITEM_NUM<$max; D__DPL_ITEM_NUM++ )); do
 
     # If queue item is invalid: skip silently
-    if __queue_hlp__current_item is_invalid; then continue; fi
+    if d__queue_item_status is_invalid; then continue; fi
 
     # Prepare global variables
     D__DPL_ITEM_TITLE="${D__DPL_QUEUE_MAIN[$D__DPL_ITEM_NUM]}"
     D__DPL_ITEM_IS_FORCED=false
-    if __queue_hlp__current_item uses_stash; then
+    if d__queue_item_status uses_stash; then
       D__DPL_ITEM_STASH_KEY="${D__DPL_QUEUE_STASH_KEYS[$D__DPL_ITEM_NUM]}"
-      if dstash -s has "$D__DPL_ITEM_STASH_KEY"; then
+      if d__stash -s has "$D__DPL_ITEM_STASH_KEY"; then
         D__DPL_ITEM_STASH_FLAG=true
-        D__DPL_ITEM_STASH_VALUE="$( dstash -s get "$D__DPL_ITEM_STASH_KEY" )"
+        D__DPL_ITEM_STASH_VALUE="$( d__stash -s get "$D__DPL_ITEM_STASH_KEY" )"
       else
         D__DPL_ITEM_STASH_FLAG=false
         D__DPL_ITEM_STASH_VALUE=
@@ -331,24 +331,24 @@ __queue_hlp__dinstall()
     fi
 
     # Perform an action based on options available
-    if __queue_hlp__current_item can_be_installed; then
+    if d__queue_item_status can_be_installed; then
 
       # Item is considered not installed: install it
-      d__queue_hlp__install_item; exit_code=$?; case $exit_code in
+      d_queue_item_install; exit_code=$?; case $exit_code in
         0|3)  # Installed successfully
               all_already_installed=false
               all_failed=false
-              dstash -s set "$D__DPL_ITEM_STASH_KEY" "$D__DPL_ITEM_STASH_VALUE"
-              debug_queue_item 'Installed'
+              d__stash -s set "$D__DPL_ITEM_STASH_KEY" "$D__DPL_ITEM_STASH_VALUE"
+              d__queue_item_dprint_debug 'Installed'
               ;;
         1|4)  # Failed to install
               all_newly_installed=false
               all_already_installed=false
               some_failed=true
-              debug_queue_item 'Failed to install'
+              d__queue_item_dprint_debug 'Failed to install'
               ;;
         2)    # Item found to be invalid during installation
-              debug_queue_item 'Invalid'
+              d__queue_item_dprint_debug 'Invalid'
               continue
               ;;
       esac
@@ -366,21 +366,21 @@ __queue_hlp__dinstall()
       D__DPL_ITEM_IS_FORCED=true
 
       # Item is considered already installed, but user forces installation
-      d__queue_hlp__install_item; exit_code=$?; case $exit_code in
+      d_queue_item_install; exit_code=$?; case $exit_code in
         0|3)  # Re-installed successfully
               all_newly_installed=false
               all_failed=false
-              dstash -s set "$D__DPL_ITEM_STASH_KEY" "$D__DPL_ITEM_STASH_VALUE"
-              debug_queue_item 'Force-installed'
+              d__stash -s set "$D__DPL_ITEM_STASH_KEY" "$D__DPL_ITEM_STASH_VALUE"
+              d__queue_item_dprint_debug 'Force-installed'
               ;;
         1|4)  # Failed to re-install
               all_newly_installed=false
               all_already_installed=false
               some_failed=true
-              debug_queue_item 'Failed to force-install'
+              d__queue_item_dprint_debug 'Failed to force-install'
               ;;
         2)    # Item found to be invalid during installation
-              debug_queue_item 'Invalid'
+              d__queue_item_dprint_debug 'Invalid'
               continue
               ;;
       esac
@@ -397,7 +397,7 @@ __queue_hlp__dinstall()
       # Item is considered already installed, and that’s the end of it
       all_newly_installed=false
       all_failed=false
-      debug_queue_item 'Already installed'
+      d__queue_item_dprint_debug 'Already installed'
     
     fi
 
@@ -438,7 +438,7 @@ __queue_hlp__dinstall()
   fi
 }
 
-__queue_hlp__dremove()
+d__queue_remove()
 {
   # Initialize or decrement section number (reverse order)
   if [ -z ${D__DPL_QUEUE_CURRENT_SECTION_NUM[1]+isset} ]; then
@@ -453,8 +453,8 @@ __queue_hlp__dremove()
   local exit_code
 
   # If necessary functions are not implemented: implement a dummy
-  if ! declare -f d__queue_hlp__remove_item &>/dev/null; then
-    d__queue_hlp__remove_item() { :; }
+  if ! declare -f d_queue_item_remove &>/dev/null; then
+    d_queue_item_remove() { :; }
   fi
 
   # Calculate section edges
@@ -482,16 +482,16 @@ __queue_hlp__dremove()
   for (( D__DPL_ITEM_NUM=$max-1; D__DPL_ITEM_NUM>=$min; D__DPL_ITEM_NUM-- )); do
 
     # If queue item is invalid: skip silently
-    if __queue_hlp__current_item is_invalid; then continue; fi
+    if d__queue_item_status is_invalid; then continue; fi
 
     # Prepare global variables
     D__DPL_ITEM_TITLE="${D__DPL_QUEUE_MAIN[$D__DPL_ITEM_NUM]}"
     D__DPL_ITEM_IS_FORCED=false
-    if __queue_hlp__current_item uses_stash; then
+    if d__queue_item_status uses_stash; then
       D__DPL_ITEM_STASH_KEY="${D__DPL_QUEUE_STASH_KEYS[$D__DPL_ITEM_NUM]}"
-      if dstash -s has "$D__DPL_ITEM_STASH_KEY"; then
+      if d__stash -s has "$D__DPL_ITEM_STASH_KEY"; then
         D__DPL_ITEM_STASH_FLAG=true
-        D__DPL_ITEM_STASH_VALUE="$( dstash -s get "$D__DPL_ITEM_STASH_KEY" )"
+        D__DPL_ITEM_STASH_VALUE="$( d__stash -s get "$D__DPL_ITEM_STASH_KEY" )"
       else
         D__DPL_ITEM_STASH_FLAG=false
         D__DPL_ITEM_STASH_VALUE=
@@ -503,24 +503,24 @@ __queue_hlp__dremove()
     fi
 
     # Perform an action based on options available
-    if __queue_hlp__current_item can_be_removed; then
+    if d__queue_item_status can_be_removed; then
 
       # Item is considered installed: remove it
-      d__queue_hlp__remove_item; exit_code=$?; case $exit_code in
+      d_queue_item_remove; exit_code=$?; case $exit_code in
         0|3)  # Removed successfully
               all_already_removed=false
               all_failed=false
-              dstash -s unset "$D__DPL_ITEM_STASH_KEY"
-              debug_queue_item 'Removed'
+              d__stash -s unset "$D__DPL_ITEM_STASH_KEY"
+              d__queue_item_dprint_debug 'Removed'
               ;;
         1|4)  # Failed to remove
               all_newly_removed=false
               all_already_removed=false
               some_failed=true
-              debug_queue_item 'Failed to remove'
+              d__queue_item_dprint_debug 'Failed to remove'
               ;;
         2)    # Item found to be invalid during installation
-              debug_queue_item 'Invalid'
+              d__queue_item_dprint_debug 'Invalid'
               continue
               ;;
       esac
@@ -538,21 +538,21 @@ __queue_hlp__dremove()
       D__DPL_ITEM_IS_FORCED=true
 
       # Item is considered already not installed, but user forces removal
-      d__queue_hlp__remove_item; exit_code=$?; case $exit_code in
+      d_queue_item_remove; exit_code=$?; case $exit_code in
         0|3)  # Re-removed successfully
               all_newly_removed=false
               all_failed=false
-              dstash -s unset "$D__DPL_ITEM_STASH_KEY"
-              debug_queue_item 'Force-removed'
+              d__stash -s unset "$D__DPL_ITEM_STASH_KEY"
+              d__queue_item_dprint_debug 'Force-removed'
               ;;
         1|4)  # Failed to re-remove
               all_newly_removed=false
               all_already_removed=false
               some_failed=true
-              debug_queue_item 'Failed to force-remove'
+              d__queue_item_dprint_debug 'Failed to force-remove'
               ;;
         2)    # Item found to be invalid during removal
-              debug_queue_item 'Invalid'
+              d__queue_item_dprint_debug 'Invalid'
               continue
               ;;
       esac
@@ -569,7 +569,7 @@ __queue_hlp__dremove()
       # Item is considered already not installed, and that’s the end of it
       all_newly_removed=false
       all_failed=false
-      debug_queue_item 'Already not installed'
+      d__queue_item_dprint_debug 'Already not installed'
     
     fi
 
@@ -610,11 +610,11 @@ __queue_hlp__dremove()
   fi
 }
 
-#>  __queue_hlp__current_item [ set FLAG ] | FLAG
+#>  d__queue_item_status [ set FLAG ] | FLAG
 #
 ## Convenience wrapper for storing pre-defined boolean flags in global array
 #
-__queue_hlp__current_item()
+d__queue_item_status()
 {
   # Check if first argument is the word ‘set’
   if [ "$1" = set ]; then
@@ -642,11 +642,11 @@ __queue_hlp__current_item()
   fi
 }
 
-#>  debug_queue_item TITLE [CHUNK]…
+#>  d__queue_item_dprint_debug TITLE [CHUNK]…
 #
 ## Tiny helper that unifies debug message format for queue items
 #
-debug_queue_item()
+d__queue_item_dprint_debug()
 {
   local width=24
   local title="$1"; shift
@@ -656,14 +656,14 @@ debug_queue_item()
   dprint_debug "${title:0:$width}: $D__DPL_ITEM_TITLE" "$@"
 }
 
-#>  __split_queue [POSITION]
+#>  d__queue_split [POSITION]
 #
 ## Adds a separation point into the queue either at current length (to continue 
 #. populating the next section of the queue), or at a given length. Queue 
 #. helpers process first available queue segment and move to the next one only 
 #. on next iteration.
 #
-__split_queue()
+d__queue_split()
 {
   # Grab argument
   local position="$1"; shift

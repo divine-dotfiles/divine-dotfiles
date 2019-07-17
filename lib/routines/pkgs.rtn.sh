@@ -14,7 +14,7 @@
 ## Updates currently installed packages
 #
 
-#> __update_pkgs
+#> d__update_pkgs
 #
 ## Shared subroutine that runs update process on detected $D__OS_PKGMGR
 #
@@ -29,7 +29,7 @@
 #.  stdout: Progress messages
 #.  stderr: As little as possible
 #
-__update_pkgs()
+d__update_pkgs()
 {
   # Only if packages are to be touched at all
   if $D__REQ_PACKAGES; then
@@ -113,4 +113,4 @@ __update_pkgs()
   return 0
 }
 
-__update_pkgs
+d__update_pkgs

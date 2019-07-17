@@ -15,7 +15,7 @@
 #. clearing their installation record
 #
 
-#>  __perform_detach
+#>  d__perform_detach_routine
 #
 ## Performs detach routine
 #
@@ -25,10 +25,10 @@
 #.  2 - Routine performed, none of the arguments detached
 #.  3 - Routine terminated with nothing to do
 #
-__perform_detach()
+d__perform_detach_routine()
 {
-  # Make sure dpl-repos are in order
-  __sort_out_dpl_repos || exit 1
+  # Synchronize dpl repos
+  d__sync_dpl_repos || exit 1
   
   # Announce beginning
   if [ "$D__OPT_ANSWER" = false ]; then
@@ -54,7 +54,7 @@ __perform_detach()
       '>>>' 'Detaching' ':' "$dpl_arg"
 
     # Try to attach deployments
-    if __detach__attempt_github_repo "$dpl_arg"; then
+    if d__detach_dpl_repo "$dpl_arg"; then
       detached_anything=true
       dprint_ode "${D__ODE_NORMAL[@]}" -c "$GREEN" -- \
         'vvv' 'Detached' ':' "$dpl_arg"
@@ -95,7 +95,7 @@ __perform_detach()
   fi
 }
 
-#>  __detach__attempt_github_repo
+#>  d__detach_dpl_repo
 #
 ## Attempts to interpret single argument as name of Github repository and 
 #. detach it. Accepts either full ‘user/repo’ form or short ‘built_in_repo’ 
@@ -105,7 +105,7 @@ __perform_detach()
 #.  0 - Successfully detached deployment repository
 #.  1 - Otherwise
 #
-__detach__attempt_github_repo()
+d__detach_dpl_repo()
 {
   # Extract argument
   local repo_arg="$1"
@@ -181,7 +181,7 @@ __detach__attempt_github_repo()
   fi
 
   # Repository erased, now remove record from Grail stash
-  if dstash -g -s unset dpl_repos "$user_repo"; then
+  if d__stash -g -s unset dpl_repos "$user_repo"; then
     dprint_debug \
       "Cleared record of attached repository "$user_repo" in Grail stash"
   else
@@ -197,4 +197,4 @@ __detach__attempt_github_repo()
   return 0
 }
 
-__perform_detach
+d__perform_detach_routine

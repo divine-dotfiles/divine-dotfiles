@@ -12,7 +12,7 @@
 ## Helper function that offers to install required/optional dependency
 #
 
-#>  __offer_util [--exit-on-q] UTIL_NAME
+#>  d__offer_system_pkg [--exit-on-q] UTIL_NAME
 #
 ## Checks whether UTIL_NAME is available on the system and, if not, offers to 
 #. install it using system’s package manager, if it itself is available
@@ -29,7 +29,7 @@
 #.  1 - (script exit) (with --exit-on-q) User refused to install and chose to 
 #.      not proceed at all
 #
-__offer_util()
+d__offer_system_pkg()
 {
   # Check for option
   local exit_on_q=false
@@ -92,7 +92,7 @@ __offer_util()
           if [ "${PIPESTATUS[0]}" -eq 0 ]; then
 
             # Make record of installation
-            if dstash -r -s add installed_util "$util_name"; then
+            if d__stash -r -s add installed_util "$util_name"; then
               dprint_debug "Recorded installation of $util_name to root stash"
             else
               dprint_failure -l \

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#:title:        Divine Bash deployment helpers: dln
+#:title:        Divine Bash deployment helpers: link-queue
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revnumber:    1.2.0-RELEASE
@@ -9,14 +9,14 @@
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
 #
-## Helper functions for deployments based on template ‘link-files.dpl.sh’
+## Helper functions for deployments based on template ‘link-queue.dpl.sh’
 #
 ## Replaces arbitrary files (e.g., config files) with symlinks to provided 
 #. replacements. Creates backup of each replaced file. Restores original set-up 
 #. on removal.
 #
 
-#>  __dln_hlp__dcheck
+#>  d__link_queue_check
 #
 ## Checks whether every original file in $D__DPL_TARGET_PATHS[_*] (single path 
 #. or array thereof) is currently replaced with a symlink pointing to 
@@ -29,7 +29,6 @@
 ## Requires:
 #.  $D__DPL_ASSET_PATHS          - (array ok) Locations of replacement files
 #.  $D__DPL_TARGET_PATHS         - (array ok) Locations of files to be replaced
-#.  `dos.utl.sh`
 #.  `dln.utl.sh`
 #
 ## Provides into the global scope:
@@ -37,45 +36,45 @@
 #.  $D__DPL_BACKUP_PATHS    - (array) Paths to where to put backups
 #
 ## Returns:
-#.  Values supported by dcheck function in *.dpl.sh
+#.  Values supported by d_dpl_check function in *.dpl.sh
 #
 ## Prints:
 #.  stdout: *nothing*
 #.  stderr: Error descriptions
 #
-__dln_hlp__dcheck()
+d__link_queue_check()
 {
   # Redirect pre-processing
-  d__queue_hlp__pre_process()
+  d_queue_pre_process()
   {
     # Redirect to built-in helper
-    __dln_hlp__pre_process
+    d__link_queue_pre_process
 
     # Try user-provided helper
-    if declare -f d__dln_hlp__pre_process &>/dev/null; then
-      d__dln_hlp__pre_process || return 1
+    if declare -f d_link_queue_pre_process &>/dev/null; then
+      d_link_queue_pre_process || return 1
     fi
   }
 
   # Redirect item check to built-in helper
-  d__queue_hlp__item_is_installed() { __dln_hlp__item_is_installed; }
+  d_queue_item_is_installed() { d__link_queue_item_is_installed; }
 
   # Redirect post-processing
-  d__queue_hlp__post_process()
+  d_queue_post_process()
   {
     # Try user-provided helper
-    if declare -f d__dln_hlp__post_process &>/dev/null; then
-      d__dln_hlp__post_process
+    if declare -f d_link_queue_post_process &>/dev/null; then
+      d_link_queue_post_process
     else
       :
     fi
   }
 
   # Delegate to helper
-  __queue_hlp__dcheck
+  d__queue_check
 }
 
-#>  __dln_hlp__dinstall
+#>  d__link_queue_install
 #
 ## Moves each target file in $D__DPL_TARGET_PATHS to its respective backup 
 #. location in $D__DPL_BACKUP_PATHS; replaces each with a symlink pointing to 
@@ -88,33 +87,33 @@ __dln_hlp__dcheck()
 #.  `dln.utl.sh`
 #
 ## Returns:
-#.  Values supported by dinstall function in *.dpl.sh
+#.  Values supported by d_dpl_install function in *.dpl.sh
 #
 ## Prints:
 #.  Status messages for user
 #
-__dln_hlp__dinstall()
+d__link_queue_install()
 {
   # Redirect installation with optional pre-processing
-  d__queue_hlp__install_item()
+  d_queue_item_install()
   {
     # Try user-provided helper
-    if declare -f d__dln_hlp__install_item &>/dev/null \
-      && ! d__dln_hlp__install_item
+    if declare -f d_link_queue_item_pre_install &>/dev/null \
+      && ! d_link_queue_item_pre_install
     then
       dprint_debug 'Pre-installation signaled error'
       return 2
     fi
 
     # Redirect to built-in helper
-    __dln_hlp__install_item
+    d__link_queue_item_install
   }
 
   # Delegate to helper
-  __queue_hlp__dinstall
+  d__queue_install
 }
 
-#>  __dln_hlp__dremove
+#>  d__link_queue_remove
 #
 ## Removes each path in $D__DPL_TARGET_PATHS that is a symlink pointing to 
 #. respective replacement in $D__DPL_ASSET_PATHS. Where possible, restores 
@@ -127,39 +126,39 @@ __dln_hlp__dinstall()
 #.  `dln.utl.sh`
 #
 ## Returns:
-#.  Values supported by dremove function in *.dpl.sh
+#.  Values supported by d_dpl_remove function in *.dpl.sh
 #
 ## Prints:
 #.  Status messages for user
 #
-__dln_hlp__dremove()
+d__link_queue_remove()
 {
   # Redirect removal with optional pre-processing
-  d__queue_hlp__remove_item()
+  d_queue_item_remove()
   {
     # Try user-provided helper
-    if declare -f d__dln_hlp__remove_item &>/dev/null \
-      && ! d__dln_hlp__remove_item
+    if declare -f d_link_queue_item_pre_remove &>/dev/null \
+      && ! d_link_queue_item_pre_remove
     then
       dprint_debug 'Pre-removal signaled error'
       return 2
     fi
 
     # Redirect to built-in helper
-    __dln_hlp__remove_item
+    d__link_queue_item_remove
   }
 
   # Delegate to helper
-  __queue_hlp__dremove
+  d__queue_remove
 }
 
-__dln_hlp__pre_process()
+d__link_queue_pre_process()
 {
   # Override targets for current OS family, if that variable is non-empty
-  __override_d_targets_for_family
+  d__override_dpl_targets_for_os_family
 
   # Override targets for current OS distro, if that variable is non-empty
-  __override_d_targets_for_distro
+  d__override_dpl_targets_for_os_distro
 
   # If $D__DPL_TARGET_PATHS is thus far empty, try another trick
   if ! [ ${#D__DPL_TARGET_PATHS[@]} -gt 1 -o -n "$D__DPL_TARGET_PATHS" ] \
@@ -200,7 +199,7 @@ __dln_hlp__pre_process()
   return 0
 }
 
-__dln_hlp__item_is_installed()
+d__link_queue_item_is_installed()
 {
   # Storage variables
   local target_path="${D__DPL_TARGET_PATHS[$D__DPL_ITEM_NUM]}"
@@ -275,7 +274,7 @@ __dln_hlp__item_is_installed()
   fi
 }
 
-__dln_hlp__install_item()
+d__link_queue_item_install()
 {
   # Storage variables
   local target_path="${D__DPL_TARGET_PATHS[$D__DPL_ITEM_NUM]}"
@@ -299,7 +298,7 @@ __dln_hlp__install_item()
   fi
 }
 
-__dln_hlp__remove_item()
+d__link_queue_item_remove()
 {
   # Storage variables
   local target_path="${D__DPL_TARGET_PATHS[$D__DPL_ITEM_NUM]}"

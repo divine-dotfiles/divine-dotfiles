@@ -14,7 +14,7 @@
 ## Shows help and exits the script
 #
 
-#> __show_help_and_exit
+#> d__show_help_and_exit
 #
 ## This function is meant to be called whenever help is explicitly requested. 
 #. Prints out a summary of usage scenarios and valid options.
@@ -29,7 +29,7 @@
 #.  stdout: Help summary
 #.  stderr: As little as possible
 #
-__show_help_and_exit()
+d__show_help_and_exit()
 {
   # Add bolding if available
   local bold normal
@@ -68,7 +68,7 @@ DESCRIPTION
     - Updates installed packages using system’s package manager
     - Performs tasks in order:
       - ${bold}Installs${normal} packages using system’s package manager
-      - ${bold}Installs${normal} deployments using 'dinstall' function in each
+      - ${bold}Installs${normal} deployments using 'd_dpl_install' function in each
 
     ${bold}'Remove' routine${normal} - removes tasks
 
@@ -78,7 +78,7 @@ DESCRIPTION
     - ${bold}Reverse${normal}-sorts tasks by priority (${bold}descending${normal} integer order)
     - Updates installed packages using system’s package manager
     - Performs tasks in order:
-      - ${bold}Removes${normal} deployments using 'dremove' function in each
+      - ${bold}Removes${normal} deployments using 'd_dpl_remove' function in each
       - ${bold}Removes${normal} packages using system’s package manager
     
     ${bold}'Check' routine${normal} - checks status of tasks
@@ -198,4 +198,4 @@ EOF
   exit 0
 }
 
-__show_help_and_exit
+d__show_help_and_exit

@@ -7,16 +7,16 @@ D__DPL_WARNING=
 # Queue of items to be processed
 D__DPL_QUEUE_MAIN=()
 
-dcheck()    { __queue_hlp__dcheck;    }
-dinstall()  { __queue_hlp__dinstall;  }
-dremove()   { __queue_hlp__dremove;   }
+d_dpl_check()    { d__queue_check;    }
+d_dpl_install()  { d__queue_install;  }
+d_dpl_remove()   { d__queue_remove;   }
 
 ## Exit codes and their meaning:
 #.  0 - Unknown
 #.  1 - Installed
 #.  2 - Not installed
 #.  3 - Invalid
-d__queue_hlp__item_is_installed()
+d_queue_item_is_installed()
 {
   :
 }
@@ -27,7 +27,7 @@ d__queue_hlp__item_is_installed()
 #.  2 - Invalid item
 #.  3 - Success: stop any further installations
 #.  4 - Failure: stop any further installations
-d__queue_hlp__install_item()
+d_queue_item_install()
 {
   :
 }
@@ -38,7 +38,7 @@ d__queue_hlp__install_item()
 #.  2 - Invalid item
 #.  3 - Success: stop any further removals
 #.  4 - Failure: stop any further removals
-d__queue_hlp__remove_item()
+d_queue_item_remove()
 {
   :
 }

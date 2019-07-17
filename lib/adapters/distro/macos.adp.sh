@@ -16,7 +16,7 @@
 #
 
 # Implement helper that offers to install Homebrew, and does it if user agrees
-__offer_to_install_brew()
+d__offer_to_install_brew()
 {
   # Check if Homebrew is already installed
   if HOMEBREW_NO_AUTO_UPDATE=1 brew --version &>/dev/null; then
@@ -62,7 +62,7 @@ __offer_to_install_brew()
     if [ "${PIPESTATUS[0]}" -eq 0 ]; then
 
       # Make record of installation
-      if dstash -r -s add installed_homebrew; then
+      if d__stash -r -s add installed_homebrew; then
         dprint_debug "Recorded installation of Homebrew to root stash"
       else
         dprint_failure -l \
@@ -93,7 +93,7 @@ __offer_to_install_brew()
 }
 
 # Offer to install Homebrew ASAP
-__offer_to_install_brew
+d__offer_to_install_brew
 
 # Afterward, check if brew is available
 if HOMEBREW_NO_AUTO_UPDATE=1 brew --version &>/dev/null; then
@@ -118,7 +118,7 @@ if HOMEBREW_NO_AUTO_UPDATE=1 brew --version &>/dev/null; then
 fi
 
 # Implement overriding mechanism for $D__DPL_TARGET_PATHS and $D__DPL_TARGET_DIR
-__override_d_targets_for_distro()
+d__override_dpl_targets_for_os_distro()
 {
   # Check if $D__DPL_TARGET_PATHS_MACOS contains at least one string
   if [ ${#D__DPL_TARGET_PATHS_MACOS[@]} -gt 1 \

@@ -4,14 +4,14 @@ D__DPL_PRIORITY=4096
 D__DPL_FLAGS=
 D__DPL_WARNING=
 
-## Link-files is a special queue that performs a sequence of linking: a symlink 
+## Link-queue is a special queue that performs a sequence of linking: a symlink 
 #. is created at given path, pointing to an asset provided with the deployment, 
 #. while any pre-existing file is backed up to be restored upon removal.
 #
 ## Linking is a useful way of plugging in custom configuration files, e.g. the 
 #. classic ‘.bashrc’ file.
 #
-## Link-files is a queue (‘queue.dpl.sh’) with some actions pre-implemented.
+## Link-queue is a queue (‘queue.dpl.sh’) with some actions pre-implemented.
 #
 ## Variables to fill:
 #.  $D__DPL_ASSET_PATHS    - This array must contain paths to every asset that 
@@ -27,12 +27,12 @@ D__DPL_WARNING=
 #
 ## Functions to implement (all are optional):
 #.  * Executed during checking:
-#.      d__dln_hlp__pre_process   - Custom queue pre-processing
-#.      d__dln_hlp__post_process  - Custom queue post-processing
+#.      d_link_queue_pre_process   - Custom queue pre-processing
+#.      d_link_queue_post_process  - Custom queue post-processing
 #.  * Executed during installation:
-#.      d__dln_hlp__install_item  - Pre-installation actions for each item
+#.      d_link_queue_item_pre_install  - Pre-installation actions for each item
 #.  * Executed during removal:
-#.      d__dln_hlp__remove_item   - Pre-removal actions for each item
+#.      d_link_queue_item_pre_remove   - Pre-removal actions for each item
 #
 ## Variables to take advantage of (maintained by queue helpers):
 #.  $D__DPL_ITEM_NUM         - Index of current item in $D__DPL_QUEUE_MAIN
@@ -75,11 +75,11 @@ D__DPL_WARNING=
 ## Framework provides three primary helpers. If queue is the only part of the 
 #. deployment, these are sufficient.
 #
-dcheck()    { __dln_hlp__dcheck;    }
-dinstall()  { __dln_hlp__dinstall;  }
-dremove()   { __dln_hlp__dremove;   }
+d_dpl_check()    { d__link_queue_check;    }
+d_dpl_install()  { d__link_queue_install;  }
+d_dpl_remove()   { d__link_queue_remove;   }
 
-#>  d__dln_hlp__pre_process
+#>  d_link_queue_pre_process
 #
 ## Allows to perform arbitrary actions before items in queue are checked
 #
@@ -89,12 +89,12 @@ dremove()   { __dln_hlp__dremove;   }
 #.  0 - Pre-processing succeeded
 #.  1 - Otherwise: do not proceed with this deployment
 #
-d__dln_hlp__pre_process()
+d_link_queue_pre_process()
 {
   :
 }
 
-#>  d__dln_hlp__post_process
+#>  d_link_queue_post_process
 #
 ## Allows to perform arbitrary actions after all items in queue have been 
 #. checked
@@ -105,12 +105,12 @@ d__dln_hlp__pre_process()
 #.  0 - Post-processing succeeded
 #.  1 - Otherwise: do not proceed with this deployment
 #
-d__dln_hlp__post_process()
+d_link_queue_post_process()
 {
   :
 }
 
-#>  d__dln_hlp__install_item
+#>  d_link_queue_item_pre_install
 #
 ## Performs custom actions before current item is installed
 #
@@ -120,12 +120,12 @@ d__dln_hlp__post_process()
 #.  0 - Ready for installation
 #.  1 - Otherwise: mark this item as invalid
 #
-d__dln_hlp__install_item()
+d_link_queue_item_pre_install()
 {
   :
 }
 
-#>  d__dln_hlp__remove_item
+#>  d_link_queue_item_pre_remove
 #
 ## Performs custom actions before current item is removed
 #
@@ -135,7 +135,7 @@ d__dln_hlp__install_item()
 #.  0 - Ready for removal
 #.  1 - Otherwise: mark this item as invalid
 #
-d__dln_hlp__remove_item()
+d_link_queue_item_pre_remove()
 {
   :
 }

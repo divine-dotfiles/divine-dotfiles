@@ -1,36 +1,36 @@
 # Driver function
-main()
+d__main()
 {
   # Colorize output
-  __declare_global_colors
+  d__declare_global_colors
 
   # Parse arguments
-  __parse_arguments "$@"
+  d__parse_arguments "$@"
 
   # Main installation
-  if __pull_github_repo; then
+  if d__pull_github_repo; then
 
     # Create 'assets' and 'dpl' directories
-    __create_empty_dirs
+    d__create_empty_dirs
 
     # Optional: install shortcut command ('di' by default)
-    __install_shortcut
+    d__install_shortcut
 
     # Status flag
     local anything_attached=false
 
     # Optional: pull Divine deployments 'core' package (default packages)
-    if __attach_dpls_core; then
+    if d__attach_dpls_core; then
       anything_attached=true
     fi
 
     # Optional: pull deployment repos requested through installation args
-    if __attach_requested_dpls; then
+    if d__attach_requested_dpls; then
       anything_attached=true
     fi
 
     # Optional: if any deployments were attached, run ‘di install --yes’
-    if $anything_attached; then __run_install; fi
+    if $anything_attached; then d__run_install; fi
 
     # Report success
     dprint_success 'All done'
@@ -42,7 +42,7 @@ main()
   return 1
 }
 
-__declare_global_colors()
+d__declare_global_colors()
 {
   # Colorize output (shamelessly stolen off oh-my-zsh)
   local num_of_colors
@@ -68,7 +68,7 @@ __declare_global_colors()
   fi
 }
 
-__parse_arguments()
+d__parse_arguments()
 {
   # Define global storage for option values
   D__OPT_QUIET=false         # Be verbose by default
@@ -112,7 +112,7 @@ __parse_arguments()
   done
 }
 
-__pull_github_repo()
+d__pull_github_repo()
 {
   # Store location of Divine.dotfiles repository
   local user_repo="no-simpler/divine-dotfiles"
@@ -248,7 +248,7 @@ __pull_github_repo()
   return 0
 }
 
-__create_empty_dirs()
+d__create_empty_dirs()
 {
   # Announce start
   dprint_start 'Creating empty working directories'
@@ -288,7 +288,7 @@ __create_empty_dirs()
   fi
 }
 
-__install_shortcut()
+d__install_shortcut()
 {
   # Compose shortcut name
   [[ -n $D_SHORTCUT_NAME && $D_SHORTCUT_NAME =~ ^[a-z0-9]+$ ]] \
@@ -449,7 +449,7 @@ __install_shortcut()
   fi
 }
 
-__attach_dpls_core()
+d__attach_dpls_core()
 {
   # Store location of default deployments repository
   local user_repo='no-simpler/divine-dpls-core'
@@ -496,7 +496,7 @@ __attach_dpls_core()
   fi
 }
 
-__attach_requested_dpls()
+d__attach_requested_dpls()
 {
   # If no arguments are provided, skip silently
   [ ${#D_REQUESTED_DPLS[@]} -eq 0 ] && return 1
@@ -537,7 +537,7 @@ __attach_requested_dpls()
   fi
 }
 
-__run_install()
+d__run_install()
 {
   # Offer to install deployments
   if dprompt_key "$D_RUN_INSTALL" 'Install?' \
@@ -683,4 +683,4 @@ dmd5()
   return 1
 }
 
-main "$@"
+d__main "$@"

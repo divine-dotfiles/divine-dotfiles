@@ -16,8 +16,8 @@
 #
 
 # Implement overriding mechanism for $D__DPL_TARGET_PATHS and $D__DPL_TARGET_DIR
-__override_d_targets_for_family()
+d__override_dpl_targets_for_os_family()
 {
-  # On macOS targets are overridden by __override_d_targets_for_distro
+  # On macOS targets are overridden by d__override_dpl_targets_for_os_distro
   :
 }

@@ -14,7 +14,7 @@
 ## Prepares global stashing system
 #
 
-#>  __run_stash_checks
+#>  d__run_stash_checks
 #
 ## Driver function
 #
@@ -22,10 +22,10 @@
 #.  0 - Framework is ready to run
 #.  1 - (script exit) Otherwise
 #
-__run_stash_checks()
+d__run_stash_checks()
 {
   # Ensure Grail stash is available
-  dstash --grail ready || {
+  d__stash --grail ready || {
     dprint_failure -l \
       'Failed to prepare Divine stashing system in Grail directory at:' \
       -i "$D__DIR_GRAIL"
@@ -33,7 +33,7 @@ __run_stash_checks()
   }
 
   # Ensure root stash is available
-  dstash --root ready || {
+  d__stash --root ready || {
     dprint_failure -l \
       'Failed to prepare Divine stashing system in state directory at:' \
       -i "$D__DIR_STASH"
@@ -41,5 +41,5 @@ __run_stash_checks()
   }
 }
 
-__run_stash_checks
-unset -f __run_stash_checks
+d__run_stash_checks
+unset -f d__run_stash_checks

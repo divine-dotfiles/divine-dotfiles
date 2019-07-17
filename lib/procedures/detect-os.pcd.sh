@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#:title:        Divine Bash utils: dOS
+#:title:        Divine Bash procedure: detect-os
 #:kind:         global_var,func(script)
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
@@ -35,19 +35,16 @@
 #
 
 # Driver function
-__main()
+d__detect_os()
 {
-  __populate_os_family
-  unset -f __populate_os_family
+  d__detect_os_family
 
-  __populate_os_distro
-  unset -f __populate_os_distro
+  d__detect_os_distro
   
-  __load_os_adapters
-  unset -f __load_os_adapters
+  d__load_os_adapters
 }
 
-#>  __populate_os_family
+#>  d__detect_os_family
 #
 ## Detects the OS family and stores it in a read-only global variable
 #
@@ -71,7 +68,7 @@ __main()
 #.  stdout: *nothing*
 #.  stderr: As little as possible
 #
-__populate_os_family()
+d__detect_os_family()
 {
   # Storage variable
   local os_family
@@ -174,14 +171,14 @@ __populate_os_family()
   fi
 }
 
-#>  __populate_os_distro
+#>  d__detect_os_distro
 #
 ## Detects particular OS distributions and stores it in a read-only global 
 #. variable. This function is meant to be expanded for particular required 
 #. distributions.
 #
 ## Requires:
-#.  $D__OS_FAMILY  - From __populate_os_family
+#.  $D__OS_FAMILY  - From d__detect_os_family
 #
 ## Provides into the global scope:
 #.  $D__OS_DISTRO  - (read-only) Best guess on the name of the current OS 
@@ -201,7 +198,7 @@ __populate_os_family()
 #.  stdout: *nothing*
 #.  stderr: As little as possible
 #
-__populate_os_distro()
+d__detect_os_distro()
 {
   # Storage variable
   local os_distro
@@ -274,15 +271,15 @@ __populate_os_distro()
   fi
 }
 
-#>  __load_os_adapters
+#>  d__load_os_adapters
 #
 ## Scans adapters dir for files ‘$D__OS_FAMILY.adp.sh’ and ‘$D__OS_DISTRO.adp.sh’ and 
 #. sources each, if found, in that order. After sourcing both, ensures as best 
 #. it can that required functions are implemented, or terminates the script.
 #
 ## Requires:
-#.  $D__OS_FAMILY  - From __populate_os_family
-#.  $D__OS_DISTRO  - From __populate_os_distro
+#.  $D__OS_FAMILY  - From d__detect_os_family
+#.  $D__OS_DISTRO  - From d__detect_os_distro
 #
 ## Provides into the global scope:
 #.  $D__OS_PKGMGR  - (read-only) Widely recognized name of package management 
@@ -308,7 +305,7 @@ __populate_os_distro()
 #.  stdout: *nothing*
 #.  stderr: Error descriptions
 #
-__load_os_adapters()
+d__load_os_adapters()
 {
   # Set up variables
   local family_adapter distro_adapter
@@ -451,19 +448,19 @@ __load_os_adapters()
 
   fi
 
-  # Check if adapter implements __override_d_targets_for_distro function
-  if ! declare -f __override_d_targets_for_distro &>/dev/null; then
+  # Check if adapter implements d__override_dpl_targets_for_os_distro function
+  if ! declare -f d__override_dpl_targets_for_os_distro &>/dev/null; then
 
     # Not implemented: implement dummy function
-    __override_d_targets_for_distro() { return 1; }
+    d__override_dpl_targets_for_os_distro() { return 1; }
 
   fi
 
-  # Check if adapter implements __override_d_targets_for_family function
-  if ! declare -f __override_d_targets_for_family &>/dev/null; then
+  # Check if adapter implements d__override_dpl_targets_for_os_family function
+  if ! declare -f d__override_dpl_targets_for_os_family &>/dev/null; then
 
     # Not implemented: implement dummy function
-    __override_d_targets_for_family() { return 1; }
+    d__override_dpl_targets_for_os_family() { return 1; }
 
   fi
 
@@ -476,5 +473,4 @@ __load_os_adapters()
   else return 1; fi
 }
 
-__main
-unset -f __main
+d__detect_os

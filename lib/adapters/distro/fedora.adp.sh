@@ -62,7 +62,7 @@ elif yum --version &>/dev/null; then
 fi
 
 # Implement overriding mechanism for $D__DPL_TARGET_PATHS and $D__DPL_TARGET_DIR
-__override_d_targets_for_distro()
+d__override_dpl_targets_for_os_distro()
 {
   # Check if $D__DPL_TARGET_PATHS_DEBIAN contains at least one string
   if [ ${#D__DPL_TARGET_PATHS_DEBIAN[@]} -gt 1 \

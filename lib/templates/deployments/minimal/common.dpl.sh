@@ -10,7 +10,7 @@ D__DPL_WARNING=
 #.  2 - Not installed
 #.  3 - Irrelevant
 #.  4 - Partly installed
-dcheck()
+d_dpl_check()
 {
   return 0
 }
@@ -22,7 +22,7 @@ dcheck()
 #.  100 - Reboot needed
 #.  101 - User attention needed
 #.  666 - Critical failure
-dinstall()
+d_dpl_install()
 {
   return 0
 }
@@ -34,7 +34,7 @@ dinstall()
 #.  100 - Reboot needed
 #.  101 - User attention needed
 #.  666 - Critical failure
-dremove()
+d_dpl_remove()
 {
   return 0
 }

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#:title:        Divine Bash deployment helpers: cp
+#:title:        Divine Bash deployment helpers: copy-queue
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revnumber:    1.1.0-RELEASE
@@ -9,14 +9,14 @@
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
 #
-## Helper functions for deployments based on template ‘copy-files.dpl.sh’
+## Helper functions for deployments based on template ‘copy-queue.dpl.sh’
 #
 ## Copies arbitrary files (e.g., font files) to provided locations (e.g., into 
 #. OS’s fonts directory). Creates backup of each replaced file. Restores 
 #. original set-up on removal.
 #
 
-#>  __cp_hlp__dcheck
+#>  d__copy_queue_check
 #
 ## Checks whether every file in $D__DPL_TARGET_PATHS[_*] (single path or array 
 #. thereof) is currently a copy of corresponding file in $D__DPL_ASSET_PATHS
@@ -28,52 +28,51 @@
 ## Requires:
 #.  $D__DPL_ASSET_PATHS          - (array ok) Locations of replacement files
 #.  $D__DPL_TARGET_PATHS         - (array ok) Locations of files to be replaced
-#.  `dos.utl.sh`
 #
 ## Provides into the global scope:
 #.  $D__DPL_TARGET_PATHS   - (array) Version after overrides for current OS
 #.  $D__DPL_BACKUP_PATHS   - (array) Paths to where to put backups
 #
 ## Returns:
-#.  Values supported by dcheck function in *.dpl.sh
+#.  Values supported by d_dpl_check function in *.dpl.sh
 #
 ## Prints:
 #.  stdout: *nothing*
 #.  stderr: Error descriptions
 #
-__cp_hlp__dcheck()
+d__copy_queue_check()
 {
   # Redirect pre-processing
-  d__queue_hlp__pre_process()
+  d_queue_pre_process()
   {
     # Redirect to built-in helper
-    __cp_hlp__pre_process
+    d__copy_queue_pre_process
     
     # Try user-provided helper
-    if declare -f d__cp_hlp__pre_process &>/dev/null; then
-      d__cp_hlp__pre_process || return 1
+    if declare -f d_copy_queue_pre_process &>/dev/null; then
+      d_copy_queue_pre_process || return 1
     fi
   }
 
   # Redirect item check to built-in helper
-  d__queue_hlp__item_is_installed() { __cp_hlp__item_is_installed;  }
+  d_queue_item_is_installed() { d__copy_queue_item_is_installed;  }
 
   # Redirect post-processing
-  d__queue_hlp__post_process()
+  d_queue_post_process()
   {
     # Try user-provided helper
-    if declare -f d__cp_hlp__post_process &>/dev/null; then
-      d__cp_hlp__post_process
+    if declare -f d_copy_queue_post_process &>/dev/null; then
+      d_copy_queue_post_process
     else
       :
     fi
   }
 
   # Delegate to helper
-  __queue_hlp__dcheck
+  d__queue_check
 }
 
-#>  __cp_hlp__dinstall
+#>  d__copy_queue_install
 #
 ## Copies each file in $D__DPL_ASSET_PATHS to respective destination path in 
 #. $D__DPL_TARGET_PATHS, moving pre-existing files to corresponging backup 
@@ -85,33 +84,33 @@ __cp_hlp__dcheck()
 #.  $D__DPL_BACKUP_PATHS   - (array ok) Backup locations
 #
 ## Returns:
-#.  Values supported by dinstall function in *.dpl.sh
+#.  Values supported by d_dpl_install function in *.dpl.sh
 #
 ## Prints:
 #.  Status messages for user
 #
-__cp_hlp__dinstall()
+d__copy_queue_install()
 {
   # Redirect installation with optional pre-processing
-  d__queue_hlp__install_item()
+  d_queue_item_install()
   {
     # Try user-provided helper
-    if declare -f d__cp_hlp__install_item &>/dev/null \
-      && ! d__cp_hlp__install_item
+    if declare -f d_copy_queue_item_pre_install &>/dev/null \
+      && ! d_copy_queue_item_pre_install
     then
       dprint_debug 'Pre-installation signaled error'
       return 2
     fi
 
     # Redirect to built-in helper
-    __cp_hlp__install_item
+    d__copy_queue_item_install
   }
 
   # Delegate to helper
-  __queue_hlp__dinstall
+  d__queue_install
 }
 
-#>  __cp_hlp__dremove
+#>  d__copy_queue_remove
 #
 ## Removes each path in $D__DPL_TARGET_PATHS that has record of previous 
 #. copying, then moves corresponding path in $D__DPL_BACKUP_PATHS to its 
@@ -123,39 +122,39 @@ __cp_hlp__dinstall()
 #.  `dln.utl.sh`
 #
 ## Returns:
-#.  Values supported by dremove function in *.dpl.sh
+#.  Values supported by d_dpl_remove function in *.dpl.sh
 #
 ## Prints:
 #.  Status messages for user
 #
-__cp_hlp__dremove()
+d__copy_queue_remove()
 {
   # Redirect removal with optional pre-processing
-  d__queue_hlp__remove_item()
+  d_queue_item_remove()
   {
     # Try user-provided helper
-    if declare -f d__cp_hlp__remove_item &>/dev/null \
-      && ! d__cp_hlp__remove_item
+    if declare -f d_copy_queue_item_pre_remove &>/dev/null \
+      && ! d_copy_queue_item_pre_remove
     then
       dprint_debug 'Pre-removal signaled error'
       return 2
     fi
 
     # Redirect to built-in helper
-    __cp_hlp__remove_item
+    d__copy_queue_item_remove
   }
 
   # Delegate to helper
-  __queue_hlp__dremove
+  d__queue_remove
 }
 
-__cp_hlp__pre_process()
+d__copy_queue_pre_process()
 {
   # Override targets for current OS family, if specific variable is non-empty
-  __override_d_targets_for_family
+  d__override_dpl_targets_for_os_family
 
   # Override targets for current OS distro, if specific variable is non-empty
-  __override_d_targets_for_distro
+  d__override_dpl_targets_for_os_distro
 
   # If $D__DPL_TARGET_PATHS is thus far empty, try another trick
   if ! [ ${#D__DPL_TARGET_PATHS[@]} -gt 1 -o -n "$D__DPL_TARGET_PATHS" ] \
@@ -196,7 +195,7 @@ __cp_hlp__pre_process()
   return 0
 }
 
-__cp_hlp__item_is_installed()
+d__copy_queue_item_is_installed()
 {
   # Storage variables
   local to_path="${D__DPL_TARGET_PATHS[$D__DPL_ITEM_NUM]}"
@@ -260,7 +259,7 @@ __cp_hlp__item_is_installed()
   fi
 }
 
-__cp_hlp__install_item()
+d__copy_queue_item_install()
 {
   # Storage variables
   local to_path="${D__DPL_TARGET_PATHS[$D__DPL_ITEM_NUM]}"
@@ -359,7 +358,7 @@ __cp_hlp__install_item()
   fi
 }
 
-__cp_hlp__remove_item()
+d__copy_queue_item_remove()
 {
   # Storage variables
   local to_path="${D__DPL_TARGET_PATHS[$D__DPL_ITEM_NUM]}"

@@ -14,25 +14,25 @@
 ## Assembles packages and deployments for further processing
 #
 
-#>  __main_assemble
+#>  d__dispatch_assembly_job
 #
 ## Dispatcher function that forks depending on routine
 #
 ## Returns:
 #.  Whatever is returned by child function
 #
-__main_assemble()
+d__dispatch_assembly_job()
 {
   case $D__REQ_ROUTINE in
     install|remove|check)
-                __main__assemble_all_tasks;;
-    attach)     __main__validate_dpl_dirs "$D__DIR_DPLS" "$D__DIR_DPL_REPOS";;
+                d__assemble_all_tasks;;
+    attach)     d__validate_dpl_dirs "$D__DIR_DPLS" "$D__DIR_DPL_REPOS";;
     plug)       :;;
     *)          :;;
   esac
 }
 
-#>  __main__assemble_all_tasks
+#>  d__assemble_all_tasks
 #
 ## Collects tasks to be performed from these types of files:
 #.  * Divinefile
@@ -62,10 +62,10 @@ __main_assemble()
 #.  stdout: *nothing*
 #.  stderr: Error descriptions
 #
-__main__assemble_all_tasks()
+d__assemble_all_tasks()
 {
-  # Make sure dpl-repos are in order
-  __sort_out_dpl_repos || exit 1
+  # Synchronize dpl repos
+  d__sync_dpl_repos || exit 1
 
   # Global storage arrays
   D__QUEUE_TASKS=()
@@ -75,7 +75,7 @@ __main__assemble_all_tasks()
   D__DPL_PATHS_IN_FMWK_DIRS=()
 
   # Parse Divinefiles in all deployment directories
-  __scan_for_divinefiles --enqueue "$D__DIR_DPLS" "$D__DIR_DPL_REPOS"
+  d__scan_for_divinefiles --enqueue "$D__DIR_DPLS" "$D__DIR_DPL_REPOS"
 
   # Check return code
   case $? in
@@ -94,7 +94,7 @@ __main__assemble_all_tasks()
   esac
 
   # Locate *.dpl.sh files in all supported directories
-  __scan_for_dpl_files --fmwk-dir --enqueue "$D__DIR_DPLS" "$D__DIR_DPL_REPOS"
+  d__scan_for_dpl_files --fmwk-dir --enqueue "$D__DIR_DPLS" "$D__DIR_DPL_REPOS"
   
   # Check return code
   case $? in
@@ -127,7 +127,7 @@ __main__assemble_all_tasks()
   fi
 
   # Validate deployments
-  if ! __validate_detected_dpls --fmwk-dir; then
+  if ! d__validate_detected_dpls --fmwk-dir; then
     printf >&2 '%s: %s: %s\n' \
       "$D__FMWK_NAME" \
       'Fatal error:' \
@@ -170,10 +170,10 @@ __main__assemble_all_tasks()
   return 0
 }
 
-#>  __main__validate_dpl_dirs DIR…
+#>  d__validate_dpl_dirs DIR…
 #
 ## Ensures that framework’s deployment directories collectively contain a valid 
-#. set of deployments, or terminates script. __validate_detected_dpls function 
+#. set of deployments, or terminates script. d__validate_detected_dpls function 
 #. is used for validation.
 #
 ## Deployments are searched for under directories passed as arguments
@@ -191,10 +191,10 @@ __main__assemble_all_tasks()
 #.  stdout: *nothing*
 #.  stderr: Error descriptions
 #
-__main__validate_dpl_dirs()
+d__validate_dpl_dirs()
 {
   # Locate *.dpl.sh files in all supported directories
-  __scan_for_dpl_files --fmwk-dir "$@"
+  d__scan_for_dpl_files --fmwk-dir "$@"
   
   # Check return code
   case $? in
@@ -217,7 +217,7 @@ __main__validate_dpl_dirs()
   esac
 
   # Validate deployments
-  if ! __validate_detected_dpls --fmwk-dir; then
+  if ! d__validate_detected_dpls --fmwk-dir; then
     printf >&2 '%s: %s: %s\n' \
       "$D__FMWK_NAME" \
       'Fatal error:' \
@@ -229,17 +229,10 @@ __main__validate_dpl_dirs()
   return 0
 }
 
-#>  __scan_for_divinefiles [--enqueue] DIR…
+#>  d__scan_for_divinefiles [--enqueue] DIR…
 #
 ## Collects packages to be installed from each instance of Divinefile found 
 #. within provided directories
-#
-## Requires:
-#.  $D__REQ_PACKAGES         - From __parse_arguments
-#.  $D__DIR_DPLS             - From __populate_globals
-#.  $D__DIR_DPL_REPOS        - From __populate_globals
-#.  $D__CONST_DEF_PRIORITY   - From __populate_globals
-#.  $D__OS_PKGMGR              - From Divine Bash utils: dOS (dos.utl.sh)
 #
 ## Modifies in the global scope:
 #.  * with ‘--enqueue’ option:
@@ -264,7 +257,7 @@ __main__validate_dpl_dirs()
 #.  stdout: *nothing*
 #.  stderr: As little as possible
 #
-__scan_for_divinefiles()
+d__scan_for_divinefiles()
 {
   # Parse options
   local args=() enqueueing=false
@@ -428,17 +421,11 @@ __scan_for_divinefiles()
   return 0
 }
 
-#> __scan_for_dpl_files [--fmwk-dir|--ext-dir] [--enqueue] DIR…
+#> d__scan_for_dpl_files [--fmwk-dir|--ext-dir] [--enqueue] DIR…
 #
 ## Scans all provided directories for deployment files (*.dpl.sh). Output of 
 #. this function is dumped into varying set of global variables, depending on 
 #. directory qualifier (‘--*-dir’ option).
-#
-## Requires:
-#.  $D__SUFFIX_DPL_SH        - From __populate_globals
-#.  $D__REGEX_DPL_NAME       - From __populate_globals
-#.  $D__REGEX_DPL_PRIORITY   - From __populate_globals
-#.  $D__CONST_DEF_PRIORITY   - From __populate_globals
 #
 ## Modifies in the global scope:
 #.  * with ‘--fmwk-dir’ qualifier or without any directory qualifier:
@@ -480,7 +467,7 @@ __scan_for_divinefiles()
 #.  stdout: *nothing*
 #.  stderr: As little as possible
 #
-__scan_for_dpl_files()
+d__scan_for_dpl_files()
 {
   # Parse options
   local args=() dir_type=fmwk enqueueing=false
@@ -579,7 +566,7 @@ __scan_for_dpl_files()
       flags="$( dtrim -Q -- "$flags" )"
 
       # Run dpl through filters
-      __run_dpl_through_filters "$name" "$flags" || adding=false
+      d__run_dpl_through_filters "$name" "$flags" || adding=false
 
       # Shall we go on?
       $adding || continue
@@ -640,7 +627,7 @@ __scan_for_dpl_files()
   return 0
 }
 
-#>  __run_dpl_through_filters NAME FLAGS
+#>  d__run_dpl_through_filters NAME FLAGS
 #
 ## Performs filtering duty: checks given name and flags of a deployment against 
 #. scripts arguments to decide whether this deployment should be queued up or 
@@ -650,7 +637,7 @@ __scan_for_dpl_files()
 #.  0 - Deployment should be queued up
 #.  1 - Otherwise
 #
-__run_dpl_through_filters()
+d__run_dpl_through_filters()
 {
   # Extract name and flags
   local name="$1"; shift
@@ -739,15 +726,15 @@ __run_dpl_through_filters()
   fi
 }
 
-#>  __validate_detected_dpls [--fmwk-dir|--ext-dir] [PREFIX_TO_REMOVE]
+#>  d__validate_detected_dpls [--fmwk-dir|--ext-dir] [PREFIX_TO_REMOVE]
 #
-## Validates deployments, previously detected by __scan_for_dpl_files from one 
+## Validates deployments, previously detected by d__scan_for_dpl_files from one 
 #. of possible sources:
 #.  * Framework directories (‘--fmwk-dir’).
 #.  * External directories (‘--ext-dir’).
 #
 ## Validation rules are as follows:
-#.  * Names must not be reserved (uses __validate_dpl_name function).
+#.  * Names must not be reserved (uses d__validate_dpl_name function).
 #.  * Each name must occur no more than once.
 #
 ## Requires in the global scope:
@@ -774,7 +761,7 @@ __run_dpl_through_filters()
 #.  0 - All previously detected deployments are valid
 #.  1 - Otherwise
 #
-__validate_detected_dpls()
+d__validate_detected_dpls()
 {
   # Parse option and argument
   local validating_ext=false
@@ -823,7 +810,7 @@ __validate_detected_dpls()
     done
 
     # Validate name
-    if ! __validate_dpl_name "$cur_dpl_name"; then
+    if ! d__validate_dpl_name "$cur_dpl_name"; then
 
       # Compose error message
       err_msg=()
@@ -869,7 +856,7 @@ __validate_detected_dpls()
   $all_good && return 0 || return 1
 }
 
-#>  __validate_dpl_name NAME
+#>  d__validate_dpl_name NAME
 #
 ## Checks if provided textual deployment name is valid, i.e., it does not 
 #. coincide with reserved phrases, such as ‘Divinefile’ or pre-defined names of 
@@ -879,7 +866,7 @@ __validate_detected_dpls()
 #.  0 - Name is valid
 #.  1 - Otherwise
 #
-__validate_dpl_name()
+d__validate_dpl_name()
 {
   # Extract name
   local name="$1"; shift
@@ -894,7 +881,7 @@ __validate_dpl_name()
   return 0
 }
 
-#>  __cross_validate_dpls_before_merging [PREFIX_TO_REMOVE]
+#>  d__cross_validate_dpls_before_merging [PREFIX_TO_REMOVE]
 #
 ## Confirms that deployments, previously detected in external directories, 
 #. would not conflict with deployments, previously detected in framework 
@@ -920,7 +907,7 @@ __validate_dpl_name()
 #.  0 - All previously detected deployments are cross-valid (ready to merge)
 #.  1 - Otherwise
 #
-__cross_validate_dpls_before_merging()
+d__cross_validate_dpls_before_merging()
 {
   # Extract prefix
   local prefix="$1"; shift
@@ -992,7 +979,7 @@ __cross_validate_dpls_before_merging()
   $all_good && return 0 || return 1
 }
 
-#>  __merge_records_of_dpls_in_ext_dir EXT_DIRPATH FMWK_DIRPATH
+#>  d__merge_records_of_dpls_in_ext_dir EXT_DIRPATH FMWK_DIRPATH
 #
 ## Merges all records of deployments detected in external directories into 
 #. records of deployments detected in framework directories. Does not actually 
@@ -1016,7 +1003,7 @@ __cross_validate_dpls_before_merging()
 ## Returns:
 #.  0 - Always
 #
-__merge_records_of_dpls_in_ext_dir()
+d__merge_records_of_dpls_in_ext_dir()
 {
   # Extract src and tgt dirs
   local src_dir="$1"; shift
@@ -1041,4 +1028,4 @@ __merge_records_of_dpls_in_ext_dir()
   return 0
 }
 
-__main_assemble
+d__dispatch_assembly_job

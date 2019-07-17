@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#:title:        Divine Bash utils: dprint
+#:title:        Divine Bash procedure: print-colors
 #:kind:         global_var
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
@@ -14,14 +14,7 @@
 #. can be used to colorize and add effects to terminal output.
 #
 
-# Driver function
-__main()
-{
-  __declare_global_colors
-  unset -f __declare_global_colors
-}
-
-#>  __declare_global_colors
+#>  d__declare_global_colors
 #
 ## Provides global read-only variables that allow delimiting portions of a text 
 #. string to be colored or formatted using various effects. If the terminal 
@@ -56,7 +49,7 @@ __main()
 #.  stdout: *nothing*
 #.  stderr: As little as possible
 #
-__declare_global_colors()
+d__declare_global_colors()
 {
   # Storage variable
   local num_of_colors
@@ -189,5 +182,5 @@ __declare_global_colors()
   return $return_code
 }
 
-__main
-unset -f __main
+d__declare_global_colors
+unset -f d__declare_global_colors

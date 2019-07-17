@@ -13,7 +13,7 @@
 #. Grail directory itself if it is a cloned repository
 #
 
-#>  __updating__main
+#>  d__perform_update_routine
 #
 ## Performs updating routine
 #
@@ -26,10 +26,10 @@
 #.  1 - Failed to update some of the tasks
 #.  2 - Skipped routine entirely
 #
-__updating__main()
+d__perform_update_routine()
 {
-  # Make sure dpl-repos are in order
-  __sort_out_dpl_repos || exit 1
+  # Synchronize dpl repos
+  d__sync_dpl_repos || exit 1
   
   # Announce beginning
   if [ "$D__OPT_ANSWER" = false ]; then
@@ -44,24 +44,24 @@ __updating__main()
   local all_updated=true all_failed=true all_skipped=true some_failed=false
 
   # Analyze environment and populate global status variables
-  __updating__detect_environment
+  d__detect_updating_options
 
   # Update framework and analyze return status
-  __updating__update_fmwk; case $? in
+  d__update_fmwk; case $? in
     0)  all_failed=false; all_skipped=false;;
     1)  all_updated=false; all_skipped=false; some_failed=true;;
     2)  all_updated=false; all_failed=false;;
   esac
 
   # Update Grail directory and analyze return status
-  __updating__update_grail; case $? in
+  d__update_grail; case $? in
     0)  all_failed=false; all_skipped=false;;
     1)  all_updated=false; all_skipped=false; some_failed=true;;
     2)  all_updated=false; all_failed=false;;
   esac
 
   # Update attached deployment repositories and analyze return status
-  __updating__update_dpls; case $? in
+  d__update_dpls; case $? in
     0)  all_failed=false; all_skipped=false;;
     1)  all_updated=false; all_skipped=false
         all_failed=false; some_failed=true;;
@@ -100,7 +100,7 @@ __updating__main()
   fi
 }
 
-#>  __updating__update_fmwk
+#>  d__update_fmwk
 #
 ## Attempts to update framework by means available
 #
@@ -109,7 +109,7 @@ __updating__main()
 #.  1 - Failed to update
 #.  2 - Skipped completely, e.g., not requested
 #
-__updating__update_fmwk()
+d__update_fmwk()
 {
   # Print newline to visually separate updates
   printf >&2 '\n'
@@ -152,7 +152,7 @@ __updating__update_fmwk()
     dprint_debug "Not a readable directory: $D__DIR_FMWK"
   else
     # Do update proper, one way or another
-    if __updating__update_fmwk_via_git || __updating__update_fmwk_via_tar
+    if d__update_fmwk_via_git || d__update_fmwk_via_tar
     then
       updated_successfully=true
     fi
@@ -170,7 +170,7 @@ __updating__update_fmwk()
   fi
 }
 
-#>  __updating__update_grail
+#>  d__update_grail
 #
 ## Attempts to update Grail directory by means available
 #
@@ -179,7 +179,7 @@ __updating__update_fmwk()
 #.  1 - Failed to update
 #.  2 - Skipped completely, e.g., not requested
 #
-__updating__update_grail()
+d__update_grail()
 {
   # Print newline to visually separate updates
   printf >&2 '\n'
@@ -247,7 +247,7 @@ __updating__update_grail()
   fi
 
   # Do update proper and check result
-  if __updating__update_grail_via_git; then
+  if d__update_grail_via_git; then
     dprint_ode "${D__ODE_NORMAL[@]}" -c "$GREEN" -- \
       'vvv' 'Updated' ':' "${BOLD}Grail directory${NORMAL}"
     return 0
@@ -258,7 +258,7 @@ __updating__update_grail()
   fi
 }
 
-#>  __updating__update_dpls
+#>  d__update_dpls
 #
 ## Attempts to update attached deployment repositories by means available
 #
@@ -268,7 +268,7 @@ __updating__update_grail()
 #.  2 - Failed to update all repositories
 #.  3 - Skipped completely, e.g., not requested or nothing to do
 #
-__updating__update_dpls()
+d__update_dpls()
 {
   # Storage and status variables
   local all_updated=true all_failed=true all_skipped=true some_failed=false
@@ -281,10 +281,10 @@ __updating__update_dpls()
   if $UPDATING_DPLS; then
 
     # Populate list of repos
-    if dstash -g -s has dpl_repos; then
+    if d__stash -g -s has dpl_repos; then
       while read -r dpl_repo; do
         dpl_repos+=( "$dpl_repo" )
-      done < <( dstash -g -s list dpl_repos )
+      done < <( d__stash -g -s list dpl_repos )
     fi
 
     # Check if list is empty
@@ -340,8 +340,8 @@ __updating__update_dpls()
       dprint_debug 'Unable to update: missing necessary tools'
     else
       # Do update proper
-      if __updating__update_dpl_repo_via_git "$dpl_repo" \
-        || __updating__update_dpl_repo_via_tar "$dpl_repo"
+      if d__update_dpl_repo_via_git "$dpl_repo" \
+        || d__update_dpl_repo_via_tar "$dpl_repo"
       then
         dprint_ode "${D__ODE_NORMAL[@]}" -c "$GREEN" -- \
           'vvv' 'Updated' ':' "Dpls repo '$dpl_repo'"
@@ -368,14 +368,14 @@ __updating__update_dpls()
   else return 0; fi
 }
 
-#>  __updating__detect_environment
+#>  d__detect_updating_options
 #
 ## Analyzes current system environment and fills relevant global variables
 #
 ## Returns:
 #.  0 - Always
 #
-__updating__detect_environment()
+d__detect_updating_options()
 {
   # Initialize global status variables
   UPDATING_FMWK=false
@@ -430,7 +430,7 @@ __updating__detect_environment()
   return 0
 }
 
-#>  __updating__update_fmwk_via_git
+#>  d__update_fmwk_via_git
 #
 ## Tries to pull & rebase from remote Github repo
 #
@@ -438,7 +438,7 @@ __updating__detect_environment()
 #.  0 - Successfully updated
 #.  1 - Otherwise
 #
-__updating__update_fmwk_via_git()
+d__update_fmwk_via_git()
 {
   # Check if git has been previously detected as unavailable
   $GIT_AVAILABLE || {
@@ -608,7 +608,7 @@ __updating__update_fmwk_via_git()
   fi
 }
 
-#>  __updating__update_grail_via_git
+#>  d__update_grail_via_git
 #
 ## Tries to pull & rebase from remote git repo
 #
@@ -616,7 +616,7 @@ __updating__update_fmwk_via_git()
 #.  0 - Successfully updated
 #.  1 - Otherwise
 #
-__updating__update_grail_via_git()
+d__update_grail_via_git()
 {
   # Change into $D__DIR_GRAIL
   cd -- "$D__DIR_GRAIL" || {
@@ -653,7 +653,7 @@ __updating__update_grail_via_git()
   fi
 }
 
-#>  __updating__update_fmwk_via_tar
+#>  d__update_fmwk_via_tar
 #
 ## Prompts, then tries to download Github tarball and extract it over existing 
 #. files
@@ -662,7 +662,7 @@ __updating__update_grail_via_git()
 #.  0 - Successfully updated
 #.  1 - Otherwise
 #
-__updating__update_fmwk_via_tar()
+d__update_fmwk_via_tar()
 {
   # Only attempt ‘crude’ update with --force option
   if ! $D__OPT_FORCE; then
@@ -813,7 +813,7 @@ __updating__update_fmwk_via_tar()
   return 0
 }
 
-#>  __updating__update_dpl_repo_via_git USER_REPO
+#>  d__update_dpl_repo_via_git USER_REPO
 #
 ## Tries to pull & rebase from remote Github repo
 #
@@ -821,7 +821,7 @@ __updating__update_fmwk_via_tar()
 #.  0 - Successfully updated
 #.  1 - Otherwise
 #
-__updating__update_dpl_repo_via_git()
+d__update_dpl_repo_via_git()
 {
   # Check if git has been previously detected as unavailable
   $GIT_AVAILABLE || {
@@ -933,7 +933,7 @@ __updating__update_dpl_repo_via_git()
   fi
 }
 
-#>  __updating__update_dpl_repo_via_tar USER_REPO
+#>  d__update_dpl_repo_via_tar USER_REPO
 #
 ## Prompts, then tries to download Github tarball and extract it over existing 
 #. files
@@ -942,7 +942,7 @@ __updating__update_dpl_repo_via_git()
 #.  0 - Successfully updated
 #.  1 - Otherwise
 #
-__updating__update_dpl_repo_via_tar()
+d__update_dpl_repo_via_tar()
 {
   # Only attempt ‘crude’ update with --force option
   if ! $D__OPT_FORCE; then
@@ -1096,4 +1096,4 @@ __updating__update_dpl_repo_via_tar()
   return 0
 }
 
-__updating__main
+d__perform_update_routine

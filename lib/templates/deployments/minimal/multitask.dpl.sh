@@ -4,25 +4,25 @@ D__DPL_PRIORITY=4096
 D__DPL_FLAGS=
 D__DPL_WARNING=
 
-dcheck()
+d_dpl_check()
 {
   D__DPL_TASK_NAMES+=( task1 )
   D__DPL_TASK_NAMES+=( task2 )
   D__DPL_TASK_NAMES+=( task3 )
-  __multitask_hlp__dcheck
+  d__multitask_check
 }
 
-dinstall()  {  __multitask_hlp__dinstall; }
-dremove()   {  __multitask_hlp__dremove;  }
+d_dpl_install()  {  d__multitask_install; }
+d_dpl_remove()   {  d__multitask_remove;  }
 
-d_task1_dcheck()    { :; }
-d_task1_dinstall()  { :; }
-d_task1_dremove()   { :; }
+d_task1_check()    { :; }
+d_task1_install()  { :; }
+d_task1_remove()   { :; }
 
-d_task2_dcheck()    { :; }
-d_task2_dinstall()  { :; }
-d_task2_dremove()   { :; }
+d_task2_check()    { :; }
+d_task2_install()  { :; }
+d_task2_remove()   { :; }
 
-d_task3_dcheck()    { :; }
-d_task3_dinstall()  { :; }
-d_task3_dremove()   { :; }
+d_task3_check()    { :; }
+d_task3_install()  { :; }
+d_task3_remove()   { :; }

@@ -14,22 +14,22 @@
 #
 
 # Driver function
-__main()
+d__main()
 {
   # Define constant globals
-  __populate_globals
+  d__populate_globals
 
   # Process received arguments
-  __parse_arguments "$@"
+  d__parse_arguments "$@"
 
   # Import required dependencies (utilities and helpers)
-  __import_dependencies
+  d__import_dependencies
 
   # Perform requested routine
-  __perform_routine
+  d__perform_routine
 }
 
-#> __populate_globals
+#> d__populate_globals
 #
 ## This function groups all constant paths and filenames so that they are 
 #. easily modified, should the need arise in the future.
@@ -44,7 +44,7 @@ __main()
 #.  stdout: *nothing*
 #.  stderr: As little as possible
 #
-__populate_globals()
+d__populate_globals()
 {
   # Framework’s displayed name
   readonly D__FMWK_NAME='Divine.dotfiles'
@@ -53,7 +53,7 @@ __populate_globals()
   readonly D__EXEC_NAME="$( basename -- "${BASH_SOURCE[0]}" )"
 
   # Paths to directories within $D__DIR
-  __populate_d_dir_fmwk
+  d__populate_d_dir_fmwk
   readonly D__DIR_GRAIL="$D__DIR/grail"
   readonly D__DIR_STATE="$D__DIR/state"
 
@@ -103,25 +103,26 @@ __populate_globals()
   # Ordered list of script’s internal dependencies
   D__QUEUE_DEPENDENCIES=( \
     'procedure dep-checks' \
-    'util dcolors' \
+    'procedure print-colors' \
     'util dprint' \
     'util dprompt' \
     'util dmd5' \
     'helper dstash' \
     'procedure stash-checks' \
-    'util dos' \
+    'procedure detect-os' \
     'helper offer' \
-    'procedure util-offers' \
+    'procedure sys-pkg-checks' \
     'util dtrim' \
     'util dreadlink' \
     'util dmv' \
     'util dln' \
     'helper queue' \
-    'helper dln' \
-    'helper cp' \
+    'helper link-queue' \
+    'helper copy-queue' \
     'helper multitask' \
-    'helper assets' \
+    'helper manifests' \
     'helper unset' \
+    'procedure dpl-repo-sync' \
   ); readonly D__QUEUE_DEPENDENCIES
 
   # Name of Divinefile
@@ -204,7 +205,7 @@ __populate_globals()
   return 0
 }
 
-#> __populate_d_dir_fmwk
+#> d__populate_d_dir_fmwk
 #
 ## Resolves absolute path to directory containing this script, stores it in a 
 #. global read-only variable as the location of the framework. Also, populates 
@@ -231,7 +232,7 @@ __populate_globals()
 #.  stdout: *nothing*
 #.  stderr: Error descriptions
 #
-__populate_d_dir_fmwk()
+d__populate_d_dir_fmwk()
 {
   # Storage variables
   local filename="${BASH_SOURCE[0]}" dirpath d_dir_fmwk d_dir
@@ -295,11 +296,11 @@ __populate_d_dir_fmwk()
   fi
 }
 
-## __parse_arguments [ARG]…
+## d__parse_arguments [ARG]…
 #
 ## Parses arguments that were passed to this script
 #
-__parse_arguments()
+d__parse_arguments()
 {
   # Global indicators of current request’s attributes
   D__REQ_ROUTINE=            # Routine to perform
@@ -328,13 +329,13 @@ __parse_arguments()
     u|update)     D__REQ_ROUTINE=update;;
     cecf357ed9fed1037eb906633a4299ba)
                   D__REQ_ROUTINE=cecf357ed9fed1037eb906633a4299ba;;
-    -h|--help)    __load routine help;;
-    --version)    __load routine version;;
-    '')           __load routine usage;;
+    -h|--help)    d__load routine help;;
+    --version)    d__load routine version;;
+    '')           d__load routine usage;;
     *)            printf >&2 '%s: Illegal routine -- %s\n\n' \
                     "$D__FMWK_NAME" \
                     "$1"          
-                  __load routine usage
+                  d__load routine usage
                   ;;
   esac
   shift
@@ -352,8 +353,8 @@ __parse_arguments()
     # Otherwise, parse options
     case "$1" in
       --)                 delim=true;;
-      -h|--help)          __load routine help;;
-      --version)          __load routine version;;
+      -h|--help)          d__load routine help;;
+      --version)          d__load routine version;;
       -y|--yes)           D__OPT_ANSWER=true;;
       -n|--no)            D__OPT_ANSWER=false;;
       -f|--force)         D__OPT_FORCE=true;;
@@ -365,7 +366,7 @@ __parse_arguments()
       -*)                 for i in $( seq 2 ${#1} ); do
                             opt="${1:i-1:1}"
                             case $opt in
-                              h)  __load routine help;;
+                              h)  d__load routine help;;
                               y)  D__OPT_ANSWER=true;;
                               n)  D__OPT_ANSWER=false;;
                               f)  D__OPT_FORCE=true;;
@@ -377,7 +378,7 @@ __parse_arguments()
                               *)  printf >&2 '%s: Illegal option -- %s\n\n' \
                                     "$D__FMWK_NAME" \
                                     "$opt"
-                                  __load routine usage;;
+                                  d__load routine usage;;
                             esac
                           done;;
       [0-9]|!)            D__REQ_GROUPS+=("$1");;
@@ -433,14 +434,14 @@ __parse_arguments()
   readonly D__REQ_PACKAGES
 }
 
-#> __import_dependencies
+#> d__import_dependencies
 #
 ## Straight-forward helper that sources utilities and helpers this script 
 #. depends on, in order. Terminates the script on failing to source a utility 
 #. (hard dependencies).
 #
 ## Requires:
-#.  $D__QUEUE_DEPENDENCIES   - From __populate_globals
+#.  $D__QUEUE_DEPENDENCIES   - From d__populate_globals
 #
 ## Returns:
 #.  0 - All dependencies successfully sourced
@@ -450,7 +451,7 @@ __parse_arguments()
 #.  stdout: *nothing*
 #.  stderr: Error descriptions
 #
-__import_dependencies()
+d__import_dependencies()
 {
   # Storage variable
   local dependency
@@ -459,47 +460,44 @@ __import_dependencies()
   for dependency in "${D__QUEUE_DEPENDENCIES[@]}"; do
 
     # Load dependency or halt script
-    __load $dependency || exit 1
+    d__load $dependency || exit 1
 
   done
 }
 
-#> __perform_routine
+#> d__perform_routine
 #
 ## Sub-driver function
 #
-__perform_routine()
+d__perform_routine()
 {
-  # Always pre-load dpl-repos routine
-  __load routine dpl-repos
-
   # Fork based on routine
   case $D__REQ_ROUTINE in
     install)
-      __load routine assemble
-      __load routine install;;
+      d__load routine assemble
+      d__load routine install;;
     remove)
-      __load routine assemble
-      __load routine remove;;
+      d__load routine assemble
+      d__load routine remove;;
     check)
-      __load routine assemble
-      __load routine check;;
+      d__load routine assemble
+      d__load routine check;;
     attach)
-      __load routine assemble
-      __load routine attach;;
+      d__load routine assemble
+      d__load routine attach;;
     detach)
-      __load routine detach;;
+      d__load routine detach;;
     plug)
-      __load routine assemble
-      __load routine plug;;
+      d__load routine assemble
+      d__load routine plug;;
     update)
-      __load routine update;;
+      d__load routine update;;
     *)
       return 1;;
   esac
 }
 
-#>  __load TYPE NAME
+#>  d__load TYPE NAME
 #
 ## Sources sub-script by name, deducing location by provided type. It is 
 #. expected that necessary function call is present in sourced file.
@@ -516,7 +514,7 @@ __perform_routine()
 #.  Otherwise, last return code (last command in sourced file)
 #.  1 - (script exit) Unrecognized type
 #
-__load()
+d__load()
 {
   # Check type and compose filepath accordingly
   local type="$1"; shift; local name="$1" filepath; case $type in
@@ -533,7 +531,7 @@ __load()
     # Source script
     source "$filepath"
     # Return last command’s status
-    return $?
+    return 0
   else
     # Report failed sourcing and return
     printf >&2 '%s: %s\n' "${FUNCNAME[0]}" \
@@ -543,4 +541,4 @@ __load()
   fi
 }
 
-__main "$@"
+d__main "$@"

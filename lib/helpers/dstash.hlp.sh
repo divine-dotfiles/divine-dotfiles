@@ -16,7 +16,7 @@
 #. own stash. Stash is a specially named text file in backups directory.
 #
 
-#> dstash ready|has|set|add|get|list|unset|clear [-rgs] [ KEY [VALUE] ]
+#> d__stash ready|has|set|add|get|list|unset|clear [-rgs] [ KEY [VALUE] ]
 #
 ## Main stashing command. Dispatches task based on first non-opt argument.
 #
@@ -51,7 +51,7 @@
 #.  1 - Meaning differs between tasks
 #.  2 - Stashing system is not operational
 #
-dstash()
+d__stash()
 {
   # Parse options
   local args=() stash_mode= do_checks=true i opt
@@ -67,7 +67,7 @@ dstash()
                               r)  stash_mode=-r;;
                               s)  do_checks=false;;
                               *)  dprint_debug \
-                                  "dstash called with illegal option -- $opt"
+                                  "d__stash called with illegal option -- $opt"
                                   return 1;;
                             esac
                           done;;
@@ -79,7 +79,7 @@ dstash()
 
   # Perform pre-flight checks first, unless ordered to skip
   if $do_checks; then
-    __dstash_pre_flight_checks $stash_mode || return 2
+    d__stash_pre_flight_checks $stash_mode || return 2
   else
     # Without checks, just populate necessary paths
     local stash_dirpath
@@ -92,27 +92,27 @@ dstash()
     D__STASH_MD5_FILEPATH="$D__STASH_FILEPATH.md5"
   fi
 
-  # Quick return without arguments (equivalent of dstash ready)
+  # Quick return without arguments (equivalent of d__stash ready)
   (($#)) || return 0
 
   # Dispatch task based on first argument
   local task="$1"; shift; case $task in
     ready)  return 0;;
-    has)    __dstash_has "$@";;
-    set)    __dstash_set "$@";;
-    add)    __dstash_add "$@";;
-    get)    __dstash_get "$@";;
-    list)   __dstash_list "$@";;
-    unset)  __dstash_unset "$@";;
+    has)    d__stash_has "$@";;
+    set)    d__stash_set "$@";;
+    add)    d__stash_add "$@";;
+    get)    d__stash_get "$@";;
+    list)   d__stash_list "$@";;
+    unset)  d__stash_unset "$@";;
     clear)  >"$D__STASH_FILEPATH" && return 0 || return 1;;
-    *)      dprint_debug 'dstash called with illegal task:' -i "$1"; return 1;;
+    *)      dprint_debug 'd__stash called with illegal task:' -i "$1"; return 1;;
   esac
 
   # Return status of dispatched command
   return $?
 }
 
-#> __dstash_has [-s] KEY
+#> d__stash_has [-s] KEY
 #
 ## Checks whether KEY is currently set to any value, including empty string.
 #. Extra arguments are ignored.
@@ -127,16 +127,16 @@ dstash()
 #.  0 - Key is valid and is set to a value
 #.  1 - Key is invalid, not provided, or is not set to a value
 #
-__dstash_has()
+d__stash_has()
 {
   # Validate arguments
-  if [ "$1" = -s ]; then shift; else __dstash_validate_key "$1" || return 1; fi
+  if [ "$1" = -s ]; then shift; else d__stash_validate_key "$1" || return 1; fi
 
   # Check for existense in stash file
   grep -q ^"$1"= -- "$D__STASH_FILEPATH" &>/dev/null && return 0 || return 1
 }
 
-#> __dstash_set KEY [VALUE]
+#> d__stash_set KEY [VALUE]
 #
 ## Sets first/new occurrence of KEY to VALUE. Extra arguments are ignored.
 #
@@ -151,13 +151,13 @@ __dstash_has()
 #.  0 - Task performed successfully
 #.  1 - Key is invalid, not provided, or failed to set key
 #
-__dstash_set()
+d__stash_set()
 {
   # Validate arguments
-  if [ "$1" = -s ]; then shift; else __dstash_validate_key "$1" || return 1; fi
+  if [ "$1" = -s ]; then shift; else d__stash_validate_key "$1" || return 1; fi
 
   # If key is currently set, unset it
-  if __dstash_has -s "$1"; then __dstash_unset -s "$1" || return 1; fi
+  if d__stash_has -s "$1"; then d__stash_unset -s "$1" || return 1; fi
 
   # Append record at the end
   printf '%s\n' "$1=$2" >>"$D__STASH_FILEPATH" || {
@@ -167,10 +167,10 @@ __dstash_set()
   }
 
   # Update stash file checksum and return zero regardless
-  __dstash_store_md5; return 0
+  d__stash_store_md5; return 0
 }
 
-#> __dstash_add KEY [VALUE]
+#> d__stash_add KEY [VALUE]
 #
 ## Adds new occurrence of KEY and sets it to VALUE. Extra arguments are 
 #. ignored.
@@ -186,10 +186,10 @@ __dstash_set()
 #.  0 - Task performed successfully
 #.  1 - Key is invalid, not provided, or failed to set key
 #
-__dstash_add()
+d__stash_add()
 {
   # Validate arguments
-  if [ "$1" = -s ]; then shift; else __dstash_validate_key "$1" || return 1; fi
+  if [ "$1" = -s ]; then shift; else d__stash_validate_key "$1" || return 1; fi
 
   # Append record at the end
   printf '%s\n' "$1=$2" >>"$D__STASH_FILEPATH" || {
@@ -199,10 +199,10 @@ __dstash_add()
   }
 
   # Update stash file checksum and return zero regardless
-  __dstash_store_md5; return 0
+  d__stash_store_md5; return 0
 }
 
-#> __dstash_get KEY
+#> d__stash_get KEY
 #
 ## Prints first value assigned to KEY to stdout. If key does not exist prints 
 #. nothing and returns non-zero. Extra arguments are ignored.
@@ -217,13 +217,13 @@ __dstash_add()
 #.  0 - Task performed successfully
 #.  1 - Key is invalid, not provided, or failed to get/print key
 #
-__dstash_get()
+d__stash_get()
 {
   # Validate arguments
-  if [ "$1" = -s ]; then shift; else __dstash_validate_key "$1" || return 1; fi
+  if [ "$1" = -s ]; then shift; else d__stash_validate_key "$1" || return 1; fi
 
   # If key is currently not set, return status
-  __dstash_has -s "$1" || {
+  d__stash_has -s "$1" || {
     dprint_debug 'Tried to get key:' -i "$1" \
       -n 'from stash, but it is currently not set'
     return 1
@@ -248,7 +248,7 @@ __dstash_get()
   printf '%s\n' "$value"
 }
 
-#> __dstash_list KEY
+#> d__stash_list KEY
 #
 ## Prints each value of provided KEY to its own line in stdout. If key does not 
 #. exist prints nothing and returns non-zero. Extra arguments are ignored.
@@ -263,13 +263,13 @@ __dstash_get()
 #.  0 - Task performed successfully
 #.  1 - Key is invalid, not provided, or failed to get/print key
 #
-__dstash_list()
+d__stash_list()
 {
   # Validate arguments
-  if [ "$1" = -s ]; then shift; else __dstash_validate_key "$1" || return 1; fi
+  if [ "$1" = -s ]; then shift; else d__stash_validate_key "$1" || return 1; fi
 
   # If key is currently not set, return status
-  __dstash_has -s "$1" || {
+  d__stash_has -s "$1" || {
     dprint_debug 'Tried to list key:' -i "$1" \
       -n 'from stash, but it is currently not set'
     return 1
@@ -295,7 +295,7 @@ __dstash_list()
   }
 }
 
-#> __dstash_unset [-s] KEY [VALUE]
+#> d__stash_unset [-s] KEY [VALUE]
 #
 ## Unsets all instances of key or only those instances that are set to VALUE
 #
@@ -309,10 +309,10 @@ __dstash_list()
 #.  0 - Task performed successfully
 #.  1 - Key is invalid, not provided, or failed to unset key
 #
-__dstash_unset()
+d__stash_unset()
 {
   # Validate arguments
-  if [ "$1" = -s ]; then shift; else __dstash_validate_key "$1" || return 1; fi
+  if [ "$1" = -s ]; then shift; else d__stash_validate_key "$1" || return 1; fi
 
   # Make temporary file
   local temp="$( mktemp )"
@@ -345,10 +345,10 @@ __dstash_unset()
   }
 
   # Update stash file checksum and return zero regardless
-  __dstash_store_md5; return 0
+  d__stash_store_md5; return 0
 }
 
-#>  __dstash_pre_flight_checks [-r|-g]
+#>  d__stash_pre_flight_checks [-r|-g]
 #
 ## Helper function that ensures that stashing is good to go
 #
@@ -360,7 +360,7 @@ __dstash_unset()
 #.  0 - Ready for stashing
 #.  1 - Otherwise
 #
-__dstash_pre_flight_checks()
+d__stash_pre_flight_checks()
 {
   # Establish whether using root, or grail, or deployment-specific stash
   local stash_mode
@@ -483,13 +483,13 @@ __dstash_pre_flight_checks()
   D__STASH_MD5_FILEPATH="$stash_md5_filepath"
 
   # Ensure checksum is good
-  __dstash_check_md5 || return 1
+  d__stash_check_md5 || return 1
 
   # Return
   return 0
 }
 
-#>  __dstash_validate_key KEY
+#>  d__stash_validate_key KEY
 #
 ## Checks if KEY is safe for stashing. Practically, it means ensuring that key 
 #. consists of allowed characters only, which are: ASCII letters (both cases) 
@@ -499,7 +499,7 @@ __dstash_pre_flight_checks()
 #.  0 - Key is acceptable
 #.  1 - Otherwise
 #
-__dstash_validate_key()
+d__stash_validate_key()
 {
   # Check if key is empty
   [ -n "$1" ] || {
@@ -518,7 +518,7 @@ __dstash_validate_key()
   return 0
 }
 
-#>  __dstash_store_md5
+#>  d__stash_store_md5
 #
 ## Stores calculated md5 checksum of stash file into pre-defined file. No file 
 #. existence checks are performed
@@ -527,7 +527,7 @@ __dstash_validate_key()
 #.  0 - Successfully stored checksum
 #.  1 - Otherwise
 #
-__dstash_store_md5()
+d__stash_store_md5()
 {
   # Store current md5 checksum to intended file, or report error
   dmd5 "$D__STASH_FILEPATH" >"$D__STASH_MD5_FILEPATH" || {
@@ -537,7 +537,7 @@ __dstash_store_md5()
   }
 }
 
-#>  __dstash_check_md5
+#>  d__stash_check_md5
 #
 ## Checks whether checksum file at pre-defined path contains current md5 hash 
 #. of stash file. If not, issues a warning and prompts user on whether they 
@@ -547,7 +547,7 @@ __dstash_store_md5()
 #.  0 - Either checksum matches, or user is okay with mismatch
 #.  1 - Otherwise
 #
-__dstash_check_md5()
+d__stash_check_md5()
 {
   # Calculate current checksum; extract stored one
   local calculated_md5="$( dmd5 "$D__STASH_FILEPATH" )"
@@ -584,7 +584,7 @@ __dstash_check_md5()
     --prompt "$prompt_question" -- "${prompt_desc[@]}"
   then
     dprint_debug 'Working with unverified stash'
-    __dstash_store_md5
+    d__stash_store_md5
     return 0
   else
     dprint_debug 'Refused to work with unverified stash'

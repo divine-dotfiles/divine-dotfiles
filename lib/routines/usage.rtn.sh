@@ -14,7 +14,7 @@
 ## Shows usage note and exits the script
 #
 
-#> __show_usage_and_exit
+#> d__show_usage_and_exit
 #
 ## Shows usage tip end exits with code 1
 #
@@ -28,7 +28,7 @@
 #.  stdout: *nothing*
 #.  stderr: Usage tip
 #
-__show_usage_and_exit()
+d__show_usage_and_exit()
 {
   # Add bolding if available
   local bold normal
@@ -54,4 +54,4 @@ EOF
   exit 1
 }
 
-__show_usage_and_exit
+d__show_usage_and_exit

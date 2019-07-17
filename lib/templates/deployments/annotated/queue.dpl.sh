@@ -21,19 +21,19 @@ D__DPL_WARNING=
 #
 ## Functions to implement (all are optional):
 #.  * Executed during checking:
-#.      d__queue_hlp__pre_process         - Executed once, early, before 
+#.      d_queue_pre_process         - Executed once, early, before 
 #.                                            checking begins
-#.      d__queue_hlp__provide_stash_key   - Executed for every queue item, 
+#.      d_queue_item_pre_check   - Executed for every queue item, 
 #.                                            before checking it
-#.      d__queue_hlp__item_is_installed   - Executed for every queue item,
+#.      d_queue_item_is_installed   - Executed for every queue item,
 #.                                            to check it
-#.      d__queue_hlp__post_process        - Executed once, after all queue 
+#.      d_queue_post_process        - Executed once, after all queue 
 #.                                            items are checked
 #.  * Executed during installation:
-#.      d__queue_hlp__install_item        - Executed for every queue item,
+#.      d_queue_item_install        - Executed for every queue item,
 #.                                            to install it
 #.  * Executed during removal:
-#.      d__queue_hlp__remove_item         - Executed for every queue item,
+#.      d_queue_item_remove         - Executed for every queue item,
 #.                                            to remove it. On removal, queue 
 #.                                            is processed in reverse order.
 #
@@ -64,11 +64,11 @@ D__DPL_WARNING=
 ## Framework provides three primary helpers. If queue processing is the only 
 #. work being done, these are sufficient.
 #
-dcheck()    { __queue_hlp__dcheck;    }
-dinstall()  { __queue_hlp__dinstall;  }
-dremove()   { __queue_hlp__dremove;   }
+d_dpl_check()    { d__queue_check;    }
+d_dpl_install()  { d__queue_install;  }
+d_dpl_remove()   { d__queue_remove;   }
 
-#>  d__queue_hlp__pre_process
+#>  d_queue_pre_process
 #
 ## Allows to perform arbitrary actions before items in queue are checked
 #
@@ -78,12 +78,12 @@ dremove()   { __queue_hlp__dremove;   }
 #.  0 - Pre-processing succeeded
 #.  1 - Otherwise: do not proceed with this deployment
 #
-d__queue_hlp__pre_process()
+d_queue_pre_process()
 {
   :
 }
 
-#>  d__queue_hlp__provide_stash_key
+#>  d_queue_item_pre_check
 #
 ## Gives user a chance to set custom stash key for queue item. Also, can signal 
 #. to not use stashing at all for current item.
@@ -101,12 +101,12 @@ d__queue_hlp__pre_process()
 #.  0 - Normal return code, is ignored
 #.  1 - Disables storing installation records in stash for current item
 #
-d__queue_hlp__provide_stash_key()
+d_queue_item_pre_check()
 {
   :
 }
 
-#>  d__queue_hlp__item_is_installed
+#>  d_queue_item_is_installed
 #
 ## Return code of this function signals whether current queue item is to be 
 #. considered installed, not installed, of unknown status, or completely 
@@ -126,12 +126,12 @@ d__queue_hlp__provide_stash_key()
 #.  2 - Not installed
 #.  3 - Invalid (should not be touched at all)
 #
-d__queue_hlp__item_is_installed()
+d_queue_item_is_installed()
 {
   :
 }
 
-#>  d__queue_hlp__post_process
+#>  d_queue_post_process
 #
 ## Allows to perform arbitrary actions after all items in queue have been 
 #. checked
@@ -142,12 +142,12 @@ d__queue_hlp__item_is_installed()
 #.  0 - Post-processing succeeded
 #.  1 - Otherwise: do not proceed with this deployment
 #
-d__queue_hlp__post_process()
+d_queue_post_process()
 {
   :
 }
 
-#>  d__queue_hlp__install_item
+#>  d_queue_item_install
 #
 ## Installs current queue item
 #
@@ -169,12 +169,12 @@ d__queue_hlp__post_process()
 #.  3 - Installed successfully, also abort further queue processing
 #.  4 - Failed to install, also abort further queue processing
 #
-d__queue_hlp__install_item()
+d_queue_item_install()
 {
   :
 }
 
-#>  d__queue_hlp__remove_item
+#>  d_queue_item_remove
 #
 ## Removes current queue item
 #
@@ -196,7 +196,7 @@ d__queue_hlp__install_item()
 #.  3 - Removed successfully, also abort further queue processing
 #.  4 - Failed to remove, also abort further queue processing
 #
-d__queue_hlp__remove_item()
+d_queue_item_remove()
 {
   :
 }

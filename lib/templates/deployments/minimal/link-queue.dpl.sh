@@ -15,6 +15,6 @@ D__DPL_TARGET_DIR=
 D__DPL_TARGET_PATHS_LINUX=
 D__DPL_TARGET_DIR_UBUNTU=
 
-dcheck()    { __cp_hlp__dcheck;    }
-dinstall()  { __cp_hlp__dinstall;  }
-dremove()   { __cp_hlp__dremove;   }
+d_dpl_check()    { d__link_queue_check;    }
+d_dpl_install()  { d__link_queue_install;  }
+d_dpl_remove()   { d__link_queue_remove;   }

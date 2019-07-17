@@ -9,14 +9,14 @@ D__DPL_WARNING=
 #. framework, followed by installation of a queue of custom assets.
 #
 ## Multitask helpers allow user to write several sets of primary functions 
-#. (dcheck-like, dinstall-like, dremove-like), and then automatically reconcile 
+#. (d_dpl_check-like, d_dpl_install-like, d_dpl_remove-like), and then automatically reconcile 
 #. their return codes.
 #
 ## Each task should have a set of three functions implemented for it (naming is 
 #. insignificant):
-#.  dcheck-like       - Function that behaves as dcheck in its return codes
-#.  dinstall-like     - Function that behaves as dinstall in its return codes
-#.  dremove-like      - Function that behaves as dremove in its return codes
+#.  d_dpl_check-like       - Function that behaves as d_dpl_check in its return codes
+#.  d_dpl_install-like     - Function that behaves as d_dpl_install in its return codes
+#.  d_dpl_remove-like      - Function that behaves as d_dpl_remove in its return codes
 #
 ## Variables maintained (avoid touching these!):
 #.  $D__DPL_TASK_NUM             - Index of current task
@@ -24,8 +24,8 @@ D__DPL_WARNING=
 #.  $D__DPL_TASK_FLAGS           - Container for installed/not installed flags
 #
 
-## Below is overall usage pattern for dcheck
-dcheck()
+## Below is overall usage pattern for d_dpl_check
+d_dpl_check()
 {
   # Assemble ordered list of prefixes to user-implemented task functions
   D__DPL_TASK_NAMES+=( task1 )
@@ -33,29 +33,29 @@ dcheck()
   D__DPL_TASK_NAMES+=( task3 )
 
   # Delegate to built-in helper
-  __multitask_hlp__dcheck
+  d__multitask_check
 }
 
-# dinstall and dremove are fully delegated to built-in helpers
-dinstall()  {   __multitask_hlp__dinstall;  }
-dremove()   {   __multitask_hlp__dremove;   }
+# d_dpl_install and d_dpl_remove are fully delegated to built-in helpers
+d_dpl_install()  {   d__multitask_install;  }
+d_dpl_remove()   {   d__multitask_remove;   }
 
 ## Individual primary functions should be named following a pattern:
-#.  * d_{TASK_NAME}_dcheck:     task1 -> d_task1_dcheck
-#.  * d_{TASK_NAME}_dinstall:   task1 -> d_task1_dinstall
-#.  * d_{TASK_NAME}_dremove:    task1 -> d_task1_dremove
+#.  * d_{TASK_NAME}_check:     task1 -> d_task1_check
+#.  * d_{TASK_NAME}_install:   task1 -> d_task1_install
+#.  * d_{TASK_NAME}_remove:    task1 -> d_task1_remove
 #
 ## As with normal deployments, it is not necessary for all functions to be 
 #. implemented: default return values are assumed if any are not.
 #
-d_task1_dcheck()    { :; }
-d_task1_dinstall()  { :; }
-d_task1_dremove()   { :; }
+d_task1_check()    { :; }
+d_task1_install()  { :; }
+d_task1_remove()   { :; }
 
-d_task2_dcheck()    { :; }
-d_task2_dinstall()  { :; }
-d_task2_dremove()   { :; }
+d_task2_check()    { :; }
+d_task2_install()  { :; }
+d_task2_remove()   { :; }
 
-d_task3_dcheck()    { :; }
-d_task3_dinstall()  { :; }
-d_task3_dremove()   { :; }
+d_task3_check()    { :; }
+d_task3_install()  { :; }
+d_task3_remove()   { :; }

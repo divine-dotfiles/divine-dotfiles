@@ -14,7 +14,7 @@
 ## Ensures all system dependencies are available and functional
 #
 
-#>  __check_system_dependencies
+#>  d__check_system_dependencies
 #
 ## Ensures current system has all expected utilities installed, or exits the 
 #. script
@@ -23,7 +23,7 @@
 #.  0 - All system dependencies are present and accessible
 #.  1 - (script exit) Otherwise
 #
-__check_system_dependencies()
+d__check_system_dependencies()
 {
   # Status variable
   local all_good=true
@@ -195,5 +195,5 @@ EOF
   if $all_good; then return 0; else exit 1; fi
 }
 
-__check_system_dependencies
-unset -f __check_system_dependencies
+d__check_system_dependencies
+unset -f d__check_system_dependencies

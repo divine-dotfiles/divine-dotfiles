@@ -16,7 +16,7 @@
 #
 
 # Implement overriding mechanism for $D__DPL_TARGET_PATHS and $D__DPL_TARGET_DIR
-__override_d_targets_for_family()
+d__override_dpl_targets_for_os_family()
 {
   # Check if $D__DPL_TARGET_PATHS_MSYS contains at least one string
   if [ ${#D__DPL_TARGET_PATHS_MSYS[@]} -gt 1 \

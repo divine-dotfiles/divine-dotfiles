@@ -28,8 +28,9 @@
 #. directory. Leading and trailing slashes are optional.
 #
 ## Section head may force the following lines to only be considered if detected 
-#. OS ($D__OS_FAMILY or $D__OS_DISTRO, see dos.utl.sh for reference) matches at least 
-#. one of vertical bar-delimited options provided in section head:
+#. OS ($D__OS_FAMILY or $D__OS_DISTRO, see detect-os.pcd.sh for reference) 
+#. matches at least one of vertical bar-delimited options provided in section 
+#. head:
 #>  ( linux | wsl )
 #. Lines that are not restricted to a particular OS should appear before any 
 #. OS-restricting section head.

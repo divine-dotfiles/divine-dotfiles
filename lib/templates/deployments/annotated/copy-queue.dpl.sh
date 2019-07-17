@@ -4,14 +4,14 @@ D__DPL_PRIORITY=4096
 D__DPL_FLAGS=
 D__DPL_WARNING=
 
-## Copy-files is a special queue that performs a sequence of copying: an asset 
+## Copy-queue is a special queue that performs a sequence of copying: an asset 
 #. provided with the deployment is copied to given paths, while any pre-
 #. existing file is backed up to be restored upon removal.
 #
 ## Copying is a useful way of pouring custom configuration assets into the 
 #. system, e.g. the font files.
 #
-## Copy-files is a queue (‘queue.dpl.sh’) with some actions pre-implemented.
+## Copy-queue is a queue (‘queue.dpl.sh’) with some actions pre-implemented.
 #
 ## Variables to fill:
 #.  $D__DPL_ASSET_PATHS    - This array must contain paths to every asset that 
@@ -27,12 +27,12 @@ D__DPL_WARNING=
 #
 ## Functions to implement (all are optional):
 #.  * Executed during checking:
-#.      d__cp_hlp__pre_process    - Custom queue pre-processing
-#.      d__cp_hlp__post_process   - Custom queue post-processing
+#.      d_copy_queue_pre_process    - Custom queue pre-processing
+#.      d_copy_queue_post_process   - Custom queue post-processing
 #.  * Executed during installation:
-#.      d__cp_hlp__install_item   - Pre-installation actions for each item
+#.      d_copy_queue_item_pre_install   - Pre-installation actions for each item
 #.  * Executed during removal:
-#.      d__cp_hlp__remove_item    - Pre-removal actions for each item
+#.      d_copy_queue_item_pre_remove    - Pre-removal actions for each item
 #
 ## Variables to take advantage of (maintained by queue helpers):
 #.  $D__DPL_ITEM_NUM         - Index of current item in $D__DPL_QUEUE_MAIN
@@ -75,11 +75,11 @@ D__DPL_WARNING=
 ## Framework provides three primary helpers. If queue is the only part of the 
 #. deployment, these are sufficient.
 #
-dcheck()    { __cp_hlp__dcheck;    }
-dinstall()  { __cp_hlp__dinstall;  }
-dremove()   { __cp_hlp__dremove;   }
+d_dpl_check()    { d__copy_queue_check;    }
+d_dpl_install()  { d__copy_queue_install;  }
+d_dpl_remove()   { d__copy_queue_remove;   }
 
-#>  d__cp_hlp__pre_process
+#>  d_copy_queue_pre_process
 #
 ## Allows to perform arbitrary actions before items in queue are checked
 #
@@ -89,12 +89,12 @@ dremove()   { __cp_hlp__dremove;   }
 #.  0 - Pre-processing succeeded
 #.  1 - Otherwise: do not proceed with this deployment
 #
-d__cp_hlp__pre_process()
+d_copy_queue_pre_process()
 {
   :
 }
 
-#>  d__cp_hlp__post_process
+#>  d_copy_queue_post_process
 #
 ## Allows to perform arbitrary actions after all items in queue have been 
 #. checked
@@ -105,12 +105,12 @@ d__cp_hlp__pre_process()
 #.  0 - Post-processing succeeded
 #.  1 - Otherwise: do not proceed with this deployment
 #
-d__cp_hlp__post_process()
+d_copy_queue_post_process()
 {
   :
 }
 
-#>  d__cp_hlp__install_item
+#>  d_copy_queue_item_pre_install
 #
 ## Performs custom actions before current item is installed
 #
@@ -120,12 +120,12 @@ d__cp_hlp__post_process()
 #.  0 - Ready for installation
 #.  1 - Otherwise: mark this item as invalid
 #
-d__cp_hlp__install_item()
+d_copy_queue_item_pre_install()
 {
   :
 }
 
-#>  d__cp_hlp__remove_item
+#>  d_copy_queue_item_pre_remove
 #
 ## Performs custom actions before current item is removed
 #
@@ -135,7 +135,7 @@ d__cp_hlp__install_item()
 #.  0 - Ready for removal
 #.  1 - Otherwise: mark this item as invalid
 #
-d__cp_hlp__remove_item()
+d_copy_queue_item_pre_remove()
 {
   :
 }

@@ -15,7 +15,7 @@
 #. one copied from provided directory path
 #
 
-#>  __perform_plug
+#>  d__perform_plug_routine
 #
 ## Performs plugging routine
 #
@@ -23,7 +23,7 @@
 #.  0 - Routine performed, Grail dir replaced
 #.  1 - Otherwise
 #
-__perform_plug()
+d__perform_plug_routine()
 {
   # Announce beginning
   if [ "$D__OPT_ANSWER" = false ]; then
@@ -81,12 +81,12 @@ __perform_plug()
 
     # Process each argument sequentially until the first hit
     if $D__OPT_PLUG_LINK; then
-      __plugging__attempt_local_dir "$grail_arg" \
+      d__plug_local_dir "$grail_arg" \
         || all_good=false
     else
-      __plugging__attempt_github_repo "$grail_arg" \
-        || __plugging__attempt_local_repo "$grail_arg" \
-        || __plugging__attempt_local_dir "$grail_arg" \
+      d__plug_github_repo "$grail_arg" \
+        || d__plug_local_repo "$grail_arg" \
+        || d__plug_local_dir "$grail_arg" \
         || all_good=false
     fi
     
@@ -124,7 +124,7 @@ __perform_plug()
   fi
 }
 
-#>  __plugging__attempt_github_repo
+#>  d__plug_github_repo
 #
 ## Attempts to interpret single argument as name of Github repository and pull 
 #. it in. Accepts only full ‘user/repo’ form.
@@ -133,7 +133,7 @@ __perform_plug()
 #.  0 - Successfully pulled in deployment repository
 #.  1 - Otherwise
 #
-__plugging__attempt_github_repo()
+d__plug_github_repo()
 {
   # In previously deteced that both git and tar are unavailable: skip
   $GITHUB_AVAILABLE || return 1
@@ -269,7 +269,7 @@ __plugging__attempt_github_repo()
   fi
 
   # Prompt user for possible clobbering, and clobber if required, run checks
-  __plugging__run_checks_and_prompts "$perm_dest" "$temp_dest" \
+  d__run_pre_plug_checks "$perm_dest" "$temp_dest" \
     "https://github.com/${user_repo}" \
     || { rm -rf -- "$temp_dest"; return 1; }
 
@@ -285,7 +285,7 @@ __plugging__attempt_github_repo()
   }
 
   # Put dpl-repos directory to order
-  if ! __sort_out_dpl_repos; then
+  if ! d__sync_dpl_repos; then
 
     # Announce failure
     dprint_failure -l 'Failed to match deployment repositories at:' \
@@ -294,13 +294,13 @@ __plugging__attempt_github_repo()
   fi
 
   # Scan main directories for deployments
-  __scan_for_dpl_files --fmwk-dir "$D__DIR_DPLS" "$D__DIR_DPL_REPOS"
+  d__scan_for_dpl_files --fmwk-dir "$D__DIR_DPLS" "$D__DIR_DPL_REPOS"
 
   # Validate deployments
-  if __validate_detected_dpls --fmwk-dir; then
+  if d__validate_detected_dpls --fmwk-dir; then
 
     # Also, prepare any of the possible assets
-    __process_all_asset_manifests_in_dpl_dirs
+    d__process_all_asset_manifests_in_dpl_dirs
 
   else
 
@@ -316,7 +316,7 @@ __plugging__attempt_github_repo()
   return 0
 }
 
-#>  __plugging__attempt_local_repo
+#>  d__plug_local_repo
 #
 ## Attempts to interpret single argument as path to local git repository and 
 #. pull it in. Accepts any resolvable path to directory containing git repo.
@@ -325,7 +325,7 @@ __plugging__attempt_github_repo()
 #.  0 - Successfully pulled in deployment repository
 #.  1 - Otherwise
 #
-__plugging__attempt_local_repo()
+d__plug_local_repo()
 {
   # If it has been detected that git is unavailable: skip
   $GIT_AVAILABLE || return 1
@@ -377,7 +377,7 @@ __plugging__attempt_local_repo()
       }
     
     # Prompt user for possible clobbering, and clobber if required, run checks
-    __plugging__run_checks_and_prompts "$perm_dest" "$temp_dest" "$repo_path" \
+    d__run_pre_plug_checks "$perm_dest" "$temp_dest" "$repo_path" \
       || { rm -rf -- "$temp_dest"; return 1; }
 
     # Finally, move cloned repository to intended location
@@ -392,7 +392,7 @@ __plugging__attempt_local_repo()
     }
 
     # Put dpl-repos directory to order
-    if ! __sort_out_dpl_repos; then
+    if ! d__sync_dpl_repos; then
 
       # Announce failure
       dprint_failure -l 'Failed to match deployment repositories at:' \
@@ -401,13 +401,13 @@ __plugging__attempt_local_repo()
     fi
 
     # Scan main directories for deployments
-    __scan_for_dpl_files --fmwk-dir "$D__DIR_DPLS" "$D__DIR_DPL_REPOS"
+    d__scan_for_dpl_files --fmwk-dir "$D__DIR_DPLS" "$D__DIR_DPL_REPOS"
 
     # Validate deployments
-    if __validate_detected_dpls --fmwk-dir; then
+    if d__validate_detected_dpls --fmwk-dir; then
 
       # Also, prepare any of the possible assets
-      __process_all_asset_manifests_in_dpl_dirs
+      d__process_all_asset_manifests_in_dpl_dirs
 
     else
 
@@ -431,7 +431,7 @@ __plugging__attempt_local_repo()
   fi
 }
 
-#>  __plugging__attempt_local_dir
+#>  d__plug_local_dir
 #
 ## Attempts to interpret single argument as path to local Grail directory and 
 #. pull (or link) it in
@@ -440,7 +440,7 @@ __plugging__attempt_local_repo()
 #.  0 - Successfully pulled in deployment directory
 #.  1 - Otherwise
 #
-__plugging__attempt_local_dir()
+d__plug_local_dir()
 {
   # Extract argument
   local dir_arg="$1"
@@ -470,7 +470,7 @@ __plugging__attempt_local_dir()
       || return 1
 
   # Prompt user for possible clobbering, and clobber if required, run checks
-  __plugging__run_checks_and_prompts "$perm_dest" "$dir_path" "$dir_path" \
+  d__run_pre_plug_checks "$perm_dest" "$dir_path" "$dir_path" \
     || return 1
 
   # Finally, link/copy directory to intended location
@@ -493,7 +493,7 @@ __plugging__attempt_local_dir()
   fi
 
   # Put dpl-repos directory to order
-  if ! __sort_out_dpl_repos; then
+  if ! d__sync_dpl_repos; then
 
     # Announce failure
     dprint_failure -l 'Failed to match deployment repositories at:' \
@@ -502,13 +502,13 @@ __plugging__attempt_local_dir()
   fi
 
   # Scan main directories for deployments
-  __scan_for_dpl_files --fmwk-dir "$D__DIR_DPLS" "$D__DIR_DPL_REPOS"
+  d__scan_for_dpl_files --fmwk-dir "$D__DIR_DPLS" "$D__DIR_DPL_REPOS"
 
   # Validate deployments
-  if __validate_detected_dpls --fmwk-dir; then
+  if d__validate_detected_dpls --fmwk-dir; then
 
     # Also, prepare any of the possible assets
-    __process_all_asset_manifests_in_dpl_dirs
+    d__process_all_asset_manifests_in_dpl_dirs
 
   else
 
@@ -518,7 +518,7 @@ __plugging__attempt_local_dir()
   fi
 
   # Also, prepare any of the possible assets
-  __process_all_asset_manifests_in_dpl_dirs
+  d__process_all_asset_manifests_in_dpl_dirs
 
   # All done: announce and return
   dprint_debug 'Successfully plugged local Grail directory at:' \
@@ -526,7 +526,7 @@ __plugging__attempt_local_dir()
   return 0
 }
 
-#>  __plugging__run_checks_and_prompts CLOBBER_PATH EXT_PATH SRC_ADDR
+#>  d__run_pre_plug_checks CLOBBER_PATH EXT_PATH SRC_ADDR
 #
 ## Checks whether EXT_PATH contains any deployments, and whether those 
 #. deployments are valid and merge-able
@@ -539,7 +539,7 @@ __plugging__attempt_local_dir()
 #.  0 - Checks succeeded, user agreed
 #.  1 - Otherwise
 #
-__plugging__run_checks_and_prompts()
+d__run_pre_plug_checks()
 {
   # Extract clobber path, external path, and source address
   local clobber_path="$1"; shift
@@ -547,7 +547,7 @@ __plugging__run_checks_and_prompts()
   local src_addr="$1"; shift
 
   # Survey deployments in external dir
-  __scan_for_dpl_files --ext-dir "$ext_path/dpls"
+  d__scan_for_dpl_files --ext-dir "$ext_path/dpls"
 
   # Check return code
   case $? in
@@ -573,7 +573,7 @@ __plugging__run_checks_and_prompts()
   esac
   
   # Check if external Grail directory contains valid deployments
-  if ! __validate_detected_dpls --ext-dir "$ext_path/"; then
+  if ! d__validate_detected_dpls --ext-dir "$ext_path/"; then
 
     # Prompt user
     if ! dprompt_key --bare --prompt 'Proceed?' --answer "$D__OPT_ANSWER" -- \
@@ -665,4 +665,4 @@ __plugging__run_checks_and_prompts()
   return 0
 }
 
-__perform_plug
+d__perform_plug_routine

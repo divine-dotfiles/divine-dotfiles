@@ -14,7 +14,7 @@
 ## Removes packages and deployments as requested
 #
 
-#> __perform_remove
+#> d__perform_remove_routine
 #
 ## Performs removal routine, in reverse installation order
 #
@@ -25,7 +25,7 @@
 ## Returns:
 #.  0 - Routine performed
 #
-__perform_remove()
+d__perform_remove_routine()
 {
   # Announce beginning
   if [ "$BLANKET_ANSWER" = n ]; then
@@ -38,7 +38,7 @@ __perform_remove()
 
   # Update packages if touching them at all
   # (This is normally required even for removal)
-  __load routine pkgs
+  d__load routine pkgs
 
   # Storage variables
   local priority array_of_priorities i
@@ -53,9 +53,9 @@ __perform_remove()
     priority="${array_of_priorities[$i]}"
 
     # Remove deployments if asked to
-    __remove_dpls "$priority"
+    d__remove_dpls "$priority"
 
-    # Check if __remove_dpls returned special status
+    # Check if d__remove_dpls returned special status
     case $? in
       100)
         printf '\n'
@@ -88,7 +88,7 @@ __perform_remove()
     esac    
 
     # Remove packages if asked to
-    __remove_pkgs "$priority"
+    d__remove_pkgs "$priority"
 
   done
 
@@ -104,7 +104,7 @@ __perform_remove()
   return 0
 }
 
-#> __remove_pkgs PRIORITY_LEVEL
+#> d__remove_pkgs PRIORITY_LEVEL
 #
 ## For the given priority level, removes packages, one by one, using their 
 #. names, which have been previously assembled in $D__QUEUE_PKGS array. Operates 
@@ -122,7 +122,7 @@ __perform_remove()
 #.  stdout: Progress messages
 #.  stderr: As little as possible
 #
-__remove_pkgs()
+d__remove_pkgs()
 {
   # Check whether packages are asked for
   $D__REQ_PACKAGES || return 1
@@ -181,7 +181,7 @@ __remove_pkgs()
     # Don’t proceed if already removed (except when forcing)
     if $proceeding; then
       if d__os_pkgmgr check "$pkgname"; then
-        if dstash --root --skip-checks has "pkg_$( dmd5 -s "$pkgname" )"; then
+        if d__stash --root --skip-checks has "pkg_$( dmd5 -s "$pkgname" )"; then
           # Installed by this framework: remove
           :
         else
@@ -250,7 +250,7 @@ __remove_pkgs()
 
       # Check return status
       if [ "${PIPESTATUS[0]}" -eq 0 ]; then
-        dstash --root --skip-checks unset "pkg_$( dmd5 -s "$pkgname" )"
+        d__stash --root --skip-checks unset "pkg_$( dmd5 -s "$pkgname" )"
         dprint_ode "${D__ODE_NAME[@]}" -c "$GREEN" -- \
           'vvv' 'Removed' ':' "$task_desc" "$task_name"
       else
@@ -271,7 +271,7 @@ __remove_pkgs()
   return 0
 }
 
-#> __remove_dpls PRIORITY_LEVEL
+#> d__remove_dpls PRIORITY_LEVEL
 #
 ## For the given priority level, removes deployments, one by one, using their 
 #. *.dpl.sh files, paths to which have been previously assembled in 
@@ -292,7 +292,7 @@ __remove_pkgs()
 #.  stdout: Progress messages
 #.  stderr: As little as possible
 #
-__remove_dpls()
+d__remove_dpls()
 {
   # Extract priority
   local priority
@@ -333,9 +333,9 @@ __remove_dpls()
     desc=
     mode=
     # Undefine global functions
-    unset -f dcheck
-    unset -f dinstall
-    unset -f dremove
+    unset -f d_dpl_check
+    unset -f d_dpl_install
+    unset -f d_dpl_remove
 
     # Extract name assignment from *.dpl.sh file (first one wins)
     read -r name < <( sed -n "s/$D__REGEX_DPL_NAME/\1/p" \
@@ -460,7 +460,7 @@ __remove_dpls()
       source "$divinedpl_filepath"
 
       # Ensure all assets are copied and main queue is filled
-      __process_manifests_of_current_dpl || proceeding=false
+      d__process_manifests_of_current_dpl || proceeding=false
 
     fi
 
@@ -470,9 +470,9 @@ __remove_dpls()
     # Try to figure out, if deployment is already removed
     if $proceeding; then
 
-      # Get return code of dcheck, or fall back to zero
-      if declare -f dcheck &>/dev/null; then
-        dcheck; dpl_status=$?
+      # Get return code of d_dpl_check, or fall back to zero
+      if declare -f d_dpl_check &>/dev/null; then
+        d_dpl_check; dpl_status=$?
       else
         dpl_status=0
       fi
@@ -537,9 +537,9 @@ __remove_dpls()
       $intro_printed || dprint_ode "${D__ODE_NAME[@]}" -c "$YELLOW" -- \
           '>>>' 'Removing' ':' "$task_desc" "$task_name"
 
-      # Get return code of dremove, or fall back to zero
-      if declare -f dremove &>/dev/null; then
-        dremove; dpl_status=$?
+      # Get return code of d_dpl_remove, or fall back to zero
+      if declare -f d_dpl_remove &>/dev/null; then
+        d_dpl_remove; dpl_status=$?
       else
         dpl_status=0
       fi
@@ -570,4 +570,4 @@ __remove_dpls()
   return 0
 }
 
-__perform_remove
+d__perform_remove_routine

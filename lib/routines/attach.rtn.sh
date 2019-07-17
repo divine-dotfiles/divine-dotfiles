@@ -15,7 +15,7 @@
 #. repositories
 #
 
-#>  __perform_attach
+#>  d__perform_attach_routine
 #
 ## Performs attach routine
 #
@@ -24,10 +24,10 @@
 #.  1 - Routine performed, failed to attach any of the arguments
 #.  2 - Routine terminated with nothing to do
 #
-__perform_attach()
+d__perform_attach_routine()
 {
-  # Make sure dpl-repos are in order
-  __sort_out_dpl_repos || exit 1
+  # Synchronize dpl repos
+  d__sync_dpl_repos || exit 1
   
   # Announce beginning
   if [ "$D__OPT_ANSWER" = false ]; then
@@ -66,7 +66,7 @@ __perform_attach()
       '>>>' 'Attaching' ':' "$dpl_arg"
 
     # Try to attach deployments
-    if __attach__attempt_github_repo "$dpl_arg"; then
+    if d__attach_dpl_repo "$dpl_arg"; then
       attached_anything=true
       dprint_ode "${D__ODE_NORMAL[@]}" -c "$GREEN" -- \
         'vvv' 'Attached' ':' "$dpl_arg"
@@ -107,7 +107,7 @@ __perform_attach()
   fi
 }
 
-#>  __attach__attempt_github_repo
+#>  d__attach_dpl_repo
 #
 ## Attempts to interpret single argument as name of Github repository and pull 
 #. it in. Accepts either full ‘user/repo’ form or short ‘built_in_repo’ form 
@@ -117,7 +117,7 @@ __perform_attach()
 #.  0 - Successfully pulled in deployment repository
 #.  1 - Otherwise
 #
-__attach__attempt_github_repo()
+d__attach_dpl_repo()
 {
   # Extract argument
   local repo_arg="$1"
@@ -249,7 +249,7 @@ __attach__attempt_github_repo()
   fi
 
   # Prompt user for possible clobbering, and clobber if required, run checks
-  __attach__run_checks_and_prompts "$perm_dest" "$temp_dest" \
+  d__run_pre_attach_checks "$perm_dest" "$temp_dest" \
     "https://github.com/${user_repo}" \
     || { rm -rf -- "$temp_dest"; return 1; }
 
@@ -265,7 +265,7 @@ __attach__attempt_github_repo()
   }
 
   # Record this to Grail stash
-  if dstash -g -s add dpl_repos "$user_repo"; then
+  if d__stash -g -s add dpl_repos "$user_repo"; then
     dprint_debug "Recorded attached repository '$user_repo' in Grail stash"
   else
     dprint_debug \
@@ -280,10 +280,10 @@ __attach__attempt_github_repo()
   fi
 
   # Merge records of external dpls into records of framework dpls
-  __merge_records_of_dpls_in_ext_dir "$temp_dest" "$perm_dest"
+  d__merge_records_of_dpls_in_ext_dir "$temp_dest" "$perm_dest"
 
   # Also, prepare any of the possible assets
-  __process_all_asset_manifests_in_dpl_dirs
+  d__process_all_asset_manifests_in_dpl_dirs
 
   # All done: announce and return
   dprint_debug 'Successfully attached Github-hosted deployments from:' \
@@ -292,7 +292,7 @@ __attach__attempt_github_repo()
   return 0
 }
 
-#>  __attach__run_checks_and_prompts CLOBBER_PATH EXT_PATH SRC_ADDR
+#>  d__run_pre_attach_checks CLOBBER_PATH EXT_PATH SRC_ADDR
 #
 ## Checks whether EXT_PATH contains any deployments, and whether those 
 #. deployments are valid and attach-able
@@ -305,7 +305,7 @@ __attach__attempt_github_repo()
 #.  0 - Checks succeeded, user agreed
 #.  1 - Otherwise
 #
-__attach__run_checks_and_prompts()
+d__run_pre_attach_checks()
 {
   # Extract clobber path, external path, and source address
   local clobber_path="$1"; shift
@@ -313,7 +313,7 @@ __attach__run_checks_and_prompts()
   local src_addr="$1"; shift
 
   # Survey deployments in external dir
-  __scan_for_dpl_files --ext-dir "$ext_path"
+  d__scan_for_dpl_files --ext-dir "$ext_path"
 
   # Check return code
   case $? in
@@ -338,7 +338,7 @@ __attach__run_checks_and_prompts()
   esac
   
   # Immediately validate deployments being attached
-  __validate_detected_dpls --ext-dir "$ext_path/" || return 1
+  d__validate_detected_dpls --ext-dir "$ext_path/" || return 1
 
   # Check if clobber path exists
   if [ -e "$clobber_path" ]; then
@@ -384,7 +384,7 @@ __attach__run_checks_and_prompts()
     fi
 
     # After clobbering in dpls dir, re-scan them for deployments
-    __scan_for_dpl_files --fmwk-dir "$D__DIR_DPLS" "$D__DIR_DPL_REPOS"
+    d__scan_for_dpl_files --fmwk-dir "$D__DIR_DPLS" "$D__DIR_DPL_REPOS"
     
     # Check return code
     case $? in
@@ -430,10 +430,10 @@ __attach__run_checks_and_prompts()
   fi
 
   # Check if deployments being attached are merge-able
-  __cross_validate_dpls_before_merging "$ext_path/" || return 1
+  d__cross_validate_dpls_before_merging "$ext_path/" || return 1
 
   # Finally, if made it here, return success
   return 0
 }
 
-__perform_attach
+d__perform_attach_routine

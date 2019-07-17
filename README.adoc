@@ -23,17 +23,17 @@ Here’s what a deployment file may look like:
 # dpl/example.dpl.sh
 
 # Special function that checks whether this deployment is installed
-dcheck() {
+d_dpl_check() {
   if [ -e ~/bin/cmd ]; then return 1; else return 2; fi
 }
 
 # Special function that installs this deployment
-dinstall() {
+d_dpl_install() {
   printf 'echo Divine.dotfiles is cool\n' >~/bin/cmd && chmod +x ~/bin/cmd
 }
 
 # Special function that removes this deployment
-dremove() {
+d_dpl_remove() {
   rm -f -- ~/bin/cmd
 }
 ----

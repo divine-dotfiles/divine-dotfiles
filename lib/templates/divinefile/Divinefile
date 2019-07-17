@@ -18,8 +18,8 @@
 #. manager name, everything to the right — as whitespace-delimited alt-list of 
 #. package names.
 #
-## NOTE: For list of supported package managers, see __populate_os_pkgmgr 
-#. function implemented in lib/dos.utl.sh
+## NOTE: For list of supported package managers, browse through distro adapters 
+#. in lib/adapters/distro
 #
 ## If a line contains ‘)’, everything to the left of first ‘)’ is parsed for 
 #. space-separated words. First word, if any, is read as priority, second word 

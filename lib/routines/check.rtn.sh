@@ -14,7 +14,7 @@
 ## Checks packages and deployments as requested
 #
 
-#> __perform_check
+#> d__perform_check_routine
 #
 ## Performs checking routine
 #
@@ -26,7 +26,7 @@
 #.  0 - Routine performed
 #.  1 - Routine terminated prematurely
 #
-__perform_check()
+d__perform_check_routine()
 {
   # Announce beginning
   if [ "$D__OPT_ANSWER" = false ]; then
@@ -44,10 +44,10 @@ __perform_check()
   for priority in "${!D__QUEUE_TASKS[@]}"; do
 
     # Install packages if asked to
-    __check_pkgs "$priority"
+    d__check_pkgs "$priority"
 
     # Install deployments if asked to
-    __check_dpls "$priority"
+    d__check_dpls "$priority"
     
   done
 
@@ -63,7 +63,7 @@ __perform_check()
   return 0
 }
 
-#> __check_pkgs PRIORITY_LEVEL
+#> d__check_pkgs PRIORITY_LEVEL
 #
 ## For the given priority level, check if packages are installed, one by one, 
 #. using their names, which have been previously assembled in $D__QUEUE_PKGS 
@@ -81,7 +81,7 @@ __perform_check()
 #.  stdout: Progress messages
 #.  stderr: As little as possible
 #
-__check_pkgs()
+d__check_pkgs()
 {
   # Check whether packages are asked for
   $D__REQ_PACKAGES || return 1
@@ -139,7 +139,7 @@ __check_pkgs()
     if $proceeding; then
       if d__os_pkgmgr check "$pkgname"; then        
         # Check if record of installation exists in root stash
-        if dstash --root --skip-checks has "pkg_$( dmd5 -s "$pkgname" )"; then
+        if d__stash --root --skip-checks has "pkg_$( dmd5 -s "$pkgname" )"; then
           # Installed by this framework
           dprint_ode "${D__ODE_NAME[@]}" -c "$GREEN" -- \
             'vvv' 'Installed' ':' "$task_desc" "$task_name"
@@ -163,7 +163,7 @@ __check_pkgs()
   return 0
 }
 
-#> __check_dpls PRIORITY_LEVEL
+#> d__check_dpls PRIORITY_LEVEL
 #
 ## For the given priority level, checks whether deployments are installed, one 
 #. by one, using their *.dpl.sh files, paths to which have been previously 
@@ -181,7 +181,7 @@ __check_pkgs()
 #.  stdout: Progress messages
 #.  stderr: As little as possible
 #
-__check_dpls()
+d__check_dpls()
 {
   # Extract priority
   local priority
@@ -218,9 +218,9 @@ __check_dpls()
     desc=
     mode=
     # Undefine global functions
-    unset -f dcheck
-    unset -f dinstall
-    unset -f dremove
+    unset -f d_dpl_check
+    unset -f d_dpl_install
+    unset -f d_dpl_remove
 
     # Extract name assignment from *.dpl.sh file (first one wins)
     read -r name < <( sed -n "s/$D__REGEX_DPL_NAME/\1/p" \
@@ -342,16 +342,16 @@ __check_dpls()
       source "$divinedpl_filepath"
 
       # Ensure all assets are copied and main queue is filled
-      __process_manifests_of_current_dpl || proceeding=false
+      d__process_manifests_of_current_dpl || proceeding=false
 
     fi
 
     # Check if deployment is installed and report
     if $proceeding; then
 
-      # Get return code of dcheck, or fall back to zero
-      if declare -f dcheck &>/dev/null; then
-        dcheck; dpl_status=$?
+      # Get return code of d_dpl_check, or fall back to zero
+      if declare -f d_dpl_check &>/dev/null; then
+        d_dpl_check; dpl_status=$?
       else
         dpl_status=0
       fi
@@ -399,4 +399,4 @@ __check_dpls()
   return 0
 }
 
-__perform_check
+d__perform_check_routine
