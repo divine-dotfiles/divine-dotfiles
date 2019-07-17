@@ -140,10 +140,10 @@ d__locate_installations()
     && D_SHORTCUT_FILEPATHS+=( "$D_SHORTCUT_FILEPATH" )
 
   # Try to figure location of shortcut command
-  if dstash_root_get di_shortcut &>/dev/null; then
+  if d__stash_root_get di_shortcut &>/dev/null; then
 
     # Extract stashed record
-    shortcut_filepath="$( dstash_root_get di_shortcut )"
+    shortcut_filepath="$( d__stash_root_get di_shortcut )"
 
     # Check shortcut and add to global variable
     d__check_shortcut_filepath "$shortcut_filepath" \
@@ -238,7 +238,7 @@ d__remove_all_dpls()
 d__uninstall_homebrew()
 {
   # Check stash records
-  if ! dstash_root_get installed_homebrew &>/dev/null; then
+  if ! d__stash_root_get installed_homebrew &>/dev/null; then
     # No record of Homebrew installation: silently return a-ok
     return 0
   fi
@@ -319,7 +319,7 @@ d__uninstall_homebrew()
 d__uninstall_utils()
 {
   # Check stash records
-  if ! dstash_root_get installed_util &>/dev/null; then
+  if ! d__stash_root_get installed_util &>/dev/null; then
     # No record of utility installations: silently return a-ok
     return 0
   fi
@@ -539,11 +539,11 @@ dprompt_key()
   if $yes; then return 0; else return 1; fi
 }
 
-dstash_root_get()
+d__stash_root_get()
 {
   # Key variables
   local stash_dirpath="$D_INSTALL_PATH/state/stash"
-  local stash_filepath="$stash_dirpath/.dstash.cfg"
+  local stash_filepath="$stash_dirpath/.stash.cfg"
   local stash_md5_filepath="$stash_filepath.md5"
 
   # If stash file does not exist, return immediately

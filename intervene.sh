@@ -107,7 +107,7 @@ d__populate_globals()
     'util dprint' \
     'util dprompt' \
     'util dmd5' \
-    'helper dstash' \
+    'helper stash' \
     'procedure stash-checks' \
     'procedure detect-os' \
     'helper offer' \
@@ -129,7 +129,7 @@ d__populate_globals()
   readonly D__CONST_NAME_DIVINEFILE='Divinefile'
   
   # Name for stash files
-  readonly D__CONST_NAME_STASHFILE=".dstash.cfg"
+  readonly D__CONST_NAME_STASHFILE=".stash.cfg"
 
   # Default task priority
   readonly D__CONST_DEF_PRIORITY=4096

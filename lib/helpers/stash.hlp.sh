@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#:title:        Divine Bash deployment helpers: dstash
+#:title:        Divine Bash deployment helpers: stash
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revnumber:    1.1.--SNAPSHOT

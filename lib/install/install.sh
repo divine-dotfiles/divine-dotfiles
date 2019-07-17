@@ -426,7 +426,7 @@ d__install_shortcut()
   if $shortcut_installed; then
 
     # Keep record of installation location
-    if dstash_root_add di_shortcut "$shortcut_filepath"; then
+    if d__stash_root_add di_shortcut "$shortcut_filepath"; then
       dprint_debug 'Stored shortcut location in root stash'
     else
       dprint_debug 'Failed to store shortcut location in root stash' \
@@ -647,11 +647,11 @@ dprompt_key()
   if $yes; then return 0; else return 1; fi
 }
 
-dstash_root_add()
+d__stash_root_add()
 {
   # Key variables
   local stash_dirpath="$D_INSTALL_PATH/state/stash"
-  local stash_filepath="$stash_dirpath/.dstash.cfg"
+  local stash_filepath="$stash_dirpath/.stash.cfg"
   local stash_md5_filepath="$stash_filepath.md5"
 
   # Check if root stash file exists
