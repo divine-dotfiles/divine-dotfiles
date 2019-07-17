@@ -582,6 +582,9 @@ __unset_d_funcs()
     # Extract function’s names
     func_name=${func_assignment#'declare -f '}
 
+    # Skip internal 'd__*' functions (double underscore)
+    [[ $func_name = d__* ]] && continue
+
     # Unset the function
     unset -f $func_name
     
