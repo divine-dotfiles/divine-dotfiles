@@ -32,7 +32,7 @@
 __update_pkgs()
 {
   # Only if packages are to be touched at all
-  if $D_REQ_PACKAGES; then
+  if $D__REQ_PACKAGES; then
 
     # Name current task
     local task_desc='System packages via'
@@ -40,7 +40,7 @@ __update_pkgs()
 
     # Prefix priority
     task_desc="$( printf \
-      "(%${D_REQ_MAX_PRIORITY_LEN}d) %s\n" 0 "$task_desc" )"
+      "(%${D__REQ_MAX_PRIORITY_LEN}d) %s\n" 0 "$task_desc" )"
 
     # Local flag for whether to proceed
     local proceeding=true
@@ -52,20 +52,20 @@ __update_pkgs()
     }
 
     # Don’t proceed if ‘-n’ option is given
-    [ "$D_OPT_ANSWER" = false ] && proceeding=false
+    [ "$D__OPT_ANSWER" = false ] && proceeding=false
 
     # Print newline to visually separate tasks
     printf '\n'
 
     # Print message about the upcoming installation
     if $proceeding; then
-      dprint_ode "${D_ODE_UPDATE[@]}" -c "$YELLOW" -- \
+      dprint_ode "${D__ODE_UPDATE[@]}" -c "$YELLOW" -- \
         '>>>' 'Updating' ':' "$task_desc" "$task_name"
     fi
 
     # Unless given a ‘-y’ option, prompt for user’s approval
-    if $proceeding && [ "$D_OPT_ANSWER" != true ]; then
-      dprint_ode "${D_ODE_PROMPT[@]}" -- '' 'Confirm' ': '
+    if $proceeding && [ "$D__OPT_ANSWER" != true ]; then
+      dprint_ode "${D__ODE_PROMPT[@]}" -- '' 'Confirm' ': '
       dprompt_key --bare && proceeding=true || {
         task_name="$task_name (declined by user)"
         proceeding=false
@@ -76,7 +76,7 @@ __update_pkgs()
     if $proceeding; then
 
       # Launch OS package manager with verbosity in mind
-      if $D_OPT_QUIET; then
+      if $D__OPT_QUIET; then
 
         # Launch quietly
         os_pkgmgr dupdate &>/dev/null
@@ -93,17 +93,17 @@ __update_pkgs()
 
       # Check return status
       if [ "${PIPESTATUS[0]}" -eq 0 ]; then
-        dprint_ode "${D_ODE_UPDATE[@]}" -c "$GREEN" -- \
+        dprint_ode "${D__ODE_UPDATE[@]}" -c "$GREEN" -- \
           'vvv' 'Updated' ':' "$task_desc" "$task_name"
       else
-        dprint_ode "${D_ODE_UPDATE[@]}" -c "$RED" -- \
+        dprint_ode "${D__ODE_UPDATE[@]}" -c "$RED" -- \
           'xxx' 'Failed to update' ':' "$task_desc" "$task_name"
       fi
 
     else
 
       # Not updating packages
-      dprint_ode "${D_ODE_UPDATE[@]}" -c "$WHITE" -- \
+      dprint_ode "${D__ODE_UPDATE[@]}" -c "$WHITE" -- \
         '---' 'Skipped updating' ':' "$task_desc" "$task_name"
 
     fi

@@ -61,7 +61,7 @@ __offer_util()
   else
 
     # Prompt user for whether to install utility
-    dprompt_key -b --color "$YELLOW" --or-quit --answer "$D_OPT_ANSWER" \
+    dprompt_key -b --color "$YELLOW" --or-quit --answer "$D__OPT_ANSWER" \
       --prompt "Install $util_name using $OS_PKGMGR?"
 
     # Check status
@@ -72,7 +72,7 @@ __offer_util()
           dprint_debug "Installing $util_name"
 
           # Launch OS package manager with verbosity in mind
-          if $D_OPT_QUIET; then
+          if $D__OPT_QUIET; then
 
             # Launch quietly
             os_pkgmgr dinstall "$util_name" &>/dev/null

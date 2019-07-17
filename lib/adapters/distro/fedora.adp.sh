@@ -61,23 +61,23 @@ elif yum --version &>/dev/null; then
 
 fi
 
-# Implement overriding mechanism for $D_DPL_TARGET_PATHS and $D_DPL_TARGET_DIR
+# Implement overriding mechanism for $D__DPL_TARGET_PATHS and $D__DPL_TARGET_DIR
 __override_d_targets_for_distro()
 {
-  # Check if $D_DPL_TARGET_PATHS_DEBIAN contains at least one string
-  if [ ${#D_DPL_TARGET_PATHS_DEBIAN[@]} -gt 1 \
-    -o -n "$D_DPL_TARGET_PATHS_DEBIAN" ]; then
+  # Check if $D__DPL_TARGET_PATHS_DEBIAN contains at least one string
+  if [ ${#D__DPL_TARGET_PATHS_DEBIAN[@]} -gt 1 \
+    -o -n "$D__DPL_TARGET_PATHS_DEBIAN" ]; then
 
-    # $D_DPL_TARGET_PATHS_DEBIAN is set: use it instead
-    D_DPL_TARGET_PATHS=( "${D_DPL_TARGET_PATHS_DEBIAN[@]}" )
+    # $D__DPL_TARGET_PATHS_DEBIAN is set: use it instead
+    D__DPL_TARGET_PATHS=( "${D__DPL_TARGET_PATHS_DEBIAN[@]}" )
     
   fi
 
-  # Check if $D_DPL_TARGET_DIR_FEDORA is not empty
-  if [ -n "$D_DPL_TARGET_DIR_FEDORA" ]; then
+  # Check if $D__DPL_TARGET_DIR_FEDORA is not empty
+  if [ -n "$D__DPL_TARGET_DIR_FEDORA" ]; then
 
-    # $D_DPL_TARGET_DIR_FEDORA is set: use it instead
-    D_DPL_TARGET_DIR=( "${D_DPL_TARGET_DIR_FEDORA[@]}" )
+    # $D__DPL_TARGET_DIR_FEDORA is set: use it instead
+    D__DPL_TARGET_DIR=( "${D__DPL_TARGET_DIR_FEDORA[@]}" )
     
   fi
 }

@@ -26,11 +26,11 @@
 __perform_plug()
 {
   # Announce beginning
-  if [ "$D_OPT_ANSWER" = false ]; then
-    dprint_plaque -pcw "$WHITE" "$D_CONST_PLAQUE_WIDTH" \
+  if [ "$D__OPT_ANSWER" = false ]; then
+    dprint_plaque -pcw "$WHITE" "$D__CONST_PLAQUE_WIDTH" \
       -- '‘Plugging’ Grail directory'
   else
-    dprint_plaque -pcw "$GREEN" "$D_CONST_PLAQUE_WIDTH" \
+    dprint_plaque -pcw "$GREEN" "$D__CONST_PLAQUE_WIDTH" \
       -- 'Plugging Grail directory'
   fi
 
@@ -39,7 +39,7 @@ __perform_plug()
   GITHUB_AVAILABLE=true
 
   # Unless just linking: check if git is available and offer to install it
-  if ! $D_OPT_PLUG_LINK; then
+  if ! $D__OPT_PLUG_LINK; then
 
     # Check if git is available
     if ! git --version &>/dev/null; then
@@ -65,7 +65,7 @@ __perform_plug()
   fi
 
   # Path to Grail replacement is first argument passed to the script
-  local grail_arg="${D_REQ_ARGS[0]}"
+  local grail_arg="${D__REQ_ARGS[0]}"
 
   # Status variable
   local all_good=true
@@ -76,11 +76,11 @@ __perform_plug()
     printf >&2 '\n'
 
     # Announce start
-    dprint_ode "${D_ODE_NORMAL[@]}" -c "$YELLOW" -- \
+    dprint_ode "${D__ODE_NORMAL[@]}" -c "$YELLOW" -- \
       '>>>' 'Plugging' ':' "$grail_arg"
 
     # Process each argument sequentially until the first hit
-    if $D_OPT_PLUG_LINK; then
+    if $D__OPT_PLUG_LINK; then
       __plugging__attempt_local_dir "$grail_arg" \
         || all_good=false
     else
@@ -92,33 +92,33 @@ __perform_plug()
     
     # Report and set status
     if $all_good; then
-      dprint_ode "${D_ODE_NORMAL[@]}" -c "$GREEN" -- \
+      dprint_ode "${D__ODE_NORMAL[@]}" -c "$GREEN" -- \
         'vvv' 'Plugged' ':' "$grail_arg"
     else
-      dprint_ode "${D_ODE_NORMAL[@]}" -c "$RED" -- \
+      dprint_ode "${D__ODE_NORMAL[@]}" -c "$RED" -- \
         'xxx' 'Failed to plug' ':' "$grail_arg"
     fi
 
   else
 
     # Script’s first arg is empty
-    dprint_plaque -pcw "$WHITE" "$D_CONST_PLAQUE_WIDTH" -- 'Nothing to do'
+    dprint_plaque -pcw "$WHITE" "$D__CONST_PLAQUE_WIDTH" -- 'Nothing to do'
     return 1
 
   fi
 
   # Announce routine completion
   printf >&2 '\n'
-  if [ "$D_OPT_ANSWER" = false ]; then
-    dprint_plaque -pcw "$WHITE" "$D_CONST_PLAQUE_WIDTH" \
+  if [ "$D__OPT_ANSWER" = false ]; then
+    dprint_plaque -pcw "$WHITE" "$D__CONST_PLAQUE_WIDTH" \
       -- '‘Plugged’ Grail directory'
     return 1
   elif $all_good; then
-    dprint_plaque -pcw "$GREEN" "$D_CONST_PLAQUE_WIDTH" \
+    dprint_plaque -pcw "$GREEN" "$D__CONST_PLAQUE_WIDTH" \
       -- 'Successfully plugged Grail directory'
     return 0
   else
-    dprint_plaque -pcw "$RED" "$D_CONST_PLAQUE_WIDTH" \
+    dprint_plaque -pcw "$RED" "$D__CONST_PLAQUE_WIDTH" \
       -- 'Failed to plug Grail directory'
     return 1
   fi
@@ -160,7 +160,7 @@ __plugging__attempt_github_repo()
   local temp_dest="$( mktemp -d )"
 
   # Construct permanent destination
-  local perm_dest="$D_DIR_GRAIL"
+  local perm_dest="$D__DIR_GRAIL"
 
   # First, attempt to check existense of repository using git
   if $GIT_AVAILABLE; then
@@ -170,7 +170,7 @@ __plugging__attempt_github_repo()
       # Both git and remote repo are available
 
       # Prompt user about the plug
-      dprompt_key --bare --answer "$D_OPT_ANSWER" --prompt 'Clone it?' -- \
+      dprompt_key --bare --answer "$D__OPT_ANSWER" --prompt 'Clone it?' -- \
         "Detected ${BOLD}Github repository${NORMAL} at:" \
         -i "https://github.com/${user_repo}" || return 1
 
@@ -208,7 +208,7 @@ __plugging__attempt_github_repo()
       # Both curl and remote repo are available
 
       # Prompt user about the plug
-      dprompt_key --bare --answer "$D_OPT_ANSWER" --prompt 'Download it?' \
+      dprompt_key --bare --answer "$D__OPT_ANSWER" --prompt 'Download it?' \
         -- "Detected ${BOLD}Github repository${NORMAL} (tarball) at:" \
         -i "https://github.com/${user_repo}" || return 1
 
@@ -236,7 +236,7 @@ __plugging__attempt_github_repo()
       # Both wget and remote repo are available
 
       # Prompt user about the plug
-      dprompt_key --bare --answer "$D_OPT_ANSWER" --prompt 'Download it?' \
+      dprompt_key --bare --answer "$D__OPT_ANSWER" --prompt 'Download it?' \
         -- "Detected ${BOLD}Github repository${NORMAL} (tarball) at:" \
         -i "https://github.com/${user_repo}" || return 1
 
@@ -289,12 +289,12 @@ __plugging__attempt_github_repo()
 
     # Announce failure
     dprint_failure -l 'Failed to match deployment repositories at:' \
-      -i "$D_DIR_DPL_REPOS" -n 'with newly plugged Grail directory'
+      -i "$D__DIR_DPL_REPOS" -n 'with newly plugged Grail directory'
 
   fi
 
   # Scan main directories for deployments
-  __scan_for_dpl_files --fmwk-dir "$D_DIR_DPLS" "$D_DIR_DPL_REPOS"
+  __scan_for_dpl_files --fmwk-dir "$D__DIR_DPLS" "$D__DIR_DPL_REPOS"
 
   # Validate deployments
   if __validate_detected_dpls --fmwk-dir; then
@@ -352,7 +352,7 @@ __plugging__attempt_local_repo()
   local temp_dest="$( mktemp -d )"
 
   # Construct permanent destination
-  local perm_dest="$D_DIR_GRAIL"
+  local perm_dest="$D__DIR_GRAIL"
 
   # First, attempt to check existense of repository using git
   if git ls-remote "$repo_path" -q &>/dev/null; then
@@ -360,7 +360,7 @@ __plugging__attempt_local_repo()
     # Both git and local repo are available
 
     # Prompt user about the plug
-    dprompt_key --bare --answer "$D_OPT_ANSWER" --prompt 'Clone it?' -- \
+    dprompt_key --bare --answer "$D__OPT_ANSWER" --prompt 'Clone it?' -- \
       "Detected ${BOLD}local git repository${NORMAL} at:" -i "$repo_path" \
         || return 1
 
@@ -396,12 +396,12 @@ __plugging__attempt_local_repo()
 
       # Announce failure
       dprint_failure -l 'Failed to match deployment repositories at:' \
-        -i "$D_DIR_DPL_REPOS" -n 'with newly plugged Grail directory'
+        -i "$D__DIR_DPL_REPOS" -n 'with newly plugged Grail directory'
 
     fi
 
     # Scan main directories for deployments
-    __scan_for_dpl_files --fmwk-dir "$D_DIR_DPLS" "$D_DIR_DPL_REPOS"
+    __scan_for_dpl_files --fmwk-dir "$D__DIR_DPLS" "$D__DIR_DPL_REPOS"
 
     # Validate deployments
     if __validate_detected_dpls --fmwk-dir; then
@@ -461,11 +461,11 @@ __plugging__attempt_local_dir()
   fi
 
   # Construct permanent destination
-  local perm_dest="$D_DIR_GRAIL"
+  local perm_dest="$D__DIR_GRAIL"
 
   # Prompt user about the plug
-  local prompt; $D_OPT_PLUG_LINK && prompt='Link it?' || prompt='Copy it?'
-  dprompt_key --bare --answer "$D_OPT_ANSWER" --prompt "$prompt" -- \
+  local prompt; $D__OPT_PLUG_LINK && prompt='Link it?' || prompt='Copy it?'
+  dprompt_key --bare --answer "$D__OPT_ANSWER" --prompt "$prompt" -- \
     "Detected ${BOLD}local directory${NORMAL} at:" -i "$dir_path" \
       || return 1
 
@@ -474,7 +474,7 @@ __plugging__attempt_local_dir()
     || return 1
 
   # Finally, link/copy directory to intended location
-  if $D_OPT_PLUG_LINK; then
+  if $D__OPT_PLUG_LINK; then
     dln -- "$dir_path" "$perm_dest" || {
       # Announce failure to link
       dprint_debug 'Failed to link local Grail directory at:' \
@@ -497,12 +497,12 @@ __plugging__attempt_local_dir()
 
     # Announce failure
     dprint_failure -l 'Failed to match deployment repositories at:' \
-      -i "$D_DIR_DPL_REPOS" -n 'with newly plugged Grail directory'
+      -i "$D__DIR_DPL_REPOS" -n 'with newly plugged Grail directory'
 
   fi
 
   # Scan main directories for deployments
-  __scan_for_dpl_files --fmwk-dir "$D_DIR_DPLS" "$D_DIR_DPL_REPOS"
+  __scan_for_dpl_files --fmwk-dir "$D__DIR_DPLS" "$D__DIR_DPL_REPOS"
 
   # Validate deployments
   if __validate_detected_dpls --fmwk-dir; then
@@ -560,12 +560,12 @@ __plugging__run_checks_and_prompts()
         ;;
     2)  # At least one deployment file has reserved delimiter in its path
         local list_of_illegal_dpls=() illegal_dpl
-        for illegal_dpl in "${D_DPL_PATHS_WITH_DELIMITER[@]}"; do
+        for illegal_dpl in "${D__DPL_PATHS_WITH_DELIMITER[@]}"; do
           list_of_illegal_dpls+=( -i "$illegal_dpl" )
         done
         dprint_debug \
           "Illegal deployments detected at:" "${list_of_illegal_dpls[@]}" \
-          -n "String '$D_CONST_DELIMITER' is reserved internal path delimiter"
+          -n "String '$D__CONST_DELIMITER' is reserved internal path delimiter"
         return 1
         ;;
     *)  # Unsopported code
@@ -576,7 +576,7 @@ __plugging__run_checks_and_prompts()
   if ! __validate_detected_dpls --ext-dir "$ext_path/"; then
 
     # Prompt user
-    if ! dprompt_key --bare --prompt 'Proceed?' --answer "$D_OPT_ANSWER" -- \
+    if ! dprompt_key --bare --prompt 'Proceed?' --answer "$D__OPT_ANSWER" -- \
       'Grail directory obtained from:' -i "$src_addr" \
       -n 'contains invalid deployments (reserved or duplicate names)'
     then

@@ -84,12 +84,12 @@ dstash()
     # Without checks, just populate necessary paths
     local stash_dirpath
     case $stash_mode in
-      -g) stash_dirpath="$D_DIR_GRAIL";;
-      -r) stash_dirpath="$D_DIR_STASH";;
-      *)  stash_dirpath="$D_DIR_STASH/$D_DPL_NAME";;
+      -g) stash_dirpath="$D__DIR_GRAIL";;
+      -r) stash_dirpath="$D__DIR_STASH";;
+      *)  stash_dirpath="$D__DIR_STASH/$D__DPL_NAME";;
     esac
-    D_STASH_FILEPATH="$stash_dirpath/$D_CONST_NAME_STASHFILE"
-    D_STASH_MD5_FILEPATH="$D_STASH_FILEPATH.md5"
+    D__STASH_FILEPATH="$stash_dirpath/$D__CONST_NAME_STASHFILE"
+    D__STASH_MD5_FILEPATH="$D__STASH_FILEPATH.md5"
   fi
 
   # Quick return without arguments (equivalent of dstash ready)
@@ -104,7 +104,7 @@ dstash()
     get)    __dstash_get "$@";;
     list)   __dstash_list "$@";;
     unset)  __dstash_unset "$@";;
-    clear)  >"$D_STASH_FILEPATH" && return 0 || return 1;;
+    clear)  >"$D__STASH_FILEPATH" && return 0 || return 1;;
     *)      dprint_debug 'dstash called with illegal task:' -i "$1"; return 1;;
   esac
 
@@ -133,7 +133,7 @@ __dstash_has()
   if [ "$1" = -s ]; then shift; else __dstash_validate_key "$1" || return 1; fi
 
   # Check for existense in stash file
-  grep -q ^"$1"= -- "$D_STASH_FILEPATH" &>/dev/null && return 0 || return 1
+  grep -q ^"$1"= -- "$D__STASH_FILEPATH" &>/dev/null && return 0 || return 1
 }
 
 #> __dstash_set KEY [VALUE]
@@ -160,9 +160,9 @@ __dstash_set()
   if __dstash_has -s "$1"; then __dstash_unset -s "$1" || return 1; fi
 
   # Append record at the end
-  printf '%s\n' "$1=$2" >>"$D_STASH_FILEPATH" || {
+  printf '%s\n' "$1=$2" >>"$D__STASH_FILEPATH" || {
     dprint_debug 'Failed to store record:' -i "$1=$2" \
-      -n 'in stash file at:' -i "$D_STASH_FILEPATH"
+      -n 'in stash file at:' -i "$D__STASH_FILEPATH"
     return 1
   }
 
@@ -192,9 +192,9 @@ __dstash_add()
   if [ "$1" = -s ]; then shift; else __dstash_validate_key "$1" || return 1; fi
 
   # Append record at the end
-  printf '%s\n' "$1=$2" >>"$D_STASH_FILEPATH" || {
+  printf '%s\n' "$1=$2" >>"$D__STASH_FILEPATH" || {
     dprint_debug 'Failed to add record:' -i "$1=$2" \
-      -n 'to stash file at:' -i "$D_STASH_FILEPATH"
+      -n 'to stash file at:' -i "$D__STASH_FILEPATH"
     return 1
   }
 
@@ -231,13 +231,13 @@ __dstash_get()
 
   # Get key’s value
   local value
-  value="$( grep ^"$1"= -- "$D_STASH_FILEPATH" 2>/dev/null \
+  value="$( grep ^"$1"= -- "$D__STASH_FILEPATH" 2>/dev/null \
     | head -1 2>/dev/null )"
 
   # Check if retrieval was successful
   [ $? -eq 0 ] || {
     dprint_debug 'Failed to retrieve key:' -i "$1" \
-      -n 'from stash file at:' -i "$D_STASH_FILEPATH"
+      -n 'from stash file at:' -i "$D__STASH_FILEPATH"
     return 1
   }
 
@@ -285,12 +285,12 @@ __dstash_list()
     # Print value
     printf '%s\n' "$value"
 
-  done < <( grep ^"$1"= -- "$D_STASH_FILEPATH" 2>/dev/null )
+  done < <( grep ^"$1"= -- "$D__STASH_FILEPATH" 2>/dev/null )
 
   # Check if retrieval was successful
   [ $? -eq 0 ] || {
     dprint_debug 'Failed to retrieve key:' -i "$1" \
-      -n 'from stash file at:' -i "$D_STASH_FILEPATH"
+      -n 'from stash file at:' -i "$D__STASH_FILEPATH"
     return 1
   }
 }
@@ -326,21 +326,21 @@ __dstash_unset()
     # Make a new stash file, but without lines where $1 is assigned value $2
     while read -r line; do
       [ "$line" = "$1=$2" ] || printf '%s\n' "$line"
-    done <"$D_STASH_FILEPATH" >"$temp"
+    done <"$D__STASH_FILEPATH" >"$temp"
 
   else
 
     # Make a new stash file, but without lines where $1 is assigned any value
     while read -r line; do
       [[ $line = "$1="* ]] || printf '%s\n' "$line"
-    done <"$D_STASH_FILEPATH" >"$temp"
+    done <"$D__STASH_FILEPATH" >"$temp"
 
   fi
 
   # Move temp to location of install file
-  mv -f -- "$temp" "$D_STASH_FILEPATH" || {
+  mv -f -- "$temp" "$D__STASH_FILEPATH" || {
     dprint_debug "Failed to move temp file from: $temp" \
-      -n "to: $D_STASH_FILEPATH"
+      -n "to: $D__STASH_FILEPATH"
     return 1
   }
 
@@ -374,30 +374,30 @@ __dstash_pre_flight_checks()
     *)  :;;
   esac
 
-  # Check that $D_DIR_STASH is populated
-  [ -n "$D_DIR_STASH" ] || {
-    dprint_debug "$D_FMWK_NAME:" \
-      'Stashing accessed without $D_DIR_STASH populated'
+  # Check that $D__DIR_STASH is populated
+  [ -n "$D__DIR_STASH" ] || {
+    dprint_debug "$D__FMWK_NAME:" \
+      'Stashing accessed without $D__DIR_STASH populated'
     return 1
   }
 
-  # Check that $D_CONST_NAME_STASHFILE is populated
-  [ -n "$D_CONST_NAME_STASHFILE" ] || {
-    dprint_debug "$D_FMWK_NAME:" \
-      'Stashing accessed without $D_CONST_NAME_STASHFILE populated'
+  # Check that $D__CONST_NAME_STASHFILE is populated
+  [ -n "$D__CONST_NAME_STASHFILE" ] || {
+    dprint_debug "$D__FMWK_NAME:" \
+      'Stashing accessed without $D__CONST_NAME_STASHFILE populated'
     return 1
   }
 
-  # Check if within deployment by ensuring $D_DPL_NAME is populated
-  [ -z "$stash_mode" -a -z "$D_DPL_NAME" ] && {
-    dprint_debug "$D_FMWK_NAME:" \
-      'Stashing accessed without $D_DPL_NAME populated'
+  # Check if within deployment by ensuring $D__DPL_NAME is populated
+  [ -z "$stash_mode" -a -z "$D__DPL_NAME" ] && {
+    dprint_debug "$D__FMWK_NAME:" \
+      'Stashing accessed without $D__DPL_NAME populated'
     return 1
   }
 
   # Check if grep command is available
   type -P grep &>/dev/null || {
-    dprint_debug "$D_FMWK_NAME:" \
+    dprint_debug "$D__FMWK_NAME:" \
       'grep command is not found in $PATH' \
       -n 'Stashing is not available without grep'
     return 1
@@ -405,7 +405,7 @@ __dstash_pre_flight_checks()
 
   # Check if head command is available
   type -P head &>/dev/null || {
-    dprint_debug "$D_FMWK_NAME:" \
+    dprint_debug "$D__FMWK_NAME:" \
       'head command is not found in $PATH' \
       -n 'Stashing is not available without head'
     return 1
@@ -413,7 +413,7 @@ __dstash_pre_flight_checks()
 
   # Check if md5 checking works
   dmd5 -s &>/dev/null || {
-    dprint_debug "$D_FMWK_NAME:" \
+    dprint_debug "$D__FMWK_NAME:" \
       'Unable to verify md5 checksums' \
       -n 'Stashing is not available without means of checksum verification'
     return 1
@@ -422,30 +422,30 @@ __dstash_pre_flight_checks()
   # Establish directory path for stash
   local stash_dirpath
   case $stash_mode in
-    grail)  stash_dirpath="$D_DIR_GRAIL";;
-    root)   stash_dirpath="$D_DIR_STASH";;
-    *)      stash_dirpath="$D_DIR_STASH/$D_DPL_NAME";;
+    grail)  stash_dirpath="$D__DIR_GRAIL";;
+    root)   stash_dirpath="$D__DIR_STASH";;
+    *)      stash_dirpath="$D__DIR_STASH/$D__DPL_NAME";;
   esac
 
   # Ensure directory for this stash exists
   mkdir -p -- "$stash_dirpath" || {
-    dprint_debug "$D_FMWK_NAME:" \
+    dprint_debug "$D__FMWK_NAME:" \
       'Failed to create stash directory at:' -i "$stash_dirpath"
     return 1
   }
 
   # Compose path to stash file and its checksum file
-  local stash_filepath="$stash_dirpath/$D_CONST_NAME_STASHFILE"
+  local stash_filepath="$stash_dirpath/$D__CONST_NAME_STASHFILE"
   local stash_md5_filepath="$stash_filepath.md5"
 
   # Ensure both stash files are not directories
   [ -d "$stash_filepath" ] && {
-    dprint_debug "$D_FMWK_NAME:" \
+    dprint_debug "$D__FMWK_NAME:" \
       'Stash filepath occupied by a directory:' -i "$stash_filepath"
     return 1
   }
   [ -d "$stash_md5_filepath" ] && {
-    dprint_debug "$D_FMWK_NAME:" \
+    dprint_debug "$D__FMWK_NAME:" \
       'Stash checksum filepath occupied by a directory:' \
       -i "$stash_md5_filepath"
     return 1
@@ -454,12 +454,12 @@ __dstash_pre_flight_checks()
   # If stash file does not yet exist, create it and record checksum
   if [ ! -e "$stash_filepath" ]; then
     touch -- "$stash_filepath" || {
-      dprint_debug "$D_FMWK_NAME:" \
+      dprint_debug "$D__FMWK_NAME:" \
         'Failed to create fresh stash file at:' -i "$stash_filepath"
       return 1
     }
     dmd5 "$stash_filepath" >"$stash_md5_filepath" || {
-      dprint_debug "$D_FMWK_NAME:" \
+      dprint_debug "$D__FMWK_NAME:" \
         'Failed to create stash md5 checksum file at:' -i "$stash_md5_filepath"
       return 1
     }
@@ -467,20 +467,20 @@ __dstash_pre_flight_checks()
 
   # Ensure stash file and checksum file are both writable files
   [ -f "$stash_filepath" -a -w "$stash_filepath" ] || {
-    dprint_debug "$D_FMWK_NAME:" \
+    dprint_debug "$D__FMWK_NAME:" \
       'Stash filepath is not a writable file:' -i "$stash_filepath"
     return 1
   }
   [ -f "$stash_md5_filepath" -a -w "$stash_md5_filepath" ] || {
-    dprint_debug "$D_FMWK_NAME:" \
+    dprint_debug "$D__FMWK_NAME:" \
       'Stash md5 checksum filepath is not a writable file:' \
       -i "$stash_md5_filepath"
     return 1
   }
 
   # Populate stash file path globally
-  D_STASH_FILEPATH="$stash_filepath"
-  D_STASH_MD5_FILEPATH="$stash_md5_filepath"
+  D__STASH_FILEPATH="$stash_filepath"
+  D__STASH_MD5_FILEPATH="$stash_md5_filepath"
 
   # Ensure checksum is good
   __dstash_check_md5 || return 1
@@ -530,9 +530,9 @@ __dstash_validate_key()
 __dstash_store_md5()
 {
   # Store current md5 checksum to intended file, or report error
-  dmd5 "$D_STASH_FILEPATH" >"$D_STASH_MD5_FILEPATH" || {
-    dprint_debug "$D_FMWK_NAME:" \
-      'Failed to create md5 checksum file at:' -i "$D_STASH_MD5_FILEPATH"
+  dmd5 "$D__STASH_FILEPATH" >"$D__STASH_MD5_FILEPATH" || {
+    dprint_debug "$D__FMWK_NAME:" \
+      'Failed to create md5 checksum file at:' -i "$D__STASH_MD5_FILEPATH"
     return 1
   }
 }
@@ -550,8 +550,8 @@ __dstash_store_md5()
 __dstash_check_md5()
 {
   # Calculate current checksum; extract stored one
-  local calculated_md5="$( dmd5 "$D_STASH_FILEPATH" )"
-  local stored_md5="$( head -1 -- "$D_STASH_MD5_FILEPATH" 2>/dev/null )"
+  local calculated_md5="$( dmd5 "$D__STASH_FILEPATH" )"
+  local stored_md5="$( head -1 -- "$D__STASH_MD5_FILEPATH" 2>/dev/null )"
 
   # If checksums match: return immediately
   [ "$calculated_md5" = "$stored_md5" ] && return 0
@@ -559,19 +559,19 @@ __dstash_check_md5()
   # Otherwise, compose prompt
   local prompt_desc prompt_question
   if [ ${#stored_md5} -eq 32 ]; then
-    dprint_debug 'Mismatched checksum on stash file:' -i "$D_STASH_FILEPATH"
+    dprint_debug 'Mismatched checksum on stash file:' -i "$D__STASH_FILEPATH"
     prompt_desc=( \
-      'Current md5 checksum of stash file:' -i "$D_STASH_FILEPATH" \
-      -n 'does not match checksum recorded in' -i "$D_STASH_MD5_FILEPATH" \
+      'Current md5 checksum of stash file:' -i "$D__STASH_FILEPATH" \
+      -n 'does not match checksum recorded in' -i "$D__STASH_MD5_FILEPATH" \
       -n 'This suggests manual tinkering with framework directories' \
       -n "${BOLD}Without reliable stash," \
       "deployments may act unpredictably!${NORMAL}"
     )
     prompt_question='Ignore incorrect checksum?'
   else
-    dprint_debug 'Missing checksum on stash file:' -i "$D_STASH_FILEPATH"
+    dprint_debug 'Missing checksum on stash file:' -i "$D__STASH_FILEPATH"
     prompt_desc=( \
-      'There is no stored checksum for stash file at:' -i "$D_STASH_FILEPATH" \
+      'There is no stored checksum for stash file at:' -i "$D__STASH_FILEPATH" \
       -n 'This suggests manual tinkering with framework directories' \
       -n "${BOLD}Without reliable stash," \
       "deployments may act unpredictably!${NORMAL}"
@@ -580,7 +580,7 @@ __dstash_check_md5()
   fi
 
   # Prompt user and return appropriately
-  if dprompt_key --color "$RED" --answer "$D_OPT_ANSWER" \
+  if dprompt_key --color "$RED" --answer "$D__OPT_ANSWER" \
     --prompt "$prompt_question" -- "${prompt_desc[@]}"
   then
     dprint_debug 'Working with unverified stash'

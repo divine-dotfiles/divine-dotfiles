@@ -47,61 +47,61 @@ __main()
 __populate_globals()
 {
   # Framework’s displayed name
-  readonly D_FMWK_NAME='Divine.dotfiles'
+  readonly D__FMWK_NAME='Divine.dotfiles'
 
   # Executable’s displayed name
-  readonly D_EXEC_NAME="$( basename -- "${BASH_SOURCE[0]}" )"
+  readonly D__EXEC_NAME="$( basename -- "${BASH_SOURCE[0]}" )"
 
-  # Paths to directories within $D_DIR
+  # Paths to directories within $D__DIR
   __populate_d_dir_fmwk
-  readonly D_DIR_GRAIL="$D_DIR/grail"
-  readonly D_DIR_STATE="$D_DIR/state"
+  readonly D__DIR_GRAIL="$D__DIR/grail"
+  readonly D__DIR_STATE="$D__DIR/state"
 
-  # Paths to directories within $D_DIR_FMWK
-  readonly D_DIR_LIB="$D_DIR_FMWK/lib"
+  # Paths to directories within $D__DIR_FMWK
+  readonly D__DIR_LIB="$D__DIR_FMWK/lib"
 
-  # Paths to directories within $D_DIR_GRAIL
-  readonly D_DIR_ASSETS="$D_DIR_GRAIL/assets"
-  readonly D_DIR_DPLS="$D_DIR_GRAIL/dpls"
+  # Paths to directories within $D__DIR_GRAIL
+  readonly D__DIR_ASSETS="$D__DIR_GRAIL/assets"
+  readonly D__DIR_DPLS="$D__DIR_GRAIL/dpls"
 
-  # Paths to directories within $D_DIR_STATE
-  readonly D_DIR_BACKUPS="$D_DIR_STATE/backups"
-  readonly D_DIR_STASH="$D_DIR_STATE/stash"
-  readonly D_DIR_DPL_REPOS="$D_DIR_STATE/dpl-repos"
+  # Paths to directories within $D__DIR_STATE
+  readonly D__DIR_BACKUPS="$D__DIR_STATE/backups"
+  readonly D__DIR_STASH="$D__DIR_STATE/stash"
+  readonly D__DIR_DPL_REPOS="$D__DIR_STATE/dpl-repos"
 
   # Path to adapters directory and adapter file suffix
-  readonly D_DIR_ADAPTERS="$D_DIR_LIB/adapters"
-  readonly D_DIR_ADP_FAMILY="$D_DIR_ADAPTERS/family"
-  readonly D_DIR_ADP_DISTRO="$D_DIR_ADAPTERS/distro"
-  readonly D_SUFFIX_ADAPTER=".adp.sh"
+  readonly D__DIR_ADAPTERS="$D__DIR_LIB/adapters"
+  readonly D__DIR_ADP_FAMILY="$D__DIR_ADAPTERS/family"
+  readonly D__DIR_ADP_DISTRO="$D__DIR_ADAPTERS/distro"
+  readonly D__SUFFIX_ADAPTER=".adp.sh"
 
   # Path to routines directory and routine file suffix
-  readonly D_DIR_ROUTINES="$D_DIR_LIB/routines"
-  readonly D_SUFFIX_ROUTINE=".rtn.sh"
+  readonly D__DIR_ROUTINES="$D__DIR_LIB/routines"
+  readonly D__SUFFIX_ROUTINE=".rtn.sh"
 
   # Path to procedures directory and procedure file suffix
-  readonly D_DIR_PROCEDURES="$D_DIR_LIB/procedures"
-  readonly D_SUFFIX_PROCEDURE=".pcd.sh"
+  readonly D__DIR_PROCEDURES="$D__DIR_LIB/procedures"
+  readonly D__SUFFIX_PROCEDURE=".pcd.sh"
 
   # Path to directory containing Bash utility scripts and util file suffix
-  readonly D_DIR_UTILS="$D_DIR_LIB/utils"
-  readonly D_SUFFIX_UTIL=".utl.sh"
+  readonly D__DIR_UTILS="$D__DIR_LIB/utils"
+  readonly D__SUFFIX_UTIL=".utl.sh"
 
   # Path to directory containing Bash helper functions and helper suffix
-  readonly D_DIR_HELPERS="$D_DIR_LIB/helpers"
-  readonly D_SUFFIX_HELPER=".hlp.sh"
+  readonly D__DIR_HELPERS="$D__DIR_LIB/helpers"
+  readonly D__SUFFIX_HELPER=".hlp.sh"
 
   # Filename suffix for deployment files
-  readonly D_SUFFIX_DPL_SH='.dpl.sh'
+  readonly D__SUFFIX_DPL_SH='.dpl.sh'
 
   # Filename suffix for asset manifest files
-  readonly D_SUFFIX_DPL_MNF='.dpl.mnf'
+  readonly D__SUFFIX_DPL_MNF='.dpl.mnf'
 
   # Filename suffix for main queue manifest files
-  readonly D_SUFFIX_DPL_QUE='.dpl.que'
+  readonly D__SUFFIX_DPL_QUE='.dpl.que'
 
   # Ordered list of script’s internal dependencies
-  D_QUEUE_DEPENDENCIES=( \
+  D__QUEUE_DEPENDENCIES=( \
     'procedure dep-checks' \
     'util dcolors' \
     'util dprint' \
@@ -121,84 +121,84 @@ __populate_globals()
     'helper cp' \
     'helper multitask' \
     'helper assets' \
-  ); readonly D_QUEUE_DEPENDENCIES
+  ); readonly D__QUEUE_DEPENDENCIES
 
   # Name of Divinefile
-  readonly D_CONST_NAME_DIVINEFILE='Divinefile'
+  readonly D__CONST_NAME_DIVINEFILE='Divinefile'
   
   # Name for stash files
-  readonly D_CONST_NAME_STASHFILE=".dstash.cfg"
+  readonly D__CONST_NAME_STASHFILE=".dstash.cfg"
 
   # Default task priority
-  readonly D_CONST_DEF_PRIORITY=4096
+  readonly D__CONST_DEF_PRIORITY=4096
 
   # Default width of information plaque
-  readonly D_CONST_PLAQUE_WIDTH=80
+  readonly D__CONST_PLAQUE_WIDTH=80
 
   # Textual delimiter for internal use
-  readonly D_CONST_DELIMITER=';;;'
+  readonly D__CONST_DELIMITER=';;;'
 
-  # Regex for extracting D_DPL_NAME from *.dpl.sh file
-  readonly D_REGEX_DPL_NAME='D_DPL_NAME=\(.*\)'
+  # Regex for extracting D__DPL_NAME from *.dpl.sh file
+  readonly D__REGEX_DPL_NAME='D__DPL_NAME=\(.*\)'
 
-  # Regex for extracting D_DPL_DESC from *.dpl.sh file
-  readonly D_REGEX_DPL_DESC='D_DPL_DESC=\(.*\)'
+  # Regex for extracting D__DPL_DESC from *.dpl.sh file
+  readonly D__REGEX_DPL_DESC='D__DPL_DESC=\(.*\)'
 
-  # Regex for extracting D_DPL_PRIORITY from *.dpl.sh file
-  readonly D_REGEX_DPL_PRIORITY='D_DPL_PRIORITY=\([0-9][0-9]*\).*'
+  # Regex for extracting D__DPL_PRIORITY from *.dpl.sh file
+  readonly D__REGEX_DPL_PRIORITY='D__DPL_PRIORITY=\([0-9][0-9]*\).*'
 
-  # Regex for extracting D_DPL_FLAGS from *.dpl.sh file
-  readonly D_REGEX_DPL_FLAGS='D_DPL_FLAGS=\(.*\)'
+  # Regex for extracting D__DPL_FLAGS from *.dpl.sh file
+  readonly D__REGEX_DPL_FLAGS='D__DPL_FLAGS=\(.*\)'
 
-  # Regex for extracting D_DPL_WARNING from *.dpl.sh file
-  readonly D_REGEX_DPL_WARNING='D_DPL_WARNING=\(.*\)'
+  # Regex for extracting D__DPL_WARNING from *.dpl.sh file
+  readonly D__REGEX_DPL_WARNING='D__DPL_WARNING=\(.*\)'
 
   # dprint_ode base options (total width with single space delimiters: 80)
-  D_ODE_BASE=( \
+  D__ODE_BASE=( \
     --width-1 3 \
     --width-2 16 \
     --width-3 1 \
     --width-4 57 \
-  ); readonly D_ODE_BASE
+  ); readonly D__ODE_BASE
 
   # dprint_ode options for normal messages
-  D_ODE_NORMAL=( \
-    "${D_ODE_BASE[@]}" \
+  D__ODE_NORMAL=( \
+    "${D__ODE_BASE[@]}" \
     --effects-1 bci \
     --effects-2 b \
     --effects-3 n \
     --effects-4 n \
-  ); readonly D_ODE_NORMAL
+  ); readonly D__ODE_NORMAL
 
   # dprint_ode options for user prompts
-  D_ODE_PROMPT=( \
+  D__ODE_PROMPT=( \
     -n \
-    "${D_ODE_NORMAL[@]}" \
+    "${D__ODE_NORMAL[@]}" \
     --width-3 2 \
     --effects-1 n \
-  ); readonly D_ODE_PROMPT
+  ); readonly D__ODE_PROMPT
 
   # dprint_ode options for user prompts with danger
-  D_ODE_DANGER=( \
+  D__ODE_DANGER=( \
     -n \
-    "${D_ODE_NORMAL[@]}" \
+    "${D__ODE_NORMAL[@]}" \
     --width-3 2 \
     --effects-1 bci \
     --effects-2 bc \
-  ); readonly D_ODE_DANGER
+  ); readonly D__ODE_DANGER
 
   # dprint_ode options for descriptions
-  D_ODE_DESC=( \
-    "${D_ODE_NORMAL[@]}" \
+  D__ODE_DESC=( \
+    "${D__ODE_NORMAL[@]}" \
     --effects-1 n \
-  ); readonly D_ODE_DESC
+  ); readonly D__ODE_DESC
 
   # dprint_ode options for warnings
-  D_ODE_WARN=( \
-    "${D_ODE_NORMAL[@]}" \
+  D__ODE_WARN=( \
+    "${D__ODE_NORMAL[@]}" \
     --effects-1 n \
     --effects-2 bc \
-  ); readonly D_ODE_WARN
+  ); readonly D__ODE_WARN
 
   return 0
 }
@@ -212,19 +212,19 @@ __populate_globals()
 #. by user.
 #
 ## Uses in the global scope:
-#.  $D_DIR        - user-provided override for $D_DIR below
+#.  $D__DIR        - user-provided override for $D__DIR below
 #
 ## Provides into the global scope:
-#.  $D_DIR_FMWK   - (read-only) Absolute path to directory containing this 
+#.  $D__DIR_FMWK   - (read-only) Absolute path to directory containing this 
 #.                  script (technically, value of ${BASH_SOURCE[0]}), all 
 #.                  symlinks resolved.
-#.  $D_DIR        - (read-only) Absolute path to directory containing grail and 
-#.                  state directories. By default it is same as $D_DIR_FMWK. 
+#.  $D__DIR        - (read-only) Absolute path to directory containing grail and 
+#.                  state directories. By default it is same as $D__DIR_FMWK. 
 #.                  User is allowed to override this path.
 #
 ## Returns:
 #.  0 - Both assignments successful
-#.  1 - (script exit) User provided invalid override for $D_DIR
+#.  1 - (script exit) User provided invalid override for $D__DIR
 #
 ## Prints:
 #.  stdout: *nothing*
@@ -236,7 +236,7 @@ __populate_d_dir_fmwk()
   local filename="${BASH_SOURCE[0]}" dirpath d_dir_fmwk d_dir
 
   #
-  # Set $D_DIR_FMWK
+  # Set $D__DIR_FMWK
   #
 
   # Resolve all base symlinks
@@ -249,46 +249,46 @@ __populate_d_dir_fmwk()
   # Also, resolve any non-base symlinks remaining in the path
   d_dir_fmwk="$( cd -P "$( dirname -- "$filename" )" &>/dev/null && pwd )"
 
-  # Ensure global read-only variable with $D_DIR_FMWK path is set
-  readonly D_DIR_FMWK="$d_dir_fmwk"
+  # Ensure global read-only variable with $D__DIR_FMWK path is set
+  readonly D__DIR_FMWK="$d_dir_fmwk"
 
   #
-  # Set $D_DIR
+  # Set $D__DIR
   #
 
   # Make default value
   d_dir="$d_dir_fmwk"
 
-  # Check if global read-only variable with $D_DIR path is set
-  if [ -z ${D_DIR+isset} ]; then
+  # Check if global read-only variable with $D__DIR path is set
+  if [ -z ${D__DIR+isset} ]; then
 
-    # $D_DIR is not set: set it up
-    readonly D_DIR="$d_dir"
+    # $D__DIR is not set: set it up
+    readonly D__DIR="$d_dir"
   
   else
 
-    # Accept $D_DIR override: make sure it is read-only
+    # Accept $D__DIR override: make sure it is read-only
     printf >&2 '%s: %s\n' \
       'Divine dir overridden' \
-      "$D_DIR"
-    readonly D_DIR
+      "$D__DIR"
+    readonly D__DIR
 
   fi
 
-  # $D_DIR is now set: check if it is a writable directory
-  if mkdir -p -- "$D_DIR" && [ -w "$D_DIR" ]; then
+  # $D__DIR is now set: check if it is a writable directory
+  if mkdir -p -- "$D__DIR" && [ -w "$D__DIR" ]; then
 
-    # Acceptable $D_DIR path
+    # Acceptable $D__DIR path
     :
 
   else
 
-    # $D_DIR not a writable directory: unwork-able value
+    # $D__DIR not a writable directory: unwork-able value
     printf >&2 '%s: %s: %s:\n  %s\n' \
-      "$D_FMWK_NAME" \
+      "$D__FMWK_NAME" \
       'Fatal error' \
-      '$D_DIR is not a writable directory' \
-      "$D_DIR"
+      '$D__DIR is not a writable directory' \
+      "$D__DIR"
     exit 1
 
   fi
@@ -301,37 +301,37 @@ __populate_d_dir_fmwk()
 __parse_arguments()
 {
   # Global indicators of current request’s attributes
-  D_REQ_ROUTINE=            # Routine to perform
-  D_REQ_GROUPS=()           # Array of groups listed
-  D_REQ_ARGS=()             # Array of non-option arguments
-  D_REQ_FILTER=false        # Flag for whether particular tasks are requested
-  D_REQ_PACKAGES=true       # Flag for whether Divinefile is to be processed
-  D_REQ_MAX_PRIORITY_LEN=0  # Number of digits in largest priority
+  D__REQ_ROUTINE=            # Routine to perform
+  D__REQ_GROUPS=()           # Array of groups listed
+  D__REQ_ARGS=()             # Array of non-option arguments
+  D__REQ_FILTER=false        # Flag for whether particular tasks are requested
+  D__REQ_PACKAGES=true       # Flag for whether Divinefile is to be processed
+  D__REQ_MAX_PRIORITY_LEN=0  # Number of digits in largest priority
   
   # Global flags for optionscommand line options
-  D_OPT_INVERSE=false       # Flag for whether filtering is inverted
-  D_OPT_FORCE=false         # Flag for forceful mode
-  D_OPT_EXCLAM=false        # Flag for whether include ‘!’-dpls by default
-  D_OPT_QUIET=true          # Verbosity setting
-  D_OPT_ANSWER=             # Blanket answer to all prompts
-  D_OPT_PLUG_LINK=false     # Flag for whether copy or symlink Grail dir
+  D__OPT_INVERSE=false       # Flag for whether filtering is inverted
+  D__OPT_FORCE=false         # Flag for forceful mode
+  D__OPT_EXCLAM=false        # Flag for whether include ‘!’-dpls by default
+  D__OPT_QUIET=true          # Verbosity setting
+  D__OPT_ANSWER=             # Blanket answer to all prompts
+  D__OPT_PLUG_LINK=false     # Flag for whether copy or symlink Grail dir
 
   # Parse the first argument
   case "$1" in
-    i|install)    D_REQ_ROUTINE=install;;
-    r|remove)     D_REQ_ROUTINE=remove;;
-    c|check)      D_REQ_ROUTINE=check;;
-    a|attach)     D_REQ_ROUTINE=attach;;
-    d|detach)     D_REQ_ROUTINE=detach;;
-    p|plug)       D_REQ_ROUTINE=plug;;
-    u|update)     D_REQ_ROUTINE=update;;
+    i|install)    D__REQ_ROUTINE=install;;
+    r|remove)     D__REQ_ROUTINE=remove;;
+    c|check)      D__REQ_ROUTINE=check;;
+    a|attach)     D__REQ_ROUTINE=attach;;
+    d|detach)     D__REQ_ROUTINE=detach;;
+    p|plug)       D__REQ_ROUTINE=plug;;
+    u|update)     D__REQ_ROUTINE=update;;
     cecf357ed9fed1037eb906633a4299ba)
-                  D_REQ_ROUTINE=cecf357ed9fed1037eb906633a4299ba;;
+                  D__REQ_ROUTINE=cecf357ed9fed1037eb906633a4299ba;;
     -h|--help)    __load routine help;;
     --version)    __load routine version;;
     '')           __load routine usage;;
     *)            printf >&2 '%s: Illegal routine -- %s\n\n' \
-                    "$D_FMWK_NAME" \
+                    "$D__FMWK_NAME" \
                     "$1"          
                   __load routine usage
                   ;;
@@ -339,7 +339,7 @@ __parse_arguments()
   shift
 
   # Freeze some variables
-  readonly D_REQ_ROUTINE
+  readonly D__REQ_ROUTINE
   
   # Storage variables
   local delim=false i opt restore_nocasematch arg
@@ -347,78 +347,78 @@ __parse_arguments()
   # Parse remaining args for supported options
   while [ $# -gt 0 ]; do
     # If delimiter encountered, add arg and continue
-    $delim && { [ -n "$1" ] && D_REQ_ARGS+=("$1"); shift; continue; }
+    $delim && { [ -n "$1" ] && D__REQ_ARGS+=("$1"); shift; continue; }
     # Otherwise, parse options
     case "$1" in
       --)                 delim=true;;
       -h|--help)          __load routine help;;
       --version)          __load routine version;;
-      -y|--yes)           D_OPT_ANSWER=true;;
-      -n|--no)            D_OPT_ANSWER=false;;
-      -f|--force)         D_OPT_FORCE=true;;
-      -e|--except)        D_OPT_INVERSE=true;;
-      -w|--with-!)        D_OPT_EXCLAM=true;;
-      -q|--quiet)         D_OPT_QUIET=true;;
-      -v|--verbose)       D_OPT_QUIET=false;;
-      -l|--link)          D_OPT_PLUG_LINK=true;;
+      -y|--yes)           D__OPT_ANSWER=true;;
+      -n|--no)            D__OPT_ANSWER=false;;
+      -f|--force)         D__OPT_FORCE=true;;
+      -e|--except)        D__OPT_INVERSE=true;;
+      -w|--with-!)        D__OPT_EXCLAM=true;;
+      -q|--quiet)         D__OPT_QUIET=true;;
+      -v|--verbose)       D__OPT_QUIET=false;;
+      -l|--link)          D__OPT_PLUG_LINK=true;;
       -*)                 for i in $( seq 2 ${#1} ); do
                             opt="${1:i-1:1}"
                             case $opt in
                               h)  __load routine help;;
-                              y)  D_OPT_ANSWER=true;;
-                              n)  D_OPT_ANSWER=false;;
-                              f)  D_OPT_FORCE=true;;
-                              e)  D_OPT_INVERSE=true;;
-                              w)  D_OPT_EXCLAM=true;;
-                              q)  D_OPT_QUIET=true;;
-                              v)  D_OPT_QUIET=false;;
-                              l)  D_OPT_PLUG_LINK=true;;
+                              y)  D__OPT_ANSWER=true;;
+                              n)  D__OPT_ANSWER=false;;
+                              f)  D__OPT_FORCE=true;;
+                              e)  D__OPT_INVERSE=true;;
+                              w)  D__OPT_EXCLAM=true;;
+                              q)  D__OPT_QUIET=true;;
+                              v)  D__OPT_QUIET=false;;
+                              l)  D__OPT_PLUG_LINK=true;;
                               *)  printf >&2 '%s: Illegal option -- %s\n\n' \
-                                    "$D_FMWK_NAME" \
+                                    "$D__FMWK_NAME" \
                                     "$opt"
                                   __load routine usage;;
                             esac
                           done;;
-      [0-9]|!)            D_REQ_GROUPS+=("$1");;
-      *)                  [ -n "$1" ] && D_REQ_ARGS+=("$1");;
+      [0-9]|!)            D__REQ_GROUPS+=("$1");;
+      *)                  [ -n "$1" ] && D__REQ_ARGS+=("$1");;
     esac; shift
   done
 
   # Freeze some variables
-  readonly D_OPT_QUIET
-  readonly D_OPT_ANSWER
-  readonly D_OPT_FORCE
-  readonly D_OPT_INVERSE
-  readonly D_OPT_EXCLAM
-  readonly D_OPT_PLUG_LINK
-  readonly D_REQ_GROUPS
-  readonly D_REQ_ARGS
+  readonly D__OPT_QUIET
+  readonly D__OPT_ANSWER
+  readonly D__OPT_FORCE
+  readonly D__OPT_INVERSE
+  readonly D__OPT_EXCLAM
+  readonly D__OPT_PLUG_LINK
+  readonly D__REQ_GROUPS
+  readonly D__REQ_ARGS
 
   # Early return for some routines
-  case $D_REQ_ROUTINE in
+  case $D__REQ_ROUTINE in
     attach|detach|plug|update)          return 0;;
     cecf357ed9fed1037eb906633a4299ba)   return 0;;
   esac
 
   # Check if there are workable arguments
-  if [ ${#D_REQ_ARGS[@]} -gt 0 -o ${#D_REQ_GROUPS[@]} -gt 0 ]; then
+  if [ ${#D__REQ_ARGS[@]} -gt 0 -o ${#D__REQ_GROUPS[@]} -gt 0 ]; then
   
     # There will be some form of filtering
-    D_REQ_FILTER=true
+    D__REQ_FILTER=true
 
     # In regular filtering, packages are not processed unless asked to
     # In inverse filtering, packages are processed unless asked not to
-    $D_OPT_INVERSE || D_REQ_PACKAGES=false
+    $D__OPT_INVERSE || D__REQ_PACKAGES=false
 
     # Store current case sensitivity setting, then turn it off
     restore_nocasematch="$( shopt -p nocasematch )"
     shopt -s nocasematch
 
     # Iterate over arguments
-    for arg in "${D_REQ_ARGS[@]}"; do
+    for arg in "${D__REQ_ARGS[@]}"; do
       # If Divinefile is asked for, flip the relevant flag
       [[ $arg =~ ^(Divinefile|dfile|df)$ ]] && {
-        $D_OPT_INVERSE && D_REQ_PACKAGES=false || D_REQ_PACKAGES=true
+        $D__OPT_INVERSE && D__REQ_PACKAGES=false || D__REQ_PACKAGES=true
       }
     done
 
@@ -428,8 +428,8 @@ __parse_arguments()
   fi
 
   # Freeze some variables
-  readonly D_REQ_FILTER
-  readonly D_REQ_PACKAGES
+  readonly D__REQ_FILTER
+  readonly D__REQ_PACKAGES
 }
 
 #> __import_dependencies
@@ -439,7 +439,7 @@ __parse_arguments()
 #. (hard dependencies).
 #
 ## Requires:
-#.  $D_QUEUE_DEPENDENCIES   - From __populate_globals
+#.  $D__QUEUE_DEPENDENCIES   - From __populate_globals
 #
 ## Returns:
 #.  0 - All dependencies successfully sourced
@@ -455,7 +455,7 @@ __import_dependencies()
   local dependency
 
   # Iterate over dependencies
-  for dependency in "${D_QUEUE_DEPENDENCIES[@]}"; do
+  for dependency in "${D__QUEUE_DEPENDENCIES[@]}"; do
 
     # Load dependency or halt script
     __load $dependency || exit 1
@@ -473,7 +473,7 @@ __perform_routine()
   __load routine dpl-repos
 
   # Fork based on routine
-  case $D_REQ_ROUTINE in
+  case $D__REQ_ROUTINE in
     install)
       __load routine assemble
       __load routine install;;
@@ -519,10 +519,10 @@ __load()
 {
   # Check type and compose filepath accordingly
   local type="$1"; shift; local name="$1" filepath; case $type in
-    routine)    filepath="${D_DIR_ROUTINES}/${name}${D_SUFFIX_ROUTINE}";;
-    procedure)  filepath="${D_DIR_PROCEDURES}/${name}${D_SUFFIX_PROCEDURE}";;
-    util)       filepath="${D_DIR_UTILS}/${name}${D_SUFFIX_UTIL}";;
-    helper)     filepath="${D_DIR_HELPERS}/${name}${D_SUFFIX_HELPER}";;
+    routine)    filepath="${D__DIR_ROUTINES}/${name}${D__SUFFIX_ROUTINE}";;
+    procedure)  filepath="${D__DIR_PROCEDURES}/${name}${D__SUFFIX_PROCEDURE}";;
+    util)       filepath="${D__DIR_UTILS}/${name}${D__SUFFIX_UTIL}";;
+    helper)     filepath="${D__DIR_HELPERS}/${name}${D__SUFFIX_HELPER}";;
     *)          printf >&2 '%s: %s\n' "${FUNCNAME[0]}" \
                   "Called with illegal type argument: '$type'"; exit 1;;
   esac; shift

@@ -32,11 +32,11 @@ __updating__main()
   __sort_out_dpl_repos || exit 1
   
   # Announce beginning
-  if [ "$D_OPT_ANSWER" = false ]; then
-    dprint_plaque -pcw "$WHITE" "$D_CONST_PLAQUE_WIDTH" \
+  if [ "$D__OPT_ANSWER" = false ]; then
+    dprint_plaque -pcw "$WHITE" "$D__CONST_PLAQUE_WIDTH" \
       -- '‘Updating’ Divine.dotfiles framework'
   else
-    dprint_plaque -pcw "$GREEN" "$D_CONST_PLAQUE_WIDTH" \
+    dprint_plaque -pcw "$GREEN" "$D__CONST_PLAQUE_WIDTH" \
       -- 'Updating Divine.dotfiles framework'
   fi
 
@@ -73,28 +73,28 @@ __updating__main()
   printf >&2 '\n'
 
   # Report result
-  if [ "$D_OPT_ANSWER" = false ]; then
-    dprint_plaque -pcw "$WHITE" "$D_CONST_PLAQUE_WIDTH" \
+  if [ "$D__OPT_ANSWER" = false ]; then
+    dprint_plaque -pcw "$WHITE" "$D__CONST_PLAQUE_WIDTH" \
       -- 'Finished ‘updating’ Divine.dotfiles framework'
     return 2
   elif $all_skipped; then
-    dprint_plaque -pcw "$WHITE" "$D_CONST_PLAQUE_WIDTH" \
+    dprint_plaque -pcw "$WHITE" "$D__CONST_PLAQUE_WIDTH" \
       -- 'Skipped updating Divine.dotfiles framework'
     return 2
   elif $all_updated; then
-    dprint_plaque -pcw "$GREEN" "$D_CONST_PLAQUE_WIDTH" \
+    dprint_plaque -pcw "$GREEN" "$D__CONST_PLAQUE_WIDTH" \
       -- 'Finished updating Divine.dotfiles framework'
     return 0
   elif $all_failed; then
-    dprint_plaque -pcw "$RED" "$D_CONST_PLAQUE_WIDTH" \
+    dprint_plaque -pcw "$RED" "$D__CONST_PLAQUE_WIDTH" \
       -- 'Failed to update Divine.dotfiles framework'
     return 1
   elif $some_failed; then
-    dprint_plaque -pcw "$YELLOW" "$D_CONST_PLAQUE_WIDTH" \
+    dprint_plaque -pcw "$YELLOW" "$D__CONST_PLAQUE_WIDTH" \
       -- 'Partly updated Divine.dotfiles framework'
     return 1
   else
-    dprint_plaque -pcw "$GREEN" "$D_CONST_PLAQUE_WIDTH" \
+    dprint_plaque -pcw "$GREEN" "$D__CONST_PLAQUE_WIDTH" \
       -- 'Finished updating Divine.dotfiles framework'
     return 0
   fi
@@ -118,17 +118,17 @@ __updating__update_fmwk()
   if $UPDATING_FMWK; then
 
     # Print announcement
-    if [ "$D_OPT_QUIET" = false -o -z "$D_OPT_ANSWER" ]; then
-      dprint_ode "${D_ODE_NORMAL[@]}" -c "$YELLOW" -- \
+    if [ "$D__OPT_QUIET" = false -o -z "$D__OPT_ANSWER" ]; then
+      dprint_ode "${D__ODE_NORMAL[@]}" -c "$YELLOW" -- \
         '>>>' 'Updating' ':' "${BOLD}Divine.dotfiles framework${NORMAL}"
     fi
 
     # Prompt user
-    if [ "$D_OPT_ANSWER" = true ]; then UPDATING_FMWK=true
-    elif [ "$D_OPT_ANSWER" = false ]; then UPDATING_FMWK=false
+    if [ "$D__OPT_ANSWER" = true ]; then UPDATING_FMWK=true
+    elif [ "$D__OPT_ANSWER" = false ]; then UPDATING_FMWK=false
     else
       # Prompt
-      dprint_ode "${D_ODE_PROMPT[@]}" -- '' 'Confirm' ': '
+      dprint_ode "${D__ODE_PROMPT[@]}" -- '' 'Confirm' ': '
       dprompt_key --bare && UPDATING_FMWK=true || UPDATING_FMWK=false
     fi
 
@@ -137,7 +137,7 @@ __updating__update_fmwk()
   # Check if still updating at this point
   if ! $UPDATING_FMWK; then
     # Announce skiping and return
-    dprint_ode "${D_ODE_NORMAL[@]}" -c "$WHITE" -- \
+    dprint_ode "${D__ODE_NORMAL[@]}" -c "$WHITE" -- \
       '---' 'Skipped updating' ':' "${BOLD}Divine.dotfiles framework${NORMAL}"
     return 2
   fi
@@ -148,8 +148,8 @@ __updating__update_fmwk()
   # If github is not available, no updating
   if ! $GITHUB_AVAILABLE; then
     dprint_debug 'Unable to update: missing necessary tools'
-  elif ! [ -d "$D_DIR_FMWK" -a -r "$D_DIR_FMWK" ]; then
-    dprint_debug "Not a readable directory: $D_DIR_FMWK"
+  elif ! [ -d "$D__DIR_FMWK" -a -r "$D__DIR_FMWK" ]; then
+    dprint_debug "Not a readable directory: $D__DIR_FMWK"
   else
     # Do update proper, one way or another
     if __updating__update_fmwk_via_git || __updating__update_fmwk_via_tar
@@ -160,11 +160,11 @@ __updating__update_fmwk()
 
   # Report result
   if $updated_successfully; then
-    dprint_ode "${D_ODE_NORMAL[@]}" -c "$GREEN" -- \
+    dprint_ode "${D__ODE_NORMAL[@]}" -c "$GREEN" -- \
       'vvv' 'Updated' ':' "${BOLD}Divine.dotfiles framework${NORMAL}"
     return 0
   else
-    dprint_ode "${D_ODE_NORMAL[@]}" -c "$RED" -- \
+    dprint_ode "${D__ODE_NORMAL[@]}" -c "$RED" -- \
       'xxx' 'Failed to update' ':' "${BOLD}Divine.dotfiles framework${NORMAL}"
     return 1
   fi
@@ -190,11 +190,11 @@ __updating__update_grail()
   if $UPDATING_GRAIL; then
 
     # Check if Grail directory is a repository at all
-    if git ls-remote "$D_DIR_GRAIL" -q &>/dev/null; then
+    if git ls-remote "$D__DIR_GRAIL" -q &>/dev/null; then
 
-      # Change into $D_DIR_GRAIL
-      cd -- "$D_DIR_GRAIL" || {
-        dprint_debug "Unable to cd into $D_DIR_GRAIL"
+      # Change into $D__DIR_GRAIL
+      cd -- "$D__DIR_GRAIL" || {
+        dprint_debug "Unable to cd into $D__DIR_GRAIL"
         return 1
       }
 
@@ -203,7 +203,7 @@ __updating__update_grail()
 
         # Repository without remote: no way to update
         dprint_debug 'Grail repository does not have a remote to pull from:' \
-          -i "$D_DIR_GRAIL"
+          -i "$D__DIR_GRAIL"
         UPDATING_GRAIL=false
 
       fi
@@ -212,7 +212,7 @@ __updating__update_grail()
 
       # Not a repository: no way to update
       dprint_debug 'Grail directory is not a git repository:' \
-        -i "$D_DIR_GRAIL"
+        -i "$D__DIR_GRAIL"
       UPDATING_GRAIL=false
 
     fi
@@ -222,17 +222,17 @@ __updating__update_grail()
   if $UPDATING_GRAIL; then
 
     # Print announcement
-    if [ "$D_OPT_QUIET" = false -o -z "$D_OPT_ANSWER" ]; then
-      dprint_ode "${D_ODE_NORMAL[@]}" -c "$YELLOW" -- \
+    if [ "$D__OPT_QUIET" = false -o -z "$D__OPT_ANSWER" ]; then
+      dprint_ode "${D__ODE_NORMAL[@]}" -c "$YELLOW" -- \
         '>>>' 'Updating' ':' "${BOLD}Grail directory${NORMAL}"
     fi
 
     # Prompt user
-    if [ "$D_OPT_ANSWER" = true ]; then UPDATING_GRAIL=true
-    elif [ "$D_OPT_ANSWER" = false ]; then UPDATING_GRAIL=false
+    if [ "$D__OPT_ANSWER" = true ]; then UPDATING_GRAIL=true
+    elif [ "$D__OPT_ANSWER" = false ]; then UPDATING_GRAIL=false
     else
       # Prompt
-      dprint_ode "${D_ODE_PROMPT[@]}" -- '' 'Confirm' ': '
+      dprint_ode "${D__ODE_PROMPT[@]}" -- '' 'Confirm' ': '
       dprompt_key --bare && UPDATING_GRAIL=true || UPDATING_GRAIL=false
     fi
 
@@ -241,18 +241,18 @@ __updating__update_grail()
   # Check if still updating at this point
   if ! $UPDATING_GRAIL; then
     # Announce skiping and return
-    dprint_ode "${D_ODE_NORMAL[@]}" -c "$WHITE" -- \
+    dprint_ode "${D__ODE_NORMAL[@]}" -c "$WHITE" -- \
       '---' 'Skipped updating' ':' "${BOLD}Grail directory${NORMAL}"
     return 2
   fi
 
   # Do update proper and check result
   if __updating__update_grail_via_git; then
-    dprint_ode "${D_ODE_NORMAL[@]}" -c "$GREEN" -- \
+    dprint_ode "${D__ODE_NORMAL[@]}" -c "$GREEN" -- \
       'vvv' 'Updated' ':' "${BOLD}Grail directory${NORMAL}"
     return 0
   else
-    dprint_ode "${D_ODE_NORMAL[@]}" -c "$RED" -- \
+    dprint_ode "${D__ODE_NORMAL[@]}" -c "$RED" -- \
       'xxx' 'Failed to update' ':' "${BOLD}Grail directory${NORMAL}"
     return 1
   fi
@@ -298,7 +298,7 @@ __updating__update_dpls()
   # Check if proceeding
   if ! $UPDATING_DPLS; then
     # Announce skiping and return
-    dprint_ode "${D_ODE_NORMAL[@]}" -c "$WHITE" -- \
+    dprint_ode "${D__ODE_NORMAL[@]}" -c "$WHITE" -- \
       '---' 'Skipped updating' ':' 'Attached deployments'
     return 3
   fi
@@ -311,24 +311,24 @@ __updating__update_dpls()
     nl_printed=false
 
     # Print announcement
-    if [ "$D_OPT_QUIET" = false -o -z "$D_OPT_ANSWER" ]; then
-      dprint_ode "${D_ODE_NORMAL[@]}" -c "$YELLOW" -- \
+    if [ "$D__OPT_QUIET" = false -o -z "$D__OPT_ANSWER" ]; then
+      dprint_ode "${D__ODE_NORMAL[@]}" -c "$YELLOW" -- \
         '>>>' 'Updating' ':' "Dpls repo '$dpl_repo'"
     fi
 
     # Prompt user
-    if [ "$D_OPT_ANSWER" = true ]; then proceeding=true
-    elif [ "$D_OPT_ANSWER" = false ]; then proceeding=false
+    if [ "$D__OPT_ANSWER" = true ]; then proceeding=true
+    elif [ "$D__OPT_ANSWER" = false ]; then proceeding=false
     else
       # Prompt
-      dprint_ode "${D_ODE_PROMPT[@]}" -- '' 'Confirm' ': '
+      dprint_ode "${D__ODE_PROMPT[@]}" -- '' 'Confirm' ': '
       dprompt_key --bare && proceeding=true || proceeding=false
     fi
 
     # Check if still updating at this point
     if ! $proceeding; then
       # Announce and skip
-      dprint_ode "${D_ODE_NORMAL[@]}" -c "$WHITE" -- \
+      dprint_ode "${D__ODE_NORMAL[@]}" -c "$WHITE" -- \
         '---' 'Skipped updating' ':' "Dpls repo '$dpl_repo'"
       all_updated=false
       all_failed=false
@@ -343,7 +343,7 @@ __updating__update_dpls()
       if __updating__update_dpl_repo_via_git "$dpl_repo" \
         || __updating__update_dpl_repo_via_tar "$dpl_repo"
       then
-        dprint_ode "${D_ODE_NORMAL[@]}" -c "$GREEN" -- \
+        dprint_ode "${D__ODE_NORMAL[@]}" -c "$GREEN" -- \
           'vvv' 'Updated' ':' "Dpls repo '$dpl_repo'"
         all_failed=false
         all_skipped=false
@@ -352,7 +352,7 @@ __updating__update_dpls()
     fi
 
     # If gotten here: not updated
-    dprint_ode "${D_ODE_NORMAL[@]}" -c "$RED" -- \
+    dprint_ode "${D__ODE_NORMAL[@]}" -c "$RED" -- \
       'xxx' 'Failed to update' ':' "Dpls repo '$dpl_repo'"
     all_updated=false
     all_skipped=false
@@ -385,14 +385,14 @@ __updating__detect_environment()
   GITHUB_AVAILABLE=true
 
   # Check if there are any arguments provided to the script
-  if [ "$D_OPT_ANSWER" = false ]; then
+  if [ "$D__OPT_ANSWER" = false ]; then
 
     # Updating nothing
     UPDATING_FMWK=false
     UPDATING_DPLS=false
     UPDATING_GRAIL=false
 
-  elif [ ${#D_REQ_ARGS[@]} -eq 0 ]; then
+  elif [ ${#D__REQ_ARGS[@]} -eq 0 ]; then
     
     # No arguments: update everything
     UPDATING_FMWK=true
@@ -403,7 +403,7 @@ __updating__detect_environment()
 
     # Iterate over arguments to figure out what to update
     local arg
-    for arg in "${D_REQ_ARGS[@]}"; do
+    for arg in "${D__REQ_ARGS[@]}"; do
       case $arg in
         a|all)                    UPDATING_FMWK=true
                                   UPDATING_DPLS=true
@@ -446,11 +446,11 @@ __updating__update_fmwk_via_git()
     return 1
   }
 
-  # Check if $D_DIR_FMWK is a git repo
-  if ! git ls-remote "$D_DIR_FMWK" -q &>/dev/null; then
+  # Check if $D__DIR_FMWK is a git repo
+  if ! git ls-remote "$D__DIR_FMWK" -q &>/dev/null; then
 
     # Announce
-    dprint_debug 'Not a git repository:' -i "$D_DIR_FMWK" -n \
+    dprint_debug 'Not a git repository:' -i "$D__DIR_FMWK" -n \
       'Attempting to clobber existing directory and clone repository instead'
 
     # Store location of Divine.dotfiles repository
@@ -471,15 +471,15 @@ __updating__update_fmwk_via_git()
     local temp_dir="$( mktemp -d )" moved_successfully=true
 
     # Move Grail dir to temp location
-    if [ -d "$D_DIR_GRAIL" ]; then
-      if ! mv -n -- "$D_DIR_GRAIL" "$temp_dir/grail"; then
+    if [ -d "$D__DIR_GRAIL" ]; then
+      if ! mv -n -- "$D__DIR_GRAIL" "$temp_dir/grail"; then
         moved_successfully=false
       fi
     fi
     
     # Move state dir to temp location
-    if [ -d "$D_DIR_STATE" ]; then
-      if ! mv -n -- "$D_DIR_STATE" "$temp_dir/state"; then
+    if [ -d "$D__DIR_STATE" ]; then
+      if ! mv -n -- "$D__DIR_STATE" "$temp_dir/state"; then
         moved_successfully=false
       fi
     fi
@@ -496,23 +496,23 @@ __updating__update_fmwk_via_git()
     fi
     
     # Remove framework directory entirely
-    if ! rm -rf -- "$D_DIR_FMWK"; then
+    if ! rm -rf -- "$D__DIR_FMWK"; then
 
       # Announce and return failure
       dprint_debug \
         'Failed to clobber current non-git framework directory at:' \
-        -i "$D_DIR_FMWK"
+        -i "$D__DIR_FMWK"
       return 1
 
     fi
 
     # Create empty directory instead
-    if ! mkdir -p -- "$D_DIR_FMWK"; then
+    if ! mkdir -p -- "$D__DIR_FMWK"; then
 
       # Announce and return total loss (shouldn’t happen really)
       dprint_failure -l \
         'Failed to create empty directory for git-controlled framework:' \
-        -i "$D_DIR_FMWK" \
+        -i "$D__DIR_FMWK" \
         -n 'Divine.dotfiles installation is fatally damaged!'
       return 1
   
@@ -520,19 +520,19 @@ __updating__update_fmwk_via_git()
 
     # Make shallow clone of repository
     if git clone --depth=1 "https://github.com/${user_repo}.git" \
-      "$D_DIR_FMWK" &>/dev/null
+      "$D__DIR_FMWK" &>/dev/null
     then
 
       # Move Grail dir back from temp location
       if [ -d "$temp_dir/grail" ]; then
-        if ! mv -n -- "$temp_dir/grail" "$D_DIR_GRAIL"; then
+        if ! mv -n -- "$temp_dir/grail" "$D__DIR_GRAIL"; then
           moved_successfully=false
         fi
       fi
       
       # Move state dir back from temp location
       if [ -d "$temp_dir/state" ]; then
-        if ! mv -n -- "$temp_dir/state" "$D_DIR_STATE"; then
+        if ! mv -n -- "$temp_dir/state" "$D__DIR_STATE"; then
           moved_successfully=false
         fi
       fi
@@ -556,7 +556,7 @@ __updating__update_fmwk_via_git()
       # Announce success
       dprint_debug 'Successfully cloned Github repo at:' \
         -i "https://github.com/${user_repo}" \
-        -n "to: $D_DIR_FMWK"
+        -n "to: $D__DIR_FMWK"
       return 0
 
     else
@@ -565,7 +565,7 @@ __updating__update_fmwk_via_git()
       dprint_failure -l \
         'Failed to clone Github repo at:' \
         -i "https://github.com/${user_repo}" \
-        -n "to: $D_DIR_FMWK" \
+        -n "to: $D__DIR_FMWK" \
         -n 'Divine.dotfiles installation is fatally damaged!'
       return 1
 
@@ -573,14 +573,14 @@ __updating__update_fmwk_via_git()
 
   fi
 
-  # Change into $D_DIR_FMWK
-  cd -- "$D_DIR_FMWK" || {
-    dprint_debug "Unable to cd into $D_DIR_FMWK"
+  # Change into $D__DIR_FMWK
+  cd -- "$D__DIR_FMWK" || {
+    dprint_debug "Unable to cd into $D__DIR_FMWK"
     return 1
   }
 
   # Pull and rebase and check for errors (control verbosity)
-  if $D_OPT_QUIET; then
+  if $D__OPT_QUIET; then
 
     # Pull and rebase quietly
     git pull --rebase --stat origin master &>/dev/null && return 0 || return 1
@@ -597,11 +597,11 @@ __updating__update_fmwk_via_git()
     # Check return status
     if [ "${PIPESTATUS[0]}" -eq 0 ]; then
       dprint_debug 'Successfully pulled from Github repo to:' \
-        -i "$D_DIR_FMWK"
+        -i "$D__DIR_FMWK"
       return 0
     else
       dprint_debug 'There was an error while pulling from Github repo to:' \
-        -i "$D_DIR_FMWK"
+        -i "$D__DIR_FMWK"
       return 1
     fi
 
@@ -618,14 +618,14 @@ __updating__update_fmwk_via_git()
 #
 __updating__update_grail_via_git()
 {
-  # Change into $D_DIR_GRAIL
-  cd -- "$D_DIR_GRAIL" || {
-    dprint_debug "Unable to cd into $D_DIR_GRAIL"
+  # Change into $D__DIR_GRAIL
+  cd -- "$D__DIR_GRAIL" || {
+    dprint_debug "Unable to cd into $D__DIR_GRAIL"
     return 1
   }
 
   # Pull and rebase and check for errors (control verbosity)
-  if $D_OPT_QUIET; then
+  if $D__OPT_QUIET; then
 
     # Pull and rebase quietly
     git pull --rebase --stat origin master &>/dev/null && return 0 || return 1
@@ -642,11 +642,11 @@ __updating__update_grail_via_git()
     # Check return status
     if [ "${PIPESTATUS[0]}" -eq 0 ]; then
       dprint_debug 'Successfully pulled from remote to:' \
-        -i "$D_DIR_GRAIL"
+        -i "$D__DIR_GRAIL"
       return 0
     else
       dprint_debug 'There was an error while pulling from remote to:' \
-        -i "$D_DIR_GRAIL"
+        -i "$D__DIR_GRAIL"
       return 1
     fi
 
@@ -665,7 +665,7 @@ __updating__update_grail_via_git()
 __updating__update_fmwk_via_tar()
 {
   # Only attempt ‘crude’ update with --force option
-  if ! $D_OPT_FORCE; then
+  if ! $D__OPT_FORCE; then
     dprint_debug \
       "'Crude' update (downloading repo) is only available with --force option"
     return 1
@@ -678,10 +678,10 @@ __updating__update_fmwk_via_tar()
   local temp_dest="$( mktemp -d )"
 
   # Prompt user
-  if ! dprompt_key --bare -p 'Attempt to download?' -a "$D_OPT_ANSWER" -- \
+  if ! dprompt_key --bare -p 'Attempt to download?' -a "$D__OPT_ANSWER" -- \
     'It is possible to download a fresh copy of Divine.dotfiles from:' \
     -i "https://github.com/${user_repo}" \
-    -n 'and overwrite files in your framework directory at:' -i "$D_DIR_FMWK" \
+    -n 'and overwrite files in your framework directory at:' -i "$D__DIR_FMWK" \
     -n 'thus performing a ‘crude’ update'
   then
     dprint_debug 'Refused to perform ‘crude’ update'
@@ -744,10 +744,10 @@ __updating__update_fmwk_via_tar()
   fi
 
   # Prompt user for possible clobbering, and clobber if required
-  if ! dprompt_key --bare -p 'Overwrite files?' -a "$D_OPT_ANSWER" -- \
+  if ! dprompt_key --bare -p 'Overwrite files?' -a "$D__OPT_ANSWER" -- \
     'Fresh copy of Divine.dotfiles has been downloaded to temp dir at:' \
     -i "$temp_dest" \
-    -n 'and is ready to be copied over existing files in:' -i "$D_DIR_FMWK"
+    -n 'and is ready to be copied over existing files in:' -i "$D__DIR_FMWK"
   then
     # Try to clean up
     rm -rf -- "$temp_dest"
@@ -757,12 +757,12 @@ __updating__update_fmwk_via_tar()
   fi
 
   # Make sure directory exists
-  mkdir -p -- "$D_DIR_FMWK" || {
+  mkdir -p -- "$D__DIR_FMWK" || {
     # Try to clean up
     rm -rf -- "$temp_dest"
     # Report and return
     dprint_debug "Failed to create destination directory at:" \
-      -i "$D_DIR_FMWK"
+      -i "$D__DIR_FMWK"
     return 1
   }
   
@@ -776,7 +776,7 @@ __updating__update_fmwk_via_tar()
     rel_path="${src_path#"$temp_dest/"}"
 
     # Construct target path
-    tgt_path="$D_DIR_FMWK/$rel_path"
+    tgt_path="$D__DIR_FMWK/$rel_path"
 
     # Pre-erase existing file
     if [ -e "$tgt_path" ]; then
@@ -809,7 +809,7 @@ __updating__update_fmwk_via_tar()
   # All done: announce and return
   dprint_debug \
     'Successfully overwritten all Divine.dotfiles components at:' \
-    -i "$D_DIR_FMWK"
+    -i "$D__DIR_FMWK"
   return 0
 }
 
@@ -831,7 +831,7 @@ __updating__update_dpl_repo_via_git()
 
   # Extract path to repository being updated
   local user_repo="$1"; shift
-  local repo_path="$D_DIR_DPL_REPOS/$user_repo"
+  local repo_path="$D__DIR_DPL_REPOS/$user_repo"
 
   # Check if dpls directory is a git repo
   if ! git ls-remote "$repo_path" -q &>/dev/null; then
@@ -905,7 +905,7 @@ __updating__update_dpl_repo_via_git()
   }
 
   # Pull and rebase and check for errors (control verbosity)
-  if $D_OPT_QUIET; then
+  if $D__OPT_QUIET; then
     
     # Pull and rebase quietly
     git pull --rebase --stat origin master &>/dev/null && return 0 || return 1
@@ -945,7 +945,7 @@ __updating__update_dpl_repo_via_git()
 __updating__update_dpl_repo_via_tar()
 {
   # Only attempt ‘crude’ update with --force option
-  if ! $D_OPT_FORCE; then
+  if ! $D__OPT_FORCE; then
     dprint_debug \
       "'Crude' update (downloading repo) is only available with --force option"
     return 1
@@ -958,10 +958,10 @@ __updating__update_dpl_repo_via_tar()
   local temp_dest="$( mktemp -d )"
 
   # Compose permanent destination directory
-  local perm_dest="$D_DIR_DPL_REPOS/$user_repo"
+  local perm_dest="$D__DIR_DPL_REPOS/$user_repo"
 
   # Prompt user
-  if ! dprompt_key --bare -p 'Attempt to download?' -a "$D_OPT_ANSWER" -- \
+  if ! dprompt_key --bare -p 'Attempt to download?' -a "$D__OPT_ANSWER" -- \
     'It is possible to download a fresh copy of deployments from:' \
     -i "https://github.com/${user_repo}" \
     -n 'and overwrite files in your directory at:' -i "$perm_dest" \
@@ -1027,7 +1027,7 @@ __updating__update_dpl_repo_via_tar()
   fi
 
   # Prompt user for possible clobbering, and clobber if required
-  if ! dprompt_key --bare -p 'Overwrite files?' -a "$D_OPT_ANSWER" -- \
+  if ! dprompt_key --bare -p 'Overwrite files?' -a "$D__OPT_ANSWER" -- \
     'Fresh copy of repository has been downloaded to temp dir at:' \
     -i "$temp_dest" \
     -n 'and is ready to be copied over existing files in:' -i "$perm_dest"
@@ -1040,12 +1040,12 @@ __updating__update_dpl_repo_via_tar()
   fi
 
   # Make sure directory exists
-  mkdir -p -- "$D_DIR_DPL_REPOS/$user_repo" || {
+  mkdir -p -- "$D__DIR_DPL_REPOS/$user_repo" || {
     # Try to clean up
     rm -rf -- "$temp_dest"
     # Report and return
     dprint_debug "Failed to create destination directory at:" \
-      -i "$D_DIR_DPL_REPOS/$user_repo"
+      -i "$D__DIR_DPL_REPOS/$user_repo"
     return 1
   }
 
@@ -1059,7 +1059,7 @@ __updating__update_dpl_repo_via_tar()
     rel_path="${src_path#"$temp_dest/"}"
 
     # Construct target path
-    tgt_path="$D_DIR_DPL_REPOS/$user_repo/$rel_path"
+    tgt_path="$D__DIR_DPL_REPOS/$user_repo/$rel_path"
 
     # Pre-erase existing file
     if [ -e "$tgt_path" ]; then
@@ -1092,7 +1092,7 @@ __updating__update_dpl_repo_via_tar()
   # All done: announce and return
   dprint_debug \
     'Successfully overwritten all deployment files at:' \
-    -i "$D_DIR_DPL_REPOS/$user_repo"
+    -i "$D__DIR_DPL_REPOS/$user_repo"
   return 0
 }
 

@@ -7,10 +7,10 @@
 ## By default, manifest file must be placed next to deployment file and named 
 #. identically, except for changing ‘.dpl.sh’ suffix to ‘dpl.mnf’. 
 #. Alternatively, full path to manifest file may be provided in the root of 
-#. deployment file by assigning it to global variable $D_DPL_MNF_PATH.
+#. deployment file by assigning it to global variable $D__DPL_MNF_PATH.
 #
 ## Paths to assets must be given relative to deployment directory, as recorded 
-#. in $D_DPL_DIR. A path may be written explicitly, or using a simplified 
+#. in $D__DPL_DIR. A path may be written explicitly, or using a simplified 
 #. regular expression.
 #
 ## One path/pattern is written per line.

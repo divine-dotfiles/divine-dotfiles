@@ -28,7 +28,7 @@ __run_stash_checks()
   dstash --grail ready || {
     dprint_failure -l \
       'Failed to prepare Divine stashing system in Grail directory at:' \
-      -i "$D_DIR_GRAIL"
+      -i "$D__DIR_GRAIL"
     exit 1
   }
 
@@ -36,7 +36,7 @@ __run_stash_checks()
   dstash --root ready || {
     dprint_failure -l \
       'Failed to prepare Divine stashing system in state directory at:' \
-      -i "$D_DIR_STASH"
+      -i "$D__DIR_STASH"
     exit 1
   }
 }

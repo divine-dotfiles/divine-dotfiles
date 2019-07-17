@@ -14,8 +14,8 @@
 
 #>  __process_manifests_of_current_dpl
 #
-## Looks for asset manifest at $D_DPL_MNF_PATH and for main queue file at 
-#. $D_DPL_QUE_PATH. First, processes manifest (copies assets and fills global 
+## Looks for asset manifest at $D__DPL_MNF_PATH and for main queue file at 
+#. $D__DPL_QUE_PATH. First, processes manifest (copies assets and fills global 
 #. arrays) if manifest is present. Afterward, if main queue is not yet filled, 
 #. fills it up: from main queue file, or absent that, from relative asset 
 #. paths, or absent that, does not touch the main queue.
@@ -38,7 +38,7 @@ __process_manifests_of_current_dpl()
 
 #>  __process_asset_manifest_of_current_dpl
 #
-## Looks for manifest file at path stored in $D_DPL_MNF_PATH. Reads it line by 
+## Looks for manifest file at path stored in $D__DPL_MNF_PATH. Reads it line by 
 #. line, ignores empty lines and lines starting with hash (‘#’) or double-slash 
 #. (‘//’).
 #
@@ -49,13 +49,13 @@ __process_manifests_of_current_dpl()
 #. version control. Does not overwrite anything (user’s data takes priority).
 #
 ## Requires:
-#.  $D_DPL_MNF_PATH     - Path to assets manifest file
-#.  $D_DPL_DIR          - Path to resolve initial asset paths against
-#.  $D_DPL_ASSETS_DIR   - Path to compose target asset paths against
+#.  $D__DPL_MNF_PATH     - Path to assets manifest file
+#.  $D__DPL_DIR          - Path to resolve initial asset paths against
+#.  $D__DPL_ASSETS_DIR   - Path to compose target asset paths against
 #
 ## Provides into the global scope:
-#.  $D_DPL_ASSET_RELPATHS   - Array of relative paths to assets
-#.  $D_DPL_ASSET_PATHS      - Array of absolute paths to copied assets
+#.  $D__DPL_ASSET_RELPATHS   - Array of relative paths to assets
+#.  $D__DPL_ASSET_PATHS      - Array of absolute paths to copied assets
 #
 ## Returns:
 #.  0 - Task performed: all assets now exist in assets directory
@@ -64,19 +64,19 @@ __process_manifests_of_current_dpl()
 __process_asset_manifest_of_current_dpl()
 {
   # Check if directory of current deployment is readable
-  if ! [ -r "$D_DPL_DIR" -a -d "$D_DPL_DIR" ]; then
-    dprint_failure -l "Unreadable directory of current deployment: $D_DPL_DIR"
+  if ! [ -r "$D__DPL_DIR" -a -d "$D__DPL_DIR" ]; then
+    dprint_failure -l "Unreadable directory of current deployment: $D__DPL_DIR"
     return 1
   fi
 
   # Parse manifest file
-  __process_manifest "$D_DPL_MNF_PATH" || {
+  __process_manifest "$D__DPL_MNF_PATH" || {
     dprint_debug 'No asset manifest'
     return 0
   }
 
-  # Check if $D_DPL_MANIFEST_LINES has at least one entry
-  [ ${#D_DPL_MANIFEST_LINES[@]} -gt 0 ] || return 0
+  # Check if $D__DPL_MANIFEST_LINES has at least one entry
+  [ ${#D__DPL_MANIFEST_LINES[@]} -gt 0 ] || return 0
 
   # Storage and status variables
   local i path_pattern path_prefix relative_path
@@ -84,24 +84,24 @@ __process_asset_manifest_of_current_dpl()
   local all_assets_copied=true
 
   # Start populating global variables
-  D_DPL_ASSET_RELPATHS=()
-  D_DPL_ASSET_PATHS=()
+  D__DPL_ASSET_RELPATHS=()
+  D__DPL_ASSET_PATHS=()
 
-  # Iterate over $D_DPL_MANIFEST_LINES entries
-  for (( i=0; i<${#D_DPL_MANIFEST_LINES[@]}; i++ )); do
+  # Iterate over $D__DPL_MANIFEST_LINES entries
+  for (( i=0; i<${#D__DPL_MANIFEST_LINES[@]}; i++ )); do
 
     # Extract path/pattern
-    path_pattern="${D_DPL_MANIFEST_LINES[$i]}"
+    path_pattern="${D__DPL_MANIFEST_LINES[$i]}"
 
     # Extract prefix
-    if [ -z ${D_DPL_MANIFEST_LINE_PREFIXES[$i]+isset} ]; then
+    if [ -z ${D__DPL_MANIFEST_LINE_PREFIXES[$i]+isset} ]; then
       path_prefix=
     else
-      path_prefix="/${D_DPL_MANIFEST_LINE_PREFIXES[$i]}"
+      path_prefix="/${D__DPL_MANIFEST_LINE_PREFIXES[$i]}"
     fi
 
     # Check if pattern is intended as regex or solid path
-    if [[ ${D_DPL_MANIFEST_LINE_FLAGS[$i]} = *r* ]]; then
+    if [[ ${D__DPL_MANIFEST_LINE_FLAGS[$i]} = *r* ]]; then
 
       # Line is intended as RegEx pattern
 
@@ -109,27 +109,27 @@ __process_asset_manifest_of_current_dpl()
       while IFS= read -r -d $'\0' src_path; do
 
         # Compose absolute paths
-        relative_path="${src_path#"${D_DPL_DIR}${path_prefix}/"}"
-        dest_path="$D_DPL_ASSETS_DIR/$relative_path"
+        relative_path="${src_path#"${D__DPL_DIR}${path_prefix}/"}"
+        dest_path="$D__DPL_ASSETS_DIR/$relative_path"
 
         # Copy asset (for find results it is expected to always return 0)
         __copy_asset "$relative_path" "$src_path" "$dest_path" \
           || all_assets_copied=false
 
-      done < <( find -L "$D_DPL_DIR" \
-        -path "${D_DPL_DIR}${path_prefix}/$path_pattern" -print0 )
+      done < <( find -L "$D__DPL_DIR" \
+        -path "${D__DPL_DIR}${path_prefix}/$path_pattern" -print0 )
     
     else
 
       # Line is intended as solid path
 
       # Copy asset
-      __copy_asset "$path_pattern" "${D_DPL_DIR}${path_prefix}/$path_pattern" \
-        "$D_DPL_ASSETS_DIR/$path_pattern" || all_assets_copied=false
+      __copy_asset "$path_pattern" "${D__DPL_DIR}${path_prefix}/$path_pattern" \
+        "$D__DPL_ASSETS_DIR/$path_pattern" || all_assets_copied=false
     
     fi
 
-  # Done iterating over $D_DPL_MANIFEST_LINES entries
+  # Done iterating over $D__DPL_MANIFEST_LINES entries
   done
 
   # Return appropriate code
@@ -138,21 +138,21 @@ __process_asset_manifest_of_current_dpl()
 
 #>  __process_queue_manifest_of_current_dpl
 #
-## Looks for manifest file at path stored in $D_DPL_QUE_PATH. Reads it line by 
+## Looks for manifest file at path stored in $D__DPL_QUE_PATH. Reads it line by 
 #. line, ignores empty lines and lines starting with hash (‘#’) or double-slash 
 #. (‘//’).
 #
 ## All other lines are interpreted as textual main queue entries, with which it 
-#. populates the array $D_DPL_QUEUE_MAIN.
+#. populates the array $D__DPL_QUEUE_MAIN.
 #
 ## If queue manifest is not available, tries two other methods: copying either 
 #. absolute or relative paths to asset files (attempts are made in that order).
 #
 ## Requires:
-#.  $D_DPL_QUE_PATH     - Path to queue manifest file
+#.  $D__DPL_QUE_PATH     - Path to queue manifest file
 #
 ## Provides into the global scope:
-#.  $D_DPL_QUEUE_MAIN   - Array of main queue entries
+#.  $D__DPL_QUEUE_MAIN   - Array of main queue entries
 #
 ## Returns:
 #.  0 - Task performed: main queue is populated
@@ -161,7 +161,7 @@ __process_asset_manifest_of_current_dpl()
 __process_queue_manifest_of_current_dpl()
 {
   # Check if main queue is already filled up
-  if [ ${#D_DPL_QUEUE_MAIN[@]} -gt 1 -o -n "$D_DPL_QUEUE_MAIN" ]; then
+  if [ ${#D__DPL_QUEUE_MAIN[@]} -gt 1 -o -n "$D__DPL_QUEUE_MAIN" ]; then
 
     # Main queue is already touched, nothing to do:
     return 0
@@ -171,27 +171,27 @@ __process_queue_manifest_of_current_dpl()
   # Main queue is not filled: try various methods
 
   # Check if main queue file is readable
-  if __process_manifest "$D_DPL_QUE_PATH"; then
+  if __process_manifest "$D__DPL_QUE_PATH"; then
 
-    # Check if $D_DPL_MANIFEST_LINES has at least one entry
-    if [ ${#D_DPL_MANIFEST_LINES[@]} -gt 0 ]; then
+    # Check if $D__DPL_MANIFEST_LINES has at least one entry
+    if [ ${#D__DPL_MANIFEST_LINES[@]} -gt 0 ]; then
 
       # Assign collected items to main queue
-      D_DPL_QUEUE_MAIN=( "${D_DPL_MANIFEST_LINES[@]}" )
+      D__DPL_QUEUE_MAIN=( "${D__DPL_MANIFEST_LINES[@]}" )
     
     fi
 
   # Otherwise, try to derive main queue from relative asset paths
-  elif [ ${#D_DPL_ASSET_RELPATHS[@]} -gt 1 -o -n "$D_DPL_ASSET_RELPATHS" ]
+  elif [ ${#D__DPL_ASSET_RELPATHS[@]} -gt 1 -o -n "$D__DPL_ASSET_RELPATHS" ]
   then
 
-    D_DPL_QUEUE_MAIN=( "${D_DPL_ASSET_RELPATHS[@]}" )
+    D__DPL_QUEUE_MAIN=( "${D__DPL_ASSET_RELPATHS[@]}" )
 
   # Otherwise, try to derive main queue from absolute asset paths
-  elif [ ${#D_DPL_ASSET_PATHS[@]} -gt 1 -o -n "$D_DPL_ASSET_PATHS" ]
+  elif [ ${#D__DPL_ASSET_PATHS[@]} -gt 1 -o -n "$D__DPL_ASSET_PATHS" ]
   then
 
-    D_DPL_QUEUE_MAIN=( "${D_DPL_ASSET_PATHS[@]}" )
+    D__DPL_QUEUE_MAIN=( "${D__DPL_ASSET_PATHS[@]}" )
 
   # Otherwise, give up
   else
@@ -249,8 +249,8 @@ __copy_asset()
   fi
 
   # Destination is in place: push onto global containers
-  D_DPL_ASSET_RELPATHS+=( "$relative_path" )
-  D_DPL_ASSET_PATHS+=( "$dest_path" )
+  D__DPL_ASSET_RELPATHS+=( "$relative_path" )
+  D__DPL_ASSET_PATHS+=( "$dest_path" )
 
   # Return success
   return 0
@@ -262,8 +262,8 @@ __copy_asset()
 #. __process_asset_manifest_of_current_dpl function.
 #
 ## Requires:
-#.  $D_DPL_NAMES_IN_FMWK_DIRS - (array) Names of deployments in framework dirs
-#.  $D_DPL_PATHS_IN_FMWK_DIRS - (array) Index of each name contains delimited 
+#.  $D__DPL_NAMES_IN_FMWK_DIRS - (array) Names of deployments in framework dirs
+#.  $D__DPL_PATHS_IN_FMWK_DIRS - (array) Index of each name contains delimited 
 #.                              list of paths to deployment files
 #
 ## Returns:
@@ -277,16 +277,16 @@ __process_all_asset_manifests_in_dpl_dirs()
   local all_good=true
 
   # Iterate over names
-  for (( i=0; i<${#D_DPL_NAMES_IN_FMWK_DIRS[@]}; i++ )); do
+  for (( i=0; i<${#D__DPL_NAMES_IN_FMWK_DIRS[@]}; i++ )); do
 
     # Extract name and path
-    name="${D_DPL_NAMES_IN_FMWK_DIRS[$i]}"
-    path="${D_DPL_PATHS_IN_FMWK_DIRS[$i]%"$D_CONST_DELIMITER"}"
+    name="${D__DPL_NAMES_IN_FMWK_DIRS[$i]}"
+    path="${D__DPL_PATHS_IN_FMWK_DIRS[$i]%"$D__CONST_DELIMITER"}"
 
     # Set up necessary variables
-    D_DPL_MNF_PATH="${path%$D_SUFFIX_DPL_SH}$D_SUFFIX_DPL_MNF"
-    D_DPL_DIR="$( dirname -- "$path" )"
-    D_DPL_ASSETS_DIR="$D_DIR_ASSETS/$name"
+    D__DPL_MNF_PATH="${path%$D__SUFFIX_DPL_SH}$D__SUFFIX_DPL_MNF"
+    D__DPL_DIR="$( dirname -- "$path" )"
+    D__DPL_ASSETS_DIR="$D__DIR_ASSETS/$name"
 
     # Do the deed
     __process_asset_manifest_of_current_dpl || all_good=false
@@ -302,13 +302,13 @@ __process_all_asset_manifests_in_dpl_dirs()
 ## Processes manifest file at PATH and populates two global arrays with results
 #
 ## Modifies in the global scope:
-#.  $D_DPL_MANIFEST_LINES         - (array) Non-empty lines from manifest file 
+#.  $D__DPL_MANIFEST_LINES         - (array) Non-empty lines from manifest file 
 #.                                  that are relavant for the current OS. Each 
 #.                                  line is trimmed of whitespace on both ends.
-#.  $D_DPL_MANIFEST_LINE_FLAGS    - (array) For each extracted line, this array 
+#.  $D__DPL_MANIFEST_LINE_FLAGS    - (array) For each extracted line, this array 
 #.                                  will contain its char flags as a string at 
 #.                                  the same index
-#.  $D_DPL_MANIFEST_LINE_PREFIXES - (array) For each extracted line, this array 
+#.  $D__DPL_MANIFEST_LINE_PREFIXES - (array) For each extracted line, this array 
 #.                                  will contain its prefix at the same index
 #
 ## Returns:
@@ -318,9 +318,9 @@ __process_all_asset_manifests_in_dpl_dirs()
 __process_manifest()
 {
   # Initialize container arrays
-  D_DPL_MANIFEST_LINES=()
-  D_DPL_MANIFEST_LINE_FLAGS=()
-  D_DPL_MANIFEST_LINE_PREFIXES=()
+  D__DPL_MANIFEST_LINES=()
+  D__DPL_MANIFEST_LINE_FLAGS=()
+  D__DPL_MANIFEST_LINE_PREFIXES=()
 
   # Extract path
   local mnf_filepath="$1"; shift
@@ -437,7 +437,7 @@ __process_manifest()
     if [ -n "$line" ]; then
 
       # Add to global array
-      D_DPL_MANIFEST_LINES[$counter]="$line"
+      D__DPL_MANIFEST_LINES[$counter]="$line"
 
     else
 
@@ -456,10 +456,10 @@ __process_manifest()
       )"
 
     # If still some flags left, add them to global array
-    [ -n "$flags" ] && D_DPL_MANIFEST_LINE_FLAGS[$counter]="$flags"
+    [ -n "$flags" ] && D__DPL_MANIFEST_LINE_FLAGS[$counter]="$flags"
 
     # Also, prefixes
-    [ -n "$prefix" ] && D_DPL_MANIFEST_LINE_PREFIXES[$counter]="$prefix"
+    [ -n "$prefix" ] && D__DPL_MANIFEST_LINE_PREFIXES[$counter]="$prefix"
 
     # Increment counter for next line
     (( ++counter ))

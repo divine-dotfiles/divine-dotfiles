@@ -20,21 +20,21 @@
 
 #>  __override_d_targets_for_family
 #
-## Provides a way for deployments to override $D_DPL_TARGET_PATHS global 
+## Provides a way for deployments to override $D__DPL_TARGET_PATHS global 
 #. variable, which is used by helper functions in dln.hlp.sh and cp.hlp.sh. 
-#. This function is called before contents of $D_DPL_TARGET_PATHS is settled 
+#. This function is called before contents of $D__DPL_TARGET_PATHS is settled 
 #. upon.
 #
 __override_d_targets_for_family()
 {
   # Below is example implementation for BSD family of operating systems
 
-  # Check if $D_DPL_TARGET_PATHS_BSD contains at least one string
-  if [ ${#D_DPL_TARGET_PATHS_BSD[@]} -gt 1 \
-    -o -n "$D_DPL_TARGET_PATHS_BSD" ]; then
+  # Check if $D__DPL_TARGET_PATHS_BSD contains at least one string
+  if [ ${#D__DPL_TARGET_PATHS_BSD[@]} -gt 1 \
+    -o -n "$D__DPL_TARGET_PATHS_BSD" ]; then
 
-    # $D_DPL_TARGET_PATHS_BSD is set: use it instead
-    D_DPL_TARGET_PATHS=( "${D_DPL_TARGET_PATHS_BSD[@]}" )
+    # $D__DPL_TARGET_PATHS_BSD is set: use it instead
+    D__DPL_TARGET_PATHS=( "${D__DPL_TARGET_PATHS_BSD[@]}" )
     
   fi
 }

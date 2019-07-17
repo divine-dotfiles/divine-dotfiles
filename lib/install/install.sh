@@ -71,7 +71,7 @@ __declare_global_colors()
 __parse_arguments()
 {
   # Define global storage for option values
-  D_OPT_QUIET=false         # Be verbose by default
+  D__OPT_QUIET=false         # Be verbose by default
   D_INSTALL_FRAMEWORK=      # Whether to install framework itself
   D_INSTALL_SHORTCUT=       # Whether to install shortcut symlink
   D_ATTACH_DPLS_CORE=       # Whether to attach default deployments
@@ -83,8 +83,8 @@ __parse_arguments()
   local arg
   for arg do
     case "$arg" in
-      --quiet)              D_OPT_QUIET=true;;
-      --verbose)            D_OPT_QUIET=false;;
+      --quiet)              D__OPT_QUIET=true;;
+      --verbose)            D__OPT_QUIET=false;;
       --framework-yes)      D_INSTALL_FRAMEWORK=true;;
       --framework-no)       D_INSTALL_FRAMEWORK=false;;
       --shortcut-yes)       D_INSTALL_SHORTCUT=true;;
@@ -341,7 +341,7 @@ __install_shortcut()
 
       # Check if name is valid
       [[ $new_cmd_name =~ ^[a-z0-9]+$ ]] || {
-        $D_OPT_QUIET || printf >&2 '%s\n' 'Use letters and digits only'
+        $D__OPT_QUIET || printf >&2 '%s\n' 'Use letters and digits only'
         continue
       }
 
@@ -470,7 +470,7 @@ __attach_dpls_core()
   fi
 
   # Run attach routine
-  if $D_OPT_QUIET; then
+  if $D__OPT_QUIET; then
     if [ "$D_ATTACH_DPLS_CORE" = true ]; then
       "$D_INSTALL_PATH"/intervene.sh attach "$user_repo" --yes
     else
@@ -512,7 +512,7 @@ __attach_requested_dpls()
   fi
 
   # Run attach routine
-  if $D_OPT_QUIET; then
+  if $D__OPT_QUIET; then
     if [ "$D_ATTACH_DPLS_CORE" = true ]; then
       "$D_INSTALL_PATH"/intervene.sh attach "${D_REQUESTED_DPLS[@]}" --yes
     else
@@ -552,7 +552,7 @@ __run_install()
   fi
 
   # Run installation
-    if $D_OPT_QUIET; then
+    if $D__OPT_QUIET; then
     if [ "$D_ATTACH_DPLS_CORE" = true ]; then
       "$D_INSTALL_PATH"/intervene.sh install --with-! --yes
     else
@@ -580,7 +580,7 @@ __run_install()
 
 dprint_debug()
 {
-  $D_OPT_QUIET && return 0
+  $D__OPT_QUIET && return 0
   printf >&2 "${CYAN}%s %s${NORMAL}\n" "==>" "$1"; shift
   while [ $# -gt 0 ]
   do printf >&2 "    ${CYAN}%s${NORMAL}\n" "$1"; shift; done; return 0
@@ -588,28 +588,28 @@ dprint_debug()
 
 dprint_start()
 {
-  $D_OPT_QUIET && return 0
+  $D__OPT_QUIET && return 0
   printf >&2 '%s %s\n' "${BOLD}${YELLOW}==>${NORMAL}" "$1"; shift
   while [ $# -gt 0 ]; do printf >&2 '    %s\n' "$1"; shift; done; return 0
 }
 
 dprint_skip()
 {
-  $D_OPT_QUIET && return 0
+  $D__OPT_QUIET && return 0
   printf >&2 '%s %s\n' "${BOLD}${WHITE}==>${NORMAL}" "$1"; shift
   while [ $# -gt 0 ]; do printf >&2 '    %s\n' "$1"; shift; done; return 0
 }
 
 dprint_success()
 {
-  $D_OPT_QUIET && return 0
+  $D__OPT_QUIET && return 0
   printf >&2 '%s %s\n' "${BOLD}${GREEN}==>${NORMAL}" "$1"; shift
   while [ $# -gt 0 ]; do printf >&2 '    %s\n' "$1"; shift; done; return 0
 }
 
 dprint_failure()
 {
-  $D_OPT_QUIET && return 0
+  $D__OPT_QUIET && return 0
   printf >&2 '%s %s\n' "${BOLD}${RED}==>${NORMAL}" "$1"; shift
   while [ $# -gt 0 ]; do printf >&2 '    %s\n' "$1"; shift; done; return 0
 }

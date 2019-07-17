@@ -31,11 +31,11 @@ __perform_detach()
   __sort_out_dpl_repos || exit 1
   
   # Announce beginning
-  if [ "$D_OPT_ANSWER" = false ]; then
-    dprint_plaque -pcw "$WHITE" "$D_CONST_PLAQUE_WIDTH" \
+  if [ "$D__OPT_ANSWER" = false ]; then
+    dprint_plaque -pcw "$WHITE" "$D__CONST_PLAQUE_WIDTH" \
       -- '‘Detaching’ deployments'
   else
-    dprint_plaque -pcw "$GREEN" "$D_CONST_PLAQUE_WIDTH" \
+    dprint_plaque -pcw "$GREEN" "$D__CONST_PLAQUE_WIDTH" \
       -- 'Detaching deployments'
   fi
 
@@ -44,23 +44,23 @@ __perform_detach()
   local detached_anything=false errors_encountered=false
 
   # Iterate over script arguments
-  for dpl_arg in "${D_REQ_ARGS[@]}"; do
+  for dpl_arg in "${D__REQ_ARGS[@]}"; do
 
     # Print newline to visually separate attachments
     printf >&2 '\n'
 
     # Announce start
-    dprint_ode "${D_ODE_NORMAL[@]}" -c "$YELLOW" -- \
+    dprint_ode "${D__ODE_NORMAL[@]}" -c "$YELLOW" -- \
       '>>>' 'Detaching' ':' "$dpl_arg"
 
     # Try to attach deployments
     if __detach__attempt_github_repo "$dpl_arg"; then
       detached_anything=true
-      dprint_ode "${D_ODE_NORMAL[@]}" -c "$GREEN" -- \
+      dprint_ode "${D__ODE_NORMAL[@]}" -c "$GREEN" -- \
         'vvv' 'Detached' ':' "$dpl_arg"
     else
       errors_encountered=true
-      dprint_ode "${D_ODE_NORMAL[@]}" -c "$RED" -- \
+      dprint_ode "${D__ODE_NORMAL[@]}" -c "$RED" -- \
         'xxx' 'Failed to detach' ':' "$dpl_arg"
     fi
 
@@ -68,27 +68,27 @@ __perform_detach()
 
   # Announce routine completion
   printf >&2 '\n'
-  if [ "$D_OPT_ANSWER" = false ]; then
-    dprint_plaque -pcw "$WHITE" "$D_CONST_PLAQUE_WIDTH" \
+  if [ "$D__OPT_ANSWER" = false ]; then
+    dprint_plaque -pcw "$WHITE" "$D__CONST_PLAQUE_WIDTH" \
       -- 'Finished ‘detaching’ deployments'
     return 3
   elif $detached_anything; then
     if $errors_encountered; then
-      dprint_plaque -pcw "$YELLOW" "$D_CONST_PLAQUE_WIDTH" \
+      dprint_plaque -pcw "$YELLOW" "$D__CONST_PLAQUE_WIDTH" \
         -- 'Successfully detached some deployments'
       return 1
     else
-      dprint_plaque -pcw "$GREEN" "$D_CONST_PLAQUE_WIDTH" \
+      dprint_plaque -pcw "$GREEN" "$D__CONST_PLAQUE_WIDTH" \
         -- 'Successfully detached all deployments'
       return 0
     fi
   else
     if $errors_encountered; then
-      dprint_plaque -pcw "$RED" "$D_CONST_PLAQUE_WIDTH" \
+      dprint_plaque -pcw "$RED" "$D__CONST_PLAQUE_WIDTH" \
         -- 'Failed to detach deployments'
       return 2
     else
-      dprint_plaque -pcw "$WHITE" "$D_CONST_PLAQUE_WIDTH" \
+      dprint_plaque -pcw "$WHITE" "$D__CONST_PLAQUE_WIDTH" \
         -- 'Nothing to do'
       return 3
     fi
@@ -125,7 +125,7 @@ __detach__attempt_github_repo()
   fi
 
   # Construct permanent destination
-  local perm_dest="$D_DIR_DPL_REPOS/$user_repo"
+  local perm_dest="$D__DIR_DPL_REPOS/$user_repo"
 
   # Check if that path exists
   if [ -e "$perm_dest" ]; then
@@ -134,7 +134,7 @@ __detach__attempt_github_repo()
     if [ -d "$perm_dest" ]; then
 
       # Prompt user
-      if dprompt_key --bare --prompt 'Detach?' --answer "$D_OPT_ANSWER" -- \
+      if dprompt_key --bare --prompt 'Detach?' --answer "$D__OPT_ANSWER" -- \
         'About to remove attached deployments at:' \
         -i "$perm_dest" \
         '(Please, make sure deployments are removed from the system.)'

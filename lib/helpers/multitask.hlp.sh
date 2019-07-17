@@ -15,7 +15,7 @@
 __multitask_hlp__dcheck()
 {
   # Check whether at least one task name has been provided
-  if [ -z "${D_DPL_TASK_NAMES+isset}" -o ${#D_DPL_TASK_NAMES[@]} -eq 0 ]; then
+  if [ -z "${D__DPL_TASK_NAMES+isset}" -o ${#D__DPL_TASK_NAMES[@]} -eq 0 ]; then
 
     # No tasks: return default code
     return 0
@@ -26,7 +26,7 @@ __multitask_hlp__dcheck()
   local task_name func_name
 
   # Iterate over task names
-  for task_name in "${D_DPL_TASK_NAMES[@]}"; do
+  for task_name in "${D__DPL_TASK_NAMES[@]}"; do
 
     # Compose dcheck function name for that task
     func_name="d_${task_name}_dcheck"
@@ -51,7 +51,7 @@ __multitask_hlp__dcheck()
 __multitask_hlp__dinstall()
 {
   # Check whether at least one task name has been provided
-  if [ -z "${D_DPL_TASK_NAMES+isset}" -o ${#D_DPL_TASK_NAMES[@]} -eq 0 ]; then
+  if [ -z "${D__DPL_TASK_NAMES+isset}" -o ${#D__DPL_TASK_NAMES[@]} -eq 0 ]; then
 
     # No tasks: return default code
     return 0
@@ -62,7 +62,7 @@ __multitask_hlp__dinstall()
   local task_name func_name
 
   # Iterate over task names
-  for task_name in "${D_DPL_TASK_NAMES[@]}"; do
+  for task_name in "${D__DPL_TASK_NAMES[@]}"; do
 
     # Compose dinstall function name for that task
     func_name="d_${task_name}_dinstall"
@@ -87,7 +87,7 @@ __multitask_hlp__dinstall()
 __multitask_hlp__dremove()
 {
   # Check whether at least one task name has been provided
-  if [ -z "${D_DPL_TASK_NAMES+isset}" -o ${#D_DPL_TASK_NAMES[@]} -eq 0 ]; then
+  if [ -z "${D__DPL_TASK_NAMES+isset}" -o ${#D__DPL_TASK_NAMES[@]} -eq 0 ]; then
 
     # No tasks: return default code
     return 0
@@ -98,10 +98,10 @@ __multitask_hlp__dremove()
   local task_name func_name i
 
   # Iterate over task names in reverse order
-  for (( i=$D_DPL_TASK_MAX_NUM; i>=0; i-- )); do
+  for (( i=$D__DPL_TASK_MAX_NUM; i>=0; i-- )); do
 
     # Extract task name
-    task_name="${D_DPL_TASK_NAMES[$i]}"
+    task_name="${D__DPL_TASK_NAMES[$i]}"
 
     # Compose dremove function name for that task
     func_name="d_${task_name}_dremove"
@@ -137,20 +137,20 @@ __catch_dcheck_code()
   local last_code=$?
 
   # Figure out current task number, assuming this function is called once per
-  [ -z ${D_DPL_TASK_NUM+isset} ] && D_DPL_TASK_NUM=0 || (( D_DPL_TASK_NUM++ ))
+  [ -z ${D__DPL_TASK_NUM+isset} ] && D__DPL_TASK_NUM=0 || (( D__DPL_TASK_NUM++ ))
 
   ## If not already, set up status array of booleans:
-  #.  $D_DPL_TASK_STATUS_SUMMARY[0] - true if all tasks are unknown
-  #.  $D_DPL_TASK_STATUS_SUMMARY[1] - true if all tasks are installed
-  #.  $D_DPL_TASK_STATUS_SUMMARY[2] - true if all tasks are not installed
-  #.  $D_DPL_TASK_STATUS_SUMMARY[3] - true if all tasks are irrelevant
-  #.  $D_DPL_TASK_STATUS_SUMMARY[4] - true if all tasks are partly installed
-  #.  $D_DPL_TASK_STATUS_SUMMARY[5] - true if all installed by user or OS
+  #.  $D__DPL_TASK_STATUS_SUMMARY[0] - true if all tasks are unknown
+  #.  $D__DPL_TASK_STATUS_SUMMARY[1] - true if all tasks are installed
+  #.  $D__DPL_TASK_STATUS_SUMMARY[2] - true if all tasks are not installed
+  #.  $D__DPL_TASK_STATUS_SUMMARY[3] - true if all tasks are irrelevant
+  #.  $D__DPL_TASK_STATUS_SUMMARY[4] - true if all tasks are partly installed
+  #.  $D__DPL_TASK_STATUS_SUMMARY[5] - true if all installed by user or OS
   #.                                  false if some installed by fmwk
   #.                                  unset if no installed parts encountered
   #
-  [ -z ${D_DPL_TASK_STATUS_SUMMARY+isset} ] \
-    && D_DPL_TASK_STATUS_SUMMARY=( true true true true true )
+  [ -z ${D__DPL_TASK_STATUS_SUMMARY+isset} ] \
+    && D__DPL_TASK_STATUS_SUMMARY=( true true true true true )
 
   # Small storage variable
   local j
@@ -158,16 +158,16 @@ __catch_dcheck_code()
   # Check exit code
   case $last_code in
     1)  # Installed: flip flags
-        for j in 0 2 3 4; do D_DPL_TASK_STATUS_SUMMARY[$j]=false; done
+        for j in 0 2 3 4; do D__DPL_TASK_STATUS_SUMMARY[$j]=false; done
 
         # Check if user-or-os flag is currently set
-        if [ "$D_USER_OR_OS" = true ]; then
+        if [ "$D__USER_OR_OS" = true ]; then
 
           # Installed by user or OS: no actions allowed
 
           # Unless some fmwk installations already detected, mark as user or OS
-          [ "${D_DPL_TASK_STATUS_SUMMARY[5]}" = false ] \
-            || D_DPL_TASK_STATUS_SUMMARY[5]=true
+          [ "${D__DPL_TASK_STATUS_SUMMARY[5]}" = false ] \
+            || D__DPL_TASK_STATUS_SUMMARY[5]=true
 
         else
 
@@ -175,34 +175,34 @@ __catch_dcheck_code()
           __multitask_hlp__current_task set can_be_removed
 
           # Definitely not user or OS
-          D_DPL_TASK_STATUS_SUMMARY[5]=false
+          D__DPL_TASK_STATUS_SUMMARY[5]=false
 
         fi
         ;;
     2)  # Not installed: flip flags
-        for j in 0 1 3 4; do D_DPL_TASK_STATUS_SUMMARY[$j]=false; done
+        for j in 0 1 3 4; do D__DPL_TASK_STATUS_SUMMARY[$j]=false; done
 
         # Allow installation
         __multitask_hlp__current_task set can_be_installed
         ;;
     3)  # Irrelevant: flip flags
-        for j in 0 1 2 4; do D_DPL_TASK_STATUS_SUMMARY[$j]=false; done
+        for j in 0 1 2 4; do D__DPL_TASK_STATUS_SUMMARY[$j]=false; done
 
         # Should not be touched
         __multitask_hlp__current_task set is_irrelevant
         ;;
     4)  # Partly installed: flip flags
-        for j in 0 1 2 3; do D_DPL_TASK_STATUS_SUMMARY[$j]=false; done
+        for j in 0 1 2 3; do D__DPL_TASK_STATUS_SUMMARY[$j]=false; done
 
         # Check if user-or-os flag is currently set
-        if [ "$D_USER_OR_OS" = true ]; then
+        if [ "$D__USER_OR_OS" = true ]; then
 
           # Partly installed by user or OS: allow installation
           __multitask_hlp__current_task set can_be_installed
 
           # Unless some fmwk installations already detected, mark as user or OS
-          [ "${D_DPL_TASK_STATUS_SUMMARY[5]}" = false ] \
-            || D_DPL_TASK_STATUS_SUMMARY[5]=true
+          [ "${D__DPL_TASK_STATUS_SUMMARY[5]}" = false ] \
+            || D__DPL_TASK_STATUS_SUMMARY[5]=true
 
         else
 
@@ -211,19 +211,19 @@ __catch_dcheck_code()
           __multitask_hlp__current_task set can_be_removed
 
           # Definitely not user or OS
-          D_DPL_TASK_STATUS_SUMMARY[5]=false
+          D__DPL_TASK_STATUS_SUMMARY[5]=false
 
         fi
         ;;
     *)  # Unknown status: flip flags
-        for j in 1 2 3 4; do D_DPL_TASK_STATUS_SUMMARY[$j]=false; done
+        for j in 1 2 3 4; do D__DPL_TASK_STATUS_SUMMARY[$j]=false; done
 
         # Allow installation and removal
         __multitask_hlp__current_task set can_be_installed
         __multitask_hlp__current_task set can_be_removed
 
         # With an unknown, we can’t say it’s all user or OS
-        D_DPL_TASK_STATUS_SUMMARY[5]=false
+        D__DPL_TASK_STATUS_SUMMARY[5]=false
         ;;
   esac
 
@@ -246,27 +246,27 @@ __catch_dcheck_code()
 __reconcile_dcheck_codes()
 {
   # Remember total number of tasks
-  D_DPL_TASK_MAX_NUM=$(( $D_DPL_TASK_NUM ))
+  D__DPL_TASK_MAX_NUM=$(( $D__DPL_TASK_NUM ))
 
   # Reset task number counter (for following installations/removals)
-  unset D_DPL_TASK_NUM
+  unset D__DPL_TASK_NUM
 
   # Settle user-or-os status
-  if [ "${D_DPL_TASK_STATUS_SUMMARY[5]}" = true ]; then D_USER_OR_OS=true
-  else D_USER_OR_OS=false; fi
+  if [ "${D__DPL_TASK_STATUS_SUMMARY[5]}" = true ]; then D__USER_OR_OS=true
+  else D__USER_OR_OS=false; fi
 
   # Storage variable for return code
   local return_code
 
   # Sequentially check if at least one all-code survived
-  if [ "${D_DPL_TASK_STATUS_SUMMARY[0]}" = true ]; then return_code=0
-  elif [ "${D_DPL_TASK_STATUS_SUMMARY[1]}" = true ]; then return_code=1
-  elif [ "${D_DPL_TASK_STATUS_SUMMARY[2]}" = true ]; then return_code=2
-  elif [ "${D_DPL_TASK_STATUS_SUMMARY[3]}" = true ]; then return_code=3
-  elif [ "${D_DPL_TASK_STATUS_SUMMARY[4]}" = true ]; then return_code=4
+  if [ "${D__DPL_TASK_STATUS_SUMMARY[0]}" = true ]; then return_code=0
+  elif [ "${D__DPL_TASK_STATUS_SUMMARY[1]}" = true ]; then return_code=1
+  elif [ "${D__DPL_TASK_STATUS_SUMMARY[2]}" = true ]; then return_code=2
+  elif [ "${D__DPL_TASK_STATUS_SUMMARY[3]}" = true ]; then return_code=3
+  elif [ "${D__DPL_TASK_STATUS_SUMMARY[4]}" = true ]; then return_code=4
   else
     # Nothing conclusive: check if any kind of installation was encountered
-    if [ -z ${D_DPL_TASK_STATUS_SUMMARY[5]+isset} ]; then
+    if [ -z ${D__DPL_TASK_STATUS_SUMMARY[5]+isset} ]; then
       # No installations: this is a mix on ‘not installed’ and ‘irrelevant’
       return_code=2
     else
@@ -276,7 +276,7 @@ __reconcile_dcheck_codes()
   fi
 
   # Reset flag storage (for following installations/removals)
-  unset D_DPL_TASK_STATUS_SUMMARY
+  unset D__DPL_TASK_STATUS_SUMMARY
 
   # Return agreed code
   return $return_code
@@ -287,7 +287,7 @@ __reconcile_dcheck_codes()
 ## Signals if current task has been previously detected as installable
 #
 ## Provides into the global scope:
-#.  $D_DPL_TASK_IS_FORCED - Sets this to ‘true’ if installation is being 
+#.  $D__DPL_TASK_IS_FORCED - Sets this to ‘true’ if installation is being 
 #.                          forced, i.e., it would not have been initiated if 
 #.                          not for force option.
 #
@@ -297,11 +297,11 @@ __reconcile_dcheck_codes()
 #
 __task_is_installable()
 {
-  # Make sure $D_DPL_TASK_IS_FORCED is not inherited from previous tasks
-  unset D_DPL_TASK_IS_FORCED
+  # Make sure $D__DPL_TASK_IS_FORCED is not inherited from previous tasks
+  unset D__DPL_TASK_IS_FORCED
 
   # Figure out current task number, assuming this function is called once per
-  [ -z ${D_DPL_TASK_NUM+isset} ] && D_DPL_TASK_NUM=0 || (( D_DPL_TASK_NUM++ ))
+  [ -z ${D__DPL_TASK_NUM+isset} ] && D__DPL_TASK_NUM=0 || (( D__DPL_TASK_NUM++ ))
 
   # If task is irrelevant, return immediately
   if __multitask_hlp__current_task is_irrelevant; then return 1; fi
@@ -312,7 +312,7 @@ __task_is_installable()
     return 0
   else
     # Not suitable for installation: only go in forced mode
-    if $D_OPT_FORCE; then D_DPL_TASK_IS_FORCED=true; return 0
+    if $D__OPT_FORCE; then D__DPL_TASK_IS_FORCED=true; return 0
     else
       # This task will be skipped: set flag and return
       __multitask_hlp__current_task set is_skipped
@@ -341,33 +341,33 @@ __catch_dinstall_code()
   if __multitask_hlp__current_task is_irrelevant; then return 0; fi
 
   ## If not already, set up status array of booleans:
-  #.  $D_DPL_TASK_STATUS_SUMMARY[0] - true if all tasks were installed
-  #.  $D_DPL_TASK_STATUS_SUMMARY[1] - true if all tasks failed to install
-  #.  $D_DPL_TASK_STATUS_SUMMARY[2] - true if all tasks were skipped
-  #.  $D_DPL_TASK_STATUS_SUMMARY[3] - true if at least one failure occurred
+  #.  $D__DPL_TASK_STATUS_SUMMARY[0] - true if all tasks were installed
+  #.  $D__DPL_TASK_STATUS_SUMMARY[1] - true if all tasks failed to install
+  #.  $D__DPL_TASK_STATUS_SUMMARY[2] - true if all tasks were skipped
+  #.  $D__DPL_TASK_STATUS_SUMMARY[3] - true if at least one failure occurred
   #.                                  false if no failures occurred
   #
-  [ -z ${D_DPL_TASK_STATUS_SUMMARY+isset} ] \
-    && D_DPL_TASK_STATUS_SUMMARY=( true true true false )
+  [ -z ${D__DPL_TASK_STATUS_SUMMARY+isset} ] \
+    && D__DPL_TASK_STATUS_SUMMARY=( true true true false )
 
   # Small storage variable
   local j
 
   # If task was skipped, flip flags and return
   if __multitask_hlp__current_task is_skipped; then
-    for j in 0 1; do D_DPL_TASK_STATUS_SUMMARY[$j]=false; done
+    for j in 0 1; do D__DPL_TASK_STATUS_SUMMARY[$j]=false; done
     return 0
   fi
 
   # Check exit code
   case $last_code in
     1)    # Failed to install: flip flags
-          for j in 0 2; do D_DPL_TASK_STATUS_SUMMARY[$j]=false; done
+          for j in 0 2; do D__DPL_TASK_STATUS_SUMMARY[$j]=false; done
           # Also, mark occurrence of failure
-          D_DPL_TASK_STATUS_SUMMARY[3]=true
+          D__DPL_TASK_STATUS_SUMMARY[3]=true
           ;;
     2)    # Skipped: flip flags
-          for j in 0 1; do D_DPL_TASK_STATUS_SUMMARY[$j]=false; done
+          for j in 0 1; do D__DPL_TASK_STATUS_SUMMARY[$j]=false; done
           ;;
     100)  # Emergency: reboot needed
           return 100
@@ -379,7 +379,7 @@ __catch_dinstall_code()
           return 666
           ;;
     *)    # Installed: flip flags
-          for j in 1 2; do D_DPL_TASK_STATUS_SUMMARY[$j]=false; done
+          for j in 1 2; do D__DPL_TASK_STATUS_SUMMARY[$j]=false; done
           ;;
   esac
 
@@ -403,12 +403,12 @@ __catch_dinstall_code()
 __reconcile_dinstall_codes()
 {
   # Sequentially check if at least one all-code survived
-  if [ "${D_DPL_TASK_STATUS_SUMMARY[0]}" = true ]; then return 0
-  elif [ "${D_DPL_TASK_STATUS_SUMMARY[1]}" = true ]; then return 1
-  elif [ "${D_DPL_TASK_STATUS_SUMMARY[2]}" = true ]; then return 2
+  if [ "${D__DPL_TASK_STATUS_SUMMARY[0]}" = true ]; then return 0
+  elif [ "${D__DPL_TASK_STATUS_SUMMARY[1]}" = true ]; then return 1
+  elif [ "${D__DPL_TASK_STATUS_SUMMARY[2]}" = true ]; then return 2
   else
     # Nothing conclusive: check if failure was encountered
-    if [ "${D_DPL_TASK_STATUS_SUMMARY[3]}" = true ]; then
+    if [ "${D__DPL_TASK_STATUS_SUMMARY[3]}" = true ]; then
       # Some failed: call this failure
       return 1
     else
@@ -423,7 +423,7 @@ __reconcile_dinstall_codes()
 ## Signals if current task has been previously detected as removable
 #
 ## Provides into the global scope:
-#.  $D_DPL_TASK_IS_FORCED - Sets this to ‘true’ if removal is being forced, 
+#.  $D__DPL_TASK_IS_FORCED - Sets this to ‘true’ if removal is being forced, 
 #.                          i.e., it would not have been initiated if not for 
 #.                          force option.
 #
@@ -433,14 +433,14 @@ __reconcile_dinstall_codes()
 #
 __task_is_removable()
 {
-  # Make sure $D_DPL_TASK_IS_FORCED is not inherited from previous tasks
-  unset D_DPL_TASK_IS_FORCED
+  # Make sure $D__DPL_TASK_IS_FORCED is not inherited from previous tasks
+  unset D__DPL_TASK_IS_FORCED
 
   # Figure out current task number, assuming this function is called once per
-  if [ -z ${D_DPL_TASK_NUM+isset} ]; then
-    D_DPL_TASK_NUM="$D_DPL_TASK_MAX_NUM"
+  if [ -z ${D__DPL_TASK_NUM+isset} ]; then
+    D__DPL_TASK_NUM="$D__DPL_TASK_MAX_NUM"
   else
-    (( D_DPL_TASK_NUM-- ))
+    (( D__DPL_TASK_NUM-- ))
   fi
 
   # If task is irrelevant, return immediately
@@ -452,7 +452,7 @@ __task_is_removable()
     return 0
   else
     # Not suitable for removal: only go in forced mode
-    if $D_OPT_FORCE; then D_DPL_TASK_IS_FORCED=true; return 0
+    if $D__OPT_FORCE; then D__DPL_TASK_IS_FORCED=true; return 0
     else
       # This task will be skipped: set flag and return
       __multitask_hlp__current_task set is_skipped
@@ -481,33 +481,33 @@ __catch_dremove_code()
   if __multitask_hlp__current_task is_irrelevant; then return 0; fi
 
   ## If not already, set up status array of booleans:
-  #.  $D_DPL_TASK_STATUS_SUMMARY[0] - true if all tasks were removed
-  #.  $D_DPL_TASK_STATUS_SUMMARY[1] - true if all tasks failed to remove
-  #.  $D_DPL_TASK_STATUS_SUMMARY[2] - true if all tasks were skipped
-  #.  $D_DPL_TASK_STATUS_SUMMARY[3] - true if at least one failure occurred
+  #.  $D__DPL_TASK_STATUS_SUMMARY[0] - true if all tasks were removed
+  #.  $D__DPL_TASK_STATUS_SUMMARY[1] - true if all tasks failed to remove
+  #.  $D__DPL_TASK_STATUS_SUMMARY[2] - true if all tasks were skipped
+  #.  $D__DPL_TASK_STATUS_SUMMARY[3] - true if at least one failure occurred
   #.                                  false if no failures occurred
   #
-  [ -z ${D_DPL_TASK_STATUS_SUMMARY+isset} ] \
-    && D_DPL_TASK_STATUS_SUMMARY=( true true true false )
+  [ -z ${D__DPL_TASK_STATUS_SUMMARY+isset} ] \
+    && D__DPL_TASK_STATUS_SUMMARY=( true true true false )
 
   # Small storage variable
   local j
 
   # If task was skipped, flip flags and return
   if __multitask_hlp__current_task is_skipped; then
-    for j in 0 1; do D_DPL_TASK_STATUS_SUMMARY[$j]=false; done
+    for j in 0 1; do D__DPL_TASK_STATUS_SUMMARY[$j]=false; done
     return 0
   fi
 
   # Check exit code
   case $last_code in
     1)    # Failed to install: flip flags
-          for j in 0 2; do D_DPL_TASK_STATUS_SUMMARY[$j]=false; done
+          for j in 0 2; do D__DPL_TASK_STATUS_SUMMARY[$j]=false; done
           # Also, mark occurrence of failure
-          D_DPL_TASK_STATUS_SUMMARY[3]=true
+          D__DPL_TASK_STATUS_SUMMARY[3]=true
           ;;
     2)    # Skipped: flip flags
-          for j in 0 1; do D_DPL_TASK_STATUS_SUMMARY[$j]=false; done
+          for j in 0 1; do D__DPL_TASK_STATUS_SUMMARY[$j]=false; done
           ;;
     100)  # Emergency: reboot needed
           return 100
@@ -519,7 +519,7 @@ __catch_dremove_code()
           return 666
           ;;
     *)    # Installed: flip flags
-          for j in 1 2; do D_DPL_TASK_STATUS_SUMMARY[$j]=false; done
+          for j in 1 2; do D__DPL_TASK_STATUS_SUMMARY[$j]=false; done
           ;;
   esac
 
@@ -543,12 +543,12 @@ __catch_dremove_code()
 __reconcile_dremove_codes()
 {
   # Sequentially check if at least one all-code survived
-  if [ "${D_DPL_TASK_STATUS_SUMMARY[0]}" = true ]; then return 0
-  elif [ "${D_DPL_TASK_STATUS_SUMMARY[1]}" = true ]; then return 1
-  elif [ "${D_DPL_TASK_STATUS_SUMMARY[2]}" = true ]; then return 2
+  if [ "${D__DPL_TASK_STATUS_SUMMARY[0]}" = true ]; then return 0
+  elif [ "${D__DPL_TASK_STATUS_SUMMARY[1]}" = true ]; then return 1
+  elif [ "${D__DPL_TASK_STATUS_SUMMARY[2]}" = true ]; then return 2
   else
     # Nothing conclusive: check if failure was encountered
-    if [ "${D_DPL_TASK_STATUS_SUMMARY[3]}" = true ]; then
+    if [ "${D__DPL_TASK_STATUS_SUMMARY[3]}" = true ]; then
       # Some failed: call this failure
       return 1
     else
@@ -569,10 +569,10 @@ __multitask_hlp__current_task()
 
     # Setting flag: ditch first arg and add necessary flag
     shift; case $1 in
-      is_irrelevant)      D_DPL_TASK_FLAGS[$D_DPL_TASK_NUM]+='x';;
-      can_be_installed)   D_DPL_TASK_FLAGS[$D_DPL_TASK_NUM]+='i';;
-      can_be_removed)     D_DPL_TASK_FLAGS[$D_DPL_TASK_NUM]+='r';;
-      is_skipped)         D_DPL_TASK_FLAGS[$D_DPL_TASK_NUM]+='s';;
+      is_irrelevant)      D__DPL_TASK_FLAGS[$D__DPL_TASK_NUM]+='x';;
+      can_be_installed)   D__DPL_TASK_FLAGS[$D__DPL_TASK_NUM]+='i';;
+      can_be_removed)     D__DPL_TASK_FLAGS[$D__DPL_TASK_NUM]+='r';;
+      is_skipped)         D__DPL_TASK_FLAGS[$D__DPL_TASK_NUM]+='s';;
       *)                  return 1;;
     esac
 
@@ -580,10 +580,10 @@ __multitask_hlp__current_task()
 
     # Checking flag: return 0/1 based on presence of requested flag
     case $1 in
-      is_irrelevant)      [[ ${D_DPL_TASK_FLAGS[$D_DPL_TASK_NUM]} == *x* ]];;
-      can_be_installed)   [[ ${D_DPL_TASK_FLAGS[$D_DPL_TASK_NUM]} == *i* ]];;
-      can_be_removed)     [[ ${D_DPL_TASK_FLAGS[$D_DPL_TASK_NUM]} == *r* ]];;
-      is_skipped)         [[ ${D_DPL_TASK_FLAGS[$D_DPL_TASK_NUM]} == *s* ]];;
+      is_irrelevant)      [[ ${D__DPL_TASK_FLAGS[$D__DPL_TASK_NUM]} == *x* ]];;
+      can_be_installed)   [[ ${D__DPL_TASK_FLAGS[$D__DPL_TASK_NUM]} == *i* ]];;
+      can_be_removed)     [[ ${D__DPL_TASK_FLAGS[$D__DPL_TASK_NUM]} == *r* ]];;
+      is_skipped)         [[ ${D__DPL_TASK_FLAGS[$D__DPL_TASK_NUM]} == *s* ]];;
       *)                  return 1;;
     esac
 

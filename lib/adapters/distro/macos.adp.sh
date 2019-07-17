@@ -28,7 +28,7 @@ __offer_to_install_brew()
     'Failed to detect Homebrew (package manager for macOS, https://brew.sh/)'
 
   # Prompr user
-  if dprompt_key -b --color "$YELLOW" --answer "$D_OPT_ANSWER" \
+  if dprompt_key -b --color "$YELLOW" --answer "$D__OPT_ANSWER" \
     --prompt "Install Homebrew?"
   then
 
@@ -36,7 +36,7 @@ __offer_to_install_brew()
     dprint_debug 'Installing Homebrew'
 
     # Launch installation with verbosity in mind
-    if $D_OPT_QUIET; then
+    if $D__OPT_QUIET; then
 
       # Launch quietly
       /usr/bin/ruby -e \
@@ -117,23 +117,23 @@ if HOMEBREW_NO_AUTO_UPDATE=1 brew --version &>/dev/null; then
 
 fi
 
-# Implement overriding mechanism for $D_DPL_TARGET_PATHS and $D_DPL_TARGET_DIR
+# Implement overriding mechanism for $D__DPL_TARGET_PATHS and $D__DPL_TARGET_DIR
 __override_d_targets_for_distro()
 {
-  # Check if $D_DPL_TARGET_PATHS_MACOS contains at least one string
-  if [ ${#D_DPL_TARGET_PATHS_MACOS[@]} -gt 1 \
-    -o -n "$D_DPL_TARGET_PATHS_MACOS" ]; then
+  # Check if $D__DPL_TARGET_PATHS_MACOS contains at least one string
+  if [ ${#D__DPL_TARGET_PATHS_MACOS[@]} -gt 1 \
+    -o -n "$D__DPL_TARGET_PATHS_MACOS" ]; then
 
-    # $D_DPL_TARGET_PATHS_MACOS is set: use it instead
-    D_DPL_TARGET_PATHS=( "${D_DPL_TARGET_PATHS_MACOS[@]}" )
+    # $D__DPL_TARGET_PATHS_MACOS is set: use it instead
+    D__DPL_TARGET_PATHS=( "${D__DPL_TARGET_PATHS_MACOS[@]}" )
     
   fi
 
-  # Check if $D_DPL_TARGET_DIR_MACOS is not empty
-  if [ -n "$D_DPL_TARGET_DIR_MACOS" ]; then
+  # Check if $D__DPL_TARGET_DIR_MACOS is not empty
+  if [ -n "$D__DPL_TARGET_DIR_MACOS" ]; then
 
-    # $D_DPL_TARGET_DIR_MACOS is set: use it instead
-    D_DPL_TARGET_DIR=( "${D_DPL_TARGET_DIR_MACOS[@]}" )
+    # $D__DPL_TARGET_DIR_MACOS is set: use it instead
+    D__DPL_TARGET_DIR=( "${D__DPL_TARGET_DIR_MACOS[@]}" )
     
   fi
 }

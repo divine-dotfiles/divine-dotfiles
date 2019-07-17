@@ -1,11 +1,11 @@
-D_DPL_NAME=
-D_DPL_DESC=
-D_DPL_PRIORITY=4096
-D_DPL_FLAGS=
-D_DPL_WARNING=
+D__DPL_NAME=
+D__DPL_DESC=
+D__DPL_PRIORITY=4096
+D__DPL_FLAGS=
+D__DPL_WARNING=
 
 # Queue of items to be processed
-D_DPL_QUEUE_MAIN=()
+D__DPL_QUEUE_MAIN=()
 
 dcheck()    { __queue_hlp__dcheck;    }
 dinstall()  { __queue_hlp__dinstall;  }

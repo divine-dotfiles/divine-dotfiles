@@ -38,10 +38,10 @@ __sort_out_dpl_repos()
   fi
 
   # Load results of scanning repo directory
-  if [ -r "$D_DIR_DPL_REPOS" -a -d "$D_DIR_DPL_REPOS" ]; then
+  if [ -r "$D__DIR_DPL_REPOS" -a -d "$D__DIR_DPL_REPOS" ]; then
     while IFS= read -r -d $'\0' actual_repo_dir; do
       actual_repo_dirs+=( "$actual_repo_dir" )
-    done < <( find "$D_DIR_DPL_REPOS" -mindepth 2 -maxdepth 2 -type d -print0 )
+    done < <( find "$D__DIR_DPL_REPOS" -mindepth 2 -maxdepth 2 -type d -print0 )
   fi
 
   # Extract count of actual dirs
@@ -60,7 +60,7 @@ __sort_out_dpl_repos()
       actual_repo_dir="${actual_repo_dirs[$j]}"
 
       # Check if current directory corresponds to current repo record
-      [ "$D_DIR_DPL_REPOS/$recorded_user_repo" = "$actual_repo_dir" ] \
+      [ "$D__DIR_DPL_REPOS/$recorded_user_repo" = "$actual_repo_dir" ] \
         || continue
 
       # Directory matched, remove it from further consideration
@@ -100,7 +100,7 @@ __sort_out_dpl_repos()
     actual_repo_dir="${actual_repo_dirs[$j]}"
 
     # Compose user/repo
-    user_repo="${actual_repo_dir#"$D_DIR_DPL_REPOS/"}"
+    user_repo="${actual_repo_dir#"$D__DIR_DPL_REPOS/"}"
 
     # Announce removal
     dprint_start -l \
@@ -144,7 +144,7 @@ __install_dpl_repo()
   local temp_dest="$( mktemp -d )"
 
   # Construct permanent destination
-  local perm_dest="$D_DIR_DPL_REPOS/$user_repo"
+  local perm_dest="$D__DIR_DPL_REPOS/$user_repo"
 
   # First, attempt to check existense of repository using git
   if git --version &>/dev/null; then
@@ -285,7 +285,7 @@ __remove_dpl_repo()
   fi
 
   # Construct permanent destination
-  local perm_dest="$D_DIR_DPL_REPOS/$user_repo"
+  local perm_dest="$D__DIR_DPL_REPOS/$user_repo"
 
   # Check if that path exists
   if [ -e "$perm_dest" ]; then

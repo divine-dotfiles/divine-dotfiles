@@ -18,21 +18,21 @@
 
 #>  __cp_hlp__dcheck
 #
-## Checks whether every file in $D_DPL_TARGET_PATHS[_*] (single path or array 
-#. thereof) is currently a copy of corresponding file in $D_DPL_ASSET_PATHS
+## Checks whether every file in $D__DPL_TARGET_PATHS[_*] (single path or array 
+#. thereof) is currently a copy of corresponding file in $D__DPL_ASSET_PATHS
 #
 ## Returns appropriate status based on overall state of installation, prints 
 #. warnings when warranted. If in doubt, prefers to prompt user on how to 
 #. proceed.
 #
 ## Requires:
-#.  $D_DPL_ASSET_PATHS          - (array ok) Locations of replacement files
-#.  $D_DPL_TARGET_PATHS         - (array ok) Locations of files to be replaced
+#.  $D__DPL_ASSET_PATHS          - (array ok) Locations of replacement files
+#.  $D__DPL_TARGET_PATHS         - (array ok) Locations of files to be replaced
 #.  `dos.utl.sh`
 #
 ## Provides into the global scope:
-#.  $D_DPL_TARGET_PATHS   - (array) Version after overrides for current OS
-#.  $D_DPL_BACKUP_PATHS   - (array) Paths to where to put backups
+#.  $D__DPL_TARGET_PATHS   - (array) Version after overrides for current OS
+#.  $D__DPL_BACKUP_PATHS   - (array) Paths to where to put backups
 #
 ## Returns:
 #.  Values supported by dcheck function in *.dpl.sh
@@ -75,14 +75,14 @@ __cp_hlp__dcheck()
 
 #>  __cp_hlp__dinstall
 #
-## Copies each file in $D_DPL_ASSET_PATHS to respective destination path in 
-#. $D_DPL_TARGET_PATHS, moving pre-existing files to corresponging backup 
-#. locations in $D_DPL_BACKUP_PATHS.
+## Copies each file in $D__DPL_ASSET_PATHS to respective destination path in 
+#. $D__DPL_TARGET_PATHS, moving pre-existing files to corresponging backup 
+#. locations in $D__DPL_BACKUP_PATHS.
 #
 ## Requires:
-#.  $D_DPL_ASSET_PATHS    - (array ok) Source filepaths
-#.  $D_DPL_TARGET_PATHS   - (array ok) Destination filepaths on current OS
-#.  $D_DPL_BACKUP_PATHS   - (array ok) Backup locations
+#.  $D__DPL_ASSET_PATHS    - (array ok) Source filepaths
+#.  $D__DPL_TARGET_PATHS   - (array ok) Destination filepaths on current OS
+#.  $D__DPL_BACKUP_PATHS   - (array ok) Backup locations
 #
 ## Returns:
 #.  Values supported by dinstall function in *.dpl.sh
@@ -113,13 +113,13 @@ __cp_hlp__dinstall()
 
 #>  __cp_hlp__dremove
 #
-## Removes each path in $D_DPL_TARGET_PATHS that has record of previous 
-#. copying, then moves corresponding path in $D_DPL_BACKUP_PATHS to its 
+## Removes each path in $D__DPL_TARGET_PATHS that has record of previous 
+#. copying, then moves corresponding path in $D__DPL_BACKUP_PATHS to its 
 #. original location
 #
 ## Requires:
-#.  $D_DPL_TARGET_PATHS    - (array ok) Paths to be restored on current OS
-#.  $D_DPL_BACKUP_PATHS    - (array ok) Backup locations
+#.  $D__DPL_TARGET_PATHS    - (array ok) Paths to be restored on current OS
+#.  $D__DPL_BACKUP_PATHS    - (array ok) Backup locations
 #.  `dln.utl.sh`
 #
 ## Returns:
@@ -157,36 +157,36 @@ __cp_hlp__pre_process()
   # Override targets for current OS distro, if specific variable is non-empty
   __override_d_targets_for_distro
 
-  # If $D_DPL_TARGET_PATHS is thus far empty, try another trick
-  if ! [ ${#D_DPL_TARGET_PATHS[@]} -gt 1 -o -n "$D_DPL_TARGET_PATHS" ] \
-    && [ -n "$D_DPL_TARGET_DIR" ] \
-    && [ ${#D_DPL_ASSET_RELPATHS[@]} -gt 0 ]
+  # If $D__DPL_TARGET_PATHS is thus far empty, try another trick
+  if ! [ ${#D__DPL_TARGET_PATHS[@]} -gt 1 -o -n "$D__DPL_TARGET_PATHS" ] \
+    && [ -n "$D__DPL_TARGET_DIR" ] \
+    && [ ${#D__DPL_ASSET_RELPATHS[@]} -gt 0 ]
   then
 
-    # Initialize $D_DPL_TARGET_PATHS to empty array
-    D_DPL_TARGET_PATHS=()
+    # Initialize $D__DPL_TARGET_PATHS to empty array
+    D__DPL_TARGET_PATHS=()
 
     # Storage variable
     local relative_path
 
     # Iterate over relative asset paths
-    for relative_path in "${D_DPL_ASSET_RELPATHS[@]}"; do
+    for relative_path in "${D__DPL_ASSET_RELPATHS[@]}"; do
 
       # Construct path to target and add it
-      D_DPL_TARGET_PATHS+=( "$D_DPL_TARGET_DIR/$relative_path" )
+      D__DPL_TARGET_PATHS+=( "$D__DPL_TARGET_DIR/$relative_path" )
 
     done
 
   fi
 
-  # Check if $D_DPL_TARGET_PATHS has still ended up empty
-  if ! [ ${#D_DPL_TARGET_PATHS[@]} -gt 1 -o -n "$D_DPL_TARGET_PATHS" ]; then
+  # Check if $D__DPL_TARGET_PATHS has still ended up empty
+  if ! [ ${#D__DPL_TARGET_PATHS[@]} -gt 1 -o -n "$D__DPL_TARGET_PATHS" ]; then
 
     # Report and return failure
     local detected_os="$OS_FAMILY"
     [ -n "$OS_DISTRO" ] && detected_os+=" ($OS_DISTRO)"
     dprint_debug \
-      'Empty list of paths to replace ($D_DPL_TARGET_PATHS) for detected OS:' \
+      'Empty list of paths to replace ($D__DPL_TARGET_PATHS) for detected OS:' \
       "$detected_os"
     return 1
 
@@ -199,9 +199,9 @@ __cp_hlp__pre_process()
 __cp_hlp__item_is_installed()
 {
   # Storage variables
-  local to_path="${D_DPL_TARGET_PATHS[$D_DPL_ITEM_NUM]}"
-  local from_path="${D_DPL_ASSET_PATHS[$D_DPL_ITEM_NUM]}"
-  local backup_path="$D_DPL_BACKUPS_DIR/$D_DPL_ITEM_STASH_KEY"
+  local to_path="${D__DPL_TARGET_PATHS[$D__DPL_ITEM_NUM]}"
+  local from_path="${D__DPL_ASSET_PATHS[$D__DPL_ITEM_NUM]}"
+  local backup_path="$D__DPL_BACKUPS_DIR/$D__DPL_ITEM_STASH_KEY"
 
   # Check if source and destination paths are both not empty
   [ -n "$to_path" -a -n "$from_path" ] || {
@@ -223,7 +223,7 @@ __cp_hlp__item_is_installed()
     fi
 
     # Report and return
-    dprint_debug "$D_DPL_ITEM_TITLE: $output"
+    dprint_debug "$D__DPL_ITEM_TITLE: $output"
     return 3
 
   }
@@ -263,9 +263,9 @@ __cp_hlp__item_is_installed()
 __cp_hlp__install_item()
 {
   # Storage variables
-  local to_path="${D_DPL_TARGET_PATHS[$D_DPL_ITEM_NUM]}"
-  local from_path="${D_DPL_ASSET_PATHS[$D_DPL_ITEM_NUM]}"
-  local backup_path="$D_DPL_BACKUPS_DIR/$D_DPL_ITEM_STASH_KEY"
+  local to_path="${D__DPL_TARGET_PATHS[$D__DPL_ITEM_NUM]}"
+  local from_path="${D__DPL_ASSET_PATHS[$D__DPL_ITEM_NUM]}"
+  local backup_path="$D__DPL_BACKUPS_DIR/$D__DPL_ITEM_STASH_KEY"
   local to_parent_dir="$( dirname -- "$to_path" )"
 
   # Check if something already exists at destination path
@@ -362,9 +362,9 @@ __cp_hlp__install_item()
 __cp_hlp__remove_item()
 {
   # Storage variables
-  local to_path="${D_DPL_TARGET_PATHS[$D_DPL_ITEM_NUM]}"
-  local from_path="${D_DPL_ASSET_PATHS[$D_DPL_ITEM_NUM]}"
-  local backup_path="$D_DPL_BACKUPS_DIR/$D_DPL_ITEM_STASH_KEY"
+  local to_path="${D__DPL_TARGET_PATHS[$D__DPL_ITEM_NUM]}"
+  local from_path="${D__DPL_ASSET_PATHS[$D__DPL_ITEM_NUM]}"
+  local backup_path="$D__DPL_BACKUPS_DIR/$D__DPL_ITEM_STASH_KEY"
   local to_parent_dir="$( dirname -- "$to_path" )"
 
   # Ensure destination parent directory exists

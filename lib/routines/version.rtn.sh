@@ -36,7 +36,7 @@ __show_version_and_exit()
 
   local version_msg
   read -r -d '' version_msg << EOF
-${bold}${D_FMWK_NAME}${normal} 1.7.0
+${bold}${D__FMWK_NAME}${normal} 1.7.0
 <https://github.com/no-simpler/divine-dotfiles>
 This is free software: you are free to change and redistribute it
 There is NO WARRANTY, to the extent permitted by law

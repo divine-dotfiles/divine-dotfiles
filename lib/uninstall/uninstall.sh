@@ -70,7 +70,7 @@ __declare_global_colors()
 __parse_arguments()
 {
   # Define global storage for option values
-  D_OPT_QUIET=false       # Be verbose by default
+  D__OPT_QUIET=false       # Be verbose by default
   D_REMOVE_FMWK=          # Whether to perform removal of framework
   D_REMOVE_UTILS=         # Whether to perform removal of utils
   D_REMOVE_BREW=          # Whether to perform removal of Homebrew
@@ -82,8 +82,8 @@ __parse_arguments()
   # Parse arguments
   for arg in "${args[@]}"; do
     case "$arg" in
-      --quiet)            D_OPT_QUIET=true;;
-      --verbose)          D_OPT_QUIET=false;;
+      --quiet)            D__OPT_QUIET=true;;
+      --verbose)          D__OPT_QUIET=false;;
       --framework-yes)    D_REMOVE_FMWK=true;;
       --framework-no)     D_REMOVE_FMWK=false;;
       --utils-yes)        D_REMOVE_UTILS=true;;
@@ -206,7 +206,7 @@ __remove_all_dpls()
   esac
 
   # Run installation
-  if $D_OPT_QUIET; then
+  if $D__OPT_QUIET; then
     if [ "$D_RUN_REMOVE_ALL" = true ]; then
       "$D_INSTALL_PATH"/intervene.sh remove --with-! --yes
     else
@@ -274,7 +274,7 @@ __uninstall_homebrew()
     if chmod +x "$tmpdir/uninstall"; then
 
       # Execute script with verbosity in mind
-      if $D_OPT_QUIET; then
+      if $D__OPT_QUIET; then
 
         # Run script quietly
         $tmpdir/uninstall --force &>/dev/null
@@ -341,7 +341,7 @@ __uninstall_utils()
   esac
 
   # Run removal
-  if $D_OPT_QUIET; then
+  if $D__OPT_QUIET; then
     if [ "$D_REMOVE_UTILS" = true ]; then
       "$D_INSTALL_PATH"/intervene.sh cecf357ed9fed1037eb906633a4299ba --yes
     else
@@ -459,7 +459,7 @@ __uninstall_shortcut()
 
 dprint_debug()
 {
-  $D_OPT_QUIET && return 0
+  $D__OPT_QUIET && return 0
   printf >&2 "${CYAN}%s %s${NORMAL}\n" "==>" "$1"; shift
   while [ $# -gt 0 ]
   do printf >&2 "    ${CYAN}%s${NORMAL}\n" "$1"; shift; done; return 0
@@ -467,28 +467,28 @@ dprint_debug()
 
 dprint_start()
 {
-  $D_OPT_QUIET && return 0
+  $D__OPT_QUIET && return 0
   printf >&2 '%s %s\n' "${BOLD}${YELLOW}==>${NORMAL}" "$1"; shift
   while [ $# -gt 0 ]; do printf >&2 '    %s\n' "$1"; shift; done; return 0
 }
 
 dprint_skip()
 {
-  $D_OPT_QUIET && return 0
+  $D__OPT_QUIET && return 0
   printf >&2 '%s %s\n' "${BOLD}${WHITE}==>${NORMAL}" "$1"; shift
   while [ $# -gt 0 ]; do printf >&2 '    %s\n' "$1"; shift; done; return 0
 }
 
 dprint_success()
 {
-  $D_OPT_QUIET && return 0
+  $D__OPT_QUIET && return 0
   printf >&2 '%s %s\n' "${BOLD}${GREEN}==>${NORMAL}" "$1"; shift
   while [ $# -gt 0 ]; do printf >&2 '    %s\n' "$1"; shift; done; return 0
 }
 
 dprint_failure()
 {
-  $D_OPT_QUIET && return 0
+  $D__OPT_QUIET && return 0
   printf >&2 '%s %s\n' "${BOLD}${RED}==>${NORMAL}" "$1"; shift
   while [ $# -gt 0 ]; do printf >&2 '    %s\n' "$1"; shift; done; return 0
 }
@@ -550,8 +550,8 @@ dstash_root_get()
   if [ ! -e "$stash_filepath" ]; then return 1; fi
 
   # Check that stash file has valid checksum
-  local calculated_md5="$( dmd5 "$D_STASH_FILEPATH" )"
-  local stored_md5="$( head -1 -- "$D_STASH_MD5_FILEPATH" 2>/dev/null )"
+  local calculated_md5="$( dmd5 "$D__STASH_FILEPATH" )"
+  local stored_md5="$( head -1 -- "$D__STASH_MD5_FILEPATH" 2>/dev/null )"
   [ "$calculated_md5" = "$stored_md5" ] || return 1
 
   # Check if requested key exists and print it if it is

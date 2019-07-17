@@ -1,10 +1,10 @@
 ## This is an annotated example of a queue manifest. It is simply a list of 
-#. entries to be put in deployment’s queue array ($D_DPL_QUEUE_MAIN).
+#. entries to be put in deployment’s queue array ($D__DPL_QUEUE_MAIN).
 #
 ## By default, queue manifest file must be placed next to deployment file and 
 #. named identically, except for changing ‘.dpl.sh’ suffix to ‘dpl.que’. 
 #. Alternatively, full path to manifest file may be provided in the root of 
-#. deployment file by assigning it to global variable $D_DPL_QUE_PATH.
+#. deployment file by assigning it to global variable $D__DPL_QUE_PATH.
 #
 ## Queue entries are arbitrary strings. They do show up in debug messages, so 
 #. it is preferred for them to be human-readable.

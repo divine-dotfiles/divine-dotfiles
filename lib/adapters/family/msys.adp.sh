@@ -15,23 +15,23 @@
 ## For reference, see lib/templates/adapters/family.adp.sh
 #
 
-# Implement overriding mechanism for $D_DPL_TARGET_PATHS and $D_DPL_TARGET_DIR
+# Implement overriding mechanism for $D__DPL_TARGET_PATHS and $D__DPL_TARGET_DIR
 __override_d_targets_for_family()
 {
-  # Check if $D_DPL_TARGET_PATHS_MSYS contains at least one string
-  if [ ${#D_DPL_TARGET_PATHS_MSYS[@]} -gt 1 \
-    -o -n "$D_DPL_TARGET_PATHS_MSYS" ]; then
+  # Check if $D__DPL_TARGET_PATHS_MSYS contains at least one string
+  if [ ${#D__DPL_TARGET_PATHS_MSYS[@]} -gt 1 \
+    -o -n "$D__DPL_TARGET_PATHS_MSYS" ]; then
 
-    # $D_DPL_TARGET_PATHS_MSYS is set: use it instead
-    D_DPL_TARGET_PATHS=( "${D_DPL_TARGET_PATHS_MSYS[@]}" )
+    # $D__DPL_TARGET_PATHS_MSYS is set: use it instead
+    D__DPL_TARGET_PATHS=( "${D__DPL_TARGET_PATHS_MSYS[@]}" )
     
   fi
 
-  # Check if $D_DPL_TARGET_DIR_MSYS is not empty
-  if [ -n "$D_DPL_TARGET_DIR_MSYS" ]; then
+  # Check if $D__DPL_TARGET_DIR_MSYS is not empty
+  if [ -n "$D__DPL_TARGET_DIR_MSYS" ]; then
 
-    # $D_DPL_TARGET_DIR_MSYS is set: use it instead
-    D_DPL_TARGET_DIR="$D_DPL_TARGET_DIR_MSYS"
+    # $D__DPL_TARGET_DIR_MSYS is set: use it instead
+    D__DPL_TARGET_DIR="$D__DPL_TARGET_DIR_MSYS"
     
   fi
 }

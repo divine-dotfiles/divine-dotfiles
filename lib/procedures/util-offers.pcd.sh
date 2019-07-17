@@ -26,7 +26,7 @@
 __run_util_offers()
 {
   # Fork depending on routine
-  case $D_REQ_ROUTINE in
+  case $D__REQ_ROUTINE in
     attach) __offer_git_and_friends; unset -f __offer_git_and_friends;;
     plug)   __offer_git_and_friends; unset -f __offer_git_and_friends;;
     update) __offer_git_and_friends; unset -f __offer_git_and_friends;;
@@ -95,7 +95,7 @@ __offer_git_and_friends()
         if ! $alt_flow_available; then
 
           # Verdict depends on routing
-          case $D_REQ_ROUTINE in
+          case $D__REQ_ROUTINE in
             attach)
               # Fatal: no way to attach deployments without Github access
               dprint_failure -l \
@@ -161,7 +161,7 @@ __remove_all_offered_utils()
   for installed_util in "${installed_utils[@]}"; do
 
     # Prompt user for whether to un-install utility
-    dprompt_key --bare --or-quit --answer "$D_OPT_ANSWER" \
+    dprompt_key --bare --or-quit --answer "$D__OPT_ANSWER" \
       --prompt "Un-install $installed_util using $OS_PKGMGR?"
 
     # Check status
@@ -172,7 +172,7 @@ __remove_all_offered_utils()
           dprint_start -l "Un-installing $installed_util"
 
           # Launch OS package manager with verbosity in mind
-          if $D_OPT_QUIET; then
+          if $D__OPT_QUIET; then
 
             # Launch quietly
             os_pkgmgr dremove "$installed_util" &>/dev/null

@@ -30,11 +30,11 @@ __perform_attach()
   __sort_out_dpl_repos || exit 1
   
   # Announce beginning
-  if [ "$D_OPT_ANSWER" = false ]; then
-    dprint_plaque -pcw "$WHITE" "$D_CONST_PLAQUE_WIDTH" \
+  if [ "$D__OPT_ANSWER" = false ]; then
+    dprint_plaque -pcw "$WHITE" "$D__CONST_PLAQUE_WIDTH" \
       -- '‘Attaching’ deployments'
   else
-    dprint_plaque -pcw "$GREEN" "$D_CONST_PLAQUE_WIDTH" \
+    dprint_plaque -pcw "$GREEN" "$D__CONST_PLAQUE_WIDTH" \
       -- 'Attaching deployments'
   fi
 
@@ -56,23 +56,23 @@ __perform_attach()
   local attached_anything=false errors_encountered=false
 
   # Iterate over script arguments
-  for dpl_arg in "${D_REQ_ARGS[@]}"; do
+  for dpl_arg in "${D__REQ_ARGS[@]}"; do
 
     # Print newline to visually separate attachments
     printf >&2 '\n'
 
     # Announce start
-    dprint_ode "${D_ODE_NORMAL[@]}" -c "$YELLOW" -- \
+    dprint_ode "${D__ODE_NORMAL[@]}" -c "$YELLOW" -- \
       '>>>' 'Attaching' ':' "$dpl_arg"
 
     # Try to attach deployments
     if __attach__attempt_github_repo "$dpl_arg"; then
       attached_anything=true
-      dprint_ode "${D_ODE_NORMAL[@]}" -c "$GREEN" -- \
+      dprint_ode "${D__ODE_NORMAL[@]}" -c "$GREEN" -- \
         'vvv' 'Attached' ':' "$dpl_arg"
     else
       errors_encountered=true
-      dprint_ode "${D_ODE_NORMAL[@]}" -c "$RED" -- \
+      dprint_ode "${D__ODE_NORMAL[@]}" -c "$RED" -- \
         'xxx' 'Failed to attach' ':' "$dpl_arg"
     fi
 
@@ -80,27 +80,27 @@ __perform_attach()
 
   # Announce routine completion
   printf >&2 '\n'
-  if [ "$D_OPT_ANSWER" = false ]; then
-    dprint_plaque -pcw "$WHITE" "$D_CONST_PLAQUE_WIDTH" \
+  if [ "$D__OPT_ANSWER" = false ]; then
+    dprint_plaque -pcw "$WHITE" "$D__CONST_PLAQUE_WIDTH" \
       -- 'Finished ‘attaching’ deployments'
     return 2
   elif $attached_anything; then
     if $errors_encountered; then
-      dprint_plaque -pcw "$YELLOW" "$D_CONST_PLAQUE_WIDTH" \
+      dprint_plaque -pcw "$YELLOW" "$D__CONST_PLAQUE_WIDTH" \
         -- 'Successfully attached some deployments'
       return 0
     else
-      dprint_plaque -pcw "$GREEN" "$D_CONST_PLAQUE_WIDTH" \
+      dprint_plaque -pcw "$GREEN" "$D__CONST_PLAQUE_WIDTH" \
         -- 'Successfully attached all deployments'
       return 0
     fi
   else
     if $errors_encountered; then
-      dprint_plaque -pcw "$RED" "$D_CONST_PLAQUE_WIDTH" \
+      dprint_plaque -pcw "$RED" "$D__CONST_PLAQUE_WIDTH" \
         -- 'Failed to attach deployments'
       return 1
     else
-      dprint_plaque -pcw "$WHITE" "$D_CONST_PLAQUE_WIDTH" \
+      dprint_plaque -pcw "$WHITE" "$D__CONST_PLAQUE_WIDTH" \
         -- 'Nothing to do'
       return 2
     fi
@@ -140,7 +140,7 @@ __attach__attempt_github_repo()
   local temp_dest="$( mktemp -d )"
 
   # Construct permanent destination
-  local perm_dest="$D_DIR_DPL_REPOS/$user_repo"
+  local perm_dest="$D__DIR_DPL_REPOS/$user_repo"
 
   # First, attempt to check existense of repository using git
   if $GIT_AVAILABLE; then
@@ -150,7 +150,7 @@ __attach__attempt_github_repo()
       # Both git and remote repo are available
 
       # Prompt user about the attachment
-      dprompt_key --bare --answer "$D_OPT_ANSWER" --prompt 'Clone it?' -- \
+      dprompt_key --bare --answer "$D__OPT_ANSWER" --prompt 'Clone it?' -- \
         "Detected ${BOLD}Github repository${NORMAL} at:" \
         -i "https://github.com/${user_repo}" || return 1
 
@@ -188,7 +188,7 @@ __attach__attempt_github_repo()
       # Both curl and remote repo are available
 
       # Prompt user about the attachment
-      dprompt_key --bare --answer "$D_OPT_ANSWER" --prompt 'Download it?' \
+      dprompt_key --bare --answer "$D__OPT_ANSWER" --prompt 'Download it?' \
         -- "Detected ${BOLD}Github repository${NORMAL} (tarball) at:" \
         -i "https://github.com/${user_repo}" || return 1
 
@@ -216,7 +216,7 @@ __attach__attempt_github_repo()
       # Both wget and remote repo are available
 
       # Prompt user about the attachment
-      dprompt_key --bare --answer "$D_OPT_ANSWER" --prompt 'Download it?' \
+      dprompt_key --bare --answer "$D__OPT_ANSWER" --prompt 'Download it?' \
         -- "Detected ${BOLD}Github repository${NORMAL} (tarball) at:" \
         -i "https://github.com/${user_repo}" || return 1
 
@@ -325,12 +325,12 @@ __attach__run_checks_and_prompts()
         ;;
     2)  # At least one deployment file has reserved delimiter in its path
         local list_of_illegal_dpls=() illegal_dpl
-        for illegal_dpl in "${D_DPL_PATHS_WITH_DELIMITER[@]}"; do
+        for illegal_dpl in "${D__DPL_PATHS_WITH_DELIMITER[@]}"; do
           list_of_illegal_dpls+=( -i "$illegal_dpl" )
         done
         dprint_debug \
           "Illegal deployments detected at:" "${list_of_illegal_dpls[@]}" \
-          -n "String '$D_CONST_DELIMITER' is reserved internal path delimiter"
+          -n "String '$D__CONST_DELIMITER' is reserved internal path delimiter"
         return 1
         ;;
     *)  # Unsopported code
@@ -362,7 +362,7 @@ __attach__run_checks_and_prompts()
       )
     fi
 
-    if dprompt_key --bare --prompt 'Pre-erase?' --answer "$D_OPT_ANSWER" -- \
+    if dprompt_key --bare --prompt 'Pre-erase?' --answer "$D__OPT_ANSWER" -- \
       "${prompt_desc[@]}"; then
 
       # Attempt to remove pre-existing file/dir
@@ -384,7 +384,7 @@ __attach__run_checks_and_prompts()
     fi
 
     # After clobbering in dpls dir, re-scan them for deployments
-    __scan_for_dpl_files --fmwk-dir "$D_DIR_DPLS" "$D_DIR_DPL_REPOS"
+    __scan_for_dpl_files --fmwk-dir "$D__DIR_DPLS" "$D__DIR_DPL_REPOS"
     
     # Check return code
     case $? in
@@ -396,12 +396,12 @@ __attach__run_checks_and_prompts()
           #. This is very much not expected: dpl dirs have already been 
           #. validated and only quick user intervention would cause this.
           local list_of_illegal_dpls=() illegal_dpl
-          for illegal_dpl in "${D_DPL_PATHS_WITH_DELIMITER[@]}"; do
+          for illegal_dpl in "${D__DPL_PATHS_WITH_DELIMITER[@]}"; do
             list_of_illegal_dpls+=( -i "$illegal_dpl" )
           done
           dprint_failure -l \
             "Illegal deployments detected at:" "${list_of_illegal_dpls[@]}" \
-            -n "String '$D_CONST_DELIMITER' is reserved internal path delimiter"
+            -n "String '$D__CONST_DELIMITER' is reserved internal path delimiter"
           exit 1
           ;;
       *)  # Unsopported code

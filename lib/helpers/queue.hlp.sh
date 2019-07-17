@@ -15,10 +15,10 @@
 __queue_hlp__dcheck()
 {
   # Initialize or increment section number
-  if [ -z ${D_DPL_QUEUE_CURRENT_SECTION_NUM[0]+isset} ]; then
-    D_DPL_QUEUE_CURRENT_SECTION_NUM[0]=0
+  if [ -z ${D__DPL_QUEUE_CURRENT_SECTION_NUM[0]+isset} ]; then
+    D__DPL_QUEUE_CURRENT_SECTION_NUM[0]=0
   else
-    (( ++D_DPL_QUEUE_CURRENT_SECTION_NUM[0] ))
+    (( ++D__DPL_QUEUE_CURRENT_SECTION_NUM[0] ))
   fi
 
   # Launch pre-processing if it is implemented
@@ -30,8 +30,8 @@ __queue_hlp__dcheck()
   fi
   
   # Check if deployment’s main queue is empty
-  if ! [ ${#D_DPL_QUEUE_MAIN[@]} -gt 1 -o -n "$D_DPL_QUEUE_MAIN" ]; then
-    dprint_debug 'Main queue is empty ($D_DPL_QUEUE_MAIN)'
+  if ! [ ${#D__DPL_QUEUE_MAIN[@]} -gt 1 -o -n "$D__DPL_QUEUE_MAIN" ]; then
+    dprint_debug 'Main queue is empty ($D__DPL_QUEUE_MAIN)'
     return 3
   fi
 
@@ -44,7 +44,7 @@ __queue_hlp__dcheck()
   local item_stash_key
 
   # Global storage variables
-  D_USER_OR_OS=true
+  D__USER_OR_OS=true
 
   # If necessary functions are not implemented: implement a dummy
   if ! declare -f d__queue_hlp__item_is_installed &>/dev/null; then
@@ -58,33 +58,33 @@ __queue_hlp__dcheck()
   fi
 
   # Calculate section edges
-  local min max secnum=${D_DPL_QUEUE_CURRENT_SECTION_NUM[0]}
+  local min max secnum=${D__DPL_QUEUE_CURRENT_SECTION_NUM[0]}
 
   # Calculate low edge
   if [ $secnum -eq 0 ]; then min=0
-  elif [[ ${D_DPL_QUEUE_SEPARATORS[$secnum-1]} =~ ^[0-9]+$ ]]; then
-    min=${D_DPL_QUEUE_SEPARATORS[$secnum-1]}
+  elif [[ ${D__DPL_QUEUE_SEPARATORS[$secnum-1]} =~ ^[0-9]+$ ]]; then
+    min=${D__DPL_QUEUE_SEPARATORS[$secnum-1]}
   else
-    min=${#D_DPL_QUEUE_MAIN[@]}
+    min=${#D__DPL_QUEUE_MAIN[@]}
   fi
 
   # Calculate high edge
-  if [[ ${D_DPL_QUEUE_SEPARATORS[$secnum]} =~ ^[0-9]+$ ]]; then
-    max=${D_DPL_QUEUE_SEPARATORS[$secnum]}
+  if [[ ${D__DPL_QUEUE_SEPARATORS[$secnum]} =~ ^[0-9]+$ ]]; then
+    max=${D__DPL_QUEUE_SEPARATORS[$secnum]}
   else
-    max=${#D_DPL_QUEUE_MAIN[@]}
+    max=${#D__DPL_QUEUE_MAIN[@]}
   fi
 
   # Announce checking
   dprint_debug -n "Checking queue items $min-$max (queue section #$secnum)"
 
   # Iterate over items in deployment’s main queue
-  for (( D_DPL_ITEM_NUM=$min; D_DPL_ITEM_NUM<$max; D_DPL_ITEM_NUM++ )); do
+  for (( D__DPL_ITEM_NUM=$min; D__DPL_ITEM_NUM<$max; D__DPL_ITEM_NUM++ )); do
 
     # Prepare global variables
-    D_DPL_ITEM_TITLE="${D_DPL_QUEUE_MAIN[$D_DPL_ITEM_NUM]}"
-    D_DPL_ITEM_STASH_KEY=
-    D_DPL_ITEM_STASH_VALUE=
+    D__DPL_ITEM_TITLE="${D__DPL_QUEUE_MAIN[$D__DPL_ITEM_NUM]}"
+    D__DPL_ITEM_STASH_KEY=
+    D__DPL_ITEM_STASH_VALUE=
     
     # Allow user a chance to set stash key
     d__queue_hlp__provide_stash_key
@@ -93,7 +93,7 @@ __queue_hlp__dcheck()
     if [ $? -eq 1 ]; then
 
       # Report and otherwise do nothing
-      # dprint_debug "(Not using stash for item: $D_DPL_ITEM_TITLE)"
+      # dprint_debug "(Not using stash for item: $D__DPL_ITEM_TITLE)"
       :
 
     else
@@ -102,16 +102,16 @@ __queue_hlp__dcheck()
       __queue_hlp__current_item set uses_stash
 
       # If stash key is empty, generate one
-      [ -z "$D_DPL_ITEM_STASH_KEY" ] \
-        && D_DPL_ITEM_STASH_KEY="$( dmd5 -s "$D_DPL_ITEM_TITLE" )"
+      [ -z "$D__DPL_ITEM_STASH_KEY" ] \
+        && D__DPL_ITEM_STASH_KEY="$( dmd5 -s "$D__DPL_ITEM_TITLE" )"
 
       # Validate stash key
-      if ! __dstash_validate_key "$D_DPL_ITEM_STASH_KEY"; then
+      if ! __dstash_validate_key "$D__DPL_ITEM_STASH_KEY"; then
 
         # Set flag, report error, and skip item
         __queue_hlp__current_item set is_invalid
         debug_queue_item 'Not checked' \
-          -n "Bad stash key: '$D_DPL_ITEM_STASH_KEY'"
+          -n "Bad stash key: '$D__DPL_ITEM_STASH_KEY'"
         continue
 
       fi
@@ -122,7 +122,7 @@ __queue_hlp__dcheck()
     if ! __queue_hlp__current_item uses_stash; then
 
       # Not using stash
-      unset D_DPL_ITEM_STASH_FLAG
+      unset D__DPL_ITEM_STASH_FLAG
 
       # Check if item is installed
       d__queue_hlp__item_is_installed; case $? in
@@ -138,7 +138,7 @@ __queue_hlp__dcheck()
             some_installed=true
             all_not_installed=false
             all_unknown=false
-            D_USER_OR_OS=false
+            D__USER_OR_OS=false
             debug_queue_item 'Installed' '(stash disabled)'
             ;;
         2)  # Item is not installed
@@ -155,13 +155,13 @@ __queue_hlp__dcheck()
             ;;
       esac
     
-    elif dstash -s has "$D_DPL_ITEM_STASH_KEY"; then
+    elif dstash -s has "$D__DPL_ITEM_STASH_KEY"; then
 
       # Record of installation exists
-      D_DPL_ITEM_STASH_FLAG=true
+      D__DPL_ITEM_STASH_FLAG=true
 
       # Populate stash value
-      D_DPL_ITEM_STASH_VALUE="$( dstash -s get "$D_DPL_ITEM_STASH_KEY" )"
+      D__DPL_ITEM_STASH_VALUE="$( dstash -s get "$D__DPL_ITEM_STASH_KEY" )"
 
       # Check if item is installed as advertised
       d__queue_hlp__item_is_installed; case $? in
@@ -170,7 +170,7 @@ __queue_hlp__dcheck()
             some_installed=true
             all_not_installed=false
             all_unknown=false
-            D_USER_OR_OS=false
+            D__USER_OR_OS=false
             debug_queue_item 'Unknown' '(record exists)'
             ;;
         1)  # Item recorded and installed
@@ -178,7 +178,7 @@ __queue_hlp__dcheck()
             some_installed=true
             all_not_installed=false
             all_unknown=false
-            D_USER_OR_OS=false
+            D__USER_OR_OS=false
             debug_queue_item 'Installed'
             ;;
         2)  # Item recorded but not installed
@@ -199,7 +199,7 @@ __queue_hlp__dcheck()
     else
 
       # No record of installation
-      D_DPL_ITEM_STASH_FLAG=false
+      D__DPL_ITEM_STASH_FLAG=false
 
       # Check if item is nevertheless installed
       d__queue_hlp__item_is_installed; case $? in
@@ -235,7 +235,7 @@ __queue_hlp__dcheck()
     good_items_exist=true
 
     # Also, save stash key for later
-    D_DPL_QUEUE_STASH_KEYS[$D_DPL_ITEM_NUM]="$D_DPL_ITEM_STASH_KEY"
+    D__DPL_QUEUE_STASH_KEYS[$D__DPL_ITEM_NUM]="$D__DPL_ITEM_STASH_KEY"
 
   # Done iterating over items in deployment’s main queue
   done
@@ -254,8 +254,8 @@ __queue_hlp__dcheck()
 
   # Check if additional user prompt is warranted
   if $should_prompt_again; then
-    D_ANOTHER_PROMPT=true
-    D_ANOTHER_WARNING='Irregularities detected with this deployment'
+    D__ANOTHER_PROMPT=true
+    D__ANOTHER_WARNING='Irregularities detected with this deployment'
   fi
 
   # Return appropriately
@@ -269,10 +269,10 @@ __queue_hlp__dcheck()
 __queue_hlp__dinstall()
 {
   # Initialize or increment section number
-  if [ -z ${D_DPL_QUEUE_CURRENT_SECTION_NUM[1]+isset} ]; then
-    D_DPL_QUEUE_CURRENT_SECTION_NUM[1]=0
+  if [ -z ${D__DPL_QUEUE_CURRENT_SECTION_NUM[1]+isset} ]; then
+    D__DPL_QUEUE_CURRENT_SECTION_NUM[1]=0
   else
-    (( ++D_DPL_QUEUE_CURRENT_SECTION_NUM[1] ))
+    (( ++D__DPL_QUEUE_CURRENT_SECTION_NUM[1] ))
   fi
 
   # Storage and status variables
@@ -286,48 +286,48 @@ __queue_hlp__dinstall()
   fi
 
   # Calculate section edges
-  local min max secnum=${D_DPL_QUEUE_CURRENT_SECTION_NUM[1]}
+  local min max secnum=${D__DPL_QUEUE_CURRENT_SECTION_NUM[1]}
 
   # Calculate low edge
   if [ $secnum -eq 0 ]; then min=0
-  elif [[ ${D_DPL_QUEUE_SEPARATORS[$secnum-1]} =~ ^[0-9]+$ ]]; then
-    min=${D_DPL_QUEUE_SEPARATORS[$secnum-1]}
+  elif [[ ${D__DPL_QUEUE_SEPARATORS[$secnum-1]} =~ ^[0-9]+$ ]]; then
+    min=${D__DPL_QUEUE_SEPARATORS[$secnum-1]}
   else
-    min=${#D_DPL_QUEUE_MAIN[@]}
+    min=${#D__DPL_QUEUE_MAIN[@]}
   fi
 
   # Calculate high edge
-  if [[ ${D_DPL_QUEUE_SEPARATORS[$secnum]} =~ ^[0-9]+$ ]]; then
-    max=${D_DPL_QUEUE_SEPARATORS[$secnum]}
+  if [[ ${D__DPL_QUEUE_SEPARATORS[$secnum]} =~ ^[0-9]+$ ]]; then
+    max=${D__DPL_QUEUE_SEPARATORS[$secnum]}
   else
-    max=${#D_DPL_QUEUE_MAIN[@]}
+    max=${#D__DPL_QUEUE_MAIN[@]}
   fi
 
   # Announce checking
   dprint_debug -n "Installing queue items $min-$max (queue section #$secnum)"
 
   # Iterate over items in deployment’s main queue
-  for (( D_DPL_ITEM_NUM=$min; D_DPL_ITEM_NUM<$max; D_DPL_ITEM_NUM++ )); do
+  for (( D__DPL_ITEM_NUM=$min; D__DPL_ITEM_NUM<$max; D__DPL_ITEM_NUM++ )); do
 
     # If queue item is invalid: skip silently
     if __queue_hlp__current_item is_invalid; then continue; fi
 
     # Prepare global variables
-    D_DPL_ITEM_TITLE="${D_DPL_QUEUE_MAIN[$D_DPL_ITEM_NUM]}"
-    D_DPL_ITEM_IS_FORCED=false
+    D__DPL_ITEM_TITLE="${D__DPL_QUEUE_MAIN[$D__DPL_ITEM_NUM]}"
+    D__DPL_ITEM_IS_FORCED=false
     if __queue_hlp__current_item uses_stash; then
-      D_DPL_ITEM_STASH_KEY="${D_DPL_QUEUE_STASH_KEYS[$D_DPL_ITEM_NUM]}"
-      if dstash -s has "$D_DPL_ITEM_STASH_KEY"; then
-        D_DPL_ITEM_STASH_FLAG=true
-        D_DPL_ITEM_STASH_VALUE="$( dstash -s get "$D_DPL_ITEM_STASH_KEY" )"
+      D__DPL_ITEM_STASH_KEY="${D__DPL_QUEUE_STASH_KEYS[$D__DPL_ITEM_NUM]}"
+      if dstash -s has "$D__DPL_ITEM_STASH_KEY"; then
+        D__DPL_ITEM_STASH_FLAG=true
+        D__DPL_ITEM_STASH_VALUE="$( dstash -s get "$D__DPL_ITEM_STASH_KEY" )"
       else
-        D_DPL_ITEM_STASH_FLAG=false
-        D_DPL_ITEM_STASH_VALUE=
+        D__DPL_ITEM_STASH_FLAG=false
+        D__DPL_ITEM_STASH_VALUE=
       fi
     else
-      unset D_DPL_ITEM_STASH_KEY
-      unset D_DPL_ITEM_STASH_FLAG
-      unset D_DPL_ITEM_STASH_VALUE
+      unset D__DPL_ITEM_STASH_KEY
+      unset D__DPL_ITEM_STASH_FLAG
+      unset D__DPL_ITEM_STASH_VALUE
     fi
 
     # Perform an action based on options available
@@ -338,7 +338,7 @@ __queue_hlp__dinstall()
         0|3)  # Installed successfully
               all_already_installed=false
               all_failed=false
-              dstash -s set "$D_DPL_ITEM_STASH_KEY" "$D_DPL_ITEM_STASH_VALUE"
+              dstash -s set "$D__DPL_ITEM_STASH_KEY" "$D__DPL_ITEM_STASH_VALUE"
               debug_queue_item 'Installed'
               ;;
         1|4)  # Failed to install
@@ -355,22 +355,22 @@ __queue_hlp__dinstall()
 
       # Check if early exit was requested and item is not last
       if [ $exit_code -eq 3 -o $exit_code -eq 4 ] \
-        && (( D_DPL_ITEM_NUM < ( ${#D_DPL_QUEUE_MAIN[@]} - 1 ) ))
+        && (( D__DPL_ITEM_NUM < ( ${#D__DPL_QUEUE_MAIN[@]} - 1 ) ))
       then
         early_exit=true
       fi
 
-    elif $D_OPT_FORCE; then
+    elif $D__OPT_FORCE; then
 
       # Set marker in global variable
-      D_DPL_ITEM_IS_FORCED=true
+      D__DPL_ITEM_IS_FORCED=true
 
       # Item is considered already installed, but user forces installation
       d__queue_hlp__install_item; exit_code=$?; case $exit_code in
         0|3)  # Re-installed successfully
               all_newly_installed=false
               all_failed=false
-              dstash -s set "$D_DPL_ITEM_STASH_KEY" "$D_DPL_ITEM_STASH_VALUE"
+              dstash -s set "$D__DPL_ITEM_STASH_KEY" "$D__DPL_ITEM_STASH_VALUE"
               debug_queue_item 'Force-installed'
               ;;
         1|4)  # Failed to re-install
@@ -387,7 +387,7 @@ __queue_hlp__dinstall()
 
       # Check if early exit was requested and item is not last
       if [ $exit_code -eq 3 -o $exit_code -eq 4 ] \
-        && (( D_DPL_ITEM_NUM < ( ${#D_DPL_QUEUE_MAIN[@]} - 1 ) ))
+        && (( D__DPL_ITEM_NUM < ( ${#D__DPL_QUEUE_MAIN[@]} - 1 ) ))
       then
         early_exit=true
       fi
@@ -441,10 +441,10 @@ __queue_hlp__dinstall()
 __queue_hlp__dremove()
 {
   # Initialize or decrement section number (reverse order)
-  if [ -z ${D_DPL_QUEUE_CURRENT_SECTION_NUM[1]+isset} ]; then
-    D_DPL_QUEUE_CURRENT_SECTION_NUM[1]="${#D_DPL_QUEUE_SEPARATORS[@]}"
+  if [ -z ${D__DPL_QUEUE_CURRENT_SECTION_NUM[1]+isset} ]; then
+    D__DPL_QUEUE_CURRENT_SECTION_NUM[1]="${#D__DPL_QUEUE_SEPARATORS[@]}"
   else
-    (( --D_DPL_QUEUE_CURRENT_SECTION_NUM[1] ))
+    (( --D__DPL_QUEUE_CURRENT_SECTION_NUM[1] ))
   fi
 
   # Storage and status variables
@@ -458,48 +458,48 @@ __queue_hlp__dremove()
   fi
 
   # Calculate section edges
-  local min max secnum=${D_DPL_QUEUE_CURRENT_SECTION_NUM[1]}
+  local min max secnum=${D__DPL_QUEUE_CURRENT_SECTION_NUM[1]}
 
   # Calculate low edge
   if [ $secnum -eq 0 ]; then min=0
-  elif [[ ${D_DPL_QUEUE_SEPARATORS[$secnum-1]} =~ ^[0-9]+$ ]]; then
-    min=${D_DPL_QUEUE_SEPARATORS[$secnum-1]}
+  elif [[ ${D__DPL_QUEUE_SEPARATORS[$secnum-1]} =~ ^[0-9]+$ ]]; then
+    min=${D__DPL_QUEUE_SEPARATORS[$secnum-1]}
   else
-    min=${#D_DPL_QUEUE_MAIN[@]}
+    min=${#D__DPL_QUEUE_MAIN[@]}
   fi
 
   # Calculate high edge
-  if [[ ${D_DPL_QUEUE_SEPARATORS[$secnum]} =~ ^[0-9]+$ ]]; then
-    max=${D_DPL_QUEUE_SEPARATORS[$secnum]}
+  if [[ ${D__DPL_QUEUE_SEPARATORS[$secnum]} =~ ^[0-9]+$ ]]; then
+    max=${D__DPL_QUEUE_SEPARATORS[$secnum]}
   else
-    max=${#D_DPL_QUEUE_MAIN[@]}
+    max=${#D__DPL_QUEUE_MAIN[@]}
   fi
 
   # Announce checking
   dprint_debug -n "Removing queue items $min-$max (queue section #$secnum)"
 
   # Iterate over items in deployment’s main queue (in reverse order)
-  for (( D_DPL_ITEM_NUM=$max-1; D_DPL_ITEM_NUM>=$min; D_DPL_ITEM_NUM-- )); do
+  for (( D__DPL_ITEM_NUM=$max-1; D__DPL_ITEM_NUM>=$min; D__DPL_ITEM_NUM-- )); do
 
     # If queue item is invalid: skip silently
     if __queue_hlp__current_item is_invalid; then continue; fi
 
     # Prepare global variables
-    D_DPL_ITEM_TITLE="${D_DPL_QUEUE_MAIN[$D_DPL_ITEM_NUM]}"
-    D_DPL_ITEM_IS_FORCED=false
+    D__DPL_ITEM_TITLE="${D__DPL_QUEUE_MAIN[$D__DPL_ITEM_NUM]}"
+    D__DPL_ITEM_IS_FORCED=false
     if __queue_hlp__current_item uses_stash; then
-      D_DPL_ITEM_STASH_KEY="${D_DPL_QUEUE_STASH_KEYS[$D_DPL_ITEM_NUM]}"
-      if dstash -s has "$D_DPL_ITEM_STASH_KEY"; then
-        D_DPL_ITEM_STASH_FLAG=true
-        D_DPL_ITEM_STASH_VALUE="$( dstash -s get "$D_DPL_ITEM_STASH_KEY" )"
+      D__DPL_ITEM_STASH_KEY="${D__DPL_QUEUE_STASH_KEYS[$D__DPL_ITEM_NUM]}"
+      if dstash -s has "$D__DPL_ITEM_STASH_KEY"; then
+        D__DPL_ITEM_STASH_FLAG=true
+        D__DPL_ITEM_STASH_VALUE="$( dstash -s get "$D__DPL_ITEM_STASH_KEY" )"
       else
-        D_DPL_ITEM_STASH_FLAG=false
-        D_DPL_ITEM_STASH_VALUE=
+        D__DPL_ITEM_STASH_FLAG=false
+        D__DPL_ITEM_STASH_VALUE=
       fi
     else
-      unset D_DPL_ITEM_STASH_KEY
-      unset D_DPL_ITEM_STASH_FLAG
-      unset D_DPL_ITEM_STASH_VALUE
+      unset D__DPL_ITEM_STASH_KEY
+      unset D__DPL_ITEM_STASH_FLAG
+      unset D__DPL_ITEM_STASH_VALUE
     fi
 
     # Perform an action based on options available
@@ -510,7 +510,7 @@ __queue_hlp__dremove()
         0|3)  # Removed successfully
               all_already_removed=false
               all_failed=false
-              dstash -s unset "$D_DPL_ITEM_STASH_KEY"
+              dstash -s unset "$D__DPL_ITEM_STASH_KEY"
               debug_queue_item 'Removed'
               ;;
         1|4)  # Failed to remove
@@ -527,22 +527,22 @@ __queue_hlp__dremove()
 
       # Check if early exit was requested and item is not last
       if [ $exit_code -eq 3 -o $exit_code -eq 4 ] \
-        && (( D_DPL_ITEM_NUM > 0 ))
+        && (( D__DPL_ITEM_NUM > 0 ))
       then
         early_exit=true
       fi
 
-    elif $D_OPT_FORCE; then
+    elif $D__OPT_FORCE; then
 
       # Set marker in global variable
-      D_DPL_ITEM_IS_FORCED=true
+      D__DPL_ITEM_IS_FORCED=true
 
       # Item is considered already not installed, but user forces removal
       d__queue_hlp__remove_item; exit_code=$?; case $exit_code in
         0|3)  # Re-removed successfully
               all_newly_removed=false
               all_failed=false
-              dstash -s unset "$D_DPL_ITEM_STASH_KEY"
+              dstash -s unset "$D__DPL_ITEM_STASH_KEY"
               debug_queue_item 'Force-removed'
               ;;
         1|4)  # Failed to re-remove
@@ -559,7 +559,7 @@ __queue_hlp__dremove()
 
       # Check if early exit was requested and item is not last
       if [ $exit_code -eq 3 -o $exit_code -eq 4 ] \
-        && (( D_DPL_ITEM_NUM > 0 ))
+        && (( D__DPL_ITEM_NUM > 0 ))
       then
         early_exit=true
       fi
@@ -621,10 +621,10 @@ __queue_hlp__current_item()
 
     # Setting flag: ditch first arg and add necessary flag
     shift; case $1 in
-      is_invalid)         D_DPL_QUEUE_FLAGS[$D_DPL_ITEM_NUM]+='x';;
-      uses_stash)         D_DPL_QUEUE_FLAGS[$D_DPL_ITEM_NUM]+='s';;
-      can_be_installed)   D_DPL_QUEUE_FLAGS[$D_DPL_ITEM_NUM]+='i';;
-      can_be_removed)     D_DPL_QUEUE_FLAGS[$D_DPL_ITEM_NUM]+='r';;
+      is_invalid)         D__DPL_QUEUE_FLAGS[$D__DPL_ITEM_NUM]+='x';;
+      uses_stash)         D__DPL_QUEUE_FLAGS[$D__DPL_ITEM_NUM]+='s';;
+      can_be_installed)   D__DPL_QUEUE_FLAGS[$D__DPL_ITEM_NUM]+='i';;
+      can_be_removed)     D__DPL_QUEUE_FLAGS[$D__DPL_ITEM_NUM]+='r';;
       *)                  return 1;;
     esac
 
@@ -632,10 +632,10 @@ __queue_hlp__current_item()
 
     # Checking flag: return 0/1 based on presence of requested flag
     case $1 in
-      is_invalid)         [[ ${D_DPL_QUEUE_FLAGS[$D_DPL_ITEM_NUM]} == *x* ]];;
-      uses_stash)         [[ ${D_DPL_QUEUE_FLAGS[$D_DPL_ITEM_NUM]} == *s* ]];;
-      can_be_installed)   [[ ${D_DPL_QUEUE_FLAGS[$D_DPL_ITEM_NUM]} == *i* ]];;
-      can_be_removed)     [[ ${D_DPL_QUEUE_FLAGS[$D_DPL_ITEM_NUM]} == *r* ]];;
+      is_invalid)         [[ ${D__DPL_QUEUE_FLAGS[$D__DPL_ITEM_NUM]} == *x* ]];;
+      uses_stash)         [[ ${D__DPL_QUEUE_FLAGS[$D__DPL_ITEM_NUM]} == *s* ]];;
+      can_be_installed)   [[ ${D__DPL_QUEUE_FLAGS[$D__DPL_ITEM_NUM]} == *i* ]];;
+      can_be_removed)     [[ ${D__DPL_QUEUE_FLAGS[$D__DPL_ITEM_NUM]} == *r* ]];;
       *)                  return 1;;
     esac
 
@@ -653,7 +653,7 @@ debug_queue_item()
   if [ ${#title} -le $width ]; then
     title="$( printf "%-${width}s" "$title" )"
   fi
-  dprint_debug "${title:0:$width}: $D_DPL_ITEM_TITLE" "$@"
+  dprint_debug "${title:0:$width}: $D__DPL_ITEM_TITLE" "$@"
 }
 
 #>  __split_queue [POSITION]
@@ -669,16 +669,16 @@ __split_queue()
   local position="$1"; shift
 
   # Flip debug flag
-  D_DPL_QUEUE_IS_SPLIT=true
+  D__DPL_QUEUE_IS_SPLIT=true
 
   # Check if argument is numeric and less than current queue length
-  if [[ $position =~ ^[0-9]+$ ]] && [ $position -lt ${#D_DPL_QUEUE_MAIN[@]} ]
+  if [[ $position =~ ^[0-9]+$ ]] && [ $position -lt ${#D__DPL_QUEUE_MAIN[@]} ]
   then
-    D_DPL_QUEUE_SEPARATORS+=( $position )
+    D__DPL_QUEUE_SEPARATORS+=( $position )
     return 0
   fi
 
   # Otherwise, just add separation point at current queue length
-  D_DPL_QUEUE_SEPARATORS+=( ${#D_DPL_QUEUE_MAIN[@]} )
+  D__DPL_QUEUE_SEPARATORS+=( ${#D__DPL_QUEUE_MAIN[@]} )
   return 0
 }
