@@ -44,7 +44,7 @@ d__perform_remove_routine()
   local priority array_of_priorities i
 
   # Extract priorities into array
-  array_of_priorities=( "${!D__QUEUE_TASKS[@]}" )
+  array_of_priorities=( "${!D__WORKLOAD[@]}" )
 
   # Iterate over array of priorities in reverse order
   for (( i=${#array_of_priorities[@]}-1; i>=0; i-- )); do
@@ -107,7 +107,7 @@ d__perform_remove_routine()
 #> d__remove_pkgs PRIORITY_LEVEL
 #
 ## For the given priority level, removes packages, one by one, using their 
-#. names, which have been previously assembled in $D__QUEUE_PKGS array. Operates 
+#. names, which have been previously assembled in $D__WORKLOAD_PKGS array. Operates 
 #. in reverse order.
 #
 ## Requires:
@@ -142,7 +142,7 @@ d__remove_pkgs()
   local pkg_str chunks=() i pkgname mode aa_mode
 
   # Split package names on $D__CONST_DELIMITER
-  pkg_str="${D__QUEUE_PKGS[$priority]}"
+  pkg_str="${D__WORKLOAD_PKGS[$priority]}"
   while [[ $pkg_str ]]; do
     chunks+=( "${pkg_str%%"$D__CONST_DELIMITER"*}" )
     pkg_str="${pkg_str#*"$D__CONST_DELIMITER"}"
@@ -275,7 +275,7 @@ d__remove_pkgs()
 #
 ## For the given priority level, removes deployments, one by one, using their 
 #. *.dpl.sh files, paths to which have been previously assembled in 
-#. $D__QUEUE_DPLS array. Operates in reverse order.
+#. $D__WORKLOAD_DPLS array. Operates in reverse order.
 #
 ## Requires:
 #.  * Divine Bash utils: dOS (dps.utl.sh)
@@ -309,7 +309,7 @@ d__remove_dpls()
   local intro_printed
 
   # Split *.dpl.sh filepaths on $D__CONST_DELIMITER
-  dpl_str="${D__QUEUE_DPLS[$priority]}"
+  dpl_str="${D__WORKLOAD_DPLS[$priority]}"
   while [[ $dpl_str ]]; do
     chunks+=( "${dpl_str%%"$D__CONST_DELIMITER"*}" )
     dpl_str="${dpl_str#*"$D__CONST_DELIMITER"}"

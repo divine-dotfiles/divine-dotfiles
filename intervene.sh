@@ -101,7 +101,7 @@ d__populate_globals()
   readonly D__SUFFIX_DPL_QUE='.dpl.que'
 
   # Ordered list of script’s internal dependencies
-  D__QUEUE_DEPENDENCIES=( \
+  D__INTERNAL_DEPENDENCIES=( \
     'procedure dep-checks' \
     'procedure print-colors' \
     'util dprint' \
@@ -123,7 +123,7 @@ d__populate_globals()
     'helper manifests' \
     'helper unset' \
     'procedure dpl-repo-sync' \
-  ); readonly D__QUEUE_DEPENDENCIES
+  ); readonly D__INTERNAL_DEPENDENCIES
 
   # Name of Divinefile
   readonly D__CONST_NAME_DIVINEFILE='Divinefile'
@@ -441,7 +441,7 @@ d__parse_arguments()
 #. (hard dependencies).
 #
 ## Requires:
-#.  $D__QUEUE_DEPENDENCIES   - From d__populate_globals
+#.  $D__INTERNAL_DEPENDENCIES   - From d__populate_globals
 #
 ## Returns:
 #.  0 - All dependencies successfully sourced
@@ -457,7 +457,7 @@ d__import_dependencies()
   local dependency
 
   # Iterate over dependencies
-  for dependency in "${D__QUEUE_DEPENDENCIES[@]}"; do
+  for dependency in "${D__INTERNAL_DEPENDENCIES[@]}"; do
 
     # Load dependency or halt script
     d__load $dependency || exit 1

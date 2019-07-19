@@ -41,7 +41,7 @@ d__perform_check_routine()
   local priority
 
   # Iterate over taken priorities
-  for priority in "${!D__QUEUE_TASKS[@]}"; do
+  for priority in "${!D__WORKLOAD[@]}"; do
 
     # Install packages if asked to
     d__check_pkgs "$priority"
@@ -66,7 +66,7 @@ d__perform_check_routine()
 #> d__check_pkgs PRIORITY_LEVEL
 #
 ## For the given priority level, check if packages are installed, one by one, 
-#. using their names, which have been previously assembled in $D__QUEUE_PKGS 
+#. using their names, which have been previously assembled in $D__WORKLOAD_PKGS 
 #. array
 #
 ## Requires:
@@ -101,7 +101,7 @@ d__check_pkgs()
   local pkg_str chunks=() pkgname mode
 
   # Split package names on $D__CONST_DELIMITER
-  pkg_str="${D__QUEUE_PKGS[$priority]}"
+  pkg_str="${D__WORKLOAD_PKGS[$priority]}"
   while [[ $pkg_str ]]; do
     chunks+=( "${pkg_str%%"$D__CONST_DELIMITER"*}" )
     pkg_str="${pkg_str#*"$D__CONST_DELIMITER"}"
@@ -167,7 +167,7 @@ d__check_pkgs()
 #
 ## For the given priority level, checks whether deployments are installed, one 
 #. by one, using their *.dpl.sh files, paths to which have been previously 
-#. assembled in $D__QUEUE_DPLS array
+#. assembled in $D__WORKLOAD_DPLS array
 #
 ## Requires:
 #.  * Divine Bash utils: dOS (dps.utl.sh)
@@ -197,7 +197,7 @@ d__check_dpls()
   local aa_mode dpl_status
 
   # Split *.dpl.sh filepaths on $D__CONST_DELIMITER
-  dpl_str="${D__QUEUE_DPLS[$priority]}"
+  dpl_str="${D__WORKLOAD_DPLS[$priority]}"
   while [[ $dpl_str ]]; do
     chunks+=( "${dpl_str%%"$D__CONST_DELIMITER"*}" )
     dpl_str="${dpl_str#*"$D__CONST_DELIMITER"}"

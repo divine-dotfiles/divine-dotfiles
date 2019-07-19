@@ -43,10 +43,10 @@ d__dispatch_assembly_job()
 #.  * $D__DIR_DPL_REPOS    - cloned/downloaded deployments from Github
 #
 ## Provides into the global scope:
-#.  $D__QUEUE_TASKS    - (array) each taken priority contains a string 'taken'
-#.  $D__QUEUE_PKGS     - (array) Each priority taken by at least one package 
+#.  $D__WORKLOAD    - (array) each taken priority contains a string 'taken'
+#.  $D__WORKLOAD_PKGS     - (array) Each priority taken by at least one package 
 #.                      contains delimited list of package names
-#.  $D__QUEUE_DPLS     - (array) Each priority taken by at least one deployment 
+#.  $D__WORKLOAD_DPLS     - (array) Each priority taken by at least one deployment 
 #.                      contains delimited list of absolute canonical paths to 
 #.                      *.dpl.sh files
 #.  $D__DPL_NAMES_IN_FMWK_DIRS - (array) Names of deployments in framework dirs
@@ -68,9 +68,9 @@ d__assemble_all_tasks()
   d__sync_dpl_repos || exit 1
 
   # Global storage arrays
-  D__QUEUE_TASKS=()
-  D__QUEUE_PKGS=()
-  D__QUEUE_DPLS=()
+  D__WORKLOAD=()
+  D__WORKLOAD_PKGS=()
+  D__WORKLOAD_DPLS=()
   D__DPL_NAMES_IN_FMWK_DIRS=()
   D__DPL_PATHS_IN_FMWK_DIRS=()
 
@@ -118,7 +118,7 @@ d__assemble_all_tasks()
   esac
 
   # Check if any tasks were found
-  if [ ${#D__QUEUE_TASKS[@]} -eq 0 ]; then
+  if [ ${#D__WORKLOAD[@]} -eq 0 ]; then
     printf >&2 '%s: %s: %s\n' \
       "$D__FMWK_NAME" \
       'Nothing to do' \
@@ -137,7 +137,7 @@ d__assemble_all_tasks()
 
   # Detect largest priority and number of digits in it
   local largest_priority
-  for largest_priority in "${!D__QUEUE_TASKS[@]}"; do :; done
+  for largest_priority in "${!D__WORKLOAD[@]}"; do :; done
   D__REQ_MAX_PRIORITY_LEN=${#largest_priority}
   readonly D__REQ_MAX_PRIORITY_LEN
 
@@ -162,9 +162,9 @@ d__assemble_all_tasks()
   ); readonly D__ODE_NAME
 
   # Mark assembled containers read-only
-  readonly D__QUEUE_TASKS
-  readonly D__QUEUE_PKGS
-  readonly D__QUEUE_DPLS
+  readonly D__WORKLOAD
+  readonly D__WORKLOAD_PKGS
+  readonly D__WORKLOAD_DPLS
 
   # Return success
   return 0
@@ -236,9 +236,9 @@ d__validate_dpl_dirs()
 #
 ## Modifies in the global scope:
 #.  * with ‘--enqueue’ option:
-#.  $D__QUEUE_TASKS    - Associative array with each taken priority paired with 
+#.  $D__WORKLOAD    - Associative array with each taken priority paired with 
 #.                      an empty string
-#.  $D__QUEUE_PKGS     - Associative array with each priority taken by at least 
+#.  $D__WORKLOAD_PKGS     - Associative array with each priority taken by at least 
 #.                      one package paired with a semicolon-separated list of 
 #.                      package names
 #
@@ -385,7 +385,7 @@ d__scan_for_divinefiles()
           $enqueueing || continue
 
           # Add current priority to task queue
-          D__QUEUE_TASKS["$priority"]='taken'
+          D__WORKLOAD["$priority"]='taken'
 
           # If some mode is enabled, prefix it
           if [ -n "$mode" ]; then
@@ -396,7 +396,7 @@ d__scan_for_divinefiles()
           fi
 
           # Add current package to packages queue
-          D__QUEUE_PKGS["$priority"]+="$chunk$D__CONST_DELIMITER"
+          D__WORKLOAD_PKGS["$priority"]+="$chunk$D__CONST_DELIMITER"
 
         # Done iterating over package names
         done
@@ -437,10 +437,10 @@ d__scan_for_divinefiles()
 #.  $D__DPL_PATHS_IN_EXT_DIRS  - (array) Index of each name contains delimited 
 #.                              list of paths to deployment files
 #.  * with ‘--enqueue’ option:
-#.  $D__QUEUE_TASKS  - (array) Priorities are used as array indices. Every 
+#.  $D__WORKLOAD  - (array) Priorities are used as array indices. Every 
 #.                    priority with at least one task associated with it 
 #.                    contains a string 'taken'.
-#.  $D__QUEUE_DPLS   - (array) Priorities are used as array indices. Every 
+#.  $D__WORKLOAD_DPLS   - (array) Priorities are used as array indices. Every 
 #.                    priority with at least one deployment associated with it 
 #.                    contains delimited list of paths to deployment files.
 #.  * when there are deployments with illegal characters in their paths:
@@ -584,10 +584,10 @@ d__scan_for_dpl_files()
       [[ $priority =~ ^[0-9]+$ ]] || priority="$D__CONST_DEF_PRIORITY"
 
       # Mark current priority as taken
-      D__QUEUE_TASKS["$priority"]='taken'
+      D__WORKLOAD["$priority"]='taken'
 
       # Queue up current deployment
-      D__QUEUE_DPLS["$priority"]+="$divinedpl_filepath$D__CONST_DELIMITER"
+      D__WORKLOAD_DPLS["$priority"]+="$divinedpl_filepath$D__CONST_DELIMITER"
 
     # Done iterating over deployment files in current deployment directory
     done < <( find -L "$dpl_dir" -mindepth 1 -maxdepth 14 \
