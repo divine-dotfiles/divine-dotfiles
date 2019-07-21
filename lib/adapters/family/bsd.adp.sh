@@ -15,23 +15,23 @@
 ## For reference, see lib/templates/adapters/family.adp.sh
 #
 
-# Implement overriding mechanism for $D__DPL_TARGET_PATHS and $D__DPL_TARGET_DIR
+# Implement overriding mechanism for $D_DPL_TARGET_PATHS and $D_DPL_TARGET_DIR
 d__override_dpl_targets_for_os_family()
 {
-  # Check if $D__DPL_TARGET_PATHS_BSD contains at least one string
-  if [ ${#D__DPL_TARGET_PATHS_BSD[@]} -gt 1 \
-    -o -n "$D__DPL_TARGET_PATHS_BSD" ]; then
+  # Check if $D_DPL_TARGET_PATHS_BSD contains at least one string
+  if [ ${#D_DPL_TARGET_PATHS_BSD[@]} -gt 1 \
+    -o -n "$D_DPL_TARGET_PATHS_BSD" ]; then
 
-    # $D__DPL_TARGET_PATHS_BSD is set: use it instead
-    D__DPL_TARGET_PATHS=( "${D__DPL_TARGET_PATHS_BSD[@]}" )
+    # $D_DPL_TARGET_PATHS_BSD is set: use it instead
+    D_DPL_TARGET_PATHS=( "${D_DPL_TARGET_PATHS_BSD[@]}" )
     
   fi
 
-  # Check if $D__DPL_TARGET_DIR_BSD is not empty
-  if [ -n "$D__DPL_TARGET_DIR_BSD" ]; then
+  # Check if $D_DPL_TARGET_DIR_BSD is not empty
+  if [ -n "$D_DPL_TARGET_DIR_BSD" ]; then
 
-    # $D__DPL_TARGET_DIR_BSD is set: use it instead
-    D__DPL_TARGET_DIR="$D__DPL_TARGET_DIR_BSD"
+    # $D_DPL_TARGET_DIR_BSD is set: use it instead
+    D_DPL_TARGET_DIR="$D_DPL_TARGET_DIR_BSD"
     
   fi
 }

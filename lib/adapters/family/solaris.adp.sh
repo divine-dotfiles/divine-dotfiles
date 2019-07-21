@@ -15,23 +15,23 @@
 ## For reference, see lib/templates/adapters/family.adp.sh
 #
 
-# Implement overriding mechanism for $D__DPL_TARGET_PATHS and $D__DPL_TARGET_DIR
+# Implement overriding mechanism for $D_DPL_TARGET_PATHS and $D_DPL_TARGET_DIR
 d__override_dpl_targets_for_os_family()
 {
-  # Check if $D__DPL_TARGET_PATHS_SOLARIS contains at least one string
-  if [ ${#D__DPL_TARGET_PATHS_SOLARIS[@]} -gt 1 \
-    -o -n "$D__DPL_TARGET_PATHS_SOLARIS" ]; then
+  # Check if $D_DPL_TARGET_PATHS_SOLARIS contains at least one string
+  if [ ${#D_DPL_TARGET_PATHS_SOLARIS[@]} -gt 1 \
+    -o -n "$D_DPL_TARGET_PATHS_SOLARIS" ]; then
 
-    # $D__DPL_TARGET_PATHS_SOLARIS is set: use it instead
-    D__DPL_TARGET_PATHS=( "${D__DPL_TARGET_PATHS_SOLARIS[@]}" )
+    # $D_DPL_TARGET_PATHS_SOLARIS is set: use it instead
+    D_DPL_TARGET_PATHS=( "${D_DPL_TARGET_PATHS_SOLARIS[@]}" )
     
   fi
 
-  # Check if $D__DPL_TARGET_DIR_SOLARIS is not empty
-  if [ -n "$D__DPL_TARGET_DIR_SOLARIS" ]; then
+  # Check if $D_DPL_TARGET_DIR_SOLARIS is not empty
+  if [ -n "$D_DPL_TARGET_DIR_SOLARIS" ]; then
 
-    # $D__DPL_TARGET_DIR_SOLARIS is set: use it instead
-    D__DPL_TARGET_DIR="$D__DPL_TARGET_DIR_SOLARIS"
+    # $D_DPL_TARGET_DIR_SOLARIS is set: use it instead
+    D_DPL_TARGET_DIR="$D_DPL_TARGET_DIR_SOLARIS"
     
   fi
 }

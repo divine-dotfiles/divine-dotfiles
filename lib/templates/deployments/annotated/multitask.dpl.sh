@@ -1,8 +1,8 @@
-D__DPL_NAME=
-D__DPL_DESC=
-D__DPL_PRIORITY=4096
-D__DPL_FLAGS=
-D__DPL_WARNING=
+D_DPL_NAME=
+D_DPL_DESC=
+D_DPL_PRIORITY=4096
+D_DPL_FLAGS=
+D_DPL_WARNING=
 
 ## Multitask is a kind of deployment that combines several disparate tasks, 
 #. each of which could be a deployment of its own. E.g., installation of a 
@@ -19,18 +19,18 @@ D__DPL_WARNING=
 #.  d_dpl_remove-like      - Function that behaves as d_dpl_remove in its return codes
 #
 ## Variables maintained (avoid touching these!):
-#.  $D__DPL_TASK_NUM             - Index of current task
-#.  $D__DPL_TASK_STATUS_SUMMARY  - Container for status summary
-#.  $D__DPL_TASK_FLAGS           - Container for installed/not installed flags
+#.  $D__MULTITASK_NUM             - Index of current task
+#.  $D__MULTITASK_STATUS_SUMMARY  - Container for status summary
+#.  $D__MULTITASK_FLAGS           - Container for installed/not installed flags
 #
 
 ## Below is overall usage pattern for d_dpl_check
 d_dpl_check()
 {
   # Assemble ordered list of prefixes to user-implemented task functions
-  D__DPL_TASK_NAMES+=( task1 )
-  D__DPL_TASK_NAMES+=( task2 )
-  D__DPL_TASK_NAMES+=( task3 )
+  D_MULTITASK_NAMES+=( task1 )
+  D_MULTITASK_NAMES+=( task2 )
+  D_MULTITASK_NAMES+=( task3 )
 
   # Delegate to built-in helper
   d__multitask_check

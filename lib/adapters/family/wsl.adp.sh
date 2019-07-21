@@ -16,42 +16,42 @@
 ## For reference, see lib/templates/adapters/family.adp.sh
 #
 
-# Implement overriding mechanism for $D__DPL_TARGET_PATHS and $D__DPL_TARGET_DIR
+# Implement overriding mechanism for $D_DPL_TARGET_PATHS and $D_DPL_TARGET_DIR
 d__override_dpl_targets_for_os_family()
 {
   # Start with generic linux override, then try WSL-specific one
   
-  # Check if $D__DPL_TARGET_PATHS_LINUX contains at least one string
-  if [ ${#D__DPL_TARGET_PATHS_LINUX[@]} -gt 1 \
-    -o -n "$D__DPL_TARGET_PATHS_LINUX" ]; then
+  # Check if $D_DPL_TARGET_PATHS_LINUX contains at least one string
+  if [ ${#D_DPL_TARGET_PATHS_LINUX[@]} -gt 1 \
+    -o -n "$D_DPL_TARGET_PATHS_LINUX" ]; then
 
-    # $D__DPL_TARGET_PATHS_LINUX is set: use it instead
-    D__DPL_TARGET_PATHS=( "${D__DPL_TARGET_PATHS_LINUX[@]}" )
+    # $D_DPL_TARGET_PATHS_LINUX is set: use it instead
+    D_DPL_TARGET_PATHS=( "${D_DPL_TARGET_PATHS_LINUX[@]}" )
     
   fi
 
-  # Check if $D__DPL_TARGET_DIR_LINUX is not empty
-  if [ -n "$D__DPL_TARGET_DIR_LINUX" ]; then
+  # Check if $D_DPL_TARGET_DIR_LINUX is not empty
+  if [ -n "$D_DPL_TARGET_DIR_LINUX" ]; then
 
-    # $D__DPL_TARGET_DIR_LINUX is set: use it instead
-    D__DPL_TARGET_DIR="$D__DPL_TARGET_DIR_LINUX"
+    # $D_DPL_TARGET_DIR_LINUX is set: use it instead
+    D_DPL_TARGET_DIR="$D_DPL_TARGET_DIR_LINUX"
     
   fi
 
-  # Check if $D__DPL_TARGET_PATHS_WSL contains at least one string
-  if [ ${#D__DPL_TARGET_PATHS_WSL[@]} -gt 1 \
-    -o -n "$D__DPL_TARGET_PATHS_WSL" ]; then
+  # Check if $D_DPL_TARGET_PATHS_WSL contains at least one string
+  if [ ${#D_DPL_TARGET_PATHS_WSL[@]} -gt 1 \
+    -o -n "$D_DPL_TARGET_PATHS_WSL" ]; then
 
-    # $D__DPL_TARGET_PATHS_WSL is set: use it instead
-    D__DPL_TARGET_PATHS=( "${D__DPL_TARGET_PATHS_WSL[@]}" )
+    # $D_DPL_TARGET_PATHS_WSL is set: use it instead
+    D_DPL_TARGET_PATHS=( "${D_DPL_TARGET_PATHS_WSL[@]}" )
     
   fi
 
-  # Check if $D__DPL_TARGET_DIR_WSL is not empty
-  if [ -n "$D__DPL_TARGET_DIR_WSL" ]; then
+  # Check if $D_DPL_TARGET_DIR_WSL is not empty
+  if [ -n "$D_DPL_TARGET_DIR_WSL" ]; then
 
-    # $D__DPL_TARGET_DIR_WSL is set: use it instead
-    D__DPL_TARGET_DIR="$D__DPL_TARGET_DIR_WSL"
+    # $D_DPL_TARGET_DIR_WSL is set: use it instead
+    D_DPL_TARGET_DIR="$D_DPL_TARGET_DIR_WSL"
     
   fi
 }

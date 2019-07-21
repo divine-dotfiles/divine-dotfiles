@@ -49,8 +49,8 @@ d__dispatch_assembly_job()
 #.  $D__WORKLOAD_DPLS     - (array) Each priority taken by at least one deployment 
 #.                      contains delimited list of absolute canonical paths to 
 #.                      *.dpl.sh files
-#.  $D__DPL_NAMES_IN_FMWK_DIRS - (array) Names of deployments in framework dirs
-#.  $D__DPL_PATHS_IN_FMWK_DIRS - (array) Index of each name contains delimited 
+#.  $D__LIST_OF_INT_DPL_NAMES - (array) Names of deployments in framework dirs
+#.  $D__LIST_OF_INT_DPL_PATHS - (array) Index of each name contains delimited 
 #.                              list of paths to deployment files
 #
 ## Returns:
@@ -71,8 +71,8 @@ d__assemble_all_tasks()
   D__WORKLOAD=()
   D__WORKLOAD_PKGS=()
   D__WORKLOAD_DPLS=()
-  D__DPL_NAMES_IN_FMWK_DIRS=()
-  D__DPL_PATHS_IN_FMWK_DIRS=()
+  D__LIST_OF_INT_DPL_NAMES=()
+  D__LIST_OF_INT_DPL_PATHS=()
 
   # Parse Divinefiles in all deployment directories
   d__scan_for_divinefiles --enqueue "$D__DIR_DPLS" "$D__DIR_DPL_REPOS"
@@ -105,7 +105,7 @@ d__assemble_all_tasks()
         ;;
     2)  # At least one deployment file has reserved delimiter in its path
         local list_of_illegal_dpls=() illegal_dpl
-        for illegal_dpl in "${D__DPL_PATHS_WITH_DELIMITER[@]}"; do
+        for illegal_dpl in "${D__LIST_OF_ILLEGAL_DPL_PATHS[@]}"; do
           list_of_illegal_dpls+=( -i "$illegal_dpl" )
         done
         dprint_failure -l \
@@ -179,8 +179,8 @@ d__assemble_all_tasks()
 ## Deployments are searched for under directories passed as arguments
 #
 ## Provides into the global scope:
-#.  $D__DPL_NAMES_IN_FMWK_DIRS - (array) Names of deployments in framework dirs
-#.  $D__DPL_PATHS_IN_FMWK_DIRS - (array) Index of each name contains delimited 
+#.  $D__LIST_OF_INT_DPL_NAMES - (array) Names of deployments in framework dirs
+#.  $D__LIST_OF_INT_DPL_PATHS - (array) Index of each name contains delimited 
 #.                              list of paths to deployment files
 #
 ## Returns:
@@ -204,7 +204,7 @@ d__validate_dpl_dirs()
         :;;
     2)  # At least one deployment file has reserved delimiter in its path
         local list_of_illegal_dpls=() illegal_dpl
-        for illegal_dpl in "${D__DPL_PATHS_WITH_DELIMITER[@]}"; do
+        for illegal_dpl in "${D__LIST_OF_ILLEGAL_DPL_PATHS[@]}"; do
           list_of_illegal_dpls+=( -i "$illegal_dpl" )
         done
         dprint_failure -l \
@@ -429,12 +429,12 @@ d__scan_for_divinefiles()
 #
 ## Modifies in the global scope:
 #.  * with ‘--fmwk-dir’ qualifier or without any directory qualifier:
-#.  $D__DPL_NAMES_IN_FMWK_DIRS - (array) Names of deployments in framework dirs
-#.  $D__DPL_PATHS_IN_FMWK_DIRS - (array) Index of each name contains delimited 
+#.  $D__LIST_OF_INT_DPL_NAMES - (array) Names of deployments in framework dirs
+#.  $D__LIST_OF_INT_DPL_PATHS - (array) Index of each name contains delimited 
 #.                              list of paths to deployment files
 #.  * with ‘--ext-dir’ qualifier:
-#.  $D__DPL_NAMES_IN_EXT_DIRS  - (array) Names of deployments in external dirs
-#.  $D__DPL_PATHS_IN_EXT_DIRS  - (array) Index of each name contains delimited 
+#.  $D__LIST_OF_EXT_DPL_NAMES  - (array) Names of deployments in external dirs
+#.  $D__LIST_OF_EXT_DPL_PATHS  - (array) Index of each name contains delimited 
 #.                              list of paths to deployment files
 #.  * with ‘--enqueue’ option:
 #.  $D__WORKLOAD  - (array) Priorities are used as array indices. Every 
@@ -444,7 +444,7 @@ d__scan_for_divinefiles()
 #.                    priority with at least one deployment associated with it 
 #.                    contains delimited list of paths to deployment files.
 #.  * when there are deployments with illegal characters in their paths:
-#.  $D__DPL_PATHS_WITH_DELIMITER - (array) Paths to deployment files that 
+#.  $D__LIST_OF_ILLEGAL_DPL_PATHS - (array) Paths to deployment files that 
 #.                                contain reserved character pattern
 #
 ## Options:
@@ -460,7 +460,7 @@ d__scan_for_divinefiles()
 #.  1 - Total of zero deployments could be found across given dirs, which may 
 #.      include inaccessible dirs
 #.  2 - At least one deployment file contains $D__CONST_DELIMITER in its path; 
-#.      array $D__DPL_PATHS_WITH_DELIMITER is filled with paths to such 
+#.      array $D__LIST_OF_ILLEGAL_DPL_PATHS is filled with paths to such 
 #.      deployments
 #
 ## Prints:
@@ -603,7 +603,7 @@ d__scan_for_dpl_files()
   if [ ${#d_dpl_paths_with_delimiter[@]} -gt 0 ]; then
     
     # Populate global variable
-    D__DPL_PATHS_WITH_DELIMITER=( "${d_dpl_paths_with_delimiter[@]}" )
+    D__LIST_OF_ILLEGAL_DPL_PATHS=( "${d_dpl_paths_with_delimiter[@]}" )
 
     # Return appropriate code
     return 2
@@ -615,11 +615,11 @@ d__scan_for_dpl_files()
 
   # After iteration: populate global arrays
   case $dir_type in
-    fmwk) D__DPL_NAMES_IN_FMWK_DIRS=( "${d_dpl_names[@]}" )
-          D__DPL_PATHS_IN_FMWK_DIRS=( "${d_dpl_name_paths[@]}" )
+    fmwk) D__LIST_OF_INT_DPL_NAMES=( "${d_dpl_names[@]}" )
+          D__LIST_OF_INT_DPL_PATHS=( "${d_dpl_name_paths[@]}" )
           ;;
-    ext)  D__DPL_NAMES_IN_EXT_DIRS=( "${d_dpl_names[@]}" )
-          D__DPL_PATHS_IN_EXT_DIRS=( "${d_dpl_name_paths[@]}" )
+    ext)  D__LIST_OF_EXT_DPL_NAMES=( "${d_dpl_names[@]}" )
+          D__LIST_OF_EXT_DPL_PATHS=( "${d_dpl_name_paths[@]}" )
           ;;
     *)    :;;
   esac
@@ -739,12 +739,12 @@ d__run_dpl_through_filters()
 #
 ## Requires in the global scope:
 #.  * with ‘--fmwk-dir’ qualifier or without any directory qualifier:
-#.  $D__DPL_NAMES_IN_FMWK_DIRS - (array) Names of deployments in framework dirs
-#.  $D__DPL_PATHS_IN_FMWK_DIRS - (array) Index of each name contains delimited 
+#.  $D__LIST_OF_INT_DPL_NAMES - (array) Names of deployments in framework dirs
+#.  $D__LIST_OF_INT_DPL_PATHS - (array) Index of each name contains delimited 
 #.                              list of paths to deployment files
 #.  * with ‘--ext-dir’ qualifier:
-#.  $D__DPL_NAMES_IN_EXT_DIRS  - (array) Names of deployments in external dirs
-#.  $D__DPL_PATHS_IN_EXT_DIRS  - (array) Index of each name contains delimited 
+#.  $D__LIST_OF_EXT_DPL_NAMES  - (array) Names of deployments in external dirs
+#.  $D__LIST_OF_EXT_DPL_PATHS  - (array) Index of each name contains delimited 
 #.                              list of paths to deployment files
 #
 ## Options:
@@ -783,10 +783,10 @@ d__validate_detected_dpls()
 
   # Calculate array length and intro for potential error messages
   if $validating_ext; then
-    arr_len=${#D__DPL_NAMES_IN_EXT_DIRS[@]}
+    arr_len=${#D__LIST_OF_EXT_DPL_NAMES[@]}
     err_intro='Attempted to add'
   else
-    arr_len=${#D__DPL_NAMES_IN_FMWK_DIRS[@]}
+    arr_len=${#D__LIST_OF_INT_DPL_NAMES[@]}
     err_intro='Detected'
   fi
 
@@ -795,11 +795,11 @@ d__validate_detected_dpls()
 
     # Extract name and paths string
     if $validating_ext; then
-      cur_dpl_name="${D__DPL_NAMES_IN_EXT_DIRS[$i]}"
-      cur_dpl_paths_str="${D__DPL_PATHS_IN_EXT_DIRS[$i]}"
+      cur_dpl_name="${D__LIST_OF_EXT_DPL_NAMES[$i]}"
+      cur_dpl_paths_str="${D__LIST_OF_EXT_DPL_PATHS[$i]}"
     else
-      cur_dpl_name="${D__DPL_NAMES_IN_FMWK_DIRS[$i]}"
-      cur_dpl_paths_str="${D__DPL_PATHS_IN_FMWK_DIRS[$i]}"
+      cur_dpl_name="${D__LIST_OF_INT_DPL_NAMES[$i]}"
+      cur_dpl_paths_str="${D__LIST_OF_INT_DPL_PATHS[$i]}"
     fi
 
     # Collect paths to deployment files with this name
@@ -892,11 +892,11 @@ d__validate_dpl_name()
 #.  * When combined, each deployment name must occur no more than once.
 #
 ## Requires in the global scope:
-#.  $D__DPL_NAMES_IN_FMWK_DIRS - (array) Names of deployments in framework dirs
-#.  $D__DPL_PATHS_IN_FMWK_DIRS - (array) Index of each name contains delimited 
+#.  $D__LIST_OF_INT_DPL_NAMES - (array) Names of deployments in framework dirs
+#.  $D__LIST_OF_INT_DPL_PATHS - (array) Index of each name contains delimited 
 #.                              list of paths to deployment files
-#.  $D__DPL_NAMES_IN_EXT_DIRS  - (array) Names of deployments in external dirs
-#.  $D__DPL_PATHS_IN_EXT_DIRS  - (array) Index of each name contains delimited 
+#.  $D__LIST_OF_EXT_DPL_NAMES  - (array) Names of deployments in external dirs
+#.  $D__LIST_OF_EXT_DPL_PATHS  - (array) Index of each name contains delimited 
 #.                              list of paths to deployment files
 #
 ## Argument:
@@ -923,16 +923,16 @@ d__cross_validate_dpls_before_merging()
   shopt -s nocasematch
 
   # Iterate over names of deployments detected in external dirs
-  for (( j=0; j<${#D__DPL_NAMES_IN_EXT_DIRS[@]}; j++ )); do
+  for (( j=0; j<${#D__LIST_OF_EXT_DPL_NAMES[@]}; j++ )); do
 
     # Extract name of current dpl in ext dir
-    cur_dpl_name="${D__DPL_NAMES_IN_EXT_DIRS[$j]}"
+    cur_dpl_name="${D__LIST_OF_EXT_DPL_NAMES[$j]}"
 
     # Iterate over names of deployments detected in framework dirs
-    for (( i=0; i<${#D__DPL_NAMES_IN_FMWK_DIRS[@]}; i++ )); do
+    for (( i=0; i<${#D__LIST_OF_INT_DPL_NAMES[@]}; i++ )); do
 
       # Look for internal name that matches external name
-      [ "${D__DPL_NAMES_IN_FMWK_DIRS[$i]}" = "$cur_dpl_name" ] || continue
+      [ "${D__LIST_OF_INT_DPL_NAMES[$i]}" = "$cur_dpl_name" ] || continue
 
       # Name exists in both internal and external dirs
 
@@ -941,7 +941,7 @@ d__cross_validate_dpls_before_merging()
 
       # Extract paths to where this deployment is located in ext dirs
       err_msg+=( "Attempted to add deployment named '$cur_dpl_name' at:" )
-      cur_dpl_paths_str="${D__DPL_PATHS_IN_EXT_DIRS[$j]}"
+      cur_dpl_paths_str="${D__LIST_OF_EXT_DPL_PATHS[$j]}"
       while [[ $cur_dpl_paths_str ]]; do
         temp_path="${cur_dpl_paths_str%%"$D__CONST_DELIMITER"*}"
         err_msg+=( -i "${temp_path#"$prefix"}" )
@@ -950,7 +950,7 @@ d__cross_validate_dpls_before_merging()
 
       # Extract paths to where this deployment is located in fmwk dirs
       err_msg+=( "Deployment named '$cur_dpl_name' already exists at:" )
-      cur_dpl_paths_str="${D__DPL_PATHS_IN_FMWK_DIRS[$i]}"
+      cur_dpl_paths_str="${D__LIST_OF_INT_DPL_PATHS[$i]}"
       while [[ $cur_dpl_paths_str ]]; do
         err_msg+=( -i "${cur_dpl_paths_str%%"$D__CONST_DELIMITER"*}" )
         cur_dpl_paths_str="${cur_dpl_paths_str#*"$D__CONST_DELIMITER"}"
@@ -989,11 +989,11 @@ d__cross_validate_dpls_before_merging()
 #. function.
 #
 ## Requires in the global scope:
-#.  $D__DPL_NAMES_IN_FMWK_DIRS - (array) Names of deployments in framework dirs
-#.  $D__DPL_PATHS_IN_FMWK_DIRS - (array) Index of each name contains delimited 
+#.  $D__LIST_OF_INT_DPL_NAMES - (array) Names of deployments in framework dirs
+#.  $D__LIST_OF_INT_DPL_PATHS - (array) Index of each name contains delimited 
 #.                              list of paths to deployment files
-#.  $D__DPL_NAMES_IN_EXT_DIRS  - (array) Names of deployments in external dirs
-#.  $D__DPL_PATHS_IN_EXT_DIRS  - (array) Index of each name contains delimited 
+#.  $D__LIST_OF_EXT_DPL_NAMES  - (array) Names of deployments in external dirs
+#.  $D__LIST_OF_EXT_DPL_PATHS  - (array) Index of each name contains delimited 
 #.                              list of paths to deployment files
 #
 ## Arguments:
@@ -1013,14 +1013,14 @@ d__merge_records_of_dpls_in_ext_dir()
   local j temp
 
   # Iterate over deployments detected in external dirs
-  for (( j=0; j<${#D__DPL_NAMES_IN_EXT_DIRS[@]}; j++ )); do
+  for (( j=0; j<${#D__LIST_OF_EXT_DPL_NAMES[@]}; j++ )); do
 
     # Add name to main array
-    D__DPL_NAMES_IN_FMWK_DIRS+=( "${D__DPL_NAMES_IN_EXT_DIRS[$j]}" )
+    D__LIST_OF_INT_DPL_NAMES+=( "${D__LIST_OF_EXT_DPL_NAMES[$j]}" )
 
     # Extract, modify, and merge path
-    temp="${D__DPL_PATHS_IN_EXT_DIRS[$j]#"$src_dir"}"
-    D__DPL_PATHS_IN_FMWK_DIRS+=( "${tgt_dir}${temp}" )
+    temp="${D__LIST_OF_EXT_DPL_PATHS[$j]#"$src_dir"}"
+    D__LIST_OF_INT_DPL_PATHS+=( "${tgt_dir}${temp}" )
 
   done
 

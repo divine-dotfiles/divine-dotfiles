@@ -18,22 +18,21 @@
 
 #>  d__link_queue_check
 #
-## Checks whether every original file in $D__DPL_TARGET_PATHS[_*] (single path 
+## Checks whether every original file in $D_DPL_TARGET_PATHS[_*] (single path 
 #. or array thereof) is currently replaced with a symlink pointing to 
-#. corresponding replacement in $D__DPL_ASSET_PATHS.
+#. corresponding replacement in $D_DPL_ASSET_PATHS.
 #
 ## Returns appropriate status based on overall state of installation, prints 
 #. warnings when warranted. If in doubt, prefers to prompt user on how to 
 #. proceed.
 #
 ## Requires:
-#.  $D__DPL_ASSET_PATHS          - (array ok) Locations of replacement files
-#.  $D__DPL_TARGET_PATHS         - (array ok) Locations of files to be replaced
+#.  $D_DPL_ASSET_PATHS          - (array ok) Locations of replacement files
+#.  $D_DPL_TARGET_PATHS         - (array ok) Locations of files to be replaced
 #.  `dln.utl.sh`
 #
 ## Provides into the global scope:
-#.  $D__DPL_TARGET_PATHS    - (array) Version after overrides for current OS
-#.  $D__DPL_BACKUP_PATHS    - (array) Paths to where to put backups
+#.  $D_DPL_TARGET_PATHS    - (array) Version after overrides for current OS
 #
 ## Returns:
 #.  Values supported by d_dpl_check function in *.dpl.sh
@@ -76,14 +75,13 @@ d__link_queue_check()
 
 #>  d__link_queue_install
 #
-## Moves each target file in $D__DPL_TARGET_PATHS to its respective backup 
-#. location in $D__DPL_BACKUP_PATHS; replaces each with a symlink pointing to 
-#. respective replacement in $D__DPL_ASSET_PATHS.
+## Moves each target file in $D_DPL_TARGET_PATHS to its respective backup 
+#. location; replaces each with a symlink pointing to respective replacement in 
+#. $D_DPL_ASSET_PATHS.
 #
 ## Requires:
-#.  $D__DPL_ASSET_PATHS    - (array ok) Locations to symlink to
-#.  $D__DPL_TARGET_PATHS   - (array ok) Paths to back up and replace
-#.  $D__DPL_BACKUP_PATHS   - (array ok) Backup locations
+#.  $D_DPL_ASSET_PATHS    - (array ok) Locations to symlink to
+#.  $D_DPL_TARGET_PATHS   - (array ok) Paths to back up and replace
 #.  `dln.utl.sh`
 #
 ## Returns:
@@ -115,14 +113,13 @@ d__link_queue_install()
 
 #>  d__link_queue_remove
 #
-## Removes each path in $D__DPL_TARGET_PATHS that is a symlink pointing to 
-#. respective replacement in $D__DPL_ASSET_PATHS. Where possible, restores 
-#. original file from corresponding backup location in $D__DPL_BACKUP_PATHS.
+## Removes each path in $D_DPL_TARGET_PATHS that is a symlink pointing to 
+#. respective replacement in $D_DPL_ASSET_PATHS. Where possible, restores 
+#. original file from corresponding backup location.
 #
 ## Requires:
-#.  $D__DPL_ASSET_PATHS    - (array ok) Locations currently symlinked to
-#.  $D__DPL_TARGET_PATHS   - (array ok) Paths to be restored
-#.  $D__DPL_BACKUP_PATHS   - (array ok) Backup locations
+#.  $D_DPL_ASSET_PATHS    - (array ok) Locations currently symlinked to
+#.  $D_DPL_TARGET_PATHS   - (array ok) Paths to be restored
 #.  `dln.utl.sh`
 #
 ## Returns:
@@ -160,36 +157,36 @@ d__link_queue_pre_process()
   # Override targets for current OS distro, if that variable is non-empty
   d__override_dpl_targets_for_os_distro
 
-  # If $D__DPL_TARGET_PATHS is thus far empty, try another trick
-  if ! [ ${#D__DPL_TARGET_PATHS[@]} -gt 1 -o -n "$D__DPL_TARGET_PATHS" ] \
-    && [ -n "$D__DPL_TARGET_DIR" ] \
-    && [ ${#D__DPL_ASSET_RELPATHS[@]} -gt 0 ]
+  # If $D_DPL_TARGET_PATHS is thus far empty, try another trick
+  if ! [ ${#D_DPL_TARGET_PATHS[@]} -gt 1 -o -n "$D_DPL_TARGET_PATHS" ] \
+    && [ -n "$D_DPL_TARGET_DIR" ] \
+    && [ ${#D_DPL_ASSET_RELPATHS[@]} -gt 0 ]
   then
 
-    # Initialize $D__DPL_TARGET_PATHS to empty array
-    D__DPL_TARGET_PATHS=()
+    # Initialize $D_DPL_TARGET_PATHS to empty array
+    D_DPL_TARGET_PATHS=()
 
     # Storage variable
     local relative_path
 
     # Iterate over relative asset paths
-    for relative_path in "${D__DPL_ASSET_RELPATHS[@]}"; do
+    for relative_path in "${D_DPL_ASSET_RELPATHS[@]}"; do
 
       # Construct path to target and add it
-      D__DPL_TARGET_PATHS+=( "$D__DPL_TARGET_DIR/$relative_path" )
+      D_DPL_TARGET_PATHS+=( "$D_DPL_TARGET_DIR/$relative_path" )
 
     done
 
   fi
 
-  # Check if $D__DPL_TARGET_PATHS still ended up empty
-  if ! [ ${#D__DPL_TARGET_PATHS[@]} -gt 1 -o -n "$D__DPL_TARGET_PATHS" ]; then
+  # Check if $D_DPL_TARGET_PATHS still ended up empty
+  if ! [ ${#D_DPL_TARGET_PATHS[@]} -gt 1 -o -n "$D_DPL_TARGET_PATHS" ]; then
 
     # Report and return failure
     local detected_os="$D__OS_FAMILY"
     [ -n "$D__OS_DISTRO" ] && detected_os+=" ($D__OS_DISTRO)"
     dprint_debug \
-      'Empty list of paths to replace ($D__DPL_TARGET_PATHS) for detected OS:' \
+      'Empty list of paths to replace ($D_DPL_TARGET_PATHS) for detected OS:' \
       "$detected_os"
     return 1
     
@@ -202,9 +199,9 @@ d__link_queue_pre_process()
 d__link_queue_item_is_installed()
 {
   # Storage variables
-  local target_path="${D__DPL_TARGET_PATHS[$D__DPL_ITEM_NUM]}"
-  local asset_path="${D__DPL_ASSET_PATHS[$D__DPL_ITEM_NUM]}"
-  local backup_path="$D__DPL_BACKUPS_DIR/$D__DPL_ITEM_STASH_KEY"
+  local target_path="${D_DPL_TARGET_PATHS[$D__QUEUE_ITEM_NUM]}"
+  local asset_path="${D_DPL_ASSET_PATHS[$D__QUEUE_ITEM_NUM]}"
+  local backup_path="$D__DPL_BACKUP_DIR/$D__QUEUE_ITEM_STASH_KEY"
 
   # Check if original and replacement paths are both not empty
   [ -n "$target_path" -a -n "$asset_path" ] || {
@@ -226,7 +223,7 @@ d__link_queue_item_is_installed()
     fi
 
     # Report and return
-    dprint_debug "$D__DPL_ITEM_TITLE: $output"
+    dprint_debug "$D__QUEUE_ITEM_TITLE: $output"
     return 3
     
   }
@@ -277,9 +274,9 @@ d__link_queue_item_is_installed()
 d__link_queue_item_install()
 {
   # Storage variables
-  local target_path="${D__DPL_TARGET_PATHS[$D__DPL_ITEM_NUM]}"
-  local asset_path="${D__DPL_ASSET_PATHS[$D__DPL_ITEM_NUM]}"
-  local backup_path="$D__DPL_BACKUPS_DIR/$D__DPL_ITEM_STASH_KEY"
+  local target_path="${D_DPL_TARGET_PATHS[$D__QUEUE_ITEM_NUM]}"
+  local asset_path="${D_DPL_ASSET_PATHS[$D__QUEUE_ITEM_NUM]}"
+  local backup_path="$D__DPL_BACKUP_DIR/$D__QUEUE_ITEM_STASH_KEY"
 
   # Attempt to install
   if dln -f -- "$asset_path" "$target_path" "$backup_path"; then
@@ -301,9 +298,9 @@ d__link_queue_item_install()
 d__link_queue_item_remove()
 {
   # Storage variables
-  local target_path="${D__DPL_TARGET_PATHS[$D__DPL_ITEM_NUM]}"
-  local asset_path="${D__DPL_ASSET_PATHS[$D__DPL_ITEM_NUM]}"
-  local backup_path="$D__DPL_BACKUPS_DIR/$D__DPL_ITEM_STASH_KEY"
+  local target_path="${D_DPL_TARGET_PATHS[$D__QUEUE_ITEM_NUM]}"
+  local asset_path="${D_DPL_ASSET_PATHS[$D__QUEUE_ITEM_NUM]}"
+  local backup_path="$D__DPL_BACKUP_DIR/$D__QUEUE_ITEM_STASH_KEY"
 
   # Check if replacement appears to be installed
   if dln -?q -- "$asset_path" "$target_path" "$backup_path"; then
@@ -350,7 +347,7 @@ d__link_queue_item_remove()
   fi
 
   # If got here and being forced, try to restore orphaned backup
-  if $D__DPL_ITEM_IS_FORCED && [ -e "$backup_path" ]; then
+  if $D__QUEUE_ITEM_IS_FORCED && [ -e "$backup_path" ]; then
 
     # Remove whatever sits on original location and check status
     if ! rm -rf -- "$target_path"; then
@@ -381,6 +378,6 @@ d__link_queue_item_remove()
   fi
 
   # Otherwise, there is nothing to do with this item
-  dprint_debug "$D__DPL_ITEM_TITLE: Nothing to remove/restore"
+  dprint_debug "$D__QUEUE_ITEM_TITLE: Nothing to remove/restore"
   return 0
 }

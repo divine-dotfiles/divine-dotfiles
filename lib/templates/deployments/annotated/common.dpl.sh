@@ -85,7 +85,7 @@
 #. undesired side-effects.
 #
 
-#> $D__DPL_NAME
+#> $D_DPL_NAME
 #
 ## Name of this deployment
 #
@@ -96,9 +96,9 @@
 #. interpreter, but is rather extracted using a regular expression. Quotes are 
 #. allowed (they are stripped in processing).
 #
-D__DPL_NAME=
+D_DPL_NAME=
 
-#> $D__DPL_DESC
+#> $D_DPL_DESC
 #
 ## Description of this deployment, shown before prompting for confirmation
 #
@@ -108,9 +108,9 @@ D__DPL_NAME=
 #. interpreter, but is rather extracted using a regular expression. Quotes are 
 #. allowed (they are stripped in processing).
 #
-D__DPL_DESC=
+D_DPL_DESC=
 
-#> $D__DPL_PRIORITY
+#> $D_DPL_PRIORITY
 #
 ## Priority of this deployment
 #
@@ -124,9 +124,9 @@ D__DPL_DESC=
 #. interpreter, but is rather extracted using a regular expression. Quotes are 
 #. allowed (they are stripped in processing).
 #
-D__DPL_PRIORITY=4096
+D_DPL_PRIORITY=4096
 
-#> $D__DPL_FLAGS
+#> $D_DPL_FLAGS
 #
 ## A flag is a character that causes special treatment of this deployment. This 
 #. variable may contain any number of flags. Repetition is insignificant. 
@@ -146,12 +146,12 @@ D__DPL_PRIORITY=4096
 #. interpreter, but is rather extracted using a regular expression. Quotes are 
 #. allowed (they are stripped in processing).
 #
-D__DPL_FLAGS=
+D_DPL_FLAGS=
 
-#> $D__DPL_WARNING
+#> $D_DPL_WARNING
 #
 ## Warning shown before prompting for confirmation, but only if relevant flag 
-#. in $D__DPL_FLAGS is in effect. E.g., if deployment is marked with ‘i’ flag, 
+#. in $D_DPL_FLAGS is in effect. E.g., if deployment is marked with ‘i’ flag, 
 #. this warning will be shown before every installation.
 #
 ## One line only. Trimmed on both sides. If empty, no warning is shown.
@@ -160,7 +160,7 @@ D__DPL_FLAGS=
 #. interpreter, but is rather extracted using a regular expression. Quotes are 
 #. allowed (they are stripped in processing).
 #
-D__DPL_WARNING=
+D_DPL_WARNING=
 
 #> d_dpl_check
 #

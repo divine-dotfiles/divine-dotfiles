@@ -77,21 +77,21 @@ fi
 
 #>  d__override_dpl_targets_for_os_distro
 #
-## Provides a way for deployments to override $D__DPL_TARGET_PATHS global 
+## Provides a way for deployments to override $D_DPL_TARGET_PATHS global 
 #. variable, which is used by helper functions in dln.hlp.sh and cp.hlp.sh. 
-#. This function is called before contents of $D__DPL_TARGET_PATHS is settled 
+#. This function is called before contents of $D_DPL_TARGET_PATHS is settled 
 #. upon.
 #
 d__override_dpl_targets_for_os_distro()
 {
   # Below is example implementation for Ubuntu distribution
 
-  # Check if $D__DPL_TARGET_PATHS_UBUNTU contains at least one string
-  if [ ${#D__DPL_TARGET_PATHS_UBUNTU[@]} -gt 1 \
-    -o -n "$D__DPL_TARGET_PATHS_UBUNTU" ]; then
+  # Check if $D_DPL_TARGET_PATHS_UBUNTU contains at least one string
+  if [ ${#D_DPL_TARGET_PATHS_UBUNTU[@]} -gt 1 \
+    -o -n "$D_DPL_TARGET_PATHS_UBUNTU" ]; then
 
-    # $D__DPL_TARGET_PATHS_UBUNTU is set: use it instead
-    D__DPL_TARGET_PATHS=( "${D__DPL_TARGET_PATHS_UBUNTU[@]}" )
+    # $D_DPL_TARGET_PATHS_UBUNTU is set: use it instead
+    D_DPL_TARGET_PATHS=( "${D_DPL_TARGET_PATHS_UBUNTU[@]}" )
     
   fi
 }

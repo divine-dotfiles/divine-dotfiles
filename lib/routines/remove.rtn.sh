@@ -373,7 +373,7 @@ d__remove_dpls()
     # Trim mode, removing quotes if any
     mode="$( dtrim -Q -- "$mode" )"
 
-    # Process $D__DPL_FLAGS
+    # Process $D_DPL_FLAGS
     aa_mode=false
     [[ $mode = *a* ]] && aa_mode=true
     [[ $mode = *r* ]] && aa_mode=true
@@ -445,13 +445,13 @@ d__remove_dpls()
     if $proceeding; then
 
       # Expose variables to deployment
-      D__DPL_NAME="$name"
+      D_DPL_NAME="$name"
       D__DPL_SH_PATH="$divinedpl_filepath"
       D__DPL_MNF_PATH="${divinedpl_filepath%$D__SUFFIX_DPL_SH}$D__SUFFIX_DPL_MNF"
       D__DPL_QUE_PATH="${divinedpl_filepath%$D__SUFFIX_DPL_SH}$D__SUFFIX_DPL_QUE"
       D__DPL_DIR="$( dirname -- "$divinedpl_filepath" )"
-      D__DPL_ASSETS_DIR="$D__DIR_ASSETS/$D__DPL_NAME"
-      D__DPL_BACKUPS_DIR="$D__DIR_BACKUPS/$D__DPL_NAME"
+      D__DPL_ASSET_DIR="$D__DIR_ASSETS/$D_DPL_NAME"
+      D__DPL_BACKUP_DIR="$D__DIR_BACKUPS/$D_DPL_NAME"
 
       # Print debug message
       dprint_debug "Sourcing: $divinedpl_filepath"
@@ -465,7 +465,7 @@ d__remove_dpls()
     fi
 
     # Expose name to deployment (in the form extracted)
-    D__DPL_NAME="$name"
+    D_DPL_NAME="$name"
 
     # Try to figure out, if deployment is already removed
     if $proceeding; then

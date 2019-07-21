@@ -140,20 +140,20 @@ d__populate_globals()
   # Textual delimiter for internal use
   readonly D__CONST_DELIMITER=';;;'
 
-  # Regex for extracting D__DPL_NAME from *.dpl.sh file
-  readonly D__REGEX_DPL_NAME='D__DPL_NAME=\(.*\)'
+  # Regex for extracting D_DPL_NAME from *.dpl.sh file
+  readonly D__REGEX_DPL_NAME='D_DPL_NAME=\(.*\)'
 
-  # Regex for extracting D__DPL_DESC from *.dpl.sh file
-  readonly D__REGEX_DPL_DESC='D__DPL_DESC=\(.*\)'
+  # Regex for extracting D_DPL_DESC from *.dpl.sh file
+  readonly D__REGEX_DPL_DESC='D_DPL_DESC=\(.*\)'
 
-  # Regex for extracting D__DPL_PRIORITY from *.dpl.sh file
-  readonly D__REGEX_DPL_PRIORITY='D__DPL_PRIORITY=\([0-9][0-9]*\).*'
+  # Regex for extracting D_DPL_PRIORITY from *.dpl.sh file
+  readonly D__REGEX_DPL_PRIORITY='D_DPL_PRIORITY=\([0-9][0-9]*\).*'
 
-  # Regex for extracting D__DPL_FLAGS from *.dpl.sh file
-  readonly D__REGEX_DPL_FLAGS='D__DPL_FLAGS=\(.*\)'
+  # Regex for extracting D_DPL_FLAGS from *.dpl.sh file
+  readonly D__REGEX_DPL_FLAGS='D_DPL_FLAGS=\(.*\)'
 
-  # Regex for extracting D__DPL_WARNING from *.dpl.sh file
-  readonly D__REGEX_DPL_WARNING='D__DPL_WARNING=\(.*\)'
+  # Regex for extracting D_DPL_WARNING from *.dpl.sh file
+  readonly D__REGEX_DPL_WARNING='D_DPL_WARNING=\(.*\)'
 
   # dprint_ode base options (total width with single space delimiters: 80)
   D__ODE_BASE=( \

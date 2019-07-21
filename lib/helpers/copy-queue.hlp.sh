@@ -18,20 +18,19 @@
 
 #>  d__copy_queue_check
 #
-## Checks whether every file in $D__DPL_TARGET_PATHS[_*] (single path or array 
-#. thereof) is currently a copy of corresponding file in $D__DPL_ASSET_PATHS
+## Checks whether every file in $D_DPL_TARGET_PATHS[_*] (single path or array 
+#. thereof) is currently a copy of corresponding file in $D_DPL_ASSET_PATHS
 #
 ## Returns appropriate status based on overall state of installation, prints 
 #. warnings when warranted. If in doubt, prefers to prompt user on how to 
 #. proceed.
 #
 ## Requires:
-#.  $D__DPL_ASSET_PATHS          - (array ok) Locations of replacement files
-#.  $D__DPL_TARGET_PATHS         - (array ok) Locations of files to be replaced
+#.  $D_DPL_ASSET_PATHS          - (array ok) Locations of replacement files
+#.  $D_DPL_TARGET_PATHS         - (array ok) Locations of files to be replaced
 #
 ## Provides into the global scope:
-#.  $D__DPL_TARGET_PATHS   - (array) Version after overrides for current OS
-#.  $D__DPL_BACKUP_PATHS   - (array) Paths to where to put backups
+#.  $D_DPL_TARGET_PATHS   - (array) Version after overrides for current OS
 #
 ## Returns:
 #.  Values supported by d_dpl_check function in *.dpl.sh
@@ -74,14 +73,13 @@ d__copy_queue_check()
 
 #>  d__copy_queue_install
 #
-## Copies each file in $D__DPL_ASSET_PATHS to respective destination path in 
-#. $D__DPL_TARGET_PATHS, moving pre-existing files to corresponging backup 
-#. locations in $D__DPL_BACKUP_PATHS.
+## Copies each file in $D_DPL_ASSET_PATHS to respective destination path in 
+#. $D_DPL_TARGET_PATHS, moving pre-existing files to corresponging backup 
+#. locations.
 #
 ## Requires:
-#.  $D__DPL_ASSET_PATHS    - (array ok) Source filepaths
-#.  $D__DPL_TARGET_PATHS   - (array ok) Destination filepaths on current OS
-#.  $D__DPL_BACKUP_PATHS   - (array ok) Backup locations
+#.  $D_DPL_ASSET_PATHS    - (array ok) Source filepaths
+#.  $D_DPL_TARGET_PATHS   - (array ok) Destination filepaths on current OS
 #
 ## Returns:
 #.  Values supported by d_dpl_install function in *.dpl.sh
@@ -112,13 +110,11 @@ d__copy_queue_install()
 
 #>  d__copy_queue_remove
 #
-## Removes each path in $D__DPL_TARGET_PATHS that has record of previous 
-#. copying, then moves corresponding path in $D__DPL_BACKUP_PATHS to its 
-#. original location
+## Removes each path in $D_DPL_TARGET_PATHS that has record of previous 
+#. copying, then moves corresponding backup path to its original location
 #
 ## Requires:
-#.  $D__DPL_TARGET_PATHS    - (array ok) Paths to be restored on current OS
-#.  $D__DPL_BACKUP_PATHS    - (array ok) Backup locations
+#.  $D_DPL_TARGET_PATHS    - (array ok) Paths to be restored on current OS
 #.  `dln.utl.sh`
 #
 ## Returns:
@@ -156,36 +152,36 @@ d__copy_queue_pre_process()
   # Override targets for current OS distro, if specific variable is non-empty
   d__override_dpl_targets_for_os_distro
 
-  # If $D__DPL_TARGET_PATHS is thus far empty, try another trick
-  if ! [ ${#D__DPL_TARGET_PATHS[@]} -gt 1 -o -n "$D__DPL_TARGET_PATHS" ] \
-    && [ -n "$D__DPL_TARGET_DIR" ] \
-    && [ ${#D__DPL_ASSET_RELPATHS[@]} -gt 0 ]
+  # If $D_DPL_TARGET_PATHS is thus far empty, try another trick
+  if ! [ ${#D_DPL_TARGET_PATHS[@]} -gt 1 -o -n "$D_DPL_TARGET_PATHS" ] \
+    && [ -n "$D_DPL_TARGET_DIR" ] \
+    && [ ${#D_DPL_ASSET_RELPATHS[@]} -gt 0 ]
   then
 
-    # Initialize $D__DPL_TARGET_PATHS to empty array
-    D__DPL_TARGET_PATHS=()
+    # Initialize $D_DPL_TARGET_PATHS to empty array
+    D_DPL_TARGET_PATHS=()
 
     # Storage variable
     local relative_path
 
     # Iterate over relative asset paths
-    for relative_path in "${D__DPL_ASSET_RELPATHS[@]}"; do
+    for relative_path in "${D_DPL_ASSET_RELPATHS[@]}"; do
 
       # Construct path to target and add it
-      D__DPL_TARGET_PATHS+=( "$D__DPL_TARGET_DIR/$relative_path" )
+      D_DPL_TARGET_PATHS+=( "$D_DPL_TARGET_DIR/$relative_path" )
 
     done
 
   fi
 
-  # Check if $D__DPL_TARGET_PATHS has still ended up empty
-  if ! [ ${#D__DPL_TARGET_PATHS[@]} -gt 1 -o -n "$D__DPL_TARGET_PATHS" ]; then
+  # Check if $D_DPL_TARGET_PATHS has still ended up empty
+  if ! [ ${#D_DPL_TARGET_PATHS[@]} -gt 1 -o -n "$D_DPL_TARGET_PATHS" ]; then
 
     # Report and return failure
     local detected_os="$D__OS_FAMILY"
     [ -n "$D__OS_DISTRO" ] && detected_os+=" ($D__OS_DISTRO)"
     dprint_debug \
-      'Empty list of paths to replace ($D__DPL_TARGET_PATHS) for detected OS:' \
+      'Empty list of paths to replace ($D_DPL_TARGET_PATHS) for detected OS:' \
       "$detected_os"
     return 1
 
@@ -198,9 +194,9 @@ d__copy_queue_pre_process()
 d__copy_queue_item_is_installed()
 {
   # Storage variables
-  local to_path="${D__DPL_TARGET_PATHS[$D__DPL_ITEM_NUM]}"
-  local from_path="${D__DPL_ASSET_PATHS[$D__DPL_ITEM_NUM]}"
-  local backup_path="$D__DPL_BACKUPS_DIR/$D__DPL_ITEM_STASH_KEY"
+  local to_path="${D_DPL_TARGET_PATHS[$D__QUEUE_ITEM_NUM]}"
+  local from_path="${D_DPL_ASSET_PATHS[$D__QUEUE_ITEM_NUM]}"
+  local backup_path="$D__DPL_BACKUP_DIR/$D__QUEUE_ITEM_STASH_KEY"
 
   # Check if source and destination paths are both not empty
   [ -n "$to_path" -a -n "$from_path" ] || {
@@ -222,7 +218,7 @@ d__copy_queue_item_is_installed()
     fi
 
     # Report and return
-    dprint_debug "$D__DPL_ITEM_TITLE: $output"
+    dprint_debug "$D__QUEUE_ITEM_TITLE: $output"
     return 3
 
   }
@@ -262,9 +258,9 @@ d__copy_queue_item_is_installed()
 d__copy_queue_item_install()
 {
   # Storage variables
-  local to_path="${D__DPL_TARGET_PATHS[$D__DPL_ITEM_NUM]}"
-  local from_path="${D__DPL_ASSET_PATHS[$D__DPL_ITEM_NUM]}"
-  local backup_path="$D__DPL_BACKUPS_DIR/$D__DPL_ITEM_STASH_KEY"
+  local to_path="${D_DPL_TARGET_PATHS[$D__QUEUE_ITEM_NUM]}"
+  local from_path="${D_DPL_ASSET_PATHS[$D__QUEUE_ITEM_NUM]}"
+  local backup_path="$D__DPL_BACKUP_DIR/$D__QUEUE_ITEM_STASH_KEY"
   local to_parent_dir="$( dirname -- "$to_path" )"
 
   # Check if something already exists at destination path
@@ -361,9 +357,9 @@ d__copy_queue_item_install()
 d__copy_queue_item_remove()
 {
   # Storage variables
-  local to_path="${D__DPL_TARGET_PATHS[$D__DPL_ITEM_NUM]}"
-  local from_path="${D__DPL_ASSET_PATHS[$D__DPL_ITEM_NUM]}"
-  local backup_path="$D__DPL_BACKUPS_DIR/$D__DPL_ITEM_STASH_KEY"
+  local to_path="${D_DPL_TARGET_PATHS[$D__QUEUE_ITEM_NUM]}"
+  local from_path="${D_DPL_ASSET_PATHS[$D__QUEUE_ITEM_NUM]}"
+  local backup_path="$D__DPL_BACKUP_DIR/$D__QUEUE_ITEM_STASH_KEY"
   local to_parent_dir="$( dirname -- "$to_path" )"
 
   # Ensure destination parent directory exists

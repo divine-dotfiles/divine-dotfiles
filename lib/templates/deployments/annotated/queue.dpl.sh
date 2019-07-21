@@ -1,8 +1,8 @@
-D__DPL_NAME=
-D__DPL_DESC=
-D__DPL_PRIORITY=4096
-D__DPL_FLAGS=
-D__DPL_WARNING=
+D_DPL_NAME=
+D_DPL_DESC=
+D_DPL_PRIORITY=4096
+D_DPL_FLAGS=
+D_DPL_WARNING=
 
 ## Queue is a kind of deployment that performs a sequence of similar tasks, 
 #. e.g., customized package installations.
@@ -12,7 +12,7 @@ D__DPL_WARNING=
 #. framework.
 #
 ## Variables to fill:
-#.  $D__DPL_QUEUE_MAIN - This array must contain one string for every item in 
+#.  $D__QUEUE_MAIN - This array must contain one string for every item in 
 #.                      queue. Such string is used to identify an item in debug 
 #.                      messages. E.g., if queue is a series of files, their
 #.                      filenames would fit nicely here.
@@ -38,26 +38,26 @@ D__DPL_WARNING=
 #.                                            is processed in reverse order.
 #
 ## Variables to take advantage of (maintained by queue helpers):
-#.  $D__DPL_ITEM_NUM         - Index of current item in $D__DPL_QUEUE_MAIN
-#.  $D__DPL_ITEM_TITLE       - Content of $D__DPL_QUEUE_MAIN for current item
-#.  $D__DPL_ITEM_STASH_KEY   - Stash key for current item
-#.  $D__DPL_ITEM_STASH_VALUE - Stash value for current item
-#.  $D__DPL_ITEM_STASH_FLAG  - ‘true’ if stash record exists
+#.  $D__QUEUE_ITEM_NUM         - Index of current item in $D__QUEUE_MAIN
+#.  $D__QUEUE_ITEM_TITLE       - Content of $D__QUEUE_MAIN for current item
+#.  $D__QUEUE_ITEM_STASH_KEY   - Stash key for current item
+#.  $D__QUEUE_ITEM_STASH_VALUE - Stash value for current item
+#.  $D__QUEUE_ITEM_STASH_FLAG  - ‘true’ if stash record exists
 #.                            ‘false’ if stash record does not exist
 #.                            unset if stash is not used for this
-#.  $D__DPL_ITEM_IS_FORCED   - This variable is set to ‘true’ if installation/
+#.  $D__QUEUE_ITEM_IS_FORCED   - This variable is set to ‘true’ if installation/
 #.                            removal is being forced, i.e., it would not have 
 #.                            been initiated if not for force option.
 #
 
 ## Note on automation:
 #
-## Framework provides ways to auto-populate queue array ($D__DPL_QUEUE_MAIN). 
+## Framework provides ways to auto-populate queue array ($D__QUEUE_MAIN). 
 #. First method that works wins:
 #.  * Queue manifest (see ‘dpl-filename.dpl.que’ template for reference)
-#.  * $D__DPL_ASSET_RELPATHS - If this variable is set, it is auto-copied into 
+#.  * $D_DPL_ASSET_RELPATHS - If this variable is set, it is auto-copied into 
 #.                            the queue
-#.  * $D__DPL_ASSET_PATHS    - If this variable is set, it is auto-copied into 
+#.  * $D_DPL_ASSET_PATHS    - If this variable is set, it is auto-copied into 
 #.                            the queue
 #
 
@@ -91,11 +91,11 @@ d_queue_pre_process()
 ## This function is called once for every queue item
 #
 ## Uses in global scope:
-#.  $D__DPL_ITEM_NUM     - Index of current item in $D__DPL_QUEUE_MAIN
-#.  $D__DPL_ITEM_TITLE   - Content of $D__DPL_QUEUE_MAIN for current item
+#.  $D__QUEUE_ITEM_NUM     - Index of current item in $D__QUEUE_MAIN
+#.  $D__QUEUE_ITEM_TITLE   - Content of $D__QUEUE_MAIN for current item
 #
 ## Provides into global scope:
-#.  $D__DPL_ITEM_STASH_KEY   - Assign custom stash key to this global variable
+#.  $D__QUEUE_ITEM_STASH_KEY   - Assign custom stash key to this global variable
 #
 ## Returns:
 #.  0 - Normal return code, is ignored
@@ -115,10 +115,10 @@ d_queue_item_pre_check()
 ## This function is called once for every queue item
 #
 ## Uses in global scope:
-#.  $D__DPL_ITEM_NUM         - Index of current item in $D__DPL_QUEUE_MAIN
-#.  $D__DPL_ITEM_TITLE       - Content of $D__DPL_QUEUE_MAIN for current item
-#.  $D__DPL_ITEM_STASH_KEY   - Stash key for current item
-#.  $D__DPL_ITEM_STASH_VALUE - Stash value for current item
+#.  $D__QUEUE_ITEM_NUM         - Index of current item in $D__QUEUE_MAIN
+#.  $D__QUEUE_ITEM_TITLE       - Content of $D__QUEUE_MAIN for current item
+#.  $D__QUEUE_ITEM_STASH_KEY   - Stash key for current item
+#.  $D__QUEUE_ITEM_STASH_VALUE - Stash value for current item
 #
 ## Returns:
 #.  0 - Unknown (no way to tell whether item is installed or not)
@@ -154,11 +154,11 @@ d_queue_post_process()
 ## This function is called once for every queue item
 #
 ## Uses in global scope:
-#.  $D__DPL_ITEM_NUM         - Index of current item in $D__DPL_QUEUE_MAIN
-#.  $D__DPL_ITEM_TITLE       - Content of $D__DPL_QUEUE_MAIN for current item
-#.  $D__DPL_ITEM_STASH_KEY   - Stash key for current item
-#.  $D__DPL_ITEM_STASH_VALUE - Stash value for current item
-#.  $D__DPL_ITEM_IS_FORCED   - This variable is set to ‘true’ if this function 
+#.  $D__QUEUE_ITEM_NUM         - Index of current item in $D__QUEUE_MAIN
+#.  $D__QUEUE_ITEM_TITLE       - Content of $D__QUEUE_MAIN for current item
+#.  $D__QUEUE_ITEM_STASH_KEY   - Stash key for current item
+#.  $D__QUEUE_ITEM_STASH_VALUE - Stash value for current item
+#.  $D__QUEUE_ITEM_IS_FORCED   - This variable is set to ‘true’ if this function 
 #.                            would not have been called for current item if 
 #.                            not for ‘--force’ option; otherwise ‘false’
 #
@@ -181,11 +181,11 @@ d_queue_item_install()
 ## This function is called once for every queue item
 #
 ## Uses in global scope:
-#.  $D__DPL_ITEM_NUM         - Index of current item in $D__DPL_QUEUE_MAIN
-#.  $D__DPL_ITEM_TITLE       - Content of $D__DPL_QUEUE_MAIN for current item
-#.  $D__DPL_ITEM_STASH_KEY   - Stash key for current item
-#.  $D__DPL_ITEM_STASH_VALUE - Stash value for current item
-#.  $D__DPL_ITEM_IS_FORCED   - This variable is set to ‘true’ if this function 
+#.  $D__QUEUE_ITEM_NUM         - Index of current item in $D__QUEUE_MAIN
+#.  $D__QUEUE_ITEM_TITLE       - Content of $D__QUEUE_MAIN for current item
+#.  $D__QUEUE_ITEM_STASH_KEY   - Stash key for current item
+#.  $D__QUEUE_ITEM_STASH_VALUE - Stash value for current item
+#.  $D__QUEUE_ITEM_IS_FORCED   - This variable is set to ‘true’ if this function 
 #.                            would not have been called for current item if 
 #.                            not for ‘--force’ option; otherwise ‘false’
 #

@@ -86,7 +86,7 @@ d__stash()
     case $stash_mode in
       -g) stash_dirpath="$D__DIR_GRAIL";;
       -r) stash_dirpath="$D__DIR_STASH";;
-      *)  stash_dirpath="$D__DIR_STASH/$D__DPL_NAME";;
+      *)  stash_dirpath="$D__DIR_STASH/$D_DPL_NAME";;
     esac
     D__STASH_FILEPATH="$stash_dirpath/$D__CONST_NAME_STASHFILE"
     D__STASH_MD5_FILEPATH="$D__STASH_FILEPATH.md5"
@@ -388,10 +388,10 @@ d__stash_pre_flight_checks()
     return 1
   }
 
-  # Check if within deployment by ensuring $D__DPL_NAME is populated
-  [ -z "$stash_mode" -a -z "$D__DPL_NAME" ] && {
+  # Check if within deployment by ensuring $D_DPL_NAME is populated
+  [ -z "$stash_mode" -a -z "$D_DPL_NAME" ] && {
     dprint_debug "$D__FMWK_NAME:" \
-      'Stashing accessed without $D__DPL_NAME populated'
+      'Stashing accessed without $D_DPL_NAME populated'
     return 1
   }
 
@@ -424,7 +424,7 @@ d__stash_pre_flight_checks()
   case $stash_mode in
     grail)  stash_dirpath="$D__DIR_GRAIL";;
     root)   stash_dirpath="$D__DIR_STASH";;
-    *)      stash_dirpath="$D__DIR_STASH/$D__DPL_NAME";;
+    *)      stash_dirpath="$D__DIR_STASH/$D_DPL_NAME";;
   esac
 
   # Ensure directory for this stash exists

@@ -1,14 +1,14 @@
-D__DPL_NAME=
-D__DPL_DESC=
-D__DPL_PRIORITY=4096
-D__DPL_FLAGS=
-D__DPL_WARNING=
+D_DPL_NAME=
+D_DPL_DESC=
+D_DPL_PRIORITY=4096
+D_DPL_FLAGS=
+D_DPL_WARNING=
 
 d_dpl_check()
 {
-  D__DPL_TASK_NAMES+=( task1 )
-  D__DPL_TASK_NAMES+=( task2 )
-  D__DPL_TASK_NAMES+=( task3 )
+  D_MULTITASK_NAMES+=( task1 )
+  D_MULTITASK_NAMES+=( task2 )
+  D_MULTITASK_NAMES+=( task3 )
   d__multitask_check
 }
 

@@ -560,7 +560,7 @@ d__run_pre_plug_checks()
         ;;
     2)  # At least one deployment file has reserved delimiter in its path
         local list_of_illegal_dpls=() illegal_dpl
-        for illegal_dpl in "${D__DPL_PATHS_WITH_DELIMITER[@]}"; do
+        for illegal_dpl in "${D__LIST_OF_ILLEGAL_DPL_PATHS[@]}"; do
           list_of_illegal_dpls+=( -i "$illegal_dpl" )
         done
         dprint_debug \

@@ -117,23 +117,23 @@ if HOMEBREW_NO_AUTO_UPDATE=1 brew --version &>/dev/null; then
 
 fi
 
-# Implement overriding mechanism for $D__DPL_TARGET_PATHS and $D__DPL_TARGET_DIR
+# Implement overriding mechanism for $D_DPL_TARGET_PATHS and $D_DPL_TARGET_DIR
 d__override_dpl_targets_for_os_distro()
 {
-  # Check if $D__DPL_TARGET_PATHS_MACOS contains at least one string
-  if [ ${#D__DPL_TARGET_PATHS_MACOS[@]} -gt 1 \
-    -o -n "$D__DPL_TARGET_PATHS_MACOS" ]; then
+  # Check if $D_DPL_TARGET_PATHS_MACOS contains at least one string
+  if [ ${#D_DPL_TARGET_PATHS_MACOS[@]} -gt 1 \
+    -o -n "$D_DPL_TARGET_PATHS_MACOS" ]; then
 
-    # $D__DPL_TARGET_PATHS_MACOS is set: use it instead
-    D__DPL_TARGET_PATHS=( "${D__DPL_TARGET_PATHS_MACOS[@]}" )
+    # $D_DPL_TARGET_PATHS_MACOS is set: use it instead
+    D_DPL_TARGET_PATHS=( "${D_DPL_TARGET_PATHS_MACOS[@]}" )
     
   fi
 
-  # Check if $D__DPL_TARGET_DIR_MACOS is not empty
-  if [ -n "$D__DPL_TARGET_DIR_MACOS" ]; then
+  # Check if $D_DPL_TARGET_DIR_MACOS is not empty
+  if [ -n "$D_DPL_TARGET_DIR_MACOS" ]; then
 
-    # $D__DPL_TARGET_DIR_MACOS is set: use it instead
-    D__DPL_TARGET_DIR=( "${D__DPL_TARGET_DIR_MACOS[@]}" )
+    # $D_DPL_TARGET_DIR_MACOS is set: use it instead
+    D_DPL_TARGET_DIR=( "${D_DPL_TARGET_DIR_MACOS[@]}" )
     
   fi
 }
