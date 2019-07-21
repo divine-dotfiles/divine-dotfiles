@@ -467,28 +467,24 @@ dprint_debug()
 
 dprint_start()
 {
-  $D_QUIET && return 0
   printf >&2 '%s %s\n' "${BOLD}${YELLOW}==>${NORMAL}" "$1"; shift
   while [ $# -gt 0 ]; do printf >&2 '    %s\n' "$1"; shift; done; return 0
 }
 
 dprint_skip()
 {
-  $D_QUIET && return 0
   printf >&2 '%s %s\n' "${BOLD}${WHITE}==>${NORMAL}" "$1"; shift
   while [ $# -gt 0 ]; do printf >&2 '    %s\n' "$1"; shift; done; return 0
 }
 
 dprint_success()
 {
-  $D_QUIET && return 0
   printf >&2 '%s %s\n' "${BOLD}${GREEN}==>${NORMAL}" "$1"; shift
   while [ $# -gt 0 ]; do printf >&2 '    %s\n' "$1"; shift; done; return 0
 }
 
 dprint_failure()
 {
-  $D_QUIET && return 0
   printf >&2 '%s %s\n' "${BOLD}${RED}==>${NORMAL}" "$1"; shift
   while [ $# -gt 0 ]; do printf >&2 '    %s\n' "$1"; shift; done; return 0
 }
