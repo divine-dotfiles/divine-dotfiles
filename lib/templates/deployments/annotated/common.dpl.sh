@@ -7,82 +7,47 @@
 #:revremark:    Ready for distribution
 #:created_at:   2018.03.25
 
-## This is a valid deployment script for Divine.dotfiles repository
+## This is a valid deployment script for Divine.dotfiles framework
 #. <https://github.com/no-simpler/divine-dotfiles>
 #
 ## Usage:
-#.  1. Copy example ‘*.dpl.sh’ file to anywhere inside ‘deployments’ directory
-#.  2. Name the file after whatever you are deploying, e.g., ‘shell-rc.dpl.sh’
-#.  3. Fill out whichever part of the file you need (all are optional), e.g.:
+#.  1. Copy this template to anywhere under ‘grail/dpls’ directory
+#.  2. Rename the file after whatever you are deploying, e.g., ‘my-dpl.dpl.sh’
+#.  3. Fill out whichever parts of this file you need (all are optional):
 #.    3.1. Assign provided global variables
 #.    3.2. Implement ‘d_dpl_check’   function following its guidelines
 #.    3.3. Implement ‘d_dpl_install’ function following its guidelines
 #.    3.4. Implement ‘d_dpl_remove’  function following its guidelines
 #
-## Expect these global variables to be available to this script during Divine 
-#. intervention:
-#.  $D__DIR_FMWK - (read-only) Absolute canonical path to directory containing 
-#.                ‘intervene.sh’ script that is currently being executed
-#.  $D__DPL_DIR  - Absolute canonical path to directory of this deployment, 
-#.                i.e., directory containing this script
-#.  $D__DIR_BACKUPS
-#.              - Absolute canonical path to backups directory
-#.  $D__DIR_LIB
-#.              - Absolute canonical path to lib directory
-#.  $D__REQ_ROUTINE
-#.              - (read-only) The routine currently being executed. Either 
-#.                ‘install’ or ‘remove’.
-#.  $D__OPT_ANSWER
-#.              - (read-only) If user has given a blanket answer, this variable 
-#.                will be populated with either ‘y’ or ‘n’, otherwise empty
-#.  $D__OPT_QUIET
-#.              - (read-only) This variable will contain either ‘true’ or 
-#.                ‘false’ (never empty) based on user’s verbosity setting
-#.  $D__REQ_FILTER
-#.              - (read-only) This variable will contain either ‘true’ or 
-#.                ‘false’ (never empty) based on whether user has listed 
-#.                specific deployments to run (evidently, this one included)
-#.  $D__REQ_PACKAGES
-#.              - (read-only) This variable will contain either ‘true’ or 
-#.                ‘false’ (never empty) based on whether packages are processed 
-#.                during this Divine intervention
-#.  $D__OS_FAMILY  - (read-only) Broad description of the current OS type, e.g.:
-#.                  * ‘macos’
-#.                  * ‘linux’
-#.                  * ‘wsl’
-#.                  * ‘bsd’
-#.                  * ‘solaris’
-#.                  * ‘cygwin’
-#.                  * ‘msys’
-#.                  * unset     - Not recognized
-#.  $D__OS_DISTRO  - (read-only) Best guess on the name of the current OS 
-#.                distribution, without version, e.g.:
-#.                  * ‘macos’
-#.                  * ‘ubuntu’
-#.                  * ‘debian’
-#.                  * ‘fedora’
-#.                  * unset     - Not recognized
-#.  $D__OS_PKGMGR  - (read-only) Name of the package management utility available 
-#.                on the current system, e.g.:
-#.                  * ‘brew’    (macOS)
-#.                  * ‘apt-get’ (Debian, Ubuntu)
-#.                  * ‘dnf’     (Fedora)
-#.                  * ‘yum’     (older Fedora)
-#.                  * unset     - Not recognized
+## Below are some of the global variables that are available to this script 
+#. during Divine intervention:
+#.  $D__DPL_DIR         - Absolute canonical path to directory containing 
+#.                        deployment script
+#.  $D__DPL_ASSET_DIR   - Absolute canonical path to directory alotted for 
+#.                        asset files of this deployment
+#.  $D__OS_FAMILY       - (read-only) Broad description of the current OS type. 
+#.                        Each file in ‘lib/adapters/family’ represents a 
+#.                        supported OS family. Empty, when not recognized.
+#.  $D__OS_DISTRO       - (read-only) Best guess on the name of the current OS 
+#.                        distribution, without version. Each file in ‘lib/
+#.                        adapters/distro represents a supported OS distro. 
+#.                        Empty, when not recognized.
+#.  $D__OS_PKGMGR       - (read-only) Name of the package management utility 
+#.                        available on current system. Normally coincides with 
+#.                        executable name, e.g.:
+#.                          * brew        - macOS
+#.                          * apt-get     - Debian, Ubuntu
+#.                          * dnf         - Fedora
+#.                          * yum         - older Fedora
+#.                          * [empty]     - Not recognized
 #
 ## NOTE: To add more recognized OS distributions or package managers, add 
-#. distro adapters to lib/adapters/distro
-#
-## Also, intervention script scans ‘lib’ directory and sources every file named 
-#. ‘*.utl.sh’ and ‘*.dpl-hlp.sh’. Check those out for various helpful utilities 
-#. that can be freely used in deployment scripts.
+#. distro adapters to ‘lib/adapters/distro’.
 #
 ## This template is valid as is, although in this form it does nothing
 #
-## Do not include regular code outside of pre-defined functions and variables. 
-#. During Divine intervention this script is sourced once (assuming it is not 
-#. skipped). Insulating code within provided functions allows to avoid 
-#. undesired side-effects.
+## During Divine intervention, each deployment script script is sourced once or 
+#. not at all
 #
 
 #> $D_DPL_NAME
@@ -162,7 +127,7 @@ D_DPL_FLAGS=
 #
 D_DPL_WARNING=
 
-#> d_dpl_check
+#>  d_dpl_check
 #
 ## Exit code of this function describes current status of this deployment
 #
@@ -188,56 +153,59 @@ D_DPL_WARNING=
 #.      that deployment is halfway between installed and not installed.
 #
 ## Optional global variables:
-#.  $D__ANOTHER_PROMPT   - Set this one to 'true' to ensure that user is 
-#.                        prompted again about whether they are sure they want 
-#.                        to proceed. This additional prompt is not affected by 
-#.                        ‘--yes’ command line option.
-#.  $D__ANOTHER_WARNING  - If $D__ANOTHER_PROMPT is set to 'true', this textual 
-#.                        warning will be printed. Use this to explain possible 
-#.                        consequences.
-#.  $D__USER_OR_OS       - Set this one to 'true' to signal that all parts of 
-#.                        current deployment that are detected to be already 
-#.                        installed, have been installed by user or OS, not by 
-#.                        this framework. This affects following return codes:
-#.                          * 1 (installed) — removes ability to remove
-#.                          * 4 (partly installed) — removes ability to remove
-#.                        In both cases output is modified to inform user.
-#.                        This is useful for deployments designed to not touch 
-#.                        anything done by user manually.
+#.  $D_DPL_NEEDS_ANOTHER_PROMPT
+#.            - Set this one to 'true' to ensure that user is prompted again 
+#.              about whether they are sure they want to proceed. This 
+#.              additional prompt is not affected by ‘--yes’ option.
+#.  $D_DPL_NEEDS_ANOTHER_WARNING
+#.            - If $D_DPL_NEEDS_ANOTHER_PROMPT is set to 'true', this textual 
+#.              warning will be printed. Use this to explain possible 
+#.              consequences.
+#.  $D_DPL_INSTALLED_BY_USER_OR_OS
+#.            - Set this one to 'true' to signal that all parts of current 
+#.              deployment that are detected to be already installed, have been 
+#.              installed by user or OS, not by this framework. This affects 
+#.              following return codes:
+#.                * 1 (installed)         — removes ability to remove
+#.                * 4 (partly installed)  — removes ability to remove
+#.              In both cases output is modified to inform user. This is useful 
+#.              for deployments designed to not touch anything done by user 
+#.              manually.
 #
 ## The following table summarizes how d_dpl_check affects framework behavior:
-#. +------------------------------------------------------------------+
-#. |       Allowed actions depending on return status of d_dpl_check       |
-#. +------------------------------------------------------------------+
-#. |                    |  normal  | D__USER_OR_OS=true | '-f' option |
-#. +--------------------+----------+--------------------+-------------+
-#. |                    |          |                    |   d_dpl_install  |
-#. +          1         +----------+--------------------+-------------+
-#. |     'installed'    |  d_dpl_remove |                    |    d_dpl_remove  |
-#. +--------------------+----------+--------------------+-------------+
-#. |                    | d_dpl_install |      d_dpl_install      |   d_dpl_install  |
-#. +          4         +----------+--------------------+-------------+
-#. | 'partly installed' |  d_dpl_remove |                    |    d_dpl_remove  |
-#. +--------------------+----------+--------------------+-------------+
-#. |                    | d_dpl_install |      d_dpl_install      |   d_dpl_install  |
-#. +          2         +----------+--------------------+-------------+
-#. |   'not installed'  |          |                    |    d_dpl_remove  |
-#. +--------------------+----------+--------------------+-------------+
-#. |                    | d_dpl_install |      d_dpl_install      |   d_dpl_install  |
-#. +          0         +----------+--------------------+-------------+
-#. |      'unknown'     |  d_dpl_remove |       d_dpl_remove      |    d_dpl_remove  |
-#. +--------------------+----------+--------------------+-------------+
-#. |                    |          |                    |             |
-#. +          3         +----------+--------------------+-------------+
-#. |    'irrelevant'    |          |                    |             |
-#. +--------------------+----------+--------------------+-------------+
+#. +-----------------------------------------------------------+
+#. | Allowed actions depending on return status of d_dpl_check |
+#. +-----------------------------------------------------------+
+#. |             |  normal  |  D_DPL_INSTALLED_BY |  '--force' |
+#. |             |          |   _USER_OR_OS=true  |   option   |
+#. +-------------+----------+---------------------+------------+
+#. |             |          |                     |   install  |
+#. +      1      +----------+---------------------+------------+
+#. |  installed  |  remove  |                     |   remove   |
+#. +-------------+----------+---------------------+------------+
+#. |      4      |  install |       install       |   install  |
+#. +    partly   +----------+---------------------+------------+
+#. |  installed  |  remove  |                     |   remove   |
+#. +-------------+----------+---------------------+------------+
+#. |      2      |  install |       install       |   install  |
+#. +     not     +----------+---------------------+------------+
+#. |  installed  |          |                     |   remove   |
+#. +-------------+----------+---------------------+------------+
+#. |             |  install |       install       |   install  |
+#. +      0      +----------+---------------------+------------+
+#. |   unknown   |  remove  |        remove       |   remove   |
+#. +-------------+----------+---------------------+------------+
+#. |             |          |                     |            |
+#. +      3      +----------+---------------------+------------+
+#. |  irrelevant |          |                     |            |
+#. +-------------+----------+---------------------+------------+
 #
 d_dpl_check()
 {
   return 0
 }
 
-#> d_dpl_install
+#>  d_dpl_install
 #
 ## Installs this deployment
 #
@@ -267,7 +235,7 @@ d_dpl_install()
   return 0
 }
 
-#> d_dpl_remove
+#>  d_dpl_remove
 #
 ## Removes this deployment
 #

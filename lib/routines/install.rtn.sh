@@ -452,7 +452,7 @@ d__install_dpls()
 
       # Don’t proceed if already installed (except when forcing)
       case $dpl_status in
-        1)  if [ "$D__USER_OR_OS" = true ]; then
+        1)  if [ "$D_DPL_INSTALLED_BY_USER_OR_OS" = true ]; then
               task_name="$task_name (installed by user or OS)"
             else
               task_name="$task_name (already installed)"
@@ -462,7 +462,7 @@ d__install_dpls()
         3)  task_name="$task_name (irrelevant)"
             proceeding=false
             ;;
-        4)  if [ "$D__USER_OR_OS" = true ]; then
+        4)  if [ "$D_DPL_INSTALLED_BY_USER_OR_OS" = true ]; then
               task_name="$task_name (partly installed by user or OS)"
             else
               task_name="$task_name (partly installed)"
@@ -474,7 +474,7 @@ d__install_dpls()
     fi
 
     # Check if dpl requested another prompt
-    if $proceeding && [ "$D__ANOTHER_PROMPT" = true ]; then
+    if $proceeding && [ "$D_DPL_NEEDS_ANOTHER_PROMPT" = true ]; then
 
       # Print descriptive introduction, if haven’t already
       if ! $intro_printed; then
@@ -485,9 +485,9 @@ d__install_dpls()
       fi
 
       # If there was a warning provided, print it
-      if [ -n "$D__ANOTHER_WARNING" ]; then
+      if [ -n "$D_DPL_NEEDS_ANOTHER_WARNING" ]; then
         dprint_ode "${D__ODE_WARN[@]}" -c "$RED" -- \
-          '' 'Warning' ':' "$D__ANOTHER_WARNING"
+          '' 'Warning' ':' "$D_DPL_NEEDS_ANOTHER_WARNING"
       fi
 
       # Prompt user

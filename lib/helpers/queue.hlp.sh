@@ -44,7 +44,7 @@ d__queue_check()
   local item_stash_key
 
   # Global storage variables
-  D__USER_OR_OS=true
+  D_DPL_INSTALLED_BY_USER_OR_OS=true
 
   # If necessary functions are not implemented: implement a dummy
   if ! declare -f d_queue_item_is_installed &>/dev/null; then
@@ -138,7 +138,7 @@ d__queue_check()
             some_installed=true
             all_not_installed=false
             all_unknown=false
-            D__USER_OR_OS=false
+            D_DPL_INSTALLED_BY_USER_OR_OS=false
             d__queue_item_dprint_debug 'Installed' '(stash disabled)'
             ;;
         2)  # Item is not installed
@@ -170,7 +170,7 @@ d__queue_check()
             some_installed=true
             all_not_installed=false
             all_unknown=false
-            D__USER_OR_OS=false
+            D_DPL_INSTALLED_BY_USER_OR_OS=false
             d__queue_item_dprint_debug 'Unknown' '(record exists)'
             ;;
         1)  # Item recorded and installed
@@ -178,7 +178,7 @@ d__queue_check()
             some_installed=true
             all_not_installed=false
             all_unknown=false
-            D__USER_OR_OS=false
+            D_DPL_INSTALLED_BY_USER_OR_OS=false
             d__queue_item_dprint_debug 'Installed'
             ;;
         2)  # Item recorded but not installed
@@ -254,8 +254,8 @@ d__queue_check()
 
   # Check if additional user prompt is warranted
   if $should_prompt_again; then
-    D__ANOTHER_PROMPT=true
-    D__ANOTHER_WARNING='Irregularities detected with this deployment'
+    D_DPL_NEEDS_ANOTHER_PROMPT=true
+    D_DPL_NEEDS_ANOTHER_WARNING='Irregularities detected with this deployment'
   fi
 
   # Return appropriately

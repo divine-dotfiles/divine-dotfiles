@@ -161,7 +161,7 @@ d__multitask_catch_check_code()
         for j in 0 2 3 4; do D__MULTITASK_STATUS_SUMMARY[$j]=false; done
 
         # Check if user-or-os flag is currently set
-        if [ "$D__USER_OR_OS" = true ]; then
+        if [ "$D_DPL_INSTALLED_BY_USER_OR_OS" = true ]; then
 
           # Installed by user or OS: no actions allowed
 
@@ -195,7 +195,7 @@ d__multitask_catch_check_code()
         for j in 0 1 2 3; do D__MULTITASK_STATUS_SUMMARY[$j]=false; done
 
         # Check if user-or-os flag is currently set
-        if [ "$D__USER_OR_OS" = true ]; then
+        if [ "$D_DPL_INSTALLED_BY_USER_OR_OS" = true ]; then
 
           # Partly installed by user or OS: allow installation
           d__multitask_task_status set can_be_installed
@@ -252,8 +252,8 @@ d__multitask_reconcile_check_codes()
   unset D__MULTITASK_NUM
 
   # Settle user-or-os status
-  if [ "${D__MULTITASK_STATUS_SUMMARY[5]}" = true ]; then D__USER_OR_OS=true
-  else D__USER_OR_OS=false; fi
+  if [ "${D__MULTITASK_STATUS_SUMMARY[5]}" = true ]; then D_DPL_INSTALLED_BY_USER_OR_OS=true
+  else D_DPL_INSTALLED_BY_USER_OR_OS=false; fi
 
   # Storage variable for return code
   local return_code

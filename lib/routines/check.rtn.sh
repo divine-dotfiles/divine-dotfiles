@@ -359,7 +359,7 @@ d__check_dpls()
       # Process return code
       case $dpl_status in
         1)
-          if [ "$D__USER_OR_OS" = true ]; then
+          if [ "$D_DPL_INSTALLED_BY_USER_OR_OS" = true ]; then
             task_name="$task_name (installed by user or OS)"
             dprint_ode "${D__ODE_NAME[@]}" -c "$MAGENTA" -- \
               '~~~' 'Installed' ':' "$task_desc" "$task_name"
@@ -377,7 +377,7 @@ d__check_dpls()
             '~~~' 'Irrelevant' ':' "$task_desc" "$task_name"
           ;;
         4)
-          if [ "$D__USER_OR_OS" = true ]; then
+          if [ "$D_DPL_INSTALLED_BY_USER_OR_OS" = true ]; then
             task_name="$task_name (partly installed by user or OS)"
           fi
           dprint_ode "${D__ODE_NAME[@]}" -c "$YELLOW" -- \
