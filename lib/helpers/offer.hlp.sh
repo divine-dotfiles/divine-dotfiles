@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: offer
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    0.0.1-SNAPSHOT
-#:revdate:      2019.07.06
-#:revremark:    Initial revision
+#:revnumber:    10
+#:revdate:      2019.07.22
+#:revremark:    New revisioning system
 #:created_at:   2019.07.06
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>

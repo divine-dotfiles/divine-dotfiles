@@ -2,9 +2,9 @@
 #:title:        Divine Bash routine: help
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    0.0.1-SNAPSHOT
-#:revdate:      2019.07.05
-#:revremark:    Initial revision
+#:revnumber:    9
+#:revdate:      2019.07.22
+#:revremark:    New revisioning system
 #:created_at:   2018.03.25
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>

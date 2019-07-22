@@ -1,3 +1,17 @@
+#!/usr/bin/env bash
+#:title:        Divine.dotfiles fmwk uninstall script
+#:author:       Grove Pyree
+#:email:        grayarea@protonmail.ch
+#:revnumber:    33
+#:revdate:      2019.07.22
+#:revremark:    New revisioning system
+#:created_at:   2019.07.22
+
+## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
+#
+## This script uninstalls the framework and optional components
+#
+
 # Driver function
 d__main()
 {

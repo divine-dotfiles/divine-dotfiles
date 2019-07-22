@@ -3,9 +3,9 @@
 #:kind:         func(script)
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    2.1.0-RELEASE
-#:revdate:      2019.05.06
-#:revremark:    Make func names and signatures more uniform
+#:revnumber:    5
+#:revdate:      2019.07.22
+#:revremark:    New revisioning system
 #:created_at:   2018.12.20
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>

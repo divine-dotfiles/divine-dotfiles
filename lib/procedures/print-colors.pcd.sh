@@ -3,9 +3,9 @@
 #:kind:         global_var
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    2.0.0-RELEASE
-#:revdate:      2019.03.22
-#:revremark:    Lib ready for deployment
+#:revnumber:    2
+#:revdate:      2019.07.22
+#:revremark:    New revisioning system
 #:created_at:   2018.12.20
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>

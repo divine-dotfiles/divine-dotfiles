@@ -2,9 +2,9 @@
 #:title:        Divine Bash script: intervene
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    1.7.0-RELEASE
-#:revdate:      2019.07.01
-#:revremark:    Major compartmentalization
+#:revnumber:    67
+#:revdate:      2019.07.22
+#:revremark:    New revisioning system
 #:created_at:   2018.03.25
 
 ## Launches the Divine intervention

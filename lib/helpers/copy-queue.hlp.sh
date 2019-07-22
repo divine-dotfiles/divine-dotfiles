@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: copy-queue
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    1.1.0-RELEASE
-#:revdate:      2019.05.28
-#:revremark:    Publication revision
+#:revnumber:    3
+#:revdate:      2019.07.22
+#:revremark:    New revisioning system
 #:created_at:   2019.05.23
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>

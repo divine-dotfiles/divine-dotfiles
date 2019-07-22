@@ -3,9 +3,9 @@
 #:kind:         func(script,interavtive)
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    3.0.0-RELEASE
-#:revdate:      2019.04.02
-#:revremark:    Release revision
+#:revnumber:    5
+#:revdate:      2019.07.22
+#:revremark:    New revisioning system
 #:created_at:   2018.03.15
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>

@@ -2,9 +2,9 @@
 #:title:        Divine deployment annotated template
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    1.3.0-RELEASE
-#:revdate:      2019.05.24
-#:revremark:    Ready for distribution
+#:revnumber:    12
+#:revdate:      2019.07.22
+#:revremark:    New revisioning system
 #:created_at:   2018.03.25
 
 ## This is a valid deployment script for Divine.dotfiles framework
