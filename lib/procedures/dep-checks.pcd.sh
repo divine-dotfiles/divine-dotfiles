@@ -2,9 +2,9 @@
 #:title:        Divine Bash procedure: dep-checks
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    6
+#:revnumber:    7
 #:revdate:      2019.07.24
-#:revremark:    Add grep and sed tests
+#:revremark:    Improve output, fix tests
 #:created_at:   2019.07.05
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -48,7 +48,7 @@ d__check_system_dependencies()
     # Announce failure
     printf >&2 '%s: %s: %s\n' \
       "$D__FMWK_NAME" \
-      'Missing system dependency:' \
+      'Missing or incompatible system dependency' \
       'find'
 
     # Flip flag
@@ -67,7 +67,7 @@ d__check_system_dependencies()
 
   # Test: this command must match line 'Be Eg'
   test_bed="$( \
-    grep ^'Be E' <<'EOF' 2>/dev/null || exit 1
+    grep ^'Be E' <<'EOF' 2>/dev/null || exit $?
 bEe
 Be Eg
 be e
@@ -99,9 +99,9 @@ EOF
 
   # Test: this command must match line '  by the '
   test_bed="$( \
-    grep ^'[[:space:]]*by the ' <<'EOF' 2>/dev/null || exit 1
-buy the
-  by the
+    grep '^[[:space:]]*by the ' <<'EOF' || exit $?
+buy the 
+  by the 
 EOF
     )"
 
@@ -116,7 +116,7 @@ EOF
     # Announce failure
     printf >&2 '%s: %s: %s\n' \
       "$D__FMWK_NAME" \
-      'Missing system dependency:' \
+      'Missing or incompatible system dependency' \
       'grep'
 
     # Flip flag
@@ -188,7 +188,7 @@ EOF
     # Announce failure
     printf >&2 '%s: %s: %s\n' \
       "$D__FMWK_NAME" \
-      'Missing system dependency:' \
+      'Missing or incompatible system dependency' \
       'sed'
 
     # Flip flag
@@ -202,7 +202,7 @@ EOF
 
   # Test: this command must yield string ‘halt’
   test_bed="$( \
-    awk -F  '=' '{print $3}' <<<'go==halt=pry' || exit $? \
+    awk -F  '=' '{print $3}' 2>/dev/null <<<'go==halt=pry' || exit $? \
     )"
 
   # Check if all is well
@@ -211,7 +211,7 @@ EOF
     # Announce failure
     printf >&2 '%s: %s: %s\n' \
       "$D__FMWK_NAME" \
-      'Missing system dependency:' \
+      'Missing or incompatible system dependency' \
       'awk'
 
     # Flip flag
