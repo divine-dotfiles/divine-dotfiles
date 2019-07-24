@@ -2,9 +2,9 @@
 #:title:        Divine Bash procedure: dep-checks
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    5
-#:revdate:      2019.07.22
-#:revremark:    New revisioning system
+#:revnumber:    6
+#:revdate:      2019.07.24
+#:revremark:    Add grep and sed tests
 #:created_at:   2019.07.05
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -67,7 +67,7 @@ d__check_system_dependencies()
 
   # Test: this command must match line 'Be Eg'
   test_bed="$( \
-    grep ^'Be E' <<'EOF' 2>/dev/null || exit 1 \
+    grep ^'Be E' <<'EOF' 2>/dev/null || exit 1
 bEe
 Be Eg
 be e
@@ -95,6 +95,19 @@ maRA
 ma*a
 EOF
 
+  # grep no. 3
+
+  # Test: this command must match line '  by the '
+  test_bed="$( \
+    grep ^'[[:space:]]*by the ' <<'EOF' 2>/dev/null || exit 1
+buy the
+  by the
+EOF
+    )"
+
+  # Check if all is well
+  [ $? -ne 0 -o "$test_bed" != '  by the ' ] && grep_good=false
+
   # grep conclusion
 
   # Check if all is well
@@ -116,7 +129,7 @@ EOF
   #
 
   # Status variable for sed
-  local sed_good=true
+  local sed_good=true sed_cmd
 
   # sed no. 1
 
@@ -133,21 +146,39 @@ EOF
   # Check if all is well
   [ $? -ne 0 -o "$test_bed" != 'may t' ] && sed_good=false
 
-  # sed no. 1
+  # sed no. 2
 
   # Test: this command must yield string ‘battered’ without quotes around it
+  sed_cmd='s/^"(.*)"$/\1/p'
   if sed -r &>/dev/null; then
     test_bed="$( \
-      sed -nre 's/^"(.*)"$/\1/p' 2>/dev/null <<<'"battered"' || exit $? \
+      sed -nre "$sed_cmd" 2>/dev/null <<<'"battered"' || exit $? \
       )"
   else
     test_bed="$( \
-      sed -nEe 's/^"(.*)"$/\1/p' 2>/dev/null <<<'"battered"' || exit $? \
+      sed -nEe "$sed_cmd" 2>/dev/null <<<'"battered"' || exit $? \
       )"
   fi
 
   # Check if all is well
   [ $? -ne 0 -o "$test_bed" != 'battered' ] && sed_good=false
+
+  # sed no. 3
+
+  # Test: this command must yield string 't  may'
+  sed_cmd='s/^([[:space:]]*)(may) (t)$/\3\1\2/'
+  if sed -r &>/dev/null; then
+    test_bed="$( \
+      sed -re "$sed_cmd" 2>/dev/null <<<'  may t' || exit $? \
+      )"
+  else
+    test_bed="$( \
+      sed -Ee "$sed_cmd" 2>/dev/null <<<'  may t' || exit $? \
+      )"
+  fi
+  
+  # Check if all is well
+  [ $? -ne 0 -o "$test_bed" != 't  may' ] && sed_good=false
 
   # sed conclusion
 
