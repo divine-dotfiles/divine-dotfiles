@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: link-queue
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    3
-#:revdate:      2019.07.22
-#:revremark:    New revisioning system
+#:revnumber:    4
+#:revdate:      2019.07.25
+#:revremark:    Rewrite OS detection and adapters
 #:created_at:   2019.04.02
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -152,10 +152,10 @@ d__link_queue_remove()
 d__link_queue_pre_process()
 {
   # Override targets for current OS family, if that variable is non-empty
-  d__override_dpl_targets_for_os_family
+  d__adapter_override_dpl_targets_for_os_family
 
   # Override targets for current OS distro, if that variable is non-empty
-  d__override_dpl_targets_for_os_distro
+  d__adapter_override_dpl_targets_for_os_distro
 
   # If $D_DPL_TARGET_PATHS is thus far empty, try another trick
   if ! [ ${#D_DPL_TARGET_PATHS[@]} -gt 1 -o -n "$D_DPL_TARGET_PATHS" ] \

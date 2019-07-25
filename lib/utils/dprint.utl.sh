@@ -3,9 +3,9 @@
 #:kind:         func(script)
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    5
-#:revdate:      2019.07.22
-#:revremark:    New revisioning system
+#:revnumber:    6
+#:revdate:      2019.07.25
+#:revremark:    Rewrite OS detection and adapters
 #:created_at:   2018.12.20
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -211,6 +211,46 @@ dprint_failure()
     case $chunk in -n) printf >&2 '\n   ';; -i) printf >&2 '\n       ';;
     *) printf >&2 ' %s' "$chunk";; esac
   done; printf >&2 '\n'; return 0
+}
+
+#>  dprint_sudo [-n] [CHUNKS|-n|-i]…
+#
+## Verbosity notwithstanding, announce upcoming prompt for sudo password
+#
+## Options:
+#.  -n  - (must be first) Prepend empty line to any other output
+#
+## Parameters:
+#.  $@  - Textual chunks of a message. Following special chunks are recognized:
+#.          '-n'  - Insert new line
+#.          '-i'  - Insert new indented line
+#
+## Returns:
+#.  0 - If message was printed
+#.  1 - Otherwise
+#
+## Prints:
+#.  stdout  - *nothing*
+#.  stderr  - Composed message
+#
+dprint_sudo()
+{
+  # If sudo password is not required, return immediately
+  sudo -n true 2>/dev/null && return 0
+
+  # Check options
+  [ "$1" = -n ] && { printf >&2 '\n'; shift; }
+
+  # Compose message from arguments and print it all on the go
+  printf >&2 '%s' "${BOLD}${YELLOW}==>${NORMAL}"
+  if [ $# -eq 0 ]; then
+    printf >&2 '%s' 'Sudo password is required'
+  else
+    local chunk; for chunk do
+      case $chunk in -n) printf >&2 '\n   ';; -i) printf >&2 '\n       ';;
+      *) printf >&2 ' %s' "$chunk";; esac
+    done; printf >&2 '\n'; return 0
+  fi
 }
 
 #>  dprint_ode [-no] [-c|--color X] [--width-N X] [--effects-N X] [--] FIELD1 [FIELD2…]

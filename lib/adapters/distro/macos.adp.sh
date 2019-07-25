@@ -2,21 +2,76 @@
 #:title:        Divine.dotfiles macOS adapter
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    14
-#:revdate:      2019.07.22
-#:revremark:    New revisioning system
+#:revnumber:    15
+#:revdate:      2019.07.25
+#:revremark:    Rewrite OS detection and adapters
 #:created_at:   2019.06.04
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
 #
 ## An adapter is a set of functions that, when implemented, allow framework to 
-#. interface with macOS OS distribution
+#. support macOS OS distribution
 #
 ## For reference, see lib/templates/adapters/distro.adp.sh
 #
 
+# Implement detection mechanism for distro
+d__adapter_detect_os_distro()
+{
+  case $D__OS_FAMILY in macos) d__os_distro=macos;; *) return 1;; esac
+}
+
+# Implement detection mechanism for package manager
+d__adapter_detect_os_pkgmgr()
+{
+  # Offer to install Homebrew ASAP
+  d__adapter_offer_to_install_brew
+
+  # Afterward, check if brew is available
+  if HOMEBREW_NO_AUTO_UPDATE=1 brew --version &>/dev/null; then
+
+    # Set marker variable
+    d__os_pkgmgr='brew'
+
+    # Implement wrapper around package manager
+    d__os_pkgmgr()
+    {
+      # Perform action depending on first argument
+      case "$1" in
+        update)  brew update; brew upgrade;;
+        check)   HOMEBREW_NO_AUTO_UPDATE=1 brew list "$2" &>/dev/null;;
+        install) brew install "$2";;
+        remove)  brew uninstall "$2";;
+        *)  return 1;;
+      esac
+    }
+
+  fi
+}
+
+# Implement overriding mechanism for $D_DPL_TARGET_PATHS and $D_DPL_TARGET_DIR
+d__adapter_override_dpl_targets_for_os_distro()
+{
+  # Check if $D_DPL_TARGET_PATHS_MACOS contains at least one string
+  if [ ${#D_DPL_TARGET_PATHS_MACOS[@]} -gt 1 \
+    -o -n "$D_DPL_TARGET_PATHS_MACOS" ]; then
+
+    # $D_DPL_TARGET_PATHS_MACOS is set: use it instead
+    D_DPL_TARGET_PATHS=( "${D_DPL_TARGET_PATHS_MACOS[@]}" )
+    
+  fi
+
+  # Check if $D_DPL_TARGET_DIR_MACOS is not empty
+  if [ -n "$D_DPL_TARGET_DIR_MACOS" ]; then
+
+    # $D_DPL_TARGET_DIR_MACOS is set: use it instead
+    D_DPL_TARGET_DIR=( "${D_DPL_TARGET_DIR_MACOS[@]}" )
+    
+  fi
+}
+
 # Implement helper that offers to install Homebrew, and does it if user agrees
-d__offer_to_install_brew()
+d__adapter_offer_to_install_brew()
 {
   # Check if Homebrew is already installed
   if HOMEBREW_NO_AUTO_UPDATE=1 brew --version &>/dev/null; then
@@ -89,51 +144,5 @@ d__offer_to_install_brew()
     dprint_skip -l "Refused to install Homebrew"
     return 1
 
-  fi
-}
-
-# Offer to install Homebrew ASAP
-d__offer_to_install_brew
-
-# Afterward, check if brew is available
-if HOMEBREW_NO_AUTO_UPDATE=1 brew --version &>/dev/null; then
-
-  # Implement printer of package manager’s name
-  d__print_os_pkgmgr_name() { printf '%s\n' 'brew'; }
-
-  # Implement wrapper around package manager
-  d__os_pkgmgr()
-  {
-    # Perform action depending on first argument
-    case "$1" in
-      update)  brew update; brew upgrade;;
-      check)   shift
-                HOMEBREW_NO_AUTO_UPDATE=1 brew list "$1" &>/dev/null;;
-      install) shift; brew install "$1";;
-      remove)  shift; brew uninstall "$1";;
-      *)        return 1;;
-    esac
-  }
-
-fi
-
-# Implement overriding mechanism for $D_DPL_TARGET_PATHS and $D_DPL_TARGET_DIR
-d__override_dpl_targets_for_os_distro()
-{
-  # Check if $D_DPL_TARGET_PATHS_MACOS contains at least one string
-  if [ ${#D_DPL_TARGET_PATHS_MACOS[@]} -gt 1 \
-    -o -n "$D_DPL_TARGET_PATHS_MACOS" ]; then
-
-    # $D_DPL_TARGET_PATHS_MACOS is set: use it instead
-    D_DPL_TARGET_PATHS=( "${D_DPL_TARGET_PATHS_MACOS[@]}" )
-    
-  fi
-
-  # Check if $D_DPL_TARGET_DIR_MACOS is not empty
-  if [ -n "$D_DPL_TARGET_DIR_MACOS" ]; then
-
-    # $D_DPL_TARGET_DIR_MACOS is set: use it instead
-    D_DPL_TARGET_DIR=( "${D_DPL_TARGET_DIR_MACOS[@]}" )
-    
   fi
 }

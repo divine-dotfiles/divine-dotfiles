@@ -3,9 +3,9 @@
 #:kind:         global_var,func(script)
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    2
-#:revdate:      2019.07.22
-#:revremark:    New revisioning system
+#:revnumber:    3
+#:revdate:      2019.07.25
+#:revremark:    Rewrite OS detection and adapters
 #:created_at:   2019.03.15
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -38,10 +38,7 @@
 d__detect_os()
 {
   d__detect_os_family
-
-  d__detect_os_distro
-  
-  d__load_os_adapters
+  d__detect_os_distro_and_pkgmgr
 }
 
 #>  d__detect_os_family
@@ -70,407 +67,249 @@ d__detect_os()
 #
 d__detect_os_family()
 {
-  # Storage variable
-  local os_family
+  # Storage variables
+  local adapter_filepath
 
+  # Output variable that is to be set by adapter
+  local d__os_family
+  
   # Store current case sensitivity setting, then turn it off
   local restore_nocasematch="$( shopt -p nocasematch )"
   shopt -s nocasematch
-  
-  ## Detect the broad family of OS’s.
-  #
-  ## This uses $OSTYPE built-in bash variable and falls back to `uname -s`. 
-  #. Such set-up should hold pretty well.
-  #
-  case "$OSTYPE" in
-    darwin*)
-      os_family='macos'
-      ;;
-    linux*)
-      if [[ "$( 2>/dev/null </proc/version )" =~ (microsoft|wsl) ]]; then
-        os_family='wsl'
-      else
-        os_family='linux'
-      fi
-      ;;
-    freebsd*|openbsd*|netbsd*)
-      os_family='bsd'
-      ;;
-    solaris*)
-      os_family='solaris'
-      ;;
-    cygwin*)
-      os_family='cygwin'
-      ;;
-    msys*)
-      os_family='msys'
-      ;;
-    *)
-      # In case $OSTYPE is misbehaving
-      case "$( uname -s 2>/dev/null )" in
-        darwin*)
-          os_family='macos'
-          ;;
-        linux*)
-          if [[ "$( 2>/dev/null </proc/version )" =~ (microsoft|wsl) ]]; then
-            os_family='wsl'
-          else
-            os_family='linux'
-          fi
-          ;;
-        freebsd*|openbsd*|netbsd*)
-          os_family='bsd'
-          ;;
-        sunos*)
-          os_family='solaris'
-          ;;
-        cygwin*)
-          os_family='cygwin'
-          ;;
-        msys*|mingw*)
-          os_family='msys'
-          ;;
-        *)
-          os_family=
-          ;;
-      esac
-      ;;
-  esac
+
+  # Check if $OSTYPE is populated, as is the case in most modern OS’s
+  if [ -n "$OSTYPE" ]; then
+
+    # Pass this down to adapter
+    local -r d__ostype="$OSTYPE"
+
+  else
+
+    # $OSTYPE is empty or unset: rely on ‘uname -s’
+    local -r d__ostype="$( uname -s 2>/dev/null )"
+
+  fi
+
+  # Iterate over OS family adapter files in their respective directory
+  while IFS= read -r -d $'\0' adapter_filepath; do
+
+    # Unset any previous incarnation of adapter functions
+    unset -f d__adapter_detect_os_family
+    unset -f d__adapter_override_dpl_targets_for_os_family
+
+    # Load the adapter
+    source "$adapter_filepath"
+
+    # Run d__adapter_detect_os_family function
+    d__adapter_detect_os_family &>/dev/null
+
+    # If OS family is successfully detected, break immediately
+    [ -n "$d__os_family" ] && break
+
+  # Done iterating over OS family adapter files in their respective directory
+  done < <( find -L "$D__DIR_ADP_FAMILY" -name "*$D__SUFFIX_ADAPTER" -print0 )
 
   # Restore case sensitivity
   eval "$restore_nocasematch"
 
-  # Report and return
-  if [ -z "$os_family" ]; then
+  # Analyze detected OS family
+  if [ -z "$d__os_family" ]; then
 
-    # Failed to detect OS family: not fatal, but should be noted
+    # Failed to detect OS family: announce and exit script
     dprint_failure -l 'Failed to detect OS family'
     exit 1
 
-  elif [ "$os_family" = "$D__OS_FAMILY" ]; then
+  elif [ "$d__os_family" = "$D__OS_FAMILY" ]; then
 
     # $D__OS_FAMILY is set to correct value: ensure it is read-only
     ( unset D__OS_FAMILY 2>/dev/null ) && readonly D__OS_FAMILY
-    return 0
 
   elif ( unset D__OS_FAMILY 2>/dev/null ); then
 
-    # $D__OS_FAMILY is set to incorrect value but is not read-only: set and make
-    readonly D__OS_FAMILY="$os_family"
-    return 0
+    # $D__OS_FAMILY is not set to correct value, but is writable
+    readonly D__OS_FAMILY="$d__os_family"
   
   else
 
-    # $D__OS_FAMILY is set to incorrect value and is read-only: report error
+    # $D__OS_FAMILY is not set to correct value and is read-only: report error
     dprint_failure -l \
       'Internal variable $D__OS_FAMILY is already set and is read-only' \
-      "Detected OS family             : $os_family" \
+      "Detected OS family                : $d__os_family" \
       "Content of \$D__OS_FAMILY variable : $D__OS_FAMILY"
     exit 1
   
   fi
+
+  # If additional adapter functions are not implemented, implement dummies
+  if ! declare -f d__adapter_override_dpl_targets_for_os_family &>/dev/null
+  then
+    d__adapter_override_dpl_targets_for_os_family() { return 1; }
+  fi
+
+  # Return success
+  return 0
 }
 
-#>  d__detect_os_distro
+#>  d__detect_os_distro_and_pkgmgr
 #
-## Detects particular OS distributions and stores it in a read-only global 
-#. variable. This function is meant to be expanded for particular required 
-#. distributions.
+## Detects current OS distribution, as well as system’s package manager; stores 
+#. this info in read-only global variables
 #
 ## Requires:
 #.  $D__OS_FAMILY  - From d__detect_os_family
 #
 ## Provides into the global scope:
-#.  $D__OS_DISTRO  - (read-only) Best guess on the name of the current OS 
-#.                distribution, without version, e.g.:
-#.                  * ‘macos’
-#.                  * ‘ubuntu’
-#.                  * ‘debian’
-#.                  * ‘fedora’
-#.                  * unset     - Not recognized
+#.  $D__OS_DISTRO   - (read-only) Best guess on the name of the current OS 
+#.                    distribution, without version, e.g.:
+#.                      * ‘macos’
+#.                      * ‘ubuntu’
+#.                      * ‘debian’
+#.                      * ‘fedora’
+#.                      * unset     - Not recognized
+#.  $D__OS_PKGMGR   - (read-only) Widely recognized name of package management 
+#.                    utility available on the current system, e.g.:
+#.                      * ‘brew’    - macOS
+#.                      * ‘apt-get’ - Debian, Ubuntu
+#.                      * ‘dnf’     - Fedora
+#.                      * ‘yum’     - older Fedora
+#.                      * unset     - Not recognized
+#.  d__os_pkgmgr    - Thin wrapper around system’s package manager. Accepts the 
+#.                    following commands as first argument: ‘update’, ‘check’, 
+#.                    ‘install’, and ‘remove’. Remaining arguments are relayed 
+#.                    to package manager verbatim. Avoids prompting for user 
+#.                    input (except sudo password). Returns whatever the 
+#.                    package manager returns, or 2 for unrecognized package 
+#.                    manager.
 #
 ## Returns:
-#.  0 - Variable populated successfully
-#.  1 - Could not re-assign the variable (already assigned)
-#.  2 - Could not reliably recognize the distro
+#.  0 - Variables populated successfully
+#.  1 - (script exit) Could not re-assign a variable (already assigned)
+#.  1 - Could not reliably recognize distribution or package manager
 #
 ## Prints:
 #.  stdout: *nothing*
 #.  stderr: As little as possible
 #
-d__detect_os_distro()
+d__detect_os_distro_and_pkgmgr()
 {
-  # Storage variable
-  local os_distro
+  # Storage variables
+  local adapter_filepath all_good=true
 
+  # Output variable that is to be set by adapter
+  local d__os_distro
+  
   # Store current case sensitivity setting, then turn it off
   local restore_nocasematch="$( shopt -p nocasematch )"
   shopt -s nocasematch
 
-  ## Detect particular distro, if it is supported
-  #
-  ## This section of the code should be extended according to particular needs.
-  #. E.g., if one requires particular workflows for macOS, Ubuntu, and Debian, 
-  #. then these three distributions should be detected here, possibly among 
-  #. others.
-  #
-  local return_code=0
-  case "$D__OS_FAMILY" in
-    macos)
-      # For now, no need for detecting particular macOS version
-      os_distro='macos'
-      ;;
-    linux|wsl)
-      if cat /etc/os-release 2>/dev/null | grep -qi ubuntu; then
-        # Ubuntu 12+
-        os_distro='ubuntu'
-      elif lsb_release -a 2>/dev/null | grep -qi debian; then
-        # Debian 6+
-        os_distro='debian'
-      elif cat /etc/fedora-release 2>/dev/null | grep -qi fedora; then
-        # Fedora 18+
-        os_distro='fedora'
-      fi
-      ;;
-    *)
-      os_distro=
-      ;;
-  esac
+  # Iterate over OS distro adapter files in their respective directory
+  while IFS= read -r -d $'\0' adapter_filepath; do
+
+    # Unset any previous incarnation of adapter functions
+    unset -f d__adapter_detect_os_distro
+    unset -f d__adapter_detect_os_pkgmgr
+    unset -f d__adapter_override_dpl_targets_for_os_distro
+
+    # Load the adapter
+    source "$adapter_filepath"
+
+    # Run d__adapter_detect_os_distro function
+    d__adapter_detect_os_distro &>/dev/null
+
+    # If OS distro is successfully detected, break immediately
+    [ -n "$d__os_distro" ] && break
+
+  # Done iterating over OS distro adapter files in their respective directory
+  done < <( find -L "$D__DIR_ADP_DISTRO" -name "*$D__SUFFIX_ADAPTER" -print0 )
 
   # Restore case sensitivity
   eval "$restore_nocasematch"
 
-  # Report and return
-  if [ -z "$os_distro" ]; then
-
-    # Failed to detect OS distro: not fatal, but should be noted
-    dprint_failure -l 'Current OS distro is not recognized'
-    return 2
-
-  elif [ "$os_distro" = "$D__OS_DISTRO" ]; then
+  # Analyze detected OS distro
+  if [ "$d__os_distro" = "$D__OS_DISTRO" ]; then
 
     # $D__OS_DISTRO is set to correct value: ensure it is read-only
     ( unset D__OS_DISTRO 2>/dev/null ) && readonly D__OS_DISTRO
-    return 0
 
   elif ( unset D__OS_DISTRO 2>/dev/null ); then
 
-    # $D__OS_DISTRO is set to incorrect value but is not read-only: set and make
-    readonly D__OS_DISTRO="$os_distro"
-    return 0
+    # $D__OS_DISTRO is not set to correct value, but is writable
+    readonly D__OS_DISTRO="$d__os_distro"
   
   else
 
-    # $D__OS_DISTRO is set to incorrect value and is read-only: report error
+    # $D__OS_DISTRO is not set to correct value and is read-only: report error
     dprint_failure -l \
       'Internal variable $D__OS_DISTRO is already set and is read-only' \
-      "Detected OS distro             : $os_distro" \
+      "Detected OS distribution          : $d__os_distro" \
       "Content of \$D__OS_DISTRO variable : $D__OS_DISTRO"
-    return 1
+    exit 1
   
   fi
-}
 
-#>  d__load_os_adapters
-#
-## Scans adapters dir for files ‘$D__OS_FAMILY.adp.sh’ and ‘$D__OS_DISTRO.adp.sh’ and 
-#. sources each, if found, in that order. After sourcing both, ensures as best 
-#. it can that required functions are implemented, or terminates the script.
-#
-## Requires:
-#.  $D__OS_FAMILY  - From d__detect_os_family
-#.  $D__OS_DISTRO  - From d__detect_os_distro
-#
-## Provides into the global scope:
-#.  $D__OS_PKGMGR  - (read-only) Widely recognized name of package management 
-#.                utility available on the current system, e.g.:
-#.                  * ‘brew’    - macOS
-#.                  * ‘apt-get’ - Debian, Ubuntu
-#.                  * ‘dnf’     - Fedora
-#.                  * ‘yum’     - older Fedora
-#.                  * unset     - Not recognized
-#.  d__os_pkgmgr - Thin wrapper around system’s package manager. Accepts the 
-#.              following commands as first argument: ‘update’, ‘check’, 
-#.              ‘install’, and ‘remove’. Remaining arguments are relayed to 
-#.              package manager verbatim. Avoids prompting for user input 
-#.              (except sudo password). Returns whatever the package manager 
-#.              returns, or -1 for unrecognized package manager.
-#
-## Returns:
-#.  0 - Adapter loaded successfully
-#.  1 - Non-fatal problem with adapter
-#.  2 - Arguably fatal problem with adapter
-#
-## Prints:
-#.  stdout: *nothing*
-#.  stderr: Error descriptions
-#
-d__load_os_adapters()
-{
-  # Set up variables
-  local family_adapter distro_adapter
+  # Check if distro is undetected
+  if [ -z "$d__os_distro" ]; then
 
-  # Status variables
-  local all_good=true should_halt=false
-
-  # Compose detected OS
-  local detected_os
-  if [ -n "$D__OS_FAMILY" ]; then
-    if [ -n "$D__OS_DISTRO" ]; then
-      if [ "$D__OS_FAMILY" = "$D__OS_DISTRO" ]; then
-        detected_os="$D__OS_FAMILY"
-      else
-        detected_os="$D__OS_FAMILY ($D__OS_DISTRO)"
-      fi
-    else
-      detected_os="$D__OS_FAMILY"
-    fi
-  else
-    if [ -n "$D__OS_DISTRO" ]; then
-      detected_os="$D__OS_DISTRO"
-    else
-      detected_os='unknown'
-    fi
-  fi
-
-  # If OS family is detected and family adapter exists, source it
-  if [ -n "$D__OS_FAMILY" ]; then
-
-    # Compose path to adapter
-    family_adapter="${D__DIR_ADP_FAMILY}/${D__OS_FAMILY}${D__SUFFIX_ADAPTER}"
-
-    # Check if it is a readable file
-    if [ -r "$family_adapter" -a -f "$family_adapter" ]; then
-
-      source "$family_adapter"
-
-    else
-
-      # Report error
-      dprint_failure -l "No adapter detected for current OS family: $D__OS_FAMILY"
-
-    fi
-
-  fi
-
-  # If OS distro is detected and distro adapter exists, source it
-  if [ -n "$D__OS_DISTRO" ]; then
-
-    # Compose path to adapter
-    distro_adapter="${D__DIR_ADP_DISTRO}/${D__OS_DISTRO}${D__SUFFIX_ADAPTER}"
-
-    # Check if it is a readable file
-    if [ -r "$distro_adapter" -a -f "$distro_adapter" ]; then
-
-      source "$distro_adapter"
-
-    else
-
-      # Report error
-      dprint_failure -l "No adapter detected for current OS distro: $D__OS_DISTRO"
-
-    fi
-
-  fi
-
-  # Store current case sensitivity setting, then turn it off
-  local restore_nocasematch="$( shopt -p nocasematch )"
-  shopt -s nocasematch
-
-  # Check if d__print_os_pkgmgr_name is implemented
-  if declare -f d__print_os_pkgmgr_name &>/dev/null; then
-
-    # Storage variable
-    local os_pkgmgr="$( d__print_os_pkgmgr_name 2>/dev/null || exit $? )"
-
-    # Check if d__print_os_pkgmgr_name ran without a snag
-    if [ $? -eq 0 ]; then
-
-      # Check if package manager is properly detected
-      if [ -z "$os_pkgmgr" ]; then
-
-        # Failed to detect OS package manager: not fatal, but should be noted
-        dprint_failure -l \
-          "No supported package manager for current OS: $detected_os"
-        all_good=false
-
-      elif [[ $os_pkgmgr = $D__OS_PKGMGR ]]; then
-
-        # $D__OS_PKGMGR is set to correct value: ensure it is read-only
-        ( unset D__OS_PKGMGR 2>/dev/null ) && readonly D__OS_PKGMGR
-        all_good=false
-
-      elif ( unset D__OS_PKGMGR 2>/dev/null ); then
-
-        # $D__OS_PKGMGR is set to incorrect value but is writable: set and make
-        readonly D__OS_PKGMGR="$os_pkgmgr"
-        all_good=false
-      
-      else
-
-        # $D__OS_PKGMGR is set to incorrect value and is read-only: report error
-        dprint_failure -l \
-          'Internal variable $D__OS_PKGMGR is already set and is read-only' \
-          -n "Detected OS package manager    : $os_pkgmgr" \
-          -n "Content of \$D__OS_PKGMGR variable : $D__OS_PKGMGR" \
-          -n "Detected OS                    : $detected_os"
-        all_good=false
-        should_halt=true
-      
-      fi
-
-    else
-
-      # Function d__print_os_pkgmgr_name returned non-zero
-      dprint_failure -l \
-        "Failed while detecting package manager on current OS: $detected_os"
-      all_good=false
-
-    fi
-
-  else
-
-    # Function d__print_os_pkgmgr_name is not implemented
-    dprint_failure -l \
-      "Package manager is not supported on current OS: $detected_os"
+    # Failed to detect OS distro: announce, unset functions, set flag
+    dprint_failure -l 'Failed to detect current OS distribution'
+    unset -f d__adapter_detect_os_distro
+    unset -f d__adapter_detect_os_pkgmgr
+    unset -f d__adapter_override_dpl_targets_for_os_distro
     all_good=false
 
   fi
 
-  # Check if adapter implements d__os_pkgmgr function
+  # If additional adapter functions are not implemented, implement dummies
+  if ! declare -f d__adapter_override_dpl_targets_for_os_distro &>/dev/null
+  then
+    d__adapter_override_dpl_targets_for_os_distro() { return 1; }
+  fi
+
+  # Pre-unset package manager wrapper function
+  unset -f d__os_pkgmgr
+
+  # Run function that is ought to detect system’s package manager
+  d__adapter_detect_os_pkgmgr &>/dev/null
+
+  # Analyze detected OS package manager
+  if [ "$d__os_pkgmgr" = "$D__OS_PKGMGR" ]; then
+
+    # $D__OS_PKGMGR is set to correct value: ensure it is read-only
+    ( unset D__OS_PKGMGR 2>/dev/null ) && readonly D__OS_PKGMGR
+
+  elif ( unset D__OS_PKGMGR 2>/dev/null ); then
+
+    # $D__OS_PKGMGR is not set to correct value, but is writable
+    readonly D__OS_PKGMGR="$d__os_pkgmgr"
+  
+  else
+
+    # $D__OS_PKGMGR is not set to correct value and is read-only: report error
+    dprint_failure -l \
+      'Internal variable $D__OS_PKGMGR is already set and is read-only' \
+      "Detected OS package manager       : $d__os_pkgmgr" \
+      "Content of \$D__OS_PKGMGR variable : $D__OS_PKGMGR"
+    exit 1
+  
+  fi
+
+  # Check if pkgmgr is undetected
+  if [ -z "$d__os_pkgmgr" ]; then
+
+    # Failed to detect OS pkgmgr: announce, unset functions, set flag
+    dprint_failure -l 'Failed to detect current OS’s package manager'
+    unset -f d__os_pkgmgr
+    all_good=false
+
+  fi
+
+  # If package manager wrapper is not implemented, implement dummy
   if ! declare -f d__os_pkgmgr &>/dev/null; then
-
-    # Not implemented: report and implement dummy wrapper
-    dprint_failure -l \
-      "Package manager wrapper is not implemented on current OS: $detected_os"
-    d__os_pkgmgr() { return -1; }
-    all_good=false
-
+    d__os_pkgmgr() { return 2; }
   fi
 
-  # Check if adapter implements d__override_dpl_targets_for_os_distro function
-  if ! declare -f d__override_dpl_targets_for_os_distro &>/dev/null; then
-
-    # Not implemented: implement dummy function
-    d__override_dpl_targets_for_os_distro() { return 1; }
-
-  fi
-
-  # Check if adapter implements d__override_dpl_targets_for_os_family function
-  if ! declare -f d__override_dpl_targets_for_os_family &>/dev/null; then
-
-    # Not implemented: implement dummy function
-    d__override_dpl_targets_for_os_family() { return 1; }
-
-  fi
-
-  # Restore case sensitivity
-  eval "$restore_nocasematch"
-
-  # Return
-  if $all_good; then return 0
-  elif $should_halt; then return 2
-  else return 1; fi
+  # Return appropriate status
+  $all_good && return 0 || return 1
 }
 
 d__detect_os

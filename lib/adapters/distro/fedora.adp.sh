@@ -2,67 +2,97 @@
 #:title:        Divine.dotfiles Fedora adapter
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    12
-#:revdate:      2019.07.22
-#:revremark:    New revisioning system
+#:revnumber:    13
+#:revdate:      2019.07.25
+#:revremark:    Rewrite OS detection and adapters
 #:created_at:   2019.06.04
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
 #
 ## An adapter is a set of functions that, when implemented, allow framework to 
-#. interface with Fedora OS distribution
+#. support Fedora OS distribution
 #
 ## For reference, see lib/templates/adapters/distro.adp.sh
 #
 
-# Check if dnf is available
-if dnf --version &>/dev/null; then
+# Implement detection mechanism for distro
+d__adapter_detect_os_distro()
+{
+  case $D__OS_FAMILY in
+    linux|wsl) grep -Fqi fedora /etc/fedora-release && d__os_distro=fedora;;
+    *) return 1;;
+  esac
+}
 
-  # Implement printer of package manager’s name
-  d__print_os_pkgmgr_name() { printf '%s\n' 'dnf'; }
+# Implement detection mechanism for package manager
+d__adapter_detect_os_pkgmgr()
+{
+  # Check if dnf is available
+  if dnf --version &>/dev/null; then
 
-  # Implement wrapper around package manager
-  d__os_pkgmgr()
-  {
-    # Perform action depending on first argument
-    if ! sudo -n true 2>/dev/null; then
-      dprint_start -l "Working with dnf requires sudo password"
-    fi
-    case "$1" in
-      update)  sudo dnf upgrade -yq;;
-      check)   shift; sudo dnf list --installed "$1" &>/dev/null;;
-      install) shift; sudo dnf install -yq "$1";;
-      remove)  shift; sudo dnf remove -yq "$1";;
-      *)        return 1;;
-    esac
-  }
+    # Set marker variable
+    d__os_pkgmgr='dnf'
 
-# Else check if yum is available
-elif yum --version &>/dev/null; then
+    # Implement wrapper function
+    d__os_pkgmgr()
+    {
+      # Perform action depending on first argument
+      case "$1" in
+        update)
+          dprint_sudo 'Working with dnf requires sudo password'
+          sudo dnf upgrade -yq
+          ;;
+        check)
+          dprint_sudo 'Working with dnf requires sudo password'
+          sudo dnf list --installed "$2" &>/dev/null
+          ;;
+        install)
+          dprint_sudo 'Working with dnf requires sudo password'
+          sudo dnf install -yq "$2"
+          ;;
+        remove)
+          dprint_sudo 'Working with dnf requires sudo password'
+          sudo dnf remove -yq "$2"
+          ;;
+        *)  return 1;;
+      esac
+    }
 
-  # Implement printer of package manager’s name
-  d__print_os_pkgmgr_name() { printf '%s\n' 'yum'; }
+  elif yum --version &>/dev/null; then
 
-  # Implement wrapper around package manager
-  d__os_pkgmgr()
-  {
-    # Perform action depending on first argument
-    if ! sudo -n true 2>/dev/null; then
-      dprint_start -l "Working with yum requires sudo password"
-    fi
-    case "$1" in
-      update)  sudo yum update -y;;
-      check)   shift; sudo yum list installed "$1" &>/dev/null;;
-      install) shift; sudo yum install -y "$1";;
-      remove)  shift; sudo yum remove -y "$1";;
-      *)        return 1;;
-    esac
-  }
+    # Set marker variable
+    d__os_pkgmgr='yum'
 
-fi
+    # Implement wrapper function
+    d__os_pkgmgr()
+    {
+      # Perform action depending on first argument
+      case "$1" in
+        update)
+          dprint_sudo 'Working with yum requires sudo password'
+          sudo yum update -y
+          ;;
+        check)
+          dprint_sudo 'Working with yum requires sudo password'
+          sudo yum list installed "$2" &>/dev/null
+          ;;
+        install)
+          dprint_sudo 'Working with yum requires sudo password'
+          sudo yum install -y "$2"
+          ;;
+        remove)
+          dprint_sudo 'Working with yum requires sudo password'
+          sudo yum remove -y "$2"
+          ;;
+        *)  return 1;;
+      esac
+    }
+
+  fi
+}
 
 # Implement overriding mechanism for $D_DPL_TARGET_PATHS and $D_DPL_TARGET_DIR
-d__override_dpl_targets_for_os_distro()
+d__adapter_override_dpl_targets_for_os_distro()
 {
   # Check if $D_DPL_TARGET_PATHS_DEBIAN contains at least one string
   if [ ${#D_DPL_TARGET_PATHS_DEBIAN[@]} -gt 1 \
