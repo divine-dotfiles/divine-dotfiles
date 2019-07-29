@@ -2,9 +2,9 @@
 #:title:        Divine.dotfiles fmwk install script
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    36
-#:revdate:      2019.07.22
-#:revremark:    New revisioning system
+#:revnumber:    37
+#:revdate:      2019.07.29
+#:revremark:    Add newline before main output
 #:created_at:   2019.07.22
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -128,6 +128,9 @@ d__parse_arguments()
 
 d__pull_github_repo()
 {
+  # Print empty line for visual separation
+  printf >&2 '\n'
+  
   # Store location of Divine.dotfiles repository
   local user_repo="no-simpler/divine-dotfiles"
 

@@ -2,9 +2,9 @@
 #:title:        Divine.dotfiles fmwk uninstall script
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    33
-#:revdate:      2019.07.22
-#:revremark:    New revisioning system
+#:revnumber:    34
+#:revdate:      2019.07.29
+#:revremark:    Add newline before main output
 #:created_at:   2019.07.22
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -123,6 +123,9 @@ d__parse_arguments()
 
 d__locate_installations()
 {
+  # Print empty line for visual separation
+  printf >&2 '\n'
+  
   # Try the usual installation directory unless overridden
   [ -n "$D_INSTALL_PATH" ] || D_INSTALL_PATH="$HOME/.divine"
   dprint_debug "Installation directory: $D_INSTALL_PATH"
