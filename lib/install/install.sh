@@ -2,9 +2,9 @@
 #:title:        Divine.dotfiles fmwk install script
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    39
+#:revnumber:    40
 #:revdate:      2019.08.05
-#:revremark:    Move  assignment to appropriate location
+#:revremark:    settle_on_globals() -> pre_flight_checks()
 #:created_at:   2019.07.22
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -22,7 +22,7 @@ d__main()
   d__parse_arguments "$@"
 
   # Main installation
-  if d__settle_on_globals && d__pull_github_repo; then
+  if d__pre_flight_checks && d__pull_github_repo; then
 
     # Optional: install shortcut command ('di' by default)
     d__install_shortcut
@@ -87,7 +87,7 @@ d__parse_arguments()
   done
 }
 
-d__settle_on_globals()
+d__pre_flight_checks()
 {
   # Global variables for installation status
   D_STATUS_FRAMEWORK=false

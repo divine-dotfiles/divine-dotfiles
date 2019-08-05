@@ -2,9 +2,9 @@
 #:title:        Divine.dotfiles fmwk uninstall script
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    35
+#:revnumber:    36
 #:revdate:      2019.08.05
-#:revremark:    Complete rewrite of fmwk (un)installation
+#:revremark:    settle_on_globals() -> pre_flight_checks()
 #:created_at:   2019.07.22
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -22,7 +22,7 @@ d__main()
   d__parse_arguments "$@"
 
   # Main removal
-  if d__settle_on_globals \
+  if d__pre_flight_checks \
     && d__confirm_uninstallation \
     && d__uninstall_utils \
     && d__make_backup \
@@ -99,7 +99,7 @@ d__parse_arguments()
   done
 }
 
-d__settle_on_globals()
+d__pre_flight_checks()
 {
   # Global variables for installation status
   D_STATUS_FRAMEWORK=
