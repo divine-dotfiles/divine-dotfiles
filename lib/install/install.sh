@@ -2,9 +2,9 @@
 #:title:        Divine.dotfiles fmwk install script
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    38
+#:revnumber:    39
 #:revdate:      2019.08.05
-#:revremark:    Complete rewrite of fmwk (un)installation
+#:revremark:    Move  assignment to appropriate location
 #:created_at:   2019.07.22
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -228,6 +228,9 @@ d__pull_github_repo()
   # Print empty line for visual separation
   printf >&2 '\n'
   
+  # Store location of Divine.dotfiles repository
+  local user_repo="no-simpler/divine-dotfiles"
+
   # Offer to install framework
   if dprompt_key "$D_INSTALL_FRAMEWORK" 'Install?' \
     "${BOLD}Divine.dotfiles${NORMAL} Bash framework from:" \
@@ -251,9 +254,6 @@ d__pull_github_repo()
       "    $D_FMWK_DIR"
     return 1
   fi
-
-  # Store location of Divine.dotfiles repository
-  local user_repo="no-simpler/divine-dotfiles"
 
   # First, attempt to check existense of repository using git
   if git --version &>/dev/null; then
