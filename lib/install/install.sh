@@ -2,9 +2,9 @@
 #:title:        Divine.dotfiles fmwk install script
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    42
+#:revnumber:    43
 #:revdate:      2019.08.05
-#:revremark:    Tweak success output, including plaque
+#:revremark:    Rewrite success message
 #:created_at:   2019.07.22
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -621,18 +621,22 @@ EOF
   # Announce success
   dprint_success 'Have you heard the good news?' \
     "You can now access ${BOLD}Divine.dotfiles${NORMAL} in shell using:" \
-    "    $ $REVERSE $main_cmd $NORMAL" \
+    "    $ $BOLD$main_cmd$NORMAL" \
+    '' \
+    'For help, try:' \
+    "    ${BOLD}https://github.com/no-simpler/divine-dotfiles${NORMAL}" \
+    "    …or $BOLD$D_FMWK_DIR/README.adoc$NORMAL" \
+    "    …or $BOLD$main_cmd --help$NORMAL" \
+    '' \
     "Your personal deployments and assets go into Grail directory at:" \
-    "    $D_FMWK_DIR/grail" \
+    "    $BOLD$D_FMWK_DIR/grail$NORMAL" \
     '(It is a good idea to take your Grail under version control)' \
-    "If this is your first time, try our bundled Divine deployments using:" \
-    "    $ $main_cmd attach core" \
-    'More info on these at: https://github.com/no-simpler/divine-dpls-core' \
-    "To install/remove attached deployments, use:" \
-    "    $ $main_cmd install" \
-    "    $ $main_cmd remove" \
-    
-  dprint_success '' 'Thank you, and have a safe and productive day.'
+    '' \
+    "For a joy ride, try our bundled Divine deployments using:" \
+    "    $ $BOLD$main_cmd attach core$NORMAL && $BOLD$main_cmd install$NORMAL" \
+    '(More info on these at: https://github.com/no-simpler/divine-dpls-core)' \
+    ''
+  dprint_success 'Thank you, and have a safe and productive day.'
 
   # Return success
   return 0
