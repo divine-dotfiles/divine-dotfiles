@@ -2,9 +2,9 @@
 #:title:        Divine.dotfiles fmwk install script
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    44
+#:revnumber:    45
 #:revdate:      2019.08.05
-#:revremark:    Tweak intro message
+#:revremark:    Return to simpler intro
 #:created_at:   2019.07.22
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -234,7 +234,7 @@ d__pull_github_repo()
   # Offer to install framework
   if dprompt_key "$D_INSTALL_FRAMEWORK" 'Install?' \
     "${BOLD}Divine.dotfiles${NORMAL} Bash framework from:" \
-    "    ${BOLD}https://github.com/${user_repo}${NORMAL}"
+    "https://github.com/${user_repo}"
   then
     dprint_start "Installing ${BOLD}Divine.dotfiles${NORMAL}"
   else
