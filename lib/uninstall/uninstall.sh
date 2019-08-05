@@ -2,9 +2,9 @@
 #:title:        Divine.dotfiles fmwk uninstall script
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    40
+#:revnumber:    41
 #:revdate:      2019.08.05
-#:revremark:    Repaint success plaque red
+#:revremark:    Tweak intro and outro messages
 #:created_at:   2019.07.22
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -326,7 +326,7 @@ d__confirm_uninstallation()
   # Print general intro
   report_lines+=( \
     "This will remove ${BOLD}Divine.dotfiles${NORMAL} located at:" \
-    "    $D_FMWK_DIR" \
+    "    $BOLD$D_FMWK_DIR$NORMAL" \
   )
 
   # Print shortcut-related info
@@ -334,7 +334,7 @@ d__confirm_uninstallation()
     false)
       report_lines+=( \
         'and its shortcut shell command at:' \
-        "    $D_SHORTCUT_FILEPATH" \
+        "    $BOLD$D_SHORTCUT_FILEPATH$NORMAL" \
       )
       ;;
     empty)
@@ -345,7 +345,7 @@ d__confirm_uninstallation()
     illegal)
       report_lines+=( \
         'without touching illegal shortcut shell command at:' \
-        "    $D_SHORTCUT_FILEPATH" \
+        "    $BOLD$D_SHORTCUT_FILEPATH$NORMAL" \
       )
       ;;
     *)
@@ -360,7 +360,7 @@ d__confirm_uninstallation()
     true)
       report_lines+=( \
         'Potentially valuable files will be backed up to:' \
-        "    $D_BACKUP_LOCATION" \
+        "    $BOLD$D_BACKUP_LOCATION$NORMAL" \
       )
       ;;
     false)
@@ -371,7 +371,7 @@ d__confirm_uninstallation()
     *)
       report_lines+=( \
         'You will be prompted to back up potentially valuable files to:' \
-        "    $D_BACKUP_LOCATION" \
+        "    $BOLD$D_BACKUP_LOCATION$NORMAL" \
       )
       ;;
   esac
@@ -388,13 +388,13 @@ d__confirm_uninstallation()
       true)
         report_lines+=( \
           'System utilities installed by the framework will be uninstalled:' \
-          "    $list_of_util_names" \
+          "    $BOLD$list_of_util_names$NORMAL" \
         )
         ;;
       false)
         report_lines+=( \
           'System utilities installed by the framework will remain:' \
-          "    $list_of_util_names" \
+          "    $BOLD$list_of_util_names$NORMAL" \
         )
         ;;
       *)
@@ -402,7 +402,7 @@ d__confirm_uninstallation()
         long_line+=' system utilities installed by the framework:'
         report_lines+=( \
           "$long_line" \
-          "    $list_of_util_names" \
+          "    $BOLD$list_of_util_names$NORMAL" \
         )
         ;;
     esac
@@ -425,7 +425,7 @@ d__confirm_uninstallation()
     # Suggest uninstalling deployments first
     report_lines+=( \
       'Please, consider first uninstalling current deployments using:' \
-      "    $ $cmd" \
+      "    $ $BOLD$cmd$NORMAL" \
     )
 
   fi
@@ -778,6 +778,7 @@ d__report_summary()
     list_of_uninstalled_utils+=", ${D_UNINSTALLED_UTIL_NAMES[$i]}"
   done
   [ -n "$list_of_uninstalled_utils" ] || list_of_uninstalled_utils='[none]'
+  list_of_uninstalled_utils="$BOLD$list_of_uninstalled_utils$NORMAL"
 
   # Compose list of utils that failed to uninstall
   local list_of_installed_utils="$D_INSTALLED_UTIL_NAMES"
@@ -785,6 +786,7 @@ d__report_summary()
     list_of_installed_utils+=", ${D_INSTALLED_UTIL_NAMES[$i]}"
   done
   [ -n "$list_of_installed_utils" ] || list_of_installed_utils='[none]'
+  list_of_installed_utils="$BOLD$list_of_installed_utils$NORMAL"
 
   # Check status of uninstalling system utils
   case $D_STATUS_UTILS in
@@ -823,7 +825,7 @@ d__report_summary()
   case $D_STATUS_BACKUP in
     true)
       report_lines+=( \
-        "  $v Backup created at: $D_BACKUP_LOCATION" \
+        "  $v Backup created at: $BOLD$D_BACKUP_LOCATION$NORMAL" \
       )
       anything_removed=true
       ;;
@@ -835,7 +837,7 @@ d__report_summary()
     error)
       if [ -n "$D_BACKUP_LOCATION" ]; then
         report_lines+=( \
-          "  $x Failed to back up to: $D_BACKUP_LOCATION" \
+          "  $x Failed to back up to: $BOLD$D_BACKUP_LOCATION$NORMAL" \
         )
         anything_removed=true
       else
@@ -855,7 +857,7 @@ d__report_summary()
   case $D_STATUS_SHORTCUT in
     true)
       report_lines+=( \
-        "  $v Shortcut removed at: $D_SHORTCUT_FILEPATH" \
+        "  $v Shortcut removed at: $BOLD$D_SHORTCUT_FILEPATH$NORMAL" \
       )
       anything_removed=true
       ;;
@@ -866,12 +868,12 @@ d__report_summary()
       ;;
     illegal)
       report_lines+=( \
-        "  $x Illegal shortcut recorded: $D_SHORTCUT_FILEPATH" \
+        "  $x Invalid shortcut record: $BOLD$D_SHORTCUT_FILEPATH$NORMAL" \
       )
       ;;
     error)
       report_lines+=( \
-        "  $x Failed to remove shortcut at: $D_SHORTCUT_FILEPATH" \
+        "  $x Failed to remove shortcut at: $BOLD$D_SHORTCUT_FILEPATH$NORMAL" \
       )
       ;;
     *)
