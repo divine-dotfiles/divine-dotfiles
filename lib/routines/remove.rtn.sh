@@ -2,9 +2,9 @@
 #:title:        Divine Bash routine: remove
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    36
+#:revnumber:    37
 #:revdate:      2019.08.05
-#:revremark:    Insert empty line before major routines
+#:revremark:    print -> printf
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -28,7 +28,7 @@
 d__perform_remove_routine()
 {
   # Print empty line for visual separation
-  print >&2 '\n'
+  printf >&2 '\n'
 
   # Announce beginning
   if [ "$BLANKET_ANSWER" = n ]; then
