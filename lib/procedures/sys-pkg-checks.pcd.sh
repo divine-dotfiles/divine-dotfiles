@@ -2,9 +2,9 @@
 #:title:        Divine Bash procedure: sys-pkg-checks
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    2
-#:revdate:      2019.07.22
-#:revremark:    New revisioning system
+#:revnumber:    3
+#:revdate:      2019.08.05
+#:revremark:    Complete rewrite of fmwk (un)installation
 #:created_at:   2019.07.05
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -30,7 +30,7 @@ d__run_sys_pkg_checks()
     attach|plug|update)
       d__offer_git_and_friends; unset -f d__offer_git_and_friends;;
     cecf357ed9fed1037eb906633a4299ba)
-      d__remove_all_offered_utils;;
+      d__uninstall_all_offered_utils;;
     *)  return 0;;
   esac
 }
@@ -123,112 +123,175 @@ d__offer_git_and_friends()
   fi
 }
 
-#>  d__remove_all_offered_utils
+#>  d__uninstall_all_offered_utils
 #
 ## Removes previously offered and subsequently installed utils
 #
-d__remove_all_offered_utils()
+d__uninstall_all_offered_utils()
 {
-  # Check if there are any utilities recorded
-  if ! d__stash -r -s has installed_util; then
-    # Exit successfully
-    exit 0
-  fi
-
-  # Check if $D__OS_PKGMGR is detected
-  if [ -z ${D__OS_PKGMGR+isset} ]; then
-
-    # No option to uninstall: report and exit
-    dprint_failure -l \
-      "Unable to un-install utilities (no supported package manager)"
-    exit 1
-
-  fi
-
   # Storage variable
   local installed_utils=() installed_util
 
-  # Read list from stash
-  while read -r installed_util; do
-    installed_utils+=( "$installed_util" )
-  done < <( d__stash -r -s list installed_util )
+  # Check if there are any utilities recorded
+  if d__stash -r -s has installed_util; then
+
+    # Check if $D__OS_PKGMGR is detected
+    if [ -z "$D__OS_PKGMGR" ]; then
+
+      # No option to uninstall: report and exit
+      dprint_failure -l \
+        "Unable to uninstall system utilities (no supported package manager)"
+      exit 1
+
+    fi
+
+    # Read list from stash
+    while read -r installed_util; do
+      installed_utils+=( "$installed_util" )
+    done < <( d__stash -r -s list installed_util )
+
+  fi
 
   # Status variable
-  local all_good=true
+  local all_good=true anything_uninstalled=false
+
+  # Remove Homebrew if installed
+  d__uninstall_homebrew && anything_uninstalled=true || all_good=false
 
   # Iterate over installed utils
   for installed_util in "${installed_utils[@]}"; do
 
-    # Prompt user for whether to un-install utility
-    dprompt_key --bare --or-quit --answer "$D__OPT_ANSWER" \
-      --prompt "Un-install $installed_util using $D__OS_PKGMGR?"
+    # Announce un-installation
+    dprint_debug "Uninstalling $installed_util"
 
-    # Check status
-    case $? in
-      0)  # Agreed to un-install
+    # Launch OS package manager with verbosity in mind
+    if $D__OPT_QUIET; then
 
-          # Announce un-installation
-          dprint_start -l "Un-installing $installed_util"
+      # Launch quietly
+      d__os_pkgmgr remove "$installed_util" &>/dev/null
 
-          # Launch OS package manager with verbosity in mind
-          if $D__OPT_QUIET; then
+    else
 
-            # Launch quietly
-            d__os_pkgmgr remove "$installed_util" &>/dev/null
+      # Launch normally, but re-paint output
+      local line
+      d__os_pkgmgr remove "$installed_util" 2>&1 \
+        | while IFS= read -r line || [ -n "$line" ]; do
+        printf "${CYAN}==> %s${NORMAL}\n" "$line"
+      done
 
-          else
+    fi
 
-            # Launch normally, but re-paint output
-            local line
-            d__os_pkgmgr remove "$installed_util" 2>&1 \
-              | while IFS= read -r line || [ -n "$line" ]; do
-              printf "${CYAN}==> %s${NORMAL}\n" "$line"
-            done
+    # Check return status
+    if [ "${PIPESTATUS[0]}" -eq 0 ]; then
 
-          fi
+      # Announce success and unset stash variable
+      dprint_success -l "Successfully uninstalled $installed_util"
+      d__stash -r -s unset installed_util "$installed_util"
+      anything_uninstalled=true
 
-          # Check return status
-          if [ "${PIPESTATUS[0]}" -eq 0 ]; then
+    else
 
-            # Announce
-            dprint_success -l "Successfully un-installed $installed_util"
-
-          else
-
-            # Announce and remember failure
-            dprint_failure -l "Failed to un-install $installed_util"
-            all_good=false
-            
-          fi
-
-          # Done with un-installation
-          ;;
-
-      1)  # Refused to un-install
-
-          # Announce refusal to un-install and return
-          dprint_skip -l "Refused to un-install $installed_util"
-          return 1
-
-          # Done with refusal
-          ;;
+      # Announce and remember failure
+      dprint_failure -l "Failed to uninstall $installed_util"
+      all_good=false
       
-      *)  # Refused to proceed at all
-
-          # Announce exiting and exit
-          dprint_failure -l \
-            "Refused to un-install $installed_util or proceed without doing so"
-          exit 1
-
-          # Done with exiting
-          ;;
-    esac
+    fi
 
   # Done iterating over installed utils
   done
 
   # Exit with appropriate status
-  $all_good && exit 0 || exit 1
+  if $all_good; then
+    exit 0
+  else
+    $anything_uninstalled && exit 1 || exit 2
+  fi
+}
+
+#>  d__uninstall_homebrew
+#
+## Removes previously offered and subsequently installed Homebrew
+#
+d__uninstall_homebrew()
+{
+  # Check if there is any work to do
+  if ! d__stash -r -s has installed_homebrew; then
+    # No record of Homebrew installation: silently return a-ok
+    return 0
+  fi
+
+  # Announce start
+  dprint_debug 'Uninstalling Homebrew'
+
+  ## Homebrew has been previously auto-installed. This could only have 
+  #. happened on macOS, so assume macOS environment.
+
+  # Make temp dir for the uninstall script
+  local tmpdir=$( mktemp -d )
+
+  # Status variable
+  local all_good=false
+
+  # Download script into that directory
+  if curl -fsSLo "$tmpdir/uninstall" \
+    https://raw.githubusercontent.com/Homebrew/install/master/uninstall
+  then
+
+    # Make script executable
+    if chmod +x "$tmpdir/uninstall"; then
+
+      # Execute script with verbosity in mind
+      if $D__OPT_QUIET; then
+
+        # Run script quietly
+        $tmpdir/uninstall --force &>/dev/null
+
+      else
+
+        # Run script normally, but re-paint output
+        local line
+        $tmpdir/uninstall --force 2>&1 \
+          | while IFS= read -r line || [ -n "$line" ]; do
+            printf "${CYAN}==> %s${NORMAL}\n" "$line"
+          done
+
+      fi
+
+      # Report status
+      if [ "${PIPESTATUS[0]}" -eq 0 ]; then
+
+        # Announce, erase stash record, and save status
+        dprint_success -l 'Successfully uninstalled Homebrew'
+        d__stash -r -s unset installed_homebrew
+        all_good=true
+
+      else
+
+        # Announce failure
+        dprint_failure -l 'Failed to uninstall Homebrew'
+
+      fi
+
+    else
+
+      # Announce failure
+      dprint_failure -l \
+        'Failed to set executable flag on Homebrew uninstallation script'
+
+    fi
+
+  else
+
+    # Announce failure
+    dprint_failure -l 'Failed to download Homebrew uninstallation script'
+
+  fi
+
+  # Remove temp dir
+  rm -rf -- "$tmpdir"
+
+  # Return appropriately
+  $all_good && return 0 || return 1
 }
 
 d__run_sys_pkg_checks
