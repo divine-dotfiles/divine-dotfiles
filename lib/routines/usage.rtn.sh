@@ -2,9 +2,9 @@
 #:title:        Divine Bash routine: usage
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    8
+#:revnumber:    9
 #:revdate:      2019.08.05
-#:revremark:    Slightly improve usage note
+#:revremark:    script version -> framework version
 #:created_at:   2018.03.25
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -45,7 +45,7 @@ Usage: ${bold}${D__EXEC_NAME}${normal} ${bold}i${normal}|${bold}install${normal}
    or: ${bold}${D__EXEC_NAME}${normal} ${bold}p${normal}|${bold}plug${normal}      [-ynl]     REPO/DIR - Plug Grail from repo or local dir
    or: ${bold}${D__EXEC_NAME}${normal} ${bold}u${normal}|${bold}update${normal}    [-yn]      [TASK]…  - Update framework/deployments/Grail
 
-   or: ${bold}${D__EXEC_NAME}${normal} --version                       - Show script version
+   or: ${bold}${D__EXEC_NAME}${normal} --version                       - Show framework version
    or: ${bold}${D__EXEC_NAME}${normal} -h|--help                       - Show help summary
 EOF
 

@@ -2,9 +2,9 @@
 #:title:        Divine Bash routine: help
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    9
-#:revdate:      2019.07.22
-#:revremark:    New revisioning system
+#:revnumber:    10
+#:revdate:      2019.08.05
+#:revremark:    script version -> framework version
 #:created_at:   2018.03.25
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -176,7 +176,7 @@ OPTIONS
 
     -v, --verbose   Increases amount of status messages
 
-    --version       Show script version
+    --version       Show framework version
 
     -h, --help      Show this help summary
 
