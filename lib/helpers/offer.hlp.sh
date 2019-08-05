@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: offer
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    10
-#:revdate:      2019.07.22
-#:revremark:    New revisioning system
+#:revnumber:    11
+#:revdate:      2019.08.05
+#:revremark:    Be more verbose when installing system utils
 #:created_at:   2019.07.06
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -69,7 +69,7 @@ d__offer_system_pkg()
       0)  # Agreed to install
 
           # Announce installation
-          dprint_debug "Installing $util_name"
+          dprint_start -l "Installing $util_name"
 
           # Launch OS package manager with verbosity in mind
           if $D__OPT_QUIET; then
