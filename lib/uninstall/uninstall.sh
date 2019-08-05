@@ -2,9 +2,9 @@
 #:title:        Divine.dotfiles fmwk uninstall script
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    37
+#:revnumber:    38
 #:revdate:      2019.08.05
-#:revremark:    Rearrange intro message
+#:revremark:    Tweak intro wording
 #:created_at:   2019.07.22
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -399,7 +399,7 @@ d__confirm_uninstallation()
         ;;
       *)
         local long_line='You will be prompted to uninstall'
-        long_line+='system utilities installed by the framework:'
+        long_line+=' system utilities installed by the framework:'
         report_lines+=( \
           "$long_line" \
           "    $list_of_util_names" \
@@ -425,7 +425,7 @@ d__confirm_uninstallation()
     # Suggest uninstalling deployments first
     report_lines+=( \
       'Please, consider first uninstalling current deployments using:' \
-      "    $cmd" \
+      "    $ $cmd" \
     )
 
   fi
