@@ -2,9 +2,9 @@
 #:title:        Divine.dotfiles fmwk install script
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    45
+#:revnumber:    46
 #:revdate:      2019.08.05
-#:revremark:    Return to simpler intro
+#:revremark:    Better wording on optional prompts
 #:created_at:   2019.07.22
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -439,7 +439,7 @@ d__install_shortcut()
 
   # Offer to install shortcut
   if dprompt_key "$D_INSTALL_SHORTCUT" 'Install?' \
-    "[optional] Shortcut executable command '$cmd'"
+    "[optional] Would you like to install shortcut shell command '$cmd'"
   then
     dprint_start "Installing shortcut shell command '$cmd'"
   else
