@@ -2,9 +2,9 @@
 #:title:        Divine.dotfiles fmwk uninstall script
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    45
+#:revnumber:    46
 #:revdate:      2019.08.05
-#:revremark:    Add good-bye message
+#:revremark:    Skip confirmation early when given an answer
 #:created_at:   2019.07.22
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -317,8 +317,12 @@ d__pre_flight_checks()
 
 d__confirm_uninstallation()
 {
-  # Print empty line for visual separation
-  printf >&2 '\n'
+  # Exit early, or print empty line for visual separation
+  case $D_REMOVE_FMWK in
+    true)   return 0;;
+    false)  return 1;;
+    *)      printf >&2 '\n';;
+  esac
 
   # Storage variable
   local report_lines=()
