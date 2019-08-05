@@ -2,9 +2,9 @@
 #:title:        Divine.dotfiles fmwk uninstall script
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    39
+#:revnumber:    40
 #:revdate:      2019.08.05
-#:revremark:    Print plaque on success
+#:revremark:    Repaint success plaque red
 #:created_at:   2019.07.22
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -888,8 +888,8 @@ d__report_summary()
       # Print plaque
       cat <<EOF
 ${REVERSE}- D i v i n e . d o t f i l e s -${NORMAL}
-   ${WHITE}${REVERSE} u n i n s t a l l e d ${NORMAL}
-             ${WHITE}${REVERSE}x_x${NORMAL}
+   ${RED}${REVERSE} u n i n s t a l l e d ${NORMAL}
+             ${RED}${REVERSE}x_x${NORMAL}
 
 EOF
 
