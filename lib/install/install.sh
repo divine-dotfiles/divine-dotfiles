@@ -2,9 +2,9 @@
 #:title:        Divine.dotfiles fmwk install script
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    40
+#:revnumber:    41
 #:revdate:      2019.08.05
-#:revremark:    settle_on_globals() -> pre_flight_checks()
+#:revremark:    Demote one output call to debug
 #:created_at:   2019.07.22
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -247,7 +247,7 @@ d__pull_github_repo()
 
   # Create installation directory
   if mkdir -p -- "$D_FMWK_DIR" &>/dev/null; then
-    dprint_failure 'Created installation directory:' \
+    dprint_debug 'Created installation directory:' \
       "    $D_FMWK_DIR"
   else
     dprint_failure 'Failed to create installation directory:' \
