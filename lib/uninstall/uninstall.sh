@@ -2,9 +2,9 @@
 #:title:        Divine.dotfiles fmwk uninstall script
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    42
+#:revnumber:    43
 #:revdate:      2019.08.05
-#:revremark:    Repaint plaque again, into green
+#:revremark:    Remove indentation from outro
 #:created_at:   2019.07.22
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -756,18 +756,18 @@ d__report_summary()
   case $D_STATUS_FRAMEWORK in
     true)
       report_lines+=( \
-        "$v Framework erased at: $D_FMWK_DIR" \
+        "$v Framework erased at: $BOLD$D_FMWK_DIR$NORMAL" \
       )
       anything_removed=true
       ;;
     error)
       report_lines+=( \
-        "$x Failed to erase framework at: $D_FMWK_DIR" \
+        "$x Failed to erase framework at: $BOLD$D_FMWK_DIR$NORMAL" \
       )
       ;;
     *)
       report_lines+=( \
-        "$s Framework untouched at: $D_FMWK_DIR" \
+        "$s Framework untouched at: $BOLD$D_FMWK_DIR$NORMAL" \
       )
       ;;
   esac
@@ -792,28 +792,28 @@ d__report_summary()
   case $D_STATUS_UTILS in
     true)
       report_lines+=( \
-        "  $v Successfully uninstalled: $list_of_uninstalled_utils" \
+        "$v Successfully uninstalled: $list_of_uninstalled_utils" \
       )
       anything_removed=true
       ;;
     false)
       report_lines+=( \
-        "  $s Remain installed: $list_of_installed_utils" \
+        "$s Remain installed: $list_of_installed_utils" \
       )
       ;;
     error)
       if [ ${#D_UNINSTALLED_UTIL_NAMES[@]} -eq 0 ]; then
         report_lines+=( \
-          "  $s Successfully uninstalled: $list_of_uninstalled_utils" \
+          "$s Successfully uninstalled: $list_of_uninstalled_utils" \
         )
       else
         report_lines+=( \
-          "  $v Successfully uninstalled: $list_of_uninstalled_utils" \
+          "$v Successfully uninstalled: $list_of_uninstalled_utils" \
         )
         anything_removed=true
       fi
       report_lines+=( \
-        "  $x Failed to uninstall: $list_of_installed_utils" \
+        "$x Failed to uninstall: $list_of_installed_utils" \
       )
       ;;
     *)
@@ -825,30 +825,30 @@ d__report_summary()
   case $D_STATUS_BACKUP in
     true)
       report_lines+=( \
-        "  $v Backup created at: $BOLD$D_BACKUP_LOCATION$NORMAL" \
+        "$v Backup created at: $BOLD$D_BACKUP_LOCATION$NORMAL" \
       )
       anything_removed=true
       ;;
     false)
       report_lines+=( \
-        "  $s Nothing to back up" \
+        "$s Nothing to back up" \
       )
       ;;
     error)
       if [ -n "$D_BACKUP_LOCATION" ]; then
         report_lines+=( \
-          "  $x Failed to back up to: $BOLD$D_BACKUP_LOCATION$NORMAL" \
+          "$x Failed to back up to: $BOLD$D_BACKUP_LOCATION$NORMAL" \
         )
         anything_removed=true
       else
         report_lines+=( \
-          "  $x Failed to generate backup path" \
+          "$x Failed to generate backup path" \
         )
       fi
       ;;
     *)
       report_lines+=( \
-        "  $s No backup created" \
+        "$s No backup created" \
       )
       ;;
   esac
@@ -857,23 +857,23 @@ d__report_summary()
   case $D_STATUS_SHORTCUT in
     true)
       report_lines+=( \
-        "  $v Shortcut removed at: $BOLD$D_SHORTCUT_FILEPATH$NORMAL" \
+        "$v Shortcut removed at: $BOLD$D_SHORTCUT_FILEPATH$NORMAL" \
       )
       anything_removed=true
       ;;
     empty)
       report_lines+=( \
-        "  $s No shortcut recorded" \
+        "$s No shortcut recorded" \
       )
       ;;
     illegal)
       report_lines+=( \
-        "  $x Invalid shortcut record: $BOLD$D_SHORTCUT_FILEPATH$NORMAL" \
+        "$x Invalid shortcut record: $BOLD$D_SHORTCUT_FILEPATH$NORMAL" \
       )
       ;;
     error)
       report_lines+=( \
-        "  $x Failed to remove shortcut at: $BOLD$D_SHORTCUT_FILEPATH$NORMAL" \
+        "$x Failed to remove shortcut at: $BOLD$D_SHORTCUT_FILEPATH$NORMAL" \
       )
       ;;
     *)
