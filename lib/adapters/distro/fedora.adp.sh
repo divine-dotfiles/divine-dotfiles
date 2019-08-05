@@ -2,9 +2,9 @@
 #:title:        Divine.dotfiles Fedora adapter
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    13
-#:revdate:      2019.07.25
-#:revremark:    Rewrite OS detection and adapters
+#:revnumber:    14
+#:revdate:      2019.08.05
+#:revremark:    Unmute calls to d__os_pkgmgr (except update)
 #:created_at:   2019.06.04
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -40,7 +40,7 @@ d__adapter_detect_os_pkgmgr()
       case "$1" in
         update)
           dprint_sudo 'Working with dnf requires sudo password'
-          sudo dnf upgrade -yq
+          sudo dnf upgrade -y
           ;;
         check)
           dprint_sudo 'Working with dnf requires sudo password'
@@ -48,11 +48,11 @@ d__adapter_detect_os_pkgmgr()
           ;;
         install)
           dprint_sudo 'Working with dnf requires sudo password'
-          sudo dnf install -yq "$2"
+          sudo dnf install -y "$2"
           ;;
         remove)
           dprint_sudo 'Working with dnf requires sudo password'
-          sudo dnf remove -yq "$2"
+          sudo dnf remove -y "$2"
           ;;
         *)  return 1;;
       esac

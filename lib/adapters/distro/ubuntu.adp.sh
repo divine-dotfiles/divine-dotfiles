@@ -2,9 +2,9 @@
 #:title:        Divine.dotfiles Ubuntu adapter
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    13
-#:revdate:      2019.07.25
-#:revremark:    Rewrite OS detection and adapters
+#:revnumber:    14
+#:revdate:      2019.08.05
+#:revremark:    Unmute calls to d__os_pkgmgr (except update)
 #:created_at:   2019.06.04
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -40,8 +40,8 @@ d__adapter_detect_os_pkgmgr()
       case "$1" in
         update)
           dprint_sudo 'Working with apt-get requires sudo password'
-          sudo apt-get update -yq
-          sudo apt-get upgrade -yq
+          sudo apt-get update -y
+          sudo apt-get upgrade -y
           ;;
         check)
           grep -qFx 'install ok installed' \
@@ -49,11 +49,11 @@ d__adapter_detect_os_pkgmgr()
           ;;
         install)
           dprint_sudo 'Working with apt-get requires sudo password'
-          sudo apt-get install -yq "$2"
+          sudo apt-get install -y "$2"
           ;;
         remove)
           dprint_sudo 'Working with apt-get requires sudo password'
-          sudo apt-get remove -yq "$2"
+          sudo apt-get remove -y "$2"
           ;;
         *)  return 1;;
       esac
