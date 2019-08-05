@@ -2,9 +2,9 @@
 #:title:        Divine.dotfiles fmwk uninstall script
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    43
+#:revnumber:    44
 #:revdate:      2019.08.05
-#:revremark:    Remove indentation from outro
+#:revremark:    Better wording on optional prompts
 #:created_at:   2019.07.22
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -455,7 +455,8 @@ d__uninstall_utils()
 
   # Offer to uninstall utilities
   if dprompt_key "$D_REMOVE_UTILS" 'Uninstall?' \
-    '[optional] Uninstall system utilities installed by the framework'
+    '[optional] Would you like to uninstall system utilities' \
+    'installed by the framework?'
   then
     dprint_start 'Uninstalling system utilities installed by the framework'
   else
@@ -550,7 +551,7 @@ d__make_backup()
 
   # Offer to make backup
   if dprompt_key "$D_MAKE_BACKUP" 'Make backup?' \
-    '[optional] Retain backup of potentially valuable files'
+    '[optional] Would you like to retain backup of potentially valuable files?'
   then
     dprint_start 'Backing up potentially valuable files'
   else
