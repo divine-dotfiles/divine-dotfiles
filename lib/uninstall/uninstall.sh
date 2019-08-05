@@ -2,9 +2,9 @@
 #:title:        Divine.dotfiles fmwk uninstall script
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    41
+#:revnumber:    42
 #:revdate:      2019.08.05
-#:revremark:    Tweak intro and outro messages
+#:revremark:    Repaint plaque again, into green
 #:created_at:   2019.07.22
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -890,8 +890,8 @@ d__report_summary()
       # Print plaque
       cat <<EOF
 ${REVERSE}- D i v i n e . d o t f i l e s -${NORMAL}
-   ${RED}${REVERSE} u n i n s t a l l e d ${NORMAL}
-             ${RED}${REVERSE}x_x${NORMAL}
+   ${GREEN}${REVERSE} u n i n s t a l l e d ${NORMAL}
+             ${GREEN}${REVERSE}x_x${NORMAL}
 
 EOF
 
