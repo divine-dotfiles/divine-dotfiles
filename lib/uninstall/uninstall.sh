@@ -2,9 +2,9 @@
 #:title:        Divine.dotfiles fmwk uninstall script
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    47
+#:revnumber:    48
 #:revdate:      2019.08.05
-#:revremark:    Restore missing indentation in output
+#:revremark:    Tiny wording improvement
 #:created_at:   2019.07.22
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -902,7 +902,8 @@ EOF
 
       # Framework is removed: report and return as success
       dprint_success "${report_lines[@]}" ''
-      dprint_success 'We hate to see you leave, but love watching you go.' ''
+      dprint_success 'We hate to see you leave, but we love watching you go.' \
+        ''
       return 0
 
     else
