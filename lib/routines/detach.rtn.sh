@@ -2,9 +2,9 @@
 #:title:        Divine Bash routine: detach
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    8
-#:revdate:      2019.07.22
-#:revremark:    New revisioning system
+#:revnumber:    9
+#:revdate:      2019.08.05
+#:revremark:    Insert empty line before major routines
 #:created_at:   2019.06.28
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -30,6 +30,9 @@ d__perform_detach_routine()
   # Synchronize dpl repos
   d__sync_dpl_repos || exit 1
   
+  # Print empty line for visual separation
+  print >&2 '\n'
+
   # Announce beginning
   if [ "$D__OPT_ANSWER" = false ]; then
     dprint_plaque -pcw "$WHITE" "$D__CONST_PLAQUE_WIDTH" \
