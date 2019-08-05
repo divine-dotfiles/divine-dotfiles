@@ -2,9 +2,9 @@
 #:title:        Divine.dotfiles fmwk uninstall script
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    46
+#:revnumber:    47
 #:revdate:      2019.08.05
-#:revremark:    Skip confirmation early when given an answer
+#:revremark:    Restore missing indentation in output
 #:created_at:   2019.07.22
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -675,7 +675,7 @@ d__erase_d_dir()
 
     # Announce success, mark status, return
     dprint_success "Successfully removed framework directory at:" \
-      "$D_FMWK_DIR"
+      "    $D_FMWK_DIR"
     D_STATUS_FRAMEWORK=true
     return 0
 
@@ -683,7 +683,7 @@ d__erase_d_dir()
 
     # Announce and return failure
     dprint_failure "Failed to remove framework directory at:" \
-      "$D_FMWK_DIR"
+      "    $D_FMWK_DIR"
     D_STATUS_FRAMEWORK=error
     return 1
 
