@@ -2,9 +2,9 @@
 #:title:        Divine.dotfiles fmwk install script
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    41
+#:revnumber:    42
 #:revdate:      2019.08.05
-#:revremark:    Demote one output call to debug
+#:revremark:    Tweak success output, including plaque
 #:created_at:   2019.07.22
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -610,22 +610,29 @@ d__report_summary()
     main_cmd="$D_FMWK_DIR/intervene.sh"
   fi
 
+  # Print plaque
+  cat <<EOF
+${REVERSE}- D i v i n e . d o t f i l e s -${NORMAL}
+     ${GREEN}${REVERSE} i n s t a l l e d ${NORMAL}
+             ${GREEN}${REVERSE}-_-${NORMAL}
+
+EOF
+
   # Announce success
-  dprint_success \
+  dprint_success 'Have you heard the good news?' \
     "You can now access ${BOLD}Divine.dotfiles${NORMAL} in shell using:" \
-    "    $main_cmd" \
+    "    $ $REVERSE $main_cmd $NORMAL" \
     "Your personal deployments and assets go into Grail directory at:" \
     "    $D_FMWK_DIR/grail" \
-    '(It is a good idea to take your Grail under version control)'
-  dprint_success \
+    '(It is a good idea to take your Grail under version control)' \
     "If this is your first time, try our bundled Divine deployments using:" \
-    "    $main_cmd attach core" \
-    'More info on these at: https://github.com/no-simpler/divine-dpls-core'
-  dprint_success \
+    "    $ $main_cmd attach core" \
+    'More info on these at: https://github.com/no-simpler/divine-dpls-core' \
     "To install/remove attached deployments, use:" \
-    "    $main_cmd install" \
-    "    $main_cmd remove"
-  dprint_success 'Thank you and have a safe and productive day.'
+    "    $ $main_cmd install" \
+    "    $ $main_cmd remove" \
+    
+  dprint_success '' 'Thank you, and have a safe and productive day.'
 
   # Return success
   return 0
