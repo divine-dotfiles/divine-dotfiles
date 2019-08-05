@@ -2,9 +2,9 @@
 #:title:        Divine.dotfiles fmwk uninstall script
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    44
+#:revnumber:    45
 #:revdate:      2019.08.05
-#:revremark:    Better wording on optional prompts
+#:revremark:    Add good-bye message
 #:created_at:   2019.07.22
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -897,7 +897,8 @@ ${REVERSE}- D i v i n e . d o t f i l e s -${NORMAL}
 EOF
 
       # Framework is removed: report and return as success
-      dprint_success "${report_lines[@]}"
+      dprint_success "${report_lines[@]}" ''
+      dprint_success 'We hate to see you leave, but love watching you go.' ''
       return 0
 
     else
