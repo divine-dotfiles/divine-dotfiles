@@ -2,9 +2,9 @@
 #:title:        Divine.dotfiles fmwk uninstall script
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    36
+#:revnumber:    37
 #:revdate:      2019.08.05
-#:revremark:    settle_on_globals() -> pre_flight_checks()
+#:revremark:    Rearrange intro message
 #:created_at:   2019.07.22
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -359,44 +359,22 @@ d__confirm_uninstallation()
   case $D_MAKE_BACKUP in
     true)
       report_lines+=( \
-        'Potentially valuable files will be backed up at:' \
+        'Potentially valuable files will be backed up to:' \
         "    $D_BACKUP_LOCATION" \
       )
       ;;
     false)
       report_lines+=( \
-        "$RED$REVERSE All files will be removed without backup! $NORMAL" \
+        "$RED$REVERSE$BOLD All files will be removed without backup! $NORMAL" \
       )
       ;;
     *)
       report_lines+=( \
-        'Potentially valuable files may be backed up at:' \
+        'You will be prompted to back up potentially valuable files to:' \
         "    $D_BACKUP_LOCATION" \
       )
       ;;
   esac
-
-  # Print uninstallation warning
-  if [ "$D_MAKE_BACKUP" != true ] \
-    || [ -z "$D_REMOVE_FMWK" -o -z "$D_MAKE_BACKUP" ]
-  then
-
-    # Compose uninstall command
-    local cmd
-    if [ "$D_STATUS_SHORTCUT" = false ]; then
-      cmd="$( basename -- "$D_SHORTCUT_FILEPATH" )"
-    else
-      cmd="$D_FMWK_DIR/intervene.sh"
-    fi
-    cmd+=' remove'
-
-    # Suggest uninstalling deployments first
-    report_lines+=( \
-      'Also, consider first uninstalling current deployments using:' \
-      "    $cmd" \
-    )
-
-  fi
 
   # Print utils-related intro
   if [ "$D_STATUS_UTILS" = false ]; then
@@ -420,12 +398,36 @@ d__confirm_uninstallation()
         )
         ;;
       *)
+        local long_line='You will be prompted to uninstall'
+        long_line+='system utilities installed by the framework:'
         report_lines+=( \
-          'System utilities installed by the framework may be uninstalled:' \
+          "$long_line" \
           "    $list_of_util_names" \
         )
         ;;
     esac
+  fi
+
+  # Print uninstallation suggestion
+  if [ "$D_MAKE_BACKUP" != true ] \
+    || [ -z "$D_REMOVE_FMWK" -o -z "$D_MAKE_BACKUP" ]
+  then
+
+    # Compose uninstall command
+    local cmd
+    if [ "$D_STATUS_SHORTCUT" = false ]; then
+      cmd="$( basename -- "$D_SHORTCUT_FILEPATH" )"
+    else
+      cmd="$D_FMWK_DIR/intervene.sh"
+    fi
+    cmd+=' remove'
+
+    # Suggest uninstalling deployments first
+    report_lines+=( \
+      'Please, consider first uninstalling current deployments using:' \
+      "    $cmd" \
+    )
+
   fi
 
   # Prompt user
