@@ -2,9 +2,9 @@
 #:title:        Divine.dotfiles fmwk uninstall script
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    49
+#:revnumber:    50
 #:revdate:      2019.08.07
-#:revremark:    Touch up fmwk (un)installation output
+#:revremark:    Make backup enabled by default during fmwk uninstallation
 #:created_at:   2019.07.22
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -70,7 +70,7 @@ d__parse_arguments()
   D_OPT_QUIET=true        # Be quiet by default
   D_REMOVE_FMWK=          # Whether to perform removal of framework
   D_REMOVE_UTILS=         # Whether to perform removal of utils
-  D_MAKE_BACKUP=          # Whether to leave backup of non-fmwk files
+  D_MAKE_BACKUP=true      # Whether to leave backup of non-fmwk files
 
   # Extract arguments passed to this script (they start at $0)
   local args=( "$0" "$@" ) arg
