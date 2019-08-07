@@ -2,9 +2,9 @@
 #:title:        Divine Bash procedure: dep-checks
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    8
+#:revnumber:    9
 #:revdate:      2019.08.07
-#:revremark:    Grand removal of non-ASCII chars
+#:revremark:    Fix stalling tests on BSD systems
 #:created_at:   2019.07.05
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -150,7 +150,7 @@ EOF
 
   # Test: this command must yield string 'battered' without quotes around it
   sed_cmd='s/^"(.*)"$/\1/p'
-  if sed -r &>/dev/null; then
+  if sed -r <<<'' &>/dev/null; then
     test_bed="$( \
       sed -nre "$sed_cmd" 2>/dev/null <<<'"battered"' || exit $? \
       )"
@@ -167,7 +167,7 @@ EOF
 
   # Test: this command must yield string 't  may'
   sed_cmd='s/^([[:space:]]*)(may) (t)$/\3\1\2/'
-  if sed -r &>/dev/null; then
+  if sed -r <<<'' &>/dev/null; then
     test_bed="$( \
       sed -re "$sed_cmd" 2>/dev/null <<<'  may t' || exit $? \
       )"
