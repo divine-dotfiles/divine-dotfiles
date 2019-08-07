@@ -2,14 +2,14 @@
 #:title:        Divine Bash deployment helpers: link-queue
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    4
-#:revdate:      2019.07.25
-#:revremark:    Rewrite OS detection and adapters
+#:revnumber:    5
+#:revdate:      2019.08.07
+#:revremark:    Grand removal of non-ASCII chars
 #:created_at:   2019.04.02
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
 #
-## Helper functions for deployments based on template ‘link-queue.dpl.sh’
+## Helper functions for deployments based on template 'link-queue.dpl.sh'
 #
 ## Replaces arbitrary files (e.g., config files) with symlinks to provided 
 #. replacements. Creates backup of each replaced file. Restores original set-up 
@@ -243,7 +243,7 @@ d__link_queue_item_is_installed()
 
   else
 
-    # Check if it’s just backup that is missing
+    # Check if it's just backup that is missing
     if dln -?q -- "$asset_path" "$target_path"; then
 
       # Replacement is installed without backup
@@ -324,7 +324,7 @@ d__link_queue_item_remove()
 
   else
 
-    # Check if it’s just backup that is missing
+    # Check if it's just backup that is missing
     if dln -?q -- "$asset_path" "$target_path"; then
 
       # Attempt to remove

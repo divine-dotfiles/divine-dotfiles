@@ -2,9 +2,9 @@
 #:title:        Divine.dotfiles fmwk install script
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    47
+#:revnumber:    48
 #:revdate:      2019.08.07
-#:revremark:    Touch up fmwk (un)installation output
+#:revremark:    Grand removal of non-ASCII chars
 #:created_at:   2019.07.22
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -471,7 +471,7 @@ d__install_shortcut()
       printf >&2 "Try another name ('q' to skip): "
       read -r new_cmd_name && printf '\n'
 
-      # Check if user don’t want another name
+      # Check if user don't want another name
       [ "$new_cmd_name" = q ] && {
         dprint_skip 'Skipped installing shortcut shell command'
         return 1
@@ -625,8 +625,8 @@ EOF
     '' \
     'For help, try:' \
     "    ${BOLD}https://github.com/no-simpler/divine-dotfiles${NORMAL}" \
-    "    …or $BOLD$D_FMWK_DIR/README.adoc$NORMAL" \
-    "    …or $ $BOLD$main_cmd --help$NORMAL" \
+    "    ...or $BOLD$D_FMWK_DIR/README.adoc$NORMAL" \
+    "    ...or $ $BOLD$main_cmd --help$NORMAL" \
     '' \
     "Your personal deployments and assets go into Grail directory at:" \
     "    $BOLD$D_FMWK_DIR/grail$NORMAL" \

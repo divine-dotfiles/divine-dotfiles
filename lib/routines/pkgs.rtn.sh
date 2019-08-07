@@ -2,19 +2,19 @@
 #:title:        Divine Bash routine: pkgs
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    10
-#:revdate:      2019.07.22
-#:revremark:    New revisioning system
+#:revnumber:    11
+#:revdate:      2019.08.07
+#:revremark:    Grand removal of non-ASCII chars
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
 #
-## This file is intended to be sourced from framework’s main script
+## This file is intended to be sourced from framework's main script
 #
 ## Updates currently installed packages
 #
 
-#> d__update_pkgs
+#>  d__update_pkgs
 #
 ## Shared subroutine that runs update process on detected $D__OS_PKGMGR
 #
@@ -45,13 +45,13 @@ d__update_pkgs()
     # Local flag for whether to proceed
     local proceeding=true
 
-    # Don’t proceed if missing package manager
+    # Don't proceed if missing package manager
     [ -z "$D__OS_PKGMGR" ] && {
       task_name="$task_name (package manager not found)"
       proceeding=false
     }
 
-    # Don’t proceed if ‘-n’ option is given
+    # Don't proceed if '-n' option is given
     [ "$D__OPT_ANSWER" = false ] && proceeding=false
 
     # Print newline to visually separate tasks
@@ -63,7 +63,7 @@ d__update_pkgs()
         '>>>' 'Updating' ':' "$task_desc" "$task_name"
     fi
 
-    # Unless given a ‘-y’ option, prompt for user’s approval
+    # Unless given a '-y' option, prompt for user's approval
     if $proceeding && [ "$D__OPT_ANSWER" != true ]; then
       dprint_ode "${D__ODE_PROMPT[@]}" -- '' 'Confirm' ': '
       dprompt_key --bare && proceeding=true || {

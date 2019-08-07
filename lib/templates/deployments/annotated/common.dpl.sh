@@ -2,22 +2,22 @@
 #:title:        Divine deployment annotated template
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    12
-#:revdate:      2019.07.22
-#:revremark:    New revisioning system
+#:revnumber:    13
+#:revdate:      2019.08.07
+#:revremark:    Grand removal of non-ASCII chars
 #:created_at:   2018.03.25
 
 ## This is a valid deployment script for Divine.dotfiles framework
 #. <https://github.com/no-simpler/divine-dotfiles>
 #
 ## Usage:
-#.  1. Copy this template to anywhere under ‘grail/dpls’ directory
-#.  2. Rename the file after whatever you are deploying, e.g., ‘my-dpl.dpl.sh’
+#.  1. Copy this template to anywhere under 'grail/dpls' directory
+#.  2. Rename the file after whatever you are deploying, e.g., 'my-dpl.dpl.sh'
 #.  3. Fill out whichever parts of this file you need (all are optional):
 #.    3.1. Assign provided global variables
-#.    3.2. Implement ‘d_dpl_check’   function following its guidelines
-#.    3.3. Implement ‘d_dpl_install’ function following its guidelines
-#.    3.4. Implement ‘d_dpl_remove’  function following its guidelines
+#.    3.2. Implement 'd_dpl_check'   function following its guidelines
+#.    3.3. Implement 'd_dpl_install' function following its guidelines
+#.    3.4. Implement 'd_dpl_remove'  function following its guidelines
 #
 ## Below are some of the global variables that are available to this script 
 #. during Divine intervention:
@@ -26,10 +26,10 @@
 #.  $D__DPL_ASSET_DIR   - Absolute canonical path to directory alotted for 
 #.                        asset files of this deployment
 #.  $D__OS_FAMILY       - (read-only) Broad description of the current OS type. 
-#.                        Each file in ‘lib/adapters/family’ represents a 
+#.                        Each file in 'lib/adapters/family' represents a 
 #.                        supported OS family. Empty, when not recognized.
 #.  $D__OS_DISTRO       - (read-only) Best guess on the name of the current OS 
-#.                        distribution, without version. Each file in ‘lib/
+#.                        distribution, without version. Each file in 'lib/
 #.                        adapters/distro represents a supported OS distro. 
 #.                        Empty, when not recognized.
 #.  $D__OS_PKGMGR       - (read-only) Name of the package management utility 
@@ -42,7 +42,7 @@
 #.                          * [empty]     - Not recognized
 #
 ## NOTE: To add more recognized OS distributions or package managers, add 
-#. distro adapters to ‘lib/adapters/distro’.
+#. distro adapters to 'lib/adapters/distro'.
 #
 ## This template is valid as is, although in this form it does nothing
 #
@@ -55,7 +55,7 @@
 ## Name of this deployment
 #
 ## Trimmed on both sides, truncated to 64 chars. If empty, name of deployment 
-#. file, sans ‘.dpl.sh’ suffix, is used.
+#. file, sans '.dpl.sh' suffix, is used.
 #
 ## NOTE: Keep this assignment on its own line! The value is not read by Bash 
 #. interpreter, but is rather extracted using a regular expression. Quotes are 
@@ -104,7 +104,7 @@ D_DPL_PRIORITY=4096
 #.  a   - Prompt before [a]ll above operations, even with --yes option
 #
 ## Deployment grouping flags:
-#.  !     - Make deployment part of ‘!’ group
+#.  !     - Make deployment part of '!' group
 #.  [0-9] - Make deployment part of one of the ten numbered groups
 #
 ## NOTE: Keep this assignment on its own line! The value is not read by Bash 
@@ -116,7 +116,7 @@ D_DPL_FLAGS=
 #> $D_DPL_WARNING
 #
 ## Warning shown before prompting for confirmation, but only if relevant flag 
-#. in $D_DPL_FLAGS is in effect. E.g., if deployment is marked with ‘i’ flag, 
+#. in $D_DPL_FLAGS is in effect. E.g., if deployment is marked with 'i' flag, 
 #. this warning will be shown before every installation.
 #
 ## One line only. Trimmed on both sides. If empty, no warning is shown.
@@ -135,20 +135,20 @@ D_DPL_WARNING=
 #. defined, exit code of 0 is assumed. Same for non-standard exit codes.
 #
 ## Exit codes and their meaning:
-#.  0 - “Unknown”
-#.      If the user has agreed to process this deployment by either hitting ‘y’ 
-#.      during prompt or providing ‘--yes’ option, this deployment will be 
+#.  0 - "Unknown"
+#.      If the user has agreed to process this deployment by either hitting 'y' 
+#.      during prompt or providing '--yes' option, this deployment will be 
 #.      installed/removed as normal.
-#.  1 - “Installed”
+#.  1 - "Installed"
 #.      During installation routine:  this deployment will be skipped.
 #.      During removal routive:       same as 0.
-#.  2 - “Not installed”
+#.  2 - "Not installed"
 #.      During installation routine:  same as 0.
 #.      During removal routive:       this deployment will be skipped.
-#.  3 - “Irrelevant”
+#.  3 - "Irrelevant"
 #.      During installation routine:  this deployment will be skipped.
 #.      During removal routive:       this deployment will be skipped.
-#.  4 - “Partly installed”
+#.  4 - "Partly installed"
 #.      Same as 0 functionally, but output slightly changes to signal to user 
 #.      that deployment is halfway between installed and not installed.
 #
@@ -156,7 +156,7 @@ D_DPL_WARNING=
 #.  $D_DPL_NEEDS_ANOTHER_PROMPT
 #.            - Set this one to 'true' to ensure that user is prompted again 
 #.              about whether they are sure they want to proceed. This 
-#.              additional prompt is not affected by ‘--yes’ option.
+#.              additional prompt is not affected by '--yes' option.
 #.  $D_DPL_NEEDS_ANOTHER_WARNING
 #.            - If $D_DPL_NEEDS_ANOTHER_PROMPT is set to 'true', this textual 
 #.              warning will be printed. Use this to explain possible 
@@ -166,8 +166,8 @@ D_DPL_WARNING=
 #.              deployment that are detected to be already installed, have been 
 #.              installed by user or OS, not by this framework. This affects 
 #.              following return codes:
-#.                * 1 (installed)         — removes ability to remove
-#.                * 4 (partly installed)  — removes ability to remove
+#.                * 1 (installed)         - removes ability to remove
+#.                * 4 (partly installed)  - removes ability to remove
 #.              In both cases output is modified to inform user. This is useful 
 #.              for deployments designed to not touch anything done by user 
 #.              manually.
@@ -215,11 +215,11 @@ d_dpl_check()
 ## Exit codes and their meaning:
 #.  0   - Successfully installed
 #.  1   - Failed to install
-#.        Something went wrong, and hopefully things have been cleaned up (it’s 
+#.        Something went wrong, and hopefully things have been cleaned up (it's 
 #.        up to you of course). The overall installation routine will continue.
 #.  2   - Skipped completely
 #.        Something went wrong, and the whole deployment can be disregarded 
-#.        (skipped). This is in case d_dpl_check hasn’t caught skip condition.
+#.        (skipped). This is in case d_dpl_check hasn't caught skip condition.
 #.  100 - Reboot needed
 #.        User will be asked for reboot.
 #.        Divine intervention will shut down gracefully without moving on.
@@ -245,11 +245,11 @@ d_dpl_install()
 ## Exit codes and their meaning:
 #.  0   - Successfully removed
 #.  1   - Failed to remove
-#.        Something went wrong, and hopefully things have been cleaned up (it’s 
+#.        Something went wrong, and hopefully things have been cleaned up (it's 
 #.        up to you of course). The overall removal routine will continue.
 #.  2   - Skipped completely
 #.        Something went wrong, and the whole deployment can be disregarded 
-#.        (skipped). This is in case d_dpl_check hasn’t caught skip condition.
+#.        (skipped). This is in case d_dpl_check hasn't caught skip condition.
 #.  100 - Reboot needed
 #.        User will be asked for reboot.
 #.        Divine intervention will shut down gracefully without moving on.

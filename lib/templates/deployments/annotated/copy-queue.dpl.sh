@@ -11,7 +11,7 @@ D_DPL_WARNING=
 ## Copying is a useful way of pouring custom configuration assets into the 
 #. system, e.g. the font files.
 #
-## Copy-queue is a queue (‘queue.dpl.sh’) with some actions pre-implemented.
+## Copy-queue is a queue ('queue.dpl.sh') with some actions pre-implemented.
 #
 ## Variables to fill:
 #.  $D_DPL_ASSET_PATHS    - This array must contain paths to every asset that 
@@ -20,7 +20,7 @@ D_DPL_WARNING=
 #.                          array with shortened (e.g., relative to assets dir) 
 #.                          versions of the above is very helpful for debug 
 #.                          output.
-#.  $D_DPL_TARGET_PATHS   - This array must contain corresponding ‘target’ 
+#.  $D_DPL_TARGET_PATHS   - This array must contain corresponding 'target' 
 #.                          paths that are to be copy destinations.
 #. Framework has ways of auto-populating these arrays: see notes on automation 
 #. below.
@@ -39,7 +39,7 @@ D_DPL_WARNING=
 #.  $D__QUEUE_ITEM_TITLE       - Content of $D__QUEUE_MAIN for current item
 #.  $D__QUEUE_ITEM_STASH_KEY   - Stash key for current item
 #.  $D__QUEUE_ITEM_STASH_VALUE - Stash value for current item
-#.  $D__QUEUE_ITEM_IS_FORCED   - This variable is set to ‘true’ if installation/
+#.  $D__QUEUE_ITEM_IS_FORCED   - This variable is set to 'true' if installation/
 #.                            removal is being forced, i.e., it would not have 
 #.                            been initiated if not for force option.
 #.  $from_path              - Local variable that is populated with path to 
@@ -53,13 +53,13 @@ D_DPL_WARNING=
 ## Notes on automation:
 #
 ## Framework provides a way to auto-populate asset paths ($D_DPL_ASSET_PATHS):
-#.  * Asset manifest (see ‘dpl-filename.dpl.mnf’ template for reference)
+#.  * Asset manifest (see 'dpl-filename.dpl.mnf' template for reference)
 #.        - This also populates $D_DPL_ASSET_RELPATHS array with shortened 
 #.          versions of corresponding paths (relative to asset dir)
 #
 ## Target paths ($D_DPL_TARGET_PATHS) can be populated manually. OS-specific 
 #. overrides for this array are given by suffixing system handle in uppercase 
-#. to variable name, e.g., $D_DPL_TARGET_PATHS_BSD. Browse ‘lib/adapters’ for 
+#. to variable name, e.g., $D_DPL_TARGET_PATHS_BSD. Browse 'lib/adapters' for 
 #. supported system handles.
 #
 ## Perhaps a more convenient way of generating target paths is available when 

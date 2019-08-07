@@ -3,9 +3,9 @@
 #:kind:         func(script,interavtive)
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    4
-#:revdate:      2019.07.22
-#:revremark:    New revisioning system
+#:revnumber:    5
+#:revdate:      2019.08.07
+#:revremark:    Grand removal of non-ASCII chars
 #:created_at:   2019.05.21
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -28,7 +28,7 @@
 #.        `-s` option)
 #
 ## Requires:
-#.  `md5sum` or `md5` or `openssl` — whichever is available on the $PATH
+#.  `md5sum` or `md5` or `openssl` - whichever is available on the $PATH
 #
 ## Returns:
 #.  0 - md5 successfully calculated and printed

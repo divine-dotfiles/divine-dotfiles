@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: stash
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    3
-#:revdate:      2019.07.22
-#:revremark:    New revisioning system
+#:revnumber:    4
+#:revdate:      2019.08.07
+#:revremark:    Grand removal of non-ASCII chars
 #:created_at:   2019.05.15
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -16,7 +16,7 @@
 #. own stash. Stash is a specially named text file in backups directory.
 #
 
-#> d__stash ready|has|set|add|get|list|unset|clear [-rgs] [ KEY [VALUE] ]
+#>  d__stash ready|has|set|add|get|list|unset|clear [-rgs] [ KEY [VALUE] ]
 #
 ## Main stashing command. Dispatches task based on first non-opt argument.
 #
@@ -112,7 +112,7 @@ d__stash()
   return $?
 }
 
-#> d__stash_has [-s] KEY
+#>  d__stash_has [-s] KEY
 #
 ## Checks whether KEY is currently set to any value, including empty string.
 #. Extra arguments are ignored.
@@ -136,7 +136,7 @@ d__stash_has()
   grep -q ^"$1"= -- "$D__STASH_FILEPATH" &>/dev/null && return 0 || return 1
 }
 
-#> d__stash_set KEY [VALUE]
+#>  d__stash_set KEY [VALUE]
 #
 ## Sets first/new occurrence of KEY to VALUE. Extra arguments are ignored.
 #
@@ -170,7 +170,7 @@ d__stash_set()
   d__stash_store_md5; return 0
 }
 
-#> d__stash_add KEY [VALUE]
+#>  d__stash_add KEY [VALUE]
 #
 ## Adds new occurrence of KEY and sets it to VALUE. Extra arguments are 
 #. ignored.
@@ -202,7 +202,7 @@ d__stash_add()
   d__stash_store_md5; return 0
 }
 
-#> d__stash_get KEY
+#>  d__stash_get KEY
 #
 ## Prints first value assigned to KEY to stdout. If key does not exist prints 
 #. nothing and returns non-zero. Extra arguments are ignored.
@@ -229,7 +229,7 @@ d__stash_get()
     return 1
   }
 
-  # Get key’s value
+  # Get key's value
   local value
   value="$( grep ^"$1"= -- "$D__STASH_FILEPATH" 2>/dev/null \
     | head -1 2>/dev/null )"
@@ -248,7 +248,7 @@ d__stash_get()
   printf '%s\n' "$value"
 }
 
-#> d__stash_list KEY
+#>  d__stash_list KEY
 #
 ## Prints each value of provided KEY to its own line in stdout. If key does not 
 #. exist prints nothing and returns non-zero. Extra arguments are ignored.
@@ -275,7 +275,7 @@ d__stash_list()
     return 1
   }
 
-  # List key’s values
+  # List key's values
   local value
   while read -r value; do
 
@@ -295,7 +295,7 @@ d__stash_list()
   }
 }
 
-#> d__stash_unset [-s] KEY [VALUE]
+#>  d__stash_unset [-s] KEY [VALUE]
 #
 ## Unsets all instances of key or only those instances that are set to VALUE
 #

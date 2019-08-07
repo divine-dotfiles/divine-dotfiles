@@ -3,9 +3,9 @@
 #:kind:         global_var
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    2
-#:revdate:      2019.07.22
-#:revremark:    New revisioning system
+#:revnumber:    3
+#:revdate:      2019.08.07
+#:revremark:    Grand removal of non-ASCII chars
 #:created_at:   2018.12.20
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -19,7 +19,7 @@
 ## Provides global read-only variables that allow delimiting portions of a text 
 #. string to be colored or formatted using various effects. If the terminal 
 #. does not support at least 8 colors, assigns empty strings to all the 
-#. globals, so they are still safe to use, but don’t produce any effect.
+#. globals, so they are still safe to use, but don't produce any effect.
 #
 ## Requires:
 #.  bash >=3.2

@@ -42,10 +42,10 @@ D_DPL_WARNING=
 #.  $D__QUEUE_ITEM_TITLE       - Content of $D__QUEUE_MAIN for current item
 #.  $D__QUEUE_ITEM_STASH_KEY   - Stash key for current item
 #.  $D__QUEUE_ITEM_STASH_VALUE - Stash value for current item
-#.  $D__QUEUE_ITEM_STASH_FLAG  - ‘true’ if stash record exists
-#.                            ‘false’ if stash record does not exist
+#.  $D__QUEUE_ITEM_STASH_FLAG  - 'true' if stash record exists
+#.                            'false' if stash record does not exist
 #.                            unset if stash is not used for this
-#.  $D__QUEUE_ITEM_IS_FORCED   - This variable is set to ‘true’ if installation/
+#.  $D__QUEUE_ITEM_IS_FORCED   - This variable is set to 'true' if installation/
 #.                            removal is being forced, i.e., it would not have 
 #.                            been initiated if not for force option.
 #
@@ -54,7 +54,7 @@ D_DPL_WARNING=
 #
 ## Framework provides ways to auto-populate queue array ($D__QUEUE_MAIN). 
 #. First method that works wins:
-#.  * Queue manifest (see ‘dpl-filename.dpl.que’ template for reference)
+#.  * Queue manifest (see 'dpl-filename.dpl.que' template for reference)
 #.  * $D_DPL_ASSET_RELPATHS - If this variable is set, it is auto-copied into 
 #.                            the queue
 #.  * $D_DPL_ASSET_PATHS    - If this variable is set, it is auto-copied into 
@@ -158,9 +158,9 @@ d_queue_post_process()
 #.  $D__QUEUE_ITEM_TITLE       - Content of $D__QUEUE_MAIN for current item
 #.  $D__QUEUE_ITEM_STASH_KEY   - Stash key for current item
 #.  $D__QUEUE_ITEM_STASH_VALUE - Stash value for current item
-#.  $D__QUEUE_ITEM_IS_FORCED   - This variable is set to ‘true’ if this function 
+#.  $D__QUEUE_ITEM_IS_FORCED   - This variable is set to 'true' if this function 
 #.                            would not have been called for current item if 
-#.                            not for ‘--force’ option; otherwise ‘false’
+#.                            not for '--force' option; otherwise 'false'
 #
 ## Returns:
 #.  0 - Installed successfully
@@ -185,9 +185,9 @@ d_queue_item_install()
 #.  $D__QUEUE_ITEM_TITLE       - Content of $D__QUEUE_MAIN for current item
 #.  $D__QUEUE_ITEM_STASH_KEY   - Stash key for current item
 #.  $D__QUEUE_ITEM_STASH_VALUE - Stash value for current item
-#.  $D__QUEUE_ITEM_IS_FORCED   - This variable is set to ‘true’ if this function 
+#.  $D__QUEUE_ITEM_IS_FORCED   - This variable is set to 'true' if this function 
 #.                            would not have been called for current item if 
-#.                            not for ‘--force’ option; otherwise ‘false’
+#.                            not for '--force' option; otherwise 'false'
 #
 ## Returns:
 #.  0 - Removed successfully

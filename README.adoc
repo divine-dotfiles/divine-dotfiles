@@ -16,7 +16,7 @@ Set it up with a single `*di install --yes*`.
 NOTE: `di` stands for **d**ivine **i**ntervention
 
 _Divine.ditfiles_ lets you keep your set-up scripts as isolated *deployments* that are installed/removed in defined sequence.
-Here’s what a deployment file may look like:
+Here is what a deployment file may look like:
 
 [source,bash]
 ----
@@ -38,7 +38,7 @@ d_dpl_remove() {
 }
 ----
 
-And here’s how working with it looks like:
+And here is how working with it looks like:
 
 // TODO: Insert .gif illustration here
 

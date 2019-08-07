@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: reconcile
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    13
-#:revdate:      2019.07.22
-#:revremark:    New revisioning system
+#:revnumber:    14
+#:revdate:      2019.08.07
+#:revremark:    Grand removal of non-ASCII chars
 #:created_at:   2019.06.18
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -222,7 +222,7 @@ d__multitask_catch_check_code()
         d__multitask_task_status set can_be_installed
         d__multitask_task_status set can_be_removed
 
-        # With an unknown, we can’t say it’s all user or OS
+        # With an unknown, we can't say it's all user or OS
         D__MULTITASK_STATUS_SUMMARY[5]=false
         ;;
   esac
@@ -267,7 +267,7 @@ d__multitask_reconcile_check_codes()
   else
     # Nothing conclusive: check if any kind of installation was encountered
     if [ -z ${D__MULTITASK_STATUS_SUMMARY[5]+isset} ]; then
-      # No installations: this is a mix on ‘not installed’ and ‘irrelevant’
+      # No installations: this is a mix on 'not installed' and 'irrelevant'
       return_code=2
     else
       # Some installations: call this partially installed
@@ -287,7 +287,7 @@ d__multitask_reconcile_check_codes()
 ## Signals if current task has been previously detected as installable
 #
 ## Provides into the global scope:
-#.  $D__MULTITASK_IS_FORCED - Sets this to ‘true’ if installation is being 
+#.  $D__MULTITASK_IS_FORCED - Sets this to 'true' if installation is being 
 #.                          forced, i.e., it would not have been initiated if 
 #.                          not for force option.
 #
@@ -337,7 +337,7 @@ d__multitask_catch_install_code()
   # Extract last returned code ASAP
   local last_code=$?
 
-  # If task was irrelevant, don’t bother with anything
+  # If task was irrelevant, don't bother with anything
   if d__multitask_task_status is_irrelevant; then return 0; fi
 
   ## If not already, set up status array of booleans:
@@ -423,7 +423,7 @@ d__multitask_reconcile_install_codes()
 ## Signals if current task has been previously detected as removable
 #
 ## Provides into the global scope:
-#.  $D__MULTITASK_IS_FORCED - Sets this to ‘true’ if removal is being forced, 
+#.  $D__MULTITASK_IS_FORCED - Sets this to 'true' if removal is being forced, 
 #.                          i.e., it would not have been initiated if not for 
 #.                          force option.
 #
@@ -477,7 +477,7 @@ d__multitask_catch_remove_code()
   # Extract last returned code ASAP
   local last_code=$?
 
-  # If task was irrelevant, don’t bother with anything
+  # If task was irrelevant, don't bother with anything
   if d__multitask_task_status is_irrelevant; then return 0; fi
 
   ## If not already, set up status array of booleans:
@@ -564,7 +564,7 @@ d__multitask_reconcile_remove_codes()
 #
 d__multitask_task_status()
 {
-  # Check if first argument is the word ‘set’
+  # Check if first argument is the word 'set'
   if [ "$1" = set ]; then
 
     # Setting flag: ditch first arg and add necessary flag

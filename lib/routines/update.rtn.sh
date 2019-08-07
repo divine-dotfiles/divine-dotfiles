@@ -2,9 +2,9 @@
 #:title:        Divine Bash routine: update
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    28
-#:revdate:      2019.08.05
-#:revremark:    print -> printf
+#:revnumber:    29
+#:revdate:      2019.08.07
+#:revremark:    Grand removal of non-ASCII chars
 #:created_at:   2019.05.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -37,7 +37,7 @@ d__perform_update_routine()
   # Announce beginning
   if [ "$D__OPT_ANSWER" = false ]; then
     dprint_plaque -pcw "$WHITE" "$D__CONST_PLAQUE_WIDTH" \
-      -- '‘Updating’ Divine.dotfiles framework'
+      -- "'Updating' Divine.dotfiles framework"
   else
     dprint_plaque -pcw "$GREEN" "$D__CONST_PLAQUE_WIDTH" \
       -- 'Updating Divine.dotfiles framework'
@@ -78,7 +78,7 @@ d__perform_update_routine()
   # Report result
   if [ "$D__OPT_ANSWER" = false ]; then
     dprint_plaque -pcw "$WHITE" "$D__CONST_PLAQUE_WIDTH" \
-      -- 'Finished ‘updating’ Divine.dotfiles framework'
+      -- "Finished 'updating' Divine.dotfiles framework"
     return 2
   elif $all_skipped; then
     dprint_plaque -pcw "$WHITE" "$D__CONST_PLAQUE_WIDTH" \
@@ -201,7 +201,7 @@ d__update_grail()
         return 1
       }
 
-      # Check if Grail repository has ‘origin’ remote
+      # Check if Grail repository has 'origin' remote
       if ! git remote | grep -Fxq origin &>/dev/null; then
 
         # Repository without remote: no way to update
@@ -512,7 +512,7 @@ d__update_fmwk_via_git()
     # Create empty directory instead
     if ! mkdir -p -- "$D__DIR_FMWK"; then
 
-      # Announce and return total loss (shouldn’t happen really)
+      # Announce and return total loss (shouldn't happen really)
       dprint_failure -l \
         'Failed to create empty directory for git-controlled framework:' \
         -i "$D__DIR_FMWK" \
@@ -564,7 +564,7 @@ d__update_fmwk_via_git()
 
     else
 
-      # Announce and return total loss (shouldn’t happen really)
+      # Announce and return total loss (shouldn't happen really)
       dprint_failure -l \
         'Failed to clone Github repo at:' \
         -i "https://github.com/${user_repo}" \
@@ -667,7 +667,7 @@ d__update_grail_via_git()
 #
 d__update_fmwk_via_tar()
 {
-  # Only attempt ‘crude’ update with --force option
+  # Only attempt 'crude' update with --force option
   if ! $D__OPT_FORCE; then
     dprint_debug \
       "'Crude' update (downloading repo) is only available with --force option"
@@ -685,9 +685,9 @@ d__update_fmwk_via_tar()
     'It is possible to download a fresh copy of Divine.dotfiles from:' \
     -i "https://github.com/${user_repo}" \
     -n 'and overwrite files in your framework directory at:' -i "$D__DIR_FMWK" \
-    -n 'thus performing a ‘crude’ update'
+    -n "thus performing a 'crude' update"
   then
-    dprint_debug 'Refused to perform ‘crude’ update'
+    dprint_debug "Refused to perform 'crude' update"
     return 1
   fi
 
@@ -755,7 +755,7 @@ d__update_fmwk_via_tar()
     # Try to clean up
     rm -rf -- "$temp_dest"
     # Report and return
-    dprint_debug 'Refused to perform ‘crude’ update'
+    dprint_debug "Refused to perform 'crude' update"
     return 1
   fi
 
@@ -868,7 +868,7 @@ d__update_dpl_repo_via_git()
     # Create empty directory instead
     if ! mkdir -p -- "$repo_path"; then
 
-      # Announce and return total loss (shouldn’t happen really)
+      # Announce and return total loss (shouldn't happen really)
       dprint_failure -l \
         'Failed to create empty directory for git-controlled deployments:' \
         -i "$repo_path" \
@@ -889,7 +889,7 @@ d__update_dpl_repo_via_git()
 
     else
 
-      # Announce and return total loss (shouldn’t happen really)
+      # Announce and return total loss (shouldn't happen really)
       dprint_failure -l \
         'Failed to clone Github repo at:' \
         -i "https://github.com/${user_repo}" \
@@ -947,7 +947,7 @@ d__update_dpl_repo_via_git()
 #
 d__update_dpl_repo_via_tar()
 {
-  # Only attempt ‘crude’ update with --force option
+  # Only attempt 'crude' update with --force option
   if ! $D__OPT_FORCE; then
     dprint_debug \
       "'Crude' update (downloading repo) is only available with --force option"
@@ -968,9 +968,9 @@ d__update_dpl_repo_via_tar()
     'It is possible to download a fresh copy of deployments from:' \
     -i "https://github.com/${user_repo}" \
     -n 'and overwrite files in your directory at:' -i "$perm_dest" \
-    -n 'thus performing a ‘crude’ update'
+    -n "thus performing a 'crude' update"
   then
-    dprint_debug 'Refused to perform ‘crude’ update'
+    dprint_debug "Refused to perform 'crude' update"
     return 1
   fi
 
@@ -1038,7 +1038,7 @@ d__update_dpl_repo_via_tar()
     # Try to clean up
     rm -rf -- "$temp_dest"
     # Report and return
-    dprint_debug 'Refused to perform ‘crude’ update'
+    dprint_debug "Refused to perform 'crude' update"
     return 1
   fi
 

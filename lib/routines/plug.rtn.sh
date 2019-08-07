@@ -2,14 +2,14 @@
 #:title:        Divine Bash routine: plug
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    10
-#:revdate:      2019.08.05
-#:revremark:    print -> printf
+#:revnumber:    11
+#:revdate:      2019.08.07
+#:revremark:    Grand removal of non-ASCII chars
 #:created_at:   2019.06.26
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
 #
-## This file is intended to be sourced from framework’s main script
+## This file is intended to be sourced from framework's main script
 #
 ## Replaces current Grail directory with one cloned from provided git repo or 
 #. one copied from provided directory path
@@ -31,7 +31,7 @@ d__perform_plug_routine()
   # Announce beginning
   if [ "$D__OPT_ANSWER" = false ]; then
     dprint_plaque -pcw "$WHITE" "$D__CONST_PLAQUE_WIDTH" \
-      -- '‘Plugging’ Grail directory'
+      -- "'Plugging' Grail directory"
   else
     dprint_plaque -pcw "$GREEN" "$D__CONST_PLAQUE_WIDTH" \
       -- 'Plugging Grail directory'
@@ -104,7 +104,7 @@ d__perform_plug_routine()
 
   else
 
-    # Script’s first arg is empty
+    # Script's first arg is empty
     dprint_plaque -pcw "$WHITE" "$D__CONST_PLAQUE_WIDTH" -- 'Nothing to do'
     return 1
 
@@ -114,7 +114,7 @@ d__perform_plug_routine()
   printf >&2 '\n'
   if [ "$D__OPT_ANSWER" = false ]; then
     dprint_plaque -pcw "$WHITE" "$D__CONST_PLAQUE_WIDTH" \
-      -- '‘Plugged’ Grail directory'
+      -- "'Plugged' Grail directory"
     return 1
   elif $all_good; then
     dprint_plaque -pcw "$GREEN" "$D__CONST_PLAQUE_WIDTH" \
@@ -130,7 +130,7 @@ d__perform_plug_routine()
 #>  d__plug_github_repo
 #
 ## Attempts to interpret single argument as name of Github repository and pull 
-#. it in. Accepts only full ‘user/repo’ form.
+#. it in. Accepts only full 'user/repo' form.
 #
 ## Returns:
 #.  0 - Successfully pulled in deployment repository
@@ -147,7 +147,7 @@ d__plug_github_repo()
   # Storage variables
   local user_repo
 
-  # Accept one pattern: ‘username/repo’
+  # Accept one pattern: 'username/repo'
   if [[ $repo_arg =~ ^[0-9A-Za-z_.-]+/[0-9A-Za-z_.-]+$ ]]; then
     user_repo="$repo_arg"
   else

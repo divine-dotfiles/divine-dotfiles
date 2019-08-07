@@ -2,15 +2,15 @@
 #:title:        Divine.dotfiles WSL adapter
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    11
-#:revdate:      2019.07.25
-#:revremark:    Rewrite OS detection and adapters
+#:revnumber:    12
+#:revdate:      2019.08.07
+#:revremark:    Grand removal of non-ASCII chars
 #:created_at:   2019.06.04
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
 #
 ## An adapter is a set of functions that, when implemented, allow framework to 
-#. support ‘WSL’ family of operating systems (Windows Subsystem for 
+#. support 'WSL' family of operating systems (Windows Subsystem for 
 #. Linux)
 #
 ## For reference, see lib/templates/adapters/family.adp.sh

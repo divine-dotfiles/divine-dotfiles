@@ -3,26 +3,26 @@
 #:kind:         func(script)
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    4
-#:revdate:      2019.07.22
-#:revremark:    New revisioning system
+#:revnumber:    5
+#:revdate:      2019.08.07
+#:revremark:    Grand removal of non-ASCII chars
 #:created_at:   2018.12.20
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
 #
 
-#>  dtrim [-hscqQn]… [--] STRING…
+#>  dtrim [-hscqQn]... [--] STRING...
 #
 ## Prints every argument on a new line, with leading and trailing spaces 
-#. removed. Optionally can remove comments (‘//’ and ‘#’ line comments are 
+#. removed. Optionally can remove comments ('//' and '#' line comments are 
 #. supported).
 #
 ## Options:
 #.  -h|--dehash       - In each string also remove everything between first 
-#.                      occurrence of hash (‘#’) and string’s end
+#.                      occurrence of hash ('#') and string's end
 #.  -s|--deslash      - In each string also remove everything between first 
-#.                      occurrence of double-slash (‘//’) and string’s end
-#.  -c|--decomment    - Equivalent of ‘-h’ and ‘-s’ together
+#.                      occurrence of double-slash ('//') and string's end
+#.  -c|--decomment    - Equivalent of '-h' and '-s' together
 #.  -q|--dequote      - In each string remove a matching pair of quotes (single 
 #.                      or double) from both ends after trimming the whitespace
 #.  -Q|--dequote-trim - Dequote and then trim whitespace within the quotes
@@ -33,7 +33,7 @@
 #.  $@  - Strings to trim
 #
 ## Returns:
-#.  1 — If an illegal option was given
+#.  1 - If an illegal option was given
 #.  0 - Otherwise
 #
 ## Prints:
@@ -80,7 +80,7 @@ dtrim()
   [ ${#args[@]} -lt 1 ] && {
     printf 'Usage: %s %s\n' >&2 \
       "${FUNCNAME[0]}" \
-      '[-c|n]… [--] STRING…'
+      '[-c|n]... [--] STRING...'
     return 1
   }
 

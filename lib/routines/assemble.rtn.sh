@@ -2,14 +2,14 @@
 #:title:        Divine Bash routine: assemble
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    23
+#:revnumber:    24
 #:revdate:      2019.08.07
-#:revremark:    Remove forgotten debug code
+#:revremark:    Grand removal of non-ASCII chars
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
 #
-## This file is intended to be sourced from framework’s main script
+## This file is intended to be sourced from framework's main script
 #
 ## Assembles packages and deployments for further processing
 #
@@ -56,7 +56,7 @@ d__dispatch_assembly_job()
 ## Returns:
 #.  0 - Arrays assembled successfully
 #.  0 - (script exit) Zero tasks assembled
-#.  1 - (script exit) Framework’s deployment directories failed validation
+#.  1 - (script exit) Framework's deployment directories failed validation
 #
 ## Prints:
 #.  stdout: *nothing*
@@ -170,9 +170,9 @@ d__assemble_all_tasks()
   return 0
 }
 
-#>  d__validate_dpl_dirs DIR…
+#>  d__validate_dpl_dirs DIR...
 #
-## Ensures that framework’s deployment directories collectively contain a valid 
+## Ensures that framework's deployment directories collectively contain a valid 
 #. set of deployments, or terminates script. d__validate_detected_dpls function 
 #. is used for validation.
 #
@@ -185,7 +185,7 @@ d__assemble_all_tasks()
 #
 ## Returns:
 #.  0 - Validation successful, arrays assembled
-#.  1 - (script exit) Framework’s deployment directories failed validation
+#.  1 - (script exit) Framework's deployment directories failed validation
 #
 ## Prints:
 #.  stdout: *nothing*
@@ -229,13 +229,13 @@ d__validate_dpl_dirs()
   return 0
 }
 
-#>  d__scan_for_divinefiles [--enqueue] DIR…
+#>  d__scan_for_divinefiles [--enqueue] DIR...
 #
 ## Collects packages to be installed from each instance of Divinefile found 
 #. within provided directories
 #
 ## Modifies in the global scope:
-#.  * with ‘--enqueue’ option:
+#.  * with '--enqueue' option:
 #.  $D__WORKLOAD    - Associative array with each taken priority paired with 
 #.                      an empty string
 #.  $D__WORKLOAD_PKGS     - Associative array with each priority taken by at least 
@@ -250,8 +250,8 @@ d__validate_dpl_dirs()
 #.  0 - Arrays populated successfully
 #.  1 - Total of zero packages could be found across given dirs, which may 
 #.      include inaccessible dirs
-#.  2 - (only with ‘--enqueue’) Package manager not detected
-#.  3 - (only with ‘--enqueue’) Divinefile processing is not asked for
+#.  2 - (only with '--enqueue') Package manager not detected
+#.  3 - (only with '--enqueue') Divinefile processing is not asked for
 #
 ## Prints:
 #.  stdout: *nothing*
@@ -323,10 +323,10 @@ d__scan_for_divinefiles()
         # Iterate over remaining chunks of the line
         for chunk in "${chunks[@]}"; do
 
-          # Ignore alt-lists without ‘:’
+          # Ignore alt-lists without ':'
           [[ $line == *':'* ]] || continue
 
-          # Split chunk on ‘:’
+          # Split chunk on ':'
           IFS=':' read -r pkgmgr altlist <<<"$chunk"
 
           # Trim package manager list
@@ -355,10 +355,10 @@ d__scan_for_divinefiles()
         # Iterate over package names
         for chunk in "${chunks[@]}"; do
 
-          # Empty name — continue
+          # Empty name - continue
           [ -n "$chunk" ] || continue
 
-          # Name containing delimiter — continue
+          # Name containing delimiter - continue
           [[ $chunk == *"$D__CONST_DELIMITER"* ]] && continue
 
           # At this point there is definitely a package, increment counter
@@ -374,7 +374,7 @@ d__scan_for_divinefiles()
           if [ -n "$flags" ]; then
             chunk="$flags $chunk"
           else
-            # ‘---’ is a bogus flags, it will just be ignored
+            # '---' is a bogus flags, it will just be ignored
             chunk="--- $chunk"
           fi
 
@@ -404,22 +404,22 @@ d__scan_for_divinefiles()
   return 0
 }
 
-#> d__scan_for_dpl_files [--fmwk-dir|--ext-dir] [--enqueue] DIR…
+#>  d__scan_for_dpl_files [--fmwk-dir|--ext-dir] [--enqueue] DIR...
 #
 ## Scans all provided directories for deployment files (*.dpl.sh). Output of 
 #. this function is dumped into varying set of global variables, depending on 
-#. directory qualifier (‘--*-dir’ option).
+#. directory qualifier ('--*-dir' option).
 #
 ## Modifies in the global scope:
-#.  * with ‘--fmwk-dir’ qualifier or without any directory qualifier:
+#.  * with '--fmwk-dir' qualifier or without any directory qualifier:
 #.  $D__LIST_OF_INT_DPL_NAMES - (array) Names of deployments in framework dirs
 #.  $D__LIST_OF_INT_DPL_PATHS - (array) Index of each name contains delimited 
 #.                              list of paths to deployment files
-#.  * with ‘--ext-dir’ qualifier:
+#.  * with '--ext-dir' qualifier:
 #.  $D__LIST_OF_EXT_DPL_NAMES  - (array) Names of deployments in external dirs
 #.  $D__LIST_OF_EXT_DPL_PATHS  - (array) Index of each name contains delimited 
 #.                              list of paths to deployment files
-#.  * with ‘--enqueue’ option:
+#.  * with '--enqueue' option:
 #.  $D__WORKLOAD  - (array) Priorities are used as array indices. Every 
 #.                    priority with at least one task associated with it 
 #.                    contains a string 'taken'.
@@ -434,7 +434,7 @@ d__scan_for_divinefiles()
 #.  --fmwk-dir  - (default) Signals that directories passed as arguments are 
 #.                framework directories, e.g., $D__DIR_DPLS
 #.  --ext-dir   - Signals that directories passed as arguments are external 
-#.                directories, e.g., dirs being added to user’s collection
+#.                directories, e.g., dirs being added to user's collection
 #.  --enqueue   - Signals to also add detected deployments to framework queues, 
 #.                which are then used in check/install/remove routines.
 #
@@ -637,7 +637,7 @@ d__run_dpl_through_filters()
 
       # Inverse filtering: Whatever is listed in arguments is filtered out
 
-      # Always reject deployments in ‘!’ group, unless asked not to
+      # Always reject deployments in '!' group, unless asked not to
       $D__OPT_EXCLAM || [[ $flags == *'!'* ]] && return 1
 
       # Iterate over groups
@@ -669,19 +669,19 @@ d__run_dpl_through_filters()
           # Either return immediately, or just mark it for now
           $D__OPT_EXCLAM && return 0 || group_matched=true
         fi
-        # Also, remember, if ‘!’ group is requested
+        # Also, remember, if '!' group is requested
         [ "$arg" = '!' ] && exclam_requested=true
       done
 
       # Check if group matched 
       if $group_matched; then
-        # Check if ‘!’ group has been requested
+        # Check if '!' group has been requested
         if $exclam_requested; then
-          # Group matched and ‘!’ group is explicitly requested: valid match
+          # Group matched and '!' group is explicitly requested: valid match
           return 0
         else
-          ## Group matched, but ‘!’ group is not explicitly requested: match is 
-          #. only valid if dpl is not marked with ‘!’ flag
+          ## Group matched, but '!' group is not explicitly requested: match is 
+          #. only valid if dpl is not marked with '!' flag
           [[ $flags == *'!'* ]] || return 0
         fi
       fi
@@ -699,7 +699,7 @@ d__run_dpl_through_filters()
 
   else
 
-    # If not filtering, just filter out ‘!’-flagged dpls, unless asked not to
+    # If not filtering, just filter out '!'-flagged dpls, unless asked not to
     if $D__OPT_EXCLAM; then
       return 0
     else
@@ -713,19 +713,19 @@ d__run_dpl_through_filters()
 #
 ## Validates deployments, previously detected by d__scan_for_dpl_files from one 
 #. of possible sources:
-#.  * Framework directories (‘--fmwk-dir’).
-#.  * External directories (‘--ext-dir’).
+#.  * Framework directories ('--fmwk-dir').
+#.  * External directories ('--ext-dir').
 #
 ## Validation rules are as follows:
 #.  * Names must not be reserved (uses d__validate_dpl_name function).
 #.  * Each name must occur no more than once.
 #
 ## Requires in the global scope:
-#.  * with ‘--fmwk-dir’ qualifier or without any directory qualifier:
+#.  * with '--fmwk-dir' qualifier or without any directory qualifier:
 #.  $D__LIST_OF_INT_DPL_NAMES - (array) Names of deployments in framework dirs
 #.  $D__LIST_OF_INT_DPL_PATHS - (array) Index of each name contains delimited 
 #.                              list of paths to deployment files
-#.  * with ‘--ext-dir’ qualifier:
+#.  * with '--ext-dir' qualifier:
 #.  $D__LIST_OF_EXT_DPL_NAMES  - (array) Names of deployments in external dirs
 #.  $D__LIST_OF_EXT_DPL_PATHS  - (array) Index of each name contains delimited 
 #.                              list of paths to deployment files
@@ -842,7 +842,7 @@ d__validate_detected_dpls()
 #>  d__validate_dpl_name NAME
 #
 ## Checks if provided textual deployment name is valid, i.e., it does not 
-#. coincide with reserved phrases, such as ‘Divinefile’ or pre-defined names of 
+#. coincide with reserved phrases, such as 'Divinefile' or pre-defined names of 
 #. deployment groups.
 #
 ## Returns:
@@ -854,7 +854,7 @@ d__validate_dpl_name()
   # Extract name
   local name="$1"; shift
 
-  # Check if name is ‘Divinefile’ or other reserved alias
+  # Check if name is 'Divinefile' or other reserved alias
   [[ $name =~ ^(Divinefile|dfile|df)$ ]] && return 1
 
   # Check if name coincides with potential group name

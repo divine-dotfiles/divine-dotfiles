@@ -3,9 +3,9 @@
 #:kind:         func(script,interactive)
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    5
-#:revdate:      2019.07.22
-#:revremark:    New revisioning system
+#:revnumber:    6
+#:revdate:      2019.08.07
+#:revremark:    Grand removal of non-ASCII chars
 #:created_at:   2018.03.15
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -13,7 +13,7 @@
 
 ## dln - divine link
 #
-#>  dln [-f?rdqv]… [--help|version] [--] REAL_PATH SYMLINK_PATH [BACKUP_PATH]
+#>  dln [-f?rdqv]... [--help|version] [--] REAL_PATH SYMLINK_PATH [BACKUP_PATH]
 #
 ## Ensures existence of symbolik link at SYMLINK_PATH, pointing to REAL_PATH. 
 #. If new symlink is created, optionally moves whatever currently occupies 
@@ -54,25 +54,25 @@
 ## Returns:
 #.  0   - Desired symlink has been created or is already in place
 #.  1   - Otherwise
-#.  100 - (without ‘-f’) Symlink or backup path is occupied by a file
-#.  101 - (without ‘-f’) Symlink or backup path is occupied by a directory
-#.  102 - (without ‘-f’) Symlink or backup path is occupied by a symlink
+#.  100 - (without '-f') Symlink or backup path is occupied by a file
+#.  101 - (without '-f') Symlink or backup path is occupied by a directory
+#.  102 - (without '-f') Symlink or backup path is occupied by a symlink
 #
-## Returns (with ‘-?’):
+## Returns (with '-?'):
 #.  0 - Symlink path is a symlink pointing to absolute real path. Also, backup 
 #.      path (if provided) exists.
 #.  1 - Otherwise.
 #
-## Returns (with ‘-r’):
-#.  0 - Conditions for ‘-?’ are met. Symlink at symlink path has been removed, 
+## Returns (with '-r'):
+#.  0 - Conditions for '-?' are met. Symlink at symlink path has been removed, 
 #.      and backup path (if provided) has been moved back to symlink path.
 #.  1 - Otherwise.
 #
 ## Prints:
 #.  stdout: *nothing*
-#.          (with ‘-?’) (without ‘-q’) Human readable answer
+#.          (with '-?') (without '-q') Human readable answer
 #.  stderr: (default) Error descriptions
-#.          (with ‘-q’) As little as possible
+#.          (with '-q') As little as possible
 #
 dln()
 {
@@ -151,7 +151,7 @@ NAME
     ${bold}dln${normal} - divine link
 
 SYNOPSIS
-    ${bold}dln${normal} [-f?rdqv]… [--help|version] [--] REAL_PATH SYMLINK_PATH [BACKUP_PATH]
+    ${bold}dln${normal} [-f?rdqv]... [--help|version] [--] REAL_PATH SYMLINK_PATH [BACKUP_PATH]
 
 DESCRIPTION
     Ensures existence of symbolik link at SYMLINK_PATH, pointing to REAL_PATH.
@@ -206,7 +206,7 @@ EOF
   [ ${#args[@]} -lt 2 ] && {
     printf >&2 'Usage: %s %s\n' \
       "${FUNCNAME[0]}" \
-      '[-f?rdqv]… REAL_PATH SYMLINK_PATH [BACKUP_PATH]'
+      '[-f?rdqv]... REAL_PATH SYMLINK_PATH [BACKUP_PATH]'
     printf >&2 "Try '%s --help' for more information\n" \
       "${FUNCNAME[0]}"
     return 1
@@ -298,7 +298,7 @@ EOF
       
     fi
 
-    # Check if ‘cd’ command above has failed
+    # Check if 'cd' command above has failed
     [ $status -ne 0 ] && {
       $quiet || printf >&2 '%s: %s: %s\n' \
         "${FUNCNAME[0]}" \
@@ -933,7 +933,7 @@ EOF
   # Backing up
   if $backing_up; then
 
-    ## Remove pre-existing directory at backup path, to avoid mv’s special 
+    ## Remove pre-existing directory at backup path, to avoid mv's special 
     #. treatment of directories
     if [ -d "${abspath[2]}" -a $force = true ]; then
 
@@ -970,7 +970,7 @@ EOF
   # Linking #
   # ======= #
 
-  ## Remove pre-existing directory at symlink path, to avoid ln’s special 
+  ## Remove pre-existing directory at symlink path, to avoid ln's special 
   #. treatment of directories
   if [ -d "${abspath[1]}" -a $force = true ]; then
 

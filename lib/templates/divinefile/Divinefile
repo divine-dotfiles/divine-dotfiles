@@ -1,24 +1,24 @@
 #:title:        Divinefile annotated template
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    7
+#:revnumber:    8
 #:revdate:      2019.08.07
-#:revremark:    Major syntax/parsing rewrite for manifest-like files
+#:revremark:    Grand removal of non-ASCII chars
 #:created_at:   2018.03.27
 
-## Divinefile is a manifest of packages to be maintained via system’s package 
+## Divinefile is a manifest of packages to be maintained via system's package 
 #. manager during Divine interventions
 #
 ## Simplest line contains a list of whitespace-delimited package names, each of 
 #. which is then checked/installed/removed during relevant routines:
 #>    pkg1 pkg2
 #
-## Within a line, each ‘|’ (vartical bar) starts an overriding alt-list of 
+## Within a line, each '|' (vartical bar) starts an overriding alt-list of 
 #. packages to be maintained on systems with specified package manager:
 #>    pkg1  | apt-get: pkg1 pkg2  | dnf: pkg3
 #
-## Within an alt-list, everything to the left of first ‘:’ is read as package 
-#. manager name, everything to the right — as whitespace-delimited alt-list of 
+## Within an alt-list, everything to the left of first ':' is read as package 
+#. manager name, everything to the right - as whitespace-delimited alt-list of 
 #. package names for that package manager
 #
 ## NOTE: Package manager name is matched against $D__OS_PKGMGR variable. For 
@@ -34,18 +34,18 @@
 #
 ## With regard to flags, a shorthand is provided, that works by *appending* 
 #. provided flags as opposed to overriding them as is normal:
-#>    (i)       pkg1    # Parentheses must not contain ‘:’
+#>    (i)       pkg1    # Parentheses must not contain ':'
 #>    ( r0! )   pkg2    # Multiple flags may be given too
 #
 ## Lines may be made exclusive to particular OS family or distro. List of them 
 #. may be provided by separating with vartical bars:
 #>    (os: debian)      pkg1
 #>    (os: macos|bsd)   pkg2
-#>    (os: all)         pkg3    # ‘all’/‘any’ are reserved to denote any OS
+#>    (os: all)         pkg3    # 'all'/'any' are reserved to denote any OS
 #
 ## NOTE: OS name is matched against $D__OS_FAMILY and $D__OS_DISTRO variables. 
 #. Single match against any of the two is sufficient. For reference and list of 
-#. supported OS’s, browse through OS adapters in lib/adapters.
+#. supported OS's, browse through OS adapters in lib/adapters.
 #
 ## All parenthesized key-values, when they appear on a line without any package 
 #. lists, come into effect until the end of the file, or until another value is 
@@ -57,8 +57,8 @@
 #. matching priority, packages are installed in order of appearance in this 
 #. file. For removal, the order is fully reversed.
 #
-## Hash/pound symbol (‘#’) comments out the rest of the line. A line may be 
-#. ‘glued’ to the next by terminating it with a backslash (‘\’):
+## Hash/pound symbol ('#') comments out the rest of the line. A line may be 
+#. 'glued' to the next by terminating it with a backslash ('\'):
 #>    (os: fedora) \    ## This is a single logical line
 #>    pkg1 pkg2 \       #. spanning three actual lines
 #>    | yum: pkg3       #. (yes, even with comments attached like this)
@@ -76,7 +76,7 @@
 #>  (priority:300)(r) node | apt-get: nodejs npm
 #.      Means:
 #.    * priority: 300
-#.    * mode: ‘always prompt before removing’
+#.    * mode: 'always prompt before removing'
 #.    * packages (on apt-get): nodejs npm
 #.    * packages (anywhere else): node
 #

@@ -2,14 +2,14 @@
 #:title:        Divine Bash deployment helpers: manifests
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    4
+#:revnumber:    5
 #:revdate:      2019.08.07
-#:revremark:    Major syntax/parsing rewrite for manifest-like files
+#:revremark:    Grand removal of non-ASCII chars
 #:created_at:   2019.05.30
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
 #
-## Helper function that prepares deployment’s asset and queue manifests
+## Helper function that prepares deployment's asset and queue manifests
 #
 
 #>  d__process_manifests_of_current_dpl
@@ -39,14 +39,14 @@ d__process_manifests_of_current_dpl()
 #>  d__process_asset_manifest_of_current_dpl
 #
 ## Looks for manifest file at path stored in $D__DPL_MNF_PATH. Reads it line by 
-#. line, ignores empty lines and lines starting with hash (‘#’) or double-slash 
-#. (‘//’).
+#. line, ignores empty lines and lines starting with hash ('#') or double-slash 
+#. ('//').
 #
-## All other lines are interpreted as relative paths to deployment’s assets.
+## All other lines are interpreted as relative paths to deployment's assets.
 #
-## Copies initial versions of deployment’s assets to deployments assets 
+## Copies initial versions of deployment's assets to deployments assets 
 #. directory. Assets directory is then worked with and can be taken under 
-#. version control. Does not overwrite anything (user’s data takes priority).
+#. version control. Does not overwrite anything (user's data takes priority).
 #
 ## Requires:
 #.  $D__DPL_MNF_PATH     - Path to assets manifest file
@@ -139,8 +139,8 @@ d__process_asset_manifest_of_current_dpl()
 #>  d__process_queue_manifest_of_current_dpl
 #
 ## Looks for manifest file at path stored in $D__DPL_QUE_PATH. Reads it line by 
-#. line, ignores empty lines and lines starting with hash (‘#’) or double-slash 
-#. (‘//’).
+#. line, ignores empty lines and lines starting with hash ('#') or double-slash 
+#. ('//').
 #
 ## All other lines are interpreted as textual main queue entries, with which it 
 #. populates the array $D__QUEUE_MAIN.
@@ -221,7 +221,7 @@ d__copy_asset()
     # Check if destination path exists
     if ! [ -e "$dest_path" ]; then
 
-      # Compose destination’s parent path
+      # Compose destination's parent path
       dest_parent_path="$( dirname -- "$dest_path" )"
 
       # Ensure target directory is available
@@ -304,9 +304,9 @@ d__process_all_asset_manifests_in_dpl_dirs()
 #. manifest file is touched.
 #
 ## Supported types of manifests:
-#.  * ‘*.dpl.mnf’     - Divine deployment asset manifest
-#.  * ‘*.dpl.que’     - Divine deployment queue manifest
-#.  * ‘Divinefile’    - Special kind of Divine deployment for handling system 
+#.  * '*.dpl.mnf'     - Divine deployment asset manifest
+#.  * '*.dpl.que'     - Divine deployment queue manifest
+#.  * 'Divinefile'    - Special kind of Divine deployment for handling system 
 #.                      packages. Lines of Divinefile are not parsed beyond 
 #.                      key-values and comments.
 #
@@ -422,7 +422,7 @@ d__process_manifest()
       # Break line on first occurence of comment symbol
       IFS='#' read -r chunk tmp <<<"$buffer"
 
-      # Repeat until last character before split is not ‘\’
+      # Repeat until last character before split is not '\'
       while [[ chunk = *\\ ]]; do
 
         # Check if right part contains another comment symbol
@@ -443,7 +443,7 @@ d__process_manifest()
         
         fi
 
-      # Done repeating until last character before split is not ‘\’
+      # Done repeating until last character before split is not '\'
       done
 
       # Update buffer with non-commented part
@@ -465,7 +465,7 @@ d__process_manifest()
       # Break line on first occurence of closing parenthesis
       IFS=')' read -r chunk tmp <<<"$buffer"
 
-      # Repeat until last character before split is not ‘\’
+      # Repeat until last character before split is not '\'
       while [[ chunk = *\\ ]]; do
 
         # Check if right part contains another closing parenthesis
@@ -486,7 +486,7 @@ d__process_manifest()
         
         fi
 
-      # Done repeating until last character before split is not ‘\’
+      # Done repeating until last character before split is not '\'
       done
 
       # Trim whitespace on both edges
@@ -512,19 +512,19 @@ d__process_manifest()
         # Check key
         case $key in
           os)
-            # If value is empty, all OS’s are allowed
+            # If value is empty, all OS's are allowed
             if [ -z "$value" ]; then current_relevance=true; continue; fi
 
-            # If value is either ‘all’ or ‘any’, again, all OS’s are allowed
+            # If value is either 'all' or 'any', again, all OS's are allowed
             case $value in all|any) current_relevance=true; continue;; esac
 
-            # Read value as vertical bar-separated list of relevant OS’s
+            # Read value as vertical bar-separated list of relevant OS's
             IFS='|' read -r -a value_array <<<"$value"
 
             # Set default value
             current_relevance=false
 
-            # Iterate over list of relevant OS’s
+            # Iterate over list of relevant OS's
             for value in "${value_array[@]}"; do
 
               # Clear whitespace from edges of OS name
@@ -539,7 +539,7 @@ d__process_manifest()
 
               fi
 
-            # Done iterating over list of relevant OS’s
+            # Done iterating over list of relevant OS's
             done
             ;;
           flags)
@@ -574,7 +574,7 @@ d__process_manifest()
 
       else
 
-        # Key-value parentheses do not contain a separator (‘:’)
+        # Key-value parentheses do not contain a separator (':')
 
         ## Special case: without separator, interpret key as a set of character 
         #. flags that are to be *appended* to current list of flags
@@ -589,7 +589,7 @@ d__process_manifest()
     # Trim whitespace on both edges of remaining buffer
     read -r buffer <<<"$buffer"
 
-    # Check if remaining buffer ends with ‘\’
+    # Check if remaining buffer ends with '\'
     if [[ $buffer = *\\ ]]; then
 
       # Perform calculations
@@ -616,7 +616,7 @@ d__process_manifest()
 
     fi
 
-    # Check if the line proper starts with an escape character (‘\’)
+    # Check if the line proper starts with an escape character ('\')
     if [[ $buffer = \\* ]]; then
 
       # Remove exactly one escape character
@@ -634,7 +634,7 @@ d__process_manifest()
 
     else
 
-      # No line remaining: this line’s key-values become ongoing
+      # No line remaining: this line's key-values become ongoing
       ongoing_relevance="$current_relevance"
       ongoing_flags="$current_flags"
       ongoing_prefix="$current_prefix"
@@ -645,7 +645,7 @@ d__process_manifest()
 
     fi
 
-    # Finally, add this line and it’s parameters to global array
+    # Finally, add this line and it's parameters to global array
     D__MANIFEST_LINES+=( "$buffer" )
     D__MANIFEST_LINE_FLAGS+=( "$current_flags" )
     D__MANIFEST_LINE_PREFIXES+=( "$current_prefix" )
@@ -658,7 +658,7 @@ d__process_manifest()
   done <"$mnf_filepath"
 
   ## Check if last line was a relevant non-empty orphan (happens when file ends 
-  #. with ‘\’)
+  #. with '\')
   if [ "$line_continuation" = true \
     -a -n "$buffer" \
     -a "$current_relevance" = true ]
@@ -667,7 +667,7 @@ d__process_manifest()
     ## Last line needs to be processed. Key-values and comments are both 
     #. already processed, and status variables remain in relevant state
     
-    # Add this line and it’s parameters to global array
+    # Add this line and it's parameters to global array
     D__MANIFEST_LINES+=( "$buffer" )
     D__MANIFEST_LINE_FLAGS+=( "$current_flags" )
     D__MANIFEST_LINE_PREFIXES+=( "$current_prefix" )

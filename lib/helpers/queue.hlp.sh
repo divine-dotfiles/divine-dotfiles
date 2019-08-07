@@ -2,14 +2,14 @@
 #:title:        Divine Bash deployment helpers: queue
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    28
-#:revdate:      2019.07.22
-#:revremark:    New revisioning system
+#:revnumber:    29
+#:revdate:      2019.08.07
+#:revremark:    Grand removal of non-ASCII chars
 #:created_at:   2019.06.10
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
 #
-## Helper functions for deployments based on template ‘queue.dpl.sh’
+## Helper functions for deployments based on template 'queue.dpl.sh'
 #
 
 d__queue_check()
@@ -29,7 +29,7 @@ d__queue_check()
     return 3
   fi
   
-  # Check if deployment’s main queue is empty
+  # Check if deployment's main queue is empty
   if ! [ ${#D__QUEUE_MAIN[@]} -gt 1 -o -n "$D__QUEUE_MAIN" ]; then
     dprint_debug 'Main queue is empty ($D__QUEUE_MAIN)'
     return 3
@@ -78,7 +78,7 @@ d__queue_check()
   # Announce checking
   dprint_debug -n "Checking queue items $min-$max (queue section #$secnum)"
 
-  # Iterate over items in deployment’s main queue
+  # Iterate over items in deployment's main queue
   for (( D__QUEUE_ITEM_NUM=$min; D__QUEUE_ITEM_NUM<$max; D__QUEUE_ITEM_NUM++ )); do
 
     # Prepare global variables
@@ -89,7 +89,7 @@ d__queue_check()
     # Allow user a chance to set stash key
     d_queue_item_pre_check
 
-    # Check if function returned ‘no stash’ signal
+    # Check if function returned 'no stash' signal
     if [ $? -eq 1 ]; then
 
       # Report and otherwise do nothing
@@ -237,7 +237,7 @@ d__queue_check()
     # Also, save stash key for later
     D__QUEUE_STASH_KEYS[$D__QUEUE_ITEM_NUM]="$D__QUEUE_ITEM_STASH_KEY"
 
-  # Done iterating over items in deployment’s main queue
+  # Done iterating over items in deployment's main queue
   done
 
   # Check if there was at least one good item in queue
@@ -306,7 +306,7 @@ d__queue_install()
   # Announce checking
   dprint_debug -n "Installing queue items $min-$max (queue section #$secnum)"
 
-  # Iterate over items in deployment’s main queue
+  # Iterate over items in deployment's main queue
   for (( D__QUEUE_ITEM_NUM=$min; D__QUEUE_ITEM_NUM<$max; D__QUEUE_ITEM_NUM++ )); do
 
     # If queue item is invalid: skip silently
@@ -394,7 +394,7 @@ d__queue_install()
 
     else
 
-      # Item is considered already installed, and that’s the end of it
+      # Item is considered already installed, and that's the end of it
       all_newly_installed=false
       all_failed=false
       d__queue_item_dprint_debug 'Already installed'
@@ -407,7 +407,7 @@ d__queue_install()
     # If early exit is requested, break the cycle
     $early_exit && break
   
-  # Done iterating over items in deployment’s main queue
+  # Done iterating over items in deployment's main queue
   done
 
   # Check if there was at least one good item in queue
@@ -478,7 +478,7 @@ d__queue_remove()
   # Announce checking
   dprint_debug -n "Removing queue items $min-$max (queue section #$secnum)"
 
-  # Iterate over items in deployment’s main queue (in reverse order)
+  # Iterate over items in deployment's main queue (in reverse order)
   for (( D__QUEUE_ITEM_NUM=$max-1; D__QUEUE_ITEM_NUM>=$min; D__QUEUE_ITEM_NUM-- )); do
 
     # If queue item is invalid: skip silently
@@ -566,7 +566,7 @@ d__queue_remove()
 
     else
 
-      # Item is considered already not installed, and that’s the end of it
+      # Item is considered already not installed, and that's the end of it
       all_newly_removed=false
       all_failed=false
       d__queue_item_dprint_debug 'Already not installed'
@@ -579,7 +579,7 @@ d__queue_remove()
     # If early exit is requested, break the cycle
     $early_exit && break
   
-  # Done iterating over items in deployment’s main queue
+  # Done iterating over items in deployment's main queue
   done
 
   # Check if there was at least one good item in queue
@@ -616,7 +616,7 @@ d__queue_remove()
 #
 d__queue_item_status()
 {
-  # Check if first argument is the word ‘set’
+  # Check if first argument is the word 'set'
   if [ "$1" = set ]; then
 
     # Setting flag: ditch first arg and add necessary flag
@@ -642,7 +642,7 @@ d__queue_item_status()
   fi
 }
 
-#>  d__queue_item_dprint_debug TITLE [CHUNK]…
+#>  d__queue_item_dprint_debug TITLE [CHUNK]...
 #
 ## Tiny helper that unifies debug message format for queue items
 #

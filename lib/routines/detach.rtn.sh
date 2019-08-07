@@ -2,14 +2,14 @@
 #:title:        Divine Bash routine: detach
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    10
-#:revdate:      2019.08.05
-#:revremark:    print -> printf
+#:revnumber:    11
+#:revdate:      2019.08.07
+#:revremark:    Grand removal of non-ASCII chars
 #:created_at:   2019.06.28
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
 #
-## This file is intended to be sourced from framework’s main script
+## This file is intended to be sourced from framework's main script
 #
 ## Detaches cloned deployment repositories by removing their directories and 
 #. clearing their installation record
@@ -36,7 +36,7 @@ d__perform_detach_routine()
   # Announce beginning
   if [ "$D__OPT_ANSWER" = false ]; then
     dprint_plaque -pcw "$WHITE" "$D__CONST_PLAQUE_WIDTH" \
-      -- '‘Detaching’ deployments'
+      -- "'Detaching' deployments"
   else
     dprint_plaque -pcw "$GREEN" "$D__CONST_PLAQUE_WIDTH" \
       -- 'Detaching deployments'
@@ -73,7 +73,7 @@ d__perform_detach_routine()
   printf >&2 '\n'
   if [ "$D__OPT_ANSWER" = false ]; then
     dprint_plaque -pcw "$WHITE" "$D__CONST_PLAQUE_WIDTH" \
-      -- 'Finished ‘detaching’ deployments'
+      -- "Finished 'detaching' deployments"
     return 3
   elif $detached_anything; then
     if $errors_encountered; then
@@ -101,7 +101,7 @@ d__perform_detach_routine()
 #>  d__detach_dpl_repo
 #
 ## Attempts to interpret single argument as name of Github repository and 
-#. detach it. Accepts either full ‘user/repo’ form or short ‘built_in_repo’ 
+#. detach it. Accepts either full 'user/repo' form or short 'built_in_repo' 
 #. form for deployments distributed by author of Divine.dotfiles.
 #
 ## Returns:
@@ -116,7 +116,7 @@ d__detach_dpl_repo()
   # Storage variables
   local user_repo
 
-  # Accept one of two patterns: ‘builtin_repo_name’ and ‘username/repo’
+  # Accept one of two patterns: 'builtin_repo_name' and 'username/repo'
   if [[ $repo_arg =~ ^[0-9A-Za-z_.-]+$ ]]; then
     user_repo="no-simpler/divine-dpls-$repo_arg"
   elif [[ $repo_arg =~ ^[0-9A-Za-z_.-]+/[0-9A-Za-z_.-]+$ ]]; then

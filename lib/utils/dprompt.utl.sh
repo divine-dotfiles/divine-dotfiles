@@ -3,15 +3,15 @@
 #:kind:         func(script)
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    4
-#:revdate:      2019.07.22
-#:revremark:    New revisioning system
+#:revnumber:    5
+#:revdate:      2019.08.07
+#:revremark:    Grand removal of non-ASCII chars
 #:created_at:   2018.12.20
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
 #
 
-#>  dprompt_key [-a ANSWER] [-p PROMPT] [-c COLOR] [-brkyq]… [--] [CHUNKS|-n|-i]…
+#>  dprompt_key [-a ANSWER] [-p PROMPT] [-c COLOR] [-brkyq]... [--] [CHUNKS|-n|-i]...
 #
 ## Interactively promts user for either:
 #.  * yes or no answer (default prompt 'Proceed?')
@@ -131,7 +131,7 @@ dprompt_key()
   # Print newline and indentation if there were any chunks printed
   (($#)) && printf >&2 '\n    '
 
-  # Pre-fill ‘safe’ default answer; prepare input storage
+  # Pre-fill 'safe' default answer; prepare input storage
   local ans=false input prompt
 
   # Diverge into different modes

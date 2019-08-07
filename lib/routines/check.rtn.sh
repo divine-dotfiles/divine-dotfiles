@@ -2,19 +2,19 @@
 #:title:        Divine Bash routine: check
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    33
-#:revdate:      2019.08.05
-#:revremark:    print -> printf
+#:revnumber:    34
+#:revdate:      2019.08.07
+#:revremark:    Grand removal of non-ASCII chars
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
 #
-## This file is intended to be sourced from framework’s main script
+## This file is intended to be sourced from framework's main script
 #
 ## Checks packages and deployments as requested
 #
 
-#> d__perform_check_routine
+#>  d__perform_check_routine
 #
 ## Performs checking routine
 #
@@ -34,7 +34,7 @@ d__perform_check_routine()
   # Announce beginning
   if [ "$D__OPT_ANSWER" = false ]; then
     dprint_plaque -pcw "$WHITE" "$D__CONST_PLAQUE_WIDTH" \
-      -- '‘Checking’ Divine intervention'
+      -- "'Checking' Divine intervention"
   else
     dprint_plaque -pcw "$GREEN" "$D__CONST_PLAQUE_WIDTH" \
       -- 'Checking Divine intervention'
@@ -58,7 +58,7 @@ d__perform_check_routine()
   printf '\n'
   if [ "$D__OPT_ANSWER" = false ]; then
     dprint_plaque -pcw "$WHITE" "$D__CONST_PLAQUE_WIDTH" \
-      -- 'Successfully ‘checked’ Divine intervention'
+      -- "Successfully 'checked' Divine intervention"
   else
     dprint_plaque -pcw "$GREEN" "$D__CONST_PLAQUE_WIDTH" \
       -- 'Successfully checked Divine intervention'
@@ -66,7 +66,7 @@ d__perform_check_routine()
   return 0
 }
 
-#> d__check_pkgs PRIORITY_LEVEL
+#>  d__check_pkgs PRIORITY_LEVEL
 #
 ## For the given priority level, check if packages are installed, one by one, 
 #. using their names, which have been previously assembled in $D__WORKLOAD_PKGS 
@@ -113,7 +113,7 @@ d__check_pkgs()
   # Iterate over package names
   for pkgname in "${chunks[@]}"; do
 
-    # Empty name — continue
+    # Empty name - continue
     [ -n "$pkgname" ] || continue
 
     # Extract mode if it is present
@@ -132,7 +132,7 @@ d__check_pkgs()
     # Local flag for whether to proceed
     proceeding=true
 
-    # Don’t proceed if ‘-n’ option is given
+    # Don't proceed if '-n' option is given
     [ "$D__OPT_ANSWER" = false ] && proceeding=false
 
     # Print newline to visually separate tasks
@@ -166,7 +166,7 @@ d__check_pkgs()
   return 0
 }
 
-#> d__check_dpls PRIORITY_LEVEL
+#>  d__check_dpls PRIORITY_LEVEL
 #
 ## For the given priority level, checks whether deployments are installed, one 
 #. by one, using their *.dpl.sh files, paths to which have been previously 
@@ -278,7 +278,7 @@ d__check_dpls()
     # Local flag for whether to proceed
     proceeding=true
 
-    # Don’t proceed if ‘-n’ option is given
+    # Don't proceed if '-n' option is given
     [ "$D__OPT_ANSWER" = false ] && proceeding=false
 
     # Print newline to visually separate tasks
@@ -299,8 +299,8 @@ d__check_dpls()
 
     fi
 
-    ## Unless given a ‘-y’ option (or unless aa_mode is enabled), prompt for 
-    #. user’s approval
+    ## Unless given a '-y' option (or unless aa_mode is enabled), prompt for 
+    #. user's approval
     if $proceeding && [ "$aa_mode" = true -o "$D__OPT_ANSWER" != true ]
     then
 
@@ -311,7 +311,7 @@ d__check_dpls()
         && dprint_ode "${D__ODE_WARN[@]}" -c "$RED" -- \
           '' 'Warning' ':' "$warning"
 
-      # Prompt slightly differs depending on whether ‘always ask’ is enabled
+      # Prompt slightly differs depending on whether 'always ask' is enabled
       if $aa_mode; then
         dprint_ode "${D__ODE_DANGER[@]}" -c "$RED" -- '!!!' 'Danger' ': '
       else
@@ -341,7 +341,7 @@ d__check_dpls()
       # Print debug message
       dprint_debug "Sourcing: $divinedpl_filepath"
 
-      # Hold your breath…
+      # Hold your breath...
       source "$divinedpl_filepath"
 
       # Ensure all assets are copied and main queue is filled

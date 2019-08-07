@@ -2,9 +2,9 @@
 #:title:        Divine.dotfiles fmwk uninstall script
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    50
+#:revnumber:    51
 #:revdate:      2019.08.07
-#:revremark:    Make backup enabled by default during fmwk uninstallation
+#:revremark:    Grand removal of non-ASCII chars
 #:created_at:   2019.07.22
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -294,7 +294,7 @@ d__pre_flight_checks()
 
     fi
 
-    # Ensure the link points to ‘intervene.sh’ (if readlink is available)
+    # Ensure the link points to 'intervene.sh' (if readlink is available)
     if type -P readlink &>/dev/null \
       && ! [ "$( readlink -- "$D_SHORTCUT_FILEPATH" )" \
       = "$D_FMWK_DIR/intervene.sh" ]

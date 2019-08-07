@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: offer
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    11
-#:revdate:      2019.08.05
-#:revremark:    Be more verbose when installing system utils
+#:revnumber:    12
+#:revdate:      2019.08.07
+#:revremark:    Grand removal of non-ASCII chars
 #:created_at:   2019.07.06
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -15,11 +15,11 @@
 #>  d__offer_system_pkg [--exit-on-q] UTIL_NAME
 #
 ## Checks whether UTIL_NAME is available on the system and, if not, offers to 
-#. install it using system’s package manager, if it itself is available
+#. install it using system's package manager, if it itself is available
 #
 ## Options:
 #.  --exit-on-q   - If user refuses to install and chooses not to proceed at 
-#.                  all by selecting ‘q’ response to prompt, exit the entire 
+#.                  all by selecting 'q' response to prompt, exit the entire 
 #.                  script immediately instead of returning appropriate status
 #
 ## Returns:

@@ -2,14 +2,14 @@
 #:title:        Divine Bash procedure: dep-checks
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    7
-#:revdate:      2019.07.24
-#:revremark:    Improve output, fix tests
+#:revnumber:    8
+#:revdate:      2019.08.07
+#:revremark:    Grand removal of non-ASCII chars
 #:created_at:   2019.07.05
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
 #
-## This file is intended to be sourced from framework’s main script
+## This file is intended to be sourced from framework's main script
 #
 ## Ensures all system dependencies are available and functional
 #
@@ -148,7 +148,7 @@ EOF
 
   # sed no. 2
 
-  # Test: this command must yield string ‘battered’ without quotes around it
+  # Test: this command must yield string 'battered' without quotes around it
   sed_cmd='s/^"(.*)"$/\1/p'
   if sed -r &>/dev/null; then
     test_bed="$( \
@@ -200,7 +200,7 @@ EOF
   # awk
   #
 
-  # Test: this command must yield string ‘halt’
+  # Test: this command must yield string 'halt'
   test_bed="$( \
     awk -F  '=' '{print $3}' 2>/dev/null <<<'go==halt=pry' || exit $? \
     )"

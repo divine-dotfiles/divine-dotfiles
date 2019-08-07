@@ -3,24 +3,24 @@
 #:kind:         func(script)
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    6
-#:revdate:      2019.07.25
-#:revremark:    Rewrite OS detection and adapters
+#:revnumber:    7
+#:revdate:      2019.08.07
+#:revremark:    Grand removal of non-ASCII chars
 #:created_at:   2018.12.20
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
 #
 ## Summary of defined functions:
-#>  dprint_debug    [-l] [-n] [CHUNKS|-n|-i]…
-#>  dprint_start    [-l] [-n] [CHUNKS|-n|-i]…
-#>  dprint_skip     [-l] [-n] [CHUNKS|-n|-i]…
-#>  dprint_success  [-l] [-n] [CHUNKS|-n|-i]…
-#>  dprint_failure  [-l] [-n] [CHUNKS|-n|-i]…
-#>  dprint_ode [-no] [-c|--color X] [--width-N X] [--effects-N X] [--] FIELD1 [FIELD2…]
-#>  dprint_plaque [-nope]… [-c|--color X] [-w|--width X] [-r|--padding-char X] [--] MSG
+#>  dprint_debug    [-l] [-n] [CHUNKS|-n|-i]...
+#>  dprint_start    [-l] [-n] [CHUNKS|-n|-i]...
+#>  dprint_skip     [-l] [-n] [CHUNKS|-n|-i]...
+#>  dprint_success  [-l] [-n] [CHUNKS|-n|-i]...
+#>  dprint_failure  [-l] [-n] [CHUNKS|-n|-i]...
+#>  dprint_ode [-no] [-c|--color X] [--width-N X] [--effects-N X] [--] FIELD1 [FIELD2...]
+#>  dprint_plaque [-nope]... [-c|--color X] [-w|--width X] [-r|--padding-char X] [--] MSG
 #
 
-#>  dprint_debug [-l] [-n] [CHUNKS|-n|-i]…
+#>  dprint_debug [-l] [-n] [CHUNKS|-n|-i]...
 #
 ## In verbose mode: from given chunks and line breaks composes and prints a 
 #. message themed as a debug line. Chunks are separated by single space.
@@ -61,7 +61,7 @@ dprint_debug()
   done; printf >&2 '\n'; return 0
 }
 
-#>  dprint_start [-l] [-n] [CHUNKS|-n|-i]…
+#>  dprint_start [-l] [-n] [CHUNKS|-n|-i]...
 #
 ## In verbose mode: from given chunks and line breaks composes and prints a 
 #. message themed as an announcement of new stage in a process. Chunks are 
@@ -99,7 +99,7 @@ dprint_start()
   done; printf >&2 '\n'; return 0
 }
 
-#>  dprint_skip [-l] [-n] [CHUNKS|-n|-i]…
+#>  dprint_skip [-l] [-n] [CHUNKS|-n|-i]...
 #
 ## In verbose mode: from given chunks and line breaks composes and prints a 
 #. message themed as an announcement of skipped stage in a process. Chunks are 
@@ -137,7 +137,7 @@ dprint_skip()
   done; printf >&2 '\n'; return 0
 }
 
-#>  dprint_success [-l] [-n] [CHUNKS|-n|-i]…
+#>  dprint_success [-l] [-n] [CHUNKS|-n|-i]...
 #
 ## In verbose mode: from given chunks and line breaks composes and prints a 
 #. message themed as an announcement of successfully completed stage in a 
@@ -175,7 +175,7 @@ dprint_success()
   done; printf >&2 '\n'; return 0
 }
 
-#>  dprint_failure [-l] [-n] [CHUNKS|-n|-i]…
+#>  dprint_failure [-l] [-n] [CHUNKS|-n|-i]...
 #
 ## In verbose mode: from given chunks and line breaks composes and prints a 
 #. message themed as an announcement of failed stage in a process. Chunks are 
@@ -213,7 +213,7 @@ dprint_failure()
   done; printf >&2 '\n'; return 0
 }
 
-#>  dprint_sudo [-n] [CHUNKS|-n|-i]…
+#>  dprint_sudo [-n] [CHUNKS|-n|-i]...
 #
 ## Verbosity notwithstanding, announce upcoming prompt for sudo password
 #
@@ -253,10 +253,10 @@ dprint_sudo()
   fi
 }
 
-#>  dprint_ode [-no] [-c|--color X] [--width-N X] [--effects-N X] [--] FIELD1 [FIELD2…]
+#>  dprint_ode [-no] [-c|--color X] [--width-N X] [--effects-N X] [--] FIELD1 [FIELD2...]
 #
 ## Prints formatted message consisting of fields. Arguments are textual 
-#. ‘fields’ numbered from one. Adjacent non-empty fields are separated by 
+#. 'fields' numbered from one. Adjacent non-empty fields are separated by 
 #. single space.
 #
 ## A field can be given a constant width, to which it will be padded/truncated. 
@@ -281,7 +281,7 @@ dprint_sudo()
 #.  --width-N X       - Truncate/pad field N to width X. Content is printed 
 #.                      flush left. Valid integer values are forced between 0 
 #.                      and 80, inclusive.
-#.                      Empty value width removes restrictions. Suffix ‘-’ 
+#.                      Empty value width removes restrictions. Suffix '-' 
 #.                      (hyphen) suppresses space after that field.
 #.                      Repeated use overrides previous ones.
 #.  --effects-N X     - Commands for field N, applied left-to-right:
@@ -290,7 +290,7 @@ dprint_sudo()
 #.                        * i - apply inverse color
 #.                        * d - remove all effects, apply default ones instead
 #.                        * n - remove all effects
-#.                      E.g. ‘--effects-1 ci’ applies inverse color to field 1.
+#.                      E.g. '--effects-1 ci' applies inverse color to field 1.
 #.                      Repeated use overrides previous ones.
 #.  --ping            - Return 0 without doing anything
 #
@@ -336,21 +336,21 @@ dprint_ode()
         fi
         # Shift to next argument and read width
         shift; field_width_opt="$1"
-        # Check if width is suffixed with ‘-’ modificator
+        # Check if width is suffixed with '-' modificator
         if [[ $field_width_opt =~ .*-$ ]]; then
-          # Store option (any non-zero-length string means ‘no space after’)
+          # Store option (any non-zero-length string means 'no space after')
           field_space_opts[$fieldnum]='no_space'
-          # Remove trailing ‘-’
+          # Remove trailing '-'
           field_width_opt="${field_width_opt%-}"
         else
           # Otherwise, unset any previous preference
           unset field_space_opts[$fieldnum]
         fi
-        # Check if width is ‘no-preference’ (empty string)
+        # Check if width is 'no-preference' (empty string)
         if [ -z "$field_width_opt" ]; then
           # Unset any previous preferences
           unset field_width_opts[$fieldnum]
-          # Don’t process further
+          # Don't process further
         else
           # Check if width is a valid number
           if [[ ! $field_width_opt =~ ^[0-9]+$ ]]; then
@@ -384,7 +384,7 @@ dprint_ode()
         if [ -z "$field_effect_opt" ]; then
           # Unset any previous preferences
           unset field_effect_opts[$fieldnum]
-          # Don’t process further
+          # Don't process further
         else
           # Check if effects is a valid string (empty string valid as well)
           if [[ ! $field_effect_opt =~ ^[bcidn]*$ ]]; then
@@ -419,7 +419,7 @@ dprint_ode()
   # Store number of textual arguments
   local num_args=${#args[@]}
 
-  # Unset placeholder zero’th argument
+  # Unset placeholder zero'th argument
   unset args[0]
 
   # Unset textual arguments that have their width set to zero
@@ -436,7 +436,7 @@ dprint_ode()
   [ $num_fields_remaining -gt 0 ] || {
     printf >&2 'Usage: %s %s\n' \
       "${FUNCNAME[0]}" \
-      '[-no] [-c|--color X] [--width-N X] [--effects-N X] [--] FIELD1 [FIELD2…]'
+      '[-no] [-c|--color X] [--width-N X] [--effects-N X] [--] FIELD1 [FIELD2...]'
     return 1
   }
 
@@ -633,7 +633,7 @@ dprint_ode()
   fi
 }
 
-#>  dprint_plaque [-nope]… [-c|--color X] [-w|--width X] [-r|--padding-char X] [--] MSG
+#>  dprint_plaque [-nope]... [-c|--color X] [-w|--width X] [-r|--padding-char X] [--] MSG
 #
 ## Prints message, either truncated or padded with spaces equally on both sides 
 #. to match provided width. By default prints an extra space on both sides of 
@@ -718,7 +718,7 @@ dprint_plaque()
   [ ${#args[@]} -lt 1 ] && {
     printf >&2 'Usage: %s %s\n' \
       "${FUNCNAME[0]}" \
-      '[-nope]… [-c|--color X] [-w|--width X] [-r|--padding-char X] [--] MSG'
+      '[-nope]... [-c|--color X] [-w|--width X] [-r|--padding-char X] [--] MSG'
     return 1
   }
 

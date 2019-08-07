@@ -2,14 +2,14 @@
 #:title:        Divine Bash script: intervene
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    67
-#:revdate:      2019.07.22
-#:revremark:    New revisioning system
+#:revnumber:    68
+#:revdate:      2019.08.07
+#:revremark:    Grand removal of non-ASCII chars
 #:created_at:   2018.03.25
 
 ## Launches the Divine intervention
 #
-## Launch with ‘-n’ option for a completely harmless dry run: you will be 
+## Launch with '-n' option for a completely harmless dry run: you will be 
 #. treated to a list of skipped installations.
 #
 
@@ -29,7 +29,7 @@ d__main()
   d__perform_routine
 }
 
-#> d__populate_globals
+#>  d__populate_globals
 #
 ## This function groups all constant paths and filenames so that they are 
 #. easily modified, should the need arise in the future.
@@ -46,10 +46,10 @@ d__main()
 #
 d__populate_globals()
 {
-  # Framework’s displayed name
+  # Framework's displayed name
   readonly D__FMWK_NAME='Divine.dotfiles'
 
-  # Executable’s displayed name
+  # Executable's displayed name
   readonly D__EXEC_NAME="$( basename -- "${BASH_SOURCE[0]}" )"
 
   # Paths to directories within $D__DIR
@@ -100,7 +100,7 @@ d__populate_globals()
   # Filename suffix for main queue manifest files
   readonly D__SUFFIX_DPL_QUE='.dpl.que'
 
-  # Ordered list of script’s internal dependencies
+  # Ordered list of script's internal dependencies
   D__INTERNAL_DEPENDENCIES=( \
     'procedure dep-checks' \
     'procedure print-colors' \
@@ -205,7 +205,7 @@ d__populate_globals()
   return 0
 }
 
-#> d__populate_d_dir_fmwk
+#>  d__populate_d_dir_fmwk
 #
 ## Resolves absolute path to directory containing this script, stores it in a 
 #. global read-only variable as the location of the framework. Also, populates 
@@ -296,13 +296,13 @@ d__populate_d_dir_fmwk()
   fi
 }
 
-## d__parse_arguments [ARG]…
+## d__parse_arguments [ARG]...
 #
 ## Parses arguments that were passed to this script
 #
 d__parse_arguments()
 {
-  # Global indicators of current request’s attributes
+  # Global indicators of current request's attributes
   D__REQ_ROUTINE=            # Routine to perform
   D__REQ_GROUPS=()           # Array of groups listed
   D__REQ_ARGS=()             # Array of non-option arguments
@@ -313,7 +313,7 @@ d__parse_arguments()
   # Global flags for optionscommand line options
   D__OPT_INVERSE=false       # Flag for whether filtering is inverted
   D__OPT_FORCE=false         # Flag for forceful mode
-  D__OPT_EXCLAM=false        # Flag for whether include ‘!’-dpls by default
+  D__OPT_EXCLAM=false        # Flag for whether include '!'-dpls by default
   D__OPT_QUIET=true          # Verbosity setting
   D__OPT_ANSWER=             # Blanket answer to all prompts
   D__OPT_PLUG_LINK=false     # Flag for whether copy or symlink Grail dir
@@ -434,7 +434,7 @@ d__parse_arguments()
   readonly D__REQ_PACKAGES
 }
 
-#> d__import_dependencies
+#>  d__import_dependencies
 #
 ## Straight-forward helper that sources utilities and helpers this script 
 #. depends on, in order. Terminates the script on failing to source a utility 
@@ -465,7 +465,7 @@ d__import_dependencies()
   done
 }
 
-#> d__perform_routine
+#>  d__perform_routine
 #
 ## Sub-driver function
 #
@@ -530,7 +530,7 @@ d__load()
   if [ -r "$filepath" -a -f "$filepath" ]; then
     # Source script
     source "$filepath"
-    # Return last command’s status
+    # Return last command's status
     return 0
   else
     # Report failed sourcing and return

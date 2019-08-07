@@ -2,19 +2,19 @@
 #:title:        Divine Bash routine: install
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    36
-#:revdate:      2019.08.05
-#:revremark:    print -> printf
+#:revnumber:    37
+#:revdate:      2019.08.07
+#:revremark:    Grand removal of non-ASCII chars
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
 #
-## This file is intended to be sourced from framework’s main script
+## This file is intended to be sourced from framework's main script
 #
 ## Installs packages and deployments as requested
 #
 
-#> d__perform_install_routine
+#>  d__perform_install_routine
 #
 ## Performs installation routine
 #
@@ -70,7 +70,7 @@ d__perform_install_routine()
         printf '\n'
         dprint_ode "${D__ODE_NORMAL[@]}" -c "$YELLOW" -- \
           'ooo' 'Attention' ':' \
-          'Last deployment asked for user’s attention'
+          "Last deployment asked for user's attention"
         printf '\n'
         dprint_plaque -pcw "$YELLOW" "$D__CONST_PLAQUE_WIDTH" \
           -- 'Pausing Divine intervention'
@@ -101,7 +101,7 @@ d__perform_install_routine()
   return 0
 }
 
-#> d__install_pkgs PRIORITY_LEVEL
+#>  d__install_pkgs PRIORITY_LEVEL
 #
 ## For the given priority level, installs packages, one by one, using their 
 #. names, which have been previously assembled in $D__WORKLOAD_PKGS array
@@ -147,7 +147,7 @@ d__install_pkgs()
   # Iterate over package names
   for pkgname in "${chunks[@]}"; do
 
-    # Empty name — continue
+    # Empty name - continue
     [ -n "$pkgname" ] || continue
 
     # Extract mode if it is present
@@ -168,10 +168,10 @@ d__install_pkgs()
     # Local flag for whether to proceed
     proceeding=true
 
-    # Don’t proceed if ‘-n’ option is given
+    # Don't proceed if '-n' option is given
     [ "$D__OPT_ANSWER" = false ] && proceeding=false
 
-    # Don’t proceed if already installed (except when forcing)
+    # Don't proceed if already installed (except when forcing)
     if $proceeding; then
       if d__os_pkgmgr check "$pkgname"; then
         task_name="$task_name (already installed)"
@@ -189,11 +189,11 @@ d__install_pkgs()
       dprint_ode "${D__ODE_NAME[@]}" -c "$YELLOW" -- \
         '>>>' 'Installing' ':' "$task_desc" "$task_name"
 
-      ## Unless given a ‘-y’ option (or unless aa_mode is enabled), prompt for 
-      #. user’s approval
+      ## Unless given a '-y' option (or unless aa_mode is enabled), prompt for 
+      #. user's approval
       if [ "$aa_mode" = true -o "$D__OPT_ANSWER" != true ]; then
 
-        # Prompt slightly differs depending on whether ‘always ask’ is enabled
+        # Prompt slightly differs depending on whether 'always ask' is enabled
         if $aa_mode; then
           dprint_ode "${D__ODE_DANGER[@]}" -c "$RED" -- '!!!' 'Danger' ': '
         else
@@ -253,7 +253,7 @@ d__install_pkgs()
   return 0
 }
 
-#> d__install_dpls PRIORITY_LEVEL
+#>  d__install_dpls PRIORITY_LEVEL
 #
 ## For the given priority level, installs deployments, one by one, using their 
 #. *.dpl.sh files, paths to which have been previously assembled in 
@@ -372,7 +372,7 @@ d__install_dpls()
     # Local flag for whether descriptive introduction has been printed
     intro_printed=false
 
-    # Don’t proceed if ‘-n’ option is given
+    # Don't proceed if '-n' option is given
     [ "$D__OPT_ANSWER" = false ] && proceeding=false
 
     # Print newline to visually separate tasks
@@ -393,8 +393,8 @@ d__install_dpls()
       
     fi
     
-    ## Unless given a ‘-y’ option (or unless aa_mode is enabled), prompt for 
-    #. user’s approval
+    ## Unless given a '-y' option (or unless aa_mode is enabled), prompt for 
+    #. user's approval
     if $proceeding && [ "$aa_mode" = true -o "$D__OPT_ANSWER" != true ]
     then
 
@@ -405,7 +405,7 @@ d__install_dpls()
         && dprint_ode "${D__ODE_WARN[@]}" -c "$RED" -- \
           '' 'Warning' ':' "$warning"
 
-      # Prompt slightly differs depending on whether ‘always ask’ is enabled
+      # Prompt slightly differs depending on whether 'always ask' is enabled
       if $aa_mode; then
         dprint_ode "${D__ODE_DANGER[@]}" -c "$RED" -- '!!!' 'Danger' ': '
       else
@@ -435,7 +435,7 @@ d__install_dpls()
       # Print debug message
       dprint_debug "Sourcing: $divinedpl_filepath"
 
-      # Hold your breath…
+      # Hold your breath...
       source "$divinedpl_filepath"
 
       # Ensure all assets are copied and main queue is filled
@@ -453,7 +453,7 @@ d__install_dpls()
         dpl_status=0
       fi
 
-      # Don’t proceed if already installed (except when forcing)
+      # Don't proceed if already installed (except when forcing)
       case $dpl_status in
         1)  if [ "$D_DPL_INSTALLED_BY_USER_OR_OS" = true ]; then
               task_name="$task_name (installed by user or OS)"
@@ -479,7 +479,7 @@ d__install_dpls()
     # Check if dpl requested another prompt
     if $proceeding && [ "$D_DPL_NEEDS_ANOTHER_PROMPT" = true ]; then
 
-      # Print descriptive introduction, if haven’t already
+      # Print descriptive introduction, if haven't already
       if ! $intro_printed; then
         dprint_ode "${D__ODE_NAME[@]}" -c "$YELLOW" -- \
           '>>>' 'Installing' ':' "$task_desc" "$task_name"
@@ -507,7 +507,7 @@ d__install_dpls()
     # Install deployment
     if $proceeding; then
 
-      # Print descriptive introduction, if haven’t already
+      # Print descriptive introduction, if haven't already
       $intro_printed || dprint_ode "${D__ODE_NAME[@]}" -c "$YELLOW" -- \
         '>>>' 'Installing' ':' "$task_desc" "$task_name"
 

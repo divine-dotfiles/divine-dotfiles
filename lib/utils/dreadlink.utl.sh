@@ -3,15 +3,15 @@
 #:kind:         func(script,interactive)
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    5
-#:revdate:      2019.07.22
-#:revremark:    New revisioning system
+#:revnumber:    6
+#:revdate:      2019.08.07
+#:revremark:    Grand removal of non-ASCII chars
 #:created_at:   2018.12.20
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
 #
 
-#>  dreadlink [-femnqsvz]… [--help] [--version] [--] FILE…
+#>  dreadlink [-femnqsvz]... [--help] [--version] [--] FILE...
 #
 ## Print value of a symbolic link or canonical file name
 #
@@ -29,10 +29,10 @@
 #.                  of the given name recursively; all but the last component 
 #.                  must exist
 #.  -e, --canonicalize-existing
-#.                - Сanonicalize by following every symlink in every component 
+#.                - Canonicalize by following every symlink in every component 
 #.                  of the given name recursively; all components must exist
 #.  -m, --canonicalize-missing
-#.                - Сanonicalize by following every symlink in every component 
+#.                - Canonicalize by following every symlink in every component 
 #.                  of the given name recursively; without requirements on 
 #.                  components existence
 #.  -n, --no-newline
@@ -56,7 +56,7 @@
 ## Prints:
 #.  stdout: Canonical absolute paths, those that were resolved
 #.  stderr: (default) As little as possible
-#.          (with ‘-v’) Error descriptions
+#.          (with '-v') Error descriptions
 #
 dreadlink()
 {
@@ -144,7 +144,7 @@ NAME
     dreadlink -- Divine readlink
 
 USAGE
-    dreadlink [-femnqsvz]… [--help] [--version] [--] FILE…
+    dreadlink [-femnqsvz]... [--help] [--version] [--] FILE...
 
 SYNOPSIS
     Print value of a symbolic link or canonical file name
@@ -159,11 +159,11 @@ OPTIONS
                           component of the given name recursively; all but the 
                           last component must exist
     -e, --canonicalize-existing
-                          Сanonicalize by following every symlink in every 
+                          Canonicalize by following every symlink in every 
                           component of the given name recursively; all 
                           components must exist
     -m, --canonicalize-missing
-                          Сanonicalize by following every symlink in every 
+                          Canonicalize by following every symlink in every 
                           component of the given name recursively; without 
                           requirements on components existence
     -n, --no-newline      Do not output trailing delimiter (single argument 
@@ -200,7 +200,7 @@ EOF
   [ ${#args[@]} -eq 0 ] && {
     printf >&2 'Usage: %s %s\n' \
       "${FUNCNAME[0]}" \
-      '[-femnqsvz]… FILE…'
+      '[-femnqsvz]... FILE...'
     printf >&2 "Try '%s --help' for more information\n" \
       "${FUNCNAME[0]}"
     return 1
@@ -216,10 +216,10 @@ EOF
   $no_nl && opts+=('-n')
   $zero && opts+=('-z')
   # Check for -e option, which is exclusive to GNU readlink
-  # First, ’greadlink’ (installed on some systems)
+  # First, 'greadlink' (installed on some systems)
   greadlink -e / &>/dev/null \
     && { greadlink "${opts[@]}" -- "${args[@]}"; return $?; }
-  # Second, ’readlink’ itself
+  # Second, 'readlink' itself
   readlink -e / &>/dev/null \
     && { readlink "${opts[@]}" -- "${args[@]}"; return $?; }
 
@@ -254,7 +254,7 @@ EOF
       # Call readlink, catch returned code
       filepath="$( readlink "$filepath" 2>/dev/null || exit $? )"
 
-      # Non-zero exit basically means ‘not a symlink’
+      # Non-zero exit basically means 'not a symlink'
       if [ $? -ne 0 ]; then
         # Remember this, to return appropriate code in the end
         return_code=1
@@ -279,7 +279,7 @@ EOF
     exist_part="$filepath"
     nonexist_part=
 
-    ## Can Bash resolve given path? ‘test -e’ goes all the way in to check 
+    ## Can Bash resolve given path? 'test -e' goes all the way in to check 
     #. whether the path ultimately points to something that exists
     if [ ! -e "$exist_part" ]; then
       
@@ -319,7 +319,7 @@ EOF
 
       fi
 
-      # If -f option survived, don’t touch it further
+      # If -f option survived, don't touch it further
 
       # Option -m still needs more checking
       if [ "$canonical" = m ]; then
@@ -333,8 +333,8 @@ EOF
           exist_part="$( dirname -- "$exist_part" )"
 
           ## Worst case, this loop will eventually hit:
-          #.  * For relative paths: ‘.’
-          #.  * For absolute paths: ‘/’
+          #.  * For relative paths: '.'
+          #.  * For absolute paths: '/'
           #
           ## Both of the above are expected to always exist.
           #
@@ -355,7 +355,7 @@ EOF
       exist_part="$( cd -P "$exist_part" &>/dev/null \
         && pwd || exit $? )"
 
-      # Check if ‘cd’ above failed
+      # Check if 'cd' above failed
       [ $? -ne 0 ] && {
         # Smells like permissions issue
         $quiet || printf >&2 '%s: %s: %s\n' \
@@ -388,7 +388,7 @@ EOF
       temppath="$( cd -P "$( dirname -- "$exist_part" )" &>/dev/null \
         && pwd || exit $? )"
 
-      # Check if ‘cd’ above failed
+      # Check if 'cd' above failed
       [ $? -ne 0 ] && {
         # Smells like permissions issue
         $quiet || printf >&2 '%s: %s: %s\n' \

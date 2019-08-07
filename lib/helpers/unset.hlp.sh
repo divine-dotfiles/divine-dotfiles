@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: unset
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    2
-#:revdate:      2019.07.22
-#:revremark:    New revisioning system
+#:revnumber:    3
+#:revdate:      2019.08.07
+#:revremark:    Grand removal of non-ASCII chars
 #:created_at:   2019.07.17
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -26,10 +26,10 @@ d__unset_d_vars()
   # Iterate over currently set variables, names of which start with 'D_'
   while read -r var_assignment; do
 
-    # Extract variable’s name
+    # Extract variable's name
     var_name="$( awk -F  '=' '{print $1}' <<<"$var_assignment" )"
 
-    # If variable is not read-only (i.e., non-essential) — unset it
+    # If variable is not read-only (i.e., non-essential) - unset it
     ( unset $var_name 2>/dev/null ) && unset $var_name
     
   done < <( grep ^D_ < <( set -o posix; set ) )
@@ -49,7 +49,7 @@ d__unset_d_funcs()
   # Iterate over currently set funcs, names of which start with 'd_'
   while read -r func_assignment; do
 
-    # Extract function’s names
+    # Extract function's names
     func_name=${func_assignment#'declare -f '}
 
     # Skip internal 'd__*' functions (double underscore)

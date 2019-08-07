@@ -2,14 +2,14 @@
 #:title:        Divine Bash procedure: dpl-repo-sync
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    2
-#:revdate:      2019.07.22
-#:revremark:    New revisioning system
+#:revnumber:    3
+#:revdate:      2019.08.07
+#:revremark:    Grand removal of non-ASCII chars
 #:created_at:   2019.06.28
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
 #
-## This file is intended to be sourced from framework’s main script
+## This file is intended to be sourced from framework's main script
 #
 ## Ensures that records of attached deployment repositories are consistent with 
 #. content of dpl-repos directory
@@ -129,7 +129,7 @@ d__sync_dpl_repos()
 #>  d__sync_attach_dpl_repo REPO
 #
 ## Attempts to interpret single argument as name of Github repository and pull 
-#. it in. Accepts either full ‘user/repo’ form or short ‘built_in_repo’ form 
+#. it in. Accepts either full 'user/repo' form or short 'built_in_repo' form 
 #. for deployments distributed by author of Divine.dotfiles.
 #
 ## Returns:
@@ -259,7 +259,7 @@ d__sync_attach_dpl_repo()
 #>  d__sync_detach_dpl_repo REPO
 #
 ## Attempts to interpret single argument as name of Github repository and 
-#. detach it. Accepts either full ‘user/repo’ form or short ‘built_in_repo’ 
+#. detach it. Accepts either full 'user/repo' form or short 'built_in_repo' 
 #. form for deployments distributed by author of Divine.dotfiles.
 #
 ## Returns:

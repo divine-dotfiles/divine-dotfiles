@@ -2,19 +2,19 @@
 #:title:        Divine Bash routine: remove
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    37
-#:revdate:      2019.08.05
-#:revremark:    print -> printf
+#:revnumber:    38
+#:revdate:      2019.08.07
+#:revremark:    Grand removal of non-ASCII chars
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
 #
-## This file is intended to be sourced from framework’s main script
+## This file is intended to be sourced from framework's main script
 #
 ## Removes packages and deployments as requested
 #
 
-#> d__perform_remove_routine
+#>  d__perform_remove_routine
 #
 ## Performs removal routine, in reverse installation order
 #
@@ -33,7 +33,7 @@ d__perform_remove_routine()
   # Announce beginning
   if [ "$BLANKET_ANSWER" = n ]; then
     dprint_plaque -pcw "$WHITE" "$D__CONST_PLAQUE_WIDTH" \
-      -- '‘Undoing’ Divine intervention'
+      -- "'Undoing' Divine intervention"
   else
     dprint_plaque -pcw "$GREEN" "$D__CONST_PLAQUE_WIDTH" \
       -- 'Undoing Divine intervention'
@@ -73,7 +73,7 @@ d__perform_remove_routine()
         printf '\n'
         dprint_ode "${D__ODE_NORMAL[@]}" -c "$YELLOW" -- \
           'ooo' 'Attention' ':' \
-          'Last deployment asked for user’s attention'
+          "Last deployment asked for user's attention"
         printf '\n'
         dprint_plaque -pcw "$YELLOW" "$D__CONST_PLAQUE_WIDTH" \
           -- 'Pausing Divine intervention'
@@ -99,7 +99,7 @@ d__perform_remove_routine()
   printf '\n'
   if [ "$BLANKET_ANSWER" = n ]; then
     dprint_plaque -pcw "$WHITE" "$D__CONST_PLAQUE_WIDTH" \
-      -- 'Successfully ‘undid’ Divine intervention'
+      -- "Successfully 'undid' Divine intervention"
   else
     dprint_plaque -pcw "$GREEN" "$D__CONST_PLAQUE_WIDTH" \
       -- 'Successfully undid Divine intervention'
@@ -107,7 +107,7 @@ d__perform_remove_routine()
   return 0
 }
 
-#> d__remove_pkgs PRIORITY_LEVEL
+#>  d__remove_pkgs PRIORITY_LEVEL
 #
 ## For the given priority level, removes packages, one by one, using their 
 #. names, which have been previously assembled in $D__WORKLOAD_PKGS array. Operates 
@@ -157,7 +157,7 @@ d__remove_pkgs()
     # Get package name
     pkgname="${chunks[$i]}"
 
-    # Empty name — continue
+    # Empty name - continue
     [ -n "$pkgname" ] || continue
 
     # Extract mode if it is present
@@ -178,10 +178,10 @@ d__remove_pkgs()
     # Local flag for whether to proceed
     proceeding=true
 
-    # Don’t proceed if ‘-n’ option is given
+    # Don't proceed if '-n' option is given
     [ "$D__OPT_ANSWER" = false ] && proceeding=false
 
-    # Don’t proceed if already removed (except when forcing)
+    # Don't proceed if already removed (except when forcing)
     if $proceeding; then
       if d__os_pkgmgr check "$pkgname"; then
         if d__stash --root --skip-checks has "pkg_$( dmd5 -s "$pkgname" )"; then
@@ -209,12 +209,12 @@ d__remove_pkgs()
       dprint_ode "${D__ODE_NAME[@]}" -c "$YELLOW" -- \
         '>>>' 'Removing' ':' "$task_desc" "$task_name"
 
-      ## Unless given a ‘-y’ option (or unless aa_mode is enabled), prompt for 
-      #. user’s approval
+      ## Unless given a '-y' option (or unless aa_mode is enabled), prompt for 
+      #. user's approval
       if [ "$aa_mode" = true -o "$D__OPT_ANSWER" != true ]; then
 
 
-        # Prompt slightly differs depending on whether ‘always ask’ is enabled
+        # Prompt slightly differs depending on whether 'always ask' is enabled
         if $aa_mode; then
           dprint_ode "${D__ODE_DANGER[@]}" -c "$RED" -- '!!!' 'Danger' ': '
         else
@@ -274,7 +274,7 @@ d__remove_pkgs()
   return 0
 }
 
-#> d__remove_dpls PRIORITY_LEVEL
+#>  d__remove_dpls PRIORITY_LEVEL
 #
 ## For the given priority level, removes deployments, one by one, using their 
 #. *.dpl.sh files, paths to which have been previously assembled in 
@@ -396,7 +396,7 @@ d__remove_dpls()
     # Flag about whether descriptive introduction has been printed
     intro_printed=false
 
-    # Don’t proceed if ‘-n’ option is given
+    # Don't proceed if '-n' option is given
     [ "$D__OPT_ANSWER" = false ] && proceeding=false
 
     # Print newline to visually separate tasks
@@ -417,8 +417,8 @@ d__remove_dpls()
         
     fi
 
-    ## Unless given a ‘-y’ option (or unless aa_mode is enabled), prompt for 
-    #. user’s approval
+    ## Unless given a '-y' option (or unless aa_mode is enabled), prompt for 
+    #. user's approval
     if $proceeding && [ "$aa_mode" = true -o "$D__OPT_ANSWER" != true ]
     then
 
@@ -429,7 +429,7 @@ d__remove_dpls()
         && dprint_ode "${D__ODE_WARN[@]}" -c "$RED" -- \
           '' 'Warning' ':' "$warning"
 
-      # Prompt slightly differs depending on whether ‘always ask’ is enabled
+      # Prompt slightly differs depending on whether 'always ask' is enabled
       if $aa_mode; then
         dprint_ode "${D__ODE_DANGER[@]}" -c "$RED" -- '!!!' 'Danger' ': '
       else
@@ -459,7 +459,7 @@ d__remove_dpls()
       # Print debug message
       dprint_debug "Sourcing: $divinedpl_filepath"
 
-      # Hold your breath…
+      # Hold your breath...
       source "$divinedpl_filepath"
 
       # Ensure all assets are copied and main queue is filled
@@ -480,7 +480,7 @@ d__remove_dpls()
         dpl_status=0
       fi
 
-      # Don’t proceed if already removed (except when forcing)
+      # Don't proceed if already removed (except when forcing)
       case $dpl_status in
         1)  if [ "$D_DPL_INSTALLED_BY_USER_OR_OS" = true ]; then
               task_name="$task_name (installed by user or OS)"
@@ -508,7 +508,7 @@ d__remove_dpls()
     # Check if dpl requested another prompt
     if $proceeding && [ "$D_DPL_NEEDS_ANOTHER_PROMPT" = true ]; then
 
-      # Print descriptive introduction, if haven’t already
+      # Print descriptive introduction, if haven't already
       if ! $intro_printed; then
         dprint_ode "${D__ODE_NAME[@]}" -c "$YELLOW" -- \
           '>>>' 'Installing' ':' "$task_desc" "$task_name"
@@ -536,7 +536,7 @@ d__remove_dpls()
     # Remove deployment
     if $proceeding; then
 
-      # Print descriptive introduction if haven’t already
+      # Print descriptive introduction if haven't already
       $intro_printed || dprint_ode "${D__ODE_NAME[@]}" -c "$YELLOW" -- \
           '>>>' 'Removing' ':' "$task_desc" "$task_name"
 

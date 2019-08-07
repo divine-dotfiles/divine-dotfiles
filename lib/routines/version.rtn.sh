@@ -2,19 +2,19 @@
 #:title:        Divine Bash routine: version
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    7
-#:revdate:      2019.08.05
-#:revremark:    script version -> framework version
+#:revnumber:    8
+#:revdate:      2019.08.07
+#:revremark:    Grand removal of non-ASCII chars
 #:created_at:   2018.03.25
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
 #
-## This file is intended to be sourced from framework’s main script
+## This file is intended to be sourced from framework's main script
 #
 ## Shows version note and exits the script
 #
 
-#> d__show_version_and_exit
+#>  d__show_version_and_exit
 #
 ## Shows framework version and exits with code 0
 #

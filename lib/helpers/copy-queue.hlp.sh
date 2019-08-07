@@ -2,17 +2,17 @@
 #:title:        Divine Bash deployment helpers: copy-queue
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    4
-#:revdate:      2019.07.25
-#:revremark:    Rewrite OS detection and adapters
+#:revnumber:    5
+#:revdate:      2019.08.07
+#:revremark:    Grand removal of non-ASCII chars
 #:created_at:   2019.05.23
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
 #
-## Helper functions for deployments based on template ‘copy-queue.dpl.sh’
+## Helper functions for deployments based on template 'copy-queue.dpl.sh'
 #
 ## Copies arbitrary files (e.g., font files) to provided locations (e.g., into 
-#. OS’s fonts directory). Creates backup of each replaced file. Restores 
+#. OS's fonts directory). Creates backup of each replaced file. Restores 
 #. original set-up on removal.
 #
 

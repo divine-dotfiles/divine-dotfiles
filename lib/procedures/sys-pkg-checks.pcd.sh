@@ -2,14 +2,14 @@
 #:title:        Divine Bash procedure: sys-pkg-checks
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    3
-#:revdate:      2019.08.05
-#:revremark:    Complete rewrite of fmwk (un)installation
+#:revnumber:    4
+#:revdate:      2019.08.07
+#:revremark:    Grand removal of non-ASCII chars
 #:created_at:   2019.07.05
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
 #
-## This file is intended to be sourced from framework’s main script
+## This file is intended to be sourced from framework's main script
 #
 ## Offers to install optional system utilities if they are not available and if 
 #. at all possible

@@ -3,9 +3,9 @@
 #:kind:         global_var,func(script)
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    3
-#:revdate:      2019.07.25
-#:revremark:    Rewrite OS detection and adapters
+#:revnumber:    4
+#:revdate:      2019.08.07
+#:revremark:    Grand removal of non-ASCII chars
 #:created_at:   2019.03.15
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -18,9 +18,9 @@
 #.                on the current system.
 #
 ## Provides into the global scope these functions:
-#.  d__os_pkgmgr - Thin wrapper around system’s package manager. Accepts the 
-#.              following commands as first argument: ‘update’, ‘check’, 
-#.              ‘install’, and ‘remove’. Remaining arguments are relayed to 
+#.  d__os_pkgmgr - Thin wrapper around system's package manager. Accepts the 
+#.              following commands as first argument: 'update', 'check', 
+#.              'install', and 'remove'. Remaining arguments are relayed to 
 #.              package manager verbatim. Avoids prompting for user input 
 #.              (except sudo password). Returns whatever the package manager 
 #.              returns, or -1 for unrecognized package manager.
@@ -47,13 +47,13 @@ d__detect_os()
 #
 ## Provides into the global scope:
 #.  $D__OS_FAMILY  - (read-only) Broad description of the current OS type:
-#.                  * ‘macos’
-#.                  * ‘linux’
-#.                  * ‘wsl’ (Windows Subsystem for Linux)
-#.                  * ‘bsd’
-#.                  * ‘solaris’
-#.                  * ‘cygwin’
-#.                  * ‘msys’
+#.                  * 'macos'
+#.                  * 'linux'
+#.                  * 'wsl' (Windows Subsystem for Linux)
+#.                  * 'bsd'
+#.                  * 'solaris'
+#.                  * 'cygwin'
+#.                  * 'msys'
 #
 ## Returns:
 #.  0 - Variable populated successfully
@@ -77,7 +77,7 @@ d__detect_os_family()
   local restore_nocasematch="$( shopt -p nocasematch )"
   shopt -s nocasematch
 
-  # Check if $OSTYPE is populated, as is the case in most modern OS’s
+  # Check if $OSTYPE is populated, as is the case in most modern OS's
   if [ -n "$OSTYPE" ]; then
 
     # Pass this down to adapter
@@ -85,7 +85,7 @@ d__detect_os_family()
 
   else
 
-    # $OSTYPE is empty or unset: rely on ‘uname -s’
+    # $OSTYPE is empty or unset: rely on 'uname -s'
     local -r d__ostype="$( uname -s 2>/dev/null )"
 
   fi
@@ -152,7 +152,7 @@ d__detect_os_family()
 
 #>  d__detect_os_distro_and_pkgmgr
 #
-## Detects current OS distribution, as well as system’s package manager; stores 
+## Detects current OS distribution, as well as system's package manager; stores 
 #. this info in read-only global variables
 #
 ## Requires:
@@ -161,21 +161,21 @@ d__detect_os_family()
 ## Provides into the global scope:
 #.  $D__OS_DISTRO   - (read-only) Best guess on the name of the current OS 
 #.                    distribution, without version, e.g.:
-#.                      * ‘macos’
-#.                      * ‘ubuntu’
-#.                      * ‘debian’
-#.                      * ‘fedora’
+#.                      * 'macos'
+#.                      * 'ubuntu'
+#.                      * 'debian'
+#.                      * 'fedora'
 #.                      * unset     - Not recognized
 #.  $D__OS_PKGMGR   - (read-only) Widely recognized name of package management 
 #.                    utility available on the current system, e.g.:
-#.                      * ‘brew’    - macOS
-#.                      * ‘apt-get’ - Debian, Ubuntu
-#.                      * ‘dnf’     - Fedora
-#.                      * ‘yum’     - older Fedora
+#.                      * 'brew'    - macOS
+#.                      * 'apt-get' - Debian, Ubuntu
+#.                      * 'dnf'     - Fedora
+#.                      * 'yum'     - older Fedora
 #.                      * unset     - Not recognized
-#.  d__os_pkgmgr    - Thin wrapper around system’s package manager. Accepts the 
-#.                    following commands as first argument: ‘update’, ‘check’, 
-#.                    ‘install’, and ‘remove’. Remaining arguments are relayed 
+#.  d__os_pkgmgr    - Thin wrapper around system's package manager. Accepts the 
+#.                    following commands as first argument: 'update', 'check', 
+#.                    'install', and 'remove'. Remaining arguments are relayed 
 #.                    to package manager verbatim. Avoids prompting for user 
 #.                    input (except sudo password). Returns whatever the 
 #.                    package manager returns, or 2 for unrecognized package 
@@ -268,7 +268,7 @@ d__detect_os_distro_and_pkgmgr()
   # Pre-unset package manager wrapper function
   unset -f d__os_pkgmgr
 
-  # Run function that is ought to detect system’s package manager
+  # Run function that is ought to detect system's package manager
   d__adapter_detect_os_pkgmgr &>/dev/null
 
   # Analyze detected OS package manager
@@ -297,7 +297,7 @@ d__detect_os_distro_and_pkgmgr()
   if [ -z "$d__os_pkgmgr" ]; then
 
     # Failed to detect OS pkgmgr: announce, unset functions, set flag
-    dprint_failure -l 'Failed to detect current OS’s package manager'
+    dprint_failure -l 'Failed to detect package manager on current OS'
     unset -f d__os_pkgmgr
     all_good=false
 

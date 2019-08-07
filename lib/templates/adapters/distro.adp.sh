@@ -2,9 +2,9 @@
 #:title:        Divine.dotfiles template OS distro adapter
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    13
-#:revdate:      2019.07.25
-#:revremark:    Rewrite OS detection and adapters
+#:revnumber:    14
+#:revdate:      2019.08.07
+#:revremark:    Grand removal of non-ASCII chars
 #:created_at:   2019.06.04
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -12,8 +12,8 @@
 ## An adapter is a set of functions that, when implemented, allow framework to 
 #. support a particular OS distribution
 #
-## For adapter file to be sourced and used, it must be named ‘DISTRO.adp.sh’ 
-#. and placed in lib/adapters/distro directory, where ‘DISTRO’ must be 
+## For adapter file to be sourced and used, it must be named 'DISTRO.adp.sh' 
+#. and placed in lib/adapters/distro directory, where 'DISTRO' must be 
 #. descriptive of OS distribution being adapted to.
 #
 
@@ -23,7 +23,7 @@
 #. use said variable and other means to judge whether current OS is the OS 
 #. distribution being adapted to. Guidelines below must be followed.
 #
-## Expect ‘nocasematch’ Bash option to be enabled by caller of this function
+## Expect 'nocasematch' Bash option to be enabled by caller of this function
 #
 ## Global variables made available to this function (all read-only):
 #.  $D__OS_FAMILY - One-word description of current OS family
@@ -62,7 +62,7 @@ d__adapter_detect_os_distro()
 #. on this system and, if so, implement a wrapper around it. Guidelines below 
 #. must be followed.
 #
-## Expect ‘nocasematch’ Bash option to be enabled by caller of this function
+## Expect 'nocasematch' Bash option to be enabled by caller of this function
 #
 ## Global variables made available to this function (all read-only):
 #.  $D__OS_FAMILY - One-word description of current OS family
@@ -70,12 +70,12 @@ d__adapter_detect_os_distro()
 #
 ## Local variables that must be set in case of successful match (no need to 
 #. declare these as local, they will be declared as such by parent scope):
-#.  $d__os_pkgmgr - One-word description of current system’s package manager. 
+#.  $d__os_pkgmgr - One-word description of current system's package manager. 
 #.                  This word will be assigned to read-only global variable 
 #.                  $D__OS_PKGMGR, which in turn is then used throughout this 
 #.                  framework and its deployments.
 #.                  For clarity, this one word must match the widely recognized 
-#.                  name of the package manager’s executable command
+#.                  name of the package manager's executable command
 #.                  If this variable is set to a non-empty value, it is taken 
 #.                  as indication of positive OS distro match
 #
@@ -94,9 +94,9 @@ d__adapter_detect_os_pkgmgr()
 
     # Implement the wrapper function
 
-    #>  d__os_pkgmgr update|check|install|remove [ARG]…
+    #>  d__os_pkgmgr update|check|install|remove [ARG]...
     #
-    ## Thin wrapper around system’s package manager. Launches one of the four 
+    ## Thin wrapper around system's package manager. Launches one of the four 
     #. routines, which are expected of any package manager out there.
     #
     ## Second argument must be relayed to package manager verbatim. User 
@@ -105,10 +105,10 @@ d__adapter_detect_os_pkgmgr()
     #
     ## Arguments:
     #.  $1  - One of four routines to launch:
-    #.          * ‘update’   - update installed packages (other args ignored)
-    #.          * ‘check’    - check whether listed packages are installed
-    #.          * ‘install’  - install listed packages
-    #.          * ‘remove’   - uninstall listed packages
+    #.          * 'update'   - update installed packages (other args ignored)
+    #.          * 'check'    - check whether listed packages are installed
+    #.          * 'install'  - install listed packages
+    #.          * 'remove'   - uninstall listed packages
     #.  $2  - Package to work on
     #
     ## Returns:

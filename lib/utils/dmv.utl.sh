@@ -3,9 +3,9 @@
 #:kind:         func(script,interavtive)
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    5
-#:revdate:      2019.07.22
-#:revremark:    New revisioning system
+#:revnumber:    6
+#:revdate:      2019.08.07
+#:revremark:    Grand removal of non-ASCII chars
 #:created_at:   2018.03.15
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -13,7 +13,7 @@
 
 ## dmv - divine move
 #
-#>  dmv [-f?rdqv]… [--help|version] [--] SRC_PATH TGT_PATH [BACKUP_PATH]
+#>  dmv [-f?rdqv]... [--help|version] [--] SRC_PATH TGT_PATH [BACKUP_PATH]
 #
 ## Pushes SRC_PATH over to TGT_PATH, leaving forwarding symlink instead, and 
 #. optionally stashing whatever currently occupies TGT_PATH at BACKUP_PATH
@@ -54,26 +54,26 @@
 ## Returns:
 #.  0   - Src path has been moved; forwarding symlink has been created
 #.  1   - Otherwise
-#.  100 - (without ‘-f’) Tgt or backup path is occupied by a file
-#.  101 - (without ‘-f’) Tgt or backup path is occupied by a directory
-#.  102 - (without ‘-f’) Tgt or backup path is occupied by a symlink
+#.  100 - (without '-f') Tgt or backup path is occupied by a file
+#.  101 - (without '-f') Tgt or backup path is occupied by a directory
+#.  102 - (without '-f') Tgt or backup path is occupied by a symlink
 #
-## Returns (with ‘-?’):
+## Returns (with '-?'):
 #.  0 - Src path is a symlink pointing to resolvable absolute tgt path. Also, 
 #.      backup path (if provided) exists.
 #.  1 - Otherwise.
 #
-## Returns (with ‘-r’):
-#.  0 - Conditions for ‘-?’ are met. Symlink at src path has been removed; tgt 
+## Returns (with '-r'):
+#.  0 - Conditions for '-?' are met. Symlink at src path has been removed; tgt 
 #.      path has been moved back to src path; and backup path (if provided) has 
 #.      been moved back to symlink path.
 #.  1 - Otherwise.
 #
 ## Prints:
 #.  stdout: *nothing*
-#.          (with ‘-?’) (without ‘-q’) Human readable answer
+#.          (with '-?') (without '-q') Human readable answer
 #.  stderr: (default) Error descriptions
-#.          (with ‘-q’) As little as possible
+#.          (with '-q') As little as possible
 #
 dmv()
 {
@@ -152,7 +152,7 @@ NAME
     ${bold}dmv${normal} - divine link
 
 SYNOPSIS
-    ${bold}dmv${normal} [-f?rdqv]… [--help|version] [--] SRC_PATH TGT_PATH [BACKUP_PATH]
+    ${bold}dmv${normal} [-f?rdqv]... [--help|version] [--] SRC_PATH TGT_PATH [BACKUP_PATH]
 
 DESCRIPTION
     Pushes SRC_PATH over to TGT_PATH, leaving forwarding symlink instead, and 
@@ -207,7 +207,7 @@ EOF
   [ ${#args[@]} -lt 2 ] && {
     printf >&2 'Usage: %s %s\n' \
       "${FUNCNAME[0]}" \
-      '[-f?rdqv]… SRC_PATH TGT_PATH [BACKUP_PATH]'
+      '[-f?rdqv]... SRC_PATH TGT_PATH [BACKUP_PATH]'
     printf >&2 "Try '%s --help' for more information\n" \
       "${FUNCNAME[0]}"
     return 1
@@ -299,7 +299,7 @@ EOF
       
     fi
 
-    # Check if ‘cd’ command above has failed
+    # Check if 'cd' command above has failed
     [ $status -ne 0 ] && {
       $quiet || printf >&2 '%s: %s: %s\n' \
         "${FUNCNAME[0]}" \
@@ -606,7 +606,7 @@ EOF
       fi
 
       # Re-create target path as if after move
-      # (Variable ‘exist_part’ is re-used without semantic meaning)
+      # (Variable 'exist_part' is re-used without semantic meaning)
       exist_part="$( dirname -- "${abspath[1]}" )/${temppath%%/}"
 
       # Check if that path exists
@@ -619,7 +619,7 @@ EOF
       fi
 
       # Resolve this path to canonical
-      # (Again, variable ‘exist_part’ is re-used without semantic meaning)
+      # (Again, variable 'exist_part' is re-used without semantic meaning)
       if [ -d "$exist_part" ]; then
 
         # For directories, cd -P and capture pwd output
@@ -645,7 +645,7 @@ EOF
 
       fi
 
-      # Check if canonical path after ‘moving’ is the same as original
+      # Check if canonical path after 'moving' is the same as original
       if [ "$exist_part" != "${canonpath[0]}" ]; then
         $quiet || printf >&2 '%s: %s: %s\n' \
           "${FUNCNAME[0]}" \
@@ -1016,7 +1016,7 @@ EOF
   # Backing up
   if $backing_up; then
 
-    ## Remove pre-existing directory at backup path, to avoid mv’s special 
+    ## Remove pre-existing directory at backup path, to avoid mv's special 
     #. treatment of directories
     if [ -d "${abspath[2]}" -a $force = true ]; then
 
@@ -1053,7 +1053,7 @@ EOF
   # Moving #
   # ====== #
 
-  ## Remove pre-existing directory at tgt path, to avoid mv’s special treatment 
+  ## Remove pre-existing directory at tgt path, to avoid mv's special treatment 
   #. of directories
   if [ -d "${abspath[1]}" -a $force = true ]; then
 

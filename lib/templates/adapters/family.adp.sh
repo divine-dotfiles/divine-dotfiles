@@ -2,9 +2,9 @@
 #:title:        Divine.dotfiles template OS family adapter
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    10
-#:revdate:      2019.07.25
-#:revremark:    Rewrite OS detection and adapters
+#:revnumber:    11
+#:revdate:      2019.08.07
+#:revremark:    Grand removal of non-ASCII chars
 #:created_at:   2019.06.04
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -12,8 +12,8 @@
 ## An adapter is a set of functions that, when implemented, allow framework to 
 #. support a particular family of operating systems
 #
-## For adapter file to be sourced and used, it must be named ‘FAMILY.adp.sh’ 
-#. and placed in lib/adapters/family directory, where ‘FAMILY’ must be 
+## For adapter file to be sourced and used, it must be named 'FAMILY.adp.sh' 
+#. and placed in lib/adapters/family directory, where 'FAMILY' must be 
 #. descriptive of OS family being adapted to.
 #
 
@@ -23,7 +23,7 @@
 #. said variables or other means to judge whether current OS belongs to the OS 
 #. family being adapted to. Guidelines below must be followed.
 #
-## Expect ‘nocasematch’ Bash option to be enabled by caller of this function
+## Expect 'nocasematch' Bash option to be enabled by caller of this function
 #
 ## Local variables made available to this function (all read-only):
 #.  $d__ostype    - Current content of $OSTYPE system variable or, if it is 

@@ -2,19 +2,19 @@
 #:title:        Divine Bash routine: help
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    10
-#:revdate:      2019.08.05
-#:revremark:    script version -> framework version
+#:revnumber:    11
+#:revdate:      2019.08.07
+#:revremark:    Grand removal of non-ASCII chars
 #:created_at:   2018.03.25
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
 #
-## This file is intended to be sourced from framework’s main script
+## This file is intended to be sourced from framework's main script
 #
 ## Shows help and exits the script
 #
 
-#> d__show_help_and_exit
+#>  d__show_help_and_exit
 #
 ## This function is meant to be called whenever help is explicitly requested. 
 #. Prints out a summary of usage scenarios and valid options.
@@ -42,14 +42,14 @@ NAME
     ${bold}${D__EXEC_NAME}${normal} - launch Divine intervention
 
 SYNOPSIS
-    $D__EXEC_NAME ${bold}i${normal}[nstall]                [-ynqvewf]… [--] [TASK]…
-    $D__EXEC_NAME ${bold}r${normal}[emove]                 [-ynqvewf]… [--] [TASK]…
-    $D__EXEC_NAME ${bold}c${normal}[heck]                  [-ynqvew]…  [--] [TASK]…
+    $D__EXEC_NAME ${bold}i${normal}[nstall]            [-ynqvewf]... [--] [TASK]...
+    $D__EXEC_NAME ${bold}r${normal}[emove]             [-ynqvewf]... [--] [TASK]...
+    $D__EXEC_NAME ${bold}c${normal}[heck]              [-ynqvew]...  [--] [TASK]...
 
-    $D__EXEC_NAME ${bold}a${normal}[ttach]                 [-yn]…      [--] REPO…
-    $D__EXEC_NAME ${bold}d${normal}[etach]                 [-yn]…      [--] REPO…
-    $D__EXEC_NAME ${bold}p${normal}[lug]                   [-ynl]…     [--] REPO/DIR
-    $D__EXEC_NAME ${bold}u${normal}[pdate]                 [-yn]…      [--] [TASK]…
+    $D__EXEC_NAME ${bold}a${normal}[ttach]             [-yn]...      [--] REPO...
+    $D__EXEC_NAME ${bold}d${normal}[etach]             [-yn]...      [--] REPO...
+    $D__EXEC_NAME ${bold}p${normal}[lug]               [-ynl]...     [--] REPO/DIR
+    $D__EXEC_NAME ${bold}u${normal}[pdate]             [-yn]...      [--] [TASK]...
 
     $D__EXEC_NAME --version
     $D__EXEC_NAME -h|--help
@@ -65,9 +65,9 @@ DESCRIPTION
       - Package names from special files named 'Divinefile'
       - Deployments from special scripts named '*.dpl.sh'
     - Sorts tasks by priority (${bold}ascending${normal} integer order)
-    - Updates installed packages using system’s package manager
+    - Updates installed packages using system's package manager
     - Performs tasks in order:
-      - ${bold}Installs${normal} packages using system’s package manager
+      - ${bold}Installs${normal} packages using system's package manager
       - ${bold}Installs${normal} deployments using 'd_dpl_install' function in each
 
     ${bold}'Remove' routine${normal} - removes tasks
@@ -76,10 +76,10 @@ DESCRIPTION
       - Package names from special files named 'Divinefile'
       - Deployments from special scripts named '*.dpl.sh'
     - ${bold}Reverse${normal}-sorts tasks by priority (${bold}descending${normal} integer order)
-    - Updates installed packages using system’s package manager
+    - Updates installed packages using system's package manager
     - Performs tasks in order:
       - ${bold}Removes${normal} deployments using 'd_dpl_remove' function in each
-      - ${bold}Removes${normal} packages using system’s package manager
+      - ${bold}Removes${normal} packages using system's package manager
     
     ${bold}'Check' routine${normal} - checks status of tasks
 
@@ -115,13 +115,13 @@ DESCRIPTION
     ${bold}'Plug' routine${normal} - replaces Grail directory
 
     - Allows to quickly plug-in pre-made (and possibly version controlled) 
-      version of Grail directory, containing user’s assets and deployments
+      version of Grail directory, containing user's assets and deployments
     - Accepts Grail directory in any of three forms:
       - Github repository in the form 'username/repository'
       - Address of a git repository
       - Path to a directory
     - Makes shallow clones of repositories or downloads them into a built-in 
-      directory; in case of plain directories — makes a copy or, optionally, a 
+      directory; in case of plain directories - makes a copy or, optionally, a 
       symlink
     - Prompts before overwriting
 
@@ -166,7 +166,7 @@ OPTIONS
                     of filtering them in
 
     -w, --with-!    By default, framework filters out deployments containing 
-                    ‘!’ flag. This option removes that behavior.
+                    '!' flag. This option removes that behavior.
 
     -l, --link      ('plug' routine only, otherwise no-opt)
                     Prefer to symlink external Grail directory and avoid 
