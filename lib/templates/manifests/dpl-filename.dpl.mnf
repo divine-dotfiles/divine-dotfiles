@@ -1,51 +1,79 @@
+#:title:        Asset manifest annotated template
+#:author:       Grove Pyree
+#:email:        grayarea@protonmail.ch
+#:revnumber:    8
+#:revdate:      2019.08.07
+#:revremark:    Major syntax/parsing rewrite for manifest-like files
+#:created_at:   2019.08.06
+
 ## This is an annotated example of an asset manifest. It is simply a list of 
 #. files (e.g., config files) required by a particular deployment. What a 
 #. manifest does is it allows framework to automatically copy provided initial 
-#. versions of assets to user’s Grail directory, where these versions will then 
-#. be worked with by the deployment.
+#. versions of assets to user’s Grail directory (no overwriting!), where these 
+#. versions will then be worked with by the deployment.
 #
-## By default, manifest file must be placed next to deployment file and named 
-#. identically, except for changing ‘.dpl.sh’ suffix to ‘dpl.mnf’. 
-#. Alternatively, full path to manifest file may be provided in the root of 
-#. deployment file by assigning it to global variable $D__DPL_MNF_PATH.
+## Asset manifest must be placed next to deployment file and named identically, 
+#. except for changing suffix from ‘*.dpl.sh’ to ‘*.dpl.mnf’. Alternatively, 
+#. full path to manifest file may be provided in the root of deployment file by 
+#. assigning it to global variable $D__DPL_MNF_PATH.
 #
 ## Paths to assets must be given relative to deployment directory, as recorded 
-#. in $D__DPL_DIR. A path may be written explicitly, or using a simplified 
-#. regular expression.
+#. in $D__DPL_DIR. One path/pattern is written per line.
 #
-## One path/pattern is written per line.
+## Each valid manifest line may be flagged as a regular expression. Within a 
+#. regex, only four special symbols are recognized: '[', ']', '*', and '?'. 
+#. (Under the hood, the pattern is used as '-path' primary of 'find' utility.)
+#. Assets with fixed path are required in order for deployment to work, but 
+#. presence of regex assets is optional.
 #
-## A line enclosed in a pair of parentheses is a section head. A section head 
-#. changes how lines are interpreted until the next section head changes that 
-#. again.
+## Each manifest line may also have a path prefix. Prefix is attached to the 
+#. path when locating the asset, but is not carried over to the copying 
+#. destination. Prefix is useful when you move your assets into a sub-directory 
+#. within deployment directory, but don’t want that sub-directory to appear in 
+#. user’s Grail. Leading and trailing slashes in prefix are optional.
 #
-## Section head may set a prefix for following asset paths as such:
-#>  (prefix: sub-dir-name)
-#. Prefix is useful when you move your assets into a sub-directory within 
-#. deployment directory. Instead of explicitly writing each asset path with 
-#. sub-directory, you may just set it once using such section head. Path prefix 
-#. is used to locate your assets, but is not carried over to user’s assets 
-#. directory. Leading and trailing slashes are optional.
+#. Flags and prefixes may be set at the beginning of the line (before asset 
+#. path) within individual pairs of parentheses:
+#>    (prefix: subdir)            dir/asset1
+#>    (flags: r)                  dir/asset*.sh   # Flag ‘r’ stands for regex
+#>    (prefix: subdir) (flags: r) asset*.cfg
 #
-## Section head may force the following lines to only be considered if detected 
-#. OS ($D__OS_FAMILY or $D__OS_DISTRO, see detect-os.pcd.sh for reference) 
-#. matches at least one of vertical bar-delimited options provided in section 
-#. head:
-#>  ( linux | wsl )
-#. Lines that are not restricted to a particular OS should appear before any 
-#. OS-restricting section head.
+## With regard to flags, a shorthand is provided, that works by *appending* 
+#. provided flags as opposed to overriding them as is normal:
+#>    (r)   ax[0-9]+    # Parentheses must not contain ‘:’
 #
-## For line to be interpreted as regular expression, it must begin with '(r)' 
-#. (sans quotes). Within a regex, only four special symbols are recognized: 
-#. '[', ']', '*', and '?'. (In fact, under the hood, the pattern is used as 
-#. '-path' primary of 'find' utility.)
+## Lines may be made exclusive to particular OS family or distro. List of them 
+#. may be provided by separating with vartical bars:
+#>    (os: debian)      asset1
+#>    (os: macos|bsd)   asset2
+#>    (os: all)         asset3    # ‘all’/‘any’ are reserved to denote any OS
 #
-## When an asset is listed as a regular path, its presence is enforced by the 
-#. framework, i.e., deployment will not work unless all such assets are present 
-#. into deployment’s asset directory. However, when an asset is listed as a 
-#. regular expression, its presence is not enforced at all.
+## NOTE: OS name is matched against $D__OS_FAMILY and $D__OS_DISTRO variables. 
+#. Single match against any of the two is sufficient. For reference and list of 
+#. supported OS’s, browse through OS adapters in lib/adapters.
 #
-## Whitespace is generally permitted between paths, words, and delimiters.
+## All parenthesized key-values, when they appear on a line without an asset 
+#. path, come into effect until the end of the file, or until another value is 
+#. assigned to the same key:
+#>    ( os : macos ) ( flags : r )      ## These will remain in effect until 
+#.                                      #. end of file or until overridden
+#
+## Hash/pound symbol (‘#’) comments out the rest of the line. A line may be 
+#. ‘glued’ to the next by terminating it with a backslash (‘\’):
+#>    (os: fedora) \      ## This is a single logical line
+#>    (prefix: subdir) \  #. spanning three actual lines
+#>    /dir/asset          #. (yes, even with comments attached like this)
+#
+## Whitespace rules in general are fairly permissive:
+#.  * Whitespace within paths is not touched, at the edges — trimmed
+#.  * Whitespace between keywords and separators is optional
+#
+## Within a key-value parentheses, a literal closing parenthesis must be 
+#. escaped with a backslash. Same goes for comment-creating hash/pound.
+#
+## If a line starts with a backslash, exactly one backslash will be removed at 
+#. the start. To end a line with a literal backslash, every literal backslash 
+#. *at the end of the line* must be doubled.
 #
 
 # Below are examples of regular assets:
@@ -57,11 +85,11 @@ file/in/subdir
 (r)     file[0-9].txt
 (r)     some/*.files
 
-(prefix:subdir) # Section head: lines below are stored in 'subdir' directory
+(prefix:subdir)   # Lines below are stored in 'subdir' directory
 one.f
 two.f
 
-(debian|bsd) # Section head: lines below are only considered on Debian or BSD
-(prefix:) # Removing prefix from above, as it is still in force
+(os: debian|bsd)  # Lines below are only considered on Debian or BSD
+(prefix:)         # Removing prefix from above, as it is still in force
         file-only-on-debian-or-bsd.ext
 (r)     dir/only/on/*.debian-or-bsd

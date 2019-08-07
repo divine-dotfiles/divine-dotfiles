@@ -2,9 +2,9 @@
 #:title:        Divine Bash routine: assemble
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    21
-#:revdate:      2019.07.22
-#:revremark:    New revisioning system
+#:revnumber:    22
+#:revdate:      2019.08.07
+#:revremark:    Major syntax/parsing rewrite for manifest-like files
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -285,8 +285,8 @@ d__scan_for_divinefiles()
 
   # Storage variables
   local divinefile_path
-  local line chunks chunk
-  local left_part priority mode list pkgmgr altlist
+  local i line chunks chunk
+  local priority flags list pkgmgr altlist
   local pkg_counter=0
 
   # Iterate over given directories
@@ -298,48 +298,35 @@ d__scan_for_divinefiles()
     # Iterate over every Divinefile in that deployments dir
     while IFS= read -r -d $'\0' divinefile_path; do
 
-      # Check if Divinefile is a readable file
-      [ -r "$divinefile_path" -a -f "$divinefile_path" ] || continue
+      # Parse this Divinefile (phase 1)
+      d__process_manifest "$divinefile_path"
+
+      for (( i=0; i<${#D__MANIFEST_LINES[@]}; i++ )); do
+        line="${D__MANIFEST_LINES[$i]}"
+        priority="${D__MANIFEST_LINE_PRIORITIES[$i]}"
+        flags="${D__MANIFEST_LINE_FLAGS[$i]}"
+
+        printf '\n#%s: |%s|\n' "$i" "$line"
+        [ -n "$priority" ] && printf '  priority: |%s|\n' "$priority"
+        [ -n "$flags" ]    && printf '  flags: |%s|\n' "$flags"
+      done
     
-      # Iterate over lines in each Divinefile
-      while IFS='' read -u 10 line || [ -n "$line" ]; do
+      # Iterate over lines in this Divinefile
+      for (( i=0; i<${#D__MANIFEST_LINES[@]}; i++ )); do
+
+        # Parse this Divinefile (phase 2)
+
+        # Extract line itself, its priority, and flags
+        line="${D__MANIFEST_LINES[$i]}"
+        priority="${D__MANIFEST_LINE_PRIORITIES[$i]}"
+        flags="${D__MANIFEST_LINE_FLAGS[$i]}"
 
         # Set empty defaults for the line
-        left_part= priority= mode= list= pkgmgr= altlist=
-
-        # Remove comments, trim whitespace
-        line="$( dtrim -c -- "$line" )"
-
-        # Empty line — continue
-        [ -n "$line" ] || continue
-
-        # Process priority if it is present to the left of ‘)’
-        if [[ $line == *')'* ]]; then
-
-          # Split line on first occurrence of ‘)’
-          IFS=')' read -r left_part line <<<"$line"
-
-          # Split left part on whitespace
-          read -r -a chunks <<<"$left_part"
-          priority="${chunks[0]}"
-          mode="${chunks[1]}"
-
-          # Remove leading zeroes from priority, if any
-          priority="$( sed 's/^0*//' <<<"$priority" )"
-
-          # Trim the rest of the line
-          line="$( dtrim -- "$line" )"
-
-        fi
-
-        # Detect whether priority is acceptable
-        [[ $priority =~ ^[0-9]+$ ]] || priority="$D__CONST_DEF_PRIORITY"
-
-        # Detect whether mode is acceptable
-        [[ $mode =~ ^[airc]+$ ]] || mode=
+        list= pkgmgr= altlist=
 
         # Split remaining line by vertical bars
         IFS='|' read -r -a chunks <<<"$line"
+
         # First chunk is the default list
         list="${chunks[0]}"; chunks=("${chunks[@]:1}")
 
@@ -353,15 +340,20 @@ d__scan_for_divinefiles()
           IFS=':' read -r pkgmgr altlist <<<"$chunk"
 
           # Trim package manager list
-          pkgmgr="$( dtrim -- "$pkgmgr" )"
+          read -r pkgmgr <<<"$pkgmgr"
 
           # Ignore empty package manager names
           [ -n "$pkgmgr" ] || continue
 
           # If it matches $D__OS_PKGMGR (case insensitively), use the alt list
-          if [[ $D__OS_PKGMGR == $pkgmgr ]]; then
-            list="$( dtrim -- "$altlist" )"
-            break  # First match wins
+          if [[ $D__OS_PKGMGR = $pkgmgr ]]; then
+
+            # Substitute list for alt-list
+            list="$altlist"
+
+            # First match wins
+            break
+
           fi
 
         # Done iterating over remaining chunks of the line
@@ -369,6 +361,7 @@ d__scan_for_divinefiles()
 
         # Split list by whitespace (in case there are >1 pkg on one line)
         read -r -a chunks <<<"$list"
+        
         # Iterate over package names
         for chunk in "${chunks[@]}"; do
 
@@ -387,11 +380,11 @@ d__scan_for_divinefiles()
           # Add current priority to task queue
           D__WORKLOAD["$priority"]='taken'
 
-          # If some mode is enabled, prefix it
-          if [ -n "$mode" ]; then
-            chunk="$mode $chunk"
+          # If some flags are set, prefix them
+          if [ -n "$flags" ]; then
+            chunk="$flags $chunk"
           else
-            # ‘---’ is a bogus mode, it will just be ignored
+            # ‘---’ is a bogus flags, it will just be ignored
             chunk="--- $chunk"
           fi
 
@@ -401,8 +394,8 @@ d__scan_for_divinefiles()
         # Done iterating over package names
         done
 
-      # Done iterating over lines in Divinefile 
-      done 10<"$divinefile_path"
+      # Done iterating over lines in this Divinefile
+      done
 
     # Done iterating over every Divinefile in that deployments dir
     done < <( find -L "$dpl_dir_path" -mindepth 1 -maxdepth 14 \

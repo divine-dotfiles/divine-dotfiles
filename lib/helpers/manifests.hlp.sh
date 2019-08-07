@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: manifests
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    3
-#:revdate:      2019.07.22
-#:revremark:    New revisioning system
+#:revnumber:    4
+#:revdate:      2019.08.07
+#:revremark:    Major syntax/parsing rewrite for manifest-like files
 #:created_at:   2019.05.30
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -299,21 +299,32 @@ d__process_all_asset_manifests_in_dpl_dirs()
 
 #>  d__process_manifest PATH
 #
-## Processes manifest file at PATH and populates two global arrays with results
+## Interprets single provided path as manifest file. Parses the file, returns 
+#. results by populating global arrays. Each array is emptied out before the
+#. manifest file is touched.
+#
+## Supported types of manifests:
+#.  * ‘*.dpl.mnf’     - Divine deployment asset manifest
+#.  * ‘*.dpl.que’     - Divine deployment queue manifest
+#.  * ‘Divinefile’    - Special kind of Divine deployment for handling system 
+#.                      packages. Lines of Divinefile are not parsed beyond 
+#.                      key-values and comments.
 #
 ## Modifies in the global scope:
-#.  $D__MANIFEST_LINES         - (array) Non-empty lines from manifest file 
+#.  $D__MANIFEST_LINES            - (array) Non-empty lines from manifest file 
 #.                                  that are relavant for the current OS. Each 
 #.                                  line is trimmed of whitespace on both ends.
-#.  $D__MANIFEST_LINE_FLAGS    - (array) For each extracted line, this array 
+#.  $D__MANIFEST_LINE_FLAGS       - (array) For each extracted line, this array 
 #.                                  will contain its char flags as a string at 
 #.                                  the same index
-#.  $D__MANIFEST_LINE_PREFIXES - (array) For each extracted line, this array 
+#.  $D__MANIFEST_LINE_PREFIXES    - (array) For each extracted line, this array 
 #.                                  will contain its prefix at the same index
+#.  $D__MANIFEST_LINE_PRIORITIES  - (array) For each extracted line, this array 
+#.                                  will contain its priority at the same index
 #
 ## Returns:
-#.  0 - Manifest processed, arrays populated
-#.  1 - Manifest file could not be accessed
+#.  0 - Manifest processed, arrays now represent its relevant content
+#.  1 - Manifest file could not be accessed, arrays are empty
 #
 d__process_manifest()
 {
@@ -321,6 +332,7 @@ d__process_manifest()
   D__MANIFEST_LINES=()
   D__MANIFEST_LINE_FLAGS=()
   D__MANIFEST_LINE_PREFIXES=()
+  D__MANIFEST_LINE_PRIORITIES=()
 
   # Extract path
   local mnf_filepath="$1"; shift
@@ -329,143 +341,339 @@ d__process_manifest()
   [ -r "$mnf_filepath" -a -f "$mnf_filepath" ] || return 1
 
   # Storage variables
-  local line chunks chunk tmp counter=0
-  local prefix= flags=
-  local keep_globbing=true
+  local line_from_file line_continuation=false
+  local buffer buffer_backup
+  local chunk tmp tmp_l tmp_r key value value_array
+  local i x y z
+
+  # Status variables
+  local ongoing_relevance ongoing_flags ongoing_prefix ongoing_priority
+  local current_relevance current_flags current_prefix current_priority
+
+  # Initial (default) statuses
+  ongoing_relevance=true
+  ongoing_flags=
+  ongoing_prefix=
+  ongoing_priority="$D__CONST_DEF_PRIORITY"
 
   # Store current case sensitivity setting, then turn it off
   local restore_nocasematch="$( shopt -p nocasematch )"
   shopt -s nocasematch
 
-  # Iterate over lines in manifest file
-  while IFS='' read -r line || [ -n "$line" ]; do
+  # Iterate over lines in manifest file (strip whitespace on both ends)
+  while read -r line_from_file || [ -n "$line_from_file" ]; do
 
-    # Remove comments, then remove whitespace on both ends
-    line="$( sed \
-      -e 's/[#].*$//' \
-      -e 's|//.*$||' \
-      -e 's/^[[:space:]]*//' \
-      -e 's/[[:space:]]*$//' \
-      <<<"$line" \
-      )"
-    
-    # Quick exit for empty lines
-    [ -n "$line" ] || continue
+    # Check if line is empty or commented
+    if [ -z "$line_from_file" ] || [[ $line_from_file = \#* ]]; then
 
-    # Check if current line is a title line
-    if [[ $line = \(*\) ]]; then
+      # Check if arrived with or without line continuation
+      if [ "$line_continuation" = true ]; then
 
-      # Strip parentheses
-      line="${line:1:${#line}-2}"
+        # Line continuation ends here
+        line_continuation=false
 
-      # Check if content of parentheses sets a prefix
-      if [[ $line =~ ^\ *prefix\ *: ]]; then
+        ## If there is any buffer to speak of (from previous lines), use it in 
+        #. current parsing cycle, otherwise, just go to next line
+        [ -n "$buffer" ] || continue
 
-        # Extract prefix
-        IFS=':' read -r tmp prefix <<<"$line"
-
-        # Strip whitespace on both ends
-        prefix="$( sed \
-          -e 's/^[[:space:]]*//' \
-          -e 's/[[:space:]]*$//' \
-          <<<"$prefix" \
-          )"
-        
-      # Otherwise, treat content of parentheses as list of applicable OS’s
       else
 
-        # Split content of parentheses into vertical bar-separated chunks
-        IFS='|' read -r -a chunks <<<"$line"
+        # No line continuation: just skip
+        continue
 
-        # Set default for $keep_globbing
-        keep_globbing=false
-
-        # Iterate over vertical bar-separated chunks of title line
-        for chunk in "${chunks[@]}"; do
-
-          # Check if detected OS matches current chunk
-          if [[ $chunk =~ ^\ *$D__OS_FAMILY\ *$ ]] \
-            || [[ $chunk =~ ^\ *$D__OS_DISTRO\ *$ ]]
-          then
-
-            # Flip flag and stop further chunk processing
-            keep_globbing=true
-            break
-
-          fi
-        
-        # Done iterating over vertical bar-separated chunks of title line
-        done
-      
       fi
-
-      # For title lines, no further processing
-      continue
-
-    fi
-
-    # Check whether to proceed with globbing
-    $keep_globbing || continue
-
-    # Set flags to empty string
-    flags=
-
-    ## If line starts with escaped opening parenthesis or escaped escape char, 
-    #. strip one escape char. If line starts with regular opening parenthesis 
-    #. and contains closing one, extract flags from within.
-    #
-    if [[ $line = \\\(* ]]; then line="${line:1}"
-    elif [[ $line = \\\\* ]]; then line="${line:1}"
-    elif [[ $line = \(*\)* ]]; then
-
-      # Strip opening parenthesis
-      line="${line:1}"
-
-      # Break the line on first occurrence of closing parenthesis
-      IFS=')' read -r flags line <<<"$line"
-
-    fi
-
-    # Strip whitespace from both ends of line
-    line="$( sed \
-      -e 's/^[[:space:]]*//' \
-      -e 's/[[:space:]]*$//' \
-      <<<"$line" \
-      )"
-    
-    # Check if there is a line to speak of
-    if [ -n "$line" ]; then
-
-      # Add to global array
-      D__MANIFEST_LINES[$counter]="$line"
 
     else
 
-      # Continue to next line
+      # Line is not empty/commented
+
+      # Check if arrived with or without line continuation
+      if [ "$line_continuation" = true ]; then
+
+        # Line continuation ends here
+        line_continuation=false
+
+        # Append to buffer
+        buffer+="$line_from_file"
+
+      else
+
+        # No line continuation
+
+        # Populate buffer
+        buffer="$line_from_file"
+
+        # Inherit status variables for this line
+        current_relevance="$ongoing_relevance"
+        current_flags="$ongoing_flags"
+        current_prefix="$ongoing_prefix"
+        current_priority="$ongoing_priority"
+
+      fi
+
+    fi
+
+    # Check if remaining line contains comment symbol
+    if [[ $buffer = *\#* ]]; then
+
+      # Save current buffer in case this is not really a commented line
+      buffer_backup="$buffer"
+
+      # Break line on first occurence of comment symbol
+      IFS='#' read -r chunk tmp <<<"$buffer"
+
+      # Repeat until last character before split is not ‘\’
+      while [[ chunk = *\\ ]]; do
+
+        # Check if right part contains another comment symbol
+        if [[ $tmp = *\#* ]]; then
+
+          # Re-split right part on comment symbol
+          IFS='#' read -r tmp_l tmp_r <<<"$tmp"
+
+          # Re-attach amputated parts
+          chunk="${chunk:0:${#chunk}-1}#$tmp_l"
+          tmp="$tmp_r"
+        
+        else
+
+          # Not a proper commented line: restore original buffer and break
+          chunk="$buffer_backup"
+          break
+        
+        fi
+
+      # Done repeating until last character before split is not ‘\’
+      done
+
+      # Update buffer with non-commented part
+      buffer="$chunk"
+
+    # Done checking for comment symbol
+    fi
+
+    ## Repeat until line no longer starts with opening parenthesis and contains 
+    #. closing one
+    while [[ $buffer = \(*\)* ]]; do
+
+      # Save current buffer in case this is not really a key-value
+      buffer_backup="$buffer"
+
+      # Shift away opening parenthesis
+      buffer="${buffer:1:${#buffer}}"
+
+      # Break line on first occurence of closing parenthesis
+      IFS=')' read -r chunk tmp <<<"$buffer"
+
+      # Repeat until last character before split is not ‘\’
+      while [[ chunk = *\\ ]]; do
+
+        # Check if right part contains another closing parenthesis
+        if [[ $tmp = *\)* ]]; then
+
+          # Re-split right part on closing parenthesis
+          IFS=')' read -r tmp_l tmp_r <<<"$tmp"
+
+          # Re-attach amputated parts
+          chunk="${chunk:0:${#chunk}-1})$tmp_l"
+          tmp="$tmp_r"
+        
+        else
+
+          # Not a proper key-value: restore original buffer and break loops
+          buffer="$buffer_backup"
+          break 2
+        
+        fi
+
+      # Done repeating until last character before split is not ‘\’
+      done
+
+      # Trim whitespace on both edges
+      read -r chunk <<<"$chunk"
+      read -r tmp <<<"$tmp"
+
+      # Update buffer
+      buffer="$tmp"
+
+      # If empty parentheses, discard key-value completely
+      [ -z "$chunk" ] && continue
+
+      # Check if parentheses contain key-value separator
+      if [[ $chunk = *:* ]]; then
+
+        # Split on first occurrence of separator
+        IFS=: read -r key value <<<"$chunk"
+
+        # Clear whitespace from edges of key and value
+        read -r key <<<"$key"
+        read -r value <<<"$value"
+
+        # Check key
+        case $key in
+          os)
+            # If value is empty, all OS’s are allowed
+            if [ -z "$value" ]; then current_relevance=true; continue; fi
+
+            # If value is either ‘all’ or ‘any’, again, all OS’s are allowed
+            case $value in all|any) current_relevance=true; continue;; esac
+
+            # Read value as vertical bar-separated list of relevant OS’s
+            IFS='|' read -r -a value_array <<<"$value"
+
+            # Set default value
+            current_relevance=false
+
+            # Iterate over list of relevant OS’s
+            for value in "${value_array[@]}"; do
+
+              # Clear whitespace from edges of OS name
+              read -r value <<<"$value"
+
+              # Check if current OS name from the list matches detected OS
+              if [[ $value = $D__OS_FAMILY || $value = $D__OS_DISTRO ]]; then
+
+                # Flip flag and stop further list processing
+                current_relevance=true
+                break
+
+              fi
+
+            # Done iterating over list of relevant OS’s
+            done
+            ;;
+          flags)
+            # Remove all whitespace from within the value
+            value="${value//[[:space:]]/}"
+            # Replace current flags
+            current_flags="$value"
+            ;;
+          prefix)
+            # Replace current prefix
+            current_prefix="$value"
+            ;;
+          priority)
+            # Check if provided priority is a number
+            if [[ $value =~ ^[0-9]+$ ]]; then
+
+              # Replace current priority with provided one
+              current_priority="$value"
+
+            else
+
+              # Priority is not a valid number: assign default value
+              current_priority="$D__CONST_DEF_PRIORITY"
+            
+            fi
+            ;;
+          *)
+            # Unsupported key: continue to next chunk of the line
+            continue
+            ;;
+        esac
+
+      else
+
+        # Key-value parentheses do not contain a separator (‘:’)
+
+        ## Special case: without separator, interpret key as a set of character 
+        #. flags that are to be *appended* to current list of flags
+        current_flags+="$chunk"
+
+      fi
+
+    ## Done repeating until line no longer starts with opening parenthesis and 
+    #. contains closing one
+    done
+
+    # Trim whitespace on both edges of remaining buffer
+    read -r buffer <<<"$buffer"
+
+    # Check if remaining buffer ends with ‘\’
+    if [[ $buffer = *\\ ]]; then
+
+      # Perform calculations
+      i="$(( ${#buffer} - 2 ))"; x=1
+      while (( $i )); do
+        if [[ ${buffer:$i:$i+1} = \\ ]]; then ((++x)); ((--i)); else break; fi
+      done
+      y="$(( $x/2 ))"; z="$(( $x - $y*2 ))"
+
+      # Replace terminating backslashes
+      buffer="${buffer:0:${#buffer}-$x}"
+      while (( $y )); do buffer+='\'; ((--y)); done
+
+      # Check if there is an odd number of terminating backslashes
+      if (( $z )); then
+
+        # (Re-)enable line continuation
+        line_continuation=true
+
+        # Go to next line
+        continue
+      
+      fi
+
+    fi
+
+    # Check if the line proper starts with an escape character (‘\’)
+    if [[ $buffer = \\* ]]; then
+
+      # Remove exactly one escape character
+      buffer="${buffer:1:${#buffer}}"
+
+    fi
+
+    # Check if there is any line remaining to speak of
+    if [ -n "$buffer" ]; then
+
+      # There is line remaining
+
+      # Proceed with current line only if it is currently relevant
+      [ "$current_relevance" = true ] || continue
+
+    else
+
+      # No line remaining: this line’s key-values become ongoing
+      ongoing_relevance="$current_relevance"
+      ongoing_flags="$current_flags"
+      ongoing_prefix="$current_prefix"
+      ongoing_priority="$current_priority"
+
+      # Go to next line
       continue
 
     fi
 
-    # Strip whitespace from both ends of flags, same with slashes
-    [ -n "$flags" ] && flags="$( sed \
-      -e 's/^[[:space:]]*//' \
-      -e 's/[[:space:]]*$//' \
-      -e 's/^\/*//' \
-      -e 's/\/*$//' \
-      <<<"$flags" \
-      )"
+    # Finally, add this line and it’s parameters to global array
+    D__MANIFEST_LINES+=( "$buffer" )
+    D__MANIFEST_LINE_FLAGS+=( "$current_flags" )
+    D__MANIFEST_LINE_PREFIXES+=( "$current_prefix" )
+    D__MANIFEST_LINE_PRIORITIES+=( "$current_priority" )
 
-    # If still some flags left, add them to global array
-    [ -n "$flags" ] && D__MANIFEST_LINE_FLAGS[$counter]="$flags"
-
-    # Also, prefixes
-    [ -n "$prefix" ] && D__MANIFEST_LINE_PREFIXES[$counter]="$prefix"
-
-    # Increment counter for next line
-    (( ++counter ))
+    # Clear buffer
+    buffer=
 
   # Done iterating over lines in manifest file
   done <"$mnf_filepath"
+
+  ## Check if last line was a relevant non-empty orphan (happens when file ends 
+  #. with ‘\’)
+  if [ "$line_continuation" = true \
+    -a -n "$buffer" \
+    -a "$current_relevance" = true ]
+  then
+
+    ## Last line needs to be processed. Key-values and comments are both 
+    #. already processed, and status variables remain in relevant state
+    
+    # Add this line and it’s parameters to global array
+    D__MANIFEST_LINES+=( "$buffer" )
+    D__MANIFEST_LINE_FLAGS+=( "$current_flags" )
+    D__MANIFEST_LINE_PREFIXES+=( "$current_prefix" )
+    D__MANIFEST_LINE_PRIORITIES+=( "$current_priority" )
+
+  fi
 
   # Restore case sensitivity
   eval "$restore_nocasematch"
