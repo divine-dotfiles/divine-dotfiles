@@ -3,9 +3,9 @@
 #:kind:         func(script)
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    5
+#:revnumber:    6
 #:revdate:      2019.08.07
-#:revremark:    Grand removal of non-ASCII chars
+#:revremark:    Fix stalling tests on BSD systems
 #:created_at:   2018.12.20
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -109,7 +109,7 @@ dtrim()
     # Dequote
     if $dequote; then
       if [[ $string == \'*\' ]]; then
-        if sed -r &>/dev/null; then
+        if sed -r <<<'' &>/dev/null; then
           string="$( printf '%s\n' "$string" \
             | sed -n -r -e "s/^'(.*)'$/\1/p" )"
         else
@@ -117,7 +117,7 @@ dtrim()
             | sed -n -E -e "s/^'(.*)'$/\1/p" )"
         fi
       elif [[ $string == \"*\" ]]; then
-        if sed -r &>/dev/null; then
+        if sed -r <<<'' &>/dev/null; then
           string="$( printf '%s\n' "$string" \
             | sed -n -r -e 's/^"(.*)"$/\1/p' )"
         else
