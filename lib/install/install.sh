@@ -2,9 +2,9 @@
 #:title:        Divine.dotfiles fmwk install script
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    46
-#:revdate:      2019.08.05
-#:revremark:    Better wording on optional prompts
+#:revnumber:    47
+#:revdate:      2019.08.07
+#:revremark:    Touch up fmwk (un)installation output
 #:created_at:   2019.07.22
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -612,8 +612,8 @@ d__report_summary()
 
   # Print plaque
   cat <<EOF
-${REVERSE}- D i v i n e . d o t f i l e s -${NORMAL}
-     ${GREEN}${REVERSE} i n s t a l l e d ${NORMAL}
+${REVERSE}- ${BOLD}D i v i n e . d o t f i l e s${NORMAL}${REVERSE} -${NORMAL}
+     ${GREEN}${REVERSE}${BOLD} i n s t a l l e d ${NORMAL}
              ${GREEN}${REVERSE}-_-${NORMAL}
 
 EOF
@@ -626,7 +626,7 @@ EOF
     'For help, try:' \
     "    ${BOLD}https://github.com/no-simpler/divine-dotfiles${NORMAL}" \
     "    …or $BOLD$D_FMWK_DIR/README.adoc$NORMAL" \
-    "    …or $BOLD$main_cmd --help$NORMAL" \
+    "    …or $ $BOLD$main_cmd --help$NORMAL" \
     '' \
     "Your personal deployments and assets go into Grail directory at:" \
     "    $BOLD$D_FMWK_DIR/grail$NORMAL" \

@@ -2,9 +2,9 @@
 #:title:        Divine.dotfiles fmwk uninstall script
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    48
-#:revdate:      2019.08.05
-#:revremark:    Tiny wording improvement
+#:revnumber:    49
+#:revdate:      2019.08.07
+#:revremark:    Touch up fmwk (un)installation output
 #:created_at:   2019.07.22
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -732,14 +732,16 @@ d__uninstall_shortcut()
   if [ $? -eq 0 ]; then
 
     # Announce success, set status, return
-    dprint_success 'Successfully removed shortcut shell command'
+    dprint_success 'Successfully removed shortcut shell command at:' \
+      "    $D_SHORTCUT_FILEPATH"
     D_STATUS_SHORTCUT=true
     return 0
 
   else
   
     # Announce and return failure
-    dprint_failure 'Failed to remove shortcut shell command'
+    dprint_failure 'Failed to remove shortcut shell command at:' \
+      "    $D_SHORTCUT_FILEPATH"
     D_STATUS_SHORTCUT=error
     return 1
 
@@ -894,8 +896,8 @@ d__report_summary()
 
       # Print plaque
       cat <<EOF
-${REVERSE}- D i v i n e . d o t f i l e s -${NORMAL}
-   ${GREEN}${REVERSE} u n i n s t a l l e d ${NORMAL}
+${REVERSE}- ${BOLD}D i v i n e . d o t f i l e s${NORMAL}${REVERSE} -${NORMAL}
+   ${GREEN}${REVERSE}${BOLD} u n i n s t a l l e d ${NORMAL}
              ${GREEN}${REVERSE}x_x${NORMAL}
 
 EOF
