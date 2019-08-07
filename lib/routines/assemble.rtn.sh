@@ -2,9 +2,9 @@
 #:title:        Divine Bash routine: assemble
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    22
+#:revnumber:    23
 #:revdate:      2019.08.07
-#:revremark:    Major syntax/parsing rewrite for manifest-like files
+#:revremark:    Remove forgotten debug code
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -300,17 +300,7 @@ d__scan_for_divinefiles()
 
       # Parse this Divinefile (phase 1)
       d__process_manifest "$divinefile_path"
-
-      for (( i=0; i<${#D__MANIFEST_LINES[@]}; i++ )); do
-        line="${D__MANIFEST_LINES[$i]}"
-        priority="${D__MANIFEST_LINE_PRIORITIES[$i]}"
-        flags="${D__MANIFEST_LINE_FLAGS[$i]}"
-
-        printf '\n#%s: |%s|\n' "$i" "$line"
-        [ -n "$priority" ] && printf '  priority: |%s|\n' "$priority"
-        [ -n "$flags" ]    && printf '  flags: |%s|\n' "$flags"
-      done
-    
+   
       # Iterate over lines in this Divinefile
       for (( i=0; i<${#D__MANIFEST_LINES[@]}; i++ )); do
 
