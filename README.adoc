@@ -13,35 +13,50 @@ image::lib/img/divine-dotfiles-plaque.png[Divine.dotfiles,align="center"]
 New machine or new OS?
 Set it up with a single `*di install --yes*`.
 
-NOTE: `di` stands for **d**ivine **i**ntervention
+[NOTE]
+--
+`di` stands for **d**ivine **i**ntervention.
 
-_Divine.ditfiles_ lets you keep your set-up scripts as isolated *deployments* that are installed/removed in defined sequence.
-Here is what a deployment file may look like:
+Every invocation of the framework is called _intervention_.
+Live with it.
+--
+
+_Divine.ditfiles_ lets you keep your set-up routines as isolated *deployments* that are installed/removed in defined sequence.
+
+## In a nutshell
+
+### Example deployment
+
+Let's scratch the surface.
+Here's what a deployment file may look like:
 
 [source,bash]
 ----
 # grail/dpls/example.dpl.sh
 
-# Function that checks whether this deployment is installed
 d_dpl_check() {
   [ -e ~/bin/cmd ] && return 1 || return 2
 }
 
-# Function that installs this deployment
 d_dpl_install() {
   cat >~/bin/cmd <<<'echo Divine.dotfiles rocks' && chmod +x ~/bin/cmd
 }
 
-# Function that removes this deployment
 d_dpl_remove() {
   rm -f -- ~/bin/cmd
 }
 ----
 
-And here is how working with it looks like:
+And here is what working with it looks like:
 
 [#divine-dotfiles-example-1]
 image::lib/img/divine-dotfiles-example-1.gif[Divine.dotfiles example 1,align="center"]
+
+Dead simple, right?
+You wouldn’t need a framework for that.
+But there’s more, I promise:
+
+
 
 ## Installing and removing
 
