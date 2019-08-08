@@ -20,7 +20,7 @@ Here is what a deployment file may look like:
 
 [source,bash]
 ----
-# dpl/example.dpl.sh
+# grail/dpls/example.dpl.sh
 
 # Function that checks whether this deployment is installed
 d_dpl_check() {
