@@ -2,9 +2,9 @@
 #:title:        Divine.dotfiles template OS distro adapter
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    14
-#:revdate:      2019.08.07
-#:revremark:    Grand removal of non-ASCII chars
+#:revnumber:    15
+#:revdate:      2019.08.08
+#:revremark:    Rely on global  instead of local 
 #:created_at:   2019.06.04
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -26,6 +26,8 @@
 ## Expect 'nocasematch' Bash option to be enabled by caller of this function
 #
 ## Global variables made available to this function (all read-only):
+#.  $D__OSTYPE    - Current content of $OSTYPE system variable or, if it is 
+#.                  empty, captured output of $( uname -s 2>/dev/null )
 #.  $D__OS_FAMILY - One-word description of current OS family
 #
 ## Local variables that must be set in case of successful match (no need to 

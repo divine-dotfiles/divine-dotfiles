@@ -2,9 +2,9 @@
 #:title:        Divine.dotfiles WSL adapter
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    12
-#:revdate:      2019.08.07
-#:revremark:    Grand removal of non-ASCII chars
+#:revnumber:    13
+#:revdate:      2019.08.08
+#:revremark:    Rely on global  instead of local 
 #:created_at:   2019.06.04
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -19,7 +19,7 @@
 # Implement detection mechanism
 d__adapter_detect_os_family()
 {
-  [[ $d__ostype == linux* ]] \
+  [[ $D__OSTYPE = linux* ]] \
     && grep -Fqi -e microsoft -e wsl /proc/version 2>/dev/null \
     && d__os_family=wsl
 }

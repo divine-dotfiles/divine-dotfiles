@@ -2,9 +2,9 @@
 #:title:        Divine.dotfiles template OS family adapter
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    11
-#:revdate:      2019.08.07
-#:revremark:    Grand removal of non-ASCII chars
+#:revnumber:    12
+#:revdate:      2019.08.08
+#:revremark:    Rely on global  instead of local 
 #:created_at:   2019.06.04
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -25,8 +25,8 @@
 #
 ## Expect 'nocasematch' Bash option to be enabled by caller of this function
 #
-## Local variables made available to this function (all read-only):
-#.  $d__ostype    - Current content of $OSTYPE system variable or, if it is 
+## Global variables made available to this function (all read-only):
+#.  $D__OSTYPE    - Current content of $OSTYPE system variable or, if it is 
 #.                  empty, captured output of $( uname -s 2>/dev/null )
 #
 ## Local variables that must be set in case of successful match (no need to 
@@ -47,7 +47,7 @@ d__adapter_detect_os_family()
 {
   # Below is example implementation for macos family of operating systems
 
-  [[ $d__ostype == darwin* ]] && d__os_family=macos
+  [[ $D__OSTYPE = darwin* ]] && d__os_family=macos
 }
 
 #>  d__adapter_override_dpl_targets_for_os_family

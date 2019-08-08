@@ -3,9 +3,9 @@
 #:kind:         global_var,func(script)
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    4
-#:revdate:      2019.08.07
-#:revremark:    Grand removal of non-ASCII chars
+#:revnumber:    5
+#:revdate:      2019.08.08
+#:revremark:    Rely on global  instead of local 
 #:created_at:   2019.03.15
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -89,6 +89,9 @@ d__detect_os_family()
     local -r d__ostype="$( uname -s 2>/dev/null )"
 
   fi
+
+  # Copy this local variable into global scope for distro detection
+  readonly D__OSTYPE="$d__ostype"
 
   # Iterate over OS family adapter files in their respective directory
   while IFS= read -r -d $'\0' adapter_filepath; do
