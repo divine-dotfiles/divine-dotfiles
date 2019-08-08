@@ -2,9 +2,9 @@
 #:title:        Divine.dotfiles fmwk install script
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    48
-#:revdate:      2019.08.07
-#:revremark:    Grand removal of non-ASCII chars
+#:revnumber:    49
+#:revdate:      2019.08.08
+#:revremark:    Improve colorization fallback; add it to fmwk (un)installation
 #:created_at:   2019.07.22
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -35,18 +35,31 @@ d__main()
 
 d__declare_global_colors()
 {
-  # Colorize output (shamelessly stolen off oh-my-zsh)
-  local num_of_colors
-  if type -P tput &>/dev/null; then num_of_colors=$( tput colors ); fi
-  if [ -t 1 ] && [ -n "$num_of_colors" ] && [ "$num_of_colors" -ge 8 ]; then
-    RED="$( tput setaf 1 )"
-    GREEN="$( tput setaf 2 )"
-    YELLOW="$( tput setaf 3 )"
-    CYAN="$( tput setaf 6 )"
-    WHITE="$( tput setaf 7 )"
-    BOLD="$( tput bold )"
-    REVERSE="$( tput rev )"
-    NORMAL="$( tput sgr0 )"
+  # Colorize output (based on similar code in oh-my-zsh installation script)
+  if [ -t 1 ]; then
+    if type -P tput &>/dev/null \
+      && tput sgr0 &>/dev/null \
+      && [ -n "$( tput colors )" ] \
+      && [ "$( tput colors )" -ge 8 ]
+    then
+      RED="$( tput setaf 1 )"
+      GREEN="$( tput setaf 2 )"
+      YELLOW="$( tput setaf 3 )"
+      CYAN="$( tput setaf 6 )"
+      WHITE="$( tput setaf 7 )"
+      BOLD="$( tput bold )"
+      REVERSE="$( tput rev )"
+      NORMAL="$( tput sgr0 )"
+    else
+      RED="$( printf "\033[31m" )"
+      GREEN="$( printf "\033[32m" )"
+      YELLOW="$( printf "\033[33m" )"
+      CYAN="$( printf "\033[36m" )"
+      WHITE="$( printf "\033[97m" )"
+      BOLD="$( printf "\033[1m" )"
+      REVERSE="$( printf "\033[7m" )"
+      NORMAL="$( printf "\033[0m" )"
+    fi
   else
     RED=''
     GREEN=''

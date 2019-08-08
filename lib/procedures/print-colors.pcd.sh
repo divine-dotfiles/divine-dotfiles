@@ -3,9 +3,9 @@
 #:kind:         global_var
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    4
+#:revnumber:    5
 #:revdate:      2019.08.08
-#:revremark:    Add colorization fallback to escape sequences
+#:revremark:    Improve colorization fallback; add it to fmwk (un)installation
 #:created_at:   2018.12.20
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -51,16 +51,14 @@
 #
 d__declare_global_colors()
 {
-  # Check if tput utility is available
-  if type -P tput &>/dev/null; then
+  # Check if terminal is connected
+  if [ -t 1 ]; then
 
-    # Extract number of colors supported
-    local num_of_colors=$( tput colors )
-
-    # Check if tput is suitable for colorization
-    if tput sgr0 &>/dev/null \
-      [ -n "$num_of_colors" ] \
-      && [ "$num_of_colors" -ge 8 ]
+    # Terminal connected: check if tput can be used
+    if type -P tput &>/dev/null \
+      && tput sgr0 &>/dev/null \
+      && [ -n "$( tput colors )" ] \
+      && [ "$( tput colors )" -ge 8 ]
     then
 
       # tput is suitable: use it
@@ -75,11 +73,8 @@ d__declare_global_colors()
 
   else
 
-    # No tput at all, colorize with escape sequences
-    d__colorize_with_escseq && return 0 || return 1
-
-    # ...or, don't colorize at all
-    # d__do_not_colorize && return 2 || return 1
+    # Terminal not connected: don’t colorize
+    d__do_not_colorize && return 2 || return 1
 
   fi
 }
