@@ -50,7 +50,7 @@ Run the following single command in Terminal:
 
 [source,bash]
 ----
-bash -c "$(TMP=$(mktemp); URL=https://raw.github.com/no-simpler/divine-dotfiles/master/lib/install/install.sh; if curl --version &>/dev/null; then curl -fsSL $URL >$TMP; elif wget --version &>/dev/null; then wget -qO $TMP $URL; else printf "%s\n" "printf >&2 '\n==> Error: failed to detect neither curl nor wget\n'; exit 1"; fi && cat $TMP || printf "%s\n" "printf >&2 '\n==> Error: failed to download installation script\n'; exit 2")" bash
+bash -c 'TMP=$(mktemp); URL=https://raw.github.com/no-simpler/divine-dotfiles/master/lib/install/install.sh; if curl --version &>/dev/null; then curl -fsSL $URL >$TMP; elif wget --version &>/dev/null; then wget -qO $TMP $URL; else printf >&2 "\n==> Error: failed to detect neither curl nor wget\n"; rm -f $TMP; exit 1; fi && chmod +x $TMP && $TMP "$@" || { printf >&2 "\n==> Error: failed to download installation script\n"; rm -f $TMP; exit 2; }' bash
 ----
 
 NOTE: Installation is completely safe: it clones/downloads repository and creates one symlink.
@@ -62,7 +62,7 @@ Run the following single command in Terminal:
 
 [source,bash]
 ----
-bash -c "$(TMP=$(mktemp); URL=https://raw.github.com/no-simpler/divine-dotfiles/master/lib/uninstall/uninstall.sh; if curl --version &>/dev/null; then curl -fsSL $URL >$TMP; elif wget --version &>/dev/null; then wget -qO $TMP $URL; else printf "%s\n" "printf >&2 '\n==> Error: failed to detect neither curl nor wget\n'; exit 1"; fi && cat $TMP || printf "%s\n" "printf >&2 '\n==> Error: failed to download uninstallation script\n'; exit 2")" bash
+bash -c 'TMP=$(mktemp); URL=https://raw.github.com/no-simpler/divine-dotfiles/master/lib/uninstall/uninstall.sh; if curl --version &>/dev/null; then curl -fsSL $URL >$TMP; elif wget --version &>/dev/null; then wget -qO $TMP $URL; else printf >&2 "\n==> Error: failed to detect neither curl nor wget\n"; rm -f $TMP; exit 1; fi && chmod +x $TMP && $TMP "$@" || { printf >&2 "\n==> Error: failed to download uninstallation script\n"; rm -f $TMP; exit 2; }' bash
 ----
 
 NOTE: After asking for permission, this will erase entire installation directory, with all deployments in it.
