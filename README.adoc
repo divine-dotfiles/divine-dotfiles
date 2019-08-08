@@ -22,17 +22,17 @@ Here is what a deployment file may look like:
 ----
 # dpl/example.dpl.sh
 
-# Special function that checks whether this deployment is installed
+# Function that checks whether this deployment is installed
 d_dpl_check() {
-  if [ -e ~/bin/cmd ]; then return 1; else return 2; fi
+  [ -e ~/bin/cmd ] && return 1 || return 2
 }
 
-# Special function that installs this deployment
+# Function that installs this deployment
 d_dpl_install() {
-  printf 'echo Divine.dotfiles is cool\n' >~/bin/cmd && chmod +x ~/bin/cmd
+  cat >~/bin/cmd <<<'echo Divine.dotfiles rocks' && chmod +x ~/bin/cmd
 }
 
-# Special function that removes this deployment
+# Function that removes this deployment
 d_dpl_remove() {
   rm -f -- ~/bin/cmd
 }
@@ -40,7 +40,8 @@ d_dpl_remove() {
 
 And here is how working with it looks like:
 
-// TODO: Insert .gif illustration here
+[#divine-dotfiles-example-1]
+image::lib/img/divine-dotfiles-example-1.gif[Divine.dotfiles example 1,align="center"]
 
 ## Installing and removing
 
