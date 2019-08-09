@@ -63,14 +63,31 @@ But wait, there’s [.small]#_(hopefully)_# more.
 
 ### Framework features
 
-[horizontal]
-Divinefile:: Special deployment that maintains a stable set of system packages across machines and OS's
-Grail directory:: Store your deployments and assets (e.g., personal config files) in one place, which then, on a new machine, is easily plugged in from a repo or local dir
-Groups:: Split your deployment collection into groups, and operate on them individually
-Priorities:: Easily marshal your deployments in order, which is automatically reversed for uninstallation
-Stash:: Persistent key-value store for use within your deployments
-Queues:: Built-in mechanism for deployments that perform a series of similar tasks
-Third-party deployments:: Attach pre-made deployments from Github (such as our glorious https://github.com/no-simpler/divine-dpls-core[core bundle]) without polluting your precious Grail [.small]#_(heh)_#
+[header,cols="<.^1,<.^4",stripes=none]
+|===
+
+| *Divinefile*
+| Special deployment that maintains a stable set of system packages across machines and OS's
+
+| *Grail directory*
+| Store your deployments and assets (e.g., personal config files) in one place, which then, on a new machine, is easily plugged in from a repo or local dir
+
+| *Groups*
+| Split your deployment collection into groups, and operate on them individually
+
+| *Priorities*
+| Easily marshal your deployments in order, which is automatically reversed for uninstallation
+
+| *Stash*
+| Persistent key-value store for use within your deployments
+
+| *Queues*
+| Built-in mechanism for deployments that perform a series of similar tasks
+
+| *Third-party deployments*
+| Attach pre-made deployments from Github (such as our glorious https://github.com/no-simpler/divine-dpls-core[core bundle]) without polluting your precious Grail [.small]#_(heh)_#
+
+|===
 
 See?
 _Divine.dotfiles_ is so good, it should be illegal.
@@ -120,24 +137,45 @@ Oh, and it asks for your permission for everything.
 
 Add flavoring to your installation as such:
 
-[%header,cols="<.<1,<.<1",stripes=none]
+[header,cols="<.^1,<.^4",stripes=none]
 |===
 
-^.^|Prepend on the left
-^.^|Append on the right
+2+^.^h| Prepend on the left
 
-a|`*D_FMWK_DIR=_PATH_* bash -c '…`:: [.small]#Install framework within `*_PATH_*` instead of default `~/.divine`#
-`*D_SHORTCUT_NAME=_CMD_* bash -c '…`:: [.small]#Name shortcut shell command `*_CMD_*` instead of default `di`#
-`*D_SHORTCUT_DIR=_PATH_* bash -c '…`:: [.small]#Install shortcut shell command within `*_PATH_*` instead of choosing among directories on `$PATH`, as is default#
+| `*D_FMWK_DIR=_PATH_*`
+| Install framework within `*_PATH_*` instead of default `~/.divine`
 
-a|`…' bash *--yes*`:: [.small]#Install everything without prompts#
-`…' bash *--no*`:: [.small]#Install absolutely nothing#
-`…' bash *--framework-yes*`:: [.small]#Install framework without prompt#
-`…' bash *--framework-no*`:: [.small]#Install absolutely nothing#
-`…' bash *--shortcut-yes*`:: [.small]#Install shortcut shell command without prompt#
-`…' bash *--shortcut-no*`:: [.small]#Skip installing shortcut shell command without prompt#
-`…' bash *--verbose*`:: [.small]#Increase amount of output#
-`…' bash *--quiet*`:: [.small]#[.gray]##_(default)_## Decrease amount of output#
+| `*D_SHORTCUT_NAME=_CMD_*`
+| Name shortcut shell command `*_CMD_*` instead of default `di`
+
+| `*D_SHORTCUT_DIR=_PATH_*`
+| Install shortcut shell command within `*_PATH_*` instead of choosing among directories on `$PATH`, as is default
+
+2+^.^h| Append on the right
+
+| `*--yes*`
+| Install everything without prompts
+
+| `*--no*`
+| Install absolutely nothing
+
+| `*--framework-yes*`
+| Install framework without prompt
+
+| `*--framework-no*`
+| Install absolutely nothing (synonym of `--no`)
+
+| `*--shortcut-yes*`
+| Install shortcut shell command without prompt
+
+| `*--shortcut-no*`
+| Skip installing shortcut shell command without prompt
+
+| `*--verbose*`
+| Increase amount of output
+
+| `*--quiet*`
+| [.gray]##_(default)_## Decrease amount of output
 
 |===
 
@@ -156,23 +194,44 @@ NOTE: After asking for permission, this will back up your Grail directory and us
 
 Add flavoring to your uninstallation as such:
 
-[%header,cols="<.<,<.<",stripes=none]
+[header,cols="<.^1,<.^4",stripes=none]
 |===
 
-^.^|Prepend on the left
-^.^|Append on the right
+2+^.^h| Prepend on the left
 
-a|`*D_FMWK_DIR=_PATH_* bash -c '…`:: [.small]#Uninstall framework within `*_PATH_*` instead of default `~/.divine`#
+| `*D_FMWK_DIR=_PATH_*`
+| Uninstall framework within `*_PATH_*` instead of default `~/.divine`
 
-a|`…' bash *--yes*`:: [.small]#Uninstall everything without prompts#
-`…' bash *--no*`:: [.small]#Uninstall absolutely nothing#
-`…' bash *--utils-yes*`:: [.small]#Uninstall system packages installed by the framework (e.g., `git`) without prompt#
-`…' bash *--utils-no*`:: [.small]#Skip uninstalling system packages installed by the framework (e.g., `git`) without prompt#
-`…' bash *--backup-yes*`:: [.small]#[.gray]##_(default)_## Make backup of Grail directory and usage data without prompt#
-`…' bash *--backup-no*`:: [.small]#Do not make backup of Grail directory and usage data without prompt#
-`…' bash *--framework-yes*`:: [.small]#Erase framework directory without prompt#
-`…' bash *--framework-no*`:: [.small]#Uninstall absolutely nothing#
-`…' bash *--verbose*`:: [.small]#Increase amount of output#
-`…' bash *--quiet*`:: [.small]#[.gray]##_(default)_## Decrease amount of output#
+2+^.^h| Append on the right
+
+| `*--yes*`
+| Uninstall everything without prompts
+
+| `*--no*`
+| Uninstall absolutely nothing
+
+| `*--utils-yes*`
+| Uninstall system packages installed by the framework (e.g., `git`) without prompt
+
+| `*--utils-no*`
+| Skip uninstalling system packages installed by the framework (e.g., `git`) without prompt
+
+| `*--backup-yes*`
+| [.gray]##_(default)_## Make backup of Grail directory and usage data without prompt
+
+| `*--backup-no*`
+| Do not make backup of Grail directory and usage data without prompt
+
+| `*--framework-yes*`
+| Erase framework directory without prompt
+
+| `*--framework-no*`
+| Uninstall absolutely nothing (synonym of `--no`)
+
+| `*--verbose*`
+| Increase amount of output
+
+| `*--quiet*`
+| [.gray]##_(default)_## Decrease amount of output
 
 |===
