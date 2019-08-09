@@ -59,7 +59,7 @@ image::lib/img/divine-dotfiles-example-1.gif[Divine.dotfiles example 1,align="ce
 
 Dead simple, right?
 You wouldn’t need a framework for that.
-But wait, there’s [small]#_(hopefully)_# more.
+But wait, there’s [.small]#_(hopefully)_# more.
 
 ### Framework features
 
@@ -70,7 +70,7 @@ Groups:: Split your deployment collection into groups, and operate on them indiv
 Priorities:: Easily marshal your deployments in order, which is automatically reversed for uninstallation
 Stash:: Persistent key-value store for use within your deployments
 Queues:: Built-in mechanism for deployments that perform a series of similar tasks
-Third-party deployments:: Attach pre-made deployments from Github (such as our lovely https://github.com/no-simpler/divine-dpls-core[core bundle]) without polluting your precious Grail [small]#_(heh)_#
+Third-party deployments:: Attach pre-made deployments from Github (such as our glorious https://github.com/no-simpler/divine-dpls-core[core bundle]) without polluting your precious Grail [.small]#_(heh)_#
 
 See?
 _Divine.dotfiles_ is so good, it should be illegal.
@@ -95,12 +95,12 @@ Following OS distributions are openly supported:
 +
 NOTE: This list is incomplete; you can help by expanding it.
 
-* `bash` 3.2+ and either `curl` or `wget`
+* `bash 3.2+` and either `curl` or `wget`
 +
 [NOTE]
 --
 `git` is not a hard requirement, but it is not flaccid either.
-You can install _Divine.dotfiles_ without git.
+You can install _Divine.dotfiles_ without `git`.
 But then it will bug you to no end for it, and even go so far as auto-install it when you launch any routine with `--yes` option.
 --
 
@@ -120,24 +120,24 @@ Oh, and it asks for your permission for everything.
 
 Add flavoring to your installation as such:
 
-[%header,cols="<.<,<.<",stripes=none]
+[%header,cols="<.<1,<.<1",stripes=none]
 |===
 
 ^.^|Prepend on the left
 ^.^|Append on the right
 
-a|`#D_FMWK_DIR=*_PATH_*# [white]##bash -c '…##`:: [small]#Install framework within `*_PATH_*` instead of default `~/.divine`#
-`#D_SHORTCUT_NAME=*_CMD_*# [white]##bash -c '…##`:: [small]#Name shortcut shell command `*_CMD_*` instead of default `di`#
-`#D_SHORTCUT_DIR=*_PATH_*# [white]##bash -c '…##`:: [small]#Install shortcut shell command within `*_PATH_*` instead of choosing among directories on `$PATH`, as is default#
+a|`*D_FMWK_DIR=_PATH_* bash -c '…`:: [.small]#Install framework within `*_PATH_*` instead of default `~/.divine`#
+`*D_SHORTCUT_NAME=_CMD_* bash -c '…`:: [.small]#Name shortcut shell command `*_CMD_*` instead of default `di`#
+`*D_SHORTCUT_DIR=_PATH_* bash -c '…`:: [.small]#Install shortcut shell command within `*_PATH_*` instead of choosing among directories on `$PATH`, as is default#
 
-a|`[white]##…' bash## #--yes#`:: [small]#Install everything without prompts#
-`[white]##…' bash## #--no#`:: [small]#Install absolutely nothing#
-`[white]##…' bash## #--framework-yes#`:: [small]#Install framework without prompt#
-`[white]##…' bash## #--framework-no#`:: [small]#Install absolutely nothing#
-`[white]##…' bash## #--shortcut-yes#`:: [small]#Install shortcut shell command without prompt#
-`[white]##…' bash## #--shortcut-no#`:: [small]#Skip installing shortcut shell command without prompt#
-`[white]##…' bash## #--verbose#`:: [small]#Increase amount of output#
-`[white]##…' bash## #--quiet#`:: [small]#[gray]##_(default)_## Decrease amount of output#
+a|`…' bash *--yes*`:: [.small]#Install everything without prompts#
+`…' bash *--no*`:: [.small]#Install absolutely nothing#
+`…' bash *--framework-yes*`:: [.small]#Install framework without prompt#
+`…' bash *--framework-no*`:: [.small]#Install absolutely nothing#
+`…' bash *--shortcut-yes*`:: [.small]#Install shortcut shell command without prompt#
+`…' bash *--shortcut-no*`:: [.small]#Skip installing shortcut shell command without prompt#
+`…' bash *--verbose*`:: [.small]#Increase amount of output#
+`…' bash *--quiet*`:: [.small]#[.gray]##_(default)_## Decrease amount of output#
 
 |===
 
@@ -162,17 +162,17 @@ Add flavoring to your uninstallation as such:
 ^.^|Prepend on the left
 ^.^|Append on the right
 
-a|`#D_FMWK_DIR=*_PATH_*# [white]##bash -c '…##`:: [small]#Uninstall framework within `*_PATH_*` instead of default `~/.divine`#
+a|`*D_FMWK_DIR=_PATH_* bash -c '…`:: [.small]#Uninstall framework within `*_PATH_*` instead of default `~/.divine`#
 
-a|`[white]##…' bash## #--yes#`:: [small]#Uninstall everything without prompts#
-`[white]##…' bash## #--no#`:: [small]#Uninstall absolutely nothing#
-`[white]##…' bash## #--utils-yes#`:: [small]#Uninstall system packages installed by the framework (e.g., `git`) without prompt#
-`[white]##…' bash## #--utils-no#`:: [small]#Skip uninstalling system packages installed by the framework (e.g., `git`) without prompt#
-`[white]##…' bash## #--backup-yes#`:: [small]#[gray]##_(default)_## Make backup of Grail directory and usage data without prompt#
-`[white]##…' bash## #--backup-no#`:: [small]#Do not make backup of Grail directory and usage data without prompt#
-`[white]##…' bash## #--framework-yes#`:: [small]#Erase framework directory without prompt#
-`[white]##…' bash## #--framework-no#`:: [small]#Uninstall absolutely nothing#
-`[white]##…' bash## #--verbose#`:: [small]#Increase amount of output#
-`[white]##…' bash## #--quiet#`:: [small]#[gray]##_(default)_## Decrease amount of output#
+a|`…' bash *--yes*`:: [.small]#Uninstall everything without prompts#
+`…' bash *--no*`:: [.small]#Uninstall absolutely nothing#
+`…' bash *--utils-yes*`:: [.small]#Uninstall system packages installed by the framework (e.g., `git`) without prompt#
+`…' bash *--utils-no*`:: [.small]#Skip uninstalling system packages installed by the framework (e.g., `git`) without prompt#
+`…' bash *--backup-yes*`:: [.small]#[.gray]##_(default)_## Make backup of Grail directory and usage data without prompt#
+`…' bash *--backup-no*`:: [.small]#Do not make backup of Grail directory and usage data without prompt#
+`…' bash *--framework-yes*`:: [.small]#Erase framework directory without prompt#
+`…' bash *--framework-no*`:: [.small]#Uninstall absolutely nothing#
+`…' bash *--verbose*`:: [.small]#Increase amount of output#
+`…' bash *--quiet*`:: [.small]#[.gray]##_(default)_## Decrease amount of output#
 
 |===
