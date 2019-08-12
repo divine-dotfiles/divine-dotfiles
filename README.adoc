@@ -1,4 +1,4 @@
-# Divine.dotfiles
+= Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
 :revnumber: 0
@@ -28,9 +28,9 @@ Set it up with a single `*di install --yes*`.
 
 _Divine.dotfiles_ lets you keep your set-up routines as isolated _deployments_ that are installed/removed in defined sequence.
 
-## In a nutshell
+== In a nutshell
 
-### Example deployment
+=== Example deployment
 
 Let's scratch the surface.
 Here's a very basic deployment file:
@@ -61,7 +61,7 @@ Dead simple, right?
 You wouldn’t need a framework for that.
 But wait, there’s [.small]#_(hopefully)_# more.
 
-### Framework features
+=== Framework features
 
 [header,cols="<.^1,<.^4",stripes=none]
 |===
@@ -70,13 +70,17 @@ But wait, there’s [.small]#_(hopefully)_# more.
 | Special deployment that maintains a stable set of system packages across machines and OS's
 
 | *Grail directory*
-| Store your deployments and assets (e.g., personal config files) in one place, which then, on a new machine, is easily plugged in from a repo or local dir
-
-| *Groups*
-| Split your deployment collection into groups, and operate on them individually
+| Store your deployments and assets (e.g., personal config files) in one place.
+On a new machine — plug in your Grail [.small]#_(heh)_# from a repo or a local dir with one command.
 
 | *Priorities*
 | Easily marshal your deployments in order, which is automatically reversed for uninstallation
+
+| *Groups*
+| Split your deployment collection into groups to easily handle selective installations
+
+| *Cross-platform*
+| Use built-in OS detection mechanism to perform certain tasks on certain distributions or OS families
 
 | *Stash*
 | Persistent key-value store for use within your deployments
@@ -85,7 +89,7 @@ But wait, there’s [.small]#_(hopefully)_# more.
 | Built-in mechanism for deployments that perform a series of similar tasks
 
 | *Third-party deployments*
-| Attach pre-made deployments from Github (such as our glorious https://github.com/no-simpler/divine-dpls-core[core bundle]) without polluting your precious Grail [.small]#_(heh)_#
+| Attach pre-made deployments from Github (such as our glorious https://github.com/no-simpler/divine-dpls-core[core bundle]) without polluting your precious Grail [.small]#_(heheh)_#
 
 |===
 
@@ -93,11 +97,10 @@ See?
 _Divine.dotfiles_ is so good, it should be illegal.
 And it is in some places.
 Probably.
-Don't quote me on that.
 
-## Installation and uninstallation
+== Installation and uninstallation
 
-### System requirements
+=== System requirements
 
 * https://en.wikipedia.org/wiki/Unix-like[Unix-like OS].
 Following OS distributions are openly supported:
@@ -118,22 +121,30 @@ NOTE: This list is incomplete; you can help by expanding it.
 --
 `git` is not a hard requirement, but it is not flaccid either.
 You can install _Divine.dotfiles_ without `git`.
-But then it will bug you to no end for it, and even go so far as auto-install it when you launch any routine with `--yes` option.
+But then the framework will bug you with suggestions to auto-install it until you relent.
 --
 
-### Installation
+=== Installation
 
-Run the following single command in Terminal:
+To install _Divine.dotfiles_ framework, run the following single command in Terminal:
 
 [source,bash]
 ----
 bash -c 'TMP=$(mktemp); URL=https://raw.github.com/no-simpler/divine-dotfiles/master/lib/install/install.sh; if curl --version &>/dev/null; then curl -fsSL $URL >$TMP; elif wget --version &>/dev/null; then wget -qO $TMP $URL; else printf >&2 "\n==> Error: failed to detect neither curl nor wget\n"; rm -f $TMP; exit 1; fi && chmod +x $TMP && $TMP "$@" || { printf >&2 "\n==> Error: failed to download installation script\n"; rm -f $TMP; exit 2; }' bash
 ----
 
-NOTE: Installation is completely safe: it clones/downloads repository and creates one symlink.
-Oh, and it asks for your permission for everything.
+[NOTE]
+--
+Installation is completely safe:
 
-#### Installation options and overrides
+* No files are overwritten.
+* This repository is cloned/downloaded.
+* One symlink is (optionally) created.
+
+Oh, and you will be prompted for everything.
+--
+
+==== Installation options and overrides
 
 Add flavoring to your installation as such:
 
@@ -179,18 +190,26 @@ Add flavoring to your installation as such:
 
 |===
 
-### Uninstallation
+=== Uninstallation
 
-Run the following single command in Terminal:
+To uninstall _Divine.dotfiles_ framework, run the following single command in Terminal:
 
 [source,bash]
 ----
 bash -c 'TMP=$(mktemp); URL=https://raw.github.com/no-simpler/divine-dotfiles/master/lib/uninstall/uninstall.sh; if curl --version &>/dev/null; then curl -fsSL $URL >$TMP; elif wget --version &>/dev/null; then wget -qO $TMP $URL; else printf >&2 "\n==> Error: failed to detect neither curl nor wget\n"; rm -f $TMP; exit 1; fi && chmod +x $TMP && $TMP "$@" || { printf >&2 "\n==> Error: failed to download uninstallation script\n"; rm -f $TMP; exit 2; }' bash
 ----
 
-NOTE: After asking for permission, this will back up your Grail directory and usage data and then erase framework directory.
+[NOTE]
+--
+Uninstallation removes optional dependencies that might have been installed, and then erases framework directory.
 
-#### Uninstallation options and overrides
+One thing it does *_not_* do is uninstall deployments: *_you have to uninstall your deployments manually!_*
+To that end, run `di remove --yes --with-!` _before_ uninstalling the framework.
+
+By default, a copy of your usage files (including Grail dir) is retained, so even if you forget to uninstall deployments, there is potentially a way to remedy that.
+--
+
+==== Uninstallation options and overrides
 
 Add flavoring to your uninstallation as such:
 
@@ -217,10 +236,10 @@ Add flavoring to your uninstallation as such:
 | Skip uninstalling system packages installed by the framework (e.g., `git`) without prompt
 
 | `*--backup-yes*`
-| [.gray]##_(default)_## Make backup of Grail directory and usage data without prompt
+| [.gray]##_(default)_## Make backup of usage files (including Grail dir) without prompt
 
 | `*--backup-no*`
-| Do not make backup of Grail directory and usage data without prompt
+| Do not make backup of usage files (including Grail dir) without prompt
 
 | `*--framework-yes*`
 | Erase framework directory without prompt
@@ -235,3 +254,579 @@ Add flavoring to your uninstallation as such:
 | [.gray]##_(default)_## Decrease amount of output
 
 |===
+
+=== Joy ride
+
+First timer?
+Looking for a feel of what _Divine.dotfiles_ offers?
+Here’s a safe and fully removable way to acquaint yourself with the framework:
+
+[source,bash]
+----
+bash -c 'TMP=$(mktemp); URL=https://raw.github.com/no-simpler/divine-dotfiles/master/lib/install/install.sh; if curl --version &>/dev/null; then curl -fsSL $URL >$TMP; elif wget --version &>/dev/null; then wget -qO $TMP $URL; else printf >&2 "\n==> Error: failed to detect neither curl nor wget\n"; rm -f $TMP; exit 1; fi && chmod +x $TMP && $TMP "$@" || { printf >&2 "\n==> Error: failed to download installation script\n"; rm -f $TMP; exit 2; }' bash --yes \
+&& ~/.divine/intervene.sh attach core --yes \
+&& ~/.divine/intervene.sh install --yes --with-!
+----
+
+[NOTE]
+--
+This chained command does three things:
+
+. Install the framework without any prompts.
+. Attach our illustrious https://github.com/no-simpler/divine-dpls-core[core bundle] of Divine deployments.
+. Run deployment installation routine.
+
+Divine deployments *_never overwrite_* pre-existing files on your system without backing them up.
+
+Everything that is backed up is *_automatically restored_* upon uninstallation.
+--
+
+All's fair: in case you remain unsatisfied, here are the separate 'undo' steps, in order:
+
+[source,bash]
+----
+# Uninstall Divine deployments, restoring everything to pre-installation state:
+~/.divine/intervene.sh remove --yes --with-!
+
+# Detach Divine deployments from your copy of the framework:
+~/.divine/intervene.sh detach core --yes
+
+# Erase the framework without keeping backups:
+bash -c 'TMP=$(mktemp); URL=https://raw.github.com/no-simpler/divine-dotfiles/master/lib/uninstall/uninstall.sh; if curl --version &>/dev/null; then curl -fsSL $URL >$TMP; elif wget --version &>/dev/null; then wget -qO $TMP $URL; else printf >&2 "\n==> Error: failed to detect neither curl nor wget\n"; rm -f $TMP; exit 1; fi && chmod +x $TMP && $TMP "$@" || { printf >&2 "\n==> Error: failed to download uninstallation script\n"; rm -f $TMP; exit 2; }' bash --yes --backup-no
+----
+
+After the three 'undo' steps have successfully run, there is no trace of _Divine.dotfiles_ on your system.
+[.small]#_(Sigh.)_#
+
+== Framework structure
+
+_Divine.dotfiles_ is installed, by default, to `~/.divine/`, and is contained entirely in that directory, except:
+
+* Symlink to the framework's main executable is created somewhere on `$PATH`.
+* Your deployments may do to the system pretty much anything.
+
+The framework itself consists of the following main parts:
+
+[header,cols="<.<1,<.<4",stripes=none]
+|===
+
+| `~/.divine/*grail/*`
+a| *Grail directory* provides space for user’s deployments and assets.
+
+[NOTE]
+--
+If you settle on using _Divine.dotfiles_, we recommend taking Grail directory under version control and syncing it, e.g., via cloud services or Github.
+--
+
+Sub-structured as follows:
+
+* `*assets/*` — Directory for user's assets, such as config files.
+* `*dpls/*` — Directory for user's deployments.
+* `.stash.cfg` — Grail stash entries _(file maintained by the framework)_.
+* `.stash.cfg.md5` — Grail stash integrity checksum _(file maintained by the framework)_.
+
+| `~/.divine/*state/*`
+a| *State directory* carries the state of deployments on current machine.
+_(Entire directory is maintained by the framework.)_
+
+Sub-structured as follows:
+
+* `*backups/*` — _Divine.dotfiles_ provides facilities to back up existing files from the system.
+This directory stores such backups.
+* `*dpl-repos/*` — _Divine.dotfiles_ provides facilities to attach third-party deployments from Github.
+This directory stores such deployments.
+* `*stash/*` — _Divine.dotfiles_ provides a persistent key-value store for use within deployments.
+This directory houses key-value containers.
+
+| `~/.divine/*lib/*`
+| Guts of the framework, structured to the best of creator's ability.
+_(Entire directory is, naturally, maintained by the framework.)_
+
+| `~/.divine/intervene.sh`
+| *Divine intervention utility*, the command line interface to the framework.
+_(File is maintained by the framework.)_
+
+| `[$PATH directory]/di`
+| Symlink to the intervention utility, providing an easy access.
+This symlink is usually auto-created during framework installation.
+
+|===
+
+== Deployments
+
+A _Divine.dotfiles_ *deployment* is a Bash script named in `*_DPL-NAME_*.dpl.sh` pattern.
+`*_DPL_NAME_*` must be non-empty.
+
+To be picked up by the framework, deployments must be located at any depth under two recognized deployment directories:
+
+* `~/.divine/grail/dpls` — user's deployments.
+Create your deployments here.
+* `~/.divine/state/dpl-repos` — attached third-party deployments.
+This one is maintained by the framework.
+
+=== Deployment structure
+
+The minimal valid deployment is an empty file.
+As such, it does nothing but appear in framework output.
+
+Deployments are written in Bash syntax (with some limitations on metadata).
+Each deployment is sourced by Bash interpreter no more than once per intervention routine.
+
+A deployment is formed by:
+
+* implementing specially named Bash functions (*primaries*);
+* assigning to specially named variables (*metadata*).
+
+=== Primary functions
+
+*Primary functions*, or *primaries*, correspond to three fundamental actions performed upon a deployment:
+
+* `d_dpl_check()` — checks whether deployment is installed or not.
+* `d_dpl_install()` — installs deployment.
+* `d_dpl_remove()` — uninstalls (reverses previous installation of) deployment.
+
+This section describes:
+
+* Circumstances under which each primary is invoked, and how its output is used.
+* Semantic meaning behind primaries and their return codes.
++
+Feel free to stretch such recommendations according to your particular use case.
+
+==== Primary function `d_dpl_check()`
+
+If this function is implemented, it will be called:
+
+* During `check` routine — to determine status and show relevant output.
+* During `install` routine — to determine whether installation is necessary/possible.
+* During `remove` routine — to determine whether uninstallation is necessary/possible.
+
+Return code of `d_dpl_check()` determines current status of the deployment:
+
+[%header,cols="^.<1,<.<4",stripes=none]
+|===
+
+^.^| Return code of `d_dpl_check()`
+^.^| Interpretation
+
+| `0`
+a| *'Unknown'*: [.gray]##_(default)_## no reliable way to tell whether this deployment is installed or not.
+
+_This return code is assumed if `d_dpl_check()` is not implemented or if unsupported code is returned._
+
+Routines that will proceed further:
+
+* `install`
+* `remove`
+
+| `1`
+a| *'Installed'*: as it stands, intended goal of installing this deployment is entirely achieved.
+
+Routines that will proceed further:
+
+* `remove`
+
+| `2`
+a| *'Not installed'*: as it stands, intended goal of installing this deployment is entirely not achieved.
+
+Routines that will proceed further:
+
+* `install`
+
+| `3`
+a| *'Irrelevant'*: processing this deployment in current environment does not make sense.
+
+This code is appropriate, for example, if current OS is unsupported.
+
+None of the routines will proceed further.
+
+| `4`
+a| *'Partly installed'*: as it stands, intended goal of installing this deployment is partly achieved and partly not achieved.
+
+This code differs from 'Unknown' in semantics and output styling.
+
+Routines that will proceed further:
+
+* `install`
+* `remove`
+
+|===
+
+==== Primary function `d_dpl_install()`
+
+If this function is implemented, it will be called during `install` routine — to achieve the intended goal of this deployment.
+
+Return code of `d_dpl_install()` determines output of `install` routine:
+
+[%header,cols="^.<1,<.<4",stripes=none]
+|===
+
+^.^| Return code of `d_dpl_install()`
+^.^| Interpretation
+
+| `0`
+| *'Successfully installed'*: [.gray]##_(default)_## intended goal of installing this deployment is entirely achieved.
+
+_This return code is assumed if `d_dpl_install()` is not implemented or if unsupported code is returned._
+
+| `1`
+| *'Failed to install'*: intended goal of installing this deployment is _not entirely_ achieved due to error.
+
+| `2`
+| *'Skipped'*: intended goal of installing this deployment is _entirely not_ achieved because nothing has been done.
+
+| `100`
+a| *'Reboot needed'*: same as 'Successfully installed', except:
+
+* Intervention will gracefully shut down without moving past this deployment.
+* User will be asked to reboot the machine and continue afterward.
+
+| `101`
+a| *'User attention needed'*: same as 'Successfully installed', except:
+
+* Intervention will gracefully shut down without moving past this deployment.
+* Deployment is expected to print explanation to `stdout`.
+
+| `102`
+a| *'Critical failure'*: same as 'Failed to install', except:
+
+* Intervention will shut down without moving past this deployment.
+* Output will mention critical failure.
+
+|===
+
+==== Primary function `d_dpl_remove()`
+
+If this function is implemented, it will be called during `remove` routine — to reverse the effects of previously installing this deployment.
+
+Return code of `d_dpl_remove()` determines output of `remove` routine:
+
+[%header,cols="^.<1,<.<4",stripes=none]
+|===
+
+^.^| Return code of `d_dpl_remove()`
+^.^| Interpretation
+
+| `0`
+| *'Successfully installed'*: [.gray]##_(default)_## intended goal of installing this deployment is entirely achieved.
+
+_This return code is assumed if `d_dpl_remove()` is not implemented or if unsupported code is returned._
+
+| `1`
+| *'Failed to install'*: intended goal of installing this deployment is _not entirely_ achieved due to error.
+
+| `2`
+| *'Skipped'*: intended goal of installing this deployment is _entirely not_ achieved because nothing has been done.
+
+| `100`
+a| *'Reboot needed'*: same as 'Successfully installed', except:
+
+* Intervention will gracefully shut down without moving past this deployment.
+* User will be asked to reboot the machine and continue afterward.
+
+| `101`
+a| *'User attention needed'*: same as 'Successfully installed', except:
+
+* Intervention will gracefully shut down without moving past this deployment.
+* Deployment is expected to print explanation to `stdout`.
+
+| `102`
+a| *'Critical failure'*: same as 'Failed to install', except:
+
+* Intervention will shut down without moving past this deployment.
+* Output will mention critical failure.
+
+|===
+
+=== Deployment metadata
+
+*Deployment metadata* (posing as variable assignments) alter deployment's appearance and behavior:
+
+* `D_DPL_NAME` — explicit name for the deployment.
+* `D_DPL_DESC` — one-line description of the deployment.
+* `D_DPL_PRIORITY` — priority of the deployment (non-negative integer).
+* `D_DPL_FLAGS` — one-character flags, causing special treatment.
+* `D_DPL_WARNING` — one-line cautionary message about this deployment.
+
+[NOTE]
+--
+Although all deployment metadata look like Bash variable assignments, they are in face extracted from the file _before_ it is interpreted by Bash.
+
+For each reserved 'variable' name, first line that looks like the usual Bash assignment is used.
+
+With that in mind, follow these simple rules for deployment metadata:
+
+* Write one 'assignment' per line, without line continuation.
+* Do not use Bash substitutions or comments.
+* Avoid leading and trailing whitespace, as well as whitespace around the `=`.
+* Matching quotes around the value are allowed (they are stripped in the processing).
+--
+
+==== Deployment name and description
+
+[source,bash]
+----
+D_DPL_NAME=example
+D_DPL_DESC='Simple description that shows in deployment prompts'
+----
+
+While *description* is mostly cosmetic, deployment *name* is very important.
+It is the single unique identifier for every deployment, and is used to invoke primary routines on it.
+As such, the framework forbids having more than one deployment sharing a name.
+
+If deployment name is not provided explicitly, file name is used instead, sans `.dpl.sh` suffix.
+Deployment names are case insensitive.
+
+==== Deployment priority
+
+[source,bash]
+----
+D_DPL_PRIORITY=420
+----
+
+Priority is the way to impose order on deployment processing.
+
+During `check` and `install` routines, deployments are sorted in ascending order (smaller integer values go first).
+During `uninstall` routine, the order is fully reversed.
+Order of deployments with the same priority is undefined.
+
+Priority must be a non-negative integer, otherwise it falls back to the default value of `4096`.
+
+==== Deployment flags
+
+[source,bash]
+----
+D_DPL_FLAGS=ci!89
+----
+
+Flags alter some of the framework's behavior toward the deployment.
+
+* A flag is a single non-whitespace character.
+* Any number of flags can be put together in any order.
+* Repeating a flag does not bear any additional significance.
+* There is no way to unset a flag, apart from not setting it.
+* Unsupported flags are silently ignored.
+
+Below is the exhaustive rundown of supported flags and their effects.
+
+[%header,cols="^.<1,<.<4",stripes=none]
+|===
+
+^.^| Flag character (regex)
+^.^| Effect on deployment handling
+
+| `[0-9]`
+a| Assigns the deployment to one of the ten single-digit *groups*.
+Groups of deployments may be processed together by referring to them by that group's digit in place of deployment name.
+
+[NOTE]
+--
+Consequently, a deployment may not be named with a single digit.
+The framework guards against using reserved deployment names.
+--
+
+| `!`
+| Marks the deployment as *dangerous*.
+By default, framework ignores dangerous deployments unless they are listed by name or by name of their group.
+Another way to include dangerous deployments is the `--with-!`/`-w` option on intervention utility.
+
+| `[cira]`
+a| Intervention utility has the `--yes`/`-y` option that effectively skips all normal prompts and confirmations.
+It is possible to force the appearance of an *urgent prompt* before the deployment is sourced regardless of said option.
+To do so, use any of these flags:
+
+* `c` — always prompt during `check` routine.
+* `i` — always prompt during `install` routine.
+* `r` — always prompt during `remove` routine.
+* `a` — all of the avove.
+
+When a prompt is forced by a flag, it remains urgent even without `--yes` option.
+Urgent prompts are styled to stand out a bit more in terminal.
+
+|===
+
+==== Deployment warning
+
+[source,bash]
+----
+D_DPL_WARNING="Warning for 'urgent' prompts forced by a flag"
+----
+
+If such warning is provided, it will accompany every urgent prompt enforced by a deployment flag.
+
+== Divinefiles
+
+A *Divinefile* is a special kind of deployment.
+Its purpose is akin to that of https://github.com/Homebrew/homebrew-bundle[Brewfile] or https://bundler.io/gemfile.html[Gemfile].
+A Divinefile is a manifest of system utilities to be maintained using supported system package managers.
+
+* A Divinefile must be named, well, `Divinefile`.
+* There can absolutely be more than one — their contents are effectively merged.
+* The framework picks up every Divinefile located at any depth under two recognized deployment directories:
+** `~/.divine/grail/dpls` — user's Divinefiles. Create yours here.
+** `~/.divine/state/dpl-repos` — attached third-party Divinefiles.
+* As a kind of deployment, Divinefiles are referred to by their collective reserved name, `Divinefile` (or synonyms `dfile`, `df`).
+
+[NOTE]
+--
+Yes, you also cannot name regular deployments `divinefile`, `dfile`, or `df`.
+The framework guards against using reserved deployment names.
+--
+
+=== Divinefile usage
+
+During an intervention, Divinefiles may only be referred to collectively.
+They are processed in their merged entirety, or not processed at all.
+
+You can nevertheless assign deployment-style *priorities and flags* to individual packages within Divinefiles.
+Packages are intertwined with regular deployments in a shared workflow.
+
+[NOTE]
+--
+For more complex system package installations, e.g., involving particular versions or special package manager options, use regular deployments.
+--
+
+=== Divinefile syntax
+
+Divinefiles are processed in terms of lines.
+
+Simplest line contains a list of whitespace-delimited package names.
+Each package is then individually checked/installed/uninstalled during relevant routines:
+
+[source,bash]
+----
+pkg1 pkg2
+----
+
+[NOTE]
+--
+For Divinefiles in general, whitespace rules are fairly permissive.
+Whitespace separates ``WORD``s and is otherwise insignificant.
+--
+
+==== Alt-lists
+
+Within a line, each `|` (vartical bar) starts an alt-list.
+An alt-list is specific to a particular package manager.
+If an alt-list is provided for currently detected package manager, it overrides the original list entirely.
+
+[source,bash]
+----
+pkg1 | apt-get: pkg1 pkg2 | dnf: pkg3
+----
+
+Within an alt-list, everything to the left of first `:` (colon) is read as package manager name.
+Everything to the right — as whitespace-delimited alt-list of package names for that package manager
+
+[NOTE]
+--
+Package manager name is matched against `$D__OS_PKGMGR` built-in variable.
+--
+
+==== Package priority and flags
+
+Similarly to regular deployments, each valid line in Divinefile may have priority and flags.
+These may be set at the beginning of the line (before any package lists) within individual pairs of parentheses:
+
+[source,bash]
+----
+(priority: 1000)              pkg1 pkg2
+
+(flags: ir)                   pkg3 | yum: pkg4
+
+(priority: 500) (flags: r)    pkg5
+----
+
+With regard to flags, a shorthand is provided, that works by *appending* provided flags as opposed to overriding them as is normal:
+
+[source,bash]
+----
+(i) pkg1        # Parentheses must not contain ':'
+
+( r0! ) pkg2    # Multiple flags may be given too
+----
+
+==== OS-specific packages
+
+Lines may be made exclusive to particular OS family or distribution.
+Multiple OS's may be given by separating with vartical bars:
+
+[source,bash]
+----
+(os: debian)      pkg1
+
+(os: macos|bsd)   pkg2
+
+(os: all)         pkg3    # Keywords 'all'/'any' are reserved to denote any OS
+----
+
+[NOTE]
+--
+Each OS name is matched against `$D\__OS_FAMILY` and `$D__OS_DISTRO` built-in variables.
+Single match against any of the two is sufficient.
+--
+
+==== Key-values
+
+All parenthesized key-values, when they appear on a line without any package lists, come into effect until the end of the file, or until another value is assigned to the same key:
+
+[source,bash]
+----
+pkg1                  # Any OS, priority 4096 (default)
+
+( os : macos )(priority:333)    ## These will remain in effect until 
+                                #. end of file or until overridden
+
+pkg2                  # macOS-only, priority 333
+(priority:69) pkg3    # macOS-only, priority 69
+pkg4                  # macOS-only, priority 333
+----
+
+==== Comments and line continuation
+
+Hash/pound symbol (`#`) comments out the rest of the line.
+
+A line may be 'glued' to the next by terminating it with a backslash (`\`):
+[source,bash]
+----
+(os: fedora) \    ## This is a single logical line
+pkg1 pkg2    \    #. spanning three actual lines
+| yum: pkg3       #. (yes, even with comments attached like this)
+----
+
+==== Divinefile examples
+
+[source,bash]
+----
+git                       ## Means:
+                          #.  * priority: 4096 (default)
+                          #.  * packages: git
+
+(priority:300)  \         ## Means:
+(r)             \         #.  * priority: 300
+node            \         #.  * flags: 'always prompt before removing'
+| apt-get: nodejs npm     #.  * packages (on apt-get): nodejs npm
+                          #.  * packages (anywhere else): node
+----
+
+== Usage
+
+=== Divine intervention utility `di`
+
+_Divine.dotfiles_ provides command line interface via *Divine intervention utility `di`*.
+
+Intervention utility does:
+
+. *Primary intervention routines* on deployments:
+.. *Check* whether deployments are installed or not.
+.. *Install* deployments.
+.. *Uninstall* deployments.
+. *Attach/detach* third-party deployments from Github.
+. *Plug* in your pre-made Grail directory from a repository or local directory.
+. *Update* framework itself, attached deployments, and Grail directory, if it is a cloned repository.
+
+=== Primary intervention routines
+
+Deployments are retrieved from two locations:
+
+* Grail sub-directory for deployments: `~/.divine/grail/dpls`.
+* State sub-directoty for attached deployments: `~/.divine/state/dpl-repos`.
