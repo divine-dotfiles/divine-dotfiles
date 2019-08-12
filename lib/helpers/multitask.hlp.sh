@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: reconcile
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    14
-#:revdate:      2019.08.07
-#:revremark:    Grand removal of non-ASCII chars
+#:revnumber:    15
+#:revdate:      2019.08.12
+#:revremark:    Return code: 666 -> 102
 #:created_at:   2019.06.18
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -330,7 +330,7 @@ d__multitask_task_is_installable()
 #.  0   - Task is either installed, failed, or skipped (non-emergency)
 #.  100 - Emergency: reboot needed
 #.  101 - Emergency: user attention needed
-#.  666 - Emergency: critical failure
+#.  102 - Emergency: critical failure
 #
 d__multitask_catch_install_code()
 {
@@ -375,8 +375,8 @@ d__multitask_catch_install_code()
     101)  # Emergency: user attention needed
           return 101
           ;;
-    666)  # Emergency: critical failure
-          return 666
+    102)  # Emergency: critical failure
+          return 102
           ;;
     *)    # Installed: flip flags
           for j in 1 2; do D__MULTITASK_STATUS_SUMMARY[$j]=false; done
@@ -398,7 +398,7 @@ d__multitask_catch_install_code()
 #.  2   - Skipped completely
 #.  100 - Reboot needed
 #.  101 - User attention needed
-#.  666 - Critical failure
+#.  102 - Critical failure
 #
 d__multitask_reconcile_install_codes()
 {
@@ -470,7 +470,7 @@ d__multitask_task_is_removable()
 #.  0   - Task is either removed, failed, or skipped (non-emergency)
 #.  100 - Emergency: reboot needed
 #.  101 - Emergency: user attention needed
-#.  666 - Emergency: critical failure
+#.  102 - Emergency: critical failure
 #
 d__multitask_catch_remove_code()
 {
@@ -515,8 +515,8 @@ d__multitask_catch_remove_code()
     101)  # Emergency: user attention needed
           return 101
           ;;
-    666)  # Emergency: critical failure
-          return 666
+    102)  # Emergency: critical failure
+          return 102
           ;;
     *)    # Installed: flip flags
           for j in 1 2; do D__MULTITASK_STATUS_SUMMARY[$j]=false; done
@@ -538,7 +538,7 @@ d__multitask_catch_remove_code()
 #.  2   - Skipped completely
 #.  100 - Reboot needed
 #.  101 - User attention needed
-#.  666 - Critical failure
+#.  102 - Critical failure
 #
 d__multitask_reconcile_remove_codes()
 {

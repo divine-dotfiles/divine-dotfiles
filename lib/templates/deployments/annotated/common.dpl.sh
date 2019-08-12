@@ -2,9 +2,9 @@
 #:title:        Divine deployment annotated template
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    13
-#:revdate:      2019.08.07
-#:revremark:    Grand removal of non-ASCII chars
+#:revnumber:    14
+#:revdate:      2019.08.12
+#:revremark:    Return code: 666 -> 102
 #:created_at:   2018.03.25
 
 ## This is a valid deployment script for Divine.dotfiles framework
@@ -226,7 +226,7 @@ d_dpl_check()
 #.  101 - User attention needed
 #.        You are expected to print explanation to the user.
 #.        Divine intervention will shut down gracefully without moving on.
-#.  666 - Critical failure
+#.  102 - Critical failure
 #.        You are expected to print explanation to the user.
 #.        Divine intervention will shut down without moving on.
 # 
@@ -256,7 +256,7 @@ d_dpl_install()
 #.  101 - User attention needed
 #.        You are expected to print explanation to the user.
 #.        Divine intervention will shut down gracefully without moving on.
-#.  666 - Critical failure
+#.  102 - Critical failure
 #.        You are expected to print explanation to the user.
 #.        Divine intervention will shut down without moving on.
 # 

@@ -21,7 +21,7 @@ d_dpl_check()
 #.  2   - Skipped completely
 #.  100 - Reboot needed
 #.  101 - User attention needed
-#.  666 - Critical failure
+#.  102 - Critical failure
 d_dpl_install()
 {
   return 0
@@ -33,7 +33,7 @@ d_dpl_install()
 #.  2   - Skipped completely
 #.  100 - Reboot needed
 #.  101 - User attention needed
-#.  666 - Critical failure
+#.  102 - Critical failure
 d_dpl_remove()
 {
   return 0

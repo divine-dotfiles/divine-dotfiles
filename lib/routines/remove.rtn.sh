@@ -2,9 +2,9 @@
 #:title:        Divine Bash routine: remove
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    38
-#:revdate:      2019.08.07
-#:revremark:    Grand removal of non-ASCII chars
+#:revnumber:    39
+#:revdate:      2019.08.12
+#:revremark:    Return code: 666 -> 102
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -78,7 +78,7 @@ d__perform_remove_routine()
         dprint_plaque -pcw "$YELLOW" "$D__CONST_PLAQUE_WIDTH" \
           -- 'Pausing Divine intervention'
         return 1;;
-      666)
+      102)
         printf '\n'
         dprint_ode "${D__ODE_NORMAL[@]}" -c "$YELLOW" -- \
           'x_x' 'Critical failure' ':' \
@@ -289,7 +289,7 @@ d__remove_pkgs()
 #.  1 - No attempt to remove has been made
 #.  100 - Reboot needed
 #.  101 - User attention needed
-#.  666 - Critical failure
+#.  102 - Critical failure
 #
 ## Prints:
 #.  stdout: Progress messages
@@ -555,7 +555,7 @@ d__remove_dpls()
         2)
           dprint_ode "${D__ODE_NAME[@]}" -c "$WHITE" -- \
             '---' 'Skipped' ':' "$task_desc" "$task_name";;
-        1|666|*)
+        1|102|*)
           dprint_ode "${D__ODE_NAME[@]}" -c "$RED" -- \
             'xxx' 'Failed' ':' "$task_desc" "$task_name";;
       esac
