@@ -1,7 +1,7 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revnumber: 21
+:revnumber: 22
 :revdate: 2019.08.14
 :revremark: Iterative improvement
 :doctype: article
@@ -33,12 +33,13 @@ _Divine.dotfiles_ lets you keep your set-up routines as isolated _deployments_ t
 _Divine.dotfiles_ leverages *deployments*.
 A deployment is a Bash script with some specially named functions.
 Three functions, to be exact: one to check, another to install, third to remove.
-Bash's return codes are used to communicate with the framework.
+Bash's return codes are used to communicate back to the framework.
 
 Authoring a deployment is like implementing an interface.
 
-The name of the game here is *portability* and *cross-platformness* (within Unix-like boundaries).
-A well put together collection of deployments, possibly including freely distributed bundles, is able to:
+The goal here is *portability* and *cross-platformness* (within Unix-like boundaries).
+Deployment ecosystem is design with distribution and pluggability in mind.
+A well put together collection of deployments is able to:
 
 * Drastically speed up set-up of new machines.
 * Promote industry standards and best practices.
