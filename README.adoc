@@ -1,7 +1,7 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revnumber: 20
+:revnumber: 21
 :revdate: 2019.08.14
 :revremark: Iterative improvement
 :doctype: article
@@ -30,10 +30,23 @@ _Divine.dotfiles_ lets you keep your set-up routines as isolated _deployments_ t
 
 == In a nutshell
 
+_Divine.dotfiles_ leverages *deployments*.
+A deployment is a Bash script with some specially named functions.
+Three functions, to be exact: one to check, another to install, third to remove.
+Bash's return codes are used to communicate with the framework.
+
+Authoring a deployment is like implementing an interface.
+
+The name of the game here is *portability* and *cross-platformness* (within Unix-like boundaries).
+A well put together collection of deployments, possibly including freely distributed bundles, is able to:
+
+* Drastically speed up set-up of new machines.
+* Promote industry standards and best practices.
+
 === Example deployment
 
-Let's scratch the surface.
-Here's a very basic deployment file:
+Say, you install the same command line utility on every machine.
+Here's a sample deployment that does that:
 
 [source,bash,subs="verbatim,attributes"]
 ----
@@ -85,7 +98,10 @@ On a new machine — plug in your Grail [.small]#_(heh)_# from a repo or a loca
 | *Stash*
 | Persistent key-value store for use within your deployments
 
-| *Queues*
+| *Assets*
+| Keep 
+
+| *Queues* and *multitasks*
 | Built-in mechanism for deployments that perform a series of similar tasks
 
 | *Third-party deployments*
@@ -349,6 +365,256 @@ _(File is maintained by the framework.)_
 | `[$PATH directory]/di`
 | Symlink to the intervention utility, providing an easy access.
 This symlink is usually auto-created during framework installation.
+
+|===
+
+== Usage
+
+=== Divine intervention utility `di`
+
+_Divine.dotfiles_ provides command line interface via *Divine intervention utility `di`*.
+
+Intervention utility does:
+
+. *Primary routines* on deployments (and Divinefiles):
+.. *Check* whether deployments are installed or not.
+.. *Install* deployments.
+.. *Uninstall* deployments.
+. *Attach/detach* third-party deployments from Github.
+. *Plug* in your pre-made Grail directory from a repository or local directory.
+. *Update* framework itself, attached deployments, and Grail directory, if it is a cloned repository.
+
+=== Checking/installing/removing deployments
+
+Primary routines — bread-and-butter of the framework — launch respective functions on deployments.
+
+[source,bash,subs="verbatim,attributes,quotes"]
+----
+$ *di* *c*[*heck*]    [-ynqvewf] [--] [*_NAME_*]…
+
+$ *di* *i*[*nstall*]  [-ynqvewf] [--] [*_NAME_*]…
+
+$ *di* *r*[*emove*]   [-ynqvew]  [--] [*_NAME_*]…
+----
+
+Accepted values of `*_NAME_*` are (case-insensitive):
+
+* Names of <<_deployments,deployments>>.
+* Reserved synonyms for <<_divinefiles,Divinefiles>>: `divinefile`, `dfile`, `df`.
+* Single-digit names of <<deployment_groups,deployment groups>>: `0`, `1`, `2`, `3`, `4`, `5`, `6`, `7`, `8`, `9`.
+* Without any arguments, all deployments are processed.
+
+Deployments (and Divinefiles) are retrieved from two locations (at any depth):
+
+* Directory for user's deployments: `~/.divine/grail/dpls`.
+* Directory for attached deployments: `~/.divine/state/dpl-repos`.
+
+==== Filtering deployments
+
+* Without any arguments, all deployments are processed.
+* Particular deployments are requested by listing their names or <<deployment_groups,single-digit group names>>, in any combination.
+* <<dangerous_deployments,Dangerous>> deployments are ignored:
+** unless requested by name (not by single-digit group name),
+** or unless `--with-!`/`-w` option is used.
+* Option `--except`/`-e` inverts filtering: all deployments are processed, _except_ those listed.
+Note, that without any arguments, this is a no-opt.
++
+In this mode, dangerous deployments are still filtered out by default.
+
+==== Primary routine options
+
+Below is the list of primary routine options.
+Additional info about routine's behavior is also given.
+
+[header,cols="<.<1,<.<4",stripes=none]
+|===
+
+| `*-y*`, `*--yes*`
+| Normally, framework prompts user right before sourcing each deployment script.
+Other events — like offering an optional framework dependency — also trigger a prompt.
+
+With this option, affirmative answer is assumed to every non-<<urgent_prompt,urgent>> prompt.
+
+Note, that deployments are free to add any number of custom prompts unaffected by this option.
+
+Access within deployments: `$D__OPT_ANSWER` (`true` / `false` / _empty_).
+
+| `*-n*`, `*--no*`
+| With this option, negatory answer is assumed to every built-it prompt.
+This option is equivalent to a 'dry run' — apart from skip messages, nothing will actually be done.
+
+Access within deployments: `$D__OPT_ANSWER` (`true` / `false` / _empty_).
+
+| `*-f*`, `*--force*`
+a| By default, framework does *not*:
+
+* re-install deployments that appear already installed;
+* uninstall deployments that appear already not installed;
+* process deployments that appear installed by means other than this framework.
+
+This option overrules such considerations.
+
+Access within deployments: `$D__OPT_FORCE` (`true` / `false`).
+
+| `*-e*`, `*--except*`
+| This option inverts the behavior of deployment filter: instead of processing only listed deployments, all deployments are processed _except_ listed.
+
+Access within deployments: `$D__OPT_INVERSE` (`true` / `false`).
+
+| `*-w*`, `*--with-!*`
+| By default framework ignores <<dangerous_deployments,dangerous deployments>> unless they are named explicitly.
+This option disables such behavior.
+
+Access within deployments: `$D__OPT_EXCLAM` (`true` / `false`).
+
+| `*-v*`, `*--verbose*`
+| Increase amount of output
+
+Access within deployments: `$D__OPT_QUIET` (`true` / `false`).
+
+| `*-q*`, `*--quiet*`
+| [.gray]##_(default)_## Decrease amount of output
+
+Access within deployments: `$D__OPT_QUIET` (`true` / `false`).
+
+|===
+
+[NOTE]
+--
+Even though every option above serves a function within the framework, it is also up to deployment authors to honor their semantics.
+--
+
+=== Attaching third-party deployments
+
+Beside using own deployments, _Divine.dotfiles_ allows to attach (i.e., import) deployments distributed via Github repositories.
+
+[source,bash,subs="verbatim,attributes,quotes"]
+----
+$ *di* *a*[*ttach*] [-yn] [--] *_REPO_*…
+
+$ *di* *d*[*etach*] [-yn] [--] *_REPO_*…
+----
+
+Accepted values of `*_REPO_*` are (case-insensitive):
+
+* Github repository in the form: `no-simpler/divine-dpls-core`.
+* Specifically for Divine deployments, a shorthand is accepted:
++
+`*_NAME_*` (must not contain `/`) translates to `no-simpler/divine-dpls-*_NAME_*`
+
+Detaching deployments deletes the copy of their repository, but it is up to you to:
+
+* Uninstall the deployments beforehand (re-attach if you forgot).
+* Remove any assets that might have been copied into your <<grail_directory,Grail>> assets directory.
+
+[NOTE]
+--
+Attached repositories are cloned/downloaded into your <<state_directory,state directory>>, but attachment records are stored in <<grail_directory,the Grail>>.
+On every launch, intervention utility synchronizes Grail records with actual repositories in state directory.
+
+Thus, by synchronizing Grail between machines, you will have the same set of both custom and attached deployments everywhere.
+--
+
+==== Attach/detach routine options
+
+Below is the list of options for attaching/detaching third-party deployments.
+Additional info about routine's behavior is also given.
+
+[header,cols="<.<1,<.<4",stripes=none]
+|===
+
+| `*-y*`, `*--yes*`
+| Normally, framework prompts user right before cloning/downloading repository.
+Other events — like offering an optional framework dependency — also trigger a prompt.
+
+With this option, affirmative answer is assumed to every built-it prompt.
+
+| `*-n*`, `*--no*`
+| With this option, negatory answer is assumed to every built-it prompt.
+This option is equivalent to a 'dry run' — apart from skip messages, nothing will actually be done.
+
+|===
+
+=== Plugging the Grail
+
+If you have a copy of your carefully crafted <<grail_directory,Grail directory>> stored somewhere, _Divine.dotfiles_ lets you easily plug it in.
+
+[source,bash,subs="verbatim,attributes,quotes"]
+----
+$ *di* *p*[*lug*] [-ynl] [--] *_ADDRESS_*
+----
+
+Accepted values of `*_ADDRESS_*` are:
+
+* Github repository in the form: `username/repo-name`.
+* Path to a generic git repository.
+* Path to a local directory.
+
+Repositories are cloned, directories are copied.
+Note, that existing Grail directory will be utterly destroyed in the process.
+
+If provided argument can be interpreted in multiple ways, the framework will iterate over possible options in the order they are given above.
+
+==== Plug routine options
+
+Below is the list of options for plugging in <<grail_directory,Grail directory>>.
+Additional info about routine's behavior is also given.
+
+[header,cols="<.<1,<.<4",stripes=none]
+|===
+
+| `*-y*`, `*--yes*`
+a| Normally, framework prompts user right before overwriting existing Grail directory.
+Other events — like offering an optional framework dependency — also trigger a prompt.
+
+With this option, affirmative answer is assumed to every built-it prompt.
+
+[NOTE]
+--
+If provided argument can be interpreted in multiple ways, the first option will be silently settled upon.
+--
+
+| `*-n*`, `*--no*`
+| With this option, negatory answer is assumed to every built-it prompt.
+This option is equivalent to a 'dry run' — apart from skip messages, nothing will actually be done.
+
+| `*-l*`, `*--link*`
+| With this option, symlink is created to the directory, path to which is given, instead of copying it.
+In this mode, given argument is not considered as a repository.
+
+|===
+
+=== Updating framework and deployments
+
+[source,bash,subs="verbatim,attributes,quotes"]
+----
+$ *di* *u*[*pdate*] [-yn] [--] [*f*[*ramework*]] [*g*[*rail*]] [*d*[*eployments*]]
+----
+
+Update routine is three-pronged, and you are free to engage any and all of the prongs:
+
+* `*f*` or `*framework*` — pulls latest revision of _Divine.dotfiles_.
+* `*g*` or `*grail*` — pulls latest revision of <<grail_directory,Grail directory>>, _if_ it is a <<_plugging_the_grail,plugged>> repository.
+* `*d*` or `*deployments*` — pulls latest revision of every <<_attaching_third_party_deployments,_attached_>> deployment repository.
+* Without any arguments, all of the above are performed.
+
+==== Updating routine options
+
+Below is the list of options for updating framework, <<grail_directory,the Grail>>, and <<_attaching_third_party_deployments,attached deployments>>.
+Additional info about routine's behavior is also given.
+
+[header,cols="<.<1,<.<4",stripes=none]
+|===
+
+| `*-y*`, `*--yes*`
+a| Normally, framework prompts user right before pulling from remote repository.
+Other events — like offering an optional framework dependency — also trigger a prompt.
+
+With this option, affirmative answer is assumed to every built-it prompt.
+
+| `*-n*`, `*--no*`
+| With this option, negatory answer is assumed to every built-it prompt.
+This option is equivalent to a 'dry run' — apart from skip messages, nothing will actually be done.
 
 |===
 
@@ -790,7 +1056,7 @@ pkg1 pkg2    \    #. spanning three actual lines
 | yum: pkg3       #. (yes, even with comments attached like this)
 ----
 
-==== Divinefile examples
+==== Divinefile example
 
 [source,bash]
 ----
@@ -805,123 +1071,34 @@ node            \         #.  * flags: 'always prompt before removing'
                           #.  * packages (anywhere else): node
 ----
 
-== Usage
+== Advanced features
 
-=== Divine intervention utility `di`
+_Divine.dotfiles_ offers mechanisms that facilitate creation of better, stronger, faster deployments.
 
-_Divine.dotfiles_ provides command line interface via *Divine intervention utility `di`*.
+=== Deployment guidelines
 
-Intervention utility does:
+==== Variables available to deployments
 
-. *Primary intervention routines* on deployments (and Divinefiles):
-.. *Check* whether deployments are installed or not.
-.. *Install* deployments.
-.. *Uninstall* deployments.
-. *Attach/detach* third-party deployments from Github.
-. *Plug* in your pre-made Grail directory from a repository or local directory.
-. *Update* framework itself, attached deployments, and Grail directory, if it is a cloned repository.
+==== OS detection and support
 
-=== Primary intervention routines
+=== Stash
 
-[source,bash,subs="verbatim,attributes,quotes"]
-----
-$ *di* *c*|*check*    [-ynqvewf] [--] [*_NAME_*]…
+=== Assets
 
-$ *di* *i*|*install*  [-ynqvewf] [--] [*_NAME_*]…
+==== Asset manifests
 
-$ *di* *r*|*remove*   [-ynqvew]  [--] [*_NAME_*]…
-----
+=== Queues
 
-Accepted `*_NAME_*` values are (case-insensitive):
+==== Generic queue
 
-* Names of <<_deployments,deployments>>.
-* Reserved synonyms for <<_divinefiles,Divinefiles>>: `divinefile`, `dfile`, `df`.
-* Single-digit names of <<deployment_groups,deployment groups>>: `0`, `1`, `2`, `3`, `4`, `5`, `6`, `7`, `8`, `9`.
+==== Queue manifest
 
-Deployments (and Divinefiles) are retrieved from two locations (any depth):
+==== Link queue
 
-* Directory for user's deployments: `~/.divine/grail/dpls`.
-* Directory for attached deployments: `~/.divine/state/dpl-repos`.
+==== Copy queue
 
-==== Filtering deployments
+==== Split queue
 
-Filtering patterns for deployments work as follows:
+=== Multitask
 
-* Without any names, all deployments are processed.
-* Particular set of deployments is requested by listing names or <<deployment_groups,single-digit group names>>, in any combination.
-* <<dangerous_deployments,Dangerous>> deployments are ignored:
-** unless requested by name (not by single-digit group name!),
-** or unless `--with-!`/`-w` option is used.
-* Option `--except`/`-e` inverts filtering: all deployments are processed, except those listed.
-Note, that without any names, this is a no-opt.
-+
-In this mode, dangerous deployments are still filtered out by default.
-
-==== Primary routine options
-
-Below is the list of primary routine options.
-Additional info about routine's behavior is also given.
-
-[header,cols="<.<1,<.<4",stripes=none]
-|===
-
-| `*-y*`, `*--yes*`
-| Normally, framework prompts user right before sourcing each deployment script.
-Other events — like offering an optional framework dependency — also trigger a prompt.
-
-With this option, affirmative answer is assumed to every non-<<urgent_prompt,urgent>> prompt.
-
-Note, that deployments are free to add any number of custom prompts unaffected by this option.
-
-Access within deployments: `$D__OPT_ANSWER` (`true` / `false` / _empty_).
-
-| `*-n*`, `*--no*`
-| With this option, negatory answer is assumed to every built-it prompt.
-This option is equivalent to a 'dry run' — apart from skip messages, nothing will actually be done.
-
-Access within deployments: `$D__OPT_ANSWER` (`true` / `false` / _empty_).
-
-| `*-f*`, `*--force*`
-a| By default, framework does *not*:
-
-* re-install deployments that appear already installed;
-* uninstall deployments that appear already not installed;
-* process deployments that appear installed by means other than this framework.
-
-This option overrules such considerations.
-
-Access within deployments: `$D__OPT_FORCE` (`true` / `false`).
-
-| `*-e*`, `*--except*`
-| This option inverts the behavior of deployment filter: instead of processing only listed deployments, all deployments are processed _except_ listed.
-
-Access within deployments: `$D__OPT_INVERSE` (`true` / `false`).
-
-| `*-w*`, `*--with-!*`
-| By default framework ignores <<dangerous_deployments,dangerous deployments>> unless they are named explicitly.
-This option disables such behavior.
-
-Access within deployments: `$D__OPT_EXCLAM` (`true` / `false`).
-
-| `*-v*`, `*--verbose*`
-| Increase amount of output
-
-Access within deployments: `$D__OPT_QUIET` (`true` / `false`).
-
-| `*-q*`, `*--quiet*`
-| [.gray]##_(default)_## Decrease amount of output
-
-Access within deployments: `$D__OPT_QUIET` (`true` / `false`).
-
-|===
-
-[NOTE]
---
-Even though every option above serves a function within the framework, it is also up to deployment authors to honor their semantic meaning.
---
-
-=== Attaching third-party deployments
-
-Beside using own deployments, _Divine.dotfiles_ allows to attach (i.e., import) deployments distributed via Github repositories.
-
-Attached deployments are stored in 
+=== Debug output
