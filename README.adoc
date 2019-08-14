@@ -1,9 +1,9 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revnumber: 0
-:revdate: 2019.08.09
-:revremark: Work in progress
+:revnumber: 20
+:revdate: 2019.08.14
+:revremark: Iterative improvement
 :doctype: article
 // Visual
 :toc:
@@ -130,7 +130,7 @@ To install _Divine.dotfiles_ framework, run the following single command in Term
 
 [source,bash]
 ----
-bash -c 'TMP=$(mktemp); URL=https://raw.github.com/no-simpler/divine-dotfiles/master/lib/install/install.sh; if curl --version &>/dev/null; then curl -fsSL $URL >$TMP; elif wget --version &>/dev/null; then wget -qO $TMP $URL; else printf >&2 "\n==> Error: failed to detect neither curl nor wget\n"; rm -f $TMP; exit 1; fi && chmod +x $TMP && $TMP "$@" || { printf >&2 "\n==> Error: failed to download installation script\n"; rm -f $TMP; exit 2; }' bash
+bash -c 'TMP=$(mktemp); URL=https://raw.github.com/no-simpler/divine-dotfiles/master/lib/install/install.sh; if curl --version &>/dev/null; then curl -fsSL $URL >$TMP; elif wget --version &>/dev/null; then wget -qO $TMP $URL; else printf >&2 "\n==> Error: failed to detect neither curl nor wget\n"; rm -f $TMP; exit 1; fi || { printf >&2 "\n==> Error: failed to download installation script\n"; rm -f $TMP; exit 2; }; chmod +x $TMP && $TMP "$@"' bash
 ----
 
 [NOTE]
@@ -196,7 +196,7 @@ To uninstall _Divine.dotfiles_ framework, run the following single command in Te
 
 [source,bash]
 ----
-bash -c 'TMP=$(mktemp); URL=https://raw.github.com/no-simpler/divine-dotfiles/master/lib/uninstall/uninstall.sh; if curl --version &>/dev/null; then curl -fsSL $URL >$TMP; elif wget --version &>/dev/null; then wget -qO $TMP $URL; else printf >&2 "\n==> Error: failed to detect neither curl nor wget\n"; rm -f $TMP; exit 1; fi && chmod +x $TMP && $TMP "$@" || { printf >&2 "\n==> Error: failed to download uninstallation script\n"; rm -f $TMP; exit 2; }' bash
+bash -c 'TMP=$(mktemp); URL=https://raw.github.com/no-simpler/divine-dotfiles/master/lib/uninstall/uninstall.sh; if curl --version &>/dev/null; then curl -fsSL $URL >$TMP; elif wget --version &>/dev/null; then wget -qO $TMP $URL; else printf >&2 "\n==> Error: failed to detect neither curl nor wget\n"; rm -f $TMP; exit 1; fi || { printf >&2 "\n==> Error: failed to download uninstallation script\n"; rm -f $TMP; exit 2; }; chmod +x $TMP && $TMP "$@"' bash
 ----
 
 [NOTE]
@@ -263,7 +263,7 @@ Here’s a safe and fully removable way to acquaint yourself with the framework:
 
 [source,bash]
 ----
-bash -c 'TMP=$(mktemp); URL=https://raw.github.com/no-simpler/divine-dotfiles/master/lib/install/install.sh; if curl --version &>/dev/null; then curl -fsSL $URL >$TMP; elif wget --version &>/dev/null; then wget -qO $TMP $URL; else printf >&2 "\n==> Error: failed to detect neither curl nor wget\n"; rm -f $TMP; exit 1; fi && chmod +x $TMP && $TMP "$@" || { printf >&2 "\n==> Error: failed to download installation script\n"; rm -f $TMP; exit 2; }' bash --yes \
+bash -c 'TMP=$(mktemp); URL=https://raw.github.com/no-simpler/divine-dotfiles/master/lib/install/install.sh; if curl --version &>/dev/null; then curl -fsSL $URL >$TMP; elif wget --version &>/dev/null; then wget -qO $TMP $URL; else printf >&2 "\n==> Error: failed to detect neither curl nor wget\n"; rm -f $TMP; exit 1; fi || { printf >&2 "\n==> Error: failed to download installation script\n"; rm -f $TMP; exit 2; }; chmod +x $TMP && $TMP "$@"' bash --yes \
 && ~/.divine/intervene.sh attach core --yes \
 && ~/.divine/intervene.sh install --yes --with-!
 ----
@@ -292,7 +292,7 @@ All's fair: in case you remain unsatisfied, here are the separate 'undo' steps, 
 ~/.divine/intervene.sh detach core --yes
 
 # Erase the framework without keeping backups:
-bash -c 'TMP=$(mktemp); URL=https://raw.github.com/no-simpler/divine-dotfiles/master/lib/uninstall/uninstall.sh; if curl --version &>/dev/null; then curl -fsSL $URL >$TMP; elif wget --version &>/dev/null; then wget -qO $TMP $URL; else printf >&2 "\n==> Error: failed to detect neither curl nor wget\n"; rm -f $TMP; exit 1; fi && chmod +x $TMP && $TMP "$@" || { printf >&2 "\n==> Error: failed to download uninstallation script\n"; rm -f $TMP; exit 2; }' bash --yes --backup-no
+bash -c 'TMP=$(mktemp); URL=https://raw.github.com/no-simpler/divine-dotfiles/master/lib/uninstall/uninstall.sh; if curl --version &>/dev/null; then curl -fsSL $URL >$TMP; elif wget --version &>/dev/null; then wget -qO $TMP $URL; else printf >&2 "\n==> Error: failed to detect neither curl nor wget\n"; rm -f $TMP; exit 1; fi || { printf >&2 "\n==> Error: failed to download uninstallation script\n"; rm -f $TMP; exit 2; }; chmod +x $TMP && $TMP "$@"' bash --yes --backup-no
 ----
 
 After the three 'undo' steps have successfully run, there is no trace of _Divine.dotfiles_ on your system.
@@ -310,7 +310,7 @@ The framework itself consists of the following main parts:
 [header,cols="<.<1,<.<4",stripes=none]
 |===
 
-| `~/.divine/*grail/*`
+| [#grail_directory]#`~/.divine/*grail/*`#
 a| *Grail directory* provides space for user’s deployments and assets.
 
 [NOTE]
@@ -325,7 +325,7 @@ Sub-structured as follows:
 * `.stash.cfg` — Grail stash entries _(file maintained by the framework)_.
 * `.stash.cfg.md5` — Grail stash integrity checksum _(file maintained by the framework)_.
 
-| `~/.divine/*state/*`
+| [#state_directory]#`~/.divine/*state/*`#
 a| *State directory* carries the state of deployments on current machine.
 _(Entire directory is maintained by the framework.)_
 
@@ -338,7 +338,7 @@ This directory stores such deployments.
 * `*stash/*` — _Divine.dotfiles_ provides a persistent key-value store for use within deployments.
 This directory houses key-value containers.
 
-| `~/.divine/*lib/*`
+| [#lib_directory]#`~/.divine/*lib/*`#
 | Guts of the framework, structured to the best of creator's ability.
 _(Entire directory is, naturally, maintained by the framework.)_
 
@@ -385,12 +385,8 @@ A deployment is formed by:
 * `d_dpl_install()` — installs deployment.
 * `d_dpl_remove()` — uninstalls (reverses previous installation of) deployment.
 
-This section describes:
-
-* Circumstances under which each primary is invoked, and how its output is used.
-* Semantic meaning behind primaries and their return codes.
-+
-Feel free to stretch such recommendations according to your particular use case.
+This section includes semantic meanings behind primaries and their return codes.
+Feel free to stretch semantic guidelines according to your particular use case.
 
 ==== Primary function `d_dpl_check()`
 
@@ -614,7 +610,7 @@ Below is the exhaustive rundown of supported flags and their effects.
 ^.^| Flag character (regex)
 ^.^| Effect on deployment handling
 
-| `[0-9]`
+| [#deployment_groups]#`[0-9]`#
 a| Assigns the deployment to one of the ten single-digit *groups*.
 Groups of deployments may be processed together by referring to them by that group's digit in place of deployment name.
 
@@ -624,12 +620,12 @@ Consequently, a deployment may not be named with a single digit.
 The framework guards against using reserved deployment names.
 --
 
-| `!`
+| [#dangerous_deployments]#`!`#
 | Marks the deployment as *dangerous*.
 By default, framework ignores dangerous deployments unless they are listed by name or by name of their group.
 Another way to include dangerous deployments is the `--with-!`/`-w` option on intervention utility.
 
-| `[cira]`
+| [#urgent_prompt]#`[cira]`#
 a| Intervention utility has the `--yes`/`-y` option that effectively skips all normal prompts and confirmations.
 It is possible to force the appearance of an *urgent prompt* before the deployment is sourced regardless of said option.
 To do so, use any of these flags:
@@ -765,6 +761,7 @@ Each OS name is matched against `$D\__OS_FAMILY` and `$D__OS_DISTRO` built-in va
 Single match against any of the two is sufficient.
 --
 
+[[kv]]
 ==== Key-values
 
 All parenthesized key-values, when they appear on a line without any package lists, come into effect until the end of the file, or until another value is assigned to the same key:
@@ -816,7 +813,7 @@ _Divine.dotfiles_ provides command line interface via *Divine intervention utili
 
 Intervention utility does:
 
-. *Primary intervention routines* on deployments:
+. *Primary intervention routines* on deployments (and Divinefiles):
 .. *Check* whether deployments are installed or not.
 .. *Install* deployments.
 .. *Uninstall* deployments.
@@ -826,7 +823,105 @@ Intervention utility does:
 
 === Primary intervention routines
 
-Deployments are retrieved from two locations:
+[source,bash,subs="verbatim,attributes,quotes"]
+----
+$ *di* *c*|*check*    [-ynqvewf] [--] [*_NAME_*]…
 
-* Grail sub-directory for deployments: `~/.divine/grail/dpls`.
-* State sub-directoty for attached deployments: `~/.divine/state/dpl-repos`.
+$ *di* *i*|*install*  [-ynqvewf] [--] [*_NAME_*]…
+
+$ *di* *r*|*remove*   [-ynqvew]  [--] [*_NAME_*]…
+----
+
+Accepted `*_NAME_*` values are (case-insensitive):
+
+* Names of <<_deployments,deployments>>.
+* Reserved synonyms for <<_divinefiles,Divinefiles>>: `divinefile`, `dfile`, `df`.
+* Single-digit names of <<deployment_groups,deployment groups>>: `0`, `1`, `2`, `3`, `4`, `5`, `6`, `7`, `8`, `9`.
+
+Deployments (and Divinefiles) are retrieved from two locations (any depth):
+
+* Directory for user's deployments: `~/.divine/grail/dpls`.
+* Directory for attached deployments: `~/.divine/state/dpl-repos`.
+
+==== Filtering deployments
+
+Filtering patterns for deployments work as follows:
+
+* Without any names, all deployments are processed.
+* Particular set of deployments is requested by listing names or <<deployment_groups,single-digit group names>>, in any combination.
+* <<dangerous_deployments,Dangerous>> deployments are ignored:
+** unless requested by name (not by single-digit group name!),
+** or unless `--with-!`/`-w` option is used.
+* Option `--except`/`-e` inverts filtering: all deployments are processed, except those listed.
+Note, that without any names, this is a no-opt.
++
+In this mode, dangerous deployments are still filtered out by default.
+
+==== Primary routine options
+
+Below is the list of primary routine options.
+Additional info about routine's behavior is also given.
+
+[header,cols="<.<1,<.<4",stripes=none]
+|===
+
+| `*-y*`, `*--yes*`
+| Normally, framework prompts user right before sourcing each deployment script.
+Other events — like offering an optional framework dependency — also trigger a prompt.
+
+With this option, affirmative answer is assumed to every non-<<urgent_prompt,urgent>> prompt.
+
+Note, that deployments are free to add any number of custom prompts unaffected by this option.
+
+Access within deployments: `$D__OPT_ANSWER` (`true` / `false` / _empty_).
+
+| `*-n*`, `*--no*`
+| With this option, negatory answer is assumed to every built-it prompt.
+This option is equivalent to a 'dry run' — apart from skip messages, nothing will actually be done.
+
+Access within deployments: `$D__OPT_ANSWER` (`true` / `false` / _empty_).
+
+| `*-f*`, `*--force*`
+a| By default, framework does *not*:
+
+* re-install deployments that appear already installed;
+* uninstall deployments that appear already not installed;
+* process deployments that appear installed by means other than this framework.
+
+This option overrules such considerations.
+
+Access within deployments: `$D__OPT_FORCE` (`true` / `false`).
+
+| `*-e*`, `*--except*`
+| This option inverts the behavior of deployment filter: instead of processing only listed deployments, all deployments are processed _except_ listed.
+
+Access within deployments: `$D__OPT_INVERSE` (`true` / `false`).
+
+| `*-w*`, `*--with-!*`
+| By default framework ignores <<dangerous_deployments,dangerous deployments>> unless they are named explicitly.
+This option disables such behavior.
+
+Access within deployments: `$D__OPT_EXCLAM` (`true` / `false`).
+
+| `*-v*`, `*--verbose*`
+| Increase amount of output
+
+Access within deployments: `$D__OPT_QUIET` (`true` / `false`).
+
+| `*-q*`, `*--quiet*`
+| [.gray]##_(default)_## Decrease amount of output
+
+Access within deployments: `$D__OPT_QUIET` (`true` / `false`).
+
+|===
+
+[NOTE]
+--
+Even though every option above serves a function within the framework, it is also up to deployment authors to honor their semantic meaning.
+--
+
+=== Attaching third-party deployments
+
+Beside using own deployments, _Divine.dotfiles_ allows to attach (i.e., import) deployments distributed via Github repositories.
+
+Attached deployments are stored in 
