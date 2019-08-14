@@ -1,7 +1,7 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revnumber: 22
+:revnumber: 23
 :revdate: 2019.08.14
 :revremark: Iterative improvement
 :doctype: article
@@ -31,23 +31,22 @@ _Divine.dotfiles_ lets you keep your set-up routines as isolated _deployments_ t
 == In a nutshell
 
 _Divine.dotfiles_ leverages *deployments*.
-A deployment is a Bash script with some specially named functions.
-Three functions, to be exact: one to check, another to install, third to remove.
-Bash's return codes are used to communicate back to the framework.
 
-Authoring a deployment is like implementing an interface.
+A deployment is a Bash script with three specially named functions: one to check, another to install, third to remove.
+Return codes are used to communicate back to the framework.
+As such, authoring a deployment is akin to implementing an interface.
 
-The goal here is *portability* and *cross-platformness* (within Unix-like boundaries).
-Deployment ecosystem is design with distribution and pluggability in mind.
+The goal of _Divine.dotfiles_ is *portability* and *cross-platformness* within Unix-like world.
+Deployment ecosystem is designed for distribution and pluggability.
 A well put together collection of deployments is able to:
 
-* Drastically speed up set-up of new machines.
-* Promote industry standards and best practices.
+* Streamline and simplify seting up new machines.
+* Promote standards and best practices.
 
 === Example deployment
 
 Say, you install the same command line utility on every machine.
-Here's a sample deployment that does that:
+Here's a sample deployment that does a scaled down version of that:
 
 [source,bash,subs="verbatim,attributes"]
 ----
@@ -96,17 +95,17 @@ On a new machine — plug in your Grail [.small]#_(heh)_# from a repo or a loca
 | *Cross-platform*
 | Use built-in OS detection mechanism to perform certain tasks on certain distributions or OS families
 
+| *Third-party deployments*
+| Attach pre-made deployments from Github (such as our glorious https://github.com/no-simpler/divine-dpls-core[core bundle]) without polluting your precious Grail [.small]#_(heheh)_#
+
 | *Stash*
 | Persistent key-value store for use within your deployments
 
 | *Assets*
-| Keep 
+| Easily separate your deployments into installation logic and dynamic content
 
 | *Queues* and *multitasks*
-| Built-in mechanism for deployments that perform a series of similar tasks
-
-| *Third-party deployments*
-| Attach pre-made deployments from Github (such as our glorious https://github.com/no-simpler/divine-dpls-core[core bundle]) without polluting your precious Grail [.small]#_(heheh)_#
+| Employ built-in mechanisms for deployments that perform a series of tasks
 
 |===
 
@@ -147,7 +146,7 @@ To install _Divine.dotfiles_ framework, run the following single command in Term
 
 [source,bash]
 ----
-bash -c 'TMP=$(mktemp); URL=https://raw.github.com/no-simpler/divine-dotfiles/master/lib/install/install.sh; if curl --version &>/dev/null; then curl -fsSL $URL >$TMP; elif wget --version &>/dev/null; then wget -qO $TMP $URL; else printf >&2 "\n==> Error: failed to detect neither curl nor wget\n"; rm -f $TMP; exit 1; fi || { printf >&2 "\n==> Error: failed to download installation script\n"; rm -f $TMP; exit 2; }; chmod +x $TMP && $TMP "$@"' bash
+bash -c 'TMP=$(mktemp); URL=https://raw.github.com/no-simpler/divine-dotfiles/master/lib/install/install.sh; if curl --version &>/dev/null; then curl -fsSL $URL >$TMP; elif wget --version &>/dev/null; then wget -qO $TMP $URL; else printf >&2 "\n==> Error: failed to detect neither curl nor wget\n"; rm -f $TMP; exit 1; fi || { printf >&2 "\n==> Error: failed to download installation script\n"; rm -f $TMP; exit 2; }; chmod +x $TMP && $TMP "$@"; RC=$?; rm -f $TMP; ((RC)) && exit 3 || exit 0' bash
 ----
 
 [NOTE]
@@ -213,7 +212,7 @@ To uninstall _Divine.dotfiles_ framework, run the following single command in Te
 
 [source,bash]
 ----
-bash -c 'TMP=$(mktemp); URL=https://raw.github.com/no-simpler/divine-dotfiles/master/lib/uninstall/uninstall.sh; if curl --version &>/dev/null; then curl -fsSL $URL >$TMP; elif wget --version &>/dev/null; then wget -qO $TMP $URL; else printf >&2 "\n==> Error: failed to detect neither curl nor wget\n"; rm -f $TMP; exit 1; fi || { printf >&2 "\n==> Error: failed to download uninstallation script\n"; rm -f $TMP; exit 2; }; chmod +x $TMP && $TMP "$@"' bash
+bash -c 'TMP=$(mktemp); URL=https://raw.github.com/no-simpler/divine-dotfiles/master/lib/uninstall/uninstall.sh; if curl --version &>/dev/null; then curl -fsSL $URL >$TMP; elif wget --version &>/dev/null; then wget -qO $TMP $URL; else printf >&2 "\n==> Error: failed to detect neither curl nor wget\n"; rm -f $TMP; exit 1; fi || { printf >&2 "\n==> Error: failed to download uninstallation script\n"; rm -f $TMP; exit 2; }; chmod +x $TMP && $TMP "$@"; RC=$?; rm -f $TMP; ((RC)) && exit 3 || exit 0' bash
 ----
 
 [NOTE]
@@ -280,7 +279,7 @@ Here’s a safe and fully removable way to acquaint yourself with the framework:
 
 [source,bash]
 ----
-bash -c 'TMP=$(mktemp); URL=https://raw.github.com/no-simpler/divine-dotfiles/master/lib/install/install.sh; if curl --version &>/dev/null; then curl -fsSL $URL >$TMP; elif wget --version &>/dev/null; then wget -qO $TMP $URL; else printf >&2 "\n==> Error: failed to detect neither curl nor wget\n"; rm -f $TMP; exit 1; fi || { printf >&2 "\n==> Error: failed to download installation script\n"; rm -f $TMP; exit 2; }; chmod +x $TMP && $TMP "$@"' bash --yes \
+bash -c 'TMP=$(mktemp); URL=https://raw.github.com/no-simpler/divine-dotfiles/master/lib/install/install.sh; if curl --version &>/dev/null; then curl -fsSL $URL >$TMP; elif wget --version &>/dev/null; then wget -qO $TMP $URL; else printf >&2 "\n==> Error: failed to detect neither curl nor wget\n"; rm -f $TMP; exit 1; fi || { printf >&2 "\n==> Error: failed to download installation script\n"; rm -f $TMP; exit 2; }; chmod +x $TMP && $TMP "$@"; RC=$?; rm -f $TMP; ((RC)) && exit 3 || exit 0' bash --yes \
 && ~/.divine/intervene.sh attach core --yes \
 && ~/.divine/intervene.sh install --yes --with-!
 ----
@@ -309,7 +308,7 @@ All's fair: in case you remain unsatisfied, here are the separate 'undo' steps, 
 ~/.divine/intervene.sh detach core --yes
 
 # Erase the framework without keeping backups:
-bash -c 'TMP=$(mktemp); URL=https://raw.github.com/no-simpler/divine-dotfiles/master/lib/uninstall/uninstall.sh; if curl --version &>/dev/null; then curl -fsSL $URL >$TMP; elif wget --version &>/dev/null; then wget -qO $TMP $URL; else printf >&2 "\n==> Error: failed to detect neither curl nor wget\n"; rm -f $TMP; exit 1; fi || { printf >&2 "\n==> Error: failed to download uninstallation script\n"; rm -f $TMP; exit 2; }; chmod +x $TMP && $TMP "$@"' bash --yes --backup-no
+bash -c 'TMP=$(mktemp); URL=https://raw.github.com/no-simpler/divine-dotfiles/master/lib/uninstall/uninstall.sh; if curl --version &>/dev/null; then curl -fsSL $URL >$TMP; elif wget --version &>/dev/null; then wget -qO $TMP $URL; else printf >&2 "\n==> Error: failed to detect neither curl nor wget\n"; rm -f $TMP; exit 1; fi || { printf >&2 "\n==> Error: failed to download uninstallation script\n"; rm -f $TMP; exit 2; }; chmod +x $TMP && $TMP "$@"; RC=$?; rm -f $TMP; ((RC)) && exit 3 || exit 0' bash --yes --backup-no
 ----
 
 After the three 'undo' steps have successfully run, there is no trace of _Divine.dotfiles_ on your system.
