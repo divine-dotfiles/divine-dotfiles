@@ -2,9 +2,9 @@
 #:title:        Divine Bash script: intervene
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    69
+#:revnumber:    70
 #:revdate:      2019.08.15
-#:revremark:    Execute deployment code in a subshell
+#:revremark:    Accept more routine name variants
 #:created_at:   2018.03.25
 
 ## Launches the Divine intervention
@@ -319,21 +319,23 @@ d__parse_arguments()
 
   # Parse the first argument
   case "$1" in
-    i|install)    D__REQ_ROUTINE=install;;
-    r|remove)     D__REQ_ROUTINE=remove;;
-    c|check)      D__REQ_ROUTINE=check;;
-    a|attach)     D__REQ_ROUTINE=attach;;
-    d|detach)     D__REQ_ROUTINE=detach;;
-    p|plug)       D__REQ_ROUTINE=plug;;
-    u|update)     D__REQ_ROUTINE=update;;
+    i|in|install) D__REQ_ROUTINE=install;;
+    r|re|remove|un|uninstall)
+                  D__REQ_ROUTINE=remove;;
+    c|ch|check)   D__REQ_ROUTINE=check;;
+    a|at|attach|ad|add)  
+                  D__REQ_ROUTINE=attach;;
+    d|de|detach|delete)
+                  D__REQ_ROUTINE=detach;;
+    p|pl|plug)    D__REQ_ROUTINE=plug;;
+    u|up|update)  D__REQ_ROUTINE=update;;
     cecf357ed9fed1037eb906633a4299ba)
                   D__REQ_ROUTINE=cecf357ed9fed1037eb906633a4299ba;;
     -h|--help)    d__load routine help;;
     --version)    d__load routine version;;
     '')           d__load routine usage;;
-    *)            printf >&2 '%s: Illegal routine -- %s\n\n' \
-                    "$D__FMWK_NAME" \
-                    "$1"          
+    *)            printf >&2 "%s: Illegal routine -- '%s'\n\n" \
+                    "$D__FMWK_NAME" "$1"          
                   d__load routine usage
                   ;;
   esac
