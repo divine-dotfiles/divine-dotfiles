@@ -1,8 +1,8 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revnumber: 23
-:revdate: 2019.08.14
+:revnumber: 24
+:revdate: 2019.08.15
 :revremark: Iterative improvement
 :doctype: article
 // Visual
@@ -109,11 +109,6 @@ On a new machine — plug in your Grail [.small]#_(heh)_# from a repo or a loca
 
 |===
 
-See?
-_Divine.dotfiles_ is so good, it should be illegal.
-And it is in some places.
-Probably.
-
 == Installation and uninstallation
 
 === System requirements
@@ -129,7 +124,10 @@ Following OS distributions are openly supported:
 ** *Ubuntu*
 --
 +
-NOTE: This list is incomplete; you can help by expanding it.
+[NOTE]
+--
+This list is incomplete; you can help by expanding it.
+--
 
 * `bash 3.2+` and either `curl` or `wget`
 +
@@ -149,8 +147,6 @@ To install _Divine.dotfiles_ framework, run the following single command in Term
 bash -c 'TMP=$(mktemp); URL=https://raw.github.com/no-simpler/divine-dotfiles/master/lib/install/install.sh; if curl --version &>/dev/null; then curl -fsSL $URL >$TMP; elif wget --version &>/dev/null; then wget -qO $TMP $URL; else printf >&2 "\n==> Error: failed to detect neither curl nor wget\n"; rm -f $TMP; exit 1; fi || { printf >&2 "\n==> Error: failed to download installation script\n"; rm -f $TMP; exit 2; }; chmod +x $TMP && $TMP "$@"; RC=$?; rm -f $TMP; ((RC)) && exit 3 || exit 0' bash
 ----
 
-[NOTE]
---
 Installation is completely safe:
 
 * No files are overwritten.
@@ -158,7 +154,6 @@ Installation is completely safe:
 * One symlink is (optionally) created.
 
 Oh, and you will be prompted for everything.
---
 
 ==== Installation options and overrides
 
@@ -176,7 +171,7 @@ Add flavoring to your installation as such:
 | Name shortcut shell command `*_CMD_*` instead of default `di`
 
 | `*D_SHORTCUT_DIR=_PATH_*`
-| Install shortcut shell command within `*_PATH_*` instead of choosing among directories on `$PATH`, as is default
+| Install shortcut shell command within `*_PATH_*` instead of the default way: choosing among directories on `$PATH`
 
 2+^.^h| Append on the right
 
@@ -196,7 +191,7 @@ Add flavoring to your installation as such:
 | Install shortcut shell command without prompt
 
 | `*--shortcut-no*`
-| Skip installing shortcut shell command without prompt
+| Skip installing shortcut shell command
 
 | `*--verbose*`
 | Increase amount of output
@@ -215,15 +210,12 @@ To uninstall _Divine.dotfiles_ framework, run the following single command in Te
 bash -c 'TMP=$(mktemp); URL=https://raw.github.com/no-simpler/divine-dotfiles/master/lib/uninstall/uninstall.sh; if curl --version &>/dev/null; then curl -fsSL $URL >$TMP; elif wget --version &>/dev/null; then wget -qO $TMP $URL; else printf >&2 "\n==> Error: failed to detect neither curl nor wget\n"; rm -f $TMP; exit 1; fi || { printf >&2 "\n==> Error: failed to download uninstallation script\n"; rm -f $TMP; exit 2; }; chmod +x $TMP && $TMP "$@"; RC=$?; rm -f $TMP; ((RC)) && exit 3 || exit 0' bash
 ----
 
-[NOTE]
---
 Uninstallation removes optional dependencies that might have been installed, and then erases framework directory.
 
-One thing it does *_not_* do is uninstall deployments: *_you have to uninstall your deployments manually!_*
-To that end, run `di remove --yes --with-!` _before_ uninstalling the framework.
+One thing it does *_not_* do is uninstall deployments.
+*_You have to uninstall your deployments manually!_*
 
-By default, a copy of your usage files (including Grail dir) is retained, so even if you forget to uninstall deployments, there is potentially a way to remedy that.
---
+By default, a copy of your usage files (including <<grail_directory,the Grail>>) is retained, so even if you forget to uninstall deployments, there is potentially a way to remedy that.
 
 ==== Uninstallation options and overrides
 
@@ -249,7 +241,7 @@ Add flavoring to your uninstallation as such:
 | Uninstall system packages installed by the framework (e.g., `git`) without prompt
 
 | `*--utils-no*`
-| Skip uninstalling system packages installed by the framework (e.g., `git`) without prompt
+| Skip uninstalling system packages installed by the framework (e.g., `git`)
 
 | `*--backup-yes*`
 | [.gray]##_(default)_## Make backup of usage files (including Grail dir) without prompt
@@ -384,6 +376,7 @@ Intervention utility does:
 . *Plug* in your pre-made Grail directory from a repository or local directory.
 . *Update* framework itself, attached deployments, and Grail directory, if it is a cloned repository.
 
+[[_primary_routines]]
 === Checking/installing/removing deployments
 
 Primary routines — bread-and-butter of the framework — launch respective functions on deployments.
@@ -1077,9 +1070,231 @@ _Divine.dotfiles_ offers mechanisms that facilitate creation of better, stronger
 
 === Deployment guidelines
 
-==== Variables available to deployments
+A deployment file is interpreted by Bash no more than once per intervention.
+Sourcing occurs as late as possible, after exhausting excuses to skip it.
+A subshell is created for every deployment, shielding other deployments from it.
 
-==== OS detection and support
+It is good style to isolate all deployment logic within functions and global variables, and then call/use them within <<_primary_functions,primary functions>>.
+
+==== Naming convention
+
+_Divine.dotfiles_ uses a naming convention in its own code:
+
+* `*D_*` prefix — for names of global variables;
+* `*d_*` prefix — for names of functions.
+
+Whenever the framework does _not_ expect you to reassign a global variable or re-implement a function, the underscore is doubled:
+
+* `*D__*` prefix — for names of read-only internal variables;
+* `*d__*` prefix — for names of call-only internal functions.
+
+=== Variables available to deployments
+
+The following variables are available/recognized in each deployment:
+
+[%header,cols="<.<1,<.<4",stripes=none]
+|===
+
+^.^| Variable name
+^.^| Populated value
+
+2+^.^h| <<_deployment_metadata,Deployment metadata>>
+
+| `*D_DPL_NAME*`
+| Explicit name for the deployment.
+
+This variable will be non-empty even if there is no assignment within the file.
+
+| `*D_DPL_DESC*`
+| One-line description of the deployment.
+
+| `*D_DPL_PRIORITY*`
+| Priority of the deployment (non-negative integer).
+
+This variable will be non-empty even if there is no assignment within the file.
+
+| `*D_DPL_FLAGS*`
+| One-character flags, causing special treatment.
+
+| `*D_DPL_WARNING*`
+| One-line cautionary message about this deployment.
+
+2+^.^h| Special directory paths
+
+| `*D__DPL_DIR*`
+| Absolute path to directory containing `*.dpl.sh` file.
+
+| `*D__DPL_ASSET_DIR*`
+| Generated absolute path to directory assigned to hold assets of current deployment.
+
+Located within <<grail_directory,the Grail>>, specifically `grail/assets/*_DPL-NAME_*/`.
+
+| `*D__DPL_BACKUP_DIR*`
+| Generated absolute path to directory assigned to hold backups of current deployment.
+
+Located within <<state_directory,state directory>>, specifically `state/backups/*_DPL-NAME_*/`.
+
+2+^.^h| Special file paths
+
+| `*D__DPL_SH_PATH*`
+| Absolute path to `*.dpl.sh` file.
+
+| `*D__DPL_MNF_PATH*`
+a| Generated absolute path to asset manifest of current deployment.
+This path does not necessarily exist.
+
+Same as path to `\*.dpl.sh` file, but with suffix changed to `*.dpl.mnf`.
+
+[NOTE]
+--
+Asset manifests are also processed by other internal routines, which don't source deployments.
+
+Consequently, path schema of asset manifests is locked, and this variable is read-only.
+--
+
+| `*D_DPL_QUE_PATH*`
+a| Generated absolute path to queue manifest of current deployment.
+This path does not necessarily exist.
+
+Same as path to `\*.dpl.sh` file, but with suffix changed to `*.dpl.que`.
+
+[NOTE]
+--
+Queue manifests are processed only after their deployment file is sourced.
+
+Consequently, you are free to adjust this path.
+--
+
+2+^.^h| [#detected_os]#Detected operating system (OS)#
+
+| [#var_os_family]#`*D__OS_FAMILY*`#
+a| Broad description of current OS.
+
+Exhaustive list of possible values:
+
+* `bsd` — https://en.wikipedia.org/wiki/List_of_BSD_operating_systems[BSD descendants]
+* `cygwin` — https://en.wikipedia.org/wiki/Cygwin[Cygwin]
+* `linux` — https://en.wikipedia.org/wiki/Linux[Linux]
+* `macos` — https://en.wikipedia.org/wiki/MacOS[macOS]
+* `msys` — https://en.wikipedia.org/wiki/MinGW[Minimalist GNU for Windows]
+* `solaris` — https://en.wikipedia.org/wiki/Solaris_(operating_system)[Oracle Solaris]
+* `wsl` — https://en.wikipedia.org/wiki/Windows_Subsystem_for_Linux[Windows Subsystem for Linux]
+
+[NOTE]
+--
+Note that `linux` and `wsl` are separate entries.
+Check for both to determine whether currently under Linux, e.g.:
+
+[source,bash,subs="verbatim,attributes"]
+----
+case $D__OS_FAMILY in
+  linux{vbar}wsl)   echo linux;;
+  *)           echo other;;
+esac
+----
+
+--
+
+| [#var_os_distro]#`*D__OS_DISTRO*`#
+a| Best guess on the name of the current OS distribution.
+
+Exhaustive list of possible values:
+
+* `debian`
+* `fedora`
+* `freebsd`
+* `macos`
+* `ubuntu`
+* _empty_ — failed to reliably detect a supported distribution
+
+[NOTE]
+--
+This list is incomplete; you can help by expanding it.
+--
+
+| [#var_os_pkgmgr]#`*D__OS_PKGMGR*`#
+a| Name of supported system package manager available on current system.
+
+Exhaustive list of possible values:
+
+* `apt-get`
+* `brew`
+* `dnf`
+* `pkg`
+* `yum`
+* _empty_ — failed to reliably detect a supported package manager
+
+[NOTE]
+--
+This list is incomplete; you can help by expanding it.
+--
+
+When this variable is non-empty, you also have the built-in <<func_os_pkgmgr,package manager wrapper>>, `d__os_pkgmgr()`, at your disposal.
+
+2+^.^h| Recognized marker variables
+
+| [#var_another_prompt]#`D_DPL_NEEDS_ANOTHER_PROMPT`#
+| Works only during `install`/`remove` <<_primary_routines,routine>> and only if set within `d_dpl_check()` primary.
+
+Set this variable to `true` to trigger an <<urgent_prompt,urgent prompt>> before the framework proceeds to (un)installation.
+
+| [#var_another_warning]#`D_DPL_NEEDS_ANOTHER_WARNING`#
+| Works only during `install`/`remove` <<_primary_routines,routine>> and only if set within `d_dpl_check()` primary.
+
+If `$D_DPL_NEEDS_ANOTHER_PROMPT` is set to `true` and this variable is non-empty, then this textual warning is shown to the user.
+
+| [#var_user_or_os]#`D_DPL_INSTALLED_BY_USER_OR_OS`#
+a| Works only if set within `d_dpl_check()` primary.
+
+Set this variable to `true` to signal to the framework: whatever parts of current deployment are installed, have been installed by other methods, not by this framework.
+
+This affects behavior of the following return codes of `d_dpl_check()`:
+
+* `1` ('installed') — prohibits uninstalling;
+* `4` ('partly installed') — prohibits uninstalling.
+
+[NOTE]
+--
+This is useful for deployments designed to not interfere with manual tinkering.
+--
+
+2+^.^h| Parameters of current request
+
+| `*D__REQ_ROUTINE*`
+a| Name of <<_primary_routines,primary routine>> currently being executed:
+
+* `check`
+* `install`
+* `remove`
+
+| `*D__OPT_FORCE*`
+a| Whether `-f` / `--force` option is provided:
+
+* `true`
+* `false`
+
+| `*D__OPT_QUIET*`
+a| Which verbosity options are settled upon:
+
+* `true` — `-q` / `--quiet` / no verbosity options
+* `false` — `-v` / `--verbose`
+
+| `*D__OPT_EXCLAM*`
+a| Whether `-w` / `--with-!` option is provided to process <<dangerous_deployments,dangerous>> deployments:
+
+* `true`
+* `false`
+
+| `*D__OPT_ANSWER*`
+a| Whether blanket answer is given to all non-<<urgent_prompt,urgent>> built-in prompts:
+
+* `true` — `-y` / `--yes`
+* `false` — `-n` / `--no`
+* _empty_ — no blanket answer
+
+|===
+
+=== Functions available to deployments
 
 === Stash
 
@@ -1102,3 +1317,7 @@ _Divine.dotfiles_ offers mechanisms that facilitate creation of better, stronger
 === Multitask
 
 === Debug output
+
+== Ways to contribute
+
+=== OS detection and support
