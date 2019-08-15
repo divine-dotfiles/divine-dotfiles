@@ -2,9 +2,9 @@
 #:title:        Divine Bash routine: check
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    35
+#:revnumber:    36
 #:revdate:      2019.08.15
-#:revremark:    Execute deployment code in a subshell
+#:revremark:    Check for package on  too
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -153,8 +153,15 @@ d__check_pkgs()
             '~~~' 'Installed' ':' "$task_desc" "$task_name"
         fi
       else
-        dprint_ode "${D__ODE_NAME[@]}" -c "$RED" -- \
-          'xxx' 'Not installed' ':' "$task_desc" "$task_name"
+        if type -P -- "$pkgname" &>/dev/null; then
+          # Likely a pre-installed system package
+          task_name="$task_name (installed by user or OS)"
+          dprint_ode "${D__ODE_NAME[@]}" -c "$MAGENTA" -- \
+            '~~~' 'Installed' ':' "$task_desc" "$task_name"
+        else
+          dprint_ode "${D__ODE_NAME[@]}" -c "$RED" -- \
+            'xxx' 'Not installed' ':' "$task_desc" "$task_name"
+        fi
       fi
     else
       dprint_ode "${D__ODE_NAME[@]}" -c "$WHITE" -- \
