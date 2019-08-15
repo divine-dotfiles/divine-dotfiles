@@ -2,9 +2,9 @@
 #:title:        Divine Bash routine: remove
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    41
+#:revnumber:    42
 #:revdate:      2019.08.15
-#:revremark:    Add read-only status to dpl env vars, except one
+#:revremark:    Support fatal failures in dpls; add special return to check
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -463,7 +463,7 @@ d__remove_dpls()
         source "$divinedpl_filepath"
 
         # Ensure all assets are copied and main queue is filled
-        d__process_manifests_of_current_dpl || exit 1
+        d__process_manifests_of_current_dpl || exit 2
 
         # Get return code of d_dpl_check, or fall back to zero
         if declare -f d_dpl_check &>/dev/null; then
@@ -476,16 +476,16 @@ d__remove_dpls()
         case $dpl_status in
           1)  if [ "$D_DPL_INSTALLED_BY_USER_OR_OS" = true ]; then
                 task_name="$task_name (installed by user or OS)"
-                $D__OPT_FORCE || exit 2
+                $D__OPT_FORCE || exit 3
               fi
               ;;
           2)  task_name="$task_name (already removed)"
-              $D__OPT_FORCE || exit 3
+              $D__OPT_FORCE || exit 4
               ;;
-          3)  exit 4;;
+          3)  exit 5;;
           4)  if [ "$D_DPL_INSTALLED_BY_USER_OR_OS" = true ]; then
                 task_name="$task_name (partly installed by user or OS)"
-                $D__OPT_FORCE || exit 5
+                $D__OPT_FORCE || exit 6
               else
                 task_name="$task_name (partly installed)"
               fi
@@ -512,7 +512,7 @@ d__remove_dpls()
 
           # Prompt user
           dprint_ode "${D__ODE_DANGER[@]}" -c "$RED" -- '!!!' 'Danger' ': '
-          dprompt_key --bare || exit 6
+          dprompt_key --bare || exit 7
 
         fi
 
@@ -542,9 +542,9 @@ d__remove_dpls()
 
         # Catch special exit codes
         case $dpl_status in
-          100)  exit 7;;
-          101)  exit 8;;
-          102)  exit 9;;
+          100)  exit 8;;
+          101)  exit 9;;
+          102)  exit 10;;
           *)    :;;
         esac
 
@@ -553,42 +553,50 @@ d__remove_dpls()
 
       )
 
+      # Store subshell exit status
+      dpl_status=$?
+
       # Tentatively set failure flag
       proceeding=false
 
       # Check exit status of subshell
-      case $? in
+      case $dpl_status in
         0)  # Subshell ran successfully: restore flag
             proceeding=true
             ;;
-        1)  # Asset assembly failed: don't restore failure flag
-            :
-            ;;
-        2)  # Installed by user or OS
-            task_name="$task_name (installed by user or OS)"
-            ;;
-        3)  # Already not installed
-            task_name="$task_name (already removed)"
-            ;;
-        4)  # Irrelevant deployment
-            task_name="$task_name (irrelevant)"
-            ;;
-        5)  # Partly installed by user or OS
-            task_name="$task_name (partly installed by user or OS)"
-            ;;
-        6)  # User declined prompt
-            task_name="$task_name (declined by user)"
-            ;;
-        7)  # Removal returned special code 100
-            return 100
-            ;;
-        8)  # Removal returned special code 101
-            return 101
-            ;;
-        9)  # Removal returned special code 102
+        1)  # General failure: return critical failure
+            dprint_ode "${D__ODE_NAME[@]}" -c "$RED" -- \
+              'xxx' 'Failed' ':' "$task_desc" "$task_name"
             return 102
             ;;
-        *)  # Unsupported: don't restore failure flag
+        2)  # Asset assembly failed: retain failure flag
+            :
+            ;;
+        3)  # Installed by user or OS
+            task_name="$task_name (installed by user or OS)"
+            ;;
+        4)  # Already not installed
+            task_name="$task_name (already removed)"
+            ;;
+        5)  # Irrelevant deployment
+            task_name="$task_name (irrelevant)"
+            ;;
+        6)  # Partly installed by user or OS
+            task_name="$task_name (partly installed by user or OS)"
+            ;;
+        7)  # User declined prompt
+            task_name="$task_name (declined by user)"
+            ;;
+        8)  # Removal returned special code 100
+            return 100
+            ;;
+        9)  # Removal returned special code 101
+            return 101
+            ;;
+        10) # Removal returned special code 102
+            return 102
+            ;;
+        *)  # Unsupported: retain failure flag
             :
             ;;
       esac

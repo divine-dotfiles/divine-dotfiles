@@ -2,9 +2,9 @@
 #:title:        Divine Bash routine: install
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    40
+#:revnumber:    41
 #:revdate:      2019.08.15
-#:revremark:    Add read-only status to dpl env vars, except one
+#:revremark:    Support fatal failures in dpls; add special return to check
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -439,7 +439,7 @@ d__install_dpls()
         source "$divinedpl_filepath"
 
         # Ensure all assets are copied and main queue is filled
-        d__process_manifests_of_current_dpl || exit 1
+        d__process_manifests_of_current_dpl || exit 2
 
         # Get return code of d_dpl_check, or fall back to zero
         if declare -f d_dpl_check &>/dev/null; then
@@ -452,13 +452,13 @@ d__install_dpls()
         case $dpl_status in
           1)  if [ "$D_DPL_INSTALLED_BY_USER_OR_OS" = true ]; then
                 task_name="$task_name (installed by user or OS)"
-                $D__OPT_FORCE || exit 2
+                $D__OPT_FORCE || exit 3
               else
                 task_name="$task_name (already installed)"
-                $D__OPT_FORCE || exit 3
+                $D__OPT_FORCE || exit 4
               fi
               ;;
-          3)  exit 4;;
+          3)  exit 5;;
           4)  if [ "$D_DPL_INSTALLED_BY_USER_OR_OS" = true ]; then
                 task_name="$task_name (partly installed by user or OS)"
               else
@@ -487,7 +487,7 @@ d__install_dpls()
 
           # Prompt user
           dprint_ode "${D__ODE_DANGER[@]}" -c "$RED" -- '!!!' 'Danger' ': '
-          dprompt_key --bare || exit 5
+          dprompt_key --bare || exit 6
 
         fi
 
@@ -517,9 +517,9 @@ d__install_dpls()
 
         # Catch special exit codes
         case $dpl_status in
-          100)  exit 6;;
-          101)  exit 7;;
-          102)  exit 8;;
+          100)  exit 7;;
+          101)  exit 8;;
+          102)  exit 9;;
           *)    :;;
         esac
 
@@ -528,39 +528,47 @@ d__install_dpls()
       
       )
 
+      # Store subshell exit status
+      dpl_status=$?
+
       # Tentatively set failure flag
       proceeding=false
 
       # Check exit status of subshell
-      case $? in
+      case $dpl_status in
         0)  # Subshell ran successfully: restore flag
             proceeding=true
             ;;
-        1)  # Asset assembly failed: don't restore failure flag
-            :
-            ;;
-        2)  # Already installed by user or OS
-            task_name="$task_name (installed by user or OS)"
-            ;;
-        3)  # Already installed by framework
-            task_name="$task_name (already installed)"
-            ;;
-        4)  # Irrelevant deployment
-            task_name="$task_name (irrelevant)"
-            ;;
-        5)  # User declined prompt
-            task_name="$task_name (declined by user)"
-            ;;
-        6)  # Installation returned special code 100
-            return 100
-            ;;
-        7)  # Installation returned special code 101
-            return 101
-            ;;
-        8)  # Installation returned special code 102
+        1)  # General failure: return critical failure
+            dprint_ode "${D__ODE_NAME[@]}" -c "$RED" -- \
+              'xxx' 'Failed' ':' "$task_desc" "$task_name"
             return 102
             ;;
-        *)  # Unsupported: don't restore failure flag
+        2)  # Asset assembly failed: retain failure flag
+            :
+            ;;
+        3)  # Already installed by user or OS
+            task_name="$task_name (installed by user or OS)"
+            ;;
+        4)  # Already installed by framework
+            task_name="$task_name (already installed)"
+            ;;
+        5)  # Irrelevant deployment
+            task_name="$task_name (irrelevant)"
+            ;;
+        6)  # User declined prompt
+            task_name="$task_name (declined by user)"
+            ;;
+        7)  # Installation returned special code 100
+            return 100
+            ;;
+        8)  # Installation returned special code 101
+            return 101
+            ;;
+        9)  # Installation returned special code 102
+            return 102
+            ;;
+        *)  # Unsupported: retain failure flag
             :
             ;;
       esac

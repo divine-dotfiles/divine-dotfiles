@@ -2,9 +2,9 @@
 #:title:        Divine Bash routine: check
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    37
+#:revnumber:    38
 #:revdate:      2019.08.15
-#:revremark:    Add read-only status to dpl env vars, except one
+#:revremark:    Support fatal failures in dpls; add special return to check
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -51,6 +51,38 @@ d__perform_check_routine()
 
     # Install deployments if asked to
     d__check_dpls "$priority"
+
+    # Check if d__check_dpls returned special status
+    case $? in
+      100)
+        printf '\n'
+        dprint_ode "${D__ODE_NORMAL[@]}" -c "$YELLOW" -- \
+          ')))' 'Reboot required' ':' \
+          'Last deployment asked for machine reboot'
+        printf '\n'
+        dprint_plaque -pcw "$YELLOW" "$D__CONST_PLAQUE_WIDTH" \
+          -- 'Pausing Divine intervention'
+        return 1;;
+      101)
+        printf '\n'
+        dprint_ode "${D__ODE_NORMAL[@]}" -c "$YELLOW" -- \
+          'ooo' 'Attention' ':' \
+          "Last deployment asked for user's attention"
+        printf '\n'
+        dprint_plaque -pcw "$YELLOW" "$D__CONST_PLAQUE_WIDTH" \
+          -- 'Pausing Divine intervention'
+        return 1;;
+      102)
+        printf '\n'
+        dprint_ode "${D__ODE_NORMAL[@]}" -c "$YELLOW" -- \
+          'x_x' 'Critical failure' ':' \
+          'Last deployment reported catastrophic error'
+        printf '\n'
+        dprint_plaque -pcw "$RED" "$D__CONST_PLAQUE_WIDTH" \
+          -- 'Aborting Divine intervention'
+        return 1;;
+      *)  :;;
+    esac
     
   done
 
@@ -186,6 +218,9 @@ d__check_pkgs()
 ## Returns:
 #.  0 - Deployments checked
 #.  1 - No attempt to check has been made
+#.  100 - Reboot needed
+#.  101 - User attention needed
+#.  102 - Critical failure
 #
 ## Prints:
 #.  stdout: Progress messages
@@ -352,7 +387,7 @@ d__check_dpls()
         source "$divinedpl_filepath"
 
         # Ensure all assets are copied and main queue is filled, or bail
-        d__process_manifests_of_current_dpl || exit 1
+        d__process_manifests_of_current_dpl || exit 2
 
         # Get return code of d_dpl_check, or fall back to zero
         if declare -f d_dpl_check &>/dev/null; then
@@ -363,7 +398,7 @@ d__check_dpls()
 
         # Process return code
         case $dpl_status in
-          1)
+          1|100|101)
             if [ "$D_DPL_INSTALLED_BY_USER_OR_OS" = true ]; then
               task_name="$task_name (installed by user or OS)"
               dprint_ode "${D__ODE_NAME[@]}" -c "$MAGENTA" -- \
@@ -394,13 +429,51 @@ d__check_dpls()
             ;;
         esac
 
+        # Catch special exit codes
+        case $dpl_status in
+          100)  exit 3;;
+          101)  exit 4;;
+          102)  exit 5;;
+          *)    :;;
+        esac
+
         # Exit subshell properly
         exit 0
 
       )
 
-      # If subshell exited abnormally, flip the procession flag
-      [ $? -ne 0 ] && proceeding=false
+      # Store subshell exit status
+      dpl_status=$?
+
+      # Tentatively set failure flag
+      proceeding=false
+
+      # Check exit status of subshell
+      case $dpl_status in
+        0)  # Subshell ran successfully: restore flag
+            proceeding=true
+            ;;
+        1)  # General failure: return critical failure
+            dprint_ode "${D__ODE_NAME[@]}" -c "$RED" -- \
+              'xxx' 'Failed' ':' "$task_desc" "$task_name"
+            return 102
+            ;;
+        2)  # Asset assembly failed: retain failure flag
+            :
+            ;;
+        3)  # Checking returned special code 100
+            return 100
+            ;;
+        4)  # Checking returned special code 101
+            return 101
+            ;;
+        5)  # Checking returned special code 102
+            return 102
+            ;;
+        *)  # Unsupported: retain failure flag
+            :
+            ;;
+      esac
 
     fi
 
