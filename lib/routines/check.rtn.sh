@@ -2,9 +2,9 @@
 #:title:        Divine Bash routine: check
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    39
+#:revnumber:    40
 #:revdate:      2019.08.15
-#:revremark:    Populate 
+#:revremark:    Clear marker vars before checking
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -380,6 +380,11 @@ d__check_dpls()
         readonly D__DPL_DIR="$( dirname -- "$divinedpl_filepath" )"
         readonly D__DPL_ASSET_DIR="$D__DIR_ASSETS/$D_DPL_NAME"
         readonly D__DPL_BACKUP_DIR="$D__DIR_BACKUPS/$D_DPL_NAME"
+
+        # Clear marker variables
+        D_DPL_NEEDS_ANOTHER_PROMPT=
+        D_DPL_NEEDS_ANOTHER_WARNING=
+        D_DPL_INSTALLED_BY_USER_OR_OS=
 
         # Print debug message
         dprint_debug "Sourcing: $divinedpl_filepath"
