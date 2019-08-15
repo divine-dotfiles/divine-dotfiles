@@ -2,9 +2,9 @@
 #:title:        Divine Bash routine: remove
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    42
+#:revnumber:    43
 #:revdate:      2019.08.15
-#:revremark:    Support fatal failures in dpls; add special return to check
+#:revremark:    Populate 
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -448,6 +448,7 @@ d__remove_dpls()
 
         # Expose variables to deployment
         D_DPL_NAME="$name"
+        D_DPL_PRIORITY="$priority"
         readonly D__DPL_SH_PATH="$divinedpl_filepath"
         D__DPL_MNF_PATH="${divinedpl_filepath%$D__SUFFIX_DPL_SH}"
         D_DPL_QUE_PATH="${D__DPL_MNF_PATH}$D__SUFFIX_DPL_QUE"
