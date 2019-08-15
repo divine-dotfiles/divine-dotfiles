@@ -2,9 +2,9 @@
 #:title:        Divine Bash script: intervene
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    68
-#:revdate:      2019.08.07
-#:revremark:    Grand removal of non-ASCII chars
+#:revnumber:    69
+#:revdate:      2019.08.15
+#:revremark:    Execute deployment code in a subshell
 #:created_at:   2018.03.25
 
 ## Launches the Divine intervention
@@ -121,7 +121,6 @@ d__populate_globals()
     'helper copy-queue' \
     'helper multitask' \
     'helper manifests' \
-    'helper unset' \
     'procedure dpl-repo-sync' \
   ); readonly D__INTERNAL_DEPENDENCIES
 

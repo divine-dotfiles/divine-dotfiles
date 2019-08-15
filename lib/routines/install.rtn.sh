@@ -2,9 +2,9 @@
 #:title:        Divine Bash routine: install
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    38
-#:revdate:      2019.08.12
-#:revremark:    Return code: 666 -> 102
+#:revnumber:    39
+#:revdate:      2019.08.15
+#:revremark:    Execute deployment code in a subshell
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -303,10 +303,6 @@ d__install_dpls()
     # Check if *.dpl.sh is a readable file
     [ -r "$divinedpl_filepath" -a -f "$divinedpl_filepath" ] || continue
 
-    # Unset any variables that might have been set by previous deployments
-    d__unset_d_vars
-    # Unset any functions that might have been set by previous deployments
-    d__unset_d_funcs
     # Empty out storage variables
     name=
     desc=
@@ -420,121 +416,159 @@ d__install_dpls()
 
     fi
 
-    # Set up environment, source deployment file, process assets
+    # If still proceeding, enter the final stage
     if $proceeding; then
 
-      # Expose variables to deployment
-      D_DPL_NAME="$name"
-      D__DPL_SH_PATH="$divinedpl_filepath"
-      D__DPL_MNF_PATH="${divinedpl_filepath%$D__SUFFIX_DPL_SH}$D__SUFFIX_DPL_MNF"
-      D__DPL_QUE_PATH="${divinedpl_filepath%$D__SUFFIX_DPL_SH}$D__SUFFIX_DPL_QUE"
-      D__DPL_DIR="$( dirname -- "$divinedpl_filepath" )"
-      D__DPL_ASSET_DIR="$D__DIR_ASSETS/$D_DPL_NAME"
-      D__DPL_BACKUP_DIR="$D__DIR_BACKUPS/$D_DPL_NAME"
+      # Open subshell to isolate deployment code
+      (
 
-      # Print debug message
-      dprint_debug "Sourcing: $divinedpl_filepath"
+        # Expose variables to deployment
+        D_DPL_NAME="$name"
+        D__DPL_SH_PATH="$divinedpl_filepath"
+        D__DPL_MNF_PATH="${divinedpl_filepath%$D__SUFFIX_DPL_SH}"
+        D__DPL_QUE_PATH="${D__DPL_MNF_PATH}$D__SUFFIX_DPL_QUE"
+        D__DPL_MNF_PATH+="$D__SUFFIX_DPL_MNF"
+        D__DPL_DIR="$( dirname -- "$divinedpl_filepath" )"
+        D__DPL_ASSET_DIR="$D__DIR_ASSETS/$D_DPL_NAME"
+        D__DPL_BACKUP_DIR="$D__DIR_BACKUPS/$D_DPL_NAME"
 
-      # Hold your breath...
-      source "$divinedpl_filepath"
+        # Print debug message
+        dprint_debug "Sourcing: $divinedpl_filepath"
 
-      # Ensure all assets are copied and main queue is filled
-      d__process_manifests_of_current_dpl || proceeding=false
+        # Hold your breath...
+        source "$divinedpl_filepath"
 
-    fi
+        # Ensure all assets are copied and main queue is filled
+        d__process_manifests_of_current_dpl || exit 1
 
-    # Try to figure out, if deployment is already installed
-    if $proceeding; then
+        # Get return code of d_dpl_check, or fall back to zero
+        if declare -f d_dpl_check &>/dev/null; then
+          d_dpl_check; dpl_status=$?
+        else
+          dpl_status=0
+        fi
 
-      # Get return code of d_dpl_check, or fall back to zero
-      if declare -f d_dpl_check &>/dev/null; then
-        d_dpl_check; dpl_status=$?
-      else
-        dpl_status=0
-      fi
+        # Don't proceed if already installed (except when forcing)
+        case $dpl_status in
+          1)  if [ "$D_DPL_INSTALLED_BY_USER_OR_OS" = true ]; then
+                task_name="$task_name (installed by user or OS)"
+                $D__OPT_FORCE || exit 2
+              else
+                task_name="$task_name (already installed)"
+                $D__OPT_FORCE || exit 3
+              fi
+              ;;
+          3)  exit 4;;
+          4)  if [ "$D_DPL_INSTALLED_BY_USER_OR_OS" = true ]; then
+                task_name="$task_name (partly installed by user or OS)"
+              else
+                task_name="$task_name (partly installed)"
+              fi
+              ;;
+          *)  :;;
+        esac
 
-      # Don't proceed if already installed (except when forcing)
-      case $dpl_status in
-        1)  if [ "$D_DPL_INSTALLED_BY_USER_OR_OS" = true ]; then
-              task_name="$task_name (installed by user or OS)"
-            else
-              task_name="$task_name (already installed)"
-            fi
-            $D__OPT_FORCE || proceeding=false
-            ;;
-        3)  task_name="$task_name (irrelevant)"
-            proceeding=false
-            ;;
-        4)  if [ "$D_DPL_INSTALLED_BY_USER_OR_OS" = true ]; then
-              task_name="$task_name (partly installed by user or OS)"
-            else
-              task_name="$task_name (partly installed)"
-            fi
-            ;;
-        *)  :;;
-      esac
+        # Check if dpl requested another prompt
+        if [ "$D_DPL_NEEDS_ANOTHER_PROMPT" = true ]; then
 
-    fi
+          # Print descriptive introduction, if haven't already
+          if ! $intro_printed; then
+            dprint_ode "${D__ODE_NAME[@]}" -c "$YELLOW" -- \
+              '>>>' 'Installing' ':' "$task_desc" "$task_name"
+            [ -n "$desc" ] && dprint_ode "${D__ODE_DESC[@]}" -- \
+              '' 'Description' ':' "$desc"
+          fi
 
-    # Check if dpl requested another prompt
-    if $proceeding && [ "$D_DPL_NEEDS_ANOTHER_PROMPT" = true ]; then
+          # If there was a warning provided, print it
+          if [ -n "$D_DPL_NEEDS_ANOTHER_WARNING" ]; then
+            dprint_ode "${D__ODE_WARN[@]}" -c "$RED" -- \
+              '' 'Warning' ':' "$D_DPL_NEEDS_ANOTHER_WARNING"
+          fi
 
-      # Print descriptive introduction, if haven't already
-      if ! $intro_printed; then
-        dprint_ode "${D__ODE_NAME[@]}" -c "$YELLOW" -- \
+          # Prompt user
+          dprint_ode "${D__ODE_DANGER[@]}" -c "$RED" -- '!!!' 'Danger' ': '
+          dprompt_key --bare || exit 5
+
+        fi
+
+        # Print descriptive introduction, if haven't already
+        $intro_printed || dprint_ode "${D__ODE_NAME[@]}" -c "$YELLOW" -- \
           '>>>' 'Installing' ':' "$task_desc" "$task_name"
-        [ -n "$desc" ] && dprint_ode "${D__ODE_DESC[@]}" -- \
-          '' 'Description' ':' "$desc"
-      fi
 
-      # If there was a warning provided, print it
-      if [ -n "$D_DPL_NEEDS_ANOTHER_WARNING" ]; then
-        dprint_ode "${D__ODE_WARN[@]}" -c "$RED" -- \
-          '' 'Warning' ':' "$D_DPL_NEEDS_ANOTHER_WARNING"
-      fi
+        # Get return code of d_dpl_install, or fall back to zero
+        if declare -f d_dpl_install &>/dev/null; then
+          d_dpl_install; dpl_status=$?
+        else
+          dpl_status=0
+        fi
 
-      # Prompt user
-      dprint_ode "${D__ODE_DANGER[@]}" -c "$RED" -- '!!!' 'Danger' ': '
-      if dprompt_key --bare; then
-        proceeding=true
-      else
-        task_name="$task_name (declined by user)"
-        proceeding=false
-      fi
+        # Analyze exit code
+        case $dpl_status in
+          0|100|101)
+            dprint_ode "${D__ODE_NAME[@]}" -c "$GREEN" -- \
+              'vvv' 'Installed' ':' "$task_desc" "$task_name";;
+          2)
+            dprint_ode "${D__ODE_NAME[@]}" -c "$WHITE" -- \
+              '---' 'Skipped' ':' "$task_desc" "$task_name";;
+          1|102|*)
+            dprint_ode "${D__ODE_NAME[@]}" -c "$RED" -- \
+              'xxx' 'Failed' ':' "$task_desc" "$task_name";;
+        esac
+
+        # Catch special exit codes
+        case $dpl_status in
+          100)  exit 6;;
+          101)  exit 7;;
+          102)  exit 8;;
+          *)    :;;
+        esac
+
+        # Exit subshell properly
+        exit 0
+      
+      )
+
+      # Tentatively set failure flag
+      proceeding=false
+
+      # Check exit status of subshell
+      case $? in
+        0)  # Subshell ran successfully: restore flag
+            proceeding=true
+            ;;
+        1)  # Asset assembly failed: don't restore failure flag
+            :
+            ;;
+        2)  # Already installed by user or OS
+            task_name="$task_name (installed by user or OS)"
+            ;;
+        3)  # Already installed by framework
+            task_name="$task_name (already installed)"
+            ;;
+        4)  # Irrelevant deployment
+            task_name="$task_name (irrelevant)"
+            ;;
+        5)  # User declined prompt
+            task_name="$task_name (declined by user)"
+            ;;
+        6)  # Installation returned special code 100
+            return 100
+            ;;
+        7)  # Installation returned special code 101
+            return 101
+            ;;
+        8)  # Installation returned special code 102
+            return 102
+            ;;
+        *)  # Unsupported: don't restore failure flag
+            :
+            ;;
+      esac
 
     fi
 
-    # Install deployment
-    if $proceeding; then
-
-      # Print descriptive introduction, if haven't already
-      $intro_printed || dprint_ode "${D__ODE_NAME[@]}" -c "$YELLOW" -- \
-        '>>>' 'Installing' ':' "$task_desc" "$task_name"
-
-      # Get return code of d_dpl_install, or fall back to zero
-      if declare -f d_dpl_install &>/dev/null; then
-        d_dpl_install; dpl_status=$?
-      else
-        dpl_status=0
-      fi
-
-      # Analyze exit code
-      case $dpl_status in
-        0|100|101)
-          dprint_ode "${D__ODE_NAME[@]}" -c "$GREEN" -- \
-            'vvv' 'Installed' ':' "$task_desc" "$task_name";;
-        2)
-          dprint_ode "${D__ODE_NAME[@]}" -c "$WHITE" -- \
-            '---' 'Skipped' ':' "$task_desc" "$task_name";;
-        1|102|*)
-          dprint_ode "${D__ODE_NAME[@]}" -c "$RED" -- \
-            'xxx' 'Failed' ':' "$task_desc" "$task_name";;
-      esac
-
-      # Catch special exit codes
-      [ $dpl_status -ge 100 ] && return $dpl_status
-      
-    else
+    # Make a final check for whether arrived here without bailing
+    if ! $proceeding; then
       dprint_ode "${D__ODE_NAME[@]}" -c "$WHITE" -- \
         '---' 'Skipped' ':' "$task_desc" "$task_name"
     fi

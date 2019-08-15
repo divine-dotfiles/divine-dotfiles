@@ -2,9 +2,9 @@
 #:title:        Divine Bash routine: check
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    34
-#:revdate:      2019.08.07
-#:revremark:    Grand removal of non-ASCII chars
+#:revnumber:    35
+#:revdate:      2019.08.15
+#:revremark:    Execute deployment code in a subshell
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -212,10 +212,6 @@ d__check_dpls()
     # Check if *.dpl.sh is a readable file
     [ -r "$divinedpl_filepath" -a -f "$divinedpl_filepath" ] || continue
 
-    # Unset any variables that might have been set by previous deployments
-    d__unset_d_vars
-    # Unset any functions that might have been set by previous deployments
-    d__unset_d_funcs
     # Empty out storage variables
     name=
     desc=
@@ -326,73 +322,83 @@ d__check_dpls()
 
     fi
 
-    # Set up environment, source deployment file, process assets
+    # If still proceeding, enter the final stage
     if $proceeding; then
 
-      # Expose variables to deployment
-      D_DPL_NAME="$name"
-      D__DPL_SH_PATH="$divinedpl_filepath"
-      D__DPL_MNF_PATH="${divinedpl_filepath%$D__SUFFIX_DPL_SH}$D__SUFFIX_DPL_MNF"
-      D__DPL_QUE_PATH="${divinedpl_filepath%$D__SUFFIX_DPL_SH}$D__SUFFIX_DPL_QUE"
-      D__DPL_DIR="$( dirname -- "$divinedpl_filepath" )"
-      D__DPL_ASSET_DIR="$D__DIR_ASSETS/$D_DPL_NAME"
-      D__DPL_BACKUP_DIR="$D__DIR_BACKUPS/$D_DPL_NAME"
+      # Open subshell for security
+      (
 
-      # Print debug message
-      dprint_debug "Sourcing: $divinedpl_filepath"
+        # Expose variables to deployment
+        D_DPL_NAME="$name"
+        D__DPL_SH_PATH="$divinedpl_filepath"
+        D__DPL_MNF_PATH="${divinedpl_filepath%$D__SUFFIX_DPL_SH}"
+        D__DPL_QUE_PATH="${D__DPL_MNF_PATH}$D__SUFFIX_DPL_QUE"
+        D__DPL_MNF_PATH+="$D__SUFFIX_DPL_MNF"
+        D__DPL_DIR="$( dirname -- "$divinedpl_filepath" )"
+        D__DPL_ASSET_DIR="$D__DIR_ASSETS/$D_DPL_NAME"
+        D__DPL_BACKUP_DIR="$D__DIR_BACKUPS/$D_DPL_NAME"
 
-      # Hold your breath...
-      source "$divinedpl_filepath"
+        # Print debug message
+        dprint_debug "Sourcing: $divinedpl_filepath"
 
-      # Ensure all assets are copied and main queue is filled
-      d__process_manifests_of_current_dpl || proceeding=false
+        # Hold your breath...
+        source "$divinedpl_filepath"
+
+        # Ensure all assets are copied and main queue is filled, or bail
+        d__process_manifests_of_current_dpl || exit 1
+
+        # Get return code of d_dpl_check, or fall back to zero
+        if declare -f d_dpl_check &>/dev/null; then
+          d_dpl_check; dpl_status=$?
+        else
+          dpl_status=0
+        fi
+
+        # Process return code
+        case $dpl_status in
+          1)
+            if [ "$D_DPL_INSTALLED_BY_USER_OR_OS" = true ]; then
+              task_name="$task_name (installed by user or OS)"
+              dprint_ode "${D__ODE_NAME[@]}" -c "$MAGENTA" -- \
+                '~~~' 'Installed' ':' "$task_desc" "$task_name"
+            else
+              dprint_ode "${D__ODE_NAME[@]}" -c "$GREEN" -- \
+                'vvv' 'Installed' ':' "$task_desc" "$task_name"
+            fi
+            ;;
+          2)
+            dprint_ode "${D__ODE_NAME[@]}" -c "$RED" -- \
+              'xxx' 'Not installed' ':' "$task_desc" "$task_name"
+            ;;
+          3)
+            dprint_ode "${D__ODE_NAME[@]}" -c "$MAGENTA" -- \
+              '~~~' 'Irrelevant' ':' "$task_desc" "$task_name"
+            ;;
+          4)
+            if [ "$D_DPL_INSTALLED_BY_USER_OR_OS" = true ]; then
+              task_name="$task_name (partly installed by user or OS)"
+            fi
+            dprint_ode "${D__ODE_NAME[@]}" -c "$YELLOW" -- \
+              'vx-' 'Partly installed' ':' "$task_desc" "$task_name"
+            ;;
+          *)
+            dprint_ode "${D__ODE_NAME[@]}" -c "$BLUE" -- \
+              '???' 'Unknown' ':' "$task_desc" "$task_name"
+            ;;
+        esac
+
+        # Exit subshell properly
+        exit 0
+
+      )
+
+      # If subshell exited abnormally, flip the procession flag
+      [ $? -ne 0 ] && proceeding=false
 
     fi
 
-    # Check if deployment is installed and report
-    if $proceeding; then
-
-      # Get return code of d_dpl_check, or fall back to zero
-      if declare -f d_dpl_check &>/dev/null; then
-        d_dpl_check; dpl_status=$?
-      else
-        dpl_status=0
-      fi
-
-      # Process return code
-      case $dpl_status in
-        1)
-          if [ "$D_DPL_INSTALLED_BY_USER_OR_OS" = true ]; then
-            task_name="$task_name (installed by user or OS)"
-            dprint_ode "${D__ODE_NAME[@]}" -c "$MAGENTA" -- \
-              '~~~' 'Installed' ':' "$task_desc" "$task_name"
-          else
-            dprint_ode "${D__ODE_NAME[@]}" -c "$GREEN" -- \
-              'vvv' 'Installed' ':' "$task_desc" "$task_name"
-          fi
-          ;;
-        2)
-          dprint_ode "${D__ODE_NAME[@]}" -c "$RED" -- \
-            'xxx' 'Not installed' ':' "$task_desc" "$task_name"
-          ;;
-        3)
-          dprint_ode "${D__ODE_NAME[@]}" -c "$MAGENTA" -- \
-            '~~~' 'Irrelevant' ':' "$task_desc" "$task_name"
-          ;;
-        4)
-          if [ "$D_DPL_INSTALLED_BY_USER_OR_OS" = true ]; then
-            task_name="$task_name (partly installed by user or OS)"
-          fi
-          dprint_ode "${D__ODE_NAME[@]}" -c "$YELLOW" -- \
-            'vx-' 'Partly installed' ':' "$task_desc" "$task_name"
-          ;;
-        *)
-          dprint_ode "${D__ODE_NAME[@]}" -c "$BLUE" -- \
-            '???' 'Unknown' ':' "$task_desc" "$task_name"
-          ;;
-      esac
-
-    else
+    # Make a final check for whether arrived here without bailing
+    if ! $proceeding; then
       dprint_ode "${D__ODE_NAME[@]}" -c "$WHITE" -- \
         '---' 'Skipped' ':' "$task_desc" "$task_name"
     fi
