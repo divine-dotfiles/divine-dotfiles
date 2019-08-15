@@ -2,9 +2,9 @@
 #:title:        Divine Bash routine: install
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    39
+#:revnumber:    40
 #:revdate:      2019.08.15
-#:revremark:    Execute deployment code in a subshell
+#:revremark:    Add read-only status to dpl env vars, except one
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -424,13 +424,13 @@ d__install_dpls()
 
         # Expose variables to deployment
         D_DPL_NAME="$name"
-        D__DPL_SH_PATH="$divinedpl_filepath"
+        readonly D__DPL_SH_PATH="$divinedpl_filepath"
         D__DPL_MNF_PATH="${divinedpl_filepath%$D__SUFFIX_DPL_SH}"
-        D__DPL_QUE_PATH="${D__DPL_MNF_PATH}$D__SUFFIX_DPL_QUE"
-        D__DPL_MNF_PATH+="$D__SUFFIX_DPL_MNF"
-        D__DPL_DIR="$( dirname -- "$divinedpl_filepath" )"
-        D__DPL_ASSET_DIR="$D__DIR_ASSETS/$D_DPL_NAME"
-        D__DPL_BACKUP_DIR="$D__DIR_BACKUPS/$D_DPL_NAME"
+        D_DPL_QUE_PATH="${D__DPL_MNF_PATH}$D__SUFFIX_DPL_QUE"
+        readonly D__DPL_MNF_PATH+="$D__SUFFIX_DPL_MNF"
+        readonly D__DPL_DIR="$( dirname -- "$divinedpl_filepath" )"
+        readonly D__DPL_ASSET_DIR="$D__DIR_ASSETS/$D_DPL_NAME"
+        readonly D__DPL_BACKUP_DIR="$D__DIR_BACKUPS/$D_DPL_NAME"
 
         # Print debug message
         dprint_debug "Sourcing: $divinedpl_filepath"

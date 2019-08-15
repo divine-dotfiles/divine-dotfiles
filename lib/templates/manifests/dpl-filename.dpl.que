@@ -1,9 +1,9 @@
 #:title:        Queue manifest annotated template
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    10
-#:revdate:      2019.08.07
-#:revremark:    Grand removal of non-ASCII chars
+#:revnumber:    11
+#:revdate:      2019.08.15
+#:revremark:    Add read-only status to dpl env vars, except one
 #:created_at:   2019.08.06
 
 ## This is an annotated example of a queue manifest. It is simply a list of 
@@ -12,7 +12,7 @@
 ## Queue manifest must be placed next to deployment file and named identically, 
 #. except for changing suffix from '*.dpl.sh' to '*.dpl.que'. Alternatively, 
 #. full path to manifest file may be provided in the root of deployment file by 
-#. assigning it to global variable $D__DPL_QUE_PATH.
+#. assigning it to global variable $D_DPL_QUE_PATH.
 #
 ## Queue entries are arbitrary strings that show up in debug messages. One 
 #. entry is written per line.

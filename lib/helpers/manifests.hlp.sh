@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: manifests
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    5
-#:revdate:      2019.08.07
-#:revremark:    Grand removal of non-ASCII chars
+#:revnumber:    6
+#:revdate:      2019.08.15
+#:revremark:    Add read-only status to dpl env vars, except one
 #:created_at:   2019.05.30
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -15,7 +15,7 @@
 #>  d__process_manifests_of_current_dpl
 #
 ## Looks for asset manifest at $D__DPL_MNF_PATH and for main queue file at 
-#. $D__DPL_QUE_PATH. First, processes manifest (copies assets and fills global 
+#. $D_DPL_QUE_PATH. First, processes manifest (copies assets and fills global 
 #. arrays) if manifest is present. Afterward, if main queue is not yet filled, 
 #. fills it up: from main queue file, or absent that, from relative asset 
 #. paths, or absent that, does not touch the main queue.
@@ -138,7 +138,7 @@ d__process_asset_manifest_of_current_dpl()
 
 #>  d__process_queue_manifest_of_current_dpl
 #
-## Looks for manifest file at path stored in $D__DPL_QUE_PATH. Reads it line by 
+## Looks for manifest file at path stored in $D_DPL_QUE_PATH. Reads it line by 
 #. line, ignores empty lines and lines starting with hash ('#') or double-slash 
 #. ('//').
 #
@@ -149,7 +149,7 @@ d__process_asset_manifest_of_current_dpl()
 #. absolute or relative paths to asset files (attempts are made in that order).
 #
 ## Requires:
-#.  $D__DPL_QUE_PATH     - Path to queue manifest file
+#.  $D_DPL_QUE_PATH     - Path to queue manifest file
 #
 ## Provides into the global scope:
 #.  $D__QUEUE_MAIN   - Array of main queue entries
@@ -171,7 +171,7 @@ d__process_queue_manifest_of_current_dpl()
   # Main queue is not filled: try various methods
 
   # Check if main queue file is readable
-  if d__process_manifest "$D__DPL_QUE_PATH"; then
+  if d__process_manifest "$D_DPL_QUE_PATH"; then
 
     # Check if $D__MANIFEST_LINES has at least one entry
     if [ ${#D__MANIFEST_LINES[@]} -gt 0 ]; then
