@@ -2,9 +2,9 @@
 #:title:        Divine Bash script: intervene
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    70
-#:revdate:      2019.08.15
-#:revremark:    Accept more routine name variants
+#:revnumber:    71
+#:revdate:      2019.08.16
+#:revremark:    Tweak output on illegal option
 #:created_at:   2018.03.25
 
 ## Launches the Divine intervention
@@ -376,7 +376,7 @@ d__parse_arguments()
                               q)  D__OPT_QUIET=true;;
                               v)  D__OPT_QUIET=false;;
                               l)  D__OPT_PLUG_LINK=true;;
-                              *)  printf >&2 '%s: Illegal option -- %s\n\n' \
+                              *)  printf >&2 "%s: Illegal option -- '%s'\n\n" \
                                     "$D__FMWK_NAME" \
                                     "$opt"
                                   d__load routine usage;;
