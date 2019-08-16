@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: stash
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    5
+#:revnumber:    6
 #:revdate:      2019.08.16
-#:revremark:    dprompt_key -> dprompt
+#:revremark:    d__stash -> dstash
 #:created_at:   2019.05.15
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -16,7 +16,7 @@
 #. own stash. Stash is a specially named text file in backups directory.
 #
 
-#>  d__stash ready|has|set|add|get|list|unset|clear [-rgs] [ KEY [VALUE] ]
+#>  dstash ready|has|set|add|get|list|unset|clear [-rgs] [ KEY [VALUE] ]
 #
 ## Main stashing command. Dispatches task based on first non-opt argument.
 #
@@ -51,7 +51,7 @@
 #.  1 - Meaning differs between tasks
 #.  2 - Stashing system is not operational
 #
-d__stash()
+dstash()
 {
   # Parse options
   local args=() stash_mode= do_checks=true i opt
@@ -67,7 +67,7 @@ d__stash()
                               r)  stash_mode=-r;;
                               s)  do_checks=false;;
                               *)  dprint_debug \
-                                  "d__stash called with illegal option -- $opt"
+                                  "dstash called with illegal option -- $opt"
                                   return 1;;
                             esac
                           done;;
@@ -92,7 +92,7 @@ d__stash()
     D__STASH_MD5_FILEPATH="$D__STASH_FILEPATH.md5"
   fi
 
-  # Quick return without arguments (equivalent of d__stash ready)
+  # Quick return without arguments (equivalent of dstash ready)
   (($#)) || return 0
 
   # Dispatch task based on first argument
@@ -105,7 +105,7 @@ d__stash()
     list)   d__stash_list "$@";;
     unset)  d__stash_unset "$@";;
     clear)  >"$D__STASH_FILEPATH" && return 0 || return 1;;
-    *)      dprint_debug 'd__stash called with illegal task:' -i "$1"; return 1;;
+    *)      dprint_debug 'dstash called with illegal task:' -i "$1"; return 1;;
   esac
 
   # Return status of dispatched command

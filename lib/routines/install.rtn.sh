@@ -2,9 +2,9 @@
 #:title:        Divine Bash routine: install
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    43
+#:revnumber:    44
 #:revdate:      2019.08.16
-#:revremark:    dprompt_key -> dprompt
+#:revremark:    d__stash -> dstash
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -232,7 +232,7 @@ d__install_pkgs()
 
       # Check return status
       if [ "${PIPESTATUS[0]}" -eq 0 ]; then
-        d__stash --root --skip-checks set "pkg_$( dmd5 -s "$pkgname" )"
+        dstash --root --skip-checks set "pkg_$( dmd5 -s "$pkgname" )"
         dprint_ode "${D__ODE_NAME[@]}" -c "$GREEN" -- \
           'vvv' 'Installed' ':' "$task_desc" "$task_name"
       else

@@ -2,9 +2,9 @@
 #:title:        Divine Bash procedure: sys-pkg-checks
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    5
+#:revnumber:    6
 #:revdate:      2019.08.16
-#:revremark:    Streamline simple dprint incarnations
+#:revremark:    d__stash -> dstash
 #:created_at:   2019.07.05
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -133,7 +133,7 @@ d__uninstall_all_offered_utils()
   local installed_utils=() installed_util
 
   # Check if there are any utilities recorded
-  if d__stash -r -s has installed_util; then
+  if dstash -r -s has installed_util; then
 
     # Check if $D__OS_PKGMGR is detected
     if [ -z "$D__OS_PKGMGR" ]; then
@@ -148,7 +148,7 @@ d__uninstall_all_offered_utils()
     # Read list from stash
     while read -r installed_util; do
       installed_utils+=( "$installed_util" )
-    done < <( d__stash -r -s list installed_util )
+    done < <( dstash -r -s list installed_util )
 
   fi
 
@@ -186,7 +186,7 @@ d__uninstall_all_offered_utils()
 
       # Announce success and unset stash variable
       dprint_success "Successfully uninstalled $installed_util"
-      d__stash -r -s unset installed_util "$installed_util"
+      dstash -r -s unset installed_util "$installed_util"
       anything_uninstalled=true
 
     else
@@ -215,7 +215,7 @@ d__uninstall_all_offered_utils()
 d__uninstall_homebrew()
 {
   # Check if there is any work to do
-  if ! d__stash -r -s has installed_homebrew; then
+  if ! dstash -r -s has installed_homebrew; then
     # No record of Homebrew installation: silently return a-ok
     return 0
   fi
@@ -262,7 +262,7 @@ d__uninstall_homebrew()
 
         # Announce, erase stash record, and save status
         dprint_success 'Successfully uninstalled Homebrew'
-        d__stash -r -s unset installed_homebrew
+        dstash -r -s unset installed_homebrew
         all_good=true
 
       else

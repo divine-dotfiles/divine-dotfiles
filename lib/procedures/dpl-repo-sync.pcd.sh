@@ -2,9 +2,9 @@
 #:title:        Divine Bash procedure: dpl-repo-sync
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    4
+#:revnumber:    5
 #:revdate:      2019.08.16
-#:revremark:    Streamline simple dprint incarnations
+#:revremark:    d__stash -> dstash
 #:created_at:   2019.06.28
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -32,10 +32,10 @@ d__sync_dpl_repos()
   local all_good=true
 
   # Load records of attached deployment repositories
-  if d__stash -g -s has dpl_repos; then
+  if dstash -g -s has dpl_repos; then
     while read -r recorded_user_repo; do
       recorded_user_repos+=( "$recorded_user_repo" )
-    done < <( d__stash -g -s list dpl_repos )
+    done < <( dstash -g -s list dpl_repos )
   fi
 
   # Load results of scanning repo directory

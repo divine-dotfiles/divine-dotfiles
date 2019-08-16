@@ -2,9 +2,9 @@
 #:title:        Divine Bash routine: detach
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    12
+#:revnumber:    13
 #:revdate:      2019.08.16
-#:revremark:    dprompt_key -> dprompt
+#:revremark:    d__stash -> dstash
 #:created_at:   2019.06.28
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -184,7 +184,7 @@ d__detach_dpl_repo()
   fi
 
   # Repository erased, now remove record from Grail stash
-  if d__stash -g -s unset dpl_repos "$user_repo"; then
+  if dstash -g -s unset dpl_repos "$user_repo"; then
     dprint_debug \
       "Cleared record of attached repository "$user_repo" in Grail stash"
   else

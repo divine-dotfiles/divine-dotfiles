@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: queue
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    30
+#:revnumber:    31
 #:revdate:      2019.08.16
-#:revremark:    Streamline simple dprint incarnations
+#:revremark:    d__stash -> dstash
 #:created_at:   2019.06.10
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -36,7 +36,7 @@ d__queue_check()
   fi
 
   # Rely on stashing
-  d__stash ready || return 3
+  dstash ready || return 3
 
   # Storage and status variables
   local all_installed=true all_not_installed=true all_unknown=true
@@ -155,13 +155,13 @@ d__queue_check()
             ;;
       esac
     
-    elif d__stash -s has "$D__QUEUE_ITEM_STASH_KEY"; then
+    elif dstash -s has "$D__QUEUE_ITEM_STASH_KEY"; then
 
       # Record of installation exists
       D__QUEUE_ITEM_STASH_FLAG=true
 
       # Populate stash value
-      D__QUEUE_ITEM_STASH_VALUE="$( d__stash -s get "$D__QUEUE_ITEM_STASH_KEY" )"
+      D__QUEUE_ITEM_STASH_VALUE="$( dstash -s get "$D__QUEUE_ITEM_STASH_KEY" )"
 
       # Check if item is installed as advertised
       d_queue_item_is_installed; case $? in
@@ -317,9 +317,9 @@ d__queue_install()
     D__QUEUE_ITEM_IS_FORCED=false
     if d__queue_item_status uses_stash; then
       D__QUEUE_ITEM_STASH_KEY="${D__QUEUE_STASH_KEYS[$D__QUEUE_ITEM_NUM]}"
-      if d__stash -s has "$D__QUEUE_ITEM_STASH_KEY"; then
+      if dstash -s has "$D__QUEUE_ITEM_STASH_KEY"; then
         D__QUEUE_ITEM_STASH_FLAG=true
-        D__QUEUE_ITEM_STASH_VALUE="$( d__stash -s get "$D__QUEUE_ITEM_STASH_KEY" )"
+        D__QUEUE_ITEM_STASH_VALUE="$( dstash -s get "$D__QUEUE_ITEM_STASH_KEY" )"
       else
         D__QUEUE_ITEM_STASH_FLAG=false
         D__QUEUE_ITEM_STASH_VALUE=
@@ -338,7 +338,7 @@ d__queue_install()
         0|3)  # Installed successfully
               all_already_installed=false
               all_failed=false
-              d__stash -s set "$D__QUEUE_ITEM_STASH_KEY" "$D__QUEUE_ITEM_STASH_VALUE"
+              dstash -s set "$D__QUEUE_ITEM_STASH_KEY" "$D__QUEUE_ITEM_STASH_VALUE"
               d__queue_item_dprint_debug 'Installed'
               ;;
         1|4)  # Failed to install
@@ -370,7 +370,7 @@ d__queue_install()
         0|3)  # Re-installed successfully
               all_newly_installed=false
               all_failed=false
-              d__stash -s set "$D__QUEUE_ITEM_STASH_KEY" "$D__QUEUE_ITEM_STASH_VALUE"
+              dstash -s set "$D__QUEUE_ITEM_STASH_KEY" "$D__QUEUE_ITEM_STASH_VALUE"
               d__queue_item_dprint_debug 'Force-installed'
               ;;
         1|4)  # Failed to re-install
@@ -489,9 +489,9 @@ d__queue_remove()
     D__QUEUE_ITEM_IS_FORCED=false
     if d__queue_item_status uses_stash; then
       D__QUEUE_ITEM_STASH_KEY="${D__QUEUE_STASH_KEYS[$D__QUEUE_ITEM_NUM]}"
-      if d__stash -s has "$D__QUEUE_ITEM_STASH_KEY"; then
+      if dstash -s has "$D__QUEUE_ITEM_STASH_KEY"; then
         D__QUEUE_ITEM_STASH_FLAG=true
-        D__QUEUE_ITEM_STASH_VALUE="$( d__stash -s get "$D__QUEUE_ITEM_STASH_KEY" )"
+        D__QUEUE_ITEM_STASH_VALUE="$( dstash -s get "$D__QUEUE_ITEM_STASH_KEY" )"
       else
         D__QUEUE_ITEM_STASH_FLAG=false
         D__QUEUE_ITEM_STASH_VALUE=
@@ -510,7 +510,7 @@ d__queue_remove()
         0|3)  # Removed successfully
               all_already_removed=false
               all_failed=false
-              d__stash -s unset "$D__QUEUE_ITEM_STASH_KEY"
+              dstash -s unset "$D__QUEUE_ITEM_STASH_KEY"
               d__queue_item_dprint_debug 'Removed'
               ;;
         1|4)  # Failed to remove
@@ -542,7 +542,7 @@ d__queue_remove()
         0|3)  # Re-removed successfully
               all_newly_removed=false
               all_failed=false
-              d__stash -s unset "$D__QUEUE_ITEM_STASH_KEY"
+              dstash -s unset "$D__QUEUE_ITEM_STASH_KEY"
               d__queue_item_dprint_debug 'Force-removed'
               ;;
         1|4)  # Failed to re-remove

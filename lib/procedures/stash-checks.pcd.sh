@@ -2,9 +2,9 @@
 #:title:        Divine Bash procedure: stash-checks
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    6
+#:revnumber:    7
 #:revdate:      2019.08.16
-#:revremark:    Streamline simple dprint incarnations
+#:revremark:    d__stash -> dstash
 #:created_at:   2019.07.05
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -25,7 +25,7 @@
 d__run_stash_checks()
 {
   # Ensure Grail stash is available
-  d__stash --grail ready || {
+  dstash --grail ready || {
     dprint_failure \
       'Failed to prepare Divine stashing system in Grail directory at:' \
       -i "$D__DIR_GRAIL"
@@ -33,7 +33,7 @@ d__run_stash_checks()
   }
 
   # Ensure root stash is available
-  d__stash --root ready || {
+  dstash --root ready || {
     dprint_failure \
       'Failed to prepare Divine stashing system in state directory at:' \
       -i "$D__DIR_STASH"

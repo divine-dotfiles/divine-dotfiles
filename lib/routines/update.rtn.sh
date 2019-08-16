@@ -2,9 +2,9 @@
 #:title:        Divine Bash routine: update
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    31
+#:revnumber:    32
 #:revdate:      2019.08.16
-#:revremark:    dprompt_key -> dprompt
+#:revremark:    d__stash -> dstash
 #:created_at:   2019.05.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -284,10 +284,10 @@ d__update_dpls()
   if $UPDATING_DPLS; then
 
     # Populate list of repos
-    if d__stash -g -s has dpl_repos; then
+    if dstash -g -s has dpl_repos; then
       while read -r dpl_repo; do
         dpl_repos+=( "$dpl_repo" )
-      done < <( d__stash -g -s list dpl_repos )
+      done < <( dstash -g -s list dpl_repos )
     fi
 
     # Check if list is empty

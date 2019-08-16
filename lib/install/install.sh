@@ -2,9 +2,9 @@
 #:title:        Divine.dotfiles fmwk install script
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    51
+#:revnumber:    52
 #:revdate:      2019.08.16
-#:revremark:    dprompt_key -> dprompt
+#:revremark:    d__stash -> dstash
 #:created_at:   2019.07.22
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -577,7 +577,7 @@ d__install_shortcut()
   if $shortcut_installed; then
 
     # Keep record of installation location
-    if d__stash_root_add di_shortcut "$shortcut_filepath"; then
+    if dstash_root_add di_shortcut "$shortcut_filepath"; then
       dprint_debug 'Stored shortcut location in root stash'
     else
       dprint_failure 'Failed to store shortcut location in root stash' \
@@ -720,7 +720,7 @@ dprompt()
   if $yes; then return 0; else return 1; fi
 }
 
-d__stash_root_add()
+dstash_root_add()
 {
   # Key variables
   local stash_dirpath="$D_FMWK_DIR/state/stash"
