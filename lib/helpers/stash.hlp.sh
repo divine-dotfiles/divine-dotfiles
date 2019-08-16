@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: stash
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    6
+#:revnumber:    7
 #:revdate:      2019.08.16
-#:revremark:    d__stash -> dstash
+#:revremark:    Fix d__stash_set description
 #:created_at:   2019.05.15
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -138,7 +138,8 @@ d__stash_has()
 
 #>  d__stash_set KEY [VALUE]
 #
-## Sets first/new occurrence of KEY to VALUE. Extra arguments are ignored.
+## Ensures there is a single occurrence of KEY, and that it is set to VALUE. 
+#. Extra arguments are ignored.
 #
 ## Options:
 #.  -s  - (first arg) Skip argument checks (for internal calls)
