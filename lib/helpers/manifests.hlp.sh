@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: manifests
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    7
+#:revnumber:    8
 #:revdate:      2019.08.16
-#:revremark:    Streamline simple dprint incarnations
+#:revremark:    Add support for negated OS list
 #:created_at:   2019.05.30
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -349,6 +349,7 @@ d__process_manifest()
   # Status variables
   local ongoing_relevance ongoing_flags ongoing_prefix ongoing_priority
   local current_relevance current_flags current_prefix current_priority
+  local negated
 
   # Initial (default) statuses
   ongoing_relevance=true
@@ -515,32 +516,79 @@ d__process_manifest()
             # If value is empty, all OS's are allowed
             if [ -z "$value" ]; then current_relevance=true; continue; fi
 
-            # If value is either 'all' or 'any', again, all OS's are allowed
-            case $value in all|any) current_relevance=true; continue;; esac
+            # Check if the list of OS's starts with '!'
+            if [[ $value = '!'* ]]; then
 
-            # Read value as vertical bar-separated list of relevant OS's
-            IFS='|' read -r -a value_array <<<"$value"
-
-            # Set default value
-            current_relevance=false
-
-            # Iterate over list of relevant OS's
-            for value in "${value_array[@]}"; do
-
-              # Clear whitespace from edges of OS name
+              # Strip the '!' and re-trim the list
+              value="${value:1:${#value}}"
               read -r value <<<"$value"
 
-              # Check if current OS name from the list matches detected OS
-              if [[ $value = $D__OS_FAMILY || $value = $D__OS_DISTRO ]]; then
+              ## If value is empty, all OS's are allowed (negation of empty 
+              #. list is not allowed)
+              if [ -z "$value" ]; then current_relevance=true; continue; fi
 
-                # Flip flag and stop further list processing
-                current_relevance=true
-                break
+              # Read value as vertical bar-separated list of relevant OS's
+              IFS='|' read -r -a value_array <<<"$value"
 
-              fi
+              # Set default value
+              current_relevance=true
 
-            # Done iterating over list of relevant OS's
-            done
+              # Iterate over list of negated OS's
+              for value in "${value_array[@]}"; do
+
+                # Clear whitespace from edges of OS name
+                read -r value <<<"$value"
+
+                # If value is either 'all' or 'any', all OS's are negated
+                case $value in
+                  all|any) current_relevance=false; break;;
+                esac
+
+                # Check if current OS name from the list matches detected OS
+                if [[ $value = $D__OS_FAMILY || $value = $D__OS_DISTRO ]]; then
+
+                  # Flip flag
+                  current_relevance=false
+
+                fi
+
+              # Done iterating over list of relevant OS's
+              done
+
+            else
+
+              # Normal list, does not stasrt with '!'
+
+              # Read value as vertical bar-separated list of relevant OS's
+              IFS='|' read -r -a value_array <<<"$value"
+
+              # Set default value
+              current_relevance=false
+
+              # Iterate over list of relevant OS's
+              for value in "${value_array[@]}"; do
+
+                # Clear whitespace from edges of OS name
+                read -r value <<<"$value"
+
+                # If value is either 'all' or 'any', all OS's are allowed
+                case $value in
+                  all|any) current_relevance=false; break;;
+                esac
+
+                # Check if current OS name from the list matches detected OS
+                if [[ $value = $D__OS_FAMILY || $value = $D__OS_DISTRO ]]; then
+
+                  # Flip flag and stop further list processing
+                  current_relevance=true
+                  break
+
+                fi
+
+              # Done iterating over list of relevant OS's
+              done
+
+            fi
             ;;
           flags)
             # Remove all whitespace from within the value
