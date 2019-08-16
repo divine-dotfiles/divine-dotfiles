@@ -2,9 +2,9 @@
 #:title:        Divine.dotfiles fmwk uninstall script
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    53
+#:revnumber:    54
 #:revdate:      2019.08.16
-#:revremark:    Streamline simple dprint incarnations
+#:revremark:    dprompt_key -> dprompt
 #:created_at:   2019.07.22
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -448,7 +448,7 @@ d__confirm_uninstallation()
   fi
 
   # Prompt user
-  if dprompt_key "$D_REMOVE_FMWK" 'Uninstall Divine.dotfiles?' \
+  if dprompt "$D_REMOVE_FMWK" 'Uninstall Divine.dotfiles?' \
     "${report_lines[@]}"
   then
     dprint_debug "Proceeding to uninstall ${BOLD}Divine.dotfiles${NORMAL}"
@@ -471,7 +471,7 @@ d__uninstall_utils()
   printf >&2 '\n'
 
   # Offer to uninstall utilities
-  if dprompt_key "$D_REMOVE_UTILS" 'Uninstall?' \
+  if dprompt "$D_REMOVE_UTILS" 'Uninstall?' \
     '[optional] Would you like to uninstall system utilities' \
     'installed by the framework?'
   then
@@ -567,7 +567,7 @@ d__make_backup()
   printf >&2 '\n'
 
   # Offer to make backup
-  if dprompt_key "$D_MAKE_BACKUP" 'Make backup?' \
+  if dprompt "$D_MAKE_BACKUP" 'Make backup?' \
     '[optional] Would you like to retain backup of potentially valuable files?'
   then
     dprint_alert 'Backing up potentially valuable files'
@@ -970,7 +970,7 @@ dprint_failure()
   while (($#)); do printf >&2 '    %s\n' "$1"; shift; done; return 0
 }
 
-dprompt_key()
+dprompt()
 {
   # Extract predefined answer
   local predefined_answer="$1"; shift

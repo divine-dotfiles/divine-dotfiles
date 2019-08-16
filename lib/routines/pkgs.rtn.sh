@@ -2,9 +2,9 @@
 #:title:        Divine Bash routine: pkgs
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    11
-#:revdate:      2019.08.07
-#:revremark:    Grand removal of non-ASCII chars
+#:revnumber:    12
+#:revdate:      2019.08.16
+#:revremark:    dprompt_key -> dprompt
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -66,7 +66,7 @@ d__update_pkgs()
     # Unless given a '-y' option, prompt for user's approval
     if $proceeding && [ "$D__OPT_ANSWER" != true ]; then
       dprint_ode "${D__ODE_PROMPT[@]}" -- '' 'Confirm' ': '
-      dprompt_key --bare && proceeding=true || {
+      dprompt --bare && proceeding=true || {
         task_name="$task_name (declined by user)"
         proceeding=false
       }

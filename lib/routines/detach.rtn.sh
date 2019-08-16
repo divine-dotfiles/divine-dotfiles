@@ -2,9 +2,9 @@
 #:title:        Divine Bash routine: detach
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    11
-#:revdate:      2019.08.07
-#:revremark:    Grand removal of non-ASCII chars
+#:revnumber:    12
+#:revdate:      2019.08.16
+#:revremark:    dprompt_key -> dprompt
 #:created_at:   2019.06.28
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -137,7 +137,7 @@ d__detach_dpl_repo()
     if [ -d "$perm_dest" ]; then
 
       # Prompt user
-      if dprompt_key --bare --prompt 'Detach?' --answer "$D__OPT_ANSWER" -- \
+      if dprompt --bare --prompt 'Detach?' --answer "$D__OPT_ANSWER" -- \
         'About to remove attached deployments at:' \
         -i "$perm_dest" \
         '(Please, make sure deployments are removed from the system.)'

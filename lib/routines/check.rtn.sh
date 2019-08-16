@@ -2,9 +2,9 @@
 #:title:        Divine Bash routine: check
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    41
-#:revdate:      2019.08.15
-#:revremark:    Clear marker vars before checking, but correctly
+#:revnumber:    42
+#:revdate:      2019.08.16
+#:revremark:    dprompt_key -> dprompt
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -357,7 +357,7 @@ d__check_dpls()
       fi
 
       # Prompt user
-      dprompt_key --bare && proceeding=true || {
+      dprompt --bare && proceeding=true || {
         task_name="$task_name (declined by user)"
         proceeding=false
       }

@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: offer
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    13
+#:revnumber:    14
 #:revdate:      2019.08.16
-#:revremark:    Streamline simple dprint incarnations
+#:revremark:    dprompt_key -> dprompt
 #:created_at:   2019.07.06
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -61,7 +61,7 @@ d__offer_system_pkg()
   else
 
     # Prompt user for whether to install utility
-    dprompt_key -b --color "$YELLOW" --or-quit --answer "$D__OPT_ANSWER" \
+    dprompt -b --color "$YELLOW" --or-quit --answer "$D__OPT_ANSWER" \
       --prompt "Install $util_name using $D__OS_PKGMGR?"
 
     # Check status

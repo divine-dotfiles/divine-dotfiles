@@ -2,9 +2,9 @@
 #:title:        Divine.dotfiles macOS adapter
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    16
+#:revnumber:    17
 #:revdate:      2019.08.16
-#:revremark:    Streamline simple dprint incarnations
+#:revremark:    dprompt_key -> dprompt
 #:created_at:   2019.06.04
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -83,7 +83,7 @@ d__adapter_offer_to_install_brew()
     'Failed to detect Homebrew (package manager for macOS, https://brew.sh/)'
 
   # Prompr user
-  if dprompt_key -b --color "$YELLOW" --answer "$D__OPT_ANSWER" \
+  if dprompt -b --color "$YELLOW" --answer "$D__OPT_ANSWER" \
     --prompt "Install Homebrew?"
   then
 

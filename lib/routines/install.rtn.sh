@@ -2,9 +2,9 @@
 #:title:        Divine Bash routine: install
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    42
-#:revdate:      2019.08.15
-#:revremark:    Populate 
+#:revnumber:    43
+#:revdate:      2019.08.16
+#:revremark:    dprompt_key -> dprompt
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -201,7 +201,7 @@ d__install_pkgs()
         fi
 
         # Prompt user
-        dprompt_key --bare && proceeding=true || {
+        dprompt --bare && proceeding=true || {
           task_name="$task_name (declined by user)"
           proceeding=false
         }
@@ -409,7 +409,7 @@ d__install_dpls()
       fi
 
       # Prompt user
-      dprompt_key --bare && proceeding=true || {
+      dprompt --bare && proceeding=true || {
         task_name="$task_name (declined by user)"
         proceeding=false
       }
@@ -488,7 +488,7 @@ d__install_dpls()
 
           # Prompt user
           dprint_ode "${D__ODE_DANGER[@]}" -c "$RED" -- '!!!' 'Danger' ': '
-          dprompt_key --bare || exit 6
+          dprompt --bare || exit 6
 
         fi
 

@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: stash
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    4
-#:revdate:      2019.08.07
-#:revremark:    Grand removal of non-ASCII chars
+#:revnumber:    5
+#:revdate:      2019.08.16
+#:revremark:    dprompt_key -> dprompt
 #:created_at:   2019.05.15
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -580,7 +580,7 @@ d__stash_check_md5()
   fi
 
   # Prompt user and return appropriately
-  if dprompt_key --color "$RED" --answer "$D__OPT_ANSWER" \
+  if dprompt --color "$RED" --answer "$D__OPT_ANSWER" \
     --prompt "$prompt_question" -- "${prompt_desc[@]}"
   then
     dprint_debug 'Working with unverified stash'

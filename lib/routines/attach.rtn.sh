@@ -2,9 +2,9 @@
 #:title:        Divine Bash routine: attach
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    14
+#:revnumber:    15
 #:revdate:      2019.08.16
-#:revremark:    Streamline simple dprint incarnations
+#:revremark:    dprompt_key -> dprompt
 #:created_at:   2019.05.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -153,7 +153,7 @@ d__attach_dpl_repo()
       # Both git and remote repo are available
 
       # Prompt user about the attachment
-      dprompt_key --bare --answer "$D__OPT_ANSWER" --prompt 'Clone it?' -- \
+      dprompt --bare --answer "$D__OPT_ANSWER" --prompt 'Clone it?' -- \
         "Detected ${BOLD}Github repository${NORMAL} at:" \
         -i "https://github.com/${user_repo}" || return 1
 
@@ -191,7 +191,7 @@ d__attach_dpl_repo()
       # Both curl and remote repo are available
 
       # Prompt user about the attachment
-      dprompt_key --bare --answer "$D__OPT_ANSWER" --prompt 'Download it?' \
+      dprompt --bare --answer "$D__OPT_ANSWER" --prompt 'Download it?' \
         -- "Detected ${BOLD}Github repository${NORMAL} (tarball) at:" \
         -i "https://github.com/${user_repo}" || return 1
 
@@ -219,7 +219,7 @@ d__attach_dpl_repo()
       # Both wget and remote repo are available
 
       # Prompt user about the attachment
-      dprompt_key --bare --answer "$D__OPT_ANSWER" --prompt 'Download it?' \
+      dprompt --bare --answer "$D__OPT_ANSWER" --prompt 'Download it?' \
         -- "Detected ${BOLD}Github repository${NORMAL} (tarball) at:" \
         -i "https://github.com/${user_repo}" || return 1
 
@@ -365,7 +365,7 @@ d__run_pre_attach_checks()
       )
     fi
 
-    if dprompt_key --bare --prompt 'Pre-erase?' --answer "$D__OPT_ANSWER" -- \
+    if dprompt --bare --prompt 'Pre-erase?' --answer "$D__OPT_ANSWER" -- \
       "${prompt_desc[@]}"; then
 
       # Attempt to remove pre-existing file/dir

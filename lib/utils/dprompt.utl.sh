@@ -3,15 +3,15 @@
 #:kind:         func(script)
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    5
-#:revdate:      2019.08.07
-#:revremark:    Grand removal of non-ASCII chars
+#:revnumber:    6
+#:revdate:      2019.08.16
+#:revremark:    dprompt_key -> dprompt
 #:created_at:   2018.12.20
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
 #
 
-#>  dprompt_key [-a ANSWER] [-p PROMPT] [-c COLOR] [-brkyq]... [--] [CHUNKS|-n|-i]...
+#>  dprompt [-a ANSWER] [-p PROMPT] [-c COLOR] [-brkyq]... [--] [CHUNKS|-n|-i]...
 #
 ## Interactively promts user for either:
 #.  * yes or no answer (default prompt 'Proceed?')
@@ -60,7 +60,7 @@
 #.  stdout  - *nothing*
 #.  stderr  - Composed prompt description, prompt itself, accepted response
 #
-dprompt_key()
+dprompt()
 {
   # Parse options
   local args=() prompt= prompt_overridden=false color="${YELLOW}"

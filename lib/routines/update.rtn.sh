@@ -2,9 +2,9 @@
 #:title:        Divine Bash routine: update
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    30
+#:revnumber:    31
 #:revdate:      2019.08.16
-#:revremark:    Streamline simple dprint incarnations
+#:revremark:    dprompt_key -> dprompt
 #:created_at:   2019.05.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -132,7 +132,7 @@ d__update_fmwk()
     else
       # Prompt
       dprint_ode "${D__ODE_PROMPT[@]}" -- '' 'Confirm' ': '
-      dprompt_key --bare && UPDATING_FMWK=true || UPDATING_FMWK=false
+      dprompt --bare && UPDATING_FMWK=true || UPDATING_FMWK=false
     fi
 
   fi
@@ -236,7 +236,7 @@ d__update_grail()
     else
       # Prompt
       dprint_ode "${D__ODE_PROMPT[@]}" -- '' 'Confirm' ': '
-      dprompt_key --bare && UPDATING_GRAIL=true || UPDATING_GRAIL=false
+      dprompt --bare && UPDATING_GRAIL=true || UPDATING_GRAIL=false
     fi
 
   fi
@@ -325,7 +325,7 @@ d__update_dpls()
     else
       # Prompt
       dprint_ode "${D__ODE_PROMPT[@]}" -- '' 'Confirm' ': '
-      dprompt_key --bare && proceeding=true || proceeding=false
+      dprompt --bare && proceeding=true || proceeding=false
     fi
 
     # Check if still updating at this point
@@ -681,7 +681,7 @@ d__update_fmwk_via_tar()
   local temp_dest="$( mktemp -d )"
 
   # Prompt user
-  if ! dprompt_key --bare -p 'Attempt to download?' -a "$D__OPT_ANSWER" -- \
+  if ! dprompt --bare -p 'Attempt to download?' -a "$D__OPT_ANSWER" -- \
     'It is possible to download a fresh copy of Divine.dotfiles from:' \
     -i "https://github.com/${user_repo}" \
     -n 'and overwrite files in your framework directory at:' -i "$D__DIR_FMWK" \
@@ -747,7 +747,7 @@ d__update_fmwk_via_tar()
   fi
 
   # Prompt user for possible clobbering, and clobber if required
-  if ! dprompt_key --bare -p 'Overwrite files?' -a "$D__OPT_ANSWER" -- \
+  if ! dprompt --bare -p 'Overwrite files?' -a "$D__OPT_ANSWER" -- \
     'Fresh copy of Divine.dotfiles has been downloaded to temp dir at:' \
     -i "$temp_dest" \
     -n 'and is ready to be copied over existing files in:' -i "$D__DIR_FMWK"
@@ -964,7 +964,7 @@ d__update_dpl_repo_via_tar()
   local perm_dest="$D__DIR_DPL_REPOS/$user_repo"
 
   # Prompt user
-  if ! dprompt_key --bare -p 'Attempt to download?' -a "$D__OPT_ANSWER" -- \
+  if ! dprompt --bare -p 'Attempt to download?' -a "$D__OPT_ANSWER" -- \
     'It is possible to download a fresh copy of deployments from:' \
     -i "https://github.com/${user_repo}" \
     -n 'and overwrite files in your directory at:' -i "$perm_dest" \
@@ -1030,7 +1030,7 @@ d__update_dpl_repo_via_tar()
   fi
 
   # Prompt user for possible clobbering, and clobber if required
-  if ! dprompt_key --bare -p 'Overwrite files?' -a "$D__OPT_ANSWER" -- \
+  if ! dprompt --bare -p 'Overwrite files?' -a "$D__OPT_ANSWER" -- \
     'Fresh copy of repository has been downloaded to temp dir at:' \
     -i "$temp_dest" \
     -n 'and is ready to be copied over existing files in:' -i "$perm_dest"

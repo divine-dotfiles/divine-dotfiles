@@ -2,9 +2,9 @@
 #:title:        Divine Bash routine: plug
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    12
+#:revnumber:    13
 #:revdate:      2019.08.16
-#:revremark:    Streamline simple dprint incarnations
+#:revremark:    dprompt_key -> dprompt
 #:created_at:   2019.06.26
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -173,7 +173,7 @@ d__plug_github_repo()
       # Both git and remote repo are available
 
       # Prompt user about the plug
-      dprompt_key --bare --answer "$D__OPT_ANSWER" --prompt 'Clone it?' -- \
+      dprompt --bare --answer "$D__OPT_ANSWER" --prompt 'Clone it?' -- \
         "Detected ${BOLD}Github repository${NORMAL} at:" \
         -i "https://github.com/${user_repo}" || return 1
 
@@ -211,7 +211,7 @@ d__plug_github_repo()
       # Both curl and remote repo are available
 
       # Prompt user about the plug
-      dprompt_key --bare --answer "$D__OPT_ANSWER" --prompt 'Download it?' \
+      dprompt --bare --answer "$D__OPT_ANSWER" --prompt 'Download it?' \
         -- "Detected ${BOLD}Github repository${NORMAL} (tarball) at:" \
         -i "https://github.com/${user_repo}" || return 1
 
@@ -239,7 +239,7 @@ d__plug_github_repo()
       # Both wget and remote repo are available
 
       # Prompt user about the plug
-      dprompt_key --bare --answer "$D__OPT_ANSWER" --prompt 'Download it?' \
+      dprompt --bare --answer "$D__OPT_ANSWER" --prompt 'Download it?' \
         -- "Detected ${BOLD}Github repository${NORMAL} (tarball) at:" \
         -i "https://github.com/${user_repo}" || return 1
 
@@ -363,7 +363,7 @@ d__plug_local_repo()
     # Both git and local repo are available
 
     # Prompt user about the plug
-    dprompt_key --bare --answer "$D__OPT_ANSWER" --prompt 'Clone it?' -- \
+    dprompt --bare --answer "$D__OPT_ANSWER" --prompt 'Clone it?' -- \
       "Detected ${BOLD}local git repository${NORMAL} at:" -i "$repo_path" \
         || return 1
 
@@ -468,7 +468,7 @@ d__plug_local_dir()
 
   # Prompt user about the plug
   local prompt; $D__OPT_PLUG_LINK && prompt='Link it?' || prompt='Copy it?'
-  dprompt_key --bare --answer "$D__OPT_ANSWER" --prompt "$prompt" -- \
+  dprompt --bare --answer "$D__OPT_ANSWER" --prompt "$prompt" -- \
     "Detected ${BOLD}local directory${NORMAL} at:" -i "$dir_path" \
       || return 1
 
@@ -579,7 +579,7 @@ d__run_pre_plug_checks()
   if ! d__validate_detected_dpls --ext-dir "$ext_path/"; then
 
     # Prompt user
-    if ! dprompt_key --bare --prompt 'Proceed?' --answer "$D__OPT_ANSWER" -- \
+    if ! dprompt --bare --prompt 'Proceed?' --answer "$D__OPT_ANSWER" -- \
       'Grail directory obtained from:' -i "$src_addr" \
       -n 'contains invalid deployments (reserved or duplicate names)'
     then
@@ -625,7 +625,7 @@ d__run_pre_plug_checks()
 
     fi
 
-    if dprompt_key --bare --prompt 'Pre-erase?' --answer "$answer" -- \
+    if dprompt --bare --prompt 'Pre-erase?' --answer "$answer" -- \
       "${prompt_desc[@]}"; then
 
       # Attempt to remove pre-existing file/dir

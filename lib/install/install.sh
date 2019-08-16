@@ -2,9 +2,9 @@
 #:title:        Divine.dotfiles fmwk install script
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    50
+#:revnumber:    51
 #:revdate:      2019.08.16
-#:revremark:    Streamline simple dprint incarnations
+#:revremark:    dprompt_key -> dprompt
 #:created_at:   2019.07.22
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -245,7 +245,7 @@ d__pull_github_repo()
   local user_repo="no-simpler/divine-dotfiles"
 
   # Offer to install framework
-  if dprompt_key "$D_INSTALL_FRAMEWORK" 'Install?' \
+  if dprompt "$D_INSTALL_FRAMEWORK" 'Install?' \
     "${BOLD}Divine.dotfiles${NORMAL} Bash framework from:" \
     "https://github.com/${user_repo}"
   then
@@ -451,7 +451,7 @@ d__install_shortcut()
   local cmd="${BOLD}${D_SHORTCUT_NAME}${NORMAL}"
 
   # Offer to install shortcut
-  if dprompt_key "$D_INSTALL_SHORTCUT" 'Install?' \
+  if dprompt "$D_INSTALL_SHORTCUT" 'Install?' \
     "[optional] Would you like to install shortcut shell command '$cmd'"
   then
     dprint_alert "Installing shortcut shell command '$cmd'"
@@ -687,7 +687,7 @@ dprint_failure()
   while (($#)); do printf >&2 '    %s\n' "$1"; shift; done; return 0
 }
 
-dprompt_key()
+dprompt()
 {
   # Extract predefined answer
   local predefined_answer="$1"; shift
