@@ -1,13 +1,15 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revnumber: 24
-:revdate: 2019.08.15
+:revnumber: 25
+:revdate: 2019.08.16
 :revremark: Iterative improvement
 :doctype: article
 // Visual
 :toc:
 // Subs:
+:hs: #
+:dhs: ##
 
 ++++
 <p align="center">
@@ -362,6 +364,7 @@ This symlink is usually auto-created during framework installation.
 
 == Usage
 
+[[_intervention_utility]]
 === Divine intervention utility `di`
 
 _Divine.dotfiles_ provides command line interface via *Divine intervention utility `di`*.
@@ -381,7 +384,7 @@ Intervention utility does:
 
 Primary routines — bread-and-butter of the framework — launch respective functions on deployments.
 
-[source,bash,subs="verbatim,attributes,quotes"]
+[source,bash,subs="verbatim,quotes,attributes"]
 ----
 $ *di* *c*[*heck*]    [-ynqvewf] [--] [*_NAME_*]…
 
@@ -477,11 +480,12 @@ Access within deployments: `$D__OPT_QUIET` (`true` / `false`).
 Even though every option above serves a function within the framework, it is also up to deployment authors to honor their semantics.
 --
 
+[[attaching_deployments]]
 === Attaching third-party deployments
 
 Beside using own deployments, _Divine.dotfiles_ allows to attach (i.e., import) deployments distributed via Github repositories.
 
-[source,bash,subs="verbatim,attributes,quotes"]
+[source,bash,subs="verbatim,quotes,attributes"]
 ----
 $ *di* *a*[*ttach*] [-yn] [--] *_REPO_*…
 
@@ -532,7 +536,7 @@ This option is equivalent to a 'dry run' — apart from skip messages, nothing 
 
 If you have a copy of your carefully crafted <<grail_directory,Grail directory>> stored somewhere, _Divine.dotfiles_ lets you easily plug it in.
 
-[source,bash,subs="verbatim,attributes,quotes"]
+[source,bash,subs="verbatim,quotes,attributes"]
 ----
 $ *di* *p*[*lug*] [-ynl] [--] *_ADDRESS_*
 ----
@@ -579,7 +583,7 @@ In this mode, given argument is not considered as a repository.
 
 === Updating framework and deployments
 
-[source,bash,subs="verbatim,attributes,quotes"]
+[source,bash,subs="verbatim,quotes,attributes"]
 ----
 $ *di* *u*[*pdate*] [-yn] [--] [*f*[*ramework*]] [*g*[*rail*]] [*d*[*eployments*]]
 ----
@@ -1088,6 +1092,14 @@ Whenever the framework does _not_ expect you to reassign a global variable or re
 * `*D__*` prefix — for names of read-only internal variables;
 * `*d__*` prefix — for names of call-only internal functions.
 
+[NOTE]
+--
+Some of the most used framework functions have grown so attached to their `d` prefix, that they omit the underscores altogether.
+Examples are: `dprint_*` family of functions, `dprompt`, `dstash`, `dln`, `dcp`, etc.
+
+All such functions are call-only, i.e., *not* for re-implementation.
+--
+
 === Variables available to deployments
 
 The following variables are available/recognized in each deployment:
@@ -1096,7 +1108,7 @@ The following variables are available/recognized in each deployment:
 |===
 
 ^.^| Variable name
-^.^| Populated value
+^.^| Value description
 
 2+^.^h| <<_deployment_metadata,Deployment metadata>>
 
@@ -1127,12 +1139,12 @@ This variable will be non-empty even if there is no assignment within the file.
 | `*D__DPL_ASSET_DIR*`
 | Generated absolute path to directory assigned to hold assets of current deployment.
 
-Located within <<grail_directory,the Grail>>, specifically `grail/assets/*_DPL-NAME_*/`.
+Located within <<grail_directory,the Grail>>, specifically `grail/assets/*_D_DPL_NAME_*/`.
 
 | `*D__DPL_BACKUP_DIR*`
 | Generated absolute path to directory assigned to hold backups of current deployment.
 
-Located within <<state_directory,state directory>>, specifically `state/backups/*_DPL-NAME_*/`.
+Located within <<state_directory,state directory>>, specifically `state/backups/*_D_DPL_NAME_*/`.
 
 2+^.^h| Special file paths
 
@@ -1143,26 +1155,27 @@ Located within <<state_directory,state directory>>, specifically `state/backups/
 a| Generated absolute path to asset manifest of current deployment.
 This path does not necessarily exist.
 
-Same as path to `\*.dpl.sh` file, but with suffix changed to `*.dpl.mnf`.
+Same as `*_D__DPL_SH_PATH_*`, but with suffix changed to `*.dpl.mnf`.
 
 [NOTE]
 --
 Asset manifests are also processed by other internal routines, which don't source deployments.
+Making path to asset manifest dynamic would break those routines.
 
-Consequently, path schema of asset manifests is locked, and this variable is read-only.
+Thus, path schema of asset manifests is locked, and this variable is read-only.
 --
 
 | `*D_DPL_QUE_PATH*`
 a| Generated absolute path to queue manifest of current deployment.
 This path does not necessarily exist.
 
-Same as path to `\*.dpl.sh` file, but with suffix changed to `*.dpl.que`.
+Same as `*_D__DPL_SH_PATH_*`, but with suffix changed to `*.dpl.que`.
 
 [NOTE]
 --
 Queue manifests are processed only after their deployment file is sourced.
 
-Consequently, you are free to adjust this path.
+You are free to adjust this path to your liking.
 --
 
 2+^.^h| [#detected_os]#Detected operating system (OS)#
@@ -1183,7 +1196,7 @@ Exhaustive list of possible values:
 [NOTE]
 --
 Note that `linux` and `wsl` are separate entries.
-Check for both to determine whether currently under Linux, e.g.:
+Check for both to determine whether currently under modern Linux, e.g.:
 
 [source,bash,subs="verbatim,attributes"]
 ----
@@ -1241,7 +1254,7 @@ Set this variable to `true` to trigger an <<urgent_prompt,urgent prompt>> before
 | [#var_another_warning]#`D_DPL_NEEDS_ANOTHER_WARNING`#
 | Works only during `install`/`remove` <<_primary_routines,routine>> and only if set within `d_dpl_check()` primary.
 
-If `$D_DPL_NEEDS_ANOTHER_PROMPT` is set to `true` and this variable is non-empty, then this textual warning is shown to the user.
+If `*_D_DPL_NEEDS_ANOTHER_PROMPT_*` is set to `true` and this variable is non-empty, then this textual warning is shown to the user.
 
 | [#var_user_or_os]#`D_DPL_INSTALLED_BY_USER_OR_OS`#
 a| Works only if set within `d_dpl_check()` primary.
@@ -1296,17 +1309,531 @@ a| Whether blanket answer is given to all non-<<urgent_prompt,urgent>> built-in 
 
 === Functions available to deployments
 
+==== `dprint` family of functions
+
+Functions named with prefix `dprint_` serve to unify styling and behavior of output across _Divine.dotfiles_.
+They all print to `stderr`.
+
+You are advised to serve all output of your deployments through one of these, in keeping with their semantics.
+
+[source,bash,subs="verbatim,quotes,attributes"]
+----
+*dprint_debug*    [-l] [-n] [*_CHUNK_*|-n|-i]...    {dhs} Debug message (appears 
+                                              {hs}. only in --verbose mode)
+
+*dprint_alert*         [-n] [*_CHUNK_*|-n|-i]...    {hs} Notable event/problem
+
+*dprint_skip*          [-n] [*_CHUNK_*|-n|-i]...    {hs} Notable skip
+
+*dprint_success*       [-n] [*_CHUNK_*|-n|-i]...    {hs} Notable success
+
+*dprint_failure*       [-n] [*_CHUNK_*|-n|-i]...    {hs} Notable failure
+
+*dprint_sudo*          [-n] [*_CHUNK_*|-n|-i]...    {dhs} Warning of upcoming sudo 
+                                              {hs}. password prompt (appears only 
+                                              {hs}. when caller currently does not
+                                              {hs}. have sudo privelege)
+----
+
+.Example output of using a `dprint_*` function (coloring omitted)
+[source,bash,subs="verbatim,quotes,attributes"]
+----
+$ dprint_debug -l -n 'Extracting archive from:' -i "$archive_path" \
+-n 'to your home directory'
+
+*==>* Extracting archive from:
+        /home/user/downloads/filename.tar.gz
+    to your home directory
+----
+
+The `dprint` functions have the following *in common*:
+
+* The output is prepended with a thematically styled 'fat' arrow: `=\=>`.
+* The output message is assembled from given ``*_CHUNK_*``s, which are just strings.
+* Special `*_CHUNK_*`, `-n`, inserts a line break.
++
+If `-n` is the very first chunk, line break appears before the introductory arrow.
+* Special `*_CHUNK_*`, `-i`, inserts a line break followed by four-space indentation.
+* In the produced message, normal chunks are separated with single space.
+* Unrecognized options are treated as literal chunks.
+
+The `dprint` functions *differ* in the following:
+
+* `dprint_debug` honors current verbosity mode, as stored in `$D__OPT_QUIET`.
+You can force `dprint_debug` to always print by providing `-l` option as the very first argument.
++
+All other `dprint` functions print their message regardless of verbosity.
+* Entire message of `dprint_debug` is colored to stand out.
++
+All other `dprint` functions print their message in terminal's font color.
+* `dprint_sudo` prints its message only if calling context has no superuser priveleges.
+Otherwise, nothing is printed.
+* `dprint_sudo` is the only one that provides a default message if no chunks are given.
+It reads:
++
+`*=\=>* Sudo password is required`
+
+The `dprint` functions carry following *semantics*:
+
+[%header,cols="<.<1,<.<4",stripes=none]
+|===
+
+^.^| Function
+^.^| Semantics
+
+| `*dprint_debug*`
+a| `[.blue]#*=\=>* Stage of internal logic#`
+
+The intention is to quickly locate the point of failure, in case an error appears.
+Only printed in verbose mode.
+
+Put this everywhere: it won't show by default anyway.
+| `*dprint_alert*`
+a| `[.yellow]#*=\=>*# Notable non-fatal event/problem`
+
+Sprinkle this sparingly, or it will likely be ignored.
+| `*dprint_skip*`
+a| `[.white]#*=\=>*# Notable non-fatal skipping of logic`
+
+Use this if the skip is not problematic.
+| `*dprint_success*`
+a| `[.green]#*=\=>*# Notable success`
+
+Avoid this unless the success is extraordinary.
+| `*dprint_failure*`
+a| `[.red]#*=\=>*# Notable failure, fatal or not`
+
+Issue this on everything that is abnormal.
+| `*dprint_sudo*`
+a| `[.yellow]#*=\=>*# Warning of upcoming sudo password prompt`
+
+Only printed when caller currently lacks sudo priveleges.
+
+Prepend this to your priveleged calls to inform user of why they need to enter their password.
+
+|===
+
+[NOTE]
+--
+Notice the word '_notable_' used throughout.
+In general, it is *not* _notable_ when your deployment works as expected.
+--
+
+==== `dprompt` function
+
+Function `dprompt` serves to unify styling and behavior of user prompts across _Divine.dotfiles_.
+It prints to `stderr`.
+
+You are advised to serve all user prompts of your deployments through this function.
+
+[source,bash,subs="verbatim,quotes,attributes"]
+----
+*dprompt* [-a *_ANSWER_*] [-p *_PROMPT_*] [-c *_COLOR_*] [-brkyq]... \
+  [--] [-n] [*_CHUNKS_*|-n|-i]...
+----
+
+Interactively promts user for either:
+
+* yes/no answer (default prompt message: `Proceed?`)
+* any key press (default prompt message: `Press any key to continue`)
+
+.Example output of using a `dprompt` function
+[source,bash,subs="verbatim,quotes,attributes"]
+----
+$ dprompt --prompt 'Are you sure?' --bare --or-quit -- -n 'Next step is risky!'
+
+*==>* Next step is risky!
+    Are you sure? [y/n/q]
+----
+
+Prints introductory message composed from ``*_CHUNK_*``s (these work the same as in `dprint` functions).
+Then, prints the prompt message followed by declaration of expected response, e.g., `[y/n]`.
+
+Returns:
+
+* `0` on affirmative answer,
+* `1` on negatory answer,
+* `2` on special 'quit' answer (enabled by `--or-quit` option).
+
+Below is the list of `dprompt` options.
+Unrecognized options are silently ignored.
+
+[%header,cols="<.<1,<.<3",stripes=none]
+|===
+
+^.^| `dprompt` option
+^.^| Description
+
+a| `*-a* *_ANSWER_*`,
+
+`*--answer* *_ANSWER_*`
+a| * If `*_ANSWER_*` is `true`, returns `0` immediately.
+* If `*_ANSWER_*` is `false`, returns `1` immediately.
+* Otherwise, proceeds with prompting.
+
+[NOTE]
+--
+Call `dprompt --answer "$D__OPT_ANSWER"` to make the prompt honor `--yes`/`--no` options of the <<_intervention_utility,intervention utility>>.
+--
+
+a| `*-p* *_PROMPT_*`,
+
+`*--prompt* *_PROMPT_*`
+a| Customizes prompt text.
+Limit this to a few words, e.g., `Are you sure?`.
+Long-winded descriptions are better served in chunks as regular arguments.
+
+a| `*-c* *_COLOR_*`,
+
+`*--color* *_COLOR_*`
+a| Uses one of the built-in colors in styling of the prompt: `$BLACK`, `$RED`, `$GREEN`, `$YELLOW` (_default_), `$BLUE`, `$MAGENTA`, `$CYAN`, `$WHITE`.
+
+a| `*-b*`
+a| (_repeatable_) Gradually removes built-in coloring and bolding effects.
+Depending on number of `-b` options, the following styling is used:
+
+* 0:  bold, color, inverted color
+* 1:  bold, color
+* 2:  bold
+* 3:  color
+* 4+: _none_, synonym of `--bare`
+
+a| `*--bare*`
+a| Completely removes built-in coloring and bolding from the prompt.
+Synonym of `-bbbb`.
+
+a| `*-r*`, `*--arrow*`
+a| Always prepend 'fat' arrow, `=\=>`, to the prompt.
+Without this option, the arrow is only printed when there is at least one non-option argument.
+
+a| `*-k*`, `*--any-key*`
+a| Special mode: return `0` on any key press after the prompt.
+
+With this option `0` is immediately returned for both `true` and `false` values of `--answer` option.
+
+a| `*-y*`, `*--yes-no*`
+a| Default mode: yes or no prompt.
+
+a| `*-q*`, `*--or-quit*`
+a| In default mode, this option introduces the third option: `q` (stands for 'quit').
+If user presses `q`, code `2` is returned by `dprompt`.
+
+|===
+
+==== `dmd5` function
+
+Function `dmd5` provides a cross-platform way of calculating an md5 checksum of a file or a string.
+
+It relies on at least one of the following utilities being available in the system: `md5sum` or `md5` or `openssl`.
+
+[source,bash,subs="verbatim,quotes,attributes"]
+----
+*dmd5* [-s *_STRING_*] | [*_PATH_*]
+----
+
+* One checksum is calculated per call.
+* Either a string or a path to a file may be given.
+* It is up to you to ensure that path exists and is readable.
+* Checksum is printed to `stdout`.
+
+Returns zero on success and non-zero if something goes wrong.
+
+==== `dstash` function
+
+Function `dstash` is so important that it deserved its <<_stash,own section>>.
+
 === Stash
+
+_Divine.dotfiles_ provides a persistent key-value storage and retrieval system.
+It is based in file system, i.e., data is stored in files.
+It is accessible within deployments via `dstash` function.
+
+[source,bash,subs="verbatim,quotes,attributes"]
+----
+*dstash* *ready*|*has*|*set*|*add*|*get*|*list*|*unset*|*clear* [-rgs] [ *_KEY_* [*_VALUE_*] ]
+----
+
+[#stash_types]#There are three levels of stashing system#:
+
+* *Deployment stash* — exclusive to current deployment on current machine.
+This is the default.
++
+Stored in `state/stash/*_DPL-NAME_*/.stash.cfg`.
+* *Root stash* — shared by all deployments on current machine.
++
+Stored in `state/stash/.stash.cfg`.
+* *Grail stash* — shared by all deployments across all machines that use the same <<grail_directory,Grail>>.
++
+Stored in `grail/.stash.cfg`.
+
+Rules of key-value store are:
+
+* Keys must consist of: alphanumeric characters, underscore (`_`), and hyphen (`-`).
+* Values must not exceed single line of text, but are otherwise unrestricted, and may be empty.
+* Multiple instances of a key are allowed, values may be duplicate.
+
+Depending on first argument, usage is as follows.
+
+[%header,cols="<.<1,<.<3",stripes=none]
+|===
+
+^.^| `dstash` arguments
+^.^| Description
+
+| `*ready*`
+| (_default task_) Checks that stashing system is primed and ready.
+
+Returns `0` if stash is ready, or `2` if not.
+
+| `*has* *_KEY_*`
+| Checks if stash contains at least one `*_KEY_*` with any value.
+
+Returns `0` if so, or `1` otherwise.
+
+| `*set* *_KEY_* [*_VALUE_*]`
+| Ensures presence of single `*_KEY_*` and sets it to `*_VALUE_*`.
+
+Returns `0` on success, or `1` otherwise.
+
+| `*add* *_KEY_* [*_VALUE_*]`
+| Adds one instance of `*_KEY_*` and sets it to `*_VALUE_*`.
+
+Returns `0` on success, or `1` otherwise.
+
+| `*get* *_KEY_*`
+| Prints the value of the first instance of `*_KEY_*` to `stdout`.
+
+Returns `0` on success (even if nothing was printed), or `1` otherwise.
+
+| `*list* *_KEY_*`
+| Prints each value of `*_KEY_*` on a line to `stdout`.
+
+Returns `0` on success (even if nothing was printed), or `1` otherwise.
+
+| `*unset* *_KEY_* [*_VALUE_*]`
+| If `*_VALUE_*` is provided: removes each instance of `*_KEY_*` containing that value.
+
+Without `*_VALUE_*`: removes all instances of `*_KEY_*`.
+
+Returns `0` on success (even if nothing was removed), or `1` otherwise.
+
+| `*clear*`
+| Clears all records from this stash.
+
+|===
+
+Below is the list of `dstash` options.
+
+[%header,cols="<.<1,<.<3",stripes=none]
+|===
+
+^.^| `dstash` option
+^.^| Description
+
+a| `*-s*`, `*--skip-checks*`
+a| Normally, each invocation of `dstash` (with any arguments) starts with integrity check.
+For repeated calls within a deployment, such checks become redundant.
+After ensuring that `dstash ready`, use this option on every subsequent call to `dstash` to forego integrity checks.
+
+a| `*-r*`, `*--root*`
+a| Works with <<stash_types,root stash>> instead of default deployment stash.
+
+a| `*-g*`, `*--grail*`
+a| Works with <<stash_types,Grail stash>> instead of default deployment stash.
+
+|===
+
+[NOTE]
+--
+Records of attaching deployments are stored in <<stash_types,Grail stash>>.
+
+Records of installing optional framework dependencies are stored in <<stash_types,root stash>>.
+--
+
+=== Manifests
+
+_Divine.dotfiles_ introduces a simple markup language for special files called *manifests*.
+
+There are three types of special files that are manifests:
+
+* <<_divinefiles, Divinefiles>>.
+* <<_asset_manifests, Asset manifests>>.
+* <<_queue_manifests, Queue manifests>>.
+
+While they differ in purpose and supported features, all types of manifests share basic syntax, as they are internally parsed by the same engine.
+
+==== Manifest syntax
+
+Manifests are processed in terms of lines.
+Simplest line contains an *entry* of some kind.
+
+Whitespace rules are fairly permissive.
+Any amount of leading and trailing whitespace is allowed and ignored.
+Within an entry, whitespace is preserved.
+
+[source]
+----
+entry1
+entry2
+entry with whitespace
+  indented entry will not contain indentation
+----
+
+[[kv]]
+==== Key-values
+
+Whenever a line starts with an opening parenthesis `(` and contains a closing one `)`, what's between them is interpreted as a *key-value* pair.
+Key-values are used to qualify entries and provide additional info.
+
+A key-value is separated into key and value by the first occurrence of `:` (colon) within the parentheses.
+
+There may be more than one key-value per line, but they must precede the actual entry.
+Key-values that precede an entry affect only that entry.
+Key-values that occupy their own line comeinto effect for the rest of the document, or unless overridden.
+
+[source,bash]
+----
+entry1                  # This entry is not affected by any key-values
+(color: red) entry2     # This entry has color set to red
+
+(color: blue)           # This line sets color to blue for the following lines
+entry3                  # Color is blue
+(color: green) entry4   # Color is green
+entry5                  # Color is blue
+
+(color:)
+entry6                  ## These entries are once again
+entry7                  #. not affected by any key-values
+----
+
+[NOTE]
+--
+There are a few keys that are universal to all types of manifests.
+They are described below.
+
+Particular kinds of manifests support additional keys.
+--
+
+==== OS-specific entries
+
+Key `os` makes entries specific to particular operating systems.
+Multiple OS's may be given by separating with vartical bars.
+Entire list of OS's may be negated (inverted) by prepending it with a `!`.
+
+[source,bash]
+----
+(os: debian)          entry1    # Relevant only on Debian
+
+(os: macos|bsd)       entry2    # Relevant only on macOS or BSD
+
+(os: ! linux | wsl)   entry3    # Relevant everywhere except Linux or WSL
+
+(os: all)             entry4    ## Keywords 'all'/'any' are reserved to denote 
+                                #. any OS. This is synonymous to empty list.
+----
+
+[NOTE]
+--
+OS names are matched against <<var_os_family,`$D\__OS_FAMILY`>> and <<var_os_distro,`$D__OS_DISTRO`>> built-in variables.
+Single match against any of the two is sufficient.
+--
+
+==== Entry flags
+
+Key `flags` adds a string of single-character flags to the entries.
+
+Flags specifically have a *shorthand*: whenever a key-value does not contain a `:` (colon) separator (i.e., there is no key), content of parentheses is interpreted as `flags`.
+Note, however that the shorthand (and only the shorthand) works by *appending* provided flags to the current value instead of substituting them.
+
+[source,bash]
+----
+(flags: i!0)  entry1    # Flags: i, !, 0
+
+(flags: a)
+              entry2    # Flags: a
+       (b)
+       (c)    entry3    # Flags: a, b, c
+              entry4    # Flags: a, b
+(flags: d)    entry5    # Flags: d
+              entry6    # Flags: a, b
+----
+
+==== Comments and line continuation
+
+Hash/pound symbol (`#`) comments out the rest of the line.
+
+A line may be 'glued' to the next by terminating it with a backslash (`\`).
+Whitespace and comment are allowed to follow the backslash.
+
+[source,bash]
+----
+(os: fedora)  \   ## This is a single logical line
+lengthy entry \   #. spanning three physical lines
+text              #. (yes, even with comments attached like this)
+----
 
 === Assets
 
+If you develop deployments for distribution, you will soon encounter the problem of separating more-or-less static deployment logic from dynamic deployment assets.
+
+Lets study an example deployment that symlinks a configuration file into the system.
+It would be desirable to copy a sample of that configuration file into user's <<grail_directory,Grail directory>>, and then create a symlink to the copy.
+The user would then be free to inspect, modify, and synchronize that copy.
+At the same time, the deployment file is better kept within <<state_directory,state directory>>, where it would be easily updated by the framework.
+
+To facilitate separation of deployment logic and assets, _Divine.dotfiles_ offers the mechanism of *asset manifests*.
+
 ==== Asset manifests
+
+An *asset manifest* is a text file located in the same directory as the deployment file and named the same, except for exchanging `.dpl.sh` suffix for `.dpl.mnf`.
+
+Contents of an asset manifest describe a set of *assets* (files and directories) within the manifest's directory.
+Whenever such manifest is processed, the framework ensures that a copy of each asset is present within the deployment's designated asset directory: `grail/assets/*_DPL-NAME_*/`.
+Note, that the framework never overwrites assets that are already present at destination.
+
+Processing of asset manifests occurs:
+
+* During <<primary_routines,primary routines>>, after sourcing deployment file, but before calling any of the <<_primary_functions,primary functions>>.
+* During <<attaching_deployments,attaching of deployments>>, so that the assets of newly introduced deployments are immediately present in <<grail_directory,the Grail>>.
+
+==== Asset manifest syntax
+
+Asset manifests follow the general <<_manifest_syntax,manifest syntax>>.
+
+Every entry is a *path* that is resolved relative to the deployment directory.
+When assets are copied to deployment's asset directory, their relative path is preserved.
+If you want your paths to be resolved relative to some sub-path, which you don't want to be carried over to destination, specify that sub-path in the `prefix` key.
+
+Two type of paths are accepted: *concrete* paths and *regex* patterns.
+To be interpreted as a regex pattern, a path must be <<_entry_flags,flagged>> with `r` character.
+Under the hood, patterns are fed to the http://man7.org/linux/man-pages/man1/find.1.html[find] utility, specifically, the `-path` directive.
+
+.Example of asset manifest
+[source]
+----
+file1.txt           ## These files will be copied from deployment directory
+file2.txt           #. into the root of asset directory
+
+(r) configs/*.cfg   ## Any .cfg files will be copied into 'configs/'
+
+(prefix: images)
+img1.jpg            ## These two files will be grabbed from 'images/' directory
+img2.jpg            #. and copied into the root of asset directory
+----
+
+[NOTE]
+--
+Framework enforces the presence of assets identified by concrete paths.
+If any of such assets is missing, deployment will not be allowed to proceed.
+
+Regex patterns are more permissive: they may match zero assets, and no error will be raised.
+--
 
 === Queues
 
 ==== Generic queue
 
-==== Queue manifest
+==== Queue manifests
 
 ==== Link queue
 
@@ -1315,8 +1842,6 @@ a| Whether blanket answer is given to all non-<<urgent_prompt,urgent>> built-in 
 ==== Split queue
 
 === Multitask
-
-=== Debug output
 
 == Ways to contribute
 
