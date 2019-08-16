@@ -3,9 +3,9 @@
 #:kind:         global_var,func(script)
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    5
-#:revdate:      2019.08.08
-#:revremark:    Rely on global  instead of local 
+#:revnumber:    6
+#:revdate:      2019.08.16
+#:revremark:    Streamline simple dprint incarnations
 #:created_at:   2019.03.15
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -119,7 +119,7 @@ d__detect_os_family()
   if [ -z "$d__os_family" ]; then
 
     # Failed to detect OS family: announce and exit script
-    dprint_failure -l 'Failed to detect OS family'
+    dprint_failure 'Failed to detect OS family'
     exit 1
 
   elif [ "$d__os_family" = "$D__OS_FAMILY" ]; then
@@ -135,7 +135,7 @@ d__detect_os_family()
   else
 
     # $D__OS_FAMILY is not set to correct value and is read-only: report error
-    dprint_failure -l \
+    dprint_failure \
       'Internal variable $D__OS_FAMILY is already set and is read-only' \
       "Detected OS family                : $d__os_family" \
       "Content of \$D__OS_FAMILY variable : $D__OS_FAMILY"
@@ -242,7 +242,7 @@ d__detect_os_distro_and_pkgmgr()
   else
 
     # $D__OS_DISTRO is not set to correct value and is read-only: report error
-    dprint_failure -l \
+    dprint_failure \
       'Internal variable $D__OS_DISTRO is already set and is read-only' \
       "Detected OS distribution          : $d__os_distro" \
       "Content of \$D__OS_DISTRO variable : $D__OS_DISTRO"
@@ -254,7 +254,7 @@ d__detect_os_distro_and_pkgmgr()
   if [ -z "$d__os_distro" ]; then
 
     # Failed to detect OS distro: announce, unset functions, set flag
-    dprint_failure -l 'Failed to detect current OS distribution'
+    dprint_failure 'Failed to detect current OS distribution'
     unset -f d__adapter_detect_os_distro
     unset -f d__adapter_detect_os_pkgmgr
     unset -f d__adapter_override_dpl_targets_for_os_distro
@@ -288,7 +288,7 @@ d__detect_os_distro_and_pkgmgr()
   else
 
     # $D__OS_PKGMGR is not set to correct value and is read-only: report error
-    dprint_failure -l \
+    dprint_failure \
       'Internal variable $D__OS_PKGMGR is already set and is read-only' \
       "Detected OS package manager       : $d__os_pkgmgr" \
       "Content of \$D__OS_PKGMGR variable : $D__OS_PKGMGR"
@@ -300,7 +300,7 @@ d__detect_os_distro_and_pkgmgr()
   if [ -z "$d__os_pkgmgr" ]; then
 
     # Failed to detect OS pkgmgr: announce, unset functions, set flag
-    dprint_failure -l 'Failed to detect package manager on current OS'
+    dprint_failure 'Failed to detect package manager on current OS'
     unset -f d__os_pkgmgr
     all_good=false
 

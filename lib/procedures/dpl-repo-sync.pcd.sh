@@ -2,9 +2,9 @@
 #:title:        Divine Bash procedure: dpl-repo-sync
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    3
-#:revdate:      2019.08.07
-#:revremark:    Grand removal of non-ASCII chars
+#:revnumber:    4
+#:revdate:      2019.08.16
+#:revremark:    Streamline simple dprint incarnations
 #:created_at:   2019.06.28
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -76,14 +76,14 @@ d__sync_dpl_repos()
     # Recorded repo has no directory
 
     # Announce installation
-    dprint_start -l \
+    dprint_alert \
       "Installing missing deployments '$recorded_user_repo'"
 
     # Install and check status
     if ! d__sync_attach_dpl_repo "$recorded_user_repo"; then
 
       # Announce failure
-      dprint_failure -l \
+      dprint_failure \
         "Failed to install missing deployments '$recorded_user_repo'"
 
       # Flip flag and continue
@@ -104,14 +104,14 @@ d__sync_dpl_repos()
     user_repo="${actual_repo_dir#"$D__DIR_DPL_REPOS/"}"
 
     # Announce removal
-    dprint_start -l \
+    dprint_alert \
       "Removing unnecessary deployments '$user_repo'"
 
     # Remove that directory
     if ! d__sync_detach_dpl_repo "$user_repo"; then
 
       # Announce failure
-      dprint_failure -l \
+      dprint_failure \
         "Failed to remove unnecessary deployments '$user_repo'"
 
       # Flip flag and continue

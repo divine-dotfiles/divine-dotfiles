@@ -2,9 +2,9 @@
 #:title:        Divine Bash procedure: stash-checks
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    5
-#:revdate:      2019.08.07
-#:revremark:    Grand removal of non-ASCII chars
+#:revnumber:    6
+#:revdate:      2019.08.16
+#:revremark:    Streamline simple dprint incarnations
 #:created_at:   2019.07.05
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -26,7 +26,7 @@ d__run_stash_checks()
 {
   # Ensure Grail stash is available
   d__stash --grail ready || {
-    dprint_failure -l \
+    dprint_failure \
       'Failed to prepare Divine stashing system in Grail directory at:' \
       -i "$D__DIR_GRAIL"
     exit 1
@@ -34,7 +34,7 @@ d__run_stash_checks()
 
   # Ensure root stash is available
   d__stash --root ready || {
-    dprint_failure -l \
+    dprint_failure \
       'Failed to prepare Divine stashing system in state directory at:' \
       -i "$D__DIR_STASH"
     exit 1

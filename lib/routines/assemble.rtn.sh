@@ -2,9 +2,9 @@
 #:title:        Divine Bash routine: assemble
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    24
-#:revdate:      2019.08.07
-#:revremark:    Grand removal of non-ASCII chars
+#:revnumber:    25
+#:revdate:      2019.08.16
+#:revremark:    Streamline simple dprint incarnations
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -108,7 +108,7 @@ d__assemble_all_tasks()
         for illegal_dpl in "${D__LIST_OF_ILLEGAL_DPL_PATHS[@]}"; do
           list_of_illegal_dpls+=( -i "$illegal_dpl" )
         done
-        dprint_failure -l \
+        dprint_failure \
           "Illegal deployments detected at:" "${list_of_illegal_dpls[@]}" \
           -n "String '$D__CONST_DELIMITER' is reserved internal path delimiter"
         exit 1
@@ -207,7 +207,7 @@ d__validate_dpl_dirs()
         for illegal_dpl in "${D__LIST_OF_ILLEGAL_DPL_PATHS[@]}"; do
           list_of_illegal_dpls+=( -i "$illegal_dpl" )
         done
-        dprint_failure -l \
+        dprint_failure \
           "Illegal deployments detected at:" "${list_of_illegal_dpls[@]}" \
           -n "String '$D__CONST_DELIMITER' is reserved internal path delimiter"
         exit 1
@@ -804,7 +804,7 @@ d__validate_detected_dpls()
       err_msg+=( -n "Name '$cur_dpl_name' is reserved" )
 
       # Print error message
-      dprint_failure -l "${err_msg[@]}"
+      dprint_failure "${err_msg[@]}"
 
       # Flip flag
       all_good=false
@@ -823,7 +823,7 @@ d__validate_detected_dpls()
       err_msg+=( -n "Deployment names must be unique" )
 
       # Print error message
-      dprint_failure -l "${err_msg[@]}"
+      dprint_failure "${err_msg[@]}"
 
       # Flip flag
       all_good=false
@@ -943,7 +943,7 @@ d__cross_validate_dpls_before_merging()
       err_msg+=( -n 'Deployment names must be unique' )
 
       # Print error message
-      dprint_failure -l "${err_msg[@]}"
+      dprint_failure "${err_msg[@]}"
 
       # Flip flag
       all_good=false

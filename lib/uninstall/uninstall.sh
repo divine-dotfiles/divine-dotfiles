@@ -2,9 +2,9 @@
 #:title:        Divine.dotfiles fmwk uninstall script
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    52
-#:revdate:      2019.08.08
-#:revremark:    Improve colorization fallback; add it to fmwk (un)installation
+#:revnumber:    53
+#:revdate:      2019.08.16
+#:revremark:    Streamline simple dprint incarnations
 #:created_at:   2019.07.22
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -135,7 +135,7 @@ d__pre_flight_checks()
 
     # Use user-provided framework directory
     $newline_printed || { printf >&2 '\n'; newline_printed=true; }
-    dprint_start "Overridden framework directory: $D_FMWK_DIR"
+    dprint_alert "Overridden framework directory: $D_FMWK_DIR"
     D_STATUS_FRAMEWORK=false
 
   else
@@ -475,7 +475,7 @@ d__uninstall_utils()
     '[optional] Would you like to uninstall system utilities' \
     'installed by the framework?'
   then
-    dprint_start 'Uninstalling system utilities installed by the framework'
+    dprint_alert 'Uninstalling system utilities installed by the framework'
   else
     dprint_skip \
       'Refused to uninstall system utilities installed by the framework'
@@ -570,7 +570,7 @@ d__make_backup()
   if dprompt_key "$D_MAKE_BACKUP" 'Make backup?' \
     '[optional] Would you like to retain backup of potentially valuable files?'
   then
-    dprint_start 'Backing up potentially valuable files'
+    dprint_alert 'Backing up potentially valuable files'
   else
     dprint_skip 'Refused to back up potentially valuable files'
     return 0
@@ -681,7 +681,7 @@ d__erase_d_dir()
   printf >&2 '\n'
 
   # Announce start
-  dprint_start 'Removing framework directory'
+  dprint_alert 'Removing framework directory'
 
   # Remove framework directory
   if rm -rf -- "$D_FMWK_DIR"; then
@@ -715,7 +715,7 @@ d__uninstall_shortcut()
   printf >&2 '\n'
 
   # Announce start
-  dprint_start 'Removing shortcut shell command'
+  dprint_alert 'Removing shortcut shell command'
 
   # Storage variables
   local shortcut_dirpath
@@ -733,7 +733,7 @@ d__uninstall_shortcut()
 
     # Check if password is going to be required
     if ! sudo -n true 2>/dev/null; then
-      dprint_start 'Sudo password is required to remove shortcut shell command'
+      dprint_alert 'Sudo password is required to remove shortcut shell command'
     fi
 
     # Remove shortcut with sudo
@@ -946,7 +946,7 @@ dprint_debug()
   return 0
 }
 
-dprint_start()
+dprint_alert()
 {
   printf >&2 "${BOLD}${YELLOW}==>${NORMAL} %s\n" "$1"; shift
   while (($#)); do printf >&2 '    %s\n' "$1"; shift; done; return 0

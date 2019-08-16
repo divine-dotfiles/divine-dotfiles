@@ -2,9 +2,9 @@
 #:title:        Divine.dotfiles macOS adapter
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    15
-#:revdate:      2019.07.25
-#:revremark:    Rewrite OS detection and adapters
+#:revnumber:    16
+#:revdate:      2019.08.16
+#:revremark:    Streamline simple dprint incarnations
 #:created_at:   2019.06.04
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -79,7 +79,7 @@ d__adapter_offer_to_install_brew()
   fi
 
   # Inform user of the tragic circumstances
-  dprint_start -l \
+  dprint_alert \
     'Failed to detect Homebrew (package manager for macOS, https://brew.sh/)'
 
   # Prompr user
@@ -120,12 +120,12 @@ d__adapter_offer_to_install_brew()
       if d__stash -r -s add installed_homebrew; then
         dprint_debug "Recorded installation of Homebrew to root stash"
       else
-        dprint_failure -l \
+        dprint_failure \
           "Failed to record installation of Homebrew to root stash"
       fi
 
       # Announce success
-      dprint_success -l "Successfully installed Homebrew"
+      dprint_success "Successfully installed Homebrew"
 
       # Return status
       return 0
@@ -133,7 +133,7 @@ d__adapter_offer_to_install_brew()
     else
 
       # Announce and return failure
-      dprint_failure -l "Failed to install Homebrew"
+      dprint_failure "Failed to install Homebrew"
       return 1
 
     fi
@@ -141,7 +141,7 @@ d__adapter_offer_to_install_brew()
   else
 
     # Announce refusal to install and return
-    dprint_skip -l "Refused to install Homebrew"
+    dprint_skip "Refused to install Homebrew"
     return 1
 
   fi

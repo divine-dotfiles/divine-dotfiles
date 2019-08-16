@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: copy-queue
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    5
-#:revdate:      2019.08.07
-#:revremark:    Grand removal of non-ASCII chars
+#:revnumber:    6
+#:revdate:      2019.08.16
+#:revremark:    Streamline simple dprint incarnations
 #:created_at:   2019.05.23
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -307,7 +307,7 @@ d__copy_queue_item_install()
         mkdir -p -- "$to_parent_dir"
       else
         if ! sudo -n true 2>/dev/null; then
-          dprint_start -l 'Creating directory within:' \
+          dprint_alert 'Creating directory within:' \
             -i "$to_existing_parent_dir" -n 'requires sudo password'
         fi
         sudo mkdir -p -- "$to_parent_dir"
@@ -332,7 +332,7 @@ d__copy_queue_item_install()
     cp -Rn -- "$from_path" "$to_path"
   else
     if ! sudo -n true 2>/dev/null; then
-      dprint_start -l 'Copying into:' -i "$to_parent_dir" \
+      dprint_alert 'Copying into:' -i "$to_parent_dir" \
         -n 'requires sudo password'
     fi
     sudo cp -Rn -- "$from_path" "$to_path"
@@ -376,7 +376,7 @@ d__copy_queue_item_remove()
       mkdir -p -- "$to_parent_dir"
     else
       if ! sudo -n true 2>/dev/null; then
-        dprint_start -l 'Creating directory within:' \
+        dprint_alert 'Creating directory within:' \
             -i "$to_existing_parent_dir" -n 'requires sudo password'
       fi
       sudo mkdir -p -- "$to_parent_dir"
@@ -402,7 +402,7 @@ d__copy_queue_item_remove()
       rm -rf -- "$to_path"
     else
       if ! sudo -n true 2>/dev/null; then
-        dprint_start -l 'Removing within:' \
+        dprint_alert 'Removing within:' \
           -i "$to_parent_dir" -n 'requires sudo password'
       fi
       sudo rm -rf -- "$to_path"
@@ -428,7 +428,7 @@ d__copy_queue_item_remove()
       mv -n -- "$backup_path" "$to_path"
     else
       if ! sudo -n true 2>/dev/null; then
-        dprint_start -l 'Moving into:' \
+        dprint_alert 'Moving into:' \
           -i "$to_parent_dir" -n 'requires sudo password'
       fi
       sudo mv -n -- "$backup_path" "$to_path"

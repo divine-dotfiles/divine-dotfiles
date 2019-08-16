@@ -3,38 +3,40 @@
 #:kind:         func(script)
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    7
-#:revdate:      2019.08.07
-#:revremark:    Grand removal of non-ASCII chars
+#:revnumber:    8
+#:revdate:      2019.08.16
+#:revremark:    Streamline simple dprint incarnations
 #:created_at:   2018.12.20
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
 #
 ## Summary of defined functions:
 #>  dprint_debug    [-l] [-n] [CHUNKS|-n|-i]...
-#>  dprint_start    [-l] [-n] [CHUNKS|-n|-i]...
-#>  dprint_skip     [-l] [-n] [CHUNKS|-n|-i]...
-#>  dprint_success  [-l] [-n] [CHUNKS|-n|-i]...
-#>  dprint_failure  [-l] [-n] [CHUNKS|-n|-i]...
-#>  dprint_ode [-no] [-c|--color X] [--width-N X] [--effects-N X] [--] FIELD1 [FIELD2...]
-#>  dprint_plaque [-nope]... [-c|--color X] [-w|--width X] [-r|--padding-char X] [--] MSG
+#>  dprint_alert    [-n] [CHUNKS|-n|-i]...
+#>  dprint_skip     [-n] [CHUNKS|-n|-i]...
+#>  dprint_success  [-n] [CHUNKS|-n|-i]...
+#>  dprint_failure  [-n] [CHUNKS|-n|-i]...
+#>  dprint_sudo     [-n] [CHUNKS|-n|-i]...
+#>  dprint_ode [-no] [-c|--color X] [--width-N X] [--effects-N X] [--] \
+#>    FIELD1 [FIELD2...]
+#>  dprint_plaque [-nope]... [-c|--color X] [-w|--width X] \
+#>    [-r|--padding-char X] [--] MSG
 #
 
 #>  dprint_debug [-l] [-n] [CHUNKS|-n|-i]...
 #
-## In verbose mode: from given chunks and line breaks composes and prints a 
-#. message themed as a debug line. Chunks are separated by single space.
-#
-## In quiet mode ($D__OPT_QUIET): does nothing.
+## Composes a message from given chunks and prints it, styled as a debug line. 
+#. Assembled chunks are separated by single space. Honors global verbosity 
+#. options.
 #
 ## Options:
-#.  -l  - (must be first) Ignore global $D__OPT_QUIET and always print
-#.  -n  - (must be first or second) Prepend empty line to any other output
+#.  -l  - (must be first arg) Ignore global $D__OPT_QUIET and always print
+#.  -n  - (must be first or second arg) Prepend empty line to any other output
 #
 ## Parameters:
 #.  $@  - Textual chunks of a message. Following special chunks are recognized:
-#.          '-n'  - Insert new line
-#.          '-i'  - Insert new indented line
+#.          * '-n'  - Insert new line
+#.          * '-i'  - Insert new indented line
 #
 ## Returns:
 #.  0 - If message was printed
@@ -50,46 +52,38 @@ dprint_debug()
   [ "$1" = -l ] && shift || { [ "$D__OPT_QUIET" = true ] && return 1; }
   [ "$1" = -n ] && { printf >&2 '\n'; shift; }
 
-  # Save formatting
-  local c="$CYAN" n="$NORMAL"
-
   # Compose message from arguments and print it all on the go
-  printf >&2 '%s' "$c==>$n"
+  printf >&2 '%s' "$CYAN==>$NORMAL"
   local chunk; for chunk do
     case $chunk in -n) printf >&2 '\n   ';; -i) printf >&2 '\n       ';;
-    *) printf >&2 ' %s' "$c$chunk$n";; esac
+    *) printf >&2 ' %s' "$CYAN$chunk$NORMAL";; esac
   done; printf >&2 '\n'; return 0
 }
 
-#>  dprint_start [-l] [-n] [CHUNKS|-n|-i]...
+#>  dprint_alert [-n] [CHUNKS|-n|-i]...
 #
-## In verbose mode: from given chunks and line breaks composes and prints a 
-#. message themed as an announcement of new stage in a process. Chunks are 
-#. separated by single space.
-#
-## In quiet mode ($D__OPT_QUIET): does nothing.
+## Composes a message from given chunks and prints it, styled as a alert line. 
+#. Assembled chunks are separated by single space. Does not honor global 
+#. verbosity options: always prints.
 #
 ## Options:
-#.  -l  - (must be first) Ignore global $D__OPT_QUIET and always print
-#.  -n  - (must be first or second) Prepend empty line to any other output
+#.  -n  - (must be first arg) Prepend empty line to any other output
 #
 ## Parameters:
 #.  $@  - Textual chunks of a message. Following special chunks are recognized:
-#.          '-n'  - Insert new line
-#.          '-i'  - Insert new indented line
+#.          * '-n'  - Insert new line
+#.          * '-i'  - Insert new indented line
 #
 ## Returns:
-#.  0 - If message was printed
-#.  1 - Otherwise
+#.  0 - Always
 #
 ## Prints:
 #.  stdout  - *nothing*
 #.  stderr  - Composed message
 #
-dprint_start()
+dprint_alert()
 {
   # Check options
-  [ "$1" = -l ] && shift || { [ "$D__OPT_QUIET" = true ] && return 1; }
   [ "$1" = -n ] && { printf >&2 '\n'; shift; }
 
   # Compose message from arguments and print it all on the go
@@ -99,26 +93,22 @@ dprint_start()
   done; printf >&2 '\n'; return 0
 }
 
-#>  dprint_skip [-l] [-n] [CHUNKS|-n|-i]...
+#>  dprint_skip [-n] [CHUNKS|-n|-i]...
 #
-## In verbose mode: from given chunks and line breaks composes and prints a 
-#. message themed as an announcement of skipped stage in a process. Chunks are 
-#. separated by single space.
-#
-## In quiet mode ($D__OPT_QUIET): does nothing.
+## Composes a message from given chunks and prints it, styled as a skip line. 
+#. Assembled chunks are separated by single space. Does not honor global 
+#. verbosity options: always prints.
 #
 ## Options:
-#.  -l  - (must be first) Ignore global $D__OPT_QUIET and always print
-#.  -n  - (must be first or second) Prepend empty line to any other output
+#.  -n  - (must be first arg) Prepend empty line to any other output
 #
 ## Parameters:
 #.  $@  - Textual chunks of a message. Following special chunks are recognized:
-#.          '-n'  - Insert new line
-#.          '-i'  - Insert new indented line
+#.          * '-n'  - Insert new line
+#.          * '-i'  - Insert new indented line
 #
 ## Returns:
-#.  0 - If message was printed
-#.  1 - Otherwise
+#.  0 - Always
 #
 ## Prints:
 #.  stdout  - *nothing*
@@ -127,7 +117,6 @@ dprint_start()
 dprint_skip()
 {
   # Check options
-  [ "$1" = -l ] && shift || { [ "$D__OPT_QUIET" = true ] && return 1; }
   [ "$1" = -n ] && { printf >&2 '\n'; shift; }
 
   # Compose message from arguments and print it all on the go
@@ -137,26 +126,22 @@ dprint_skip()
   done; printf >&2 '\n'; return 0
 }
 
-#>  dprint_success [-l] [-n] [CHUNKS|-n|-i]...
+#>  dprint_success [-n] [CHUNKS|-n|-i]...
 #
-## In verbose mode: from given chunks and line breaks composes and prints a 
-#. message themed as an announcement of successfully completed stage in a 
-#. process. Chunks are separated by single space.
-#
-## In quiet mode ($D__OPT_QUIET): does nothing.
+## Composes a message from given chunks and prints it, styled as a success 
+#. line. Assembled chunks are separated by single space. Does not honor global 
+#. verbosity options: always prints.
 #
 ## Options:
-#.  -l  - (must be first) Ignore global $D__OPT_QUIET and always print
-#.  -n  - (must be first or second) Prepend empty line to any other output
+#.  -n  - (must be first arg) Prepend empty line to any other output
 #
 ## Parameters:
 #.  $@  - Textual chunks of a message. Following special chunks are recognized:
-#.          '-n'  - Insert new line
-#.          '-i'  - Insert new indented line
+#.          * '-n'  - Insert new line
+#.          * '-i'  - Insert new indented line
 #
 ## Returns:
-#.  0 - If message was printed
-#.  1 - Otherwise
+#.  0 - Always
 #
 ## Prints:
 #.  stdout  - *nothing*
@@ -165,7 +150,6 @@ dprint_skip()
 dprint_success()
 {
   # Check options
-  [ "$1" = -l ] && shift || { [ "$D__OPT_QUIET" = true ] && return 1; }
   [ "$1" = -n ] && { printf >&2 '\n'; shift; }
 
   # Compose message from arguments and print it all on the go
@@ -175,26 +159,22 @@ dprint_success()
   done; printf >&2 '\n'; return 0
 }
 
-#>  dprint_failure [-l] [-n] [CHUNKS|-n|-i]...
+#>  dprint_failure [-n] [CHUNKS|-n|-i]...
 #
-## In verbose mode: from given chunks and line breaks composes and prints a 
-#. message themed as an announcement of failed stage in a process. Chunks are 
-#. separated by single space.
-#
-## In quiet mode ($D__OPT_QUIET): does nothing.
+## Composes a message from given chunks and prints it, styled as a failure 
+#. line. Assembled chunks are separated by single space. Does not honor global 
+#. verbosity options: always prints.
 #
 ## Options:
-#.  -l  - (must be first) Ignore global $D__OPT_QUIET and always print
-#.  -n  - (must be first or second) Prepend empty line to any other output
+#.  -n  - (must be first arg) Prepend empty line to any other output
 #
 ## Parameters:
 #.  $@  - Textual chunks of a message. Following special chunks are recognized:
-#.          '-n'  - Insert new line
-#.          '-i'  - Insert new indented line
+#.          * '-n'  - Insert new line
+#.          * '-i'  - Insert new indented line
 #
 ## Returns:
-#.  0 - If message was printed
-#.  1 - Otherwise
+#.  0 - Always
 #
 ## Prints:
 #.  stdout  - *nothing*
@@ -203,7 +183,6 @@ dprint_success()
 dprint_failure()
 {
   # Check options
-  [ "$1" = -l ] && shift || { [ "$D__OPT_QUIET" = true ] && return 1; }
   [ "$1" = -n ] && { printf >&2 '\n'; shift; }
 
   # Compose message from arguments and print it all on the go
@@ -215,19 +194,20 @@ dprint_failure()
 
 #>  dprint_sudo [-n] [CHUNKS|-n|-i]...
 #
-## Verbosity notwithstanding, announce upcoming prompt for sudo password
+## If calling context does not currently have superuser privelege, announces 
+#. upcoming system prompt for sudo password. Does not honor global verbosity 
+#. options: always prints.
 #
 ## Options:
-#.  -n  - (must be first) Prepend empty line to any other output
+#.  -n  - (must be first arg) Prepend empty line to any other output
 #
 ## Parameters:
 #.  $@  - Textual chunks of a message. Following special chunks are recognized:
-#.          '-n'  - Insert new line
-#.          '-i'  - Insert new indented line
+#.          * '-n'  - Insert new line
+#.          * '-i'  - Insert new indented line
 #
 ## Returns:
-#.  0 - If message was printed
-#.  1 - Otherwise
+#.  0 - Always
 #
 ## Prints:
 #.  stdout  - *nothing*
@@ -235,7 +215,7 @@ dprint_failure()
 #
 dprint_sudo()
 {
-  # If sudo password is not required, return immediately
+  # If superuser priveleges are present, return zero immediately
   sudo -n true 2>/dev/null && return 0
 
   # Check options
@@ -244,7 +224,7 @@ dprint_sudo()
   # Compose message from arguments and print it all on the go
   printf >&2 '%s' "${BOLD}${YELLOW}==>${NORMAL}"
   if [ $# -eq 0 ]; then
-    printf >&2 '%s' 'Sudo password is required'
+    printf >&2 '%s' 'Sudo password is required'; return 0
   else
     local chunk; for chunk do
       case $chunk in -n) printf >&2 '\n   ';; -i) printf >&2 '\n       ';;
@@ -253,7 +233,8 @@ dprint_sudo()
   fi
 }
 
-#>  dprint_ode [-no] [-c|--color X] [--width-N X] [--effects-N X] [--] FIELD1 [FIELD2...]
+#>  dprint_ode [-no] [-c|--color X] [--width-N X] [--effects-N X] [--] \
+#>    FIELD1 [FIELD2...]
 #
 ## Prints formatted message consisting of fields. Arguments are textual 
 #. 'fields' numbered from one. Adjacent non-empty fields are separated by 
@@ -633,7 +614,8 @@ dprint_ode()
   fi
 }
 
-#>  dprint_plaque [-nope]... [-c|--color X] [-w|--width X] [-r|--padding-char X] [--] MSG
+#>  dprint_plaque [-nope]... [-c|--color X] [-w|--width X] \
+#>    [-r|--padding-char X] [--] MSG
 #
 ## Prints message, either truncated or padded with spaces equally on both sides 
 #. to match provided width. By default prints an extra space on both sides of 

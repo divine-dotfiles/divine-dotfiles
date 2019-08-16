@@ -2,9 +2,9 @@
 #:title:        Divine Bash routine: plug
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    11
-#:revdate:      2019.08.07
-#:revremark:    Grand removal of non-ASCII chars
+#:revnumber:    12
+#:revdate:      2019.08.16
+#:revremark:    Streamline simple dprint incarnations
 #:created_at:   2019.06.26
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -291,7 +291,7 @@ d__plug_github_repo()
   if ! d__sync_dpl_repos; then
 
     # Announce failure
-    dprint_failure -l 'Failed to match deployment repositories at:' \
+    dprint_failure 'Failed to match deployment repositories at:' \
       -i "$D__DIR_DPL_REPOS" -n 'with newly plugged Grail directory'
 
   fi
@@ -308,7 +308,7 @@ d__plug_github_repo()
   else
 
     # Announce failure
-    dprint_failure -l 'Illegal state of deployment directories'
+    dprint_failure 'Illegal state of deployment directories'
 
   fi
 
@@ -398,7 +398,7 @@ d__plug_local_repo()
     if ! d__sync_dpl_repos; then
 
       # Announce failure
-      dprint_failure -l 'Failed to match deployment repositories at:' \
+      dprint_failure 'Failed to match deployment repositories at:' \
         -i "$D__DIR_DPL_REPOS" -n 'with newly plugged Grail directory'
 
     fi
@@ -415,7 +415,7 @@ d__plug_local_repo()
     else
 
       # Announce failure
-      dprint_failure -l 'Illegal state of deployment directories'
+      dprint_failure 'Illegal state of deployment directories'
       
     fi
 
@@ -499,7 +499,7 @@ d__plug_local_dir()
   if ! d__sync_dpl_repos; then
 
     # Announce failure
-    dprint_failure -l 'Failed to match deployment repositories at:' \
+    dprint_failure 'Failed to match deployment repositories at:' \
       -i "$D__DIR_DPL_REPOS" -n 'with newly plugged Grail directory'
 
   fi
@@ -516,7 +516,7 @@ d__plug_local_dir()
   else
 
     # Announce failure
-    dprint_failure -l 'Illegal state of deployment directories'
+    dprint_failure 'Illegal state of deployment directories'
     
   fi
 

@@ -2,9 +2,9 @@
 #:title:        Divine.dotfiles fmwk install script
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    49
-#:revdate:      2019.08.08
-#:revremark:    Improve colorization fallback; add it to fmwk (un)installation
+#:revnumber:    50
+#:revdate:      2019.08.16
+#:revremark:    Streamline simple dprint incarnations
 #:created_at:   2019.07.22
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -120,7 +120,7 @@ d__pre_flight_checks()
 
     # Use user-provided installation directory
     $newline_printed || { printf >&2 '\n'; newline_printed=true; }
-    dprint_start "Overridden installation directory: $D_FMWK_DIR"
+    dprint_alert "Overridden installation directory: $D_FMWK_DIR"
 
   else
   
@@ -138,7 +138,7 @@ d__pre_flight_checks()
     
       # Announce override
       $newline_printed || { printf >&2 '\n'; newline_printed=true; }
-      dprint_start "Overridden shortcut executable name: '$D_SHORTCUT_NAME'"
+      dprint_alert "Overridden shortcut executable name: '$D_SHORTCUT_NAME'"
 
     else
 
@@ -153,7 +153,7 @@ d__pre_flight_checks()
 
       # Announce override
       $newline_printed || { printf >&2 '\n'; newline_printed=true; }
-      dprint_start "Overridden shortcut installation dir: '$D_SHORTCUT_DIR'"
+      dprint_alert "Overridden shortcut installation dir: '$D_SHORTCUT_DIR'"
 
       # Make user-provided installation directory the only candidate
       D_SHORTCUT_DIR_CANDIDATES=( "$D_SHORTCUT_DIR" )
@@ -249,7 +249,7 @@ d__pull_github_repo()
     "${BOLD}Divine.dotfiles${NORMAL} Bash framework from:" \
     "https://github.com/${user_repo}"
   then
-    dprint_start "Installing ${BOLD}Divine.dotfiles${NORMAL}"
+    dprint_alert "Installing ${BOLD}Divine.dotfiles${NORMAL}"
   else
     dprint_skip "Refused to install ${BOLD}Divine.dotfiles${NORMAL}"
     return 1
@@ -454,7 +454,7 @@ d__install_shortcut()
   if dprompt_key "$D_INSTALL_SHORTCUT" 'Install?' \
     "[optional] Would you like to install shortcut shell command '$cmd'"
   then
-    dprint_start "Installing shortcut shell command '$cmd'"
+    dprint_alert "Installing shortcut shell command '$cmd'"
   else
     dprint_skip "Refused to install shortcut shell command '$cmd'"
     return 1
@@ -475,7 +475,7 @@ d__install_shortcut()
     fi
 
     # Inform user
-    dprint_start \
+    dprint_alert \
       "Command '${BOLD}${D_SHORTCUT_NAME}${NORMAL}' already exists"
 
     while true; do
@@ -552,7 +552,7 @@ d__install_shortcut()
 
       # Check if password is going to be required
       if ! sudo -n true 2>/dev/null; then
-        dprint_start 'Sudo password is required to install shortcut at:' \
+        dprint_alert 'Sudo password is required to install shortcut at:' \
           "    $shortcut_filepath"
       fi
 
@@ -663,7 +663,7 @@ dprint_debug()
   return 0
 }
 
-dprint_start()
+dprint_alert()
 {
   printf >&2 "${BOLD}${YELLOW}==>${NORMAL} %s\n" "$1"; shift
   while (($#)); do printf >&2 '    %s\n' "$1"; shift; done; return 0

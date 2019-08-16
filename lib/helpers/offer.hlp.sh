@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: offer
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    12
-#:revdate:      2019.08.07
-#:revremark:    Grand removal of non-ASCII chars
+#:revnumber:    13
+#:revdate:      2019.08.16
+#:revremark:    Streamline simple dprint incarnations
 #:created_at:   2019.07.06
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -54,7 +54,7 @@ d__offer_system_pkg()
   if [ -z ${D__OS_PKGMGR+isset} ]; then
 
     # No option to install: report and return
-    dprint_failure -l \
+    dprint_failure \
       "Unable to auto-install $util_name (no supported package manager)"
     return 1
   
@@ -69,7 +69,7 @@ d__offer_system_pkg()
       0)  # Agreed to install
 
           # Announce installation
-          dprint_start -l "Installing $util_name"
+          dprint_alert "Installing $util_name"
 
           # Launch OS package manager with verbosity in mind
           if $D__OPT_QUIET; then
@@ -95,12 +95,12 @@ d__offer_system_pkg()
             if d__stash -r -s add installed_util "$util_name"; then
               dprint_debug "Recorded installation of $util_name to root stash"
             else
-              dprint_failure -l \
+              dprint_failure \
                 "Failed to record installation of $util_name to root stash"
             fi
 
             # Announce success
-            dprint_success -l "Successfully installed $util_name"
+            dprint_success "Successfully installed $util_name"
 
             # Return status
             return 0
@@ -108,7 +108,7 @@ d__offer_system_pkg()
           else
 
             # Announce and return failure
-            dprint_failure -l "Failed to install $util_name"
+            dprint_failure "Failed to install $util_name"
             return 1
             
           fi
@@ -119,7 +119,7 @@ d__offer_system_pkg()
       1)  # Refused to install
 
           # Announce refusal to install and return
-          dprint_skip -l "Refused to install $util_name"
+          dprint_skip "Refused to install $util_name"
           return 1
 
           # Done with refusal
@@ -128,7 +128,7 @@ d__offer_system_pkg()
       *)  # Refused to proceed at all
 
           # Announce exiting and exit the script
-          dprint_failure -l \
+          dprint_failure \
             "Refused to install $util_name or proceed without it"
           if $exit_on_q; then exit 1; else return 2; fi
 

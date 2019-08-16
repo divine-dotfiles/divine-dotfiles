@@ -2,9 +2,9 @@
 #:title:        Divine Bash procedure: sys-pkg-checks
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    4
-#:revdate:      2019.08.07
-#:revremark:    Grand removal of non-ASCII chars
+#:revnumber:    5
+#:revdate:      2019.08.16
+#:revremark:    Streamline simple dprint incarnations
 #:created_at:   2019.07.05
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -45,14 +45,14 @@ d__offer_git_and_friends()
   if ! git --version &>/dev/null; then
     
     # Print warning
-    dprint_start -l 'Failed to detect git on current system' \
+    dprint_alert 'Failed to detect git on current system' \
       -n 'Having git installed remedies a lot of unnecessary pain'
 
     # Make an offer
     if ! d__offer_system_pkg --exit-on-q git; then
 
       # Make announcement
-      dprint_start -l 'Proceeding without git'
+      dprint_alert 'Proceeding without git'
 
       # Make checks and store statuses
       local curl_available wget_available tar_available
@@ -66,7 +66,7 @@ d__offer_git_and_friends()
         # Alternative workflow is NOT available: attempt to make it so
 
         # Print warning
-        dprint_start -l 'Attempting to provide an alternative approach' \
+        dprint_alert 'Attempting to provide an alternative approach' \
           'to Github repositories'
 
         # Status variable with desired value
@@ -97,18 +97,18 @@ d__offer_git_and_friends()
           case $D__REQ_ROUTINE in
             attach)
               # Fatal: no way to attach deployments without Github access
-              dprint_failure -l \
+              dprint_failure \
                 'Unable to attach deployments without tools for Github access'
               exit 1
               ;;
             plug)
               # Not fatal: there are other ways for Grail to be plugged
-              dprint_start -l 'Proceeding without tools for Github access'
+              dprint_alert 'Proceeding without tools for Github access'
               return 0
               ;;
             update)
               # Fatal: updates require some form of git access 
-              dprint_failure -l \
+              dprint_failure \
                 'Unable to update anything without git or alternative tools'
               exit 1
               ;;
@@ -139,7 +139,7 @@ d__uninstall_all_offered_utils()
     if [ -z "$D__OS_PKGMGR" ]; then
 
       # No option to uninstall: report and exit
-      dprint_failure -l \
+      dprint_failure \
         "Unable to uninstall system utilities (no supported package manager)"
       exit 1
 
@@ -185,14 +185,14 @@ d__uninstall_all_offered_utils()
     if [ "${PIPESTATUS[0]}" -eq 0 ]; then
 
       # Announce success and unset stash variable
-      dprint_success -l "Successfully uninstalled $installed_util"
+      dprint_success "Successfully uninstalled $installed_util"
       d__stash -r -s unset installed_util "$installed_util"
       anything_uninstalled=true
 
     else
 
       # Announce and remember failure
-      dprint_failure -l "Failed to uninstall $installed_util"
+      dprint_failure "Failed to uninstall $installed_util"
       all_good=false
       
     fi
@@ -261,21 +261,21 @@ d__uninstall_homebrew()
       if [ "${PIPESTATUS[0]}" -eq 0 ]; then
 
         # Announce, erase stash record, and save status
-        dprint_success -l 'Successfully uninstalled Homebrew'
+        dprint_success 'Successfully uninstalled Homebrew'
         d__stash -r -s unset installed_homebrew
         all_good=true
 
       else
 
         # Announce failure
-        dprint_failure -l 'Failed to uninstall Homebrew'
+        dprint_failure 'Failed to uninstall Homebrew'
 
       fi
 
     else
 
       # Announce failure
-      dprint_failure -l \
+      dprint_failure \
         'Failed to set executable flag on Homebrew uninstallation script'
 
     fi
@@ -283,7 +283,7 @@ d__uninstall_homebrew()
   else
 
     # Announce failure
-    dprint_failure -l 'Failed to download Homebrew uninstallation script'
+    dprint_failure 'Failed to download Homebrew uninstallation script'
 
   fi
 

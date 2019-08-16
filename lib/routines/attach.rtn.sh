@@ -2,9 +2,9 @@
 #:title:        Divine Bash routine: attach
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    13
-#:revdate:      2019.08.07
-#:revremark:    Grand removal of non-ASCII chars
+#:revnumber:    14
+#:revdate:      2019.08.16
+#:revremark:    Streamline simple dprint incarnations
 #:created_at:   2019.05.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -402,7 +402,7 @@ d__run_pre_attach_checks()
           for illegal_dpl in "${D__LIST_OF_ILLEGAL_DPL_PATHS[@]}"; do
             list_of_illegal_dpls+=( -i "$illegal_dpl" )
           done
-          dprint_failure -l \
+          dprint_failure \
             "Illegal deployments detected at:" "${list_of_illegal_dpls[@]}" \
             -n "String '$D__CONST_DELIMITER' is reserved internal path delimiter"
           exit 1

@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: manifests
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    6
-#:revdate:      2019.08.15
-#:revremark:    Add read-only status to dpl env vars, except one
+#:revnumber:    7
+#:revdate:      2019.08.16
+#:revremark:    Streamline simple dprint incarnations
 #:created_at:   2019.05.30
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -65,7 +65,7 @@ d__process_asset_manifest_of_current_dpl()
 {
   # Check if directory of current deployment is readable
   if ! [ -r "$D__DPL_DIR" -a -d "$D__DPL_DIR" ]; then
-    dprint_failure -l "Unreadable directory of current deployment: $D__DPL_DIR"
+    dprint_failure "Unreadable directory of current deployment: $D__DPL_DIR"
     return 1
   fi
 
@@ -226,13 +226,13 @@ d__copy_asset()
 
       # Ensure target directory is available
       mkdir -p -- "$dest_parent_path" &>/dev/null || {
-        dprint_failure -l "Failed to create directory: $dest_parent_path"
+        dprint_failure "Failed to create directory: $dest_parent_path"
         return 1
       }
 
       # Copy initial version to assets directory
       cp -Rn -- "$src_path" "$dest_path" &>/dev/null || {
-        dprint_failure -l "Failed to copy: $src_path" -n "to: $dest_path"
+        dprint_failure "Failed to copy: $src_path" -n "to: $dest_path"
         return 1
       }
 
@@ -241,7 +241,7 @@ d__copy_asset()
   else
 
     # Report error
-    dprint_failure -l "Unreadable deployment asset: $src_path"
+    dprint_failure "Unreadable deployment asset: $src_path"
 
     # Nevertheless check if destination path exists (might be pre-copied)
     if ! [ -e "$dest_path" ]; then return 1; fi

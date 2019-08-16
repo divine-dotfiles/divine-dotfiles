@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: queue
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    29
-#:revdate:      2019.08.07
-#:revremark:    Grand removal of non-ASCII chars
+#:revnumber:    30
+#:revdate:      2019.08.16
+#:revremark:    Streamline simple dprint incarnations
 #:created_at:   2019.06.10
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -418,22 +418,22 @@ d__queue_install()
 
   # Check if early exit occurred
   if $early_exit; then
-    dprint_skip -l 'Installation halted before all items were processed'
+    dprint_skip 'Installation halted before all items were processed'
   fi
 
   # Return appropriately
   if $all_newly_installed; then return 0
   elif $all_already_installed; then
-    dprint_skip -l 'All items already installed'
+    dprint_skip 'All items already installed'
     return 0
   elif $all_failed; then
-    dprint_failure -l 'All items failed to install'
+    dprint_failure 'All items failed to install'
     return 1
   elif $some_failed; then
-    dprint_failure -l 'Some items failed to install'
+    dprint_failure 'Some items failed to install'
     return 1
   else
-    dprint_skip -l 'Some items already installed'
+    dprint_skip 'Some items already installed'
     return 0
   fi
 }
@@ -590,22 +590,22 @@ d__queue_remove()
 
   # Check if early exit occurred
   if $early_exit; then
-    dprint_skip -l 'Removal halted before all items were processed'
+    dprint_skip 'Removal halted before all items were processed'
   fi
 
   # Return appropriately
   if $all_newly_removed; then return 0
   elif $all_already_removed; then
-    dprint_skip -l 'All items already removed'
+    dprint_skip 'All items already removed'
     return 0
   elif $all_failed; then
-    dprint_failure -l 'All items failed to remove'
+    dprint_failure 'All items failed to remove'
     return 1
   elif $some_failed; then
-    dprint_failure -l 'Some items failed to remove'
+    dprint_failure 'Some items failed to remove'
     return 1
   else
-    dprint_skip -l 'Some items already removed'
+    dprint_skip 'Some items already removed'
     return 0
   fi
 }

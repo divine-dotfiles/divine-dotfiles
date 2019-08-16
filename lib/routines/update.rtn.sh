@@ -2,9 +2,9 @@
 #:title:        Divine Bash routine: update
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    29
-#:revdate:      2019.08.07
-#:revremark:    Grand removal of non-ASCII chars
+#:revnumber:    30
+#:revdate:      2019.08.16
+#:revremark:    Streamline simple dprint incarnations
 #:created_at:   2019.05.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -491,7 +491,7 @@ d__update_fmwk_via_git()
     if ! $moved_successfully; then
 
       # Announce and return failure
-      dprint_failure -l \
+      dprint_failure \
         'Failed to move Grail and/or state directories to temp location at:' \
         -i "$temp_dir" -n 'Please, see to them manually'
       exit 1
@@ -513,7 +513,7 @@ d__update_fmwk_via_git()
     if ! mkdir -p -- "$D__DIR_FMWK"; then
 
       # Announce and return total loss (shouldn't happen really)
-      dprint_failure -l \
+      dprint_failure \
         'Failed to create empty directory for git-controlled framework:' \
         -i "$D__DIR_FMWK" \
         -n 'Divine.dotfiles installation is fatally damaged!'
@@ -549,7 +549,7 @@ d__update_fmwk_via_git()
       else
 
         # Announce failure but continue normally
-        dprint_failure -l \
+        dprint_failure \
           'Failed to restore Grail and/or state directories' \
           'from temp location at:' \
           -i "$temp_dir" -n 'Please, see to them manually'
@@ -565,7 +565,7 @@ d__update_fmwk_via_git()
     else
 
       # Announce and return total loss (shouldn't happen really)
-      dprint_failure -l \
+      dprint_failure \
         'Failed to clone Github repo at:' \
         -i "https://github.com/${user_repo}" \
         -n "to: $D__DIR_FMWK" \
@@ -869,7 +869,7 @@ d__update_dpl_repo_via_git()
     if ! mkdir -p -- "$repo_path"; then
 
       # Announce and return total loss (shouldn't happen really)
-      dprint_failure -l \
+      dprint_failure \
         'Failed to create empty directory for git-controlled deployments:' \
         -i "$repo_path" \
         -n 'Directory of attached deployments is fatally damaged!'
@@ -890,7 +890,7 @@ d__update_dpl_repo_via_git()
     else
 
       # Announce and return total loss (shouldn't happen really)
-      dprint_failure -l \
+      dprint_failure \
         'Failed to clone Github repo at:' \
         -i "https://github.com/${user_repo}" \
         -n "to: $repo_path" \
