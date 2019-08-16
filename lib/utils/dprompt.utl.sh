@@ -3,9 +3,9 @@
 #:kind:         func(script)
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    6
+#:revnumber:    7
 #:revdate:      2019.08.16
-#:revremark:    dprompt_key -> dprompt
+#:revremark:    Improve arg parsing by dprompt
 #:created_at:   2018.12.20
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -64,42 +64,75 @@ dprompt()
 {
   # Parse options
   local args=() prompt= prompt_overridden=false color="${YELLOW}"
-  local arrow=false formats=4 mode=yn or_quit=false
-  local i opts opt
+  local arrow=false formats=4 mode=yn or_quit=false answer
+  local i opts opt no_more_args
   while (($#)); do
     case $1 in
       --)           shift; args+=("$@"); break;;
-      -a|--answer)  shift
-                    case $1 in true) return 0;; false) return 1;; *) :;; esac;;
-      -p|--prompt)  shift; prompt="$1"; prompt_overridden=true;;
-      -c|--color)   shift; color="$1";;
+      -a|--answer)  shift; (($#)) && answer="$1" || break;;
+      -p|--prompt)  shift; if (($#)); then prompt="$1"; prompt_overridden=true
+                    else break; fi;;
+      -c|--color)   shift; (($#)) && color="$1" || break;;
       -b)           ((formats)) && ((formats--));;
       --bare)       formats=0;;
       -r|--arrow)   arrow=true;;
       -k|--any-key) mode=any;;
       -y|--yes-no)  mode=yn;;
       -q|--or-quit) or_quit=true;;
-      -??*)         opts="$1"; for i in $( seq 2 ${#opts} ); do
+      -?*)          opts="$1"; no_more_args=false
+                    for i in $( seq 2 ${#opts} ); do
                       opt="${opts:i-1:1}"; case $opt in
-                        a)  shift; case $1 in true) return 0;;
-                            false) return 1;; *) :;; esac;;
-                        p)  shift; prompt="$1"; prompt_overridden=true;;
-                        c)  shift; color="$1";;
+                        a)  if $no_more_args; then continue
+                            else
+                              shift; (($#)) && answer="$1" || no_more_args=true
+                            fi
+                            ;;
+                        p)  if $no_more_args; then continue
+                            else
+                              shift
+                              if (($#)); then
+                                prompt="$1"; prompt_overridden=true
+                              else
+                                no_more_args=true
+                              fi
+                            fi
+                            ;;
+                        c)  if $no_more_args; then continue
+                            else
+                              shift; (($#)) && color="$1" || no_more_args=true
+                            fi
+                            ;;
                         b)  ((formats)) && ((formats--));;
                         r)  arrow=true;;
                         k)  mode=any;;
                         y)  mode=yn;;
                         q)  or_quit=true;;
-                        *)  printf >&2 '%s: illegal option -- %s\n' \
-                              "${FUNCNAME[0]}" "$opt"
-                            return 1;;
+                        *)  continue;;
                       esac
-                    done;;
+                    done
+                    $no_more_args && break
+                    ;;
       *)            args+=($1);;
     esac; shift
   done
   # Set function arguments to just non-option ones
   set -- "${args[@]}"
+
+  # Depending on mode, check whether pre-defined answer is given:
+  case $mode in
+    yn)   case $answer in
+            true)   return 0;;
+            false)  return 1;;
+            *)      :;;
+          esac
+          ;;
+    *)    case $answer in
+            true)   return 0;;
+            false)  return 0;;
+            *)      :;;
+          esac
+          ;;
+  esac
 
   # If requested, print first newline before any other output
   [ "$1" = -n ] && { printf >&2 '\n'; shift; }
