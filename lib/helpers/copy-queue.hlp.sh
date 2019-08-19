@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: copy-queue
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    6
-#:revdate:      2019.08.16
-#:revremark:    Streamline simple dprint incarnations
+#:revnumber:    7
+#:revdate:      2019.08.19
+#:revremark:    d_queue_item_is_intalled -> d_queue_item_check
 #:created_at:   2019.05.23
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -54,7 +54,7 @@ d__copy_queue_check()
   }
 
   # Redirect item check to built-in helper
-  d_queue_item_is_installed() { d__copy_queue_item_is_installed;  }
+  d_queue_item_check() { d__copy_queue_item_is_installed;  }
 
   # Redirect post-processing
   d_queue_post_process()

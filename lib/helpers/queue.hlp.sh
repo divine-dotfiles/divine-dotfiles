@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: queue
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    31
-#:revdate:      2019.08.16
-#:revremark:    d__stash -> dstash
+#:revnumber:    32
+#:revdate:      2019.08.19
+#:revremark:    d_queue_item_is_intalled -> d_queue_item_check
 #:created_at:   2019.06.10
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -47,8 +47,8 @@ d__queue_check()
   D_DPL_INSTALLED_BY_USER_OR_OS=true
 
   # If necessary functions are not implemented: implement a dummy
-  if ! declare -f d_queue_item_is_installed &>/dev/null; then
-    d_queue_item_is_installed() { :; }
+  if ! declare -f d_queue_item_check &>/dev/null; then
+    d_queue_item_check() { :; }
   fi
   if ! declare -f d_queue_item_pre_check &>/dev/null; then
     d_queue_item_pre_check() { :; }
@@ -125,7 +125,7 @@ d__queue_check()
       unset D__QUEUE_ITEM_STASH_FLAG
 
       # Check if item is installed
-      d_queue_item_is_installed; case $? in
+      d_queue_item_check; case $? in
         0)  # Item status is unknown
             d__queue_item_status set can_be_installed
             d__queue_item_status set can_be_removed
@@ -164,7 +164,7 @@ d__queue_check()
       D__QUEUE_ITEM_STASH_VALUE="$( dstash -s get "$D__QUEUE_ITEM_STASH_KEY" )"
 
       # Check if item is installed as advertised
-      d_queue_item_is_installed; case $? in
+      d_queue_item_check; case $? in
         0)  # Item recorded but status is unknown: assume installed
             d__queue_item_status set can_be_removed
             some_installed=true
@@ -202,7 +202,7 @@ d__queue_check()
       D__QUEUE_ITEM_STASH_FLAG=false
 
       # Check if item is nevertheless installed
-      d_queue_item_is_installed; case $? in
+      d_queue_item_check; case $? in
         0)  # Item is not recorded and status is unknown: assume not installed
             d__queue_item_status set can_be_installed
             all_installed=false

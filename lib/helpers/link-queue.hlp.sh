@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: link-queue
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    5
-#:revdate:      2019.08.07
-#:revremark:    Grand removal of non-ASCII chars
+#:revnumber:    6
+#:revdate:      2019.08.19
+#:revremark:    d_queue_item_is_intalled -> d_queue_item_check
 #:created_at:   2019.04.02
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -56,7 +56,7 @@ d__link_queue_check()
   }
 
   # Redirect item check to built-in helper
-  d_queue_item_is_installed() { d__link_queue_item_is_installed; }
+  d_queue_item_check() { d__link_queue_item_is_installed; }
 
   # Redirect post-processing
   d_queue_post_process()

@@ -25,7 +25,7 @@ D_DPL_WARNING=
 #.                                            checking begins
 #.      d_queue_item_pre_check   - Executed for every queue item, 
 #.                                            before checking it
-#.      d_queue_item_is_installed   - Executed for every queue item,
+#.      d_queue_item_check   - Executed for every queue item,
 #.                                            to check it
 #.      d_queue_post_process        - Executed once, after all queue 
 #.                                            items are checked
@@ -106,7 +106,7 @@ d_queue_item_pre_check()
   :
 }
 
-#>  d_queue_item_is_installed
+#>  d_queue_item_check
 #
 ## Return code of this function signals whether current queue item is to be 
 #. considered installed, not installed, of unknown status, or completely 
@@ -126,7 +126,7 @@ d_queue_item_pre_check()
 #.  2 - Not installed
 #.  3 - Invalid (should not be touched at all)
 #
-d_queue_item_is_installed()
+d_queue_item_check()
 {
   :
 }

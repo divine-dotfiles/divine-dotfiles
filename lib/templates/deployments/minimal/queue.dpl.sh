@@ -16,7 +16,7 @@ d_dpl_remove()   { d__queue_remove;   }
 #.  1 - Installed
 #.  2 - Not installed
 #.  3 - Invalid
-d_queue_item_is_installed()
+d_queue_item_check()
 {
   :
 }

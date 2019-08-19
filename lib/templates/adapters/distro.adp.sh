@@ -2,9 +2,9 @@
 #:title:        Divine.dotfiles template OS distro adapter
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    15
-#:revdate:      2019.08.08
-#:revremark:    Rely on global  instead of local 
+#:revnumber:    16
+#:revdate:      2019.08.19
+#:revremark:    d_queue_item_is_intalled -> d_queue_item_check
 #:created_at:   2019.06.04
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -107,11 +107,12 @@ d__adapter_detect_os_pkgmgr()
     #
     ## Arguments:
     #.  $1  - One of four routines to launch:
-    #.          * 'update'   - update installed packages (other args ignored)
-    #.          * 'check'    - check whether listed packages are installed
-    #.          * 'install'  - install listed packages
-    #.          * 'remove'   - uninstall listed packages
-    #.  $2  - Package to work on
+    #.          * 'update'  - updates all installed packages (other args are 
+    #.                        ignored)
+    #.          * 'check'   - checks whether provided package is installed
+    #.          * 'install' - installs provided package
+    #.          * 'remove'  - uninstalls provided package
+    #.  $2  - Single package to work on
     #
     ## Returns:
     #.  Whatever underlying package manager returns
