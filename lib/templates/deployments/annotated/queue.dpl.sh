@@ -12,7 +12,7 @@ D_DPL_WARNING=
 #. framework.
 #
 ## Variables to fill:
-#.  $D__QUEUE_MAIN - This array must contain one string for every item in 
+#.  $D_QUEUE_MAIN - This array must contain one string for every item in 
 #.                      queue. Such string is used to identify an item in debug 
 #.                      messages. E.g., if queue is a series of files, their
 #.                      filenames would fit nicely here.
@@ -38,8 +38,8 @@ D_DPL_WARNING=
 #.                                            is processed in reverse order.
 #
 ## Variables to take advantage of (maintained by queue helpers):
-#.  $D__QUEUE_ITEM_NUM         - Index of current item in $D__QUEUE_MAIN
-#.  $D__QUEUE_ITEM_TITLE       - Content of $D__QUEUE_MAIN for current item
+#.  $D__QUEUE_ITEM_NUM         - Index of current item in $D_QUEUE_MAIN
+#.  $D__QUEUE_ITEM_TITLE       - Content of $D_QUEUE_MAIN for current item
 #.  $D__QUEUE_ITEM_STASH_KEY   - Stash key for current item
 #.  $D__QUEUE_ITEM_STASH_VALUE - Stash value for current item
 #.  $D__QUEUE_ITEM_STASH_FLAG  - 'true' if stash record exists
@@ -52,7 +52,7 @@ D_DPL_WARNING=
 
 ## Note on automation:
 #
-## Framework provides ways to auto-populate queue array ($D__QUEUE_MAIN). 
+## Framework provides ways to auto-populate queue array ($D_QUEUE_MAIN). 
 #. First method that works wins:
 #.  * Queue manifest (see 'dpl-filename.dpl.que' template for reference)
 #.  * $D_DPL_ASSET_RELPATHS - If this variable is set, it is auto-copied into 
@@ -91,8 +91,8 @@ d_queue_pre_process()
 ## This function is called once for every queue item
 #
 ## Uses in global scope:
-#.  $D__QUEUE_ITEM_NUM     - Index of current item in $D__QUEUE_MAIN
-#.  $D__QUEUE_ITEM_TITLE   - Content of $D__QUEUE_MAIN for current item
+#.  $D__QUEUE_ITEM_NUM     - Index of current item in $D_QUEUE_MAIN
+#.  $D__QUEUE_ITEM_TITLE   - Content of $D_QUEUE_MAIN for current item
 #
 ## Provides into global scope:
 #.  $D__QUEUE_ITEM_STASH_KEY   - Assign custom stash key to this global variable
@@ -115,8 +115,8 @@ d_queue_item_pre_check()
 ## This function is called once for every queue item
 #
 ## Uses in global scope:
-#.  $D__QUEUE_ITEM_NUM         - Index of current item in $D__QUEUE_MAIN
-#.  $D__QUEUE_ITEM_TITLE       - Content of $D__QUEUE_MAIN for current item
+#.  $D__QUEUE_ITEM_NUM         - Index of current item in $D_QUEUE_MAIN
+#.  $D__QUEUE_ITEM_TITLE       - Content of $D_QUEUE_MAIN for current item
 #.  $D__QUEUE_ITEM_STASH_KEY   - Stash key for current item
 #.  $D__QUEUE_ITEM_STASH_VALUE - Stash value for current item
 #
@@ -154,8 +154,8 @@ d_queue_post_process()
 ## This function is called once for every queue item
 #
 ## Uses in global scope:
-#.  $D__QUEUE_ITEM_NUM         - Index of current item in $D__QUEUE_MAIN
-#.  $D__QUEUE_ITEM_TITLE       - Content of $D__QUEUE_MAIN for current item
+#.  $D__QUEUE_ITEM_NUM         - Index of current item in $D_QUEUE_MAIN
+#.  $D__QUEUE_ITEM_TITLE       - Content of $D_QUEUE_MAIN for current item
 #.  $D__QUEUE_ITEM_STASH_KEY   - Stash key for current item
 #.  $D__QUEUE_ITEM_STASH_VALUE - Stash value for current item
 #.  $D__QUEUE_ITEM_IS_FORCED   - This variable is set to 'true' if this function 
@@ -181,8 +181,8 @@ d_queue_item_install()
 ## This function is called once for every queue item
 #
 ## Uses in global scope:
-#.  $D__QUEUE_ITEM_NUM         - Index of current item in $D__QUEUE_MAIN
-#.  $D__QUEUE_ITEM_TITLE       - Content of $D__QUEUE_MAIN for current item
+#.  $D__QUEUE_ITEM_NUM         - Index of current item in $D_QUEUE_MAIN
+#.  $D__QUEUE_ITEM_TITLE       - Content of $D_QUEUE_MAIN for current item
 #.  $D__QUEUE_ITEM_STASH_KEY   - Stash key for current item
 #.  $D__QUEUE_ITEM_STASH_VALUE - Stash value for current item
 #.  $D__QUEUE_ITEM_IS_FORCED   - This variable is set to 'true' if this function 

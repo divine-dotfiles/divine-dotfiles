@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: queue
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    32
+#:revnumber:    33
 #:revdate:      2019.08.19
-#:revremark:    d_queue_item_is_intalled -> d_queue_item_check
+#:revremark:    D__QUEUE_MAIN -> D_QUEUE_MAIN
 #:created_at:   2019.06.10
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -30,8 +30,8 @@ d__queue_check()
   fi
   
   # Check if deployment's main queue is empty
-  if ! [ ${#D__QUEUE_MAIN[@]} -gt 1 -o -n "$D__QUEUE_MAIN" ]; then
-    dprint_debug 'Main queue is empty ($D__QUEUE_MAIN)'
+  if ! [ ${#D_QUEUE_MAIN[@]} -gt 1 -o -n "$D_QUEUE_MAIN" ]; then
+    dprint_debug 'Main queue is empty ($D_QUEUE_MAIN)'
     return 3
   fi
 
@@ -65,14 +65,14 @@ d__queue_check()
   elif [[ ${D__QUEUE_SPLIT_POINTS[$secnum-1]} =~ ^[0-9]+$ ]]; then
     min=${D__QUEUE_SPLIT_POINTS[$secnum-1]}
   else
-    min=${#D__QUEUE_MAIN[@]}
+    min=${#D_QUEUE_MAIN[@]}
   fi
 
   # Calculate high edge
   if [[ ${D__QUEUE_SPLIT_POINTS[$secnum]} =~ ^[0-9]+$ ]]; then
     max=${D__QUEUE_SPLIT_POINTS[$secnum]}
   else
-    max=${#D__QUEUE_MAIN[@]}
+    max=${#D_QUEUE_MAIN[@]}
   fi
 
   # Announce checking
@@ -82,7 +82,7 @@ d__queue_check()
   for (( D__QUEUE_ITEM_NUM=$min; D__QUEUE_ITEM_NUM<$max; D__QUEUE_ITEM_NUM++ )); do
 
     # Prepare global variables
-    D__QUEUE_ITEM_TITLE="${D__QUEUE_MAIN[$D__QUEUE_ITEM_NUM]}"
+    D__QUEUE_ITEM_TITLE="${D_QUEUE_MAIN[$D__QUEUE_ITEM_NUM]}"
     D__QUEUE_ITEM_STASH_KEY=
     D__QUEUE_ITEM_STASH_VALUE=
     
@@ -293,14 +293,14 @@ d__queue_install()
   elif [[ ${D__QUEUE_SPLIT_POINTS[$secnum-1]} =~ ^[0-9]+$ ]]; then
     min=${D__QUEUE_SPLIT_POINTS[$secnum-1]}
   else
-    min=${#D__QUEUE_MAIN[@]}
+    min=${#D_QUEUE_MAIN[@]}
   fi
 
   # Calculate high edge
   if [[ ${D__QUEUE_SPLIT_POINTS[$secnum]} =~ ^[0-9]+$ ]]; then
     max=${D__QUEUE_SPLIT_POINTS[$secnum]}
   else
-    max=${#D__QUEUE_MAIN[@]}
+    max=${#D_QUEUE_MAIN[@]}
   fi
 
   # Announce checking
@@ -313,7 +313,7 @@ d__queue_install()
     if d__queue_item_status is_invalid; then continue; fi
 
     # Prepare global variables
-    D__QUEUE_ITEM_TITLE="${D__QUEUE_MAIN[$D__QUEUE_ITEM_NUM]}"
+    D__QUEUE_ITEM_TITLE="${D_QUEUE_MAIN[$D__QUEUE_ITEM_NUM]}"
     D__QUEUE_ITEM_IS_FORCED=false
     if d__queue_item_status uses_stash; then
       D__QUEUE_ITEM_STASH_KEY="${D__QUEUE_STASH_KEYS[$D__QUEUE_ITEM_NUM]}"
@@ -355,7 +355,7 @@ d__queue_install()
 
       # Check if early exit was requested and item is not last
       if [ $exit_code -eq 3 -o $exit_code -eq 4 ] \
-        && (( D__QUEUE_ITEM_NUM < ( ${#D__QUEUE_MAIN[@]} - 1 ) ))
+        && (( D__QUEUE_ITEM_NUM < ( ${#D_QUEUE_MAIN[@]} - 1 ) ))
       then
         early_exit=true
       fi
@@ -387,7 +387,7 @@ d__queue_install()
 
       # Check if early exit was requested and item is not last
       if [ $exit_code -eq 3 -o $exit_code -eq 4 ] \
-        && (( D__QUEUE_ITEM_NUM < ( ${#D__QUEUE_MAIN[@]} - 1 ) ))
+        && (( D__QUEUE_ITEM_NUM < ( ${#D_QUEUE_MAIN[@]} - 1 ) ))
       then
         early_exit=true
       fi
@@ -465,14 +465,14 @@ d__queue_remove()
   elif [[ ${D__QUEUE_SPLIT_POINTS[$secnum-1]} =~ ^[0-9]+$ ]]; then
     min=${D__QUEUE_SPLIT_POINTS[$secnum-1]}
   else
-    min=${#D__QUEUE_MAIN[@]}
+    min=${#D_QUEUE_MAIN[@]}
   fi
 
   # Calculate high edge
   if [[ ${D__QUEUE_SPLIT_POINTS[$secnum]} =~ ^[0-9]+$ ]]; then
     max=${D__QUEUE_SPLIT_POINTS[$secnum]}
   else
-    max=${#D__QUEUE_MAIN[@]}
+    max=${#D_QUEUE_MAIN[@]}
   fi
 
   # Announce checking
@@ -485,7 +485,7 @@ d__queue_remove()
     if d__queue_item_status is_invalid; then continue; fi
 
     # Prepare global variables
-    D__QUEUE_ITEM_TITLE="${D__QUEUE_MAIN[$D__QUEUE_ITEM_NUM]}"
+    D__QUEUE_ITEM_TITLE="${D_QUEUE_MAIN[$D__QUEUE_ITEM_NUM]}"
     D__QUEUE_ITEM_IS_FORCED=false
     if d__queue_item_status uses_stash; then
       D__QUEUE_ITEM_STASH_KEY="${D__QUEUE_STASH_KEYS[$D__QUEUE_ITEM_NUM]}"
@@ -669,13 +669,13 @@ d__queue_split()
   local position="$1"; shift
 
   # Check if argument is numeric and less than current queue length
-  if [[ $position =~ ^[0-9]+$ ]] && [ $position -lt ${#D__QUEUE_MAIN[@]} ]
+  if [[ $position =~ ^[0-9]+$ ]] && [ $position -lt ${#D_QUEUE_MAIN[@]} ]
   then
     D__QUEUE_SPLIT_POINTS+=( $position )
     return 0
   fi
 
   # Otherwise, just add separation point at current queue length
-  D__QUEUE_SPLIT_POINTS+=( ${#D__QUEUE_MAIN[@]} )
+  D__QUEUE_SPLIT_POINTS+=( ${#D_QUEUE_MAIN[@]} )
   return 0
 }

@@ -35,8 +35,8 @@ D_DPL_WARNING=
 #.      d_copy_queue_item_pre_remove    - Pre-removal actions for each item
 #
 ## Variables to take advantage of (maintained by queue helpers):
-#.  $D__QUEUE_ITEM_NUM         - Index of current item in $D__QUEUE_MAIN
-#.  $D__QUEUE_ITEM_TITLE       - Content of $D__QUEUE_MAIN for current item
+#.  $D__QUEUE_ITEM_NUM         - Index of current item in $D_QUEUE_MAIN
+#.  $D__QUEUE_ITEM_TITLE       - Content of $D_QUEUE_MAIN for current item
 #.  $D__QUEUE_ITEM_STASH_KEY   - Stash key for current item
 #.  $D__QUEUE_ITEM_STASH_VALUE - Stash value for current item
 #.  $D__QUEUE_ITEM_IS_FORCED   - This variable is set to 'true' if installation/

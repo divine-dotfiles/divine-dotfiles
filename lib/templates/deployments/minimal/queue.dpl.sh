@@ -5,7 +5,7 @@ D_DPL_FLAGS=
 D_DPL_WARNING=
 
 # Queue of items to be processed
-D__QUEUE_MAIN=()
+D_QUEUE_MAIN=()
 
 d_dpl_check()    { d__queue_check;    }
 d_dpl_install()  { d__queue_install;  }

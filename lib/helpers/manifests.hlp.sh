@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: manifests
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    8
-#:revdate:      2019.08.16
-#:revremark:    Add support for negated OS list
+#:revnumber:    9
+#:revdate:      2019.08.19
+#:revremark:    D__QUEUE_MAIN -> D_QUEUE_MAIN
 #:created_at:   2019.05.30
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -143,7 +143,7 @@ d__process_asset_manifest_of_current_dpl()
 #. ('//').
 #
 ## All other lines are interpreted as textual main queue entries, with which it 
-#. populates the array $D__QUEUE_MAIN.
+#. populates the array $D_QUEUE_MAIN.
 #
 ## If queue manifest is not available, tries two other methods: copying either 
 #. absolute or relative paths to asset files (attempts are made in that order).
@@ -152,7 +152,7 @@ d__process_asset_manifest_of_current_dpl()
 #.  $D_DPL_QUE_PATH     - Path to queue manifest file
 #
 ## Provides into the global scope:
-#.  $D__QUEUE_MAIN   - Array of main queue entries
+#.  $D_QUEUE_MAIN   - Array of main queue entries
 #
 ## Returns:
 #.  0 - Task performed: main queue is populated
@@ -161,7 +161,7 @@ d__process_asset_manifest_of_current_dpl()
 d__process_queue_manifest_of_current_dpl()
 {
   # Check if main queue is already filled up
-  if [ ${#D__QUEUE_MAIN[@]} -gt 1 -o -n "$D__QUEUE_MAIN" ]; then
+  if [ ${#D_QUEUE_MAIN[@]} -gt 1 -o -n "$D_QUEUE_MAIN" ]; then
 
     # Main queue is already touched, nothing to do:
     return 0
@@ -177,7 +177,7 @@ d__process_queue_manifest_of_current_dpl()
     if [ ${#D__MANIFEST_LINES[@]} -gt 0 ]; then
 
       # Assign collected items to main queue
-      D__QUEUE_MAIN=( "${D__MANIFEST_LINES[@]}" )
+      D_QUEUE_MAIN=( "${D__MANIFEST_LINES[@]}" )
     
     fi
 
@@ -185,13 +185,13 @@ d__process_queue_manifest_of_current_dpl()
   elif [ ${#D_DPL_ASSET_RELPATHS[@]} -gt 1 -o -n "$D_DPL_ASSET_RELPATHS" ]
   then
 
-    D__QUEUE_MAIN=( "${D_DPL_ASSET_RELPATHS[@]}" )
+    D_QUEUE_MAIN=( "${D_DPL_ASSET_RELPATHS[@]}" )
 
   # Otherwise, try to derive main queue from absolute asset paths
   elif [ ${#D_DPL_ASSET_PATHS[@]} -gt 1 -o -n "$D_DPL_ASSET_PATHS" ]
   then
 
-    D__QUEUE_MAIN=( "${D_DPL_ASSET_PATHS[@]}" )
+    D_QUEUE_MAIN=( "${D_DPL_ASSET_PATHS[@]}" )
 
   # Otherwise, give up
   else
