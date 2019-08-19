@@ -1,8 +1,8 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revnumber: 25
-:revdate: 2019.08.16
+:revnumber: 26
+:revdate: 2019.08.19
 :revremark: Iterative improvement
 :doctype: article
 // Visual
@@ -28,7 +28,7 @@ Set it up with a single `*di install --yes*`.
 `di` stands for **d**ivine **i**ntervention.
 --
 
-_Divine.dotfiles_ lets you keep your set-up routines as isolated _deployments_ that are installed/removed in defined sequence.
+_Divine.dotfiles_ promotes Bash scripts to portable _deployments_ that are installed/removed in defined sequence.
 
 == In a nutshell
 
@@ -104,7 +104,7 @@ On a new machine — plug in your Grail [.small]#_(heh)_# from a repo or a loca
 | Persistent key-value store for use within your deployments
 
 | *Assets*
-| Easily separate your deployments into installation logic and dynamic content
+| Easily separate your deployments into static logic and dynamic content
 
 | *Queues* and *multitasks*
 | Employ built-in mechanisms for deployments that perform a series of tasks
@@ -879,8 +879,8 @@ Groups of deployments may be processed together by referring to them by that gro
 
 [NOTE]
 --
-Consequently, a deployment may not be named with a single digit.
-The framework guards against using reserved deployment names.
+Deployments may not have a single-digit name.
+The framework guards against using reserved words as deployment names.
 --
 
 | [#dangerous_deployments]#`!`#
@@ -916,27 +916,30 @@ If such warning is provided, it will accompany every urgent prompt enforced by a
 
 A *Divinefile* is a special kind of deployment.
 Its purpose is akin to that of https://github.com/Homebrew/homebrew-bundle[Brewfile] or https://bundler.io/gemfile.html[Gemfile].
-A Divinefile is a manifest of system utilities to be maintained using supported system package managers.
+A Divinefile is a manifest of system packages to be maintained using supported system package managers.
 
 * A Divinefile must be named, well, `Divinefile`.
 * There can absolutely be more than one — their contents are effectively merged.
 * The framework picks up every Divinefile located at any depth under two recognized deployment directories:
 ** `~/.divine/grail/dpls` — user's Divinefiles. Create yours here.
 ** `~/.divine/state/dpl-repos` — attached third-party Divinefiles.
-* As a kind of deployment, Divinefiles are referred to by their collective reserved name, `Divinefile` (or synonyms `dfile`, `df`).
+* Divinefiles collectively are a deployment.
+
+=== Divinefile usage
+
+Divinefiles are automatically picked up by the framework along with other deployments.
+
+Divinefiles are specifically referred to with synonyms: `divinefile`, `dfile`, and `df`.
+As with all deployment names, these are case insensitive.
+Divinefiles are processed in their merged entirety, or not processed at all.
 
 [NOTE]
 --
 Yes, you also cannot name regular deployments `divinefile`, `dfile`, or `df`.
-The framework guards against using reserved deployment names.
+The framework guards against using reserved words as deployment names.
 --
 
-=== Divinefile usage
-
-During an intervention, Divinefiles may only be referred to collectively.
-They are processed in their merged entirety, or not processed at all.
-
-You can nevertheless assign deployment-style *priorities and flags* to individual packages within Divinefiles.
+You can assign deployment-style *priorities and flags* to individual packages within Divinefiles.
 Packages are intertwined with regular deployments in a shared workflow.
 
 [NOTE]
@@ -946,126 +949,38 @@ For more complex system package installations, e.g., involving particular versio
 
 === Divinefile syntax
 
-Divinefiles are processed in terms of lines.
+Divinefiles follow the general <<_manifest_syntax,manifest syntax>>.
 
-Simplest line contains a list of whitespace-delimited package names.
-Each package is then individually checked/installed/uninstalled during relevant routines:
+Every entry is a *list* of whitespace-separated names of packages.
+Keys `flags` and `priority` set the respective attributes for the packages, and work identically to <<_deployment_flags,flags>> and <<_deployment_priority,priority>> in regular deployments.
 
-[source,bash]
-----
-pkg1 pkg2
-----
+Within a line, each vertical bar `|` starts an *alt-list*, which fully overrides the original list for a particular package manager.
+Within an alt-list, everything to the left of first colon `:` is read as package manager name; everything to the right — as the alt-list itself.
 
 [NOTE]
 --
-For Divinefiles in general, whitespace rules are fairly permissive.
-Whitespace separates ``WORD``s and is otherwise insignificant.
+Package manager name is matched against <<var_os_pkgmgr,`$D__OS_PKGMGR`>> built-in variable.
 --
 
-==== Alt-lists
-
-Within a line, each `|` (vartical bar) starts an alt-list.
-An alt-list is specific to a particular package manager.
-If an alt-list is provided for currently detected package manager, it overrides the original list entirely.
-
-[source,bash]
+.Example of Divinefile
+[source]
 ----
-pkg1 | apt-get: pkg1 pkg2 | dnf: pkg3
-----
-
-Within an alt-list, everything to the left of first `:` (colon) is read as package manager name.
-Everything to the right — as whitespace-delimited alt-list of package names for that package manager
-
-[NOTE]
---
-Package manager name is matched against `$D__OS_PKGMGR` built-in variable.
---
-
-==== Package priority and flags
-
-Similarly to regular deployments, each valid line in Divinefile may have priority and flags.
-These may be set at the beginning of the line (before any package lists) within individual pairs of parentheses:
-
-[source,bash]
-----
-(priority: 1000)              pkg1 pkg2
-
-(flags: ir)                   pkg3 | yum: pkg4
-
-(priority: 500) (flags: r)    pkg5
-----
-
-With regard to flags, a shorthand is provided, that works by *appending* provided flags as opposed to overriding them as is normal:
-
-[source,bash]
-----
-(i) pkg1        # Parentheses must not contain ':'
-
-( r0! ) pkg2    # Multiple flags may be given too
-----
-
-==== OS-specific packages
-
-Lines may be made exclusive to particular OS family or distribution.
-Multiple OS's may be given by separating with vartical bars:
-
-[source,bash]
-----
-(os: debian)      pkg1
-
-(os: macos|bsd)   pkg2
-
-(os: all)         pkg3    # Keywords 'all'/'any' are reserved to denote any OS
-----
-
-[NOTE]
---
-Each OS name is matched against `$D\__OS_FAMILY` and `$D__OS_DISTRO` built-in variables.
-Single match against any of the two is sufficient.
---
-
-[[kv]]
-==== Key-values
-
-All parenthesized key-values, when they appear on a line without any package lists, come into effect until the end of the file, or until another value is assigned to the same key:
-
-[source,bash]
-----
-pkg1                  # Any OS, priority 4096 (default)
-
-( os : macos )(priority:333)    ## These will remain in effect until 
-                                #. end of file or until overridden
-
-pkg2                  # macOS-only, priority 333
-(priority:69) pkg3    # macOS-only, priority 69
-pkg4                  # macOS-only, priority 333
-----
-
-==== Comments and line continuation
-
-Hash/pound symbol (`#`) comments out the rest of the line.
-
-A line may be 'glued' to the next by terminating it with a backslash (`\`):
-[source,bash]
-----
-(os: fedora) \    ## This is a single logical line
-pkg1 pkg2    \    #. spanning three actual lines
-| yum: pkg3       #. (yes, even with comments attached like this)
-----
-
-==== Divinefile example
-
-[source,bash]
-----
-git                       ## Means:
+git vim                   ## Means:
                           #.  * priority: 4096 (default)
-                          #.  * packages: git
+                          #.  * packages: git, vim
 
-(priority:300)  \         ## Means:
-(r)             \         #.  * priority: 300
+(priority:300)            # Sets priority to 300 henceforth
+
+(priority:500)  \         ## Means:
+(r)             \         #.  * priority: 500 (overridden for this line)
 node            \         #.  * flags: 'always prompt before removing'
-| apt-get: nodejs npm     #.  * packages (on apt-get): nodejs npm
-                          #.  * packages (anywhere else): node
+| apt-get: nodejs npm     #.  * packages (on apt-get): nodejs, npm
+                          #.  * packages (everywhere else): node
+
+(os:fedora) \             ## Means:
+util-linux-user           #.  (on Fedora only)
+                          #.  * priority: 300
+                          #.  * packages: util-linux-user
 ----
 
 == Advanced features
@@ -1076,7 +991,16 @@ _Divine.dotfiles_ offers mechanisms that facilitate creation of better, stronger
 
 A deployment file is interpreted by Bash no more than once per intervention.
 Sourcing occurs as late as possible, after exhausting excuses to skip it.
+
 A subshell is created for every deployment, shielding other deployments from it.
+
+[NOTE]
+--
+Naturally, there is no way to prevent deployments from negatively affecting your system.
+Deployments are free-form Bash scripts, and sandboxing them beyond a subshell would defeat their purpose.
+
+If there is a voice of wisdom here, it says, 'Be careful.'
+--
 
 It is good style to isolate all deployment logic within functions and global variables, and then call/use them within <<_primary_functions,primary functions>>.
 
@@ -1159,10 +1083,9 @@ Same as `*_D__DPL_SH_PATH_*`, but with suffix changed to `*.dpl.mnf`.
 
 [NOTE]
 --
-Asset manifests are also processed by other internal routines, which don't source deployments.
-Making path to asset manifest dynamic would break those routines.
+Asset manifests are also processed by routines that don't source deployments.
 
-Thus, path schema of asset manifests is locked, and this variable is read-only.
+Thus, path to asset manifest is locked, and this variable is read-only.
 --
 
 | `*D_DPL_QUE_PATH*`
@@ -1173,9 +1096,9 @@ Same as `*_D__DPL_SH_PATH_*`, but with suffix changed to `*.dpl.que`.
 
 [NOTE]
 --
-Queue manifests are processed only after their deployment file is sourced.
+Queue manifests are processed only after sourcing their deployment file.
 
-You are free to adjust this path to your liking.
+Thus, you are free to adjust this path at the top level of deployment script.
 --
 
 2+^.^h| [#detected_os]#Detected operating system (OS)#
@@ -1309,6 +1232,7 @@ a| Whether blanket answer is given to all non-<<urgent_prompt,urgent>> built-in 
 
 === Functions available to deployments
 
+[[func_dprint]]
 ==== `dprint` family of functions
 
 Functions named with prefix `dprint_` serve to unify styling and behavior of output across _Divine.dotfiles_.
@@ -1419,6 +1343,7 @@ Notice the word '_notable_' used throughout.
 In general, it is *not* _notable_ when your deployment works as expected.
 --
 
+[[func_dprompt]]
 ==== `dprompt` function
 
 Function `dprompt` serves to unify styling and behavior of user prompts across _Divine.dotfiles_.
@@ -1520,6 +1445,7 @@ If user presses `q`, code `2` is returned by `dprompt`.
 
 |===
 
+[[func_dmd5]]
 ==== `dmd5` function
 
 Function `dmd5` provides a cross-platform way of calculating an md5 checksum of a file or a string.
@@ -1542,6 +1468,30 @@ Returns zero on success and non-zero if something goes wrong.
 
 Function `dstash` is so important that it deserved its <<_stash,own section>>.
 
+[[func_os_pkgmgr]]
+==== `d__os_pkgmgr` function
+
+Function `d__os_pkgmgr` is a thin wrapper around system package manager.
+The idea is to be able to install system packages without checking for current OS.
+On OS's that are not yet supported, this function does nothing and returns non-zero.
+
+[source,bash,subs="verbatim,quotes,attributes"]
+----
+*d__os_pkgmgr* *update*|*check*|*install*|*remove* [*_PKG_NAME_*]
+----
+
+Launches one of the four routines, which are expected of any package manager out there.
+Second argument (`*_PKG_NAME_*`), the name of single package, is relayed to the underlying package manager verbatim.
+User prompts (except sudo password) are suppressed.
+
+The first argument must be one of the four:
+
+* `update` — updates all installed packages (other arguments are ignored).
+* `check` — checks whether the provided package is installed.
+Returns zero/non-zero appropriately.
+* `install` — installs the provided package.
+* `remove` — uninstalls the provided package.
+    
 === Stash
 
 _Divine.dotfiles_ provides a persistent key-value storage and retrieval system.
@@ -1772,9 +1722,20 @@ lengthy entry \   #. spanning three physical lines
 text              #. (yes, even with comments attached like this)
 ----
 
+==== Escaping
+
+* To start an entry with a literal opening parenthesis `(`, prepend it with a backslash `\`.
++
+_One and only one backslash is always removed from the left edge of an entry._
+* To use a literal closing parenthesis `)` within a key-value, prepend it with a backslash `\`.
+* To use a literal hash/pound symbol `#` anywhere, prepend it with a backslash.
+* To end a line with a literal backslash `\`, double every literal backslash at its right edge.
++
+_Odd number of backslashes at the right edge will result in line continuation._
+
 === Assets
 
-If you develop deployments for distribution, you will soon encounter the problem of separating more-or-less static deployment logic from dynamic deployment assets.
+If you intend to distribute your deployments, you will soon encounter the problem of separating more-or-less static deployment logic from dynamic deployment assets.
 
 Lets study an example deployment that symlinks a configuration file into the system.
 It would be desirable to copy a sample of that configuration file into user's <<grail_directory,Grail directory>>, and then create a symlink to the copy.
@@ -1787,7 +1748,7 @@ To facilitate separation of deployment logic and assets, _Divine.dotfiles_ offer
 
 An *asset manifest* is a text file located in the same directory as the deployment file and named the same, except for exchanging `.dpl.sh` suffix for `.dpl.mnf`.
 
-Contents of an asset manifest describe a set of *assets* (files and directories) within the manifest's directory.
+Contents of an asset manifest describe a set of *assets* (files and directories) within the deployment directory.
 Whenever such manifest is processed, the framework ensures that a copy of each asset is present within the deployment's designated asset directory: `grail/assets/*_DPL-NAME_*/`.
 Note, that the framework never overwrites assets that are already present at destination.
 
@@ -1801,8 +1762,8 @@ Processing of asset manifests occurs:
 Asset manifests follow the general <<_manifest_syntax,manifest syntax>>.
 
 Every entry is a *path* that is resolved relative to the deployment directory.
-When assets are copied to deployment's asset directory, their relative path is preserved.
-If you want your paths to be resolved relative to some sub-path, which you don't want to be carried over to destination, specify that sub-path in the `prefix` key.
+When assets are copied to asset directory, their relative path is preserved.
+If you want your assets to be housed under some sub-path, which you don't want to be carried over to destination, specify that sub-path in the `prefix` key.
 
 Two type of paths are accepted: *concrete* paths and *regex* patterns.
 To be interpreted as a regex pattern, a path must be <<_entry_flags,flagged>> with `r` character.
@@ -1831,7 +1792,40 @@ Regex patterns are more permissive: they may match zero assets, and no error wil
 
 === Queues
 
+Whenever your deployment performs a series of similar actions, — e.g., symlinks a bunch of files — you are faced with several routine tasks:
+
+* Write iteration logic.
+* Tie the return codes of subtasks into a single informative code.
+
+_Divine.dotfiles_ offers a pill that relieves such pain.
+
 ==== Generic queue
+
+A *queue* is exactly what it sounds like:
+
+. Populate a specially named array with one string for each queue item.
+. Implement logic to be applied to a single item.
+. Delegate your deployment's <<_primary_functions,primaries>> to built-in versions.
+
+This kind of thing is best demonstrated on an example:
+
+.Deployment template for generic queue
+[source,bash]
+----
+d_dpl_check()    { populate_queue;  d__queue_check;    }  # <1>
+d_dpl_install()  {                  d__queue_install;  }
+d_dpl_remove()   {                  d__queue_remove;   }
+
+populate_queue() { D_QUEUE_MAIN=( alpha bravo charlie ); }  # <2>
+
+d_queue_item_check()    { :; }  # <3>
+d_queue_item_install()  { :; }
+d_queue_item_remove()   { :; }
+----
+<1> Delegate primaries to built-in queue helpers.
+Make sure helper is called last.
+<2> This function is not built-in, but is an example of code organization.
+<3> Implement mini-primaries for a single queue item
 
 ==== Queue manifests
 
@@ -1839,9 +1833,9 @@ Regex patterns are more permissive: they may match zero assets, and no error wil
 
 ==== Copy queue
 
-==== Split queue
-
 === Multitask
+
+==== Split queue
 
 == Ways to contribute
 
