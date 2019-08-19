@@ -1,7 +1,7 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revnumber: 26
+:revnumber: 27
 :revdate: 2019.08.19
 :revremark: Iterative improvement
 :doctype: article
@@ -1812,20 +1812,19 @@ This kind of thing is best demonstrated on an example:
 .Deployment template for generic queue
 [source,bash]
 ----
-d_dpl_check()    { populate_queue;  d__queue_check;    }  # <1>
+# Delegate primaries to queue helpers. Make sure helper is called last.
+d_dpl_check()    { populate_queue;  d__queue_check;    }
 d_dpl_install()  {                  d__queue_install;  }
 d_dpl_remove()   {                  d__queue_remove;   }
 
-populate_queue() { D_QUEUE_MAIN=( alpha bravo charlie ); }  # <2>
+# This function is not built-in, but is an example of code organization
+populate_queue() { D_QUEUE_MAIN=( alpha bravo charlie ); }
 
-d_queue_item_check()    { :; }  # <3>
+# Implement mini-primaries for a single queue item
+d_queue_item_check()    { :; }
 d_queue_item_install()  { :; }
 d_queue_item_remove()   { :; }
 ----
-<1> Delegate primaries to built-in queue helpers.
-Make sure helper is called last.
-<2> This function is not built-in, but is an example of code organization.
-<3> Implement mini-primaries for a single queue item
 
 ==== Queue manifests
 
