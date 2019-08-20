@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: link-queue
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    6
-#:revdate:      2019.08.19
-#:revremark:    d_queue_item_is_intalled -> d_queue_item_check
+#:revnumber:    7
+#:revdate:      2019.08.20
+#:revremark:    Delay populating  as much as possible
 #:created_at:   2019.04.02
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -190,6 +190,25 @@ d__link_queue_pre_process()
       "$detected_os"
     return 1
     
+  fi
+
+  # Check if $D_QUEUE_MAIN is populated
+  if ! [ ${#D_QUEUE_MAIN[@]} -gt 1 -o -n "$D_QUEUE_MAIN" ]; then
+
+    # Main queue is still empty
+
+    # Try to derive main queue from relative asset paths
+    if [ ${#D_DPL_ASSET_RELPATHS[@]} -gt 1 -o -n "$D_DPL_ASSET_RELPATHS" ]; then
+
+      D_QUEUE_MAIN=( "${D_DPL_ASSET_RELPATHS[@]}" )
+
+    # Otherwise, try to derive main queue from absolute asset paths
+    elif [ ${#D_DPL_ASSET_PATHS[@]} -gt 1 -o -n "$D_DPL_ASSET_PATHS" ]; then
+
+      D_QUEUE_MAIN=( "${D_DPL_ASSET_PATHS[@]}" )
+
+    fi
+
   fi
 
   # Return

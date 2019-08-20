@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: manifests
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    12
+#:revnumber:    13
 #:revdate:      2019.08.20
-#:revremark:    Shrink manifest processing announcement down to one line
+#:revremark:    Delay populating  as much as possible
 #:created_at:   2019.05.30
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -114,15 +114,9 @@ d__process_asset_manifest_of_current_dpl()
 
 #>  d__process_queue_manifest_of_current_dpl
 #
-## Looks for manifest file at path stored in $D_DPL_QUE_PATH. Reads it line by 
-#. line, ignores empty lines and lines starting with hash ('#') or double-slash 
-#. ('//').
-#
-## All other lines are interpreted as textual main queue entries, with which it 
-#. populates the array $D_QUEUE_MAIN.
-#
-## If queue manifest is not available, tries two other methods: copying either 
-#. absolute or relative paths to asset files (attempts are made in that order).
+## Looks for manifest file at path stored in $D_DPL_QUE_PATH. Parses it and 
+#. assigns the extracted entries to $D_QUEUE_MAIN. If queue manifest is not 
+#. available, does nothing.
 #
 ## Requires:
 #.  $D_DPL_QUE_PATH     - Path to queue manifest file
@@ -131,25 +125,23 @@ d__process_asset_manifest_of_current_dpl()
 #.  $D_QUEUE_MAIN   - Array of main queue entries
 #
 ## Returns:
-#.  0 - Task performed: main queue is populated
-#.  1 - Otherwise
+#.  0 - Always
 #
 d__process_queue_manifest_of_current_dpl()
 {
-  # Check if main queue is already filled up
+  # Check if main queue is already filled up (manually, within dpl't top level)
   if [ ${#D_QUEUE_MAIN[@]} -gt 1 -o -n "$D_QUEUE_MAIN" ]; then
 
     # Main queue is already touched, nothing to do:
+    dprint_debug 'Queue is populated manually'
     return 0
 
   fi
 
-  # Main queue is not filled: try various methods
-
-  # Check if main queue file is readable
+  # Main queue is not filled: check if queue manifest is readable
   if d__process_manifest "$D_DPL_QUE_PATH"; then
 
-    # Check if $D__MANIFEST_LINES has at least one entry
+    # Check if at least one good line has been extracted
     if [ ${#D__MANIFEST_LINES[@]} -gt 0 ]; then
 
       # Assign collected items to main queue
@@ -157,25 +149,10 @@ d__process_queue_manifest_of_current_dpl()
     
     fi
 
-  # Otherwise, try to derive main queue from relative asset paths
-  elif [ ${#D_DPL_ASSET_RELPATHS[@]} -gt 1 -o -n "$D_DPL_ASSET_RELPATHS" ]
-  then
-
-    D_QUEUE_MAIN=( "${D_DPL_ASSET_RELPATHS[@]}" )
-
-  # Otherwise, try to derive main queue from absolute asset paths
-  elif [ ${#D_DPL_ASSET_PATHS[@]} -gt 1 -o -n "$D_DPL_ASSET_PATHS" ]
-  then
-
-    D_QUEUE_MAIN=( "${D_DPL_ASSET_PATHS[@]}" )
-
-  # Otherwise, give up
-  else
-
-    # No way to pre-fill main queue
-    return 1
-
   fi
+
+  # Always return zero
+  return 0
 }
 
 #>  d__copy_asset REL_PATH SRC_PATH DEST_PATH
