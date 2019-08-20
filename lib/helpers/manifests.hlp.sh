@@ -2,39 +2,15 @@
 #:title:        Divine Bash deployment helpers: manifests
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    9
-#:revdate:      2019.08.19
-#:revremark:    D__QUEUE_MAIN -> D_QUEUE_MAIN
+#:revnumber:    10
+#:revdate:      2019.08.20
+#:revremark:    Split manifest processing in primaries, process ASAP
 #:created_at:   2019.05.30
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
 #
 ## Helper function that prepares deployment's asset and queue manifests
 #
-
-#>  d__process_manifests_of_current_dpl
-#
-## Looks for asset manifest at $D__DPL_MNF_PATH and for main queue file at 
-#. $D_DPL_QUE_PATH. First, processes manifest (copies assets and fills global 
-#. arrays) if manifest is present. Afterward, if main queue is not yet filled, 
-#. fills it up: from main queue file, or absent that, from relative asset 
-#. paths, or absent that, does not touch the main queue.
-#
-## Returns:
-#.  0 - Assets are successfully processed, while main queue is composed as best 
-#.      as possible
-#.  1 - Otherwise
-d__process_manifests_of_current_dpl()
-{
-  # First, process asset manifest of current deployment (must return zero)
-  d__process_asset_manifest_of_current_dpl || return 1
-
-  # Second, process queue manifest of current deployment (may fail freely)
-  d__process_queue_manifest_of_current_dpl
-
-  # If gotten here, return success
-  return 0
-}
 
 #>  d__process_asset_manifest_of_current_dpl
 #
@@ -70,10 +46,13 @@ d__process_asset_manifest_of_current_dpl()
   fi
 
   # Parse manifest file
-  d__process_manifest "$D__DPL_MNF_PATH" || {
+  if d__process_manifest "$D__DPL_MNF_PATH"; then
+    dprint_debug 'Successfully processed asset manifest at:' \
+      -i "$D__DPL_MNF_PATH"
+  else
     dprint_debug 'No asset manifest'
     return 0
-  }
+  fi
 
   # Check if $D__MANIFEST_LINES has at least one entry
   [ ${#D__MANIFEST_LINES[@]} -gt 0 ] || return 0
@@ -172,6 +151,10 @@ d__process_queue_manifest_of_current_dpl()
 
   # Check if main queue file is readable
   if d__process_manifest "$D_DPL_QUE_PATH"; then
+
+    # Announce
+    dprint_debug 'Successfully processed queue manifest at:' \
+      -i "$D_DPL_QUE_PATH"
 
     # Check if $D__MANIFEST_LINES has at least one entry
     if [ ${#D__MANIFEST_LINES[@]} -gt 0 ]; then
@@ -339,6 +322,9 @@ d__process_manifest()
 
   # Check if manifest if a readable file, or return immediately
   [ -r "$mnf_filepath" -a -f "$mnf_filepath" ] || return 1
+
+  # Announce
+  dprint_debug 'Processing manifest at:' -i "$mnf_filepath"
 
   # Storage variables
   local line_from_file line_continuation=false

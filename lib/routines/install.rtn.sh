@@ -2,9 +2,9 @@
 #:title:        Divine Bash routine: install
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    44
-#:revdate:      2019.08.16
-#:revremark:    d__stash -> dstash
+#:revnumber:    45
+#:revdate:      2019.08.20
+#:revremark:    Split manifest processing in primaries, process ASAP
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -422,6 +422,9 @@ d__install_dpls()
       # Open subshell to isolate deployment code
       (
 
+        # Announce
+        dprint_debug 'Entered sub-shell'
+
         # Expose variables to deployment
         D_DPL_NAME="$name"
         D_DPL_PRIORITY="$priority"
@@ -433,14 +436,17 @@ d__install_dpls()
         readonly D__DPL_ASSET_DIR="$D__DIR_ASSETS/$D_DPL_NAME"
         readonly D__DPL_BACKUP_DIR="$D__DIR_BACKUPS/$D_DPL_NAME"
 
+        # Process the asset manifest, if it exists
+        d__process_asset_manifest_of_current_dpl || exit 2
+
         # Print debug message
         dprint_debug "Sourcing: $divinedpl_filepath"
 
         # Hold your breath...
         source "$divinedpl_filepath"
 
-        # Ensure all assets are copied and main queue is filled
-        d__process_manifests_of_current_dpl || exit 2
+        # Process queue manifest (after sourcing, to allow path customization)
+        d__process_queue_manifest_of_current_dpl
 
         # Get return code of d_dpl_check, or fall back to zero
         if declare -f d_dpl_check &>/dev/null; then
@@ -541,12 +547,14 @@ d__install_dpls()
             proceeding=true
             ;;
         1)  # General failure: return critical failure
+            dprint_failure \
+              'Something went spectacularly wrong within the subshell'
             dprint_ode "${D__ODE_NAME[@]}" -c "$RED" -- \
               'xxx' 'Failed' ':' "$task_desc" "$task_name"
             return 102
             ;;
         2)  # Asset assembly failed: retain failure flag
-            :
+            dprint_failure 'Failed to process deployment assets'
             ;;
         3)  # Already installed by user or OS
             task_name="$task_name (installed by user or OS)"
