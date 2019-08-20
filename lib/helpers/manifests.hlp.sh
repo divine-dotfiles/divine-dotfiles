@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: manifests
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    10
+#:revnumber:    11
 #:revdate:      2019.08.20
-#:revremark:    Split manifest processing in primaries, process ASAP
+#:revremark:    Remove announcement of successful manifest processing
 #:created_at:   2019.05.30
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -46,10 +46,7 @@ d__process_asset_manifest_of_current_dpl()
   fi
 
   # Parse manifest file
-  if d__process_manifest "$D__DPL_MNF_PATH"; then
-    dprint_debug 'Successfully processed asset manifest at:' \
-      -i "$D__DPL_MNF_PATH"
-  else
+  if ! d__process_manifest "$D__DPL_MNF_PATH"; then
     dprint_debug 'No asset manifest'
     return 0
   fi
@@ -151,10 +148,6 @@ d__process_queue_manifest_of_current_dpl()
 
   # Check if main queue file is readable
   if d__process_manifest "$D_DPL_QUE_PATH"; then
-
-    # Announce
-    dprint_debug 'Successfully processed queue manifest at:' \
-      -i "$D_DPL_QUE_PATH"
 
     # Check if $D__MANIFEST_LINES has at least one entry
     if [ ${#D__MANIFEST_LINES[@]} -gt 0 ]; then
