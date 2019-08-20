@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: manifests
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    14
+#:revnumber:    15
 #:revdate:      2019.08.20
-#:revremark:    Merge D_DPL_ASSET_RELPATHS into D_QUEUE_MAIN
+#:revremark:    Grant queue manifests overwriting powers
 #:created_at:   2019.05.30
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -129,12 +129,13 @@ d__process_asset_manifest_of_current_dpl()
 #
 d__process_queue_manifest_of_current_dpl()
 {
-  # Check if main queue is already filled up (manually, within dpl't top level)
+  # Check if main queue is already filled up
   if [ ${#D_QUEUE_MAIN[@]} -gt 1 -o -n "$D_QUEUE_MAIN" ]; then
 
+    # This is either manual queue, or one left over from asset manifest
+
     # Main queue is already touched, nothing to do:
-    dprint_debug 'Queue is populated manually'
-    return 0
+    dprint_debug 'Queue manifest overwrites previous queue'
 
   fi
 
