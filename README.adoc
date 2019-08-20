@@ -1,8 +1,8 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revnumber: 27
-:revdate: 2019.08.19
+:revnumber: 28
+:revdate: 2019.08.20
 :revremark: Iterative improvement
 :doctype: article
 // Visual
@@ -442,7 +442,7 @@ This option is equivalent to a 'dry run' — apart from skip messages, nothing 
 Access within deployments: `$D__OPT_ANSWER` (`true` / `false` / _empty_).
 
 | `*-f*`, `*--force*`
-a| By default, framework does *not*:
+a| By default, the framework does *not*:
 
 * re-install deployments that appear already installed;
 * uninstall deployments that appear already not installed;
@@ -651,6 +651,7 @@ A deployment is formed by:
 This section includes semantic meanings behind primaries and their return codes.
 Feel free to stretch semantic guidelines according to your particular use case.
 
+[[func_dpl_check]]
 ==== Primary function `d_dpl_check()`
 
 If this function is implemented, it will be called:
@@ -710,6 +711,7 @@ Routines that will proceed further:
 
 |===
 
+[[func_dpl_install]]
 ==== Primary function `d_dpl_install()`
 
 If this function is implemented, it will be called during `install` routine — to achieve the intended goal of this deployment.
@@ -743,7 +745,7 @@ a| *'Reboot needed'*: same as 'Successfully installed', except:
 a| *'User attention needed'*: same as 'Successfully installed', except:
 
 * Intervention will gracefully shut down without moving past this deployment.
-* Deployment is expected to print explanation to `stdout`.
+* Deployment is expected to print explanation to `stderr`.
 
 | `102`
 a| *'Critical failure'*: same as 'Failed to install', except:
@@ -753,6 +755,7 @@ a| *'Critical failure'*: same as 'Failed to install', except:
 
 |===
 
+[[func_dpl_remove]]
 ==== Primary function `d_dpl_remove()`
 
 If this function is implemented, it will be called during `remove` routine — to reverse the effects of previously installing this deployment.
@@ -766,35 +769,43 @@ Return code of `d_dpl_remove()` determines output of `remove` routine:
 ^.^| Interpretation
 
 | `0`
-| *'Successfully installed'*: [.gray]##_(default)_## intended goal of installing this deployment is entirely achieved.
+| *'Successfully uninstalled'*: [.gray]##_(default)_## effects of previously installing this deployment are entirely reversed.
 
 _This return code is assumed if `d_dpl_remove()` is not implemented or if unsupported code is returned._
 
 | `1`
-| *'Failed to install'*: intended goal of installing this deployment is _not entirely_ achieved due to error.
+| *'Failed to uninstall'*: effects of previously installing this deployment are _not entirely_ reversed due to error.
 
 | `2`
-| *'Skipped'*: intended goal of installing this deployment is _entirely not_ achieved because nothing has been done.
+| *'Skipped'*: effects of previously installing this deployment are _entirely not_ reversed because nothing has been done.
 
 | `100`
-a| *'Reboot needed'*: same as 'Successfully installed', except:
+a| *'Reboot needed'*: same as 'Successfully uninstalled', except:
 
 * Intervention will gracefully shut down without moving past this deployment.
 * User will be asked to reboot the machine and continue afterward.
 
 | `101`
-a| *'User attention needed'*: same as 'Successfully installed', except:
+a| *'User attention needed'*: same as 'Successfully uninstalled', except:
 
 * Intervention will gracefully shut down without moving past this deployment.
-* Deployment is expected to print explanation to `stdout`.
+* Deployment is expected to print explanation to `stderr`.
 
 | `102`
-a| *'Critical failure'*: same as 'Failed to install', except:
+a| *'Critical failure'*: same as 'Failed to uninstall', except:
 
 * Intervention will shut down without moving past this deployment.
 * Output will mention critical failure.
 
 |===
+
+[NOTE]
+--
+It is worth noting that intended semantics of uninstallation are not direct inverse to that of installation.
+Ideally, if no installation via the framework has previously occurred, uninstallation should do nothing.
+
+This philosophy is followed by our magnificent https://github.com/no-simpler/divine-dpls-core[core bundle] of Divine deployments.
+--
 
 === Deployment metadata
 
@@ -1072,10 +1083,10 @@ Located within <<state_directory,state directory>>, specifically `state/backups/
 
 2+^.^h| Special file paths
 
-| `*D__DPL_SH_PATH*`
+| [#var_dpl_sh_path]#`*D__DPL_SH_PATH*`#
 | Absolute path to `*.dpl.sh` file.
 
-| `*D__DPL_MNF_PATH*`
+| [#var_dpl_mnf_path]#`*D__DPL_MNF_PATH*`#
 a| Generated absolute path to asset manifest of current deployment.
 This path does not necessarily exist.
 
@@ -1088,7 +1099,7 @@ Asset manifests are also processed by routines that don't source deployments.
 Thus, path to asset manifest is locked, and this variable is read-only.
 --
 
-| `*D_DPL_QUE_PATH*`
+| [#var_dpl_que_path]#`*D_DPL_QUE_PATH*`#
 a| Generated absolute path to queue manifest of current deployment.
 This path does not necessarily exist.
 
@@ -1790,24 +1801,21 @@ If any of such assets is missing, deployment will not be allowed to proceed.
 Regex patterns are more permissive: they may match zero assets, and no error will be raised.
 --
 
-=== Queues
+=== Generic queue
 
 Whenever your deployment performs a series of similar actions, — e.g., symlinks a bunch of files — you are faced with several routine tasks:
 
 * Write iteration logic.
 * Tie the return codes of subtasks into a single informative code.
 
-_Divine.dotfiles_ offers a pill that relieves such pain.
-
-==== Generic queue
-
-A *queue* is exactly what it sounds like:
+_Divine.dotfiles_ offers a mechanism called *queue*, which relieves such pain.
+To use it:
 
 . Populate a specially named array with one string for each queue item.
 . Implement logic to be applied to a single item.
-. Delegate your deployment's <<_primary_functions,primaries>> to built-in versions.
+. Delegate your deployment's <<_primary_functions,primaries>> to built-in helpers.
 
-This kind of thing is best demonstrated on an example:
+This kind of deployment is best demonstrated with an example:
 
 .Deployment template for generic queue
 [source,bash]
@@ -1817,7 +1825,7 @@ d_dpl_check()    { populate_queue;  d__queue_check;    }
 d_dpl_install()  {                  d__queue_install;  }
 d_dpl_remove()   {                  d__queue_remove;   }
 
-# This function is not built-in, but is an example of code organization
+# This function is not built-in, but is the recommended way of organizing logic
 populate_queue() { D_QUEUE_MAIN=( alpha bravo charlie ); }
 
 # Implement mini-primaries for a single queue item
@@ -1826,11 +1834,458 @@ d_queue_item_install()  { :; }
 d_queue_item_remove()   { :; }
 ----
 
+==== Generic queue set-up
+
+Following Bash arrays should be populated before any of the built-in helpers are called:
+
+[%header,cols="<.<1,<.<3",stripes=none]
+|===
+
+^.^| Variable name
+^.^| Description
+
+| [#var_queue_main]#`*D_QUEUE_MAIN*`#
+a| Each member of this array defines a queue item.
+
+Members of this array are strings, and how they are used is entirely up to you.
+
+[NOTE]
+--
+This array must be consecutive, or the queue will utterly break.
+You have been warned.
+--
+
+|===
+
+==== Generic queue special functions
+
+Following built-in functions may be implemented to provide queue logic (all are optional):
+
+[%header,cols="<.<1,<.<3",stripes=none]
+|===
+
+^.^| Function name
+^.^| Description
+
+2+^.^h| Mini-primaries
+
+| [#func_queue_item_check]#`*d_queue_item_check*`#
+a| This function is called once for every queue item.
+It is similar to its <<func_dpl_check,deployment-level cousin>>, `d_dpl_check`.
+
+Supported return codes:
+
+* `*0*` — *'Unknown'*: [.gray]##_(default)_## no reliable way to tell whether this queue item is installed or not.
+* `*1*` — *'Installed'*: as it stands, intended goal of installing this queue item is entirely achieved.
+* `*2*` — *'Not installed'*: as it stands, intended goal of installing this queue item is entirely not achieved.
+* `*3*` — *'Invalid'*: input for this queue item prevents it from being processed correctly.
+
+| [#func_queue_item_install]#`*d_queue_item_install*`#
+a| This function is called no more than once for every queue item.
+It is similar to its <<func_dpl_install,deployment-level cousin>>, `d_dpl_install`.
+
+Supported return codes:
+
+* `*0*` — *'Installed successfully'*: [.gray]##_(default)_## intended goal of installing this queue item is entirely achieved.
+* `*1*` — *'Failed to install'*: intended goal of installing this deployment is not entirely achieved due to error.
+* `*2*` — *'Item turned out to be invalid'*: input for this queue item prevents it from being installed correctly.
+* `*3*` — *'Installed successfully'* and also abort further queue installation.
+* `*4*` — *'Failed to install'* and also abort further queue installation.
+
+| [#func_queue_item_remove]#`*d_queue_item_remove*`#
+a| This function is called no more than once for every queue item.
+It is similar to its <<func_dpl_remove,deployment-level cousin>>, `d_dpl_remove`.
+
+Supported return codes:
+
+* `*0*` — *'Uninstalled successfully'*: [.gray]##_(default)_## effects of previously installing this queue item are entirely reversed.
+* `*1*` — *'Failed to uninstall'*: effects of previously installing this queue item are not entirely reversed due to error.
+* `*2*` — *'Item turned out to be invalid'*: input for this queue item prevents it from being uninstalled correctly.
+* `*3*` — *'Uninstalled successfully'* and also abort further queue uninstallation.
+* `*4*` — *'Failed to uninstall'* and also abort further queue uninstallation.
+
+2+^.^h| Other queue hooks
+
+| `*d_queue_pre_process*`
+a| This function is called once per queue processing, before checking begins.
+It is a good place to inspect/tweak the queue as a whole, and to choose whether to proceed.
+
+Supported return codes:
+
+* `*0*` — *'Proceed with queue processing'*: queue is fine.
+* `*1*` — *'Skip all queue processing'*: something is abnormal with the queue.
+
+| `*d_queue_post_process*`
+a| This function is called once per queue processing, after checking is completed.
+It is a good place to inspect/tweak the queue as a whole after it has been checked, and to choose whether to proceed.
+
+Supported return codes:
+
+* `*0*` — *'Proceed with queue processing'*: queue is fine.
+* `*1*` — *'Skip all queue processing'*: something is abnormal with the queue.
+
+|===
+
+==== Generic queue special variables
+
+Following built-in variables are available/recognized during processing of each queue item:
+
+[%header,cols="<.<1,<.<3",stripes=none]
+|===
+
+^.^| Variable name
+^.^| Description
+
+| `*D__QUEUE_ITEM_NUM*`
+| Index of current item in `*D_QUEUE_MAIN*`.
+This index is helpful if you keep multiple arrays of related queue data.
+
+| `*D__QUEUE_ITEM_TITLE*`
+| Content of `*D_QUEUE_MAIN*` for current item.
+
+| `*D__QUEUE_ITEM_IS_FORCED*`
+a| By default, the framework does *not*:
+
+* re-install queue items that appear already installed;
+* uninstall queue items that appear already not installed;
+* process queue items that appear installed by means other than this framework.
+
+The `--force` option of the intervention utility overrules such considerations.
+
+This variable is set to `true` if installation/removal is being forced, i.e., it would not have been initiated if not for the `--force` option.
+You are left to decide on whether to treat such cases specially.
+
+| `*D\__QUEUE_ITEM_STASH_KEY*`
+
+`*D__QUEUE_ITEM_STASH_VALUE*`
+
+`*D__QUEUE_ITEM_STASH_FLAG*`
+a| Stash key and stash value for current item.
+The third variable is `true` if stash record exists, `false` if stash record does not exist, and unset if stash is not used for this item.
+
+[NOTE]
+--
+Queue mechanism uses stash to keep persistent records of (un)installing queue items.
+Ideally, there is no need for you to know this or use these variables.
+--
+
+|===
+
 ==== Queue manifests
 
-==== Link queue
+<<var_queue_main,Contents>> of the queue, whatever they are, sound like a perfect candidate for separating from deployment logic into a separate, dynamic asset.
+Queue manifests to the resqueue.
 
-==== Copy queue
+An *queue manifest* is a text file, which is — by default — located in the same directory as the deployment file and named the same, except for exchanging `.dpl.sh` suffix for `.dpl.que`.
+Unlike with <<_asset_manifests,asset manifests>>, you are free to customize the location/name of your queue manifest by re-assigning <<var_dpl_que_path,`D_DPL_QUE_PATH`>> variable *at the top level* of your deployment.
+
+Queue manifests follow the general <<_manifest_syntax,manifest syntax>>.
+Only the key `os` is relevant within queue manifests.
+
+[NOTE]
+--
+A suggested way of using queue manifests is:
+
+. Provide a sample queue manifest of some entries in whatever form.
+. Declare the queue manifest an asset, by listing it in your <<_asset_manifests,asset manifest>>.
+. Within the deployment, customize the <<var_dpl_que_path,`D_DPL_QUE_PATH`>> variable to point to asset copy within <<grail_directory,the Grail>>, e.g.:
++
+[source,bash]
+----
+D_DPL_QUE_PATH="$D__DPL_ASSET_DIR/$D_DPL_NAME.dpl.que"
+----
+--
+
+=== Link queue
+
+A common use case of queues is creating symlinks that point to deployment's assets.
+For example, one might want to:
+
+* create symlinks located at `~/.bashrc` and `~/.zshrc`;
+* point them at custom assets stored in <<grail_directory,the Grail>>;
+* store original files as backups and restore them upon uninstallation.
+
+For such purposes, _Divine.dotfiles_ provides a partially implemented version of <<_generic_queue,generic queue>> called *link queue*.
+To use it:
+
+. Populate a few specially named arrays with necessary paths.
+. Delegate your deployment's <<_primary_functions,primaries>> to built-in helpers.
+
+This kind of deployment is best demonstrated with an example:
+
+.Deployment template for link queue
+[source,bash]
+----
+# Delegate primaries to link queue helpers. Make sure helper is called last.
+d_dpl_check()    { populate_link_queue; d__link_queue_check;    }
+d_dpl_install()  {                      d__link_queue_install;  }
+d_dpl_remove()   {                      d__link_queue_remove;   }
+
+# This function is not built-in, but is the recommended way of organizing logic
+populate_link_queue() {
+  D_DPL_ASSET_PATHS=( "$D__DPL_ASSET_DIR/.bashrc" "$D__DPL_ASSET_DIR/.zshrc" )
+  D_DPL_TARGET_PATHS=( ~/.bashrc ~/.zshrc )
+}
+----
+
+==== Link queue set-up
+
+Following Bash arrays should be populated before any of the built-in helpers are called.
+Note, that you can <<_link_queue_asset_automation,automate>> this process.
+
+[%header,cols="<.<1,<.<3",stripes=none]
+|===
+
+^.^| Variable name
+^.^| Description
+
+| [#var_queue_main]#`*D_DPL_ASSET_PATHS*`#
+a| Each member of this array is a path to which a symlink should be maintained.
+Absolute paths are strongly recommended.
+
+[NOTE]
+--
+This array must be consecutive, or the queue will utterly break.
+You have been warned.
+--
+
+| [#var_queue_main]#`*D_DPL_ASSET_RELPATHS*`#
+| [.gray]##_(optional)_## For each absolute path in `*D_DPL_ASSET_PATHS*`, this array may contain a shortened version, relative to the asset directory.
+
+These shortened versions are used only in debug messages, to make them terser.
+
+| [#var_queue_main]#`*D_DPL_TARGET_PATHS*`#
+| For each path in `*D_DPL_ASSET_PATHS*`, this array must contain the intended path to a symlink, which will point to the respective asset.
+Absolute paths are strongly recommended.
+
+|===
+
+[NOTE]
+--
+Logically, the arrays above should have the same number of elements.
+--
+
+==== Link queue special functions
+
+Following built-in functions may be implemented to provide queue logic (all are optional):
+
+[%header,cols="<.<1,<.<3",stripes=none]
+|===
+
+^.^| Function name
+^.^| Description
+
+2+^.^h| Pre-primary hooks
+
+| `*d_link_queue_item_pre_install*`
+a| This function is called once, immediately before <<func_queue_item_install,installing>> the symlink.
+
+Supported return codes:
+
+* `*0*` — *'Pre-processed successfully'*: [.gray]##_(default)_## current item is ready to be symlinked.
+* `*1*` — *'Failed to pre-process'*: current item should not be symlinked.
+
+| `*d_link_queue_item_pre_remove*`
+a| This function is called once, immediately before <<func_queue_item_remove,uninstalling>> the symlink.
+
+Supported return codes:
+
+* `*0*` — *'Pre-processed successfully'*: [.gray]##_(default)_## current item is ready to be uninstalled.
+* `*1*` — *'Failed to pre-process'*: current item should not be uninstalled.
+
+2+^.^h| Other queue hooks
+
+| `*d_link_queue_pre_process*`
+a| This function is called once per link queue processing, before checking begins.
+It is a good place to inspect/tweak the link queue as a whole, and to choose whether to proceed.
+
+Supported return codes:
+
+* `*0*` — *'Proceed with link queue processing'*: queue is fine.
+* `*1*` — *'Skip all link queue processing'*: something is abnormal with the queue.
+
+| `*d_link_queue_post_process*`
+a| This function is called once per link queue processing, after checking is completed.
+It is a good place to inspect/tweak the link queue as a whole after it has been checked, and to choose whether to proceed.
+
+Supported return codes:
+
+* `*0*` — *'Proceed with link queue processing'*: queue is fine.
+* `*1*` — *'Skip all link queue processing'*: something is abnormal with the queue.
+
+|===
+
+==== Link queue asset automation
+
+So, you have your list of assets, stored in a <<_asset_manifests,manifest>>.
+You know your target directory, to which you want to plug in your assets using symlinks.
+
+Why bother with manually populating arrays?
+
+No need.
+
+Simply set the variable `*D_DPL_TARGET_DIR*` before any of the built-in helpers are called.
+Link queue will automatically populate necessary arrays.
+All your assets will be symlinked into the target directory, with relative paths preserved.
+
+But hey, what about cross-platformness?
+
+No worries.
+
+In _Divine.dotfiles_, every OS adapter carries an override mechanism for `*D_DPL_TARGET_DIR*`.
+The rules are simple: attach the handle of the supported OS in all capitals like this:
+
+[source,bash]
+----
+D_DPL_TARGET_DIR=/generic/path
+D_DPL_TARGET_DIR_MACOS=/path/on/macos
+D_DPL_TARGET_DIR_FEDORA=/path/on/fedora
+D_DPL_TARGET_DIR_WSL=/path/on/wsl
+----
+
+[NOTE]
+--
+Such overrides are matched against both  <<var_os_family,`$D\__OS_FAMILY`>> and <<var_os_distro,`$D__OS_DISTRO`>> built-in variables.
+A match against distro overrules a match against family, because such is life.
+--
+
+=== Copy queue
+
+Another common use case of queues is copying files into the system.
+For example, one might want to:
+
+* copy an assortment of font files into the system's font directory;
+* not overwrite existing files.
+
+For such purposes, _Divine.dotfiles_ provides a partially implemented version of <<_generic_queue,generic queue>> called *copy queue*.
+To use it:
+
+. Populate a few specially named arrays with necessary paths.
+. Delegate your deployment's <<_primary_functions,primaries>> to built-in helpers.
+
+[NOTE]
+--
+Copy queue does not touch pre-existing files:
+
+* If a file by that name already exists at destination — no copying is done.
+* Upon uninstallation, a file is only erased if there is a record of it previously being copied into that location.
+
+If you want to actually substitute existing files (while backing them up), prefer the <<_link_queue,link queue>>.
+--
+
+This kind of deployment is best demonstrated with an example:
+
+.Deployment template for copy queue
+[source,bash]
+----
+# Delegate primaries to copy queue helpers. Make sure helper is called last.
+d_dpl_check()    { populate_copy_queue; d__copy_queue_check;    }
+d_dpl_install()  {                      d__copy_queue_install;  }
+d_dpl_remove()   {                      d__copy_queue_remove;   }
+
+# This function is not built-in, but is the recommended way of organizing logic
+populate_copy_queue() {
+  D_DPL_ASSET_PATHS=( \
+    "$D__DPL_ASSET_DIR/cool-font.ttf" \
+    "$D__DPL_ASSET_DIR/super-font.ttf" \
+  )
+  D_DPL_TARGET_PATHS=( \
+    /usr/share/fonts/cool-font.ttf \
+    /usr/share/fonts/super-font.ttf \
+  )
+}
+----
+
+==== Copy queue set-up
+
+Following Bash arrays should be populated before any of the built-in helpers are called.
+Note, that you can <<_copy_queue_asset_automation,automate>> this process.
+
+[%header,cols="<.<1,<.<3",stripes=none]
+|===
+
+^.^| Variable name
+^.^| Description
+
+| [#var_queue_main]#`*D_DPL_ASSET_PATHS*`#
+a| Each member of this array is a path to file that is to be copied.
+Absolute paths are strongly recommended.
+
+[NOTE]
+--
+This array must be consecutive, or the queue will utterly break.
+You have been warned.
+--
+
+| [#var_queue_main]#`*D_DPL_ASSET_RELPATHS*`#
+| [.gray]##_(optional)_## For each absolute path in `*D_DPL_ASSET_PATHS*`, this array may contain a shortened version, relative to the asset directory.
+
+These shortened versions are used only in debug messages, to make them terser.
+
+| [#var_queue_main]#`*D_DPL_TARGET_PATHS*`#
+| For each path in `*D_DPL_ASSET_PATHS*`, this array must contain the destination path for copying.
+Absolute paths are strongly recommended.
+
+|===
+
+[NOTE]
+--
+Logically, the arrays above should have the same number of elements.
+--
+
+==== Copy queue special functions
+
+Following built-in functions may be implemented to provide queue logic (all are optional):
+
+[%header,cols="<.<1,<.<3",stripes=none]
+|===
+
+^.^| Function name
+^.^| Description
+
+2+^.^h| Pre-primary hooks
+
+| `*d_copy_queue_item_pre_install*`
+a| This function is called once, immediately before <<func_queue_item_install,copying>>.
+
+Supported return codes:
+
+* `*0*` — *'Pre-processed successfully'*: [.gray]##_(default)_## current item is ready to be copied.
+* `*1*` — *'Failed to pre-process'*: current item should not be copied.
+
+| `*d_copy_queue_item_pre_remove*`
+a| This function is called once, immediately before <<func_queue_item_remove,removing>> the copy.
+
+Supported return codes:
+
+* `*0*` — *'Pre-processed successfully'*: [.gray]##_(default)_## current item is ready to be un-copied.
+* `*1*` — *'Failed to pre-process'*: current item should not be un-copied.
+
+2+^.^h| Other queue hooks
+
+| `*d_copy_queue_pre_process*`
+a| This function is called once per copy queue processing, before checking begins.
+It is a good place to inspect/tweak the copy queue as a whole, and to choose whether to proceed.
+
+Supported return codes:
+
+* `*0*` — *'Proceed with copy queue processing'*: queue is fine.
+* `*1*` — *'Skip all copy queue processing'*: something is abnormal with the queue.
+
+| `*d_copy_queue_post_process*`
+a| This function is called once per copy queue processing, after checking is completed.
+It is a good place to inspect/tweak the copy queue as a whole after it has been checked, and to choose whether to proceed.
+
+Supported return codes:
+
+* `*0*` — *'Proceed with copy queue processing'*: queue is fine.
+* `*1*` — *'Skip all copy queue processing'*: something is abnormal with the queue.
+
+|===
+
+==== Copy queue asset automation
+
+Copy queue asset automation works identically to <<_link_queue_asset_automation,that of link queue>>.
 
 === Multitask
 
