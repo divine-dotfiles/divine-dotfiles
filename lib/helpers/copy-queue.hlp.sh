@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: copy-queue
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    8
+#:revnumber:    9
 #:revdate:      2019.08.20
-#:revremark:    Delay populating  as much as possible
+#:revremark:    Merge D_DPL_ASSET_RELPATHS into D_QUEUE_MAIN
 #:created_at:   2019.05.23
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -155,8 +155,10 @@ d__copy_queue_pre_process()
   # If $D_DPL_TARGET_PATHS is thus far empty, try another trick
   if ! [ ${#D_DPL_TARGET_PATHS[@]} -gt 1 -o -n "$D_DPL_TARGET_PATHS" ] \
     && [ -n "$D_DPL_TARGET_DIR" ] \
-    && [ ${#D_DPL_ASSET_RELPATHS[@]} -gt 0 ]
+    && [ ${#D_QUEUE_MAIN[@]} -gt 1 -o -n "$D_QUEUE_MAIN" ]
   then
+
+    # In copy queue, $D_QUEUE_MAIN is interpreted as relative paths
 
     # Initialize $D_DPL_TARGET_PATHS to empty array
     D_DPL_TARGET_PATHS=()
@@ -165,7 +167,7 @@ d__copy_queue_pre_process()
     local relative_path
 
     # Iterate over relative asset paths
-    for relative_path in "${D_DPL_ASSET_RELPATHS[@]}"; do
+    for relative_path in "${D_QUEUE_MAIN[@]}"; do
 
       # Construct path to target and add it
       D_DPL_TARGET_PATHS+=( "$D_DPL_TARGET_DIR/$relative_path" )
@@ -192,13 +194,8 @@ d__copy_queue_pre_process()
 
     # Main queue is still empty
 
-    # Try to derive main queue from relative asset paths
-    if [ ${#D_DPL_ASSET_RELPATHS[@]} -gt 1 -o -n "$D_DPL_ASSET_RELPATHS" ]; then
-
-      D_QUEUE_MAIN=( "${D_DPL_ASSET_RELPATHS[@]}" )
-
-    # Otherwise, try to derive main queue from absolute asset paths
-    elif [ ${#D_DPL_ASSET_PATHS[@]} -gt 1 -o -n "$D_DPL_ASSET_PATHS" ]; then
+    # Try to derive main queue from absolute asset paths
+    if [ ${#D_DPL_ASSET_PATHS[@]} -gt 1 -o -n "$D_DPL_ASSET_PATHS" ]; then
 
       D_QUEUE_MAIN=( "${D_DPL_ASSET_PATHS[@]}" )
 

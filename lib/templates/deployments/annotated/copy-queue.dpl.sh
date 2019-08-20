@@ -16,10 +16,6 @@ D_DPL_WARNING=
 ## Variables to fill:
 #.  $D_DPL_ASSET_PATHS    - This array must contain paths to every asset that 
 #.                          is to be copied into the system.
-#.  $D_DPL_ASSET_RELPATHS - (optional) Not a requirement, but populating this 
-#.                          array with shortened (e.g., relative to assets dir) 
-#.                          versions of the above is very helpful for debug 
-#.                          output.
 #.  $D_DPL_TARGET_PATHS   - This array must contain corresponding 'target' 
 #.                          paths that are to be copy destinations.
 #. Framework has ways of auto-populating these arrays: see notes on automation 
@@ -54,8 +50,6 @@ D_DPL_WARNING=
 #
 ## Framework provides a way to auto-populate asset paths ($D_DPL_ASSET_PATHS):
 #.  * Asset manifest (see 'dpl-filename.dpl.mnf' template for reference)
-#.        - This also populates $D_DPL_ASSET_RELPATHS array with shortened 
-#.          versions of corresponding paths (relative to asset dir)
 #
 ## Target paths ($D_DPL_TARGET_PATHS) can be populated manually. OS-specific 
 #. overrides for this array are given by suffixing system handle in uppercase 

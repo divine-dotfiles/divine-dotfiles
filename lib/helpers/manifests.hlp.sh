@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: manifests
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    13
+#:revnumber:    14
 #:revdate:      2019.08.20
-#:revremark:    Delay populating  as much as possible
+#:revremark:    Merge D_DPL_ASSET_RELPATHS into D_QUEUE_MAIN
 #:created_at:   2019.05.30
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -30,7 +30,7 @@
 #.  $D__DPL_ASSET_DIR   - Path to compose target asset paths against
 #
 ## Provides into the global scope:
-#.  $D_DPL_ASSET_RELPATHS   - Array of relative paths to assets
+#.  $D_QUEUE_MAIN           - Array of relative paths to assets
 #.  $D_DPL_ASSET_PATHS      - Array of absolute paths to copied assets
 #
 ## Returns:
@@ -60,7 +60,7 @@ d__process_asset_manifest_of_current_dpl()
   local all_assets_copied=true
 
   # Start populating global variables
-  D_DPL_ASSET_RELPATHS=()
+  D_QUEUE_MAIN=()
   D_DPL_ASSET_PATHS=()
 
   # Iterate over $D__MANIFEST_LINES entries
@@ -202,7 +202,7 @@ d__copy_asset()
   fi
 
   # Destination is in place: push onto global containers
-  D_DPL_ASSET_RELPATHS+=( "$relative_path" )
+  D_QUEUE_MAIN+=( "$relative_path" )
   D_DPL_ASSET_PATHS+=( "$dest_path" )
 
   # Return success
