@@ -1,7 +1,7 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revnumber: 28
+:revnumber: 29
 :revdate: 2019.08.20
 :revremark: Iterative improvement
 :doctype: article
@@ -10,6 +10,8 @@
 // Subs:
 :hs: #
 :dhs: ##
+:us: _
+:dus: __
 
 ++++
 <p align="center">
@@ -2286,10 +2288,153 @@ Supported return codes:
 ==== Copy queue asset automation
 
 Copy queue asset automation works identically to <<_link_queue_asset_automation,that of link queue>>.
+(After all, those are the same arrays being used.)
 
 === Multitask
 
+What if a deployment carries out an assortment of _dissimilar_ tasks?
+Tying up various return codes to integrate with _Divine.dotfiles_ would be tedious.
+
+*Multitask* helpers to the rescue.
+To use them:
+
+. Populate a specially named array with one string for each unique task.
+. Implement sub-primaries for the tasks, as if each one was a deployment of its own.
+. Delegate your deployment's <<_primary_functions,primaries>> to built-in helpers.
+
+This kind of deployment is best demonstrated with an example:
+
+.Deployment template for multitasking
+[source,bash]
+----
+# Delegate primaries to multitask helpers. Make sure helper is called last.
+d_dpl_check()    { assemble_tasks;  d__multitask_check;   }
+d_dpl_install()  {                  d__multitask_install; }
+d_dpl_remove()   {                  d__multitask_remove;  }
+
+# This function is not built-in, but is the recommended way of organizing logic
+assemble_tasks() {
+  D_MULTITASK_NAMES=( eat pray love );
+}
+
+# Implement sub-primaries for each task, following general primary guidelines
+
+d_eat_check()     { :; }
+d_eat_install()   { :; }
+d_eat_remove()    { :; }
+
+d_pray_check()    { :; }
+d_pray_install()  { :; }
+d_pray_remove()   { :; }
+
+d_love_check()    { :; }
+d_love_install()  { :; }
+d_love_remove()   { :; }
+----
+
+==== Multitask set-up
+
+Following Bash arrays should be populated before any of the built-in helpers are called:
+
+[%header,cols="<.<1,<.<3",stripes=none]
+|===
+
+^.^| Variable name
+^.^| Description
+
+| [#var_multitask_names]#`*D_MULTITASK_NAMES*`#
+a| Each member of this array defines a task.
+
+Members of this array are strings, and are used in forming names of sub-primaries, which you then have to implement:
+
+[source,subs="verbatim,quotes,attributes"]
+----
+          d{us}**__TASK__**{us}check
+*_TASK_*  =>  d{us}**__TASK__**{us}install
+          d{us}**__TASK__**{us}remove
+----
+
+[NOTE]
+--
+This array must be consecutive.
+You have been warned.
+--
+
+|===
+
+==== Multitask special functions
+
+Following built-in functions may be implemented to provide task logic (all are optional):
+
+[%header,cols="<.<1,<.<3",stripes=none]
+|===
+
+^.^| Function name
+^.^| Description
+
+2+^.^h| Sub-primaries
+
+| [#func_task_check]#`*d{us}__TASK__{us}check*`#
+a| See the guidelines to the <<func_dpl_check,deployment-level sibling>>, `d_dpl_check`.
+
+| [#func_task_install]#`*d{us}__TASK__{us}install*`#
+a| See the guidelines to the <<func_dpl_install,deployment-level sibling>>, `d_dpl_install`.
+
+| [#func_task_remove]#`*d{us}__TASK__{us}remove*`#
+a| See the guidelines to the <<func_dpl_remove,deployment-level sibling>>, `d_dpl_remove`.
+
+|===
+
 ==== Split queue
+
+Eventually, you will want to include a couple of queues in your multitask deployment.
+And therein lies a big _gotcha_.
+
+All queues share the same internal mechanism.
+Care must be taken to employ this mechanism multiple times within single deployment.
+Specifically, the queue must be *split* by calling internal function `*d__queue_split*`.
+
+.Deployment template for multitasking with split queue
+[source,bash,subs="verbatim,quotes,attributes"]
+----
+# Delegate primaries to multitask helpers. Make sure helper is called last.
+d_dpl_check()    { assemble_tasks;  d__multitask_check;   }
+d_dpl_install()  {                  d__multitask_install; }
+d_dpl_remove()   {                  d__multitask_remove;  }
+
+# This function is not built-in, but is the recommended way of organizing logic
+assemble_tasks() {
+  D_MULTITASK_NAMES=( queue1 queue2 queue3 );
+}
+
+# Implement sub-primaries for each task, following general primary guidelines
+
+d_queue1_check()    { populate_copy_queue;  d__copy_queue_check;    }
+d_queue1_install()  {                       d__copy_queue_install;  }
+d_queue1_remove()   {                       d__copy_queue_remove;   }
+
+d_queue2_check()    { populate_link_queue;  d__link_queue_check;    }
+d_queue2_install()  {                       d__link_queue_install;  }
+d_queue2_remove()   {                       d__link_queue_remove;   }
+
+d_queue3_check()    { populate_queue;       d__queue_check;         }
+d_queue3_install()  {                       d__queue_install;       }
+d_queue3_remove()   {                       d__queue_remove;        }
+
+
+populate_copy_queue() {
+  # Populate the first queue normally (arrays specific to copy-queue omitted)
+  D_QUEUE_MAIN=( some copy tasks)
+}
+
+populate_link_queue() {
+  # In subsequent queues, call this function first
+  *d__queue_skip*
+
+  # Then *append* to the queue array
+  D_QUEUE_MAIN=( some copy tasks)
+}
+----
 
 == Ways to contribute
 
