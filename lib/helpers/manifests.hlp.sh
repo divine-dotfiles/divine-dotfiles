@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: manifests
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    11
+#:revnumber:    12
 #:revdate:      2019.08.20
-#:revremark:    Remove announcement of successful manifest processing
+#:revremark:    Shrink manifest processing announcement down to one line
 #:created_at:   2019.05.30
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -317,7 +317,7 @@ d__process_manifest()
   [ -r "$mnf_filepath" -a -f "$mnf_filepath" ] || return 1
 
   # Announce
-  dprint_debug 'Processing manifest at:' -i "$mnf_filepath"
+  dprint_debug "Processing manifest at: $mnf_filepath"
 
   # Storage variables
   local line_from_file line_continuation=false
