@@ -1,7 +1,7 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revnumber: 29
+:revnumber: 30
 :revdate: 2019.08.20
 :revremark: Iterative improvement
 :doctype: article
@@ -2041,7 +2041,7 @@ Note, that you can <<_link_queue_asset_automation,automate>> this process.
 ^.^| Variable name
 ^.^| Description
 
-| [#var_queue_main]#`*D_DPL_ASSET_PATHS*`#
+| `*D_DPL_ASSET_PATHS*`
 a| Each member of this array is a path to which a symlink should be maintained.
 Absolute paths are strongly recommended.
 
@@ -2051,14 +2051,16 @@ This array must be consecutive, or the queue will utterly break.
 You have been warned.
 --
 
-| [#var_queue_main]#`*D_DPL_ASSET_RELPATHS*`#
-| [.gray]##_(optional)_## For each absolute path in `*D_DPL_ASSET_PATHS*`, this array may contain a shortened version, relative to the asset directory.
-
-These shortened versions are used only in debug messages, to make them terser.
-
-| [#var_queue_main]#`*D_DPL_TARGET_PATHS*`#
+| `*D_DPL_TARGET_PATHS*`
 | For each path in `*D_DPL_ASSET_PATHS*`, this array must contain the intended path to a symlink, which will point to the respective asset.
 Absolute paths are strongly recommended.
+
+| `*D_QUEUE_MAIN*`
+| [.gray]##_(optional-ish)_## This variable is still the main definition of the queue.
+In the context of link queue, for each absolute path in `*D_DPL_ASSET_PATHS*`, this array must contain a shortened relative version, resolvable from the asset directory.
+
+In most cases this variable is not mandatory, and link queue will populate it automatically whenever possible.
+However, for a narrow use case, when you employ <<_link_queue_asset_automation,link queue automation>> without the <<_asset_manifests,asset manifest>>, you will be required to populate this array manually.
 
 |===
 
@@ -2209,7 +2211,7 @@ Note, that you can <<_copy_queue_asset_automation,automate>> this process.
 ^.^| Variable name
 ^.^| Description
 
-| [#var_queue_main]#`*D_DPL_ASSET_PATHS*`#
+| `*D_DPL_ASSET_PATHS*`
 a| Each member of this array is a path to file that is to be copied.
 Absolute paths are strongly recommended.
 
@@ -2219,14 +2221,16 @@ This array must be consecutive, or the queue will utterly break.
 You have been warned.
 --
 
-| [#var_queue_main]#`*D_DPL_ASSET_RELPATHS*`#
-| [.gray]##_(optional)_## For each absolute path in `*D_DPL_ASSET_PATHS*`, this array may contain a shortened version, relative to the asset directory.
-
-These shortened versions are used only in debug messages, to make them terser.
-
-| [#var_queue_main]#`*D_DPL_TARGET_PATHS*`#
+| `*D_DPL_TARGET_PATHS*`
 | For each path in `*D_DPL_ASSET_PATHS*`, this array must contain the destination path for copying.
 Absolute paths are strongly recommended.
+
+| `*D_QUEUE_MAIN*`
+| [.gray]##_(optional-ish)_## This variable is still the main definition of the queue.
+In the context of copy queue, for each absolute path in `*D_DPL_ASSET_PATHS*`, this array must contain a shortened relative version, resolvable from the asset directory.
+
+In most cases this variable is not mandatory, and copy queue will populate it automatically whenever possible.
+However, for a narrow use case, when you employ <<_copy_queue_asset_automation,copy queue automation>> without the <<_asset_manifests,asset manifest>>, you will be required to populate this array manually.
 
 |===
 
@@ -2387,54 +2391,69 @@ a| See the guidelines to the <<func_dpl_remove,deployment-level sibling>>, `d_dp
 
 ==== Split queue
 
-Eventually, you will want to include a couple of queues in your multitask deployment.
-And therein lies a big _gotcha_.
+Eventually, you will want to include more than one queue in your multitask deployment.
+And therein lies a _gotcha_.
 
 All queues share the same internal mechanism.
 Care must be taken to employ this mechanism multiple times within single deployment.
 Specifically, the queue must be *split* by calling internal function `*d__queue_split*`.
 
+This is best illustrated with an example:
+
 .Deployment template for multitasking with split queue
 [source,bash,subs="verbatim,quotes,attributes"]
 ----
 # Delegate primaries to multitask helpers. Make sure helper is called last.
-d_dpl_check()    { assemble_tasks;  d__multitask_check;   }
-d_dpl_install()  {                  d__multitask_install; }
-d_dpl_remove()   {                  d__multitask_remove;  }
+d_dpl_check()    { assemble_tasks;  d{dus}multitask_check;   }
+d_dpl_install()  {                  d{dus}multitask_install; }
+d_dpl_remove()   {                  d{dus}multitask_remove;  }
 
 # This function is not built-in, but is the recommended way of organizing logic
 assemble_tasks() {
   D_MULTITASK_NAMES=( queue1 queue2 queue3 );
 }
 
-# Implement sub-primaries for each task, following general primary guidelines
+# In this case all three tasks contain a queue
 
-d_queue1_check()    { populate_copy_queue;  d__copy_queue_check;    }
-d_queue1_install()  {                       d__copy_queue_install;  }
-d_queue1_remove()   {                       d__copy_queue_remove;   }
+d_queue1_check()    { populate_copy_queue;    d{dus}copy_queue_check;    }
+d_queue1_install()  {                         d{dus}copy_queue_install;  }
+d_queue1_remove()   {                         d{dus}copy_queue_remove;   }
 
-d_queue2_check()    { populate_link_queue;  d__link_queue_check;    }
-d_queue2_install()  {                       d__link_queue_install;  }
-d_queue2_remove()   {                       d__link_queue_remove;   }
+d_queue2_check()    { populate_link_queue;    d{dus}link_queue_check;    }
+d_queue2_install()  {                         d{dus}link_queue_install;  }
+d_queue2_remove()   {                         d{dus}link_queue_remove;   }
 
-d_queue3_check()    { populate_queue;       d__queue_check;         }
-d_queue3_install()  {                       d__queue_install;       }
-d_queue3_remove()   {                       d__queue_remove;        }
+d_queue3_check()    { populate_generic_queue; d{dus}queue_check;         }
+d_queue3_install()  {                         d{dus}queue_install;       }
+d_queue3_remove()   {                         d{dus}queue_remove;        }
 
 
 populate_copy_queue() {
-  # Populate the first queue normally (arrays specific to copy-queue omitted)
-  D_QUEUE_MAIN=( some copy tasks)
+  # Populate the first queue normally (arrays specific to copy queue omitted)
+  D_QUEUE_MAIN=( some copy tasks )
 }
 
 populate_link_queue() {
-  # In subsequent queues, call this function first
-  *d__queue_skip*
+  # In subsequent queues, call this built-in function first
+  *d{dus}queue_split*
 
-  # Then *append* to the queue array
-  D_QUEUE_MAIN=( some copy tasks)
+  # Then *append* to the queue array (arrays specific to link queue omitted)
+  D_QUEUE_MAIN+=( add link jobs )
+}
+
+populate_generic_queue() {
+  *d{dus}queue_split*
+
+  D_QUEUE_MAIN+=( generic queue work )
 }
 ----
+
+[NOTE]
+--
+If you wish to use any <<_link_queue_asset_automation,queue>> <<_copy_queue_asset_automation,automation>>, you must use it only for the very first task that employs a queue.
+
+For further queue tasks, the queue arrays must be appended to manually, and member indices must be matched between them.
+--
 
 == Ways to contribute
 
