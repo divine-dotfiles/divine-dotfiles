@@ -1,9 +1,9 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revnumber: 36
+:revnumber: 37
 :revdate: 2019.08.21
-:revremark: Test alternatives to tables
+:revremark: Force column width with &nbsp;
 :doctype: article
 // Visual
 :toc:
@@ -320,12 +320,15 @@ After all installations are successful, reload your shell/terminal and _voilà_:
 * A minimalistic theme for both frameworks is active.
 * Opinionated default configs are plugged in for `git`, `vim`, `bash`, and `zsh`.
 * Divine utilites `dln`, `dmv`, and `dreadlink` are available on `$PATH`.
-* All of the above is controlled from your <<grail-directory,Grail directory>> at `~/.divine/grail/assets/`:
-+
+
+All of the above is controlled from your <<grail-directory,Grail directory>> at `~/.divine/grail/assets/`:
+
 [%header,cols="<.<1,<.<3",stripes=none]
 |===
 
 ^.^| Asset sub-dir
++++<br>+++
+`&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`
 ^.^| Content description
 
 | `*config-shell*/`
@@ -492,12 +495,15 @@ In this mode, dangerous deployments are still filtered out by default.
 
 ==== Primary routine options
 
-[header,cols="<.<1,<.<3",stripes=none]
+[%header,cols="<.<1,<.<3",stripes=none]
 |===
 
-| `*-y*`,
+^.^| Option
++++<br>+++
+`&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`
+^.^| Description
 
-`*--yes*`
+| `*-y*`, `*--yes*`
 | Normally, framework prompts user right before sourcing each deployment script.
 Other events — like offering an optional framework dependency — also trigger a prompt.
 
@@ -507,17 +513,13 @@ Note, that deployments are free to add any number of custom prompts unaffected b
 
 Access within deployments: `$D__OPT_ANSWER` (`true` / `false` / _empty_).
 
-| `*-n*`,
-
-`*--no*`
+| `*-n*`, `*--no*`
 | With this option, negatory answer is assumed to every built-it prompt.
 This option is equivalent to a 'dry run' — apart from skip messages, nothing will actually be done.
 
 Access within deployments: `$D__OPT_ANSWER` (`true` / `false` / _empty_).
 
-| `*-f*`,
-
-`*--force*`
+| `*-f*`, `*--force*`
 a| By default, the framework does *not*:
 
 * re-install deployments that appear already installed;
@@ -528,31 +530,23 @@ This option overrules such considerations.
 
 Access within deployments: `$D__OPT_FORCE` (`true` / `false`).
 
-| `*-e*`,
-
-`*--except*`
+| `*-e*`, `*--except*`
 | This option inverts the behavior of deployment filter: instead of processing only listed deployments, all deployments are processed _except_ listed.
 
 Access within deployments: `$D__OPT_INVERSE` (`true` / `false`).
 
-| `*-w*`,
-
-`*--with-!*`
+| `*-w*`, `*--with-!*`
 | By default framework ignores <<dangerous-deployments,dangerous deployments>> unless they are named explicitly.
 This option disables such behavior.
 
 Access within deployments: `$D__OPT_EXCLAM` (`true` / `false`).
 
-| `*-v*`,
-
-`*--verbose*`
+| `*-v*`, `*--verbose*`
 | Increase amount of output
 
 Access within deployments: `$D__OPT_QUIET` (`true` / `false`).
 
-| `*-q*`,
-
-`*--quiet*`
+| `*-q*`, `*--quiet*`
 | [.gray]##_(default)_## Decrease amount of output
 
 Access within deployments: `$D__OPT_QUIET` (`true` / `false`).
@@ -606,48 +600,21 @@ Thus, by synchronizing Grail between machines, you will have the same set of bot
 Below is the list of options for attaching/detaching third-party deployments.
 Additional info about routine's behavior is also given.
 
-* `*-y*`, `*--yes*`
-+
-Normally, framework prompts user right before cloning/downloading repository.
-Other events — like offering an optional framework dependency — also trigger a prompt.
-+
-With this option, affirmative answer is assumed to every built-it prompt.
-* `*-n*`, `*--no*`
-+
-With this option, negatory answer is assumed to every built-it prompt.
-This option is equivalent to a 'dry run' — apart from skip messages, nothing will actually be done.
-
-[header,cols="<.<",stripes=none]
+[%header,cols="<.<1,<.<3",stripes=none]
 |===
+
+^.^| Option
++++<br>+++
+`&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`
+^.^| Description
 
 | `*-y*`, `*--yes*`
-
-Normally, framework prompts user right before cloning/downloading repository.
-Other events — like offering an optional framework dependency — also trigger a prompt.
-
-With this option, affirmative answer is assumed to every built-it prompt.
-
-| `*-n*`, `*--no*`
-
-With this option, negatory answer is assumed to every built-it prompt.
-This option is equivalent to a 'dry run' — apart from skip messages, nothing will actually be done.
-
-|===
-
-[header,cols="<.<1,<.<3",stripes=none]
-|===
-
-| `*-y*`,
-
-`*--yes*`
 | Normally, framework prompts user right before cloning/downloading repository.
 Other events — like offering an optional framework dependency — also trigger a prompt.
 
 With this option, affirmative answer is assumed to every built-it prompt.
 
-| `*-n*`,
-
-`*--no*`
+| `*-n*`, `*--no*`
 | With this option, negatory answer is assumed to every built-it prompt.
 This option is equivalent to a 'dry run' — apart from skip messages, nothing will actually be done.
 
@@ -679,12 +646,15 @@ If provided argument can be interpreted in multiple ways, the framework will ite
 Below is the list of options for plugging in <<grail-directory,Grail directory>>.
 Additional info about routine's behavior is also given.
 
-[header,cols="<.<1,<.<3",stripes=none]
+[%header,cols="<.<1,<.<3",stripes=none]
 |===
 
-| `*-y*`,
+^.^| Option
++++<br>+++
+`&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`
+^.^| Description
 
-`*--yes*`
+| `*-y*`, `*--yes*`
 a| Normally, framework prompts user right before overwriting existing Grail directory.
 Other events — like offering an optional framework dependency — also trigger a prompt.
 
@@ -695,15 +665,11 @@ With this option, affirmative answer is assumed to every built-it prompt.
 If provided argument can be interpreted in multiple ways, the first option will be silently settled upon.
 --
 
-| `*-n*`,
-
-`*--no*`
+| `*-n*`, `*--no*`
 | With this option, negatory answer is assumed to every built-it prompt.
 This option is equivalent to a 'dry run' — apart from skip messages, nothing will actually be done.
 
-| `*-l*`,
-
-`*--link*`
+| `*-l*`, `*--link*`
 | With this option, symlink is created to the directory, path to which is given, instead of copying it.
 In this mode, given argument is not considered as a repository.
 
@@ -729,20 +695,21 @@ Update routine is three-pronged, and you are free to engage any and all of the p
 Below is the list of options for updating framework, <<grail-directory,the Grail>>, and <<attach-routine,attached deployments>>.
 Additional info about routine's behavior is also given.
 
-[header,cols="<.<1,<.<3",stripes=none]
+[%header,cols="<.<1,<.<3",stripes=none]
 |===
 
-| `*-y*`,
+^.^| Option
++++<br>+++
+`&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`
+^.^| Description
 
-`*--yes*`
+| `*-y*`, `*--yes*`
 a| Normally, framework prompts user right before pulling from remote repository.
 Other events — like offering an optional framework dependency — also trigger a prompt.
 
 With this option, affirmative answer is assumed to every built-it prompt.
 
-| `*-n*`,
-
-`*--no*`
+| `*-n*`, `*--no*`
 | With this option, negatory answer is assumed to every built-it prompt.
 This option is equivalent to a 'dry run' — apart from skip messages, nothing will actually be done.
 
@@ -771,8 +738,8 @@ Each deployment is sourced by Bash interpreter no more than once per interventio
 
 A deployment is formed by:
 
-* implementing specially named Bash functions (*primaries*);
-* assigning to specially named variables (*metadata*).
+* implementing specially named Bash functions (<<primary-functions,*primaries*>>);
+* assigning to specially named variables (<<deployment-metadata,*metadata*>>).
 
 [[primary-functions]]
 === Primary functions
@@ -947,11 +914,11 @@ This philosophy is followed by our magnificent https://github.com/no-simpler/div
 
 *Deployment metadata* (posing as variable assignments) alter deployment's appearance and behavior:
 
-* `D_DPL_NAME` — explicit name for the deployment.
-* `D_DPL_DESC` — one-line description of the deployment.
-* `D_DPL_PRIORITY` — priority of the deployment (non-negative integer).
-* `D_DPL_FLAGS` — one-character flags, causing special treatment.
-* `D_DPL_WARNING` — one-line cautionary message about this deployment.
+* <<deployment-name-and-desc,`D_DPL_NAME`>> — explicit name for the deployment.
+* <<deployment-name-and-desc,`D_DPL_DESC`>> — one-line description of the deployment.
+* <<deployment-priority,`D_DPL_PRIORITY`>> — priority of the deployment (non-negative integer).
+* <<deployment-flags,`D_DPL_FLAGS`>> — one-character flags, causing special treatment.
+* <<deployment-warning,`D_DPL_WARNING`>> — one-line cautionary message about this deployment.
 
 [NOTE]
 --
@@ -967,6 +934,7 @@ With that in mind, follow these simple rules for deployment metadata:
 * Matching quotes around the value are allowed (they are stripped in the processing).
 --
 
+[[deployment-name-and-desc]]
 ==== Deployment name and description
 
 [source,bash]
@@ -1052,6 +1020,7 @@ Urgent prompts are styled to stand out a bit more in terminal.
 
 |===
 
+[[deployment-warning]]
 ==== Deployment warning
 
 [source,bash]
@@ -1059,7 +1028,7 @@ Urgent prompts are styled to stand out a bit more in terminal.
 D_DPL_WARNING="Warning for 'urgent' prompts forced by a flag"
 ----
 
-If such warning is provided, it will accompany every urgent prompt enforced by a deployment flag.
+If such warning is provided, it will accompany every <<urgent-prompt,urgent>> prompt enforced by a deployment flag.
 
 [[divinefiles]]
 == Divinefiles
@@ -1079,9 +1048,9 @@ A Divinefile is a manifest of system packages to be maintained using supported s
 
 Divinefiles are automatically picked up by the framework along with other deployments.
 
-Divinefiles are specifically referred to with synonyms: `divinefile`, `dfile`, and `df`.
+Divinefiles are referred to with synonyms: `divinefile`, `dfile`, or `df`.
 As with all deployment names, these are case insensitive.
-Divinefiles are processed in their merged entirety, or not processed at all.
+Divinefiles are processed in their merged entirety or not processed at all.
 
 [NOTE]
 --
@@ -1089,7 +1058,7 @@ Yes, you also cannot name regular deployments `divinefile`, `dfile`, or `df`.
 The framework guards against using reserved words as deployment names.
 --
 
-You can assign deployment-style *priorities and flags* to individual packages within Divinefiles.
+You can assign deployment-style <<deployment-priority,*priorities*>> and <<deployment-flags,*flags*>> to individual packages within Divinefiles.
 Packages are intertwined with regular deployments in a shared workflow.
 
 [NOTE]
@@ -1115,22 +1084,20 @@ Package manager name is matched against <<var-os-pkgmgr,`$D__OS_PKGMGR`>> built-
 .Example of Divinefile
 [source]
 ----
-git vim                   ## Means:
-                          #.  * priority: 4096 (default)
-                          #.  * packages: git, vim
+git vim                 # Maintain git and vim with default priority (4096)
 
-(priority:300)            # Sets priority to 300 henceforth
 
-(priority:500)  \         ## Means:
-(r)             \         #.  * priority: 500 (overridden for this line)
-node            \         #.  * flags: 'always prompt before removing'
-| apt-get: nodejs npm     #.  * packages (on apt-get): nodejs, npm
-                          #.  * packages (everywhere else): node
+(priority:300)          # Set priority to 300 henceforth
 
-(os:fedora) \             ## Means:
-util-linux-user           #.  (on Fedora only)
-                          #.  * priority: 300
-                          #.  * packages: util-linux-user
+
+(priority:500)  \       # Set priority to 500 for this line only
+(r)             \       # Set flag 'prompt before removing' for this line only
+node            \       # Maintain node
+| apt-get: nodejs npm   # On apt-get, maintain nodejs and npm instead
+
+
+(os:fedora) \           # Make this line exclusive to Fedora
+util-linux-user         # Maintain util-linux-user with priority 300
 ----
 
 == Advanced features
@@ -1317,24 +1284,24 @@ This list is incomplete; you can help by <<contributing-os-support,expanding it>
 
 When this variable is non-empty, you also have the built-in <<func-os-pkgmgr,package manager wrapper>>, `d__os_pkgmgr()`, at your disposal.
 
-2+^.^h| Recognized marker variables
+2+^.^h| [#marker-vars]#Marker variables in <<func-dpl-check,`d_dpl_check`>>#
 
 | [#var-another-prompt]#`D_DPL_NEEDS_ANOTHER_PROMPT`#
-| Works only during `install`/`remove` <<primary-routines,routine>> and only if set within `d_dpl_check()` primary.
+| Set this variable to `true` to trigger an <<urgent-prompt,urgent prompt>> before the framework proceeds to (un)installation.
 
-Set this variable to `true` to trigger an <<urgent-prompt,urgent prompt>> before the framework proceeds to (un)installation.
+_Works only during `install`/`remove` <<primary-routines,routine>> and only if set within <<func-dpl-check,`d_dpl_check`>> primary._
 
 | [#var-another-warning]#`D_DPL_NEEDS_ANOTHER_WARNING`#
-| Works only during `install`/`remove` <<primary-routines,routine>> and only if set within `d_dpl_check()` primary.
+| If `*_D_DPL_NEEDS_ANOTHER_PROMPT_*` is set to `true` and this variable is non-empty, then this textual warning is shown to the user.
 
-If `*_D_DPL_NEEDS_ANOTHER_PROMPT_*` is set to `true` and this variable is non-empty, then this textual warning is shown to the user.
+_Works only during `install`/`remove` <<primary-routines,routine>> and only if set within <<func-dpl-check,`d_dpl_check`>> primary._
 
 | [#var-user-or-os]#`D_DPL_INSTALLED_BY_USER_OR_OS`#
-a| Works only if set within `d_dpl_check()` primary.
+a| Set this variable to `true` to signal to the framework: whatever parts of current deployment are installed, have been installed by other methods, not by this framework.
 
-Set this variable to `true` to signal to the framework: whatever parts of current deployment are installed, have been installed by other methods, not by this framework.
+_Works only if set within `d_dpl_check()` primary._
 
-This affects behavior of the following return codes of `d_dpl_check()`:
+This affects behavior of the following return codes of <<func-dpl-check,`d_dpl_check`>>:
 
 * `1` ('installed') — prohibits uninstalling;
 * `4` ('partly installed') — prohibits uninstalling.
@@ -1359,11 +1326,11 @@ a| Whether `-f` / `--force` option is provided:
 * `true`
 * `false`
 
-| `*D__OPT_QUIET*`
-a| Which verbosity options are settled upon:
+| [#var-opt-quiet]#`*D__OPT_QUIET*`#
+a| Which verbosity options is provided last:
 
-* `true` — `-q` / `--quiet` / no verbosity options
-* `false` — `-v` / `--verbose`
+* `true` — quiet mode (or no verbosity options)
+* `false` — verbose mode
 
 | `*D__OPT_EXCLAM*`
 a| Whether `-w` / `--with-!` option is provided to process <<dangerous-deployments,dangerous>> deployments:
@@ -1372,11 +1339,12 @@ a| Whether `-w` / `--with-!` option is provided to process <<dangerous-deploymen
 * `false`
 
 | `*D__OPT_ANSWER*`
-a| Whether blanket answer is given to all non-<<urgent-prompt,urgent>> built-in prompts:
+a| Which blanket answer is provided last.
+This affects all non-<<urgent-prompt,urgent>> built-in prompts.
 
-* `true` — `-y` / `--yes`
-* `false` — `-n` / `--no`
-* _empty_ — no blanket answer
+* `true` — affirmative answer is provided
+* `false` — negatory answer is provided
+* _empty_ — no blanket answer is provided
 
 |===
 
@@ -1390,7 +1358,7 @@ They all print to `stderr`.
 
 You are advised to serve all output of your deployments through one of these, in keeping with their semantics.
 
-[source,bash,subs="verbatim,quotes,attributes"]
+[source,subs="verbatim,quotes,attributes"]
 ----
 *dprint_debug*    [-l] [-n] [*_CHUNK_*|-n|-i]...    {dhs} Debug message (appears 
                                               {hs}. only in --verbose mode)
@@ -1410,7 +1378,7 @@ You are advised to serve all output of your deployments through one of these, in
 ----
 
 .Example output of using a `dprint_*` function (coloring omitted)
-[source,bash,subs="verbatim,quotes,attributes"]
+[source,subs="verbatim,quotes,attributes"]
 ----
 $ dprint_debug -l -n 'Extracting archive from:' -i "$archive_path" \
 -n 'to your home directory'
@@ -1423,24 +1391,24 @@ $ dprint_debug -l -n 'Extracting archive from:' -i "$archive_path" \
 The `dprint` functions have the following *in common*:
 
 * The output is prepended with a thematically styled 'fat' arrow: `=\=>`.
+* All lines but the first are indented with four spaces.
 * The output message is assembled from given ``*_CHUNK_*``s, which are just strings.
-* Special `*_CHUNK_*`, `-n`, inserts a line break.
+** Special `*_CHUNK_*`, `-n`, inserts a line break.
 +
 If `-n` is the very first chunk, line break appears before the introductory arrow.
-* Special `*_CHUNK_*`, `-i`, inserts a line break followed by four-space indentation.
-* In the produced message, normal chunks are separated with single space.
+** Special `*_CHUNK_*`, `-i`, inserts a line break followed by additional four-space indentation.
+** In the produced message, normal chunks are separated with single space.
 * Unrecognized options are treated as literal chunks.
 
 The `dprint` functions *differ* in the following:
 
-* `dprint_debug` honors current verbosity mode, as stored in `$D__OPT_QUIET`.
-You can force `dprint_debug` to always print by providing `-l` option as the very first argument.
+* `dprint_debug` honors current verbosity mode, as stored in <<var-opt-quiet,`$D__OPT_QUIET`>>.
 +
 All other `dprint` functions print their message regardless of verbosity.
+To make `dprint_debug` the same way, add `-l` option as its very first argument.
 * Entire message of `dprint_debug` is colored to stand out.
-+
 All other `dprint` functions print their message in terminal's font color.
-* `dprint_sudo` prints its message only if calling context has no superuser priveleges.
+* `dprint_sudo` prints its message only if calling context currently has no superuser priveleges.
 Otherwise, nothing is printed.
 * `dprint_sudo` is the only one that provides a default message if no chunks are given.
 It reads:
@@ -1481,8 +1449,6 @@ Issue this on everything that is abnormal.
 | `*dprint_sudo*`
 a| `[.yellow]#*=\=>*# Warning of upcoming sudo password prompt`
 
-Only printed when caller currently lacks sudo priveleges.
-
 Prepend this to your priveleged calls to inform user of why they need to enter their password.
 
 |===
@@ -1501,7 +1467,7 @@ It prints to `stderr`.
 
 You are advised to serve all user prompts of your deployments through this function.
 
-[source,bash,subs="verbatim,quotes,attributes"]
+[source,subs="verbatim,quotes,attributes"]
 ----
 *dprompt* [-a *_ANSWER_*] [-p *_PROMPT_*] [-c *_COLOR_*] [-brkyq]... \
   [--] [-n] [*_CHUNKS_*|-n|-i]...
@@ -1513,7 +1479,7 @@ Interactively promts user for either:
 * any key press (default prompt message: `Press any key to continue`)
 
 .Example output of using a `dprompt` function
-[source,bash,subs="verbatim,quotes,attributes"]
+[source,subs="verbatim,quotes,attributes"]
 ----
 $ dprompt --prompt 'Are you sure?' --bare --or-quit -- -n 'Next step is risky!'
 
@@ -1537,6 +1503,8 @@ Unrecognized options are silently ignored.
 |===
 
 ^.^| `dprompt` option
++++<br>+++
+`&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`
 ^.^| Description
 
 a| `*-a* *_ANSWER_*`,
@@ -1577,27 +1545,19 @@ a| `*--bare*`
 a| Completely removes built-in coloring and bolding from the prompt.
 Synonym of `-bbbb`.
 
-a| `*-r*`,
-
-`*--arrow*`
+a| `*-r*`, `*--arrow*`
 a| Always prepend 'fat' arrow, `=\=>`, to the prompt.
 Without this option, the arrow is only printed when there is at least one non-option argument.
 
-a| `*-k*`,
-
-`*--any-key*`
+a| `*-k*`, `*--any-key*`
 a| Special mode: return `0` on any key press after the prompt.
 
 With this option `0` is immediately returned for both `true` and `false` values of `--answer` option.
 
-a| `*-y*`,
-
-`*--yes-no*`
+a| `*-y*`, `*--yes-no*`
 a| Default mode: yes or no prompt.
 
-a| `*-q*`,
-
-`*--or-quit*`
+a| `*-q*`, `*--or-quit*`
 a| In default mode, this option introduces the third option: `q` (stands for 'quit').
 If user presses `q`, code `2` is returned by `dprompt`.
 
@@ -1610,7 +1570,7 @@ Function `dmd5` provides a cross-platform way of calculating an md5 checksum of 
 
 It relies on at least one of the following utilities being available in the system: `md5sum` or `md5` or `openssl`.
 
-[source,bash,subs="verbatim,quotes,attributes"]
+[source,subs="verbatim,quotes,attributes"]
 ----
 *dmd5* [-s *_STRING_*] | [*_PATH_*]
 ----
@@ -1633,7 +1593,7 @@ Function `d__os_pkgmgr` is a thin wrapper around system package manager.
 The idea is to be able to install system packages without checking for current OS.
 On OS's that are not yet supported, this function does nothing and returns non-zero.
 
-[source,bash,subs="verbatim,quotes,attributes"]
+[source,subs="verbatim,quotes,attributes"]
 ----
 *d__os_pkgmgr* *update*|*check*|*install*|*remove* [*_PKG_NAME_*]
 ----
@@ -1657,7 +1617,7 @@ _Divine.dotfiles_ provides a persistent key-value storage and retrieval system.
 It is based in file system, i.e., data is stored in files.
 It is accessible within deployments via `dstash` function.
 
-[source,bash,subs="verbatim,quotes,attributes"]
+[source,subs="verbatim,quotes,attributes"]
 ----
 *dstash* *ready*|*has*|*set*|*add*|*get*|*list*|*unset*|*clear* [-rgs] [ *_KEY_* [*_VALUE_*] ]
 ----
@@ -1737,23 +1697,19 @@ Below is the list of `dstash` options.
 |===
 
 ^.^| `dstash` option
++++<br>+++
+`&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`
 ^.^| Description
 
-a| `*-s*`,
-
-`*--skip-checks*`
+a| `*-s*`, `*--skip-checks*`
 a| Normally, each invocation of `dstash` (with any arguments) starts with integrity check.
 For repeated calls within a deployment, such checks become redundant.
 After ensuring that `dstash ready`, use this option on every subsequent call to `dstash` to forego integrity checks.
 
-a| `*-r*`,
-
-`*--root*`
+a| `*-r*`, `*--root*`
 a| Works with <<stash-types,root stash>> instead of default deployment stash.
 
-a| `*-g*`,
-
-`*--grail*`
+a| `*-g*`, `*--grail*`
 a| Works with <<stash-types,Grail stash>> instead of default deployment stash.
 
 |===
@@ -1809,17 +1765,19 @@ Key-values that occupy their own line comeinto effect for the rest of the docume
 
 [source,bash]
 ----
-entry1                  # This entry is not affected by any key-values
-(color: red) entry2     # This entry has color set to red
+entry1                  # Regular entry
+(color: red) entry2     # Set color to red for this entry only
 
-(color: blue)           # This line sets color to blue for the following lines
+(color: blue)           # Set color to blue henceforth
+
 entry3                  # Color is blue
-(color: green) entry4   # Color is green
+(color: green) entry4   # Color is green (overridden)
 entry5                  # Color is blue
 
-(color:)
-entry6                  ## These entries are once again
-entry7                  #. not affected by any key-values
+(color:)                # Unset color henceforth
+
+entry6                  # Regular entry (no color)
+entry7                  # Regular entry (no color)
 ----
 
 [NOTE]
@@ -1836,7 +1794,7 @@ Key `os` makes entries specific to particular operating systems.
 Multiple OS's may be given by separating with vartical bars.
 Entire list of OS's may be negated (inverted) by prepending it with a `!`.
 
-[source,bash]
+[source]
 ----
 (os: debian)          entry1    # Relevant only on Debian
 
@@ -2120,12 +2078,12 @@ You are left to decide on whether to treat such cases specially.
 
 `*D__QUEUE_ITEM_STASH_FLAG*`
 a| Stash key and stash value for current item.
-The third variable is `true` if stash record exists, `false` if stash record does not exist, and unset if stash is not used for this item.
+The third variable is `true` if stash record exists, `false` if stash record does not exist, and not set if stash is not used for this item.
 
 [NOTE]
 --
 Queue mechanism uses stash to keep persistent records of (un)installing queue items.
-Ideally, there is no need for you to know this or use these variables.
+Ideally, there is no reason for you to know this or use these variables.
 --
 
 |===
@@ -2133,14 +2091,14 @@ Ideally, there is no need for you to know this or use these variables.
 [[queue-manifests]]
 ==== Queue manifests
 
-<<var-queue-main,Contents>> of the queue, whatever they are, sound like a perfect candidate for separating from deployment logic into a separate, dynamic asset.
+<<var-queue-main,Contents>> of the queue, whatever they are, sound like a perfect candidate for separation from deployment logic.
 Queue manifests to the resqueue.
 
-An *queue manifest* is a text file, which is — by default — located in the same directory as the deployment file and named the same, except for exchanging `.dpl.sh` suffix for `.dpl.que`.
+A *queue manifest* is a text file, which is — by default — located in the same directory as the deployment file and named the same, except for exchanging `.dpl.sh` suffix for `.dpl.que`.
 Unlike with <<asset-manifests,asset manifests>>, you are free to customize the location/name of your queue manifest by re-assigning <<var-dpl-que-path,`D_DPL_QUE_PATH`>> variable *at the top level* of your deployment.
 
 Queue manifests follow the general <<manifest-syntax,manifest syntax>>.
-Only the key `os` is relevant within queue manifests.
+Only the key `os` is recognized within queue manifests.
 
 [NOTE]
 --
@@ -2462,10 +2420,10 @@ Copy queue asset automation works identically to <<link-queue-asset-automation,t
 What if a deployment carries out an assortment of _dissimilar_ tasks?
 Tying up various return codes to integrate with _Divine.dotfiles_ would be tedious.
 
-*Multitask* helpers to the rescue.
+*Multitask* helpers will take up that task.
 To use them:
 
-. Populate a specially named array with one string for each unique task.
+. Populate a specially named array with one string for each task.
 . Implement sub-primaries for the tasks, as if each one was a deployment of its own.
 . Delegate your deployment's <<primary-functions,primaries>> to built-in helpers.
 
@@ -2480,9 +2438,7 @@ d_dpl_install()  {                  d__multitask_install; }
 d_dpl_remove()   {                  d__multitask_remove;  }
 
 # This function is not built-in, but is the recommended way of organizing logic
-assemble_tasks() {
-  D_MULTITASK_NAMES=( eat pray love );
-}
+assemble_tasks() {  D_MULTITASK_NAMES=( eat pray love );  }
 
 # Implement sub-primaries for each task, following guidelines for primaries
 
@@ -2572,9 +2528,7 @@ d_dpl_install()  {                  d{dus}multitask_install; }
 d_dpl_remove()   {                  d{dus}multitask_remove;  }
 
 # This function is not built-in, but is the recommended way of organizing logic
-assemble_tasks() {
-  D_MULTITASK_NAMES=( queue1 queue2 queue3 );
-}
+assemble_tasks() {  D_MULTITASK_NAMES=( queue1 queue2 queue3 ); }
 
 # In this case all three tasks contain a queue
 
@@ -2598,14 +2552,14 @@ populate_copy_queue() {
 
 populate_link_queue() {
   # In subsequent queues, call this built-in function first
-  *d{dus}queue_split*
+  d{dus}queue_split
 
-  # Then *append* to the queue array (arrays specific to link queue omitted)
+  # Then {as}append{as} to the queue array (arrays specific to link queue omitted)
   D_QUEUE_MAIN+=( add link jobs )
 }
 
 populate_generic_queue() {
-  *d{dus}queue_split*
+  d{dus}queue_split
 
   D_QUEUE_MAIN+=( generic queue work )
 }
