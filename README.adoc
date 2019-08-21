@@ -1,9 +1,9 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revnumber: 35
+:revnumber: 36
 :revdate: 2019.08.21
-:revremark: Further improve wording in joy ride effect description
+:revremark: Test alternatives to tables
 :doctype: article
 // Visual
 :toc:
@@ -320,9 +320,8 @@ After all installations are successful, reload your shell/terminal and _voilà_:
 * A minimalistic theme for both frameworks is active.
 * Opinionated default configs are plugged in for `git`, `vim`, `bash`, and `zsh`.
 * Divine utilites `dln`, `dmv`, and `dreadlink` are available on `$PATH`.
-
-All of the above is controlled from your <<grail-directory,Grail directory>> at `~/.divine/grail/assets/`:
-
+* All of the above is controlled from your <<grail-directory,Grail directory>> at `~/.divine/grail/assets/`:
++
 [%header,cols="<.<1,<.<3",stripes=none]
 |===
 
@@ -493,9 +492,6 @@ In this mode, dangerous deployments are still filtered out by default.
 
 ==== Primary routine options
 
-Below is the list of primary routine options.
-Additional info about routine's behavior is also given.
-
 [header,cols="<.<1,<.<3",stripes=none]
 |===
 
@@ -571,9 +567,9 @@ Even though every option above serves a function within the framework, it is als
 [[attach-routine]]
 === Attaching third-party deployments
 
-Beside using own deployments, _Divine.dotfiles_ allows to attach (i.e., import) deployments distributed via Github repositories.
+Beside using own deployments, _Divine.dotfiles_ allows you to attach (i.e., import) third-party deployments distributed via Github repositories.
 
-[source,bash,subs="verbatim,quotes,attributes"]
+[source,subs="verbatim,quotes,attributes"]
 ----
 $ *di* *a*[*ttach*] [-yn] [--] *_REPO_*…
 
@@ -585,7 +581,12 @@ Accepted values of `*_REPO_*` are (case-insensitive):
 * Github repository in the form: `no-simpler/divine-dpls-core`.
 * Specifically for Divine deployments, a shorthand is accepted:
 +
-`*_NAME_*` (must not contain `/`) translates to `no-simpler/divine-dpls-*_NAME_*`
+[source,subs="verbatim,quotes,attributes"]
+----
+`*_NAME_*`  =>  `no-simpler/divine-dpls-*_NAME_*`
+----
++
+(To be a shorthand, `*_NAME_*` must match the regex pattern `^[0-9A-Za-z_.-]+$`.)
 
 Detaching deployments deletes the copy of their repository, but it is up to you to:
 
@@ -604,6 +605,34 @@ Thus, by synchronizing Grail between machines, you will have the same set of bot
 
 Below is the list of options for attaching/detaching third-party deployments.
 Additional info about routine's behavior is also given.
+
+* `*-y*`, `*--yes*`
++
+Normally, framework prompts user right before cloning/downloading repository.
+Other events — like offering an optional framework dependency — also trigger a prompt.
++
+With this option, affirmative answer is assumed to every built-it prompt.
+* `*-n*`, `*--no*`
++
+With this option, negatory answer is assumed to every built-it prompt.
+This option is equivalent to a 'dry run' — apart from skip messages, nothing will actually be done.
+
+[header,cols="<.<",stripes=none]
+|===
+
+| `*-y*`, `*--yes*`
+
+Normally, framework prompts user right before cloning/downloading repository.
+Other events — like offering an optional framework dependency — also trigger a prompt.
+
+With this option, affirmative answer is assumed to every built-it prompt.
+
+| `*-n*`, `*--no*`
+
+With this option, negatory answer is assumed to every built-it prompt.
+This option is equivalent to a 'dry run' — apart from skip messages, nothing will actually be done.
+
+|===
 
 [header,cols="<.<1,<.<3",stripes=none]
 |===
@@ -629,7 +658,7 @@ This option is equivalent to a 'dry run' — apart from skip messages, nothing 
 
 If you have a copy of your carefully crafted <<grail-directory,Grail directory>> stored somewhere, _Divine.dotfiles_ lets you easily plug it in.
 
-[source,bash,subs="verbatim,quotes,attributes"]
+[source,subs="verbatim,quotes,attributes"]
 ----
 $ *di* *p*[*lug*] [-ynl] [--] *_ADDRESS_*
 ----
@@ -683,7 +712,7 @@ In this mode, given argument is not considered as a repository.
 [[update-routine]]
 === Updating framework and deployments
 
-[source,bash,subs="verbatim,quotes,attributes"]
+[source,subs="verbatim,quotes,attributes"]
 ----
 $ *di* *u*[*pdate*] [-yn] [--] [*f*[*ramework*]] [*g*[*rail*]] [*d*[*eployments*]]
 ----
