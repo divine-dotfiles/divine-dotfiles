@@ -1,9 +1,9 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revnumber: 32
+:revnumber: 33
 :revdate: 2019.08.21
-:revremark: Add divine dpls; improve anchors; refine
+:revremark: Add joy ride results; refine
 :doctype: article
 // Visual
 :toc:
@@ -12,6 +12,8 @@
 :dhs: ##
 :us: _
 :dus: __
+:as: *
+:das: **
 
 ++++
 <p align="center">
@@ -34,6 +36,11 @@ _Divine.dotfiles_ promotes Bash scripts to portable _deployments_ that are insta
 
 == In a nutshell
 
+[NOTE]
+--
+First time users are welcome to take a <<joy-ride,joy ride>> for quick appraisal.
+--
+
 _Divine.dotfiles_ leverages *deployments*.
 
 A deployment is a Bash script with three specially named functions: one to check, another to install, third to remove.
@@ -44,15 +51,15 @@ The goals of _Divine.dotfiles_ are:
 
 * Streamlining of setting-up any machine that carries Bash.
 +
-The <<intervention-utility,intervention utility>> is an easy and practical tool for handling any number of deployments.
+_The <<intervention-utility,intervention utility>> is an easy and practical tool for handling any number of deployments._
 * Cross-platformness within Unix-like world.
 +
-Built-in OS detection mechanisms facilitate writing portable deployments.
+_Built-in OS detection mechanisms facilitate writing portable deployments._
 * Promotion of standards and best practices.
 +
-Deployment ecosystem is designed with distribution and pluggability in mind.
+_Deployment ecosystem is designed with distribution and pluggability in mind._
 
-<<divine-deployments,*Divine deployments*>> (distributed separately), such as the https://github.com/no-simpler/divine-dpls-core[core bundle], strive to exemplify what a good deployment should look like.
+<<divine-deployments,*Divine deployments*>> (distributed separately) — such as our majestic https://github.com/no-simpler/divine-dpls-core[core bundle] — strive to exemplify what a good deployment should look like.
 
 === Example deployment
 
@@ -120,7 +127,7 @@ On a new machine — plug in your Grail [.small]#_(heh)_# from a repo or a loca
 
 |===
 
-== Installation and uninstallation
+== Installing and uninstalling the framework
 
 === System requirements
 
@@ -149,7 +156,7 @@ You can install _Divine.dotfiles_ without `git`.
 But then the framework will bug you with suggestions to auto-install it until you relent.
 --
 
-=== Installation
+=== Installing the framework
 
 To install _Divine.dotfiles_ framework, run the following single command in Terminal:
 
@@ -158,6 +165,8 @@ To install _Divine.dotfiles_ framework, run the following single command in Term
 bash -c 'TMP=$(mktemp); URL=https://raw.github.com/no-simpler/divine-dotfiles/master/lib/install/install.sh; if curl --version &>/dev/null; then curl -fsSL $URL >$TMP; elif wget --version &>/dev/null; then wget -qO $TMP $URL; else printf >&2 "\n==> Error: failed to detect neither curl nor wget\n"; rm -f $TMP; exit 1; fi || { printf >&2 "\n==> Error: failed to download installation script\n"; rm -f $TMP; exit 2; }; chmod +x $TMP && $TMP "$@"; RC=$?; rm -f $TMP; ((RC)) && exit 3 || exit 0' bash
 ----
 
+[NOTE]
+--
 Installation is completely safe:
 
 * No files are overwritten.
@@ -165,6 +174,7 @@ Installation is completely safe:
 * One symlink is (optionally) created.
 
 Oh, and you will be prompted for everything.
+--
 
 ==== Installation options and overrides
 
@@ -212,7 +222,7 @@ Add flavoring to your installation as such:
 
 |===
 
-=== Uninstallation
+=== Uninstalling the framework
 
 To uninstall _Divine.dotfiles_ framework, run the following single command in Terminal:
 
@@ -274,6 +284,7 @@ Add flavoring to your uninstallation as such:
 
 |===
 
+[[joy-ride]]
 === Joy ride
 
 First timer?
@@ -300,7 +311,58 @@ Divine deployments *_never overwrite_* pre-existing files on your system without
 Everything that is backed up is *_automatically restored_* upon uninstallation.
 --
 
-All's fair: in case you remain unsatisfied, here are the separate 'undo' steps, in order:
+==== What it does
+
+After all installations are successful, reload your shell/terminal and _voilà_:
+
+* You will be greeted by `zsh` as your new default shell.
+* Both https://ohmyz.sh[`oh-my-zsh`] and https://github.com/Bash-it/bash-it[`bash-it`] frameworks are now installed and loaded.
+* A minimalistic theme for both frameworks is active.
+* Opinionated default configs are plugged in for `git`, `vim`, `bash`, and `zsh`.
+* Divine utilites `dln`, `dmv`, and `dreadlink` are available on `$PATH`.
+
+All of the above is controlled from your <<grail-directory,Grail directory>> at `~/.divine/grail/assets/`:
+
+[header,cols="<.<1,<.<3",stripes=none]
+|===
+
+| `*config-shell*/`
+| All shell startup scripts (runcoms) are concentrated in this dir.
+
+| `*config-{as}*/`
+| Global config files for `git` and `vim` are located under respective `config-{as}/` dirs.
+
+| *&dagger;* `*fonts*/`
+| Dump your personal font files into this dir, and then promptly install them everywhere you take your Grail.
+
+| *&dagger;* `*home-dirs*/`
+| In `home-dirs/home-dirs.cfg`, set up the sub-directory tree you wish to maintain under `$HOME` on all your machines.
+
+| *&dagger;* `*brewfile*/`
+| On macOS, put your https://github.com/Homebrew/homebrew-bundle[Brewfile] here.
+
+| *&dagger;* `*bash-it*/`, 
+
+*&dagger;* `*oh-my-zsh*/`
+| Leverage your custom shell framework assets here.
+
+| `*portable-bin*/`
+| Make this dir your go-to location for custom shell commands.
+
+
+|===
+
+Notice that names of sub-directories inside `~/.divine/grail/assets/` correspond to the names of their respective deployments.
+
+[NOTE]
+--
+Modifications in directories marked with the dagger symbol *&dagger;* require you to re-install their respective deployments in order for changes to take effect.
+--
+
+==== Cleaning up
+
+Yes, all of the above is fully removable, and everything that was modified can be reversed.
+Below are the separate 'undo' steps, in order:
 
 [source,bash]
 ----
@@ -434,7 +496,9 @@ Additional info about routine's behavior is also given.
 [header,cols="<.<1,<.<3",stripes=none]
 |===
 
-| `*-y*`, `*--yes*`
+| `*-y*`,
+
+`*--yes*`
 | Normally, framework prompts user right before sourcing each deployment script.
 Other events — like offering an optional framework dependency — also trigger a prompt.
 
@@ -444,13 +508,17 @@ Note, that deployments are free to add any number of custom prompts unaffected b
 
 Access within deployments: `$D__OPT_ANSWER` (`true` / `false` / _empty_).
 
-| `*-n*`, `*--no*`
+| `*-n*`,
+
+`*--no*`
 | With this option, negatory answer is assumed to every built-it prompt.
 This option is equivalent to a 'dry run' — apart from skip messages, nothing will actually be done.
 
 Access within deployments: `$D__OPT_ANSWER` (`true` / `false` / _empty_).
 
-| `*-f*`, `*--force*`
+| `*-f*`,
+
+`*--force*`
 a| By default, the framework does *not*:
 
 * re-install deployments that appear already installed;
@@ -461,23 +529,31 @@ This option overrules such considerations.
 
 Access within deployments: `$D__OPT_FORCE` (`true` / `false`).
 
-| `*-e*`, `*--except*`
+| `*-e*`,
+
+`*--except*`
 | This option inverts the behavior of deployment filter: instead of processing only listed deployments, all deployments are processed _except_ listed.
 
 Access within deployments: `$D__OPT_INVERSE` (`true` / `false`).
 
-| `*-w*`, `*--with-!*`
+| `*-w*`,
+
+`*--with-!*`
 | By default framework ignores <<dangerous-deployments,dangerous deployments>> unless they are named explicitly.
 This option disables such behavior.
 
 Access within deployments: `$D__OPT_EXCLAM` (`true` / `false`).
 
-| `*-v*`, `*--verbose*`
+| `*-v*`,
+
+`*--verbose*`
 | Increase amount of output
 
 Access within deployments: `$D__OPT_QUIET` (`true` / `false`).
 
-| `*-q*`, `*--quiet*`
+| `*-q*`,
+
+`*--quiet*`
 | [.gray]##_(default)_## Decrease amount of output
 
 Access within deployments: `$D__OPT_QUIET` (`true` / `false`).
@@ -529,13 +605,17 @@ Additional info about routine's behavior is also given.
 [header,cols="<.<1,<.<3",stripes=none]
 |===
 
-| `*-y*`, `*--yes*`
+| `*-y*`,
+
+`*--yes*`
 | Normally, framework prompts user right before cloning/downloading repository.
 Other events — like offering an optional framework dependency — also trigger a prompt.
 
 With this option, affirmative answer is assumed to every built-it prompt.
 
-| `*-n*`, `*--no*`
+| `*-n*`,
+
+`*--no*`
 | With this option, negatory answer is assumed to every built-it prompt.
 This option is equivalent to a 'dry run' — apart from skip messages, nothing will actually be done.
 
@@ -570,7 +650,9 @@ Additional info about routine's behavior is also given.
 [header,cols="<.<1,<.<3",stripes=none]
 |===
 
-| `*-y*`, `*--yes*`
+| `*-y*`,
+
+`*--yes*`
 a| Normally, framework prompts user right before overwriting existing Grail directory.
 Other events — like offering an optional framework dependency — also trigger a prompt.
 
@@ -581,11 +663,15 @@ With this option, affirmative answer is assumed to every built-it prompt.
 If provided argument can be interpreted in multiple ways, the first option will be silently settled upon.
 --
 
-| `*-n*`, `*--no*`
+| `*-n*`,
+
+`*--no*`
 | With this option, negatory answer is assumed to every built-it prompt.
 This option is equivalent to a 'dry run' — apart from skip messages, nothing will actually be done.
 
-| `*-l*`, `*--link*`
+| `*-l*`,
+
+`*--link*`
 | With this option, symlink is created to the directory, path to which is given, instead of copying it.
 In this mode, given argument is not considered as a repository.
 
@@ -614,13 +700,17 @@ Additional info about routine's behavior is also given.
 [header,cols="<.<1,<.<3",stripes=none]
 |===
 
-| `*-y*`, `*--yes*`
+| `*-y*`,
+
+`*--yes*`
 a| Normally, framework prompts user right before pulling from remote repository.
 Other events — like offering an optional framework dependency — also trigger a prompt.
 
 With this option, affirmative answer is assumed to every built-it prompt.
 
-| `*-n*`, `*--no*`
+| `*-n*`,
+
+`*--no*`
 | With this option, negatory answer is assumed to every built-it prompt.
 This option is equivalent to a 'dry run' — apart from skip messages, nothing will actually be done.
 
@@ -1455,19 +1545,27 @@ a| `*--bare*`
 a| Completely removes built-in coloring and bolding from the prompt.
 Synonym of `-bbbb`.
 
-a| `*-r*`, `*--arrow*`
+a| `*-r*`,
+
+`*--arrow*`
 a| Always prepend 'fat' arrow, `=\=>`, to the prompt.
 Without this option, the arrow is only printed when there is at least one non-option argument.
 
-a| `*-k*`, `*--any-key*`
+a| `*-k*`,
+
+`*--any-key*`
 a| Special mode: return `0` on any key press after the prompt.
 
 With this option `0` is immediately returned for both `true` and `false` values of `--answer` option.
 
-a| `*-y*`, `*--yes-no*`
+a| `*-y*`,
+
+`*--yes-no*`
 a| Default mode: yes or no prompt.
 
-a| `*-q*`, `*--or-quit*`
+a| `*-q*`,
+
+`*--or-quit*`
 a| In default mode, this option introduces the third option: `q` (stands for 'quit').
 If user presses `q`, code `2` is returned by `dprompt`.
 
@@ -1609,15 +1707,21 @@ Below is the list of `dstash` options.
 ^.^| `dstash` option
 ^.^| Description
 
-a| `*-s*`, `*--skip-checks*`
+a| `*-s*`,
+
+`*--skip-checks*`
 a| Normally, each invocation of `dstash` (with any arguments) starts with integrity check.
 For repeated calls within a deployment, such checks become redundant.
 After ensuring that `dstash ready`, use this option on every subsequent call to `dstash` to forego integrity checks.
 
-a| `*-r*`, `*--root*`
+a| `*-r*`,
+
+`*--root*`
 a| Works with <<stash-types,root stash>> instead of default deployment stash.
 
-a| `*-g*`, `*--grail*`
+a| `*-g*`,
+
+`*--grail*`
 a| Works with <<stash-types,Grail stash>> instead of default deployment stash.
 
 |===
@@ -2492,22 +2596,25 @@ This section is periodically updated to state the most sought after avenues of i
 
 One of the main goals of this framework is *portability*.
 
-Within _Divine.dotfiles_, every supported operating system is represented with a special file called an *adapter*.
-A distribution adapter allows the framework to interact with the OS and with its system package manager.
+In _Divine.dotfiles_, the code that supports particular operating systems is isolated within special files called *adapters*.
+An OS distribution adapter allows the framework to interact with that OS and with its built-in package manager.
 
-* An adapter is a Bash script similar to an implemented interface.
-* Guidelines for adapter implementation are located in `lib/templates/adapters/distro.adp.sh`.
+* An adapter is a Bash script with special functions implemented.
+* Adapter template and guidelines are located in `lib/templates/adapters/distro.adp.sh`.
 * Active adapters are put into `lib/adapters/distro`.
 
-Working adapters for all operating systems out there will be welcomed with open arms.
+Adapters for all OS distributions out there will be welcomed with open arms.
 
 == Divine deployments
 
-Divine deployments are deployments developed and distributed by the author of _Divine.dotfiles_.
+Divine deployments are deployments developed and distributed along with _Divine.dotfiles_.
 Apart from being useful by themselves, they serve as an illustration of the framework's mechanisms put to good use.
 
-[header,cols="<.^1,<.^3",stripes=none]
+[%header,cols="<.^1,<.^3",stripes=none]
 |===
+
+^.^| Link to deployments' page
+^.^| Description
 
 | https://github.com/no-simpler/divine-dpls-core[Core bundle]
 | _(fully functional, not yet fully documented)_
