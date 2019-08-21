@@ -1,9 +1,9 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revnumber: 37
+:revnumber: 38
 :revdate: 2019.08.21
-:revremark: Force column width with &nbsp;
+:revremark: Tweak intro
 :doctype: article
 // Visual
 :toc:
@@ -49,15 +49,15 @@ As such, authoring a deployment is akin to implementing an interface.
 
 The goals of _Divine.dotfiles_ are:
 
-* Streamlining of setting-up any machine that carries Bash.
+* *Streamlining* of setting-up any machine that runs Bash.
 +
-_The <<intervention-utility,intervention utility>> is an easy and practical tool for handling any number of deployments._
-* Cross-platformness within Unix-like world.
+The <<intervention-utility,intervention utility>> is an easy and practical tool for handling any number of deployments.
+* *Cross-platformness* within Unix-like world.
 +
-_Built-in OS detection mechanisms facilitate writing portable deployments._
-* Promotion of standards and best practices.
+Built-in OS detection mechanisms facilitate writing portable deployments.
+* Promotion of *standards* and *best practices*.
 +
-_Deployment ecosystem is designed with distribution and pluggability in mind._
+Deployment ecosystem is designed with distribution and pluggability in mind.
 
 <<divine-deployments,*Divine deployments*>> (distributed separately) — such as our majestic https://github.com/no-simpler/divine-dpls-core[core bundle] — strive to exemplify what a good deployment should look like.
 
@@ -305,6 +305,7 @@ This chained command does three things:
 . Install the framework without any prompts.
 . Attach our illustrious https://github.com/no-simpler/divine-dpls-core[core bundle] of Divine deployments.
 . Run deployment installation routine.
+Expect a prompt for sudo password here (it will be explained).
 
 Divine deployments *_never overwrite_* pre-existing files on your system without backing them up.
 
@@ -315,18 +316,21 @@ Everything that is backed up is *_automatically restored_* upon uninstallation.
 
 After all installations are successful, reload your shell/terminal and _voilà_:
 
-* You will be greeted by `zsh` as your new default shell.
+* You are greeted by `zsh` as your new default shell.
+Unless you had it as default already.
 * Both https://ohmyz.sh[`oh-my-zsh`] and https://github.com/Bash-it/bash-it[`bash-it`] frameworks are now installed and loaded.
+If you had any of those installed already, they are re-used.
 * A minimalistic theme for both frameworks is active.
 * Opinionated default configs are plugged in for `git`, `vim`, `bash`, and `zsh`.
 * Divine utilites `dln`, `dmv`, and `dreadlink` are available on `$PATH`.
+* Your previous files (wherever an override was necessary) are safely kept.
 
 All of the above is controlled from your <<grail-directory,Grail directory>> at `~/.divine/grail/assets/`:
 
 [%header,cols="<.<1,<.<3",stripes=none]
 |===
 
-^.^| Asset sub-dir
+^.^| Sub-directory
 +++<br>+++
 `&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`
 ^.^| Content description
@@ -337,19 +341,19 @@ All of the above is controlled from your <<grail-directory,Grail directory>> at 
 | `*config-{as}*/`
 | Global configs for `git` and `vim`, under respective names
 
-| *&dagger;* `*fonts*/`
+| `*fonts*/` *&dagger;*
 | Your personal font files, installed everywhere you take your Grail.
 
-| *&dagger;* `*home-dirs*/`
+| `*home-dirs*/` *&dagger;*
 | `*home-dirs.cfg*` — a sub-directory tree, maintained under `$HOME`
 
-| *&dagger;* `*brewfile*/`
+| `*brewfile*/` *&dagger;*
 | https://github.com/Homebrew/homebrew-bundle[Brewfile], maintained on macOS
 
-| *&dagger;* `*bash-it*/`
+| `*bash-it*/` *&dagger;*
 | Custom assets for https://github.com/Bash-it/bash-it[`bash-it`] shell framework
 
-| *&dagger;* `*oh-my-zsh*/`
+| `*oh-my-zsh*/` *&dagger;*
 | Custom assets for https://ohmyz.sh[`oh-my-zsh`] shell framework
 
 | `*portable-bin*/`
