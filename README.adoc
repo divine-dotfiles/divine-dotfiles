@@ -1,9 +1,9 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revnumber: 33
+:revnumber: 34
 :revdate: 2019.08.21
-:revremark: Add joy ride results; refine
+:revremark: Improve wording in joy ride effect description
 :doctype: article
 // Visual
 :toc:
@@ -327,16 +327,22 @@ All of the above is controlled from your <<grail-directory,Grail directory>> at 
 |===
 
 | `*config-shell*/`
-| All shell startup scripts (runcoms) are concentrated in this dir.
+| All shell startup scripts (runcoms) are here.
 
 | `*config-{as}*/`
-| Global config files for `git` and `vim` are located under respective `config-{as}/` dirs.
+| Global configs for `git` and `vim` are here.
+
+Look under respective `config-{as}/` dirs.
 
 | *&dagger;* `*fonts*/`
-| Dump your personal font files into this dir, and then promptly install them everywhere you take your Grail.
+| Dump your personal font files into this dir.
+
+Promptly install them everywhere you take your Grail.
 
 | *&dagger;* `*home-dirs*/`
-| In `home-dirs/home-dirs.cfg`, set up the sub-directory tree you wish to maintain under `$HOME` on all your machines.
+| In `home-dirs.cfg`, set up a sub-directory tree.
+
+It will be maintain under `$HOME` on all your machines.
 
 | *&dagger;* `*brewfile*/`
 | On macOS, put your https://github.com/Homebrew/homebrew-bundle[Brewfile] here.
@@ -344,11 +350,12 @@ All of the above is controlled from your <<grail-directory,Grail directory>> at 
 | *&dagger;* `*bash-it*/`, 
 
 *&dagger;* `*oh-my-zsh*/`
-| Leverage your custom shell framework assets here.
+| Custom shell framework assets are here.
 
 | `*portable-bin*/`
-| Make this dir your go-to location for custom shell commands.
+| This is your go-to dir for custom shell commands.
 
+They will be maintained on your `$PATH`.
 
 |===
 
