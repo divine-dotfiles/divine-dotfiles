@@ -1,9 +1,9 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revnumber: 34
+:revnumber: 35
 :revdate: 2019.08.21
-:revremark: Improve wording in joy ride effect description
+:revremark: Further improve wording in joy ride effect description
 :doctype: article
 // Visual
 :toc:
@@ -323,39 +323,35 @@ After all installations are successful, reload your shell/terminal and _voilà_:
 
 All of the above is controlled from your <<grail-directory,Grail directory>> at `~/.divine/grail/assets/`:
 
-[header,cols="<.<1,<.<3",stripes=none]
+[%header,cols="<.<1,<.<3",stripes=none]
 |===
 
+^.^| Asset sub-dir
+^.^| Content description
+
 | `*config-shell*/`
-| All shell startup scripts (runcoms) are here.
+| All shell startup scripts (runcoms)
 
 | `*config-{as}*/`
-| Global configs for `git` and `vim` are here.
-
-Look under respective `config-{as}/` dirs.
+| Global configs for `git` and `vim`, under respective names
 
 | *&dagger;* `*fonts*/`
-| Dump your personal font files into this dir.
-
-Promptly install them everywhere you take your Grail.
+| Your personal font files, installed everywhere you take your Grail.
 
 | *&dagger;* `*home-dirs*/`
-| In `home-dirs.cfg`, set up a sub-directory tree.
-
-It will be maintain under `$HOME` on all your machines.
+| `*home-dirs.cfg*` — a sub-directory tree, maintained under `$HOME`
 
 | *&dagger;* `*brewfile*/`
-| On macOS, put your https://github.com/Homebrew/homebrew-bundle[Brewfile] here.
+| https://github.com/Homebrew/homebrew-bundle[Brewfile], maintained on macOS
 
-| *&dagger;* `*bash-it*/`, 
+| *&dagger;* `*bash-it*/`
+| Custom assets for https://github.com/Bash-it/bash-it[`bash-it`] shell framework
 
-*&dagger;* `*oh-my-zsh*/`
-| Custom shell framework assets are here.
+| *&dagger;* `*oh-my-zsh*/`
+| Custom assets for https://ohmyz.sh[`oh-my-zsh`] shell framework
 
 | `*portable-bin*/`
-| This is your go-to dir for custom shell commands.
-
-They will be maintained on your `$PATH`.
+| User's personal shell commands, maintained on the `$PATH`
 
 |===
 
