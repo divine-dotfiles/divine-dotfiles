@@ -1,9 +1,9 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revnumber: 30
-:revdate: 2019.08.20
-:revremark: Iterative improvement
+:revnumber: 31
+:revdate: 2019.08.21
+:revremark: First complete revision
 :doctype: article
 // Visual
 :toc:
@@ -130,7 +130,7 @@ Following OS distributions are openly supported:
 +
 [NOTE]
 --
-This list is incomplete; you can help by expanding it.
+This list is incomplete; you can help by <<contributing_os_support,expanding it>>.
 --
 
 * `bash 3.2+` and either `curl` or `wget`
@@ -366,7 +366,7 @@ This symlink is usually auto-created during framework installation.
 
 == Usage
 
-[[_intervention_utility]]
+[[intervention_utility]]
 === Divine intervention utility `di`
 
 _Divine.dotfiles_ provides command line interface via *Divine intervention utility `di`*.
@@ -381,7 +381,7 @@ Intervention utility does:
 . *Plug* in your pre-made Grail directory from a repository or local directory.
 . *Update* framework itself, attached deployments, and Grail directory, if it is a cloned repository.
 
-[[_primary_routines]]
+[[primary_routines]]
 === Checking/installing/removing deployments
 
 Primary routines — bread-and-butter of the framework — launch respective functions on deployments.
@@ -397,8 +397,8 @@ $ *di* *r*[*emove*]   [-ynqvew]  [--] [*_NAME_*]…
 
 Accepted values of `*_NAME_*` are (case-insensitive):
 
-* Names of <<_deployments,deployments>>.
-* Reserved synonyms for <<_divinefiles,Divinefiles>>: `divinefile`, `dfile`, `df`.
+* Names of <<deployments,deployments>>.
+* Reserved synonyms for <<divinefiles,Divinefiles>>: `divinefile`, `dfile`, `df`.
 * Single-digit names of <<deployment_groups,deployment groups>>: `0`, `1`, `2`, `3`, `4`, `5`, `6`, `7`, `8`, `9`.
 * Without any arguments, all deployments are processed.
 
@@ -534,6 +534,7 @@ This option is equivalent to a 'dry run' — apart from skip messages, nothing 
 
 |===
 
+[[plugging_the_grail]]
 === Plugging the Grail
 
 If you have a copy of your carefully crafted <<grail_directory,Grail directory>> stored somewhere, _Divine.dotfiles_ lets you easily plug it in.
@@ -593,13 +594,13 @@ $ *di* *u*[*pdate*] [-yn] [--] [*f*[*ramework*]] [*g*[*rail*]] [*d*[*eployments*
 Update routine is three-pronged, and you are free to engage any and all of the prongs:
 
 * `*f*` or `*framework*` — pulls latest revision of _Divine.dotfiles_.
-* `*g*` or `*grail*` — pulls latest revision of <<grail_directory,Grail directory>>, _if_ it is a <<_plugging_the_grail,plugged>> repository.
-* `*d*` or `*deployments*` — pulls latest revision of every <<_attaching_third_party_deployments,_attached_>> deployment repository.
+* `*g*` or `*grail*` — pulls latest revision of <<grail_directory,Grail directory>>, _if_ it is a <<plugging_the_grail,plugged>> repository.
+* `*d*` or `*deployments*` — pulls latest revision of every <<attaching_deployments,_attached_>> deployment repository.
 * Without any arguments, all of the above are performed.
 
 ==== Updating routine options
 
-Below is the list of options for updating framework, <<grail_directory,the Grail>>, and <<_attaching_third_party_deployments,attached deployments>>.
+Below is the list of options for updating framework, <<grail_directory,the Grail>>, and <<attaching_deployments,attached deployments>>.
 Additional info about routine's behavior is also given.
 
 [header,cols="<.<1,<.<4",stripes=none]
@@ -617,6 +618,7 @@ This option is equivalent to a 'dry run' — apart from skip messages, nothing 
 
 |===
 
+[[deployments]]
 == Deployments
 
 A _Divine.dotfiles_ *deployment* is a Bash script named in `*_DPL-NAME_*.dpl.sh` pattern.
@@ -642,6 +644,7 @@ A deployment is formed by:
 * implementing specially named Bash functions (*primaries*);
 * assigning to specially named variables (*metadata*).
 
+[[primary_functions]]
 === Primary functions
 
 *Primary functions*, or *primaries*, correspond to three fundamental actions performed upon a deployment:
@@ -809,6 +812,7 @@ Ideally, if no installation via the framework has previously occurred, uninstall
 This philosophy is followed by our magnificent https://github.com/no-simpler/divine-dpls-core[core bundle] of Divine deployments.
 --
 
+[[deployment_metadata]]
 === Deployment metadata
 
 *Deployment metadata* (posing as variable assignments) alter deployment's appearance and behavior:
@@ -848,6 +852,7 @@ As such, the framework forbids having more than one deployment sharing a name.
 If deployment name is not provided explicitly, file name is used instead, sans `.dpl.sh` suffix.
 Deployment names are case insensitive.
 
+[[deployment_priority]]
 ==== Deployment priority
 
 [source,bash]
@@ -863,6 +868,7 @@ Order of deployments with the same priority is undefined.
 
 Priority must be a non-negative integer, otherwise it falls back to the default value of `4096`.
 
+[[deployment_flags]]
 ==== Deployment flags
 
 [source,bash]
@@ -925,6 +931,7 @@ D_DPL_WARNING="Warning for 'urgent' prompts forced by a flag"
 
 If such warning is provided, it will accompany every urgent prompt enforced by a deployment flag.
 
+[[divinefiles]]
 == Divinefiles
 
 A *Divinefile* is a special kind of deployment.
@@ -962,10 +969,10 @@ For more complex system package installations, e.g., involving particular versio
 
 === Divinefile syntax
 
-Divinefiles follow the general <<_manifest_syntax,manifest syntax>>.
+Divinefiles follow the general <<manifest_syntax,manifest syntax>>.
 
 Every entry is a *list* of whitespace-separated names of packages.
-Keys `flags` and `priority` set the respective attributes for the packages, and work identically to <<_deployment_flags,flags>> and <<_deployment_priority,priority>> in regular deployments.
+Keys `flags` and `priority` set the respective attributes for the packages, and work identically to <<deployment_flags,flags>> and <<deployment_priority,priority>> in regular deployments.
 
 Within a line, each vertical bar `|` starts an *alt-list*, which fully overrides the original list for a particular package manager.
 Within an alt-list, everything to the left of first colon `:` is read as package manager name; everything to the right — as the alt-list itself.
@@ -1015,7 +1022,7 @@ Deployments are free-form Bash scripts, and sandboxing them beyond a subshell wo
 If there is a voice of wisdom here, it says, 'Be careful.'
 --
 
-It is good style to isolate all deployment logic within functions and global variables, and then call/use them within <<_primary_functions,primary functions>>.
+It is good style to isolate all deployment logic within functions and global variables, and then call/use them within <<primary_functions,primary functions>>.
 
 ==== Naming convention
 
@@ -1047,7 +1054,7 @@ The following variables are available/recognized in each deployment:
 ^.^| Variable name
 ^.^| Value description
 
-2+^.^h| <<_deployment_metadata,Deployment metadata>>
+2+^.^h| <<deployment_metadata,Deployment metadata>>
 
 | `*D_DPL_NAME*`
 | Explicit name for the deployment.
@@ -1158,7 +1165,7 @@ Exhaustive list of possible values:
 
 [NOTE]
 --
-This list is incomplete; you can help by expanding it.
+This list is incomplete; you can help by <<contributing_os_support,expanding it>>.
 --
 
 | [#var_os_pkgmgr]#`*D__OS_PKGMGR*`#
@@ -1175,7 +1182,7 @@ Exhaustive list of possible values:
 
 [NOTE]
 --
-This list is incomplete; you can help by expanding it.
+This list is incomplete; you can help by <<contributing_os_support,expanding it>>.
 --
 
 When this variable is non-empty, you also have the built-in <<func_os_pkgmgr,package manager wrapper>>, `d__os_pkgmgr()`, at your disposal.
@@ -1183,12 +1190,12 @@ When this variable is non-empty, you also have the built-in <<func_os_pkgmgr,pac
 2+^.^h| Recognized marker variables
 
 | [#var_another_prompt]#`D_DPL_NEEDS_ANOTHER_PROMPT`#
-| Works only during `install`/`remove` <<_primary_routines,routine>> and only if set within `d_dpl_check()` primary.
+| Works only during `install`/`remove` <<primary_routines,routine>> and only if set within `d_dpl_check()` primary.
 
 Set this variable to `true` to trigger an <<urgent_prompt,urgent prompt>> before the framework proceeds to (un)installation.
 
 | [#var_another_warning]#`D_DPL_NEEDS_ANOTHER_WARNING`#
-| Works only during `install`/`remove` <<_primary_routines,routine>> and only if set within `d_dpl_check()` primary.
+| Works only during `install`/`remove` <<primary_routines,routine>> and only if set within `d_dpl_check()` primary.
 
 If `*_D_DPL_NEEDS_ANOTHER_PROMPT_*` is set to `true` and this variable is non-empty, then this textual warning is shown to the user.
 
@@ -1210,7 +1217,7 @@ This is useful for deployments designed to not interfere with manual tinkering.
 2+^.^h| Parameters of current request
 
 | `*D__REQ_ROUTINE*`
-a| Name of <<_primary_routines,primary routine>> currently being executed:
+a| Name of <<primary_routines,primary routine>> currently being executed:
 
 * `check`
 * `install`
@@ -1411,7 +1418,7 @@ a| * If `*_ANSWER_*` is `true`, returns `0` immediately.
 
 [NOTE]
 --
-Call `dprompt --answer "$D__OPT_ANSWER"` to make the prompt honor `--yes`/`--no` options of the <<_intervention_utility,intervention utility>>.
+Call `dprompt --answer "$D__OPT_ANSWER"` to make the prompt honor `--yes`/`--no` options of the <<intervention_utility,intervention utility>>.
 --
 
 a| `*-p* *_PROMPT_*`,
@@ -1479,7 +1486,7 @@ Returns zero on success and non-zero if something goes wrong.
 
 ==== `dstash` function
 
-Function `dstash` is so important that it deserved its <<_stash,own section>>.
+Function `dstash` is so important that it deserved its <<stash,own section>>.
 
 [[func_os_pkgmgr]]
 ==== `d__os_pkgmgr` function
@@ -1504,7 +1511,8 @@ The first argument must be one of the four:
 Returns zero/non-zero appropriately.
 * `install` — installs the provided package.
 * `remove` — uninstalls the provided package.
-    
+
+[[stash]]
 === Stash
 
 _Divine.dotfiles_ provides a persistent key-value storage and retrieval system.
@@ -1619,12 +1627,13 @@ _Divine.dotfiles_ introduces a simple markup language for special files called *
 
 There are three types of special files that are manifests:
 
-* <<_divinefiles, Divinefiles>>.
-* <<_asset_manifests, Asset manifests>>.
-* <<_queue_manifests, Queue manifests>>.
+* <<divinefiles, Divinefiles>>.
+* <<asset_manifests, Asset manifests>>.
+* <<queue_manifests, Queue manifests>>.
 
 While they differ in purpose and supported features, all types of manifests share basic syntax, as they are internally parsed by the same engine.
 
+[[manifest_syntax]]
 ==== Manifest syntax
 
 Manifests are processed in terms of lines.
@@ -1642,8 +1651,8 @@ entry with whitespace
   indented entry will not contain indentation
 ----
 
-[[kv]]
-==== Key-values
+[[manifest_key_values]]
+==== Manifest key-values
 
 Whenever a line starts with an opening parenthesis `(` and contains a closing one `)`, what's between them is interpreted as a *key-value* pair.
 Key-values are used to qualify entries and provide additional info.
@@ -1677,7 +1686,7 @@ They are described below.
 Particular kinds of manifests support additional keys.
 --
 
-==== OS-specific entries
+==== OS-specific manifest entries
 
 Key `os` makes entries specific to particular operating systems.
 Multiple OS's may be given by separating with vartical bars.
@@ -1701,7 +1710,8 @@ OS names are matched against <<var_os_family,`$D\__OS_FAMILY`>> and <<var_os_dis
 Single match against any of the two is sufficient.
 --
 
-==== Entry flags
+[[manifest_entry_flags]]
+==== Manifest entry flags
 
 Key `flags` adds a string of single-character flags to the entries.
 
@@ -1721,7 +1731,7 @@ Note, however that the shorthand (and only the shorthand) works by *appending* p
               entry6    # Flags: a, b
 ----
 
-==== Comments and line continuation
+==== Comments and line continuation in manifests
 
 Hash/pound symbol (`#`) comments out the rest of the line.
 
@@ -1735,7 +1745,7 @@ lengthy entry \   #. spanning three physical lines
 text              #. (yes, even with comments attached like this)
 ----
 
-==== Escaping
+==== Escaping in manifests
 
 * To start an entry with a literal opening parenthesis `(`, prepend it with a backslash `\`.
 +
@@ -1757,6 +1767,7 @@ At the same time, the deployment file is better kept within <<state_directory,st
 
 To facilitate separation of deployment logic and assets, _Divine.dotfiles_ offers the mechanism of *asset manifests*.
 
+[[asset_manifests]]
 ==== Asset manifests
 
 An *asset manifest* is a text file located in the same directory as the deployment file and named the same, except for exchanging `.dpl.sh` suffix for `.dpl.mnf`.
@@ -1767,19 +1778,19 @@ Note, that the framework never overwrites assets that are already present at des
 
 Processing of asset manifests occurs:
 
-* During <<primary_routines,primary routines>>, after sourcing deployment file, but before calling any of the <<_primary_functions,primary functions>>.
+* During <<primary_routines,primary routines>>, after sourcing deployment file, but before calling any of the <<primary_functions,primary functions>>.
 * During <<attaching_deployments,attaching of deployments>>, so that the assets of newly introduced deployments are immediately present in <<grail_directory,the Grail>>.
 
 ==== Asset manifest syntax
 
-Asset manifests follow the general <<_manifest_syntax,manifest syntax>>.
+Asset manifests follow the general <<manifest_syntax,manifest syntax>>.
 
 Every entry is a *path* that is resolved relative to the deployment directory.
 When assets are copied to asset directory, their relative path is preserved.
 If you want your assets to be housed under some sub-path, which you don't want to be carried over to destination, specify that sub-path in the `prefix` key.
 
 Two type of paths are accepted: *concrete* paths and *regex* patterns.
-To be interpreted as a regex pattern, a path must be <<_entry_flags,flagged>> with `r` character.
+To be interpreted as a regex pattern, a path must be <<manifest_entry_flags,flagged>> with `r` character.
 Under the hood, patterns are fed to the http://man7.org/linux/man-pages/man1/find.1.html[find] utility, specifically, the `-path` directive.
 
 .Example of asset manifest
@@ -1803,6 +1814,7 @@ If any of such assets is missing, deployment will not be allowed to proceed.
 Regex patterns are more permissive: they may match zero assets, and no error will be raised.
 --
 
+[[generic_queue]]
 === Generic queue
 
 Whenever your deployment performs a series of similar actions, — e.g., symlinks a bunch of files — you are faced with several routine tasks:
@@ -1815,7 +1827,7 @@ To use it:
 
 . Populate a specially named array with one string for each queue item.
 . Implement logic to be applied to a single item.
-. Delegate your deployment's <<_primary_functions,primaries>> to built-in helpers.
+. Delegate your deployment's <<primary_functions,primaries>> to built-in helpers.
 
 This kind of deployment is best demonstrated with an example:
 
@@ -1973,15 +1985,16 @@ Ideally, there is no need for you to know this or use these variables.
 
 |===
 
+[[queue_manifests]]
 ==== Queue manifests
 
 <<var_queue_main,Contents>> of the queue, whatever they are, sound like a perfect candidate for separating from deployment logic into a separate, dynamic asset.
 Queue manifests to the resqueue.
 
 An *queue manifest* is a text file, which is — by default — located in the same directory as the deployment file and named the same, except for exchanging `.dpl.sh` suffix for `.dpl.que`.
-Unlike with <<_asset_manifests,asset manifests>>, you are free to customize the location/name of your queue manifest by re-assigning <<var_dpl_que_path,`D_DPL_QUE_PATH`>> variable *at the top level* of your deployment.
+Unlike with <<asset_manifests,asset manifests>>, you are free to customize the location/name of your queue manifest by re-assigning <<var_dpl_que_path,`D_DPL_QUE_PATH`>> variable *at the top level* of your deployment.
 
-Queue manifests follow the general <<_manifest_syntax,manifest syntax>>.
+Queue manifests follow the general <<manifest_syntax,manifest syntax>>.
 Only the key `os` is relevant within queue manifests.
 
 [NOTE]
@@ -1989,7 +2002,7 @@ Only the key `os` is relevant within queue manifests.
 A suggested way of using queue manifests is:
 
 . Provide a sample queue manifest of some entries in whatever form.
-. Declare the queue manifest an asset, by listing it in your <<_asset_manifests,asset manifest>>.
+. Declare the queue manifest an asset, by listing it in your <<asset_manifests,asset manifest>>.
 . Within the deployment, customize the <<var_dpl_que_path,`D_DPL_QUE_PATH`>> variable to point to asset copy within <<grail_directory,the Grail>>, e.g.:
 +
 [source,bash]
@@ -1998,6 +2011,7 @@ D_DPL_QUE_PATH="$D__DPL_ASSET_DIR/$D_DPL_NAME.dpl.que"
 ----
 --
 
+[[link_queue]]
 === Link queue
 
 A common use case of queues is creating symlinks that point to deployment's assets.
@@ -2007,11 +2021,11 @@ For example, one might want to:
 * point them at custom assets stored in <<grail_directory,the Grail>>;
 * store original files as backups and restore them upon uninstallation.
 
-For such purposes, _Divine.dotfiles_ provides a partially implemented version of <<_generic_queue,generic queue>> called *link queue*.
+For such purposes, _Divine.dotfiles_ provides a partially implemented version of <<generic_queue,generic queue>> called *link queue*.
 To use it:
 
 . Populate a few specially named arrays with necessary paths.
-. Delegate your deployment's <<_primary_functions,primaries>> to built-in helpers.
+. Delegate your deployment's <<primary_functions,primaries>> to built-in helpers.
 
 This kind of deployment is best demonstrated with an example:
 
@@ -2033,7 +2047,7 @@ populate_link_queue() {
 ==== Link queue set-up
 
 Following Bash arrays should be populated before any of the built-in helpers are called.
-Note, that you can <<_link_queue_asset_automation,automate>> this process.
+Note, that you can <<link_queue_asset_automation,automate>> this process.
 
 [%header,cols="<.<1,<.<3",stripes=none]
 |===
@@ -2060,7 +2074,7 @@ Absolute paths are strongly recommended.
 In the context of link queue, for each absolute path in `*D_DPL_ASSET_PATHS*`, this array must contain a shortened relative version, resolvable from the asset directory.
 
 In most cases this variable is not mandatory, and link queue will populate it automatically whenever possible.
-However, for a narrow use case, when you employ <<_link_queue_asset_automation,link queue automation>> without the <<_asset_manifests,asset manifest>>, you will be required to populate this array manually.
+However, for a narrow use case, when you employ <<link_queue_asset_automation,link queue automation>> without the <<asset_manifests,asset manifest>>, you will be required to populate this array manually.
 
 |===
 
@@ -2119,9 +2133,10 @@ Supported return codes:
 
 |===
 
+[[link_queue_asset_automation]]
 ==== Link queue asset automation
 
-So, you have your list of assets, stored in a <<_asset_manifests,manifest>>.
+So, you have your list of assets, stored in a <<asset_manifests,manifest>>.
 You know your target directory, to which you want to plug in your assets using symlinks.
 
 Why bother with manually populating arrays?
@@ -2153,6 +2168,7 @@ Such overrides are matched against both  <<var_os_family,`$D\__OS_FAMILY`>> and 
 A match against distro overrules a match against family, because such is life.
 --
 
+[[copy_queue]]
 === Copy queue
 
 Another common use case of queues is copying files into the system.
@@ -2161,11 +2177,11 @@ For example, one might want to:
 * copy an assortment of font files into the system's font directory;
 * not overwrite existing files.
 
-For such purposes, _Divine.dotfiles_ provides a partially implemented version of <<_generic_queue,generic queue>> called *copy queue*.
+For such purposes, _Divine.dotfiles_ provides a partially implemented version of <<generic_queue,generic queue>> called *copy queue*.
 To use it:
 
 . Populate a few specially named arrays with necessary paths.
-. Delegate your deployment's <<_primary_functions,primaries>> to built-in helpers.
+. Delegate your deployment's <<primary_functions,primaries>> to built-in helpers.
 
 [NOTE]
 --
@@ -2174,7 +2190,7 @@ Copy queue does not touch pre-existing files:
 * If a file by that name already exists at destination — no copying is done.
 * Upon uninstallation, a file is only erased if there is a record of it previously being copied into that location.
 
-If you want to actually substitute existing files (while backing them up), prefer the <<_link_queue,link queue>>.
+If you want to actually substitute existing files (while backing them up), prefer the <<link_queue,link queue>>.
 --
 
 This kind of deployment is best demonstrated with an example:
@@ -2203,7 +2219,7 @@ populate_copy_queue() {
 ==== Copy queue set-up
 
 Following Bash arrays should be populated before any of the built-in helpers are called.
-Note, that you can <<_copy_queue_asset_automation,automate>> this process.
+Note, that you can <<copy_queue_asset_automation,automate>> this process.
 
 [%header,cols="<.<1,<.<3",stripes=none]
 |===
@@ -2230,7 +2246,7 @@ Absolute paths are strongly recommended.
 In the context of copy queue, for each absolute path in `*D_DPL_ASSET_PATHS*`, this array must contain a shortened relative version, resolvable from the asset directory.
 
 In most cases this variable is not mandatory, and copy queue will populate it automatically whenever possible.
-However, for a narrow use case, when you employ <<_copy_queue_asset_automation,copy queue automation>> without the <<_asset_manifests,asset manifest>>, you will be required to populate this array manually.
+However, for a narrow use case, when you employ <<copy_queue_asset_automation,copy queue automation>> without the <<asset_manifests,asset manifest>>, you will be required to populate this array manually.
 
 |===
 
@@ -2289,9 +2305,10 @@ Supported return codes:
 
 |===
 
+[[copy_queue_asset_automation]]
 ==== Copy queue asset automation
 
-Copy queue asset automation works identically to <<_link_queue_asset_automation,that of link queue>>.
+Copy queue asset automation works identically to <<link_queue_asset_automation,that of link queue>>.
 (After all, those are the same arrays being used.)
 
 === Multitask
@@ -2304,7 +2321,7 @@ To use them:
 
 . Populate a specially named array with one string for each unique task.
 . Implement sub-primaries for the tasks, as if each one was a deployment of its own.
-. Delegate your deployment's <<_primary_functions,primaries>> to built-in helpers.
+. Delegate your deployment's <<primary_functions,primaries>> to built-in helpers.
 
 This kind of deployment is best demonstrated with an example:
 
@@ -2450,11 +2467,26 @@ populate_generic_queue() {
 
 [NOTE]
 --
-If you wish to use any <<_link_queue_asset_automation,queue>> <<_copy_queue_asset_automation,automation>>, you must use it only for the very first task that employs a queue.
+If you wish to use any <<link_queue_asset_automation,queue>> <<copy_queue_asset_automation,automation>>, you must use it only for the very first task that employs a queue.
 
 For further queue tasks, the queue arrays must be appended to manually, and member indices must be matched between them.
 --
 
 == Ways to contribute
 
-=== OS detection and support
+You are free to contribute to _Divine.dotfiles_ in any way you deem beneficial.
+This section is periodically updated to state the most sought after avenues of improvement.
+
+[[contributing_os_support]]
+=== Contributing OS support
+
+One of the main goals of this framework is *portability*.
+
+Within _Divine.dotfiles_, every supported operating system is represented with a special file called an *adapter*.
+A distribution adapter allows the framework to interact with the OS and with its system package manager.
+
+* An adapter is a Bash script similar to an implemented interface.
+* Guidelines for adapter implementation are located in `lib/templates/adapters/distro.adp.sh`.
+* Active adapters are put into `lib/adapters/distro`.
+
+Working adapters for all operating systems out there will be welcomed with open arms.
