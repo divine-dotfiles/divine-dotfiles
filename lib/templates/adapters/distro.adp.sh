@@ -2,9 +2,9 @@
 #:title:        Divine.dotfiles template OS distro adapter
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    16
-#:revdate:      2019.08.19
-#:revremark:    d_queue_item_is_intalled -> d_queue_item_check
+#:revnumber:    17
+#:revdate:      2019.08.21
+#:revremark:    Bring distro adapter guidelines up to date
 #:created_at:   2019.06.04
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -37,9 +37,9 @@
 #.                  which in turn is then used throughout this framework and 
 #.                  its deployments.
 #.                  For clarity, this one word must match the name of adapter 
-#.                  file, sans suffix
+#.                  file, sans suffix.
 #.                  If this variable is set to a non-empty value, it is taken 
-#.                  as indication of positive OS distro match
+#.                  as indication of positive OS distro match.
 #
 ## Returns:
 #.  Return code is ignored
@@ -77,9 +77,9 @@ d__adapter_detect_os_distro()
 #.                  $D__OS_PKGMGR, which in turn is then used throughout this 
 #.                  framework and its deployments.
 #.                  For clarity, this one word must match the widely recognized 
-#.                  name of the package manager's executable command
+#.                  name of the package manager's executable command.
 #.                  If this variable is set to a non-empty value, it is taken 
-#.                  as indication of positive OS distro match
+#.                  as indication of positive OS distro match.
 #
 ## Returns:
 #.  Return code is ignored
@@ -102,8 +102,8 @@ d__adapter_detect_os_pkgmgr()
     #. routines, which are expected of any package manager out there.
     #
     ## Second argument must be relayed to package manager verbatim. User 
-    #. prompts (except sudo password) should be avoided. For sudo, a call to 
-    #. dprint_sudo should be included before relaying the command.
+    #. prompts (except sudo password) should be avoided. A call to dprint_sudo 
+    #. should be included immediately prior to sudo command.
     #
     ## Arguments:
     #.  $1  - One of four routines to launch:
@@ -112,12 +112,14 @@ d__adapter_detect_os_pkgmgr()
     #.          * 'check'   - checks whether provided package is installed
     #.          * 'install' - installs provided package
     #.          * 'remove'  - uninstalls provided package
-    #.  $2  - Single package to work on
+    #.  $2  - Name of a package to work on
     #
     ## Returns:
-    #.  Whatever underlying package manager returns
     #.  1 - Unrecognized routine
     #.  2 - Wrapper is not implemented at all
+    #.  `update`, `install`, `remove`:  Underlying return code
+    #.  `check`:  0         - Package is currently installed
+    #.            non-zero  - Package is currently not installed
     #
     ## Prints:
     #.  Whatever underlying package manager prints
@@ -130,8 +132,8 @@ d__adapter_detect_os_pkgmgr()
       case "$1" in
         update)
           dprint_sudo 'Working with apt-get requires sudo password'
-          sudo apt-get update -yq
-          sudo apt-get upgrade -yq
+          sudo apt-get update -y
+          sudo apt-get upgrade -y
           ;;
         check)
           grep -qFx 'install ok installed' \
@@ -139,11 +141,11 @@ d__adapter_detect_os_pkgmgr()
           ;;
         install)
           dprint_sudo 'Working with apt-get requires sudo password'
-          sudo apt-get install -yq "$2"
+          sudo apt-get install -y "$2"
           ;;
         remove)
           dprint_sudo 'Working with apt-get requires sudo password'
-          sudo apt-get remove -yq "$2"
+          sudo apt-get remove -y "$2"
           ;;
         *)  return 1;;
       esac
@@ -155,10 +157,19 @@ d__adapter_detect_os_pkgmgr()
 
 #>  d__adapter_override_dpl_targets_for_os_distro
 #
-## Provides a way for deployments to override $D_DPL_TARGET_PATHS global 
-#. variable, which is used by helper functions in dln.hlp.sh and cp.hlp.sh. 
-#. This function is called before contents of $D_DPL_TARGET_PATHS is settled 
-#. upon.
+## Overriding mechanism for $D_DPL_TARGET_PATHS and $D_DPL_TARGET_DIR.
+#
+## Provides a way for deployments to override target paths used by link queue 
+#. and copy queue.
+#
+## Basically, this function must check if an override variable for current 
+#. distribution is populated in the calling context, and if so, override the 
+#. current content of $D_DPL_TARGET_PATHS or $D_DPL_TARGET_DIR.
+#
+## An overriding variables must follow a naming pattern:
+#.  D_DPL_TARGET_PATHS    is overridden by    D_DPL_TARGET_PATHS_***
+#.  D_DPL_TARGET_DIR      is overridden by    D_DPL_TARGET_DIR_***
+#. where `***` is content of $D__OS_DISTRO in all capitals.
 #
 d__adapter_override_dpl_targets_for_os_distro()
 {
@@ -170,6 +181,14 @@ d__adapter_override_dpl_targets_for_os_distro()
 
     # $D_DPL_TARGET_PATHS_UBUNTU is set: use it instead
     D_DPL_TARGET_PATHS=( "${D_DPL_TARGET_PATHS_UBUNTU[@]}" )
+    
+  fi
+
+  # Check if $D_DPL_TARGET_DIR_UBUNTU is not empty
+  if [ -n "$D_DPL_TARGET_DIR_UBUNTU" ]; then
+
+    # $D_DPL_TARGET_DIR_UBUNTU is set: use it instead
+    D_DPL_TARGET_DIR=( "${D_DPL_TARGET_DIR_UBUNTU[@]}" )
     
   fi
 }
