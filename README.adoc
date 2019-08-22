@@ -1,9 +1,9 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revnumber: 39
+:revnumber: 40
 :revdate: 2019.08.22
-:revremark: dpl-repos -> bundles; core -> essentials
+:revremark: Use word bundle to refer to 3rd-party dpls
 :doctype: article
 // Visual
 :toc:
@@ -113,8 +113,8 @@ On a new machine — plug in your Grail [.small]#_(heh)_# from a repo or a loca
 | <<detected-os,*Cross-platformness*>>
 | Use built-in OS detection mechanism to perform certain tasks on certain distributions or OS families
 
-| <<attach-routine,*Third-party deployments*>>
-| Attach pre-made deployments from Github (such as our glorious https://github.com/no-simpler/divine-bundle-essentials['essentials' bundle]) without polluting your precious Grail [.small]#_(heheh)_#
+| <<attach-routine,*Third-party deployments (bundles)*>>
+| Attach pre-made bundles of deployments from Github (such as our glorious https://github.com/no-simpler/divine-bundle-essentials['essentials' bundle]) without polluting your precious Grail [.small]#_(heheh)_#
 
 | <<stash,*Stash*>>
 | Persistent key-value store for use within your deployments
@@ -423,7 +423,7 @@ Sub-structured as follows:
 
 * `*backups/*` — _Divine.dotfiles_ provides facilities to back up existing files from the system.
 This directory stores such backups.
-* `*bundles/*` — _Divine.dotfiles_ provides facilities to <<attach-routine,attach third-party deployments>> from Github.
+* `*bundles/*` — _Divine.dotfiles_ provides facilities to <<attach-routine,attach third-party bundles of deployments>> from Github.
 This directory stores such deployments.
 * `*stash/*` — _Divine.dotfiles_ provides a <<stash,persistent key-value store>> for use within deployments.
 This directory houses key-value containers.
@@ -455,9 +455,9 @@ Intervention utility does:
 .. *Check* whether deployments are installed or not.
 .. *Install* deployments.
 .. *Uninstall* deployments.
-. <<attach-routine,*Attach/detach*>> third-party deployments from Github.
+. <<attach-routine,*Attach/detach*>> third-party bundles of deployments from Github.
 . <<plug-routine,*Plug in*>> your pre-made Grail directory from a repository or local directory.
-. <<update-routine,*Update*>> framework itself, attached deployments, and Grail directory, if it is a cloned repository.
+. <<update-routine,*Update*>> framework itself, attached bundles, and Grail directory, if it is a cloned repository.
 
 [[primary-routines]]
 === Checking/installing/removing deployments
@@ -483,7 +483,7 @@ Without any arguments, all deployments are processed.
 Deployments and Divinefiles are retrieved from two locations (at any depth):
 
 * Directory for user's deployments: `~/.divine/grail/dpls`.
-* Directory for attached deployments: `~/.divine/state/bundles`.
+* Directory for attached bundles of deployments: `~/.divine/state/bundles`.
 
 ==== Filtering deployments
 
@@ -565,7 +565,8 @@ Even though every option above serves a function within the framework, it is als
 [[attach-routine]]
 === Attaching third-party deployments
 
-Beside using own deployments, _Divine.dotfiles_ allows you to attach (i.e., import) third-party deployments distributed via Github repositories.
+Beside using own deployments, _Divine.dotfiles_ allows you to attach (i.e., import) third-party *bundles* of deployments distributed via Github repositories.
+A bundle is understood to group together one or more deployments.
 
 [source,subs="verbatim,quotes,attributes"]
 ----
@@ -593,15 +594,15 @@ Detaching deployments deletes the copy of their repository, but it is up to you 
 
 [NOTE]
 --
-Attached repositories are cloned/downloaded into your <<state-directory,state directory>>, but attachment records are stored in <<grail-directory,the Grail>>.
+Attached bundles are cloned/downloaded into your <<state-directory,state directory>>, but _attachment records_ are stored in <<grail-directory,the Grail>>.
 On every launch, intervention utility synchronizes Grail records with actual repositories in state directory.
 
-Thus, by synchronizing Grail between machines, you will have the same set of both custom and attached deployments everywhere.
+Thus, by synchronizing Grail between machines, you will have the same set of both personal and attached deployments everywhere.
 --
 
 ==== Attach/detach routine options
 
-Below is the list of options for attaching/detaching third-party deployments.
+Below is the list of options for attaching/detaching third-party bundles of deployments.
 Additional info about routine's behavior is also given.
 
 [%header,cols="<.<1,<.<3",stripes=none]
@@ -691,12 +692,12 @@ Update routine is three-pronged, and you are free to engage any and all of the p
 
 * `*f*` or `*framework*` — pulls latest revision of _Divine.dotfiles_.
 * `*g*` or `*grail*` — pulls latest revision of <<grail-directory,Grail directory>>, _if_ it is a <<plug-routine,plugged>> repository.
-* `*d*` or `*deployments*` — pulls latest revision of every <<attach-routine,_attached_>> deployment repository.
+* `*d*` or `*deployments*` — pulls latest revision of every <<attach-routine,_attached_>> bundle of deployments.
 * Without any arguments, all of the above are performed.
 
 ==== Updating routine options
 
-Below is the list of options for updating framework, <<grail-directory,the Grail>>, and <<attach-routine,attached deployments>>.
+Below is the list of options for updating framework, <<grail-directory,the Grail>>, and <<attach-routine,attached bundles>>.
 Additional info about routine's behavior is also given.
 
 [%header,cols="<.<1,<.<3",stripes=none]
@@ -729,7 +730,7 @@ To be picked up by the framework, deployments must be located at any depth under
 
 * `~/.divine/grail/dpls` — user's deployments.
 Create your deployments here.
-* `~/.divine/state/bundles` — attached third-party deployments.
+* `~/.divine/state/bundles` — attached third-party bundles of deployments.
 This one is maintained by the framework.
 
 === Deployment structure
@@ -1720,7 +1721,7 @@ a| Works with <<stash-types,Grail stash>> instead of default deployment stash.
 
 [NOTE]
 --
-Records of attaching deployments are stored in <<stash-types,Grail stash>>.
+Records of attaching third-party bundles are stored in <<stash-types,Grail stash>>.
 
 Records of installing optional framework dependencies are stored in <<stash-types,root stash>>.
 --
@@ -2259,7 +2260,7 @@ But hey, what about cross-platformness?
 No worries.
 
 In _Divine.dotfiles_, every OS adapter carries an override mechanism for `*D_DPL_TARGET_DIR*`.
-The rules are simple: attach the handle of the supported OS in all capitals like this:
+The rules are simple: append the handle of the supported OS in all capitals like this:
 
 [source,bash]
 ----
