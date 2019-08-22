@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: manifests
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    15
-#:revdate:      2019.08.20
-#:revremark:    Grant queue manifests overwriting powers
+#:revnumber:    16
+#:revdate:      2019.08.22
+#:revremark:    Fix logic error in manifest parsing
 #:created_at:   2019.05.30
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -530,7 +530,7 @@ d__process_manifest()
 
                 # If value is either 'all' or 'any', all OS's are allowed
                 case $value in
-                  all|any) current_relevance=false; break;;
+                  all|any) current_relevance=true; break;;
                 esac
 
                 # Check if current OS name from the list matches detected OS
