@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: manifests
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    16
+#:revnumber:    17
 #:revdate:      2019.08.22
-#:revremark:    Fix logic error in manifest parsing
+#:revremark:    When filling queue from mnf, scan asset dir for RE patterns
 #:created_at:   2019.05.30
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -24,14 +24,19 @@
 #. directory. Assets directory is then worked with and can be taken under 
 #. version control. Does not overwrite anything (user's data takes priority).
 #
+## Note, that specifically for populating queue arrays, regex patterns from 
+#. manifests are resolved against deployment's asset directory in the Grail, as 
+#. opposed to the original deployment directory. This is done to include user's 
+#. own additions in the queue.
+#
 ## Requires:
-#.  $D__DPL_MNF_PATH     - Path to assets manifest file
-#.  $D__DPL_DIR          - Path to resolve initial asset paths against
+#.  $D__DPL_MNF_PATH    - Path to assets manifest file
+#.  $D__DPL_DIR         - Path to resolve initial asset paths against
 #.  $D__DPL_ASSET_DIR   - Path to compose target asset paths against
 #
 ## Provides into the global scope:
-#.  $D_QUEUE_MAIN           - Array of relative paths to assets
-#.  $D_DPL_ASSET_PATHS      - Array of absolute paths to copied assets
+#.  $D_QUEUE_MAIN       - Array of relative paths to assets
+#.  $D_DPL_ASSET_PATHS  - Array of absolute paths to assets
 #
 ## Returns:
 #.  0 - Task performed: all assets now exist in assets directory
@@ -69,6 +74,9 @@ d__process_asset_manifest_of_current_dpl()
     # Extract path/pattern
     path_pattern="${D__MANIFEST_LINES[$i]}"
 
+    # Clear leading prefixes from path/pattern
+    while [[ $path_pattern = /* ]]; do path_pattern="${path_pattern#/}"; done
+
     # Extract prefix
     if [ -z ${D__MANIFEST_LINE_PREFIXES[$i]+isset} ]; then
       path_prefix=
@@ -81,27 +89,54 @@ d__process_asset_manifest_of_current_dpl()
 
       # Line is intended as RegEx pattern
 
-      # Iterate over find results on that pattern
+      # Iterate over find results on the pattern
       while IFS= read -r -d $'\0' src_path; do
 
         # Compose absolute paths
         relative_path="${src_path#"${D__DPL_DIR}${path_prefix}/"}"
         dest_path="$D__DPL_ASSET_DIR/$relative_path"
 
-        # Copy asset (for find results it is expected to always return 0)
+        # Copy asset, or set failure marker
         d__copy_asset "$relative_path" "$src_path" "$dest_path" \
           || all_assets_copied=false
 
       done < <( find -L "$D__DPL_DIR" \
         -path "${D__DPL_DIR}${path_prefix}/$path_pattern" -print0 )
+
+      ## Iterate over find results on the pattern again, this time in asset 
+      #. directory and without the prefix
+      while IFS= read -r -d $'\0' dest_path; do
+
+        # Extract relative path
+        relative_path="${dest_path#"${D__DPL_ASSET_DIR}/"}"
+
+        # Push the asset onto global containers
+        D_QUEUE_MAIN+=( "$relative_path" )
+        D_DPL_ASSET_PATHS+=( "$dest_path" )
+
+      done < <( find -L "$D__DPL_ASSET_DIR" \
+        -path "${D__DPL_ASSET_DIR}/$path_pattern" -print0 )
     
     else
 
       # Line is intended as solid path
 
       # Copy asset
-      d__copy_asset "$path_pattern" "${D__DPL_DIR}${path_prefix}/$path_pattern" \
-        "$D__DPL_ASSET_DIR/$path_pattern" || all_assets_copied=false
+      if d__copy_asset "$path_pattern" \
+        "${D__DPL_DIR}${path_prefix}/$path_pattern" \
+        "$D__DPL_ASSET_DIR/$path_pattern"
+      then
+
+        # Asset is copied: push onto global containers
+        D_QUEUE_MAIN+=( "$relative_path" )
+        D_DPL_ASSET_PATHS+=( "$dest_path" )
+
+      else
+
+        # Failed to copy asset: continue, but set marker
+        all_assets_copied=false
+
+      fi
     
     fi
 
@@ -201,10 +236,6 @@ d__copy_asset()
     if ! [ -e "$dest_path" ]; then return 1; fi
 
   fi
-
-  # Destination is in place: push onto global containers
-  D_QUEUE_MAIN+=( "$relative_path" )
-  D_DPL_ASSET_PATHS+=( "$dest_path" )
 
   # Return success
   return 0
@@ -554,6 +585,9 @@ d__process_manifest()
             current_flags="$value"
             ;;
           prefix)
+            # Clear leading and trailing slashes, if any
+            while [[ $value = /* ]]; do value="${value#/}"; done
+            while [[ $value = */ ]]; do value="${value%/}"; done
             # Replace current prefix
             current_prefix="$value"
             ;;
