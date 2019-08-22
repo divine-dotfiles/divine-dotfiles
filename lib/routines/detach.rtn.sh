@@ -2,9 +2,9 @@
 #:title:        Divine Bash routine: detach
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    13
-#:revdate:      2019.08.16
-#:revremark:    d__stash -> dstash
+#:revnumber:    14
+#:revdate:      2019.08.22
+#:revremark:    dpl-repos -> bundles; core -> essentials
 #:created_at:   2019.06.28
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -118,7 +118,7 @@ d__detach_dpl_repo()
 
   # Accept one of two patterns: 'builtin_repo_name' and 'username/repo'
   if [[ $repo_arg =~ ^[0-9A-Za-z_.-]+$ ]]; then
-    user_repo="no-simpler/divine-dpls-$repo_arg"
+    user_repo="no-simpler/divine-bundle-$repo_arg"
   elif [[ $repo_arg =~ ^[0-9A-Za-z_.-]+/[0-9A-Za-z_.-]+$ ]]; then
     user_repo="$repo_arg"
   else
@@ -128,7 +128,7 @@ d__detach_dpl_repo()
   fi
 
   # Construct permanent destination
-  local perm_dest="$D__DIR_DPL_REPOS/$user_repo"
+  local perm_dest="$D__DIR_BUNDLES/$user_repo"
 
   # Check if that path exists
   if [ -e "$perm_dest" ]; then

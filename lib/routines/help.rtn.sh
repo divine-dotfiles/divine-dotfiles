@@ -2,9 +2,9 @@
 #:title:        Divine Bash routine: help
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    11
-#:revdate:      2019.08.07
-#:revremark:    Grand removal of non-ASCII chars
+#:revnumber:    12
+#:revdate:      2019.08.22
+#:revremark:    dpl-repos -> bundles; core -> essentials
 #:created_at:   2018.03.25
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -93,7 +93,7 @@ DESCRIPTION
 
     - Accepts deployments in any of two forms:
       - Divine deployment package in the form 'NAME' (which translates to 
-        Github repository 'no-simpler/divine-dpls-NAME')
+        Github repository 'no-simpler/divine-bundle-NAME')
       - Third-party deployment package (Github repository) in the form 
         'username/repository'
     - Makes shallow clones of repositories or downloads them into internal 
@@ -106,7 +106,7 @@ DESCRIPTION
 
     - Accepts deployments in any of two forms:
       - Divine deployment package in the form 'NAME' (which translates to 
-        Github repository 'no-simpler/divine-dpls-NAME')
+        Github repository 'no-simpler/divine-bundle-NAME')
       - Third-party deployment package (Github repository) in the form 
         'username/repository'
     - If such a repository is currently attached, removes it

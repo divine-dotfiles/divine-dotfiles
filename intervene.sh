@@ -2,9 +2,9 @@
 #:title:        Divine Bash script: intervene
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    71
-#:revdate:      2019.08.16
-#:revremark:    Tweak output on illegal option
+#:revnumber:    72
+#:revdate:      2019.08.22
+#:revremark:    dpl-repos -> bundles; core -> essentials
 #:created_at:   2018.03.25
 
 ## Launches the Divine intervention
@@ -67,7 +67,7 @@ d__populate_globals()
   # Paths to directories within $D__DIR_STATE
   readonly D__DIR_BACKUPS="$D__DIR_STATE/backups"
   readonly D__DIR_STASH="$D__DIR_STATE/stash"
-  readonly D__DIR_DPL_REPOS="$D__DIR_STATE/dpl-repos"
+  readonly D__DIR_BUNDLES="$D__DIR_STATE/bundles"
 
   # Path to adapters directory and adapter file suffix
   readonly D__DIR_ADAPTERS="$D__DIR_LIB/adapters"

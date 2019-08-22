@@ -2,9 +2,9 @@
 #:title:        Divine Bash routine: plug
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    13
-#:revdate:      2019.08.16
-#:revremark:    dprompt_key -> dprompt
+#:revnumber:    14
+#:revdate:      2019.08.22
+#:revremark:    dpl-repos -> bundles; core -> essentials
 #:created_at:   2019.06.26
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -287,17 +287,17 @@ d__plug_github_repo()
     return 1
   }
 
-  # Put dpl-repos directory to order
+  # Put bundles directory to order
   if ! d__sync_dpl_repos; then
 
     # Announce failure
     dprint_failure 'Failed to match deployment repositories at:' \
-      -i "$D__DIR_DPL_REPOS" -n 'with newly plugged Grail directory'
+      -i "$D__DIR_BUNDLES" -n 'with newly plugged Grail directory'
 
   fi
 
   # Scan main directories for deployments
-  d__scan_for_dpl_files --fmwk-dir "$D__DIR_DPLS" "$D__DIR_DPL_REPOS"
+  d__scan_for_dpl_files --fmwk-dir "$D__DIR_DPLS" "$D__DIR_BUNDLES"
 
   # Validate deployments
   if d__validate_detected_dpls --fmwk-dir; then
@@ -394,17 +394,17 @@ d__plug_local_repo()
       return 1
     }
 
-    # Put dpl-repos directory to order
+    # Put bundles directory to order
     if ! d__sync_dpl_repos; then
 
       # Announce failure
       dprint_failure 'Failed to match deployment repositories at:' \
-        -i "$D__DIR_DPL_REPOS" -n 'with newly plugged Grail directory'
+        -i "$D__DIR_BUNDLES" -n 'with newly plugged Grail directory'
 
     fi
 
     # Scan main directories for deployments
-    d__scan_for_dpl_files --fmwk-dir "$D__DIR_DPLS" "$D__DIR_DPL_REPOS"
+    d__scan_for_dpl_files --fmwk-dir "$D__DIR_DPLS" "$D__DIR_BUNDLES"
 
     # Validate deployments
     if d__validate_detected_dpls --fmwk-dir; then
@@ -495,17 +495,17 @@ d__plug_local_dir()
     }
   fi
 
-  # Put dpl-repos directory to order
+  # Put bundles directory to order
   if ! d__sync_dpl_repos; then
 
     # Announce failure
     dprint_failure 'Failed to match deployment repositories at:' \
-      -i "$D__DIR_DPL_REPOS" -n 'with newly plugged Grail directory'
+      -i "$D__DIR_BUNDLES" -n 'with newly plugged Grail directory'
 
   fi
 
   # Scan main directories for deployments
-  d__scan_for_dpl_files --fmwk-dir "$D__DIR_DPLS" "$D__DIR_DPL_REPOS"
+  d__scan_for_dpl_files --fmwk-dir "$D__DIR_DPLS" "$D__DIR_BUNDLES"
 
   # Validate deployments
   if d__validate_detected_dpls --fmwk-dir; then

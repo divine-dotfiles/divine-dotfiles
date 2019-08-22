@@ -1,9 +1,9 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revnumber: 38
-:revdate: 2019.08.21
-:revremark: Tweak intro
+:revnumber: 39
+:revdate: 2019.08.22
+:revremark: dpl-repos -> bundles; core -> essentials
 :doctype: article
 // Visual
 :toc:
@@ -59,7 +59,7 @@ Built-in OS detection mechanisms facilitate writing portable deployments.
 +
 Deployment ecosystem is designed with distribution and pluggability in mind.
 
-<<divine-deployments,*Divine deployments*>> (distributed separately) — such as our majestic https://github.com/no-simpler/divine-dpls-core[core bundle] — strive to exemplify what a good deployment should look like.
+<<divine-deployments,*Divine deployments*>> (distributed separately) — such as our majestic https://github.com/no-simpler/divine-bundle-essentials['essentials' bundle] — strive to exemplify what a good deployment should look like.
 
 === Example deployment
 
@@ -114,7 +114,7 @@ On a new machine — plug in your Grail [.small]#_(heh)_# from a repo or a loca
 | Use built-in OS detection mechanism to perform certain tasks on certain distributions or OS families
 
 | <<attach-routine,*Third-party deployments*>>
-| Attach pre-made deployments from Github (such as our glorious https://github.com/no-simpler/divine-dpls-core[core bundle]) without polluting your precious Grail [.small]#_(heheh)_#
+| Attach pre-made deployments from Github (such as our glorious https://github.com/no-simpler/divine-bundle-essentials['essentials' bundle]) without polluting your precious Grail [.small]#_(heheh)_#
 
 | <<stash,*Stash*>>
 | Persistent key-value store for use within your deployments
@@ -294,7 +294,7 @@ Here’s a safe and fully removable way to acquaint yourself with the framework 
 [source,bash]
 ----
 bash -c 'TMP=$(mktemp); URL=https://raw.github.com/no-simpler/divine-dotfiles/master/lib/install/install.sh; if curl --version &>/dev/null; then curl -fsSL $URL >$TMP; elif wget --version &>/dev/null; then wget -qO $TMP $URL; else printf >&2 "\n==> Error: failed to detect neither curl nor wget\n"; rm -f $TMP; exit 1; fi || { printf >&2 "\n==> Error: failed to download installation script\n"; rm -f $TMP; exit 2; }; chmod +x $TMP && $TMP "$@"; RC=$?; rm -f $TMP; ((RC)) && exit 3 || exit 0' bash --yes \
-&& ~/.divine/intervene.sh attach core --yes \
+&& ~/.divine/intervene.sh attach essentials --yes \
 && ~/.divine/intervene.sh install --yes
 ----
 
@@ -303,7 +303,7 @@ bash -c 'TMP=$(mktemp); URL=https://raw.github.com/no-simpler/divine-dotfiles/ma
 This chained command does three things:
 
 . Install the framework without any prompts.
-. Attach our illustrious https://github.com/no-simpler/divine-dpls-core[core bundle] of Divine deployments.
+. Attach our illustrious https://github.com/no-simpler/divine-bundle-essentials['essentials' bundle] of Divine deployments.
 . Run deployment installation routine.
 Expect a prompt for sudo password here (it will be explained).
 
@@ -379,7 +379,7 @@ Below are the separate 'undo' steps, in order:
 ~/.divine/intervene.sh remove --yes
 
 # Detach Divine deployments from your copy of the framework:
-~/.divine/intervene.sh detach core --yes
+~/.divine/intervene.sh detach essentials --yes
 
 # Erase the framework without keeping backups:
 bash -c 'TMP=$(mktemp); URL=https://raw.github.com/no-simpler/divine-dotfiles/master/lib/uninstall/uninstall.sh; if curl --version &>/dev/null; then curl -fsSL $URL >$TMP; elif wget --version &>/dev/null; then wget -qO $TMP $URL; else printf >&2 "\n==> Error: failed to detect neither curl nor wget\n"; rm -f $TMP; exit 1; fi || { printf >&2 "\n==> Error: failed to download uninstallation script\n"; rm -f $TMP; exit 2; }; chmod +x $TMP && $TMP "$@"; RC=$?; rm -f $TMP; ((RC)) && exit 3 || exit 0' bash --yes --backup-no
@@ -423,7 +423,7 @@ Sub-structured as follows:
 
 * `*backups/*` — _Divine.dotfiles_ provides facilities to back up existing files from the system.
 This directory stores such backups.
-* `*dpl-repos/*` — _Divine.dotfiles_ provides facilities to <<attach-routine,attach third-party deployments>> from Github.
+* `*bundles/*` — _Divine.dotfiles_ provides facilities to <<attach-routine,attach third-party deployments>> from Github.
 This directory stores such deployments.
 * `*stash/*` — _Divine.dotfiles_ provides a <<stash,persistent key-value store>> for use within deployments.
 This directory houses key-value containers.
@@ -483,7 +483,7 @@ Without any arguments, all deployments are processed.
 Deployments and Divinefiles are retrieved from two locations (at any depth):
 
 * Directory for user's deployments: `~/.divine/grail/dpls`.
-* Directory for attached deployments: `~/.divine/state/dpl-repos`.
+* Directory for attached deployments: `~/.divine/state/bundles`.
 
 ==== Filtering deployments
 
@@ -576,12 +576,12 @@ $ *di* *d*[*etach*] [-yn] [--] *_REPO_*…
 
 Accepted values of `*_REPO_*` are (case-insensitive):
 
-* Github repository in the form: `no-simpler/divine-dpls-core`.
+* Github repository in the form: `no-simpler/divine-bundle-essentials`.
 * Specifically for Divine deployments, a shorthand is accepted:
 +
 [source,subs="verbatim,quotes,attributes"]
 ----
-`*_NAME_*`  =>  `no-simpler/divine-dpls-*_NAME_*`
+`*_NAME_*`  =>  `no-simpler/divine-bundle-*_NAME_*`
 ----
 +
 (To be a shorthand, `*_NAME_*` must match the regex pattern `^[0-9A-Za-z_.-]+$`.)
@@ -729,7 +729,7 @@ To be picked up by the framework, deployments must be located at any depth under
 
 * `~/.divine/grail/dpls` — user's deployments.
 Create your deployments here.
-* `~/.divine/state/dpl-repos` — attached third-party deployments.
+* `~/.divine/state/bundles` — attached third-party deployments.
 This one is maintained by the framework.
 
 === Deployment structure
@@ -910,7 +910,7 @@ a| *'Critical failure'*: same as 'Failed to uninstall', except:
 It is worth noting that intended semantics of uninstallation are not direct inverse to that of installation.
 Ideally, if no installation via the framework has previously occurred, uninstallation should do nothing.
 
-This philosophy is followed by our magnificent https://github.com/no-simpler/divine-dpls-core[core bundle] of Divine deployments.
+This philosophy is followed by our magnificent https://github.com/no-simpler/divine-bundle-essentials['essentials' bundle] of Divine deployments.
 --
 
 [[deployment-metadata]]
@@ -1045,7 +1045,7 @@ A Divinefile is a manifest of system packages to be maintained using supported s
 * There can absolutely be more than one — their contents are effectively merged.
 * The framework picks up every Divinefile located at any depth under two recognized deployment directories:
 ** `~/.divine/grail/dpls` — user's Divinefiles. Create yours here.
-** `~/.divine/state/dpl-repos` — attached third-party Divinefiles.
+** `~/.divine/state/bundles` — attached third-party Divinefiles.
 * Divinefiles collectively are a deployment.
 
 === Divinefile usage
@@ -2606,47 +2606,47 @@ Apart from being useful by themselves, they serve as an illustration of the fram
 ^.^| Link to deployments' page
 ^.^| Description
 
-| https://github.com/no-simpler/divine-dpls-core[Core bundle]
+| https://github.com/no-simpler/divine-bundle-essentials[Essentials]
 | _(fully functional, not yet fully documented)_
 
 A bundle of bread-and-butter deployments, mostly centered around 'classic' dotfiles.
 
-| https://github.com/no-simpler/divine-dpls-gpg-primer[GnuPG best practices]
+| https://github.com/no-simpler/divine-bundle-gpg-primer[GnuPG best practices]
 | _(fully functional on macOS, not yet fully documented)_
 
 Automates adherence to best security practices in regards to https://www.gnupg.org[GnuPG].
 
-| https://github.com/no-simpler/divine-dpls-ssh-primer[SSH key handling]
+| https://github.com/no-simpler/divine-bundle-ssh-primer[SSH key handling]
 | _(fully functional on macOS, not yet fully documented)_
 
 Automates secure stashing and retrieval of SSH secret keys.
 
 2+^.^h| macOS-specific deployments
 
-| https://github.com/no-simpler/divine-dpls-macos-local-server[Local development server]
+| https://github.com/no-simpler/divine-bundle-macos-local-server[Local development server]
 | _(fully functional on macOS, not yet fully documented)_
 
 Maintains a local development server on macOS.
 For the most part, it automates instructions from https://getgrav.org/blog/macos-mojave-apache-multiple-php-versions[this article].
 
-| https://github.com/no-simpler/divine-dpls-macos-tilde-switch[Tilde-switch]
+| https://github.com/no-simpler/divine-bundle-macos-tilde-switch[Tilde-switch]
 | _(fully functional on macOS, not yet fully documented)_
 
 Programmatically switches keys tilde `~` and plus-minus `±` on a MacBook’s built-in physical keyboard.
 
 2+^.^h| App-specific configuration deployments
 
-| https://github.com/no-simpler/divine-dpls-config-vscode[Visual Studio Code]
+| https://github.com/no-simpler/divine-bundle-config-vscode[Visual Studio Code]
 | _(fully functional on macOS, not yet fully documented)_
 
 Maintains configuration for https://code.visualstudio.com[VS Code].
 
-| https://github.com/no-simpler/divine-dpls-config-hyperjs[Hyper.js]
+| https://github.com/no-simpler/divine-bundle-config-hyperjs[Hyper.js]
 | _(fully functional on macOS, not yet fully documented)_
 
 Maintains configuration for https://hyper.is[Hyper] terminal.
 
-| https://github.com/no-simpler/divine-dpls-config-transmissionbt[Transmission BT]
+| https://github.com/no-simpler/divine-bundle-config-transmissionbt[Transmission BT]
 | _(fully functional on macOS, not yet fully documented)_
 
 Maintains configuration for https://transmissionbt.com[Transmission].

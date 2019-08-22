@@ -2,9 +2,9 @@
 #:title:        Divine Bash routine: update
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    32
-#:revdate:      2019.08.16
-#:revremark:    d__stash -> dstash
+#:revnumber:    33
+#:revdate:      2019.08.22
+#:revremark:    dpl-repos -> bundles; core -> essentials
 #:created_at:   2019.05.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -834,7 +834,7 @@ d__update_dpl_repo_via_git()
 
   # Extract path to repository being updated
   local user_repo="$1"; shift
-  local repo_path="$D__DIR_DPL_REPOS/$user_repo"
+  local repo_path="$D__DIR_BUNDLES/$user_repo"
 
   # Check if dpls directory is a git repo
   if ! git ls-remote "$repo_path" -q &>/dev/null; then
@@ -961,7 +961,7 @@ d__update_dpl_repo_via_tar()
   local temp_dest="$( mktemp -d )"
 
   # Compose permanent destination directory
-  local perm_dest="$D__DIR_DPL_REPOS/$user_repo"
+  local perm_dest="$D__DIR_BUNDLES/$user_repo"
 
   # Prompt user
   if ! dprompt --bare -p 'Attempt to download?' -a "$D__OPT_ANSWER" -- \
@@ -1043,12 +1043,12 @@ d__update_dpl_repo_via_tar()
   fi
 
   # Make sure directory exists
-  mkdir -p -- "$D__DIR_DPL_REPOS/$user_repo" || {
+  mkdir -p -- "$D__DIR_BUNDLES/$user_repo" || {
     # Try to clean up
     rm -rf -- "$temp_dest"
     # Report and return
     dprint_debug "Failed to create destination directory at:" \
-      -i "$D__DIR_DPL_REPOS/$user_repo"
+      -i "$D__DIR_BUNDLES/$user_repo"
     return 1
   }
 
@@ -1062,7 +1062,7 @@ d__update_dpl_repo_via_tar()
     rel_path="${src_path#"$temp_dest/"}"
 
     # Construct target path
-    tgt_path="$D__DIR_DPL_REPOS/$user_repo/$rel_path"
+    tgt_path="$D__DIR_BUNDLES/$user_repo/$rel_path"
 
     # Pre-erase existing file
     if [ -e "$tgt_path" ]; then
@@ -1095,7 +1095,7 @@ d__update_dpl_repo_via_tar()
   # All done: announce and return
   dprint_debug \
     'Successfully overwritten all deployment files at:' \
-    -i "$D__DIR_DPL_REPOS/$user_repo"
+    -i "$D__DIR_BUNDLES/$user_repo"
   return 0
 }
 

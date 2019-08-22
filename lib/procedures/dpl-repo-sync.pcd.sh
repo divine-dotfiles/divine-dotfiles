@@ -2,9 +2,9 @@
 #:title:        Divine Bash procedure: dpl-repo-sync
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    5
-#:revdate:      2019.08.16
-#:revremark:    d__stash -> dstash
+#:revnumber:    6
+#:revdate:      2019.08.22
+#:revremark:    dpl-repos -> bundles; core -> essentials
 #:created_at:   2019.06.28
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -12,16 +12,16 @@
 ## This file is intended to be sourced from framework's main script
 #
 ## Ensures that records of attached deployment repositories are consistent with 
-#. content of dpl-repos directory
+#. content of bundles directory
 #
 
 #>  d__sync_dpl_repos
 #
 ## Synchronizes stash records of attached deployment repositories with actual 
-#. content of dpl-repos directory
+#. content of bundles directory
 #
 ## Returns:
-#.  0 - dpl-repos directory is consistent with records, or made so
+#.  0 - bundles directory is consistent with records, or made so
 #.  1 - Otherwise
 #
 d__sync_dpl_repos()
@@ -39,10 +39,10 @@ d__sync_dpl_repos()
   fi
 
   # Load results of scanning repo directory
-  if [ -r "$D__DIR_DPL_REPOS" -a -d "$D__DIR_DPL_REPOS" ]; then
+  if [ -r "$D__DIR_BUNDLES" -a -d "$D__DIR_BUNDLES" ]; then
     while IFS= read -r -d $'\0' actual_repo_dir; do
       actual_repo_dirs+=( "$actual_repo_dir" )
-    done < <( find "$D__DIR_DPL_REPOS" -mindepth 2 -maxdepth 2 -type d -print0 )
+    done < <( find "$D__DIR_BUNDLES" -mindepth 2 -maxdepth 2 -type d -print0 )
   fi
 
   # Extract count of actual dirs
@@ -61,7 +61,7 @@ d__sync_dpl_repos()
       actual_repo_dir="${actual_repo_dirs[$j]}"
 
       # Check if current directory corresponds to current repo record
-      [ "$D__DIR_DPL_REPOS/$recorded_user_repo" = "$actual_repo_dir" ] \
+      [ "$D__DIR_BUNDLES/$recorded_user_repo" = "$actual_repo_dir" ] \
         || continue
 
       # Directory matched, remove it from further consideration
@@ -101,7 +101,7 @@ d__sync_dpl_repos()
     actual_repo_dir="${actual_repo_dirs[$j]}"
 
     # Compose user/repo
-    user_repo="${actual_repo_dir#"$D__DIR_DPL_REPOS/"}"
+    user_repo="${actual_repo_dir#"$D__DIR_BUNDLES/"}"
 
     # Announce removal
     dprint_alert \
@@ -145,7 +145,7 @@ d__sync_attach_dpl_repo()
   local temp_dest="$( mktemp -d )"
 
   # Construct permanent destination
-  local perm_dest="$D__DIR_DPL_REPOS/$user_repo"
+  local perm_dest="$D__DIR_BUNDLES/$user_repo"
 
   # First, attempt to check existense of repository using git
   if git --version &>/dev/null; then
@@ -272,7 +272,7 @@ d__sync_detach_dpl_repo()
   local user_repo="$1"
 
   # Construct permanent destination
-  local perm_dest="$D__DIR_DPL_REPOS/$user_repo"
+  local perm_dest="$D__DIR_BUNDLES/$user_repo"
 
   # Check if that path exists
   if [ -e "$perm_dest" ]; then

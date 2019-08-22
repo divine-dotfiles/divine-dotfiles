@@ -2,9 +2,9 @@
 #:title:        Divine.dotfiles fmwk install script
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    52
-#:revdate:      2019.08.16
-#:revremark:    d__stash -> dstash
+#:revnumber:    53
+#:revdate:      2019.08.22
+#:revremark:    dpl-repos -> bundles; core -> essentials
 #:created_at:   2019.07.22
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -411,7 +411,7 @@ d__pull_github_repo()
     "$D_FMWK_DIR/grail/dpls" \
     "$D_FMWK_DIR/state/backups" \
     "$D_FMWK_DIR/state/stash" \
-    "$D_FMWK_DIR/state/dpl-repos" \
+    "$D_FMWK_DIR/state/bundles" \
   )
 
   # Create each directory for future use
@@ -646,8 +646,8 @@ EOF
     '(It is a good idea to take your Grail under version control)' \
     '' \
     "For a joy ride, try our bundled Divine deployments using:" \
-    "    $ $BOLD$main_cmd attach core$NORMAL && $BOLD$main_cmd install$NORMAL" \
-    '(More info on these at: https://github.com/no-simpler/divine-dpls-core)' \
+    "    $ $BOLD$main_cmd attach essentials$NORMAL && $BOLD$main_cmd install$NORMAL" \
+    '(More info on these at: https://github.com/no-simpler/divine-bundle-essentials)' \
     ''
   dprint_success 'Thank you, and have a safe and productive day.'
 

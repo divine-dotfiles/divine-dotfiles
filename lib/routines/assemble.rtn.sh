@@ -2,9 +2,9 @@
 #:title:        Divine Bash routine: assemble
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    25
-#:revdate:      2019.08.16
-#:revremark:    Streamline simple dprint incarnations
+#:revnumber:    26
+#:revdate:      2019.08.22
+#:revremark:    dpl-repos -> bundles; core -> essentials
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -26,7 +26,7 @@ d__dispatch_assembly_job()
   case $D__REQ_ROUTINE in
     install|remove|check)
                 d__assemble_all_tasks;;
-    attach)     d__validate_dpl_dirs "$D__DIR_DPLS" "$D__DIR_DPL_REPOS";;
+    attach)     d__validate_dpl_dirs "$D__DIR_DPLS" "$D__DIR_BUNDLES";;
     plug)       :;;
     *)          :;;
   esac
@@ -40,7 +40,7 @@ d__dispatch_assembly_job()
 #
 ## Both types are searched for under both of the following directories:
 #.  * $D__DIR_DPLS         - user-defined custom deployments
-#.  * $D__DIR_DPL_REPOS    - cloned/downloaded deployments from Github
+#.  * $D__DIR_BUNDLES    - cloned/downloaded deployments from Github
 #
 ## Provides into the global scope:
 #.  $D__WORKLOAD    - (array) each taken priority contains a string 'taken'
@@ -75,7 +75,7 @@ d__assemble_all_tasks()
   D__LIST_OF_INT_DPL_PATHS=()
 
   # Parse Divinefiles in all deployment directories
-  d__scan_for_divinefiles --enqueue "$D__DIR_DPLS" "$D__DIR_DPL_REPOS"
+  d__scan_for_divinefiles --enqueue "$D__DIR_DPLS" "$D__DIR_BUNDLES"
 
   # Check return code
   case $? in
@@ -94,7 +94,7 @@ d__assemble_all_tasks()
   esac
 
   # Locate *.dpl.sh files in all supported directories
-  d__scan_for_dpl_files --fmwk-dir --enqueue "$D__DIR_DPLS" "$D__DIR_DPL_REPOS"
+  d__scan_for_dpl_files --fmwk-dir --enqueue "$D__DIR_DPLS" "$D__DIR_BUNDLES"
   
   # Check return code
   case $? in

@@ -2,9 +2,9 @@
 #:title:        Divine Bash routine: attach
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    16
-#:revdate:      2019.08.16
-#:revremark:    d__stash -> dstash
+#:revnumber:    17
+#:revdate:      2019.08.22
+#:revremark:    dpl-repos -> bundles; core -> essentials
 #:created_at:   2019.05.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -130,7 +130,7 @@ d__attach_dpl_repo()
 
   # Accept one of two patterns: 'builtin_repo_name' and 'username/repo'
   if [[ $repo_arg =~ ^[0-9A-Za-z_.-]+$ ]]; then
-    user_repo="no-simpler/divine-dpls-$repo_arg"
+    user_repo="no-simpler/divine-bundle-$repo_arg"
   elif [[ $repo_arg =~ ^[0-9A-Za-z_.-]+/[0-9A-Za-z_.-]+$ ]]; then
     user_repo="$repo_arg"
   else
@@ -143,7 +143,7 @@ d__attach_dpl_repo()
   local temp_dest="$( mktemp -d )"
 
   # Construct permanent destination
-  local perm_dest="$D__DIR_DPL_REPOS/$user_repo"
+  local perm_dest="$D__DIR_BUNDLES/$user_repo"
 
   # First, attempt to check existense of repository using git
   if $GIT_AVAILABLE; then
@@ -387,7 +387,7 @@ d__run_pre_attach_checks()
     fi
 
     # After clobbering in dpls dir, re-scan them for deployments
-    d__scan_for_dpl_files --fmwk-dir "$D__DIR_DPLS" "$D__DIR_DPL_REPOS"
+    d__scan_for_dpl_files --fmwk-dir "$D__DIR_DPLS" "$D__DIR_BUNDLES"
     
     # Check return code
     case $? in
