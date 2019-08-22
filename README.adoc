@@ -1,9 +1,9 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revnumber: 40
+:revnumber: 41
 :revdate: 2019.08.22
-:revremark: Use word bundle to refer to 3rd-party dpls
+:revremark: Add asset arrays section
 :doctype: article
 // Visual
 :toc:
@@ -1179,15 +1179,15 @@ This variable will be non-empty even if there is no assignment within the file.
 
 2+^.^h| Special directory paths
 
-| `*D__DPL_DIR*`
+| [#var-dpl-dir]#`*D__DPL_DIR*`#
 | Absolute path to directory containing `*.dpl.sh` file.
 
-| `*D__DPL_ASSET_DIR*`
+| [#var-dpl-asset-dir]#`*D__DPL_ASSET_DIR*`#
 | Generated absolute path to directory assigned to hold assets of current deployment.
 
 Located within <<grail-directory,the Grail>>, specifically `grail/assets/*_D_DPL_NAME_*/`.
 
-| `*D__DPL_BACKUP_DIR*`
+| [#var-dpl-backup-dir]#`*D__DPL_BACKUP_DIR*`#
 | Generated absolute path to directory assigned to hold backups of current deployment.
 
 Located within <<state-directory,state directory>>, specifically `state/backups/*_D_DPL_NAME_*/`.
@@ -1920,6 +1920,25 @@ Framework enforces the presence of assets identified by concrete paths.
 If any of such assets is missing, deployment will not be allowed to proceed.
 
 Regex patterns are more permissive: they may match zero assets, and no error will be raised.
+--
+
+[[asset-arrays]]
+==== Asset arrays
+
+Whenever the framework processes an asset manifest, it automatically populates two global arrays:
+
+* `*D_DPL_ASSET_PATHS*` — this array is filled with absolute paths to the assets within <<var-dpl-asset-dir,deployment's asset directory>> (contained in <<grail-directory,the Grail>>).
+* `*D_QUEUE_MAIN*` — for each path in the previous array, this one will contain a relative version of that path at the same index.
+Relative paths are resolved against <<var-dpl-asset-dir,deployment's asset directory>>.
+
+You may notice, that these arrays coincide with those used in the <<generic-queue,queues>> (including <<link-queue,link>> and <<copy-queue,copy>> queue variations).
+The reasoning there is that assets are perfect candidates to be handled by a queue.
+You are, of course, free to override these automatically populated arrays.
+
+[NOTE]
+--
+When populating queue arrays, for each regex pattern in your asset manifest, the framework searches for matching files in <<var-dpl-asset-dir,deployment's asset directory>>.
+This means, that the resulting queue will also include assets that might have been added by user manually, and not just ones provided with the deployment.
 --
 
 [[generic-queue]]
