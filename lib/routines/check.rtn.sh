@@ -2,9 +2,9 @@
 #:title:        Divine Bash routine: check
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    45
+#:revnumber:    46
 #:revdate:      2019.08.22
-#:revremark:    Add message about exiting sub-shell
+#:revremark:    Fix dprint_debug breaking code catching
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -460,11 +460,11 @@ d__check_dpls()
 
       )
 
-      # Announce
-      dprint_debug 'Exited sub-shell'
-
       # Store subshell exit status
       dpl_status=$?
+
+      # Announce
+      dprint_debug 'Exited sub-shell'
 
       # Tentatively set failure flag
       proceeding=false
