@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: manifests
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    18
+#:revnumber:    19
 #:revdate:      2019.08.24
-#:revremark:    Use ERE and -regex when finding regex manifest entries
+#:revremark:    Remove unnecessary cd's
 #:created_at:   2019.05.30
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -106,13 +106,10 @@ d__process_asset_manifest_of_current_dpl()
 
         done < <( d__efind -regex "^\./$path_pattern$" -print0 )
 
-        # Return to the initial directory
-        cd -
-
       fi
 
       # Check if dpl asset directory can be changed into
-      if cd -- "${D__DPL_ASSET_DIR}" &>/dev/null; then
+      if cd -- "$D__DPL_ASSET_DIR" &>/dev/null; then
 
         ## Iterate over find results on the pattern again, this time in asset 
         #. directory and without the prefix
@@ -127,9 +124,6 @@ d__process_asset_manifest_of_current_dpl()
           D_DPL_ASSET_PATHS+=( "$dest_path" )
 
         done < <( d__efind -regex "^\./$path_pattern$" -print0 )
-
-        # Return to the initial directory
-        cd -
 
       fi
 
