@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: manifests
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    17
-#:revdate:      2019.08.22
-#:revremark:    When filling queue from mnf, scan asset dir for RE patterns
+#:revnumber:    18
+#:revdate:      2019.08.24
+#:revremark:    Use ERE and -regex when finding regex manifest entries
 #:created_at:   2019.05.30
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -89,34 +89,50 @@ d__process_asset_manifest_of_current_dpl()
 
       # Line is intended as RegEx pattern
 
-      # Iterate over find results on the pattern
-      while IFS= read -r -d $'\0' src_path; do
+      # Check if directory within dpl directory can be changed into
+      if cd -- "${D__DPL_DIR}${path_prefix}" &>/dev/null; then
 
-        # Compose absolute paths
-        relative_path="${src_path#"${D__DPL_DIR}${path_prefix}/"}"
-        dest_path="$D__DPL_ASSET_DIR/$relative_path"
+        # Iterate over find results on the pattern
+        while IFS= read -r -d $'\0' relative_path; do
 
-        # Copy asset, or set failure marker
-        d__copy_asset "$relative_path" "$src_path" "$dest_path" \
-          || all_assets_copied=false
+          # Compose relative and absolute paths
+          relative_path="${relative_path#./}"
+          src_path="${D__DPL_DIR}${path_prefix}/$relative_path"
+          dest_path="$D__DPL_ASSET_DIR/$relative_path"
 
-      done < <( find -L "$D__DPL_DIR" \
-        -path "${D__DPL_DIR}${path_prefix}/$path_pattern" -print0 )
+          # Copy asset, or set failure marker
+          d__copy_asset "$relative_path" "$src_path" "$dest_path" \
+            || all_assets_copied=false
 
-      ## Iterate over find results on the pattern again, this time in asset 
-      #. directory and without the prefix
-      while IFS= read -r -d $'\0' dest_path; do
+        done < <( d__efind -regex "^\./$path_pattern$" -print0 )
 
-        # Extract relative path
-        relative_path="${dest_path#"${D__DPL_ASSET_DIR}/"}"
+        # Return to the initial directory
+        cd -
 
-        # Push the asset onto global containers
-        D_QUEUE_MAIN+=( "$relative_path" )
-        D_DPL_ASSET_PATHS+=( "$dest_path" )
+      fi
 
-      done < <( find -L "$D__DPL_ASSET_DIR" \
-        -path "${D__DPL_ASSET_DIR}/$path_pattern" -print0 )
-    
+      # Check if dpl asset directory can be changed into
+      if cd -- "${D__DPL_ASSET_DIR}" &>/dev/null; then
+
+        ## Iterate over find results on the pattern again, this time in asset 
+        #. directory and without the prefix
+        while IFS= read -r -d $'\0' relative_path; do
+
+          # Compose relative and absolute paths
+          relative_path="${relative_path#./}"
+          dest_path="$D__DPL_ASSET_DIR/$relative_path"
+
+          # Push the asset onto global containers
+          D_QUEUE_MAIN+=( "$relative_path" )
+          D_DPL_ASSET_PATHS+=( "$dest_path" )
+
+        done < <( d__efind -regex "^\./$path_pattern$" -print0 )
+
+        # Return to the initial directory
+        cd -
+
+      fi
+
     else
 
       # Line is intended as solid path

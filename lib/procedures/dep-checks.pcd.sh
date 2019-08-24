@@ -2,9 +2,9 @@
 #:title:        Divine Bash procedure: dep-checks
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    9
-#:revdate:      2019.08.07
-#:revremark:    Fix stalling tests on BSD systems
+#:revnumber:    10
+#:revdate:      2019.08.24
+#:revremark:    Use ERE and -regex when finding regex manifest entries
 #:created_at:   2019.07.05
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -53,6 +53,19 @@ d__check_system_dependencies()
 
     # Flip flag
     all_good=false
+
+  fi
+
+  # Compose find command that uses extended regex
+  if find -E / -maxdepth 0 &>/dev/null; then
+
+    # BSD find with -E option
+    d__efind() { find -E . "$@"; }
+
+  else
+
+    # GNU find with -regextype option
+    d__efind() { find . -regextype posix-extended "$@"; }
 
   fi
 
