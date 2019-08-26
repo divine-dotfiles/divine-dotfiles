@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: manifests
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    19
-#:revdate:      2019.08.24
-#:revremark:    Remove unnecessary cd's
+#:revnumber:    20
+#:revdate:      2019.08.26
+#:revremark:    Fix array assembly for fixed assets
 #:created_at:   2019.05.30
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -131,14 +131,16 @@ d__process_asset_manifest_of_current_dpl()
 
       # Line is intended as solid path
 
+      # Compose absolute paths
+      src_path="${D__DPL_DIR}${path_prefix}/$path_pattern"
+      dest_path="$D__DPL_ASSET_DIR/$path_pattern"
+
       # Copy asset
-      if d__copy_asset "$path_pattern" \
-        "${D__DPL_DIR}${path_prefix}/$path_pattern" \
-        "$D__DPL_ASSET_DIR/$path_pattern"
+      if d__copy_asset "$path_pattern" "$src_path" "$dest_path"
       then
 
         # Asset is copied: push onto global containers
-        D_QUEUE_MAIN+=( "$relative_path" )
+        D_QUEUE_MAIN+=( "$path_pattern" )
         D_DPL_ASSET_PATHS+=( "$dest_path" )
 
       else
