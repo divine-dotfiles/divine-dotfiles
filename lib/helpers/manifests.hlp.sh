@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: manifests
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    22
+#:revnumber:    23
 #:revdate:      2019.08.26
-#:revremark:    Upgrade syntax in slash-trimming
+#:revremark:    Improve logic of queue array overriding
 #:created_at:   2019.05.30
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -56,6 +56,10 @@ d__process_asset_manifest_of_current_dpl()
     return 0
   fi
 
+  # Initialize global arrays
+  D_QUEUE_MAIN=()
+  D_DPL_ASSET_PATHS=()
+
   # Check if $D__MANIFEST_LINES has at least one entry
   [ ${#D__MANIFEST_LINES[@]} -gt 0 ] || return 0
 
@@ -63,10 +67,6 @@ d__process_asset_manifest_of_current_dpl()
   local i path_pattern path_prefix relative_path
   local src_path dest_path dest_parent_path
   local all_assets_copied=true
-
-  # Start populating global variables
-  D_QUEUE_MAIN=()
-  D_DPL_ASSET_PATHS=()
 
   # Iterate over $D__MANIFEST_LINES entries
   for (( i=0; i<${#D__MANIFEST_LINES[@]}; i++ )); do
@@ -177,26 +177,23 @@ d__process_asset_manifest_of_current_dpl()
 #
 d__process_queue_manifest_of_current_dpl()
 {
-  # Check if main queue is already filled up
-  if [ ${#D_QUEUE_MAIN[@]} -gt 1 -o -n "$D_QUEUE_MAIN" ]; then
-
-    # This is either manual queue, or one left over from asset manifest
-
-    # Main queue is already touched, nothing to do:
-    dprint_debug 'Queue manifest overwrites previous queue'
-
-  fi
-
-  # Main queue is not filled: check if queue manifest is readable
+  # Attempt to process the queue manifest
   if d__process_manifest "$D_DPL_QUE_PATH"; then
 
-    # Check if at least one good line has been extracted
-    if [ ${#D__MANIFEST_LINES[@]} -gt 0 ]; then
+    # Queue manifest exists and is now processed
 
-      # Assign collected items to main queue
-      D_QUEUE_MAIN=( "${D__MANIFEST_LINES[@]}" )
-    
+    # Check if main queue is already filled up
+    if [ ${#D_QUEUE_MAIN[@]} -gt 1 -o -n "$D_QUEUE_MAIN" ]; then
+
+      # This is either manual queue, or one left over from asset manifest
+
+      # Declare that queue manifests overrides the queue
+      dprint_debug 'Queue manifest overwrites previous queue'
+
     fi
+
+    # Assign collected items to main queue
+    D_QUEUE_MAIN=( "${D__MANIFEST_LINES[@]}" )
 
   fi
 
