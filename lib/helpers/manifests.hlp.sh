@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: manifests
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    21
+#:revnumber:    22
 #:revdate:      2019.08.26
-#:revremark:    Trim both leading and trailing slashes from asset entries
+#:revremark:    Upgrade syntax in slash-trimming
 #:created_at:   2019.05.30
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -75,8 +75,8 @@ d__process_asset_manifest_of_current_dpl()
     path_pattern="${D__MANIFEST_LINES[$i]}"
 
     # Clear leading and trailing slashes from path/pattern
-    while [[ $path_pattern = /* ]]; do path_pattern="${path_pattern#/}"; done
-    while [[ $path_pattern = */ ]]; do path_pattern="${path_pattern%/}"; done
+    while [[ $path_pattern = /* ]]; do path_pattern="${path_pattern##/}"; done
+    while [[ $path_pattern = */ ]]; do path_pattern="${path_pattern%%/}"; done
 
     # Extract prefix
     if [ -z ${D__MANIFEST_LINE_PREFIXES[$i]+isset} ]; then
@@ -599,8 +599,8 @@ d__process_manifest()
             ;;
           prefix)
             # Clear leading and trailing slashes, if any
-            while [[ $value = /* ]]; do value="${value#/}"; done
-            while [[ $value = */ ]]; do value="${value%/}"; done
+            while [[ $value = /* ]]; do value="${value##/}"; done
+            while [[ $value = */ ]]; do value="${value%%/}"; done
             # Replace current prefix
             current_prefix="$value"
             ;;
