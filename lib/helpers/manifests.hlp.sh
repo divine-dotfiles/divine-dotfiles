@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: manifests
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    23
-#:revdate:      2019.08.26
-#:revremark:    Improve logic of queue array overriding
+#:revnumber:    24
+#:revdate:      2019.08.27
+#:revremark:    Enrich asset manifest functionality
 #:created_at:   2019.05.30
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -66,10 +66,14 @@ d__process_asset_manifest_of_current_dpl()
   # Storage and status variables
   local i path_pattern path_prefix relative_path
   local src_path dest_path dest_parent_path
-  local all_assets_copied=true
+  local all_good=true asset_provided
+  local j flag_r flag_d flag_o flag_n flag_p
 
   # Iterate over $D__MANIFEST_LINES entries
   for (( i=0; i<${#D__MANIFEST_LINES[@]}; i++ )); do
+
+    # If there is a queue split before this line, insert it
+    if [ "${D__MANIFEST_SPLITS[$i]}" = true ]; then d__queue_split; fi
 
     # Extract path/pattern
     path_pattern="${D__MANIFEST_LINES[$i]}"
@@ -85,10 +89,114 @@ d__process_asset_manifest_of_current_dpl()
       path_prefix="/${D__MANIFEST_LINE_PREFIXES[$i]}"
     fi
 
-    # Check if pattern is intended as regex or solid path
-    if [[ ${D__MANIFEST_LINE_FLAGS[$i]} = *r* ]]; then
+    # Set default flags
+    flag_r=false
+    flag_d=false
+    flag_o=false
+    flag_n=false
+    flag_p=false
+
+    # Extract flags
+    for (( j=0; j<${#D__MANIFEST_LINE_FLAGS[$i]}; j++ )); do
+      case ${D__MANIFEST_LINE_FLAGS[$i]:j:1} in
+        r)  flag_r=true;;
+        d)  flag_d=true;;
+        o)  flag_o=true;;
+        n)  flag_n=true;;
+        p)  flag_p=true;;
+      esac
+    done
+
+    # Check if asset is to be contained in deployment directory
+    if $flag_d; then
+
+      # Check if pattern is intended as regex or concrete path
+      if $flag_r; then
+
+        # Line is intended as RegEx pattern
+
+        # Set default provision marker
+        asset_provided=false
+
+        # Check if directory within dpl directory can be changed into
+        if cd -- "${D__DPL_DIR}${path_prefix}" &>/dev/null; then
+
+          # Iterate over find results on the pattern
+          while IFS= read -r -d $'\0' relative_path; do
+
+            # Set provision marker
+            asset_provided=true
+
+            # Compose relative and absolute paths
+            relative_path="${relative_path#./}"
+            orig_path="${D__DPL_DIR}${path_prefix}/$relative_path"
+
+            # Check if pushing onto asset arrays
+            if ! $flag_n; then
+
+              # Push onto asset arrays now
+              D_QUEUE_MAIN+=( "$relative_path" )
+              D_DPL_ASSET_PATHS+=( "$orig_path" )
+
+            fi
+
+          done < <( d__efind -regex "^\./$path_pattern$" -print0 )
+
+        fi
+
+        # Check if asset is not optional and is not provided
+        if ! $flag_o && ! $asset_provided; then
+          
+          # Announce and set failure marker
+          dprint_failure \
+            'Required asset is not provided by deployment author:' \
+            -i "$path_pattern"
+          all_good=false
+
+        fi
+
+      else
+
+        # Line is intended as concrete path
+
+        # Compose absolute paths
+        orig_path="${D__DPL_DIR}${path_prefix}/$path_pattern"
+
+        # Check if the asset is readable and if pushing onto asset arrays
+        if [ -r "$orig_path" ] && ! $flag_n; then
+
+          # Asset is copied: push onto global containers
+          D_QUEUE_MAIN+=( "$path_pattern" )
+          D_DPL_ASSET_PATHS+=( "$orig_path" )
+
+        else
+
+          # Asset not provided: if its not optional, announce and mark failure
+          if ! $flag_o; then
+            dprint_failure \
+              'Required asset is not provided by deployment author:' \
+              -i "$path_pattern"
+            all_good=false
+          fi
+
+        fi
+
+      fi
+
+      # Do not proceed further with this dpl-dir-only asset
+      continue
+
+    fi
+
+    # At this point, the asset is definitely not dpl-dir-only
+
+    # Check if pattern is intended as regex or concrete path
+    if $flag_r; then
 
       # Line is intended as RegEx pattern
+
+      # Set default provision marker
+      asset_provided=false
 
       # Check if directory within dpl directory can be changed into
       if cd -- "${D__DPL_DIR}${path_prefix}" &>/dev/null; then
@@ -96,68 +204,136 @@ d__process_asset_manifest_of_current_dpl()
         # Iterate over find results on the pattern
         while IFS= read -r -d $'\0' relative_path; do
 
+          # Set provision marker
+          asset_provided=true
+
           # Compose relative and absolute paths
           relative_path="${relative_path#./}"
           src_path="${D__DPL_DIR}${path_prefix}/$relative_path"
           dest_path="$D__DPL_ASSET_DIR/$relative_path"
 
           # Copy asset, or set failure marker
-          d__copy_asset "$relative_path" "$src_path" "$dest_path" \
-            || all_assets_copied=false
+          d__copy_asset "$src_path" "$dest_path" \
+            || all_good=false
+
+          # Check if pushing onto asset arrays and if limited to provided
+          if ! $flag_n && $flag_p; then
+
+            # Push onto asset arrays now
+            D_QUEUE_MAIN+=( "$relative_path" )
+            D_DPL_ASSET_PATHS+=( "$dest_path" )
+
+          fi
 
         done < <( d__efind -regex "^\./$path_pattern$" -print0 )
 
       fi
 
-      # Check if dpl asset directory can be changed into
-      if cd -- "$D__DPL_ASSET_DIR" &>/dev/null; then
+      # Check if asset is not optional and is not provided
+      if ! $flag_o && ! $asset_provided; then
+        
+        # Announce and set failure marker
+        dprint_failure 'Required asset is not provided by deployment author:' \
+          -i "$path_pattern"
+        all_good=false
 
-        ## Iterate over find results on the pattern again, this time in asset 
-        #. directory and without the prefix
-        while IFS= read -r -d $'\0' relative_path; do
+      fi
 
-          # Compose relative and absolute paths
-          relative_path="${relative_path#./}"
-          dest_path="$D__DPL_ASSET_DIR/$relative_path"
+      # Check if pushing onto asset arrays and if not limited to provided
+      if ! $flag_n && ! $flag_p; then
 
-          # Push the asset onto global containers
-          D_QUEUE_MAIN+=( "$relative_path" )
-          D_DPL_ASSET_PATHS+=( "$dest_path" )
+        # Check if dpl asset directory can be changed into
+        if cd -- "$D__DPL_ASSET_DIR" &>/dev/null; then
 
-        done < <( d__efind -regex "^\./$path_pattern$" -print0 )
+          ## Iterate over find results on the pattern again, this time in asset 
+          #. directory and without the prefix
+          while IFS= read -r -d $'\0' relative_path; do
+
+            # Compose relative and absolute paths
+            relative_path="${relative_path#./}"
+            dest_path="$D__DPL_ASSET_DIR/$relative_path"
+
+            # Push the asset onto global containers
+            D_QUEUE_MAIN+=( "$relative_path" )
+            D_DPL_ASSET_PATHS+=( "$dest_path" )
+
+          done < <( d__efind -regex "^\./$path_pattern$" -print0 )
+
+        fi
 
       fi
 
     else
 
-      # Line is intended as solid path
+      # Line is intended as concrete path
 
       # Compose absolute paths
       src_path="${D__DPL_DIR}${path_prefix}/$path_pattern"
       dest_path="$D__DPL_ASSET_DIR/$path_pattern"
 
-      # Copy asset
-      if d__copy_asset "$path_pattern" "$src_path" "$dest_path"
-      then
+      # Check if the asset is readable in the deployment directory
+      if [ -e "$src_path" ]; then
 
-        # Asset is copied: push onto global containers
-        D_QUEUE_MAIN+=( "$path_pattern" )
-        D_DPL_ASSET_PATHS+=( "$dest_path" )
+        # Copy asset, or set failure marker
+        d__copy_asset "$src_path" "$dest_path" \
+          || all_good=false
+
+        # Check if pushing onto asset arrays and if limited to provided
+        if ! $flag_n && $flag_p; then
+
+          # Asset is copied: push onto global containers
+          D_QUEUE_MAIN+=( "$path_pattern" )
+          D_DPL_ASSET_PATHS+=( "$dest_path" )
+
+        fi
 
       else
 
-        # Failed to copy asset: continue, but set marker
-        all_assets_copied=false
+        # Asset not provided: if its not optional, announce and mark failure
+        if ! $flag_o; then
+          dprint_failure \
+            'Required asset is not provided by deployment author:' \
+            -i "$path_pattern"
+          all_good=false
+        fi
 
       fi
-    
+
+      # Check if pushing onto asset arrays and if not limited to provided
+      if ! $flag_n && ! $flag_p; then
+
+        # Check if asset is present in asset directory
+        if [ -r "$dest_path" ]; then
+
+          # Push the asset onto global containers
+          D_QUEUE_MAIN+=( "$path_pattern" )
+          D_DPL_ASSET_PATHS+=( "$dest_path" )
+
+        fi
+
+      fi
+
     fi
 
   # Done iterating over $D__MANIFEST_LINES entries
   done
 
-  # Return appropriate code
-  $all_assets_copied && return 0 || return 1
+  # If there is a terminal queue split, insert it
+  if [ "$D__MANIFEST_TERMINAL_SPLIT" = true ]; then d__queue_split; fi
+
+  # Check overall status
+  if $all_good; then
+    
+    # All assets green: return success
+    return 0
+    
+  else
+  
+    # Report and return error
+    dprint_failure 'Failed to process deployment assets'
+    return 1
+
+  fi
 }
 
 #>  d__process_queue_manifest_of_current_dpl
@@ -210,7 +386,6 @@ d__process_queue_manifest_of_current_dpl()
 d__copy_asset()
 {
   # Compose absolute paths
-  local relative_path="$1"; shift
   local src_path="$1"; shift
   local dest_path="$1"; shift
 
@@ -224,26 +399,30 @@ d__copy_asset()
       dest_parent_path="$( dirname -- "$dest_path" )"
 
       # Ensure target directory is available
-      mkdir -p -- "$dest_parent_path" &>/dev/null || {
+      if ! mkdir -p -- "$dest_parent_path" &>/dev/null; then
+
+        # Report and return failure
         dprint_failure "Failed to create directory: $dest_parent_path"
         return 1
-      }
+      
+      fi
 
       # Copy initial version to assets directory
-      cp -Rn -- "$src_path" "$dest_path" &>/dev/null || {
+      if ! cp -Rn -- "$src_path" "$dest_path" &>/dev/null; then
+        
+        # Report and return failure
         dprint_failure "Failed to copy: $src_path" -n "to: $dest_path"
         return 1
-      }
+      
+      fi
 
     fi
 
   else
 
-    # Report error
+    # Source file is not readable: report and return error
     dprint_failure "Unreadable deployment asset: $src_path"
-
-    # Nevertheless check if destination path exists (might be pre-copied)
-    if ! [ -e "$dest_path" ]; then return 1; fi
+    return 1
 
   fi
 
@@ -316,6 +495,13 @@ d__process_all_asset_manifests_in_dpl_dirs()
 #.                                  will contain its prefix at the same index
 #.  $D__MANIFEST_LINE_PRIORITIES  - (array) For each extracted line, this array 
 #.                                  will contain its priority at the same index
+#.  $D__MANIFEST_SPLITS           - (array) For each extracted line, this array 
+#.                                  will contain the string 'true' at the same 
+#.                                  index iff there is a queue split _before_ 
+#.                                  that line
+#.  $D__MANIFEST_TERMINAL_SPLIT   - If there is a queue split after the very 
+#.                                  last line, this variable will be set to 
+#.                                  'true'
 #
 ## Returns:
 #.  0 - Manifest processed, arrays now represent its relevant content
@@ -328,6 +514,8 @@ d__process_manifest()
   D__MANIFEST_LINE_FLAGS=()
   D__MANIFEST_LINE_PREFIXES=()
   D__MANIFEST_LINE_PRIORITIES=()
+  D__MANIFEST_SPLITS=()
+  D__MANIFEST_TERMINAL_SPLIT=false
 
   # Extract path
   local mnf_filepath="$1"; shift
@@ -347,13 +535,14 @@ d__process_manifest()
   # Status variables
   local ongoing_relevance ongoing_flags ongoing_prefix ongoing_priority
   local current_relevance current_flags current_prefix current_priority
-  local negated
+  local split_before_next_entry
 
   # Initial (default) statuses
   ongoing_relevance=true
   ongoing_flags=
   ongoing_prefix=
   ongoing_priority="$D__CONST_DEF_PRIORITY"
+  split_before_next_entry=false
 
   # Store current case sensitivity setting, then turn it off
   local restore_nocasematch="$( shopt -p nocasematch )"
@@ -615,8 +804,15 @@ d__process_manifest()
             
             fi
             ;;
+          queue)
+            # If the value is not precisely 'split', ignore this key-value
+            [[ $value = 'split' ]] || continue
+
+            # Set marker for upcoming split
+            split_before_next_entry=true
+            ;;
           *)
-            # Unsupported key: continue to next chunk of the line
+            # Unsupported key: ignore this key-value
             continue
             ;;
         esac
@@ -699,6 +895,10 @@ d__process_manifest()
     D__MANIFEST_LINE_FLAGS+=( "$current_flags" )
     D__MANIFEST_LINE_PREFIXES+=( "$current_prefix" )
     D__MANIFEST_LINE_PRIORITIES+=( "$current_priority" )
+    D__MANIFEST_SPLITS+=( "$split_before_next_entry" )
+
+    # Clear upcoming split marker
+    split_before_next_entry=false
 
     # Clear buffer
     buffer=
@@ -721,8 +921,15 @@ d__process_manifest()
     D__MANIFEST_LINE_FLAGS+=( "$current_flags" )
     D__MANIFEST_LINE_PREFIXES+=( "$current_prefix" )
     D__MANIFEST_LINE_PRIORITIES+=( "$current_priority" )
+    D__MANIFEST_SPLITS+=( "$split_before_next_entry" )
+
+    # Clear upcoming split marker
+    split_before_next_entry=false
 
   fi
+
+  # Populate terminal split marker with the relevant value
+  D__MANIFEST_TERMINAL_SPLIT="$split_before_next_entry"
 
   # Restore case sensitivity
   eval "$restore_nocasematch"
