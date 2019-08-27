@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: manifests
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    24
+#:revnumber:    25
 #:revdate:      2019.08.27
-#:revremark:    Enrich asset manifest functionality
+#:revremark:    Ensure existence of asset directory
 #:created_at:   2019.05.30
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -62,6 +62,9 @@ d__process_asset_manifest_of_current_dpl()
 
   # Check if $D__MANIFEST_LINES has at least one entry
   [ ${#D__MANIFEST_LINES[@]} -gt 0 ] || return 0
+
+  # Ensure existence of asset directory
+  mkdir -p -- "$D__DPL_ASSET_DIR"
 
   # Storage and status variables
   local i path_pattern path_prefix relative_path
