@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: link-queue
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    8
-#:revdate:      2019.08.20
-#:revremark:    Merge D_DPL_ASSET_RELPATHS into D_QUEUE_MAIN
+#:revnumber:    9
+#:revdate:      2019.08.28
+#:revremark:    Majorly improve queues
 #:created_at:   2019.04.02
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -157,53 +157,40 @@ d__link_queue_pre_process()
   # Override targets for current OS distro, if that variable is non-empty
   d__adapter_override_dpl_targets_for_os_distro
 
-  # If $D_DPL_TARGET_PATHS is thus far empty, try another trick
-  if ! [ ${#D_DPL_TARGET_PATHS[@]} -gt 1 -o -n "$D_DPL_TARGET_PATHS" ] \
-    && [ -n "$D_DPL_TARGET_DIR" ] \
-    && [ ${#D_QUEUE_MAIN[@]} -gt 1 -o -n "$D_QUEUE_MAIN" ]
-  then
+  # Check if section of target paths is thus far empty
+  if [ ${#D_DPL_TARGET_PATHS[@]} -eq "$D__QUEUE_SECTMIN" ]; then
+  
+    # Check if there is a target dir and enough relative paths
+    if [ -n "$D_DPL_TARGET_DIR" ] \
+      && [ ${#D_QUEUE_MAIN[@]} -ge "$D__QUEUE_SECTMAX" ]
+    then
 
-    # In link queue, $D_QUEUE_MAIN is interpreted as relative paths
+      # Interpret $D_QUEUE_MAIN as relative paths
 
-    # Initialize $D_DPL_TARGET_PATHS to empty array
-    D_DPL_TARGET_PATHS=()
+      # Storage variable
+      local i relative_path
 
-    # Storage variable
-    local relative_path
+      for (( i=$D__QUEUE_SECTMIN; i<$D__QUEUE_SECTMAX; i++ )); do
 
-    # Iterate over relative asset paths
-    for relative_path in "${D_QUEUE_MAIN[@]}"; do
+        # Construct path to target and add it
+        D_DPL_TARGET_PATHS+=( "$D_DPL_TARGET_DIR/${D_QUEUE_MAIN[$i]}" )
 
-      # Construct path to target and add it
-      D_DPL_TARGET_PATHS+=( "$D_DPL_TARGET_DIR/$relative_path" )
+      done
 
-    done
+    else
 
-  fi
+      # Still no target paths
 
-  # Check if $D_DPL_TARGET_PATHS still ended up empty
-  if ! [ ${#D_DPL_TARGET_PATHS[@]} -gt 1 -o -n "$D_DPL_TARGET_PATHS" ]; then
-
-    # Report and return failure
-    local detected_os="$D__OS_FAMILY"
-    [ -n "$D__OS_DISTRO" ] && detected_os+=" ($D__OS_DISTRO)"
-    dprint_debug \
-      'Empty list of paths to replace ($D_DPL_TARGET_PATHS) for detected OS:' \
-      "$detected_os"
-    return 1
+      # Report and return failure
+      local detected_os="$D__OS_FAMILY"
+      if [ -n "$D__OS_DISTRO" -a "$D__OS_DISTRO" != "$D__OS_FAMILY" ]; then
+        detected_os+=" ($D__OS_DISTRO)"
+      fi
+      dprint_debug \
+        'Empty list of target paths ($D_DPL_TARGET_PATHS) for detected OS:' \
+        "$detected_os"
+      return 1
     
-  fi
-
-  # Check if $D_QUEUE_MAIN is populated
-  if ! [ ${#D_QUEUE_MAIN[@]} -gt 1 -o -n "$D_QUEUE_MAIN" ]; then
-
-    # Main queue is still empty
-
-    # Try to derive main queue from absolute asset paths
-    if [ ${#D_DPL_ASSET_PATHS[@]} -gt 1 -o -n "$D_DPL_ASSET_PATHS" ]; then
-
-      D_QUEUE_MAIN=( "${D_DPL_ASSET_PATHS[@]}" )
-
     fi
 
   fi

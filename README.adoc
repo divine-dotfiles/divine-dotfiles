@@ -1,9 +1,9 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revnumber: 41
-:revdate: 2019.08.22
-:revremark: Add asset arrays section
+:revnumber: 42
+:revdate: 2019.08.28
+:revremark: Majorly improve queues
 :doctype: article
 // Visual
 :toc:
@@ -312,18 +312,19 @@ Divine deployments *_never overwrite_* pre-existing files on your system without
 Everything that is backed up is *_automatically restored_* upon uninstallation.
 --
 
+After all installations are successful, *reload your shell/terminal*.
+
 ==== What it does
 
-After all installations are successful, reload your shell/terminal and _voilà_:
+When the dust settles, _voilà_:
 
-* You are greeted by `zsh` as your new default shell.
-Unless you had it as default already.
-* Both https://ohmyz.sh[`oh-my-zsh`] and https://github.com/Bash-it/bash-it[`bash-it`] frameworks are now installed and loaded.
-If you had any of those installed already, they are re-used.
-* A minimalistic theme for both frameworks is active.
-* Opinionated default configs are plugged in for `git`, `vim`, `bash`, and `zsh`.
-* Divine utilites `dln`, `dmv`, and `dreadlink` are available on `$PATH`.
-* Your previous files (wherever an override was necessary) are safely kept.
+* You will be greeted by `zsh` as the default shell.
+* Both https://ohmyz.sh[`oh-my-zsh`] and https://github.com/Bash-it/bash-it[`bash-it`] frameworks will be installed and loaded.
+(Existing installations will be re-used.)
+* A minimalistic shell theme will be active in both frameworks.
+* A few essential system packages will be available, e.g., `git`, `vim`, `curl`, etc.
+* Opinionated default configs will be plugged in for `git`, `vim`, `bash`, and `zsh`.
+* Divine utilites `dln`, `dmv`, and `dreadlink` will be available on `$PATH`.
 
 All of the above is controlled from your <<grail-directory,Grail directory>> at `~/.divine/grail/assets/`:
 
@@ -338,7 +339,10 @@ All of the above is controlled from your <<grail-directory,Grail directory>> at 
 | `*config-shell*/`
 | All shell startup scripts (runcoms)
 
-| `*config-{as}*/`
+| `*config-git*/`
+| Global configuration files for `git`.
+
+| `*config-vim*/`
 | Global configs for `git` and `vim`, under respective names
 
 | `*fonts*/` *&dagger;*
@@ -361,7 +365,7 @@ All of the above is controlled from your <<grail-directory,Grail directory>> at 
 
 |===
 
-Notice that names of sub-directories inside `~/.divine/grail/assets/` correspond to the names of their respective deployments.
+Notice that names of sub-directories inside `~/.divine/grail/assets/` match the names of their respective deployments.
 
 [NOTE]
 --
@@ -585,7 +589,7 @@ Accepted values of `*_REPO_*` are (case-insensitive):
 `*_NAME_*`  =>  `no-simpler/divine-bundle-*_NAME_*`
 ----
 +
-(To be a shorthand, `*_NAME_*` must match the regex pattern `^[0-9A-Za-z_.-]+$`.)
+(To be a shorthand, `*_NAME_*` must match the RegEx pattern `^[0-9A-Za-z_.-]+$`.)
 
 Detaching deployments deletes the copy of their repository, but it is up to you to:
 
@@ -992,7 +996,7 @@ Below is the exhaustive rundown of supported flags and their effects.
 [%header,cols="^.<1,<.<3",stripes=none]
 |===
 
-^.^| Flag character (regex)
+^.^| Flag character (RegEx)
 ^.^| Effect on deployment handling
 
 | [#deployment-groups]#`[0-9]`#
@@ -1764,9 +1768,10 @@ Key-values are used to qualify entries and provide additional info.
 
 A key-value is separated into key and value by the first occurrence of `:` (colon) within the parentheses.
 
-There may be more than one key-value per line, but they must precede the actual entry.
+There may be more than one key-value per line.
+Key-values are recognized only when they occupy their own line or precede an entry.
+Key-values that occupy their own line come into effect for the rest of the document, or until overridden.
 Key-values that precede an entry affect only that entry.
-Key-values that occupy their own line comeinto effect for the rest of the document, or unless overridden.
 
 [source,bash]
 ----
@@ -1871,56 +1876,155 @@ If you intend to distribute your deployments, you will soon encounter the proble
 Lets study an example deployment that symlinks a configuration file into the system.
 It would be desirable to copy a sample of that configuration file into user's <<grail-directory,Grail directory>>, and then create a symlink to the copy.
 The user would then be free to inspect, modify, and synchronize that copy.
-At the same time, the deployment file is better kept within <<state-directory,state directory>>, where it would be easily updated by the framework.
+At the same time, the deployment logic is better kept within <<state-directory,state directory>>, where it would be easily updated by the framework.
 
-To facilitate separation of deployment logic and assets, _Divine.dotfiles_ offers the mechanism of *asset manifests*.
+Each deployment has a designated *asset directory*: `grail/assets/*_DPL-NAME_*/`, path to which is readable from a <<var-dpl-asset-dir,variable>>.
+The asset directory is the space where user controls the behavior of the deployment by adding/modifying/removing asset files.
+Deployments, on their part, are free to provide initial/default versions of some or all assets.
+Watever assets are operated upon should be placed in the asset directory.
+
+To facilitate handling of assets, _Divine.dotfiles_ offers the mechanism of *asset manifests*.
 
 [[asset-manifests]]
 ==== Asset manifests
 
 An *asset manifest* is a text file located in the same directory as the deployment file and named the same, except for exchanging `.dpl.sh` suffix for `.dpl.mnf`.
 
-Contents of an asset manifest describe a set of *assets* (files and directories) within the deployment directory.
-Whenever such manifest is processed, the framework ensures that a copy of each asset is present within the deployment's designated asset directory: `grail/assets/*_DPL-NAME_*/`.
-Note, that the framework never overwrites assets that are already present at destination.
+Contents of an asset manifest describe a set of *assets* (files and directories) by providing relative paths to them.
+Whenever an asset manifest is processed, the framework:
+
+* looks up the assets in both <<var-dpl-dir,deployment directory>> (deployment author's versions) and <<var-dpl-asset-dir,asset directory>> (deployment user's versions);
+* copies author's initial versions into asset directory, where necessary;
+* populates <<asset-arrays,global asset arrays>> that can then be used by <<generic-queue,queues>> of <<link-queue,various>> <<copy-queue,types>>.
+
+[NOTE]
+--
+The framework never overwrites assets that are already present in asset directory.
+--
 
 Processing of asset manifests occurs:
 
-* During <<primary-routines,primary routines>>, after sourcing deployment file, but before calling any of the <<primary-functions,primary functions>>.
+* During <<primary-routines,primary routines>>, immediately before sourcing the deployment file.
 * During <<attach-routine,attaching of deployments>>, so that the assets of newly introduced deployments are immediately present in <<grail-directory,the Grail>>.
 
+[[asset-manifest-syntax]]
 ==== Asset manifest syntax
 
 Asset manifests follow the general <<manifest-syntax,manifest syntax>>.
 
-Every entry is a *path* that is resolved relative to the deployment directory.
-When assets are copied to asset directory, their relative path is preserved.
-If you want your assets to be housed under some sub-path, which you don't want to be carried over to destination, specify that sub-path in the `prefix` key.
+Every entry is a *relative path*, which is resolved within <<var-dpl-dir,deployment>> and <<var-dpl-asset-dir,asset>> directories.
+Two types of paths are accepted: *concrete paths* and *RegEx patterns*.
+Leading and trailing slashes are removed from all paths in the asset manifests (including <<asset-manifest-prefix,`prefix`>> sub-paths).
 
-Two type of paths are accepted: *concrete* paths and *regex* patterns.
-To be interpreted as a regex pattern, a path must be <<manifest-entry-flags,flagged>> with `r` character.
-Under the hood, patterns are fed to the http://man7.org/linux/man-pages/man1/find.1.html[find] utility, specifically, the `-path` directive.
+The following <<manifest-entry-flags,*flags*>> are recognized within asset manifests for each asset entry:
+
+[%header,cols="<.<4,^.<1,<.<4",stripes=none]
+|===
+
+^.^| Behavior _without_ the flag (default)
+^.^| Asset flag
+^.^| Behavior _with_ the flag
+
+| The entry is interpreted as a concrete path to a single asset.
+| `*r*`
+
+_**R**egEx_
+| The entry is interpreted as a **r**egex pattern (see <<asset-manifest-regex-note,note>> below), matching any number of assets.
+
+| All matching files and directories within the <<var-dpl-dir,deployment directory>> are copied into the <<var-dpl-asset-dir,asset directory>>, unless the destination already exists.
+Afterward, matching files and directories within the <<var-dpl-asset-dir,*asset directory*>> are pushed onto the <<asset-arrays,asset arrays>>.
+| [#asset-flag-d]#`*d*`#
+
+_**d**pl-dir-only_
+| This asset entry does not leave the <<var-dpl-dir,**d**eployment directory>>.
+Matching files and directories are not copied anywhere, and are pushed onto the <<asset-arrays,asset arrays>> from their original location.
+This provides a way to conceal assets from user's view.
+
+| Some version of the asset must be provided by the author into the <<var-dpl-dir,deployment directory>>.
+(If the entry is a RegEx pattern, it must have at least one matching file/directory.)
+Failing that, the entire deployment is not processed at all.
+| `*o*`
+
+_**o**ptional_
+| The asset entry is considered **o**ptional: its provision by the author is not enforced.
+
+| Files and directories matching the asset entry are pushed onto <<asset-arrays,asset arrays>> for further usage.
+| `*n*`
+
+_**n**o-queue_
+| Files and directories matching the asset entry are **n**ot pushed onto <<asset-arrays,asset arrays>>.
+
+_Together with the <<asset-flag-d,`d` flag>>, this will cause the asset to be completely ignored._
+
+| All matching files and directories within the <<var-dpl-asset-dir,*asset directory*>> will be pushed onto <<asset-arrays,asset arrays>>.
+This opens the door for user to add additional assets.
+
+_Irrelevant when the <<asset-flag-d,`d` flag>> is in effect._
+| `*p*`
+
+_**p**rovided-only_
+| The asset entry is considered limited to those matching files and directories, versions of which are **p**rovided by the author.
+
+_Irrelevant when the <<asset-flag-d,`d` flag>> is in effect._
+
+|===
+
+The following <<manifest-key-values,*key-values*>> are recognized within asset manifests:
+
+[%header,cols="<.<1,<.<3",stripes=none]
+|===
+
+^.^| Key-value
+^.^| Description
+
+| [#asset-manifest-prefix]#`(prefix:**_SUBPATH_**)`#
+| If you — the deployment author — want to contain your assets under some sub-path within the deployment directory, but you don't want that sub-path to be carried over to the asset directory, specify that sub-path in the `prefix` <<manifest-key-values,key>>.
+
+| [#asset-manifest-queue-split]#`(queue:split)`#
+| This key-value does not work like the other key-values.
+It does not affect the asset entries in any way.
+Instead it creates a <<split-queue,queue split>> point wherever it appears.
+
+|===
+
+[NOTE]
+--
+[#asset-manifest-regex-note]#Under the hood#, RegEx patterns are fed to the http://man7.org/linux/man-pages/man1/find.1.html[find] utility, using https://en.wikibooks.org/wiki/Regular_Expressions/POSIX-Extended_Regular_Expressions[POSIX Extended Regular Expressions] dialect, in the manner similar to the following:
+
+[source,bash]
+----
+find . -regex "^\./${PATTERN}$"
+----
+
+As a consequence, the patterns should not include `^` and `$` meta-characters.
+--
+
+[NOTE]
+--
+Order of entries in the asset manifest is guaranteed to correspond to the order of elements in <<asset-arrays,asset arrays>>.
+However, order of files/directories matching a RegEx entry is not guaranteed.
+--
+
+[NOTE]
+--
+Concrete relative paths are simply appended to their parent directories.
+So, asset paths like `.`, `..`, `../..`, etc. will work.
+Asset manifests are designed for convenience, not security.
+--
 
 .Example of asset manifest
 [source]
 ----
 file1.txt           ## These files will be copied from deployment directory
-file2.txt           #. into the root of asset directory
+file2.txt           #. into the root of asset directory.
 
-(r) configs/*.cfg   ## Any .cfg files will be copied into 'configs/'
+(r) configs/\       ## Any .cfg files will be copied into 'configs/' directory. 
+[a-z]+\.cfg         #. (Line continuation is part of manifest syntax.)
 
 (prefix: images)
-img1.jpg            ## These two files will be grabbed from 'images/' directory
-img2.jpg            #. and copied into the root of asset directory
+img1.jpg            ## These two files will be grabbed from 'images/' directory 
+img2.jpg            #. and copied into the root of asset directory.
 ----
-
-[NOTE]
---
-Framework enforces the presence of assets identified by concrete paths.
-If any of such assets is missing, deployment will not be allowed to proceed.
-
-Regex patterns are more permissive: they may match zero assets, and no error will be raised.
---
 
 [[asset-arrays]]
 ==== Asset arrays
@@ -1928,18 +2032,12 @@ Regex patterns are more permissive: they may match zero assets, and no error wil
 Whenever the framework processes an asset manifest, it automatically populates two global arrays:
 
 * `*D_DPL_ASSET_PATHS*` — this array is filled with absolute paths to the assets within <<var-dpl-asset-dir,deployment's asset directory>> (contained in <<grail-directory,the Grail>>).
-* `*D_QUEUE_MAIN*` — for each path in the previous array, this one will contain a relative version of that path at the same index.
+* `*D_QUEUE_MAIN*` — for each path in the previous array, this one will contain some relative version of that path at the same index.
 Relative paths are resolved against <<var-dpl-asset-dir,deployment's asset directory>>.
 
 You may notice, that these arrays coincide with those used in the <<generic-queue,queues>> (including <<link-queue,link>> and <<copy-queue,copy>> queue variations).
 The reasoning there is that assets are perfect candidates to be handled by a queue.
 You are, of course, free to override these automatically populated arrays.
-
-[NOTE]
---
-When populating queue arrays, for each regex pattern in your asset manifest, the framework searches for matching files in <<var-dpl-asset-dir,deployment's asset directory>>.
-This means, that the resulting queue will also include assets that might have been added by user manually, and not just ones provided with the deployment.
---
 
 [[generic-queue]]
 === Generic queue
@@ -1986,17 +2084,19 @@ Following Bash arrays should be populated before any of the built-in helpers are
 ^.^| Description
 
 | [#var-queue-main]#`*D_QUEUE_MAIN*`#
-a| Each member of this array defines a queue item.
+| Each member of this array defines a queue item.
 
-Members of this array are strings, and how they are used is entirely up to you.
+Members of this array are simple strings.
+In generic queues, the framework uses the strings themselves only for debug messages.
+
+|===
 
 [NOTE]
 --
-This array must be consecutive, or the queue will utterly break.
+The queue arrays must be consecutive.
+Failing that, the queue will fail utterly and miserably.
 You have been warned.
 --
-
-|===
 
 ==== Generic queue special functions
 
@@ -2182,32 +2282,23 @@ Note, that you can <<link-queue-asset-automation,automate>> this process.
 ^.^| Variable name
 ^.^| Description
 
-| `*D_DPL_ASSET_PATHS*`
-a| Each member of this array is a path to which a symlink should be maintained.
-Absolute paths are strongly recommended.
-
-[NOTE]
---
-This array must be consecutive, or the queue will utterly break.
-You have been warned.
---
-
-| `*D_DPL_TARGET_PATHS*`
-| For each path in `*D_DPL_ASSET_PATHS*`, this array must contain the intended path to a symlink, which will point to the respective asset.
-Absolute paths are strongly recommended.
-
 | `*D_QUEUE_MAIN*`
-| [.gray]##_(optional-ish)_## This variable is still the main definition of the queue.
+| This variable is still the main definition of the queue.
 In the context of link queue, for each absolute path in `*D_DPL_ASSET_PATHS*`, this array must contain a shortened relative version, resolvable from the asset directory.
 
-In most cases this variable is not mandatory, and link queue will populate it automatically whenever possible.
-However, for a narrow use case, when you employ <<link-queue-asset-automation,link queue automation>> without the <<asset-manifests,asset manifest>>, you will be required to populate this array manually.
+| `*D_DPL_ASSET_PATHS*`
+| Each member of this array is an absolute path to which a symlink should be maintained.
+
+| `*D_DPL_TARGET_PATHS*`
+| For each path in `*D_DPL_ASSET_PATHS*`, this array must contain the intended absolute path to a symlink, which will point to the respective asset.
 
 |===
 
 [NOTE]
 --
-Logically, the arrays above should have the same number of elements.
+The queue arrays must be consecutive and have the same number of elements.
+Failing that, the queue will fail utterly and miserably.
+You have been warned.
 --
 
 ==== Link queue special functions
@@ -2263,23 +2354,30 @@ Supported return codes:
 [[link-queue-asset-automation]]
 ==== Link queue asset automation
 
-So, you have your list of assets, stored in a <<asset-manifests,manifest>>.
-You know your target directory, to which you want to plug in your assets using symlinks.
-
+So, you have your list of assets in a <<asset-manifests,manifest>>, and you know where to symlink them to.
 Why bother with manually populating arrays?
 
 No need.
 
-Simply set the variable `*D_DPL_TARGET_DIR*` before any of the built-in helpers are called.
-Link queue will automatically populate necessary arrays.
+_Divine.dotfiles_ provides two major automation avenues for link queue arrays:
+
+* Arrays `*D_QUEUE_MAIN*` and `*D_DPL_ASSET_PATHS*` are both <<asset-arrays,automatically populated>> when the <<asset-manifests,asset manifest>> is processed, which happens immediately before your deployment file is sourced.
+* Array `*D_DPL_TARGET_PATHS*` can be automatically populated if all your assets are intended to go into one target directory.
++
+For that to occur, put the target directory into `*D_DPL_TARGET_DIR*` variable before any of the built-in helpers are called.
 All your assets will be symlinked into the target directory, with relative paths preserved.
++
+Keep in mind that this does rely on `*D_QUEUE_MAIN*` to contain relative paths, as is the requirement for link queues.
 
-But hey, what about cross-platformness?
+[[link-queue-cross-platform-overrides]]
+==== Link queue cross-platform overrides
 
+Cross-platformness, you say?
+Your assets go into different target directories on different platforms?
 No worries.
 
-In _Divine.dotfiles_, every OS adapter carries an override mechanism for `*D_DPL_TARGET_DIR*`.
-The rules are simple: append the handle of the supported OS in all capitals like this:
+In _Divine.dotfiles_, every OS adapter carries an override mechanism for both `*D_DPL_TARGET_DIR*` and `*D_DPL_TARGET_PATHS*`.
+The rules are simple: append the handle of the supported OS to the variable name in all capitals like this:
 
 [source,bash]
 ----
@@ -2291,7 +2389,7 @@ D_DPL_TARGET_DIR_WSL=/path/on/wsl
 
 [NOTE]
 --
-Such overrides are matched against both  <<var-os-family,`$D\__OS_FAMILY`>> and <<var-os-distro,`$D__OS_DISTRO`>> built-in variables.
+The OS handles are matched against both  <<var-os-family,`$D\__OS_FAMILY`>> and <<var-os-distro,`$D__OS_DISTRO`>> built-in variables.
 A match against distro overrules a match against family, because such is life.
 --
 
@@ -2354,32 +2452,23 @@ Note, that you can <<copy-queue-asset-automation,automate>> this process.
 ^.^| Variable name
 ^.^| Description
 
-| `*D_DPL_ASSET_PATHS*`
-a| Each member of this array is a path to file that is to be copied.
-Absolute paths are strongly recommended.
-
-[NOTE]
---
-This array must be consecutive, or the queue will utterly break.
-You have been warned.
---
-
-| `*D_DPL_TARGET_PATHS*`
-| For each path in `*D_DPL_ASSET_PATHS*`, this array must contain the destination path for copying.
-Absolute paths are strongly recommended.
-
 | `*D_QUEUE_MAIN*`
-| [.gray]##_(optional-ish)_## This variable is still the main definition of the queue.
+| This variable is still the main definition of the queue.
 In the context of copy queue, for each absolute path in `*D_DPL_ASSET_PATHS*`, this array must contain a shortened relative version, resolvable from the asset directory.
 
-In most cases this variable is not mandatory, and copy queue will populate it automatically whenever possible.
-However, for a narrow use case, when you employ <<copy-queue-asset-automation,copy queue automation>> without the <<asset-manifests,asset manifest>>, you will be required to populate this array manually.
+| `*D_DPL_ASSET_PATHS*`
+| Each member of this array is an absolute path to file that is to be copied.
+
+| `*D_DPL_TARGET_PATHS*`
+| For each path in `*D_DPL_ASSET_PATHS*`, this array must contain the destination absolute path for copying.
 
 |===
 
 [NOTE]
 --
-Logically, the arrays above should have the same number of elements.
+The queue arrays must be consecutive and have the same number of elements.
+Failing that, the queue will fail utterly and miserably.
+You have been warned.
 --
 
 ==== Copy queue special functions
@@ -2435,8 +2524,44 @@ Supported return codes:
 [[copy-queue-asset-automation]]
 ==== Copy queue asset automation
 
-Copy queue asset automation works identically to <<link-queue-asset-automation,that of link queue>>.
-(After all, those are the same arrays being used.)
+So, you have your list of assets in a <<asset-manifests,manifest>>, and you know where to copy them to.
+Why bother with manually populating arrays?
+
+No need.
+
+_Divine.dotfiles_ provides two major automation avenues for copy queue arrays:
+
+* Arrays `*D_QUEUE_MAIN*` and `*D_DPL_ASSET_PATHS*` are both <<asset-arrays,automatically populated>> when the <<asset-manifests,asset manifest>> is processed, which happens immediately before your deployment file is sourced.
+* Array `*D_DPL_TARGET_PATHS*` can be automatically populated if all your assets are intended to go into one target directory.
++
+For that to occur, put the target directory into `*D_DPL_TARGET_DIR*` variable before any of the built-in helpers are called.
+All your assets will be copied into the target directory, with relative paths preserved.
++
+Keep in mind that this does rely on `*D_QUEUE_MAIN*` to contain relative paths, as is the requirement for copy queues.
+
+[[copy-queue-cross-platform-overrides]]
+==== Copy queue cross-platform overrides
+
+Cross-platformness, you say?
+Your assets go into different target directories on different platforms?
+No worries.
+
+In _Divine.dotfiles_, every OS adapter carries an override mechanism for both `*D_DPL_TARGET_DIR*` and `*D_DPL_TARGET_PATHS*`.
+The rules are simple: append the handle of the supported OS to the variable name in all capitals like this:
+
+[source,bash]
+----
+D_DPL_TARGET_DIR=/generic/path
+D_DPL_TARGET_DIR_MACOS=/path/on/macos
+D_DPL_TARGET_DIR_FEDORA=/path/on/fedora
+D_DPL_TARGET_DIR_WSL=/path/on/wsl
+----
+
+[NOTE]
+--
+The OS handles are matched against both  <<var-os-family,`$D\__OS_FAMILY`>> and <<var-os-distro,`$D__OS_DISTRO`>> built-in variables.
+A match against distro overrules a match against family, because such is life.
+--
 
 [[multitask]]
 === Multitask
@@ -2532,6 +2657,7 @@ a| See the guidelines to the <<func-dpl-remove,deployment-level sibling>>, `d_dp
 
 |===
 
+[[split-queue]]
 ==== Split queue
 
 Eventually, you will want to include more than one queue in your multitask deployment.
@@ -2591,9 +2717,9 @@ populate_generic_queue() {
 
 [NOTE]
 --
-If you wish to use any <<link-queue-asset-automation,queue>> <<copy-queue-asset-automation,automation>>, you must use it only for the very first task that employs a queue.
+Normally, if you wish to use any <<link-queue-asset-automation,queue>> <<copy-queue-asset-automation,automation>>, you must use it only for the very first task that employs a queue, and append queue elements manually from that point on.
 
-For further queue tasks, the queue arrays must be appended to manually, and member indices must be matched between them.
+However, if you use <<asset-manifests,asset manifests>>, you may <<asset-manifest-queue-split,split your queue>> directly within the asset manifest file.
 --
 
 == Ways to contribute

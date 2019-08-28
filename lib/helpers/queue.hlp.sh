@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: queue
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    33
-#:revdate:      2019.08.19
-#:revremark:    D__QUEUE_MAIN -> D_QUEUE_MAIN
+#:revnumber:    34
+#:revdate:      2019.08.28
+#:revremark:    Majorly improve queues
 #:created_at:   2019.06.10
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -15,11 +15,32 @@
 d__queue_check()
 {
   # Initialize or increment section number
-  if [ -z ${D__QUEUE_CURRENT_SECTION_NUM[0]+isset} ]; then
-    D__QUEUE_CURRENT_SECTION_NUM[0]=0
+  if [ -z ${D__QUEUE_SECTNUM[0]+isset} ]; then
+    D__QUEUE_SECTNUM[0]=0
   else
-    (( ++D__QUEUE_CURRENT_SECTION_NUM[0] ))
+    (( ++D__QUEUE_SECTNUM[0] ))
   fi
+
+  # Calculate section edges
+  local secnum=${D__QUEUE_SECTNUM[0]}
+
+  # Calculate low edge
+  if [ $secnum -eq 0 ]; then D__QUEUE_SECTMIN=0
+  elif [[ ${D__QUEUE_SPLIT_POINTS[$secnum-1]} =~ ^[0-9]+$ ]]; then
+    D__QUEUE_SECTMIN=${D__QUEUE_SPLIT_POINTS[$secnum-1]}
+  else
+    D__QUEUE_SECTMIN=${#D_QUEUE_MAIN[@]}
+  fi
+
+  # Calculate high edge
+  if [[ ${D__QUEUE_SPLIT_POINTS[$secnum]} =~ ^[0-9]+$ ]]; then
+    D__QUEUE_SECTMAX=${D__QUEUE_SPLIT_POINTS[$secnum]}
+  else
+    D__QUEUE_SECTMAX=${#D_QUEUE_MAIN[@]}
+  fi
+
+  # Rely on stashing
+  dstash ready || return 3
 
   # Launch pre-processing if it is implemented
   if declare -f d_queue_pre_process &>/dev/null \
@@ -29,14 +50,16 @@ d__queue_check()
     return 3
   fi
   
+  # Announce checking
+  dprint_debug -n \
+    "Checking queue items $D__QUEUE_SECTMIN-$D__QUEUE_SECTMAX" \
+    "(queue section #$secnum)"
+
   # Check if deployment's main queue is empty
-  if ! [ ${#D_QUEUE_MAIN[@]} -gt 1 -o -n "$D_QUEUE_MAIN" ]; then
-    dprint_debug 'Main queue is empty ($D_QUEUE_MAIN)'
+  if ! [ ${#D_QUEUE_MAIN[@]} -ge $D__QUEUE_SECTMAX ]; then
+    dprint_debug 'Main queue section is not filled ($D_QUEUE_MAIN)'
     return 3
   fi
-
-  # Rely on stashing
-  dstash ready || return 3
 
   # Storage and status variables
   local all_installed=true all_not_installed=true all_unknown=true
@@ -57,29 +80,10 @@ d__queue_check()
     d_queue_post_process() { :; }
   fi
 
-  # Calculate section edges
-  local min max secnum=${D__QUEUE_CURRENT_SECTION_NUM[0]}
-
-  # Calculate low edge
-  if [ $secnum -eq 0 ]; then min=0
-  elif [[ ${D__QUEUE_SPLIT_POINTS[$secnum-1]} =~ ^[0-9]+$ ]]; then
-    min=${D__QUEUE_SPLIT_POINTS[$secnum-1]}
-  else
-    min=${#D_QUEUE_MAIN[@]}
-  fi
-
-  # Calculate high edge
-  if [[ ${D__QUEUE_SPLIT_POINTS[$secnum]} =~ ^[0-9]+$ ]]; then
-    max=${D__QUEUE_SPLIT_POINTS[$secnum]}
-  else
-    max=${#D_QUEUE_MAIN[@]}
-  fi
-
-  # Announce checking
-  dprint_debug -n "Checking queue items $min-$max (queue section #$secnum)"
-
   # Iterate over items in deployment's main queue
-  for (( D__QUEUE_ITEM_NUM=$min; D__QUEUE_ITEM_NUM<$max; D__QUEUE_ITEM_NUM++ )); do
+  for (( D__QUEUE_ITEM_NUM=$D__QUEUE_SECTMIN; \
+    D__QUEUE_ITEM_NUM<$D__QUEUE_SECTMAX; \
+    D__QUEUE_ITEM_NUM++ )); do
 
     # Prepare global variables
     D__QUEUE_ITEM_TITLE="${D_QUEUE_MAIN[$D__QUEUE_ITEM_NUM]}"
@@ -186,7 +190,8 @@ d__queue_check()
             all_installed=false
             all_unknown=false
             should_prompt_again=true
-            d__queue_item_dprint_debug 'Not installed' '(removed by user or OS)'
+            d__queue_item_dprint_debug 'Not installed' \
+              '(removed by user or OS)'
             ;;
         3)  # Bad item: set flag, report error, and skip item
             d__queue_item_status set is_invalid
@@ -269,10 +274,28 @@ d__queue_check()
 d__queue_install()
 {
   # Initialize or increment section number
-  if [ -z ${D__QUEUE_CURRENT_SECTION_NUM[1]+isset} ]; then
-    D__QUEUE_CURRENT_SECTION_NUM[1]=0
+  if [ -z ${D__QUEUE_SECTNUM[1]+isset} ]; then
+    D__QUEUE_SECTNUM[1]=0
   else
-    (( ++D__QUEUE_CURRENT_SECTION_NUM[1] ))
+    (( ++D__QUEUE_SECTNUM[1] ))
+  fi
+
+  # Calculate section edges
+  local secnum=${D__QUEUE_SECTNUM[1]}
+
+  # Calculate low edge
+  if [ $secnum -eq 0 ]; then D__QUEUE_SECTMIN=0
+  elif [[ ${D__QUEUE_SPLIT_POINTS[$secnum-1]} =~ ^[0-9]+$ ]]; then
+    D__QUEUE_SECTMIN=${D__QUEUE_SPLIT_POINTS[$secnum-1]}
+  else
+    D__QUEUE_SECTMIN=${#D_QUEUE_MAIN[@]}
+  fi
+
+  # Calculate high edge
+  if [[ ${D__QUEUE_SPLIT_POINTS[$secnum]} =~ ^[0-9]+$ ]]; then
+    D__QUEUE_SECTMAX=${D__QUEUE_SPLIT_POINTS[$secnum]}
+  else
+    D__QUEUE_SECTMAX=${#D_QUEUE_MAIN[@]}
   fi
 
   # Storage and status variables
@@ -285,29 +308,15 @@ d__queue_install()
     d_queue_item_install() { :; }
   fi
 
-  # Calculate section edges
-  local min max secnum=${D__QUEUE_CURRENT_SECTION_NUM[1]}
-
-  # Calculate low edge
-  if [ $secnum -eq 0 ]; then min=0
-  elif [[ ${D__QUEUE_SPLIT_POINTS[$secnum-1]} =~ ^[0-9]+$ ]]; then
-    min=${D__QUEUE_SPLIT_POINTS[$secnum-1]}
-  else
-    min=${#D_QUEUE_MAIN[@]}
-  fi
-
-  # Calculate high edge
-  if [[ ${D__QUEUE_SPLIT_POINTS[$secnum]} =~ ^[0-9]+$ ]]; then
-    max=${D__QUEUE_SPLIT_POINTS[$secnum]}
-  else
-    max=${#D_QUEUE_MAIN[@]}
-  fi
-
   # Announce checking
-  dprint_debug -n "Installing queue items $min-$max (queue section #$secnum)"
+  dprint_debug -n "I\
+    nstalling queue items $D__QUEUE_SECTMIN-$D__QUEUE_SECTMAX" \
+    "(queue section #$secnum)"
 
   # Iterate over items in deployment's main queue
-  for (( D__QUEUE_ITEM_NUM=$min; D__QUEUE_ITEM_NUM<$max; D__QUEUE_ITEM_NUM++ )); do
+  for (( D__QUEUE_ITEM_NUM=$D__QUEUE_SECTMIN; \
+    D__QUEUE_ITEM_NUM<$D__QUEUE_SECTMAX; \
+    D__QUEUE_ITEM_NUM++ )); do
 
     # If queue item is invalid: skip silently
     if d__queue_item_status is_invalid; then continue; fi
@@ -319,7 +328,8 @@ d__queue_install()
       D__QUEUE_ITEM_STASH_KEY="${D__QUEUE_STASH_KEYS[$D__QUEUE_ITEM_NUM]}"
       if dstash -s has "$D__QUEUE_ITEM_STASH_KEY"; then
         D__QUEUE_ITEM_STASH_FLAG=true
-        D__QUEUE_ITEM_STASH_VALUE="$( dstash -s get "$D__QUEUE_ITEM_STASH_KEY" )"
+        D__QUEUE_ITEM_STASH_VALUE="$( dstash -s get \
+          "$D__QUEUE_ITEM_STASH_KEY" )"
       else
         D__QUEUE_ITEM_STASH_FLAG=false
         D__QUEUE_ITEM_STASH_VALUE=
@@ -338,7 +348,8 @@ d__queue_install()
         0|3)  # Installed successfully
               all_already_installed=false
               all_failed=false
-              dstash -s set "$D__QUEUE_ITEM_STASH_KEY" "$D__QUEUE_ITEM_STASH_VALUE"
+              dstash -s set "$D__QUEUE_ITEM_STASH_KEY" \
+                "$D__QUEUE_ITEM_STASH_VALUE"
               d__queue_item_dprint_debug 'Installed'
               ;;
         1|4)  # Failed to install
@@ -370,7 +381,8 @@ d__queue_install()
         0|3)  # Re-installed successfully
               all_newly_installed=false
               all_failed=false
-              dstash -s set "$D__QUEUE_ITEM_STASH_KEY" "$D__QUEUE_ITEM_STASH_VALUE"
+              dstash -s set "$D__QUEUE_ITEM_STASH_KEY" \
+                "$D__QUEUE_ITEM_STASH_VALUE"
               d__queue_item_dprint_debug 'Force-installed'
               ;;
         1|4)  # Failed to re-install
@@ -441,10 +453,28 @@ d__queue_install()
 d__queue_remove()
 {
   # Initialize or decrement section number (reverse order)
-  if [ -z ${D__QUEUE_CURRENT_SECTION_NUM[1]+isset} ]; then
-    D__QUEUE_CURRENT_SECTION_NUM[1]="${#D__QUEUE_SPLIT_POINTS[@]}"
+  if [ -z ${D__QUEUE_SECTNUM[1]+isset} ]; then
+    D__QUEUE_SECTNUM[1]="${#D__QUEUE_SPLIT_POINTS[@]}"
   else
-    (( --D__QUEUE_CURRENT_SECTION_NUM[1] ))
+    (( --D__QUEUE_SECTNUM[1] ))
+  fi
+
+  # Calculate section edges
+  local secnum=${D__QUEUE_SECTNUM[1]}
+
+  # Calculate low edge
+  if [ $secnum -eq 0 ]; then D__QUEUE_SECTMIN=0
+  elif [[ ${D__QUEUE_SPLIT_POINTS[$secnum-1]} =~ ^[0-9]+$ ]]; then
+    D__QUEUE_SECTMIN=${D__QUEUE_SPLIT_POINTS[$secnum-1]}
+  else
+    D__QUEUE_SECTMIN=${#D_QUEUE_MAIN[@]}
+  fi
+
+  # Calculate high edge
+  if [[ ${D__QUEUE_SPLIT_POINTS[$secnum]} =~ ^[0-9]+$ ]]; then
+    D__QUEUE_SECTMAX=${D__QUEUE_SPLIT_POINTS[$secnum]}
+  else
+    D__QUEUE_SECTMAX=${#D_QUEUE_MAIN[@]}
   fi
 
   # Storage and status variables
@@ -457,29 +487,15 @@ d__queue_remove()
     d_queue_item_remove() { :; }
   fi
 
-  # Calculate section edges
-  local min max secnum=${D__QUEUE_CURRENT_SECTION_NUM[1]}
-
-  # Calculate low edge
-  if [ $secnum -eq 0 ]; then min=0
-  elif [[ ${D__QUEUE_SPLIT_POINTS[$secnum-1]} =~ ^[0-9]+$ ]]; then
-    min=${D__QUEUE_SPLIT_POINTS[$secnum-1]}
-  else
-    min=${#D_QUEUE_MAIN[@]}
-  fi
-
-  # Calculate high edge
-  if [[ ${D__QUEUE_SPLIT_POINTS[$secnum]} =~ ^[0-9]+$ ]]; then
-    max=${D__QUEUE_SPLIT_POINTS[$secnum]}
-  else
-    max=${#D_QUEUE_MAIN[@]}
-  fi
-
   # Announce checking
-  dprint_debug -n "Removing queue items $min-$max (queue section #$secnum)"
+  dprint_debug -n \
+    "Removing queue items $D__QUEUE_SECTMIN-$D__QUEUE_SECTMAX" \
+    "(queue section #$secnum)"
 
   # Iterate over items in deployment's main queue (in reverse order)
-  for (( D__QUEUE_ITEM_NUM=$max-1; D__QUEUE_ITEM_NUM>=$min; D__QUEUE_ITEM_NUM-- )); do
+  for (( D__QUEUE_ITEM_NUM=$D__QUEUE_SECTMAX-1; \
+    D__QUEUE_ITEM_NUM>=$D__QUEUE_SECTMIN; \
+    D__QUEUE_ITEM_NUM-- )); do
 
     # If queue item is invalid: skip silently
     if d__queue_item_status is_invalid; then continue; fi
@@ -491,7 +507,8 @@ d__queue_remove()
       D__QUEUE_ITEM_STASH_KEY="${D__QUEUE_STASH_KEYS[$D__QUEUE_ITEM_NUM]}"
       if dstash -s has "$D__QUEUE_ITEM_STASH_KEY"; then
         D__QUEUE_ITEM_STASH_FLAG=true
-        D__QUEUE_ITEM_STASH_VALUE="$( dstash -s get "$D__QUEUE_ITEM_STASH_KEY" )"
+        D__QUEUE_ITEM_STASH_VALUE="$( dstash -s get \
+          "$D__QUEUE_ITEM_STASH_KEY" )"
       else
         D__QUEUE_ITEM_STASH_FLAG=false
         D__QUEUE_ITEM_STASH_VALUE=
@@ -668,14 +685,18 @@ d__queue_split()
   # Grab argument
   local position="$1"; shift
 
-  # Check if argument is numeric and less than current queue length
-  if [[ $position =~ ^[0-9]+$ ]] && [ $position -lt ${#D_QUEUE_MAIN[@]} ]
+  # Check if argument is not numeric or if it is out of bounds
+  if ! [[ $position =~ ^[0-9]+$ ]] || [ $position -gt ${#D_QUEUE_MAIN[@]} ]
   then
-    D__QUEUE_SPLIT_POINTS+=( $position )
-    return 0
+
+    # Make position the current length of the main queue
+    position=${#D_QUEUE_MAIN[@]}
+
   fi
 
-  # Otherwise, just add separation point at current queue length
-  D__QUEUE_SPLIT_POINTS+=( ${#D_QUEUE_MAIN[@]} )
+  # Add separation point
+  D__QUEUE_SPLIT_POINTS+=( $position )
+
+  # Return success
   return 0
 }
