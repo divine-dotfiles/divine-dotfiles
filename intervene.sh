@@ -2,9 +2,9 @@
 #:title:        Divine Bash script: intervene
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    72
-#:revdate:      2019.08.22
-#:revremark:    dpl-repos -> bundles; core -> essentials
+#:revnumber:    73
+#:revdate:      2019.08.28
+#:revremark:    Make line width equal to terminal width
 #:created_at:   2018.03.25
 
 ## Launches the Divine intervention
@@ -134,7 +134,12 @@ d__populate_globals()
   readonly D__CONST_DEF_PRIORITY=4096
 
   # Default width of information plaque
-  readonly D__CONST_PLAQUE_WIDTH=80
+  local terminal_width="$( tput cols )"
+  if [[ $terminal_width =~ ^[0-9]+$ ]]; then
+    readonly D__CONST_PLAQUE_WIDTH="$terminal_width"
+  else
+    readonly D__CONST_PLAQUE_WIDTH=80
+  fi
 
   # Textual delimiter for internal use
   readonly D__CONST_DELIMITER=';;;'
