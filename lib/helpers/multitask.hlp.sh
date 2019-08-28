@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: reconcile
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    15
-#:revdate:      2019.08.12
-#:revremark:    Return code: 666 -> 102
+#:revnumber:    16
+#:revdate:      2019.08.28
+#:revremark:    Make code catching a bit more transparent
 #:created_at:   2019.06.18
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -23,7 +23,7 @@ d__multitask_check()
   fi
 
   # Storage variables
-  local task_name func_name
+  local task_name func_name return_code
 
   # Iterate over task names
   for task_name in "${D_MULTITASK_NAMES[@]}"; do
@@ -31,15 +31,15 @@ d__multitask_check()
     # Compose d_dpl_check function name for that task
     func_name="d_${task_name}_check"
 
-    # If d_dpl_check function is implemented, run it, otherwise run a bogus func
+    # If d_dpl_check function is implemented, run it
     if declare -f -- "$func_name" &>/dev/null; then
-      "$func_name"
+      "$func_name"; return_code=$?
     else
-      true
+      return_code=0
     fi
 
     # Catch returned code
-    d__multitask_catch_check_code
+    d__multitask_catch_check_code $return_code
 
   # Done iterating over task names
   done
@@ -59,7 +59,7 @@ d__multitask_install()
   fi
 
   # Storage variables
-  local task_name func_name
+  local task_name func_name return_code
 
   # Iterate over task names
   for task_name in "${D_MULTITASK_NAMES[@]}"; do
@@ -67,15 +67,31 @@ d__multitask_install()
     # Compose d_dpl_install function name for that task
     func_name="d_${task_name}_install"
 
-    # If d_dpl_install function is implemented, run it, otherwise run a bogus func
-    if declare -f -- "$func_name" &>/dev/null; then
-      d__multitask_task_is_installable && "$func_name"
+    # Check if task is installable
+    if d__multitask_task_is_installable; then
+
+      # If d_dpl_install function is implemented, run it
+      if declare -f -- "$func_name" &>/dev/null; then
+
+        # Run the function and store its return code
+        "$func_name"; return_code=$?
+
+      else
+
+        # Assume default code
+        return_code=0
+
+      fi
+
     else
-      d__multitask_task_is_installable && true
+
+      # Assume the failure code
+      return_code=$?
+
     fi
 
     # Catch returned code, or return immediately (emergency exit)
-    d__multitask_catch_install_code || return $?
+    d__multitask_catch_install_code $return_code || return $?
 
   # Done iterating over task names
   done
@@ -106,15 +122,31 @@ d__multitask_remove()
     # Compose d_dpl_remove function name for that task
     func_name="d_${task_name}_remove"
 
-    # If d_dpl_remove function is implemented, run it, otherwise run a bogus func
-    if declare -f -- "$func_name" &>/dev/null; then
-      d__multitask_task_is_removable && "$func_name"
+    # Check if task is removable
+    if d__multitask_task_is_removable; then
+
+      # If d_dpl_remove function is implemented, run it
+      if declare -f -- "$func_name" &>/dev/null; then
+
+        # Run the function and store its return code
+        "$func_name"; return_code=$?
+
+      else
+
+        # Assume default code
+        return_code=0
+
+      fi
+
     else
-      d__multitask_task_is_removable && true
+
+      # Assume the failure code
+      return_code=$?
+
     fi
 
     # Catch returned code, or return immediately (emergency exit)
-    d__multitask_catch_remove_code || return $?
+    d__multitask_catch_remove_code $return_code || return $?
 
   # Done iterating over task names in reverse order
   done
@@ -123,9 +155,9 @@ d__multitask_remove()
   d__multitask_reconcile_remove_codes
 }
 
-#>  d__multitask_catch_check_code
+#>  d__multitask_catch_check_code CODE
 #
-## Intercepts last returned code ($?) and stores it in global array for future 
+## Intercepts d_dpl_check return CODE and stores in global array for future 
 #. reference during installation/removal.
 #
 ## Returns:
@@ -134,7 +166,7 @@ d__multitask_remove()
 d__multitask_catch_check_code()
 {
   # Extract last returned code ASAP
-  local last_code=$?
+  local last_code="$1"; shift
 
   # Figure out current task number, assuming this function is called once per
   [ -z ${D__MULTITASK_NUM+isset} ] && D__MULTITASK_NUM=0 || (( D__MULTITASK_NUM++ ))
@@ -323,7 +355,7 @@ d__multitask_task_is_installable()
 
 #>  d__multitask_catch_install_code
 #
-## Intercepts last returned code ($?) and stores it in global array for future 
+## Intercepts d_dpl_check return CODE and stores it in global array for future 
 #. reference during reconciliation of installation codes.
 #
 ## Returns:
@@ -335,7 +367,7 @@ d__multitask_task_is_installable()
 d__multitask_catch_install_code()
 {
   # Extract last returned code ASAP
-  local last_code=$?
+  local last_code="$1"; shift
 
   # If task was irrelevant, don't bother with anything
   if d__multitask_task_status is_irrelevant; then return 0; fi
@@ -463,7 +495,7 @@ d__multitask_task_is_removable()
 
 #>  d__multitask_catch_remove_code
 #
-## Intercepts last returned code ($?) and stores it in global array for future 
+## Intercepts d_dpl_check return CODE and stores it in global array for future 
 #. reference during reconciliation of removal codes.
 #
 ## Returns:
@@ -475,7 +507,7 @@ d__multitask_task_is_removable()
 d__multitask_catch_remove_code()
 {
   # Extract last returned code ASAP
-  local last_code=$?
+  local last_code="$1"; shift
 
   # If task was irrelevant, don't bother with anything
   if d__multitask_task_status is_irrelevant; then return 0; fi
