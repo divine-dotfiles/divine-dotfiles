@@ -2,9 +2,9 @@
 #:title:        Divine Bash procedure: dpl-repo-sync
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    7
+#:revnumber:    8
 #:revdate:      2019.08.28
-#:revremark:    Make sure destination dir for synced dpls exists
+#:revremark:    Silence calls to mv -n
 #:created_at:   2019.06.28
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -249,7 +249,7 @@ d__sync_attach_dpl_repo()
   fi
 
   # Finally, move cloned repository to intended location
-  mv -n -- "$temp_dest" "$perm_dest" || {
+  mv -n -- "$temp_dest" "$perm_dest" &>/dev/null || {
     # Announce failure to move
     dprint_debug 'Failed to move deployments from temporary location at:' \
       -i "$temp_dest" -n 'to intended location at:' -i "$perm_dest"

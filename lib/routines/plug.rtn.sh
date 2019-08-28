@@ -2,9 +2,9 @@
 #:title:        Divine Bash routine: plug
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    14
-#:revdate:      2019.08.22
-#:revremark:    dpl-repos -> bundles; core -> essentials
+#:revnumber:    15
+#:revdate:      2019.08.28
+#:revremark:    Silence calls to mv -n
 #:created_at:   2019.06.26
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -277,7 +277,7 @@ d__plug_github_repo()
     || { rm -rf -- "$temp_dest"; return 1; }
 
   # Finally, move cloned repository to intended location
-  mv -n -- "$temp_dest" "$perm_dest" || {
+  mv -n -- "$temp_dest" "$perm_dest" &>/dev/null || {
     # Announce failure to move
     dprint_debug 'Failed to move deployments from temporary location at:' \
       -i "$temp_dest" -n 'to intended location at:' -i "$perm_dest"
@@ -384,7 +384,7 @@ d__plug_local_repo()
       || { rm -rf -- "$temp_dest"; return 1; }
 
     # Finally, move cloned repository to intended location
-    mv -n -- "$temp_dest" "$perm_dest" || {
+    mv -n -- "$temp_dest" "$perm_dest" &>/dev/null || {
       # Announce failure to move
       dprint_debug 'Failed to move deployments from temporary location at:' \
         -i "$temp_dest" -n 'to intended location at:' -i "$perm_dest"

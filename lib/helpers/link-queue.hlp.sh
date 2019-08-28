@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: link-queue
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    9
+#:revnumber:    10
 #:revdate:      2019.08.28
-#:revremark:    Majorly improve queues
+#:revremark:    Silence calls to mv -n
 #:created_at:   2019.04.02
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -363,7 +363,7 @@ d__link_queue_item_remove()
     fi
 
     # Move backup path to original location, and check status
-    if mv -n -- "$backup_path" "$target_path"; then
+    if mv -n -- "$backup_path" "$target_path" &>/dev/null; then
 
       # Report and return success
       dprint_debug "Restored orphaned backup to: $target_path"

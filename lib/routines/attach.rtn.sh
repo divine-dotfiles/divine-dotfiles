@@ -2,9 +2,9 @@
 #:title:        Divine Bash routine: attach
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    17
-#:revdate:      2019.08.22
-#:revremark:    dpl-repos -> bundles; core -> essentials
+#:revnumber:    18
+#:revdate:      2019.08.28
+#:revremark:    Silence calls to mv -n
 #:created_at:   2019.05.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -257,7 +257,7 @@ d__attach_dpl_repo()
     || { rm -rf -- "$temp_dest"; return 1; }
 
   # Finally, move cloned repository to intended location
-  mv -n -- "$temp_dest" "$perm_dest" || {
+  mv -n -- "$temp_dest" "$perm_dest" &>/dev/null || {
     # Announce failure to move
     dprint_debug 'Failed to move deployments from temporary location at:' \
       -i "$temp_dest" -n 'to intended location at:' -i "$perm_dest"

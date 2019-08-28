@@ -2,9 +2,9 @@
 #:title:        Divine.dotfiles fmwk uninstall script
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    55
-#:revdate:      2019.08.16
-#:revremark:    d__stash -> dstash
+#:revnumber:    56
+#:revdate:      2019.08.28
+#:revremark:    Silence calls to mv -n
 #:created_at:   2019.07.22
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -586,7 +586,7 @@ d__make_backup()
   if [ -d "$D_FMWK_DIR/grail" ]; then
 
     # Move grail directory to temp location
-    if mv -n -- "$D_FMWK_DIR/grail" "$tmpdir/grail"; then
+    if mv -n -- "$D_FMWK_DIR/grail" "$tmpdir/grail" &>/dev/null; then
 
       # Successfully moved: leave record
       dprint_debug "Backed up: $D_FMWK_DIR/grail"
@@ -609,7 +609,7 @@ d__make_backup()
   if [ -d "$D_FMWK_DIR/state" ]; then
 
     # Move state directory to temp location
-    if mv -n -- "$D_FMWK_DIR/state" "$tmpdir/state"; then
+    if mv -n -- "$D_FMWK_DIR/state" "$tmpdir/state" &>/dev/null; then
 
       # Successfully moved: leave record
       dprint_debug "Backed up: $D_FMWK_DIR/state"
@@ -635,7 +635,7 @@ d__make_backup()
     if $something_backed_up; then
 
       # Move temporary directory into place
-      if mv -n -- "$tmpdir" "$D_BACKUP_LOCATION"; then
+      if mv -n -- "$tmpdir" "$D_BACKUP_LOCATION" &>/dev/null; then
 
         # Success: announce and return
         dprint_success \

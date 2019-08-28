@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: copy-queue
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    10
+#:revnumber:    11
 #:revdate:      2019.08.28
-#:revremark:    Majorly improve queues
+#:revremark:    Silence calls to mv -n
 #:created_at:   2019.05.23
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -285,7 +285,7 @@ d__copy_queue_item_install()
     fi
 
     # Move destination path to backup path and check status
-    if ! mv -n -- "$to_path" "$backup_path"; then
+    if ! mv -n -- "$to_path" "$backup_path" &>/dev/null; then
 
       # Failed to back up destination path: abandon this copying
       dprint_debug 'Error on moving pre-existing target' \
@@ -428,13 +428,13 @@ d__copy_queue_item_remove()
 
     # Move backup path to its original path and check status
     if [ -w "$to_parent_dir" ]; then
-      mv -n -- "$backup_path" "$to_path"
+      mv -n -- "$backup_path" "$to_path" &>/dev/null
     else
       if ! sudo -n true 2>/dev/null; then
         dprint_alert 'Moving into:' \
           -i "$to_parent_dir" -n 'requires sudo password'
       fi
-      sudo mv -n -- "$backup_path" "$to_path"
+      sudo mv -n -- "$backup_path" "$to_path" &>/dev/null
     fi
 
     # Check status

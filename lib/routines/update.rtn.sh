@@ -2,9 +2,9 @@
 #:title:        Divine Bash routine: update
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    33
-#:revdate:      2019.08.22
-#:revremark:    dpl-repos -> bundles; core -> essentials
+#:revnumber:    34
+#:revdate:      2019.08.28
+#:revremark:    Silence calls to mv -n
 #:created_at:   2019.05.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -475,14 +475,14 @@ d__update_fmwk_via_git()
 
     # Move Grail dir to temp location
     if [ -d "$D__DIR_GRAIL" ]; then
-      if ! mv -n -- "$D__DIR_GRAIL" "$temp_dir/grail"; then
+      if ! mv -n -- "$D__DIR_GRAIL" "$temp_dir/grail" &>/dev/null; then
         moved_successfully=false
       fi
     fi
     
     # Move state dir to temp location
     if [ -d "$D__DIR_STATE" ]; then
-      if ! mv -n -- "$D__DIR_STATE" "$temp_dir/state"; then
+      if ! mv -n -- "$D__DIR_STATE" "$temp_dir/state" &>/dev/null; then
         moved_successfully=false
       fi
     fi
@@ -528,14 +528,14 @@ d__update_fmwk_via_git()
 
       # Move Grail dir back from temp location
       if [ -d "$temp_dir/grail" ]; then
-        if ! mv -n -- "$temp_dir/grail" "$D__DIR_GRAIL"; then
+        if ! mv -n -- "$temp_dir/grail" "$D__DIR_GRAIL" &>/dev/null; then
           moved_successfully=false
         fi
       fi
       
       # Move state dir back from temp location
       if [ -d "$temp_dir/state" ]; then
-        if ! mv -n -- "$temp_dir/state" "$D__DIR_STATE"; then
+        if ! mv -n -- "$temp_dir/state" "$D__DIR_STATE" &>/dev/null; then
           moved_successfully=false
         fi
       fi
@@ -794,7 +794,7 @@ d__update_fmwk_via_tar()
     fi
 
     # Move new file
-    mv -n -- "$src_path" "$tgt_path" || {
+    mv -n -- "$src_path" "$tgt_path" &>/dev/null || {
       # Try to clean up
       rm -rf -- "$temp_dest"
       # Report and return
@@ -1077,7 +1077,7 @@ d__update_dpl_repo_via_tar()
     fi
 
     # Move new file
-    mv -n -- "$src_path" "$tgt_path" || {
+    mv -n -- "$src_path" "$tgt_path" &>/dev/null || {
       # Try to clean up
       rm -rf -- "$temp_dest"
       # Report and return
