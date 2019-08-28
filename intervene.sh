@@ -2,9 +2,9 @@
 #:title:        Divine Bash script: intervene
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    74
+#:revnumber:    75
 #:revdate:      2019.08.28
-#:revremark:    Make ode widths dependent on terminal width
+#:revremark:    Check version of Bash and prevent Interrupted sys calls
 #:created_at:   2018.03.25
 
 ## Launches the Divine intervention
@@ -16,6 +16,22 @@
 # Driver function
 d__main()
 {
+  # Check version of Bash
+  case ${BASH_VERSION:0:1} in
+    3|4)
+      # Prevent 'write error: Interrupted system call'
+      trap '' SIGWINCH
+      ;;
+    5|6)
+      :
+      ;;
+    *)
+      printf >&2 "Divine.dotfiles: Unsupported version of Bash -- '%s'\n\n" \
+        "${BASH_VERSION}"
+      exit 1
+      ;;
+  esac
+
   # Define constant globals
   d__populate_globals
 
