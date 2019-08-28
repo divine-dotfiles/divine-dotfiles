@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: reconcile
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    16
+#:revnumber:    17
 #:revdate:      2019.08.28
-#:revremark:    Make code catching a bit more transparent
+#:revremark:    Make code catching a bit more transparent, part 2
 #:created_at:   2019.06.18
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -33,9 +33,15 @@ d__multitask_check()
 
     # If d_dpl_check function is implemented, run it
     if declare -f -- "$func_name" &>/dev/null; then
+
+      # Run the function, store its return code
       "$func_name"; return_code=$?
+
     else
+
+      # Assume default return code
       return_code=0
+
     fi
 
     # Catch returned code
