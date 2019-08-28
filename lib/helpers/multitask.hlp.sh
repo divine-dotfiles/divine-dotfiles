@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: reconcile
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    18
+#:revnumber:    19
 #:revdate:      2019.08.28
-#:revremark:    D__MULTITASK_TASKNUM - make available earlier
+#:revremark:    Support multitask queues when (un)installations are skipped
 #:created_at:   2019.06.18
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -26,6 +26,9 @@ d__multitask_check()
   # Storage variables
   local task_name func_name return_code
 
+  # Global status variable
+  D__MULTITASK_TASKS_ARE_QUEUES=()
+
   # Iterate over task names
   for task_name in "${D_MULTITASK_NAMES[@]}"; do
 
@@ -33,6 +36,9 @@ d__multitask_check()
     [ -z ${D__MULTITASK_TASKNUM+isset} ] \
       && D__MULTITASK_TASKNUM=0 \
       || (( ++D__MULTITASK_TASKNUM ))
+
+    # Set marker var for whether current task is a queue
+    D__MULTITASK_TASK_IS_QUEUE=
 
     # Compose d_dpl_check function name for that task
     func_name="d_${task_name}_check"
@@ -48,6 +54,13 @@ d__multitask_check()
       # Assume default return code
       return_code=0
 
+    fi
+
+    # Check if current task if queue
+    if [ -n "$D__MULTITASK_TASK_IS_QUEUE" ]; then
+      D__MULTITASK_TASKS_ARE_QUEUES[$D__MULTITASK_TASKNUM]=true
+    else
+      D__MULTITASK_TASKS_ARE_QUEUES[$D__MULTITASK_TASKNUM]=false
     fi
 
     # Catch returned code
@@ -105,6 +118,19 @@ d__multitask_install()
 
       # Assume the failure code
       return_code=$?
+
+      # Check if skipped task was in fact a queue
+      if [ "${D__MULTITASK_TASKS_ARE_QUEUES[$D__MULTITASK_TASKNUM]}" = true ]
+      then
+
+        # Initialize or increment queue section number
+        if [ -z ${D__QUEUE_SECTNUM[1]+isset} ]; then
+          D__QUEUE_SECTNUM[1]=0
+        else
+          (( ++D__QUEUE_SECTNUM[1] ))
+        fi
+
+      fi
 
     fi
 
@@ -168,6 +194,19 @@ d__multitask_remove()
 
       # Assume the failure code
       return_code=$?
+
+      # Check if skipped task was in fact a queue
+      if [ "${D__MULTITASK_TASKS_ARE_QUEUES[$D__MULTITASK_TASKNUM]}" = true ]
+      then
+
+        # Initialize or decrement queue section number (reverse order)
+        if [ -z ${D__QUEUE_SECTNUM[1]+isset} ]; then
+          D__QUEUE_SECTNUM[1]="${#D__QUEUE_SPLIT_POINTS[@]}"
+        else
+          (( --D__QUEUE_SECTNUM[1] ))
+        fi
+        
+      fi
 
     fi
 

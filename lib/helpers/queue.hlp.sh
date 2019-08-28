@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: queue
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    35
+#:revnumber:    36
 #:revdate:      2019.08.28
-#:revremark:    Fix erroneous line continuation
+#:revremark:    Support multitask queues when (un)installations are skipped
 #:created_at:   2019.06.10
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -19,6 +19,11 @@ d__queue_check()
     D__QUEUE_SECTNUM[0]=0
   else
     (( ++D__QUEUE_SECTNUM[0] ))
+  fi
+
+  # If this queue section is task in a multitask, mark the task as queue
+  if [[ $D__MULTITASK_TASKNUM =~ ^[0-9]+$ ]]; then
+    D__MULTITASK_TASK_IS_QUEUE=$D__MULTITASK_TASKNUM    
   fi
 
   # Calculate section edges
