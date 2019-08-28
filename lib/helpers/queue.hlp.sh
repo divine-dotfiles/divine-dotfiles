@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: queue
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    34
+#:revnumber:    35
 #:revdate:      2019.08.28
-#:revremark:    Majorly improve queues
+#:revremark:    Fix erroneous line continuation
 #:created_at:   2019.06.10
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -309,8 +309,8 @@ d__queue_install()
   fi
 
   # Announce checking
-  dprint_debug -n "I\
-    nstalling queue items $D__QUEUE_SECTMIN-$D__QUEUE_SECTMAX" \
+  dprint_debug -n \
+    "Installing queue items $D__QUEUE_SECTMIN-$D__QUEUE_SECTMAX" \
     "(queue section #$secnum)"
 
   # Iterate over items in deployment's main queue
