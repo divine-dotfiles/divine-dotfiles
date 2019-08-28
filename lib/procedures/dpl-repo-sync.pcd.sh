@@ -2,9 +2,9 @@
 #:title:        Divine Bash procedure: dpl-repo-sync
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    6
-#:revdate:      2019.08.22
-#:revremark:    dpl-repos -> bundles; core -> essentials
+#:revnumber:    7
+#:revdate:      2019.08.28
+#:revremark:    Make sure destination dir for synced dpls exists
 #:created_at:   2019.06.28
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -236,6 +236,16 @@ d__sync_attach_dpl_repo()
 
     fi
   
+  fi
+
+  # Ensure parent directory of destination exists
+  local perm_dest_parent="$( dirname -- "$perm_dest" )"
+  if ! mkdir -p -- "$perm_dest_parent" &>/dev/null; then
+    # Announce and return failure
+    dprint_failure \
+      'Failed to create a parent directory for missing deployments:' \
+      -i "$perm_dest_parent"
+    return 1
   fi
 
   # Finally, move cloned repository to intended location
