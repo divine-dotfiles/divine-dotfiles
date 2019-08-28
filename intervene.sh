@@ -2,9 +2,9 @@
 #:title:        Divine Bash script: intervene
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    73
+#:revnumber:    74
 #:revdate:      2019.08.28
-#:revremark:    Make line width equal to terminal width
+#:revremark:    Make ode widths dependent on terminal width
 #:created_at:   2018.03.25
 
 ## Launches the Divine intervention
@@ -159,12 +159,14 @@ d__populate_globals()
   # Regex for extracting D_DPL_WARNING from *.dpl.sh file
   readonly D__REGEX_DPL_WARNING='D_DPL_WARNING=\(.*\)'
 
-  # dprint_ode base options (total width with single space delimiters: 80)
+  # dprint_ode base options (total width with single space delimiters: >=80)
+  local remaining_width=$(( D__CONST_PLAQUE_WIDTH - 3 - 3 - 16 - 1 ))
+  if (( remaining_width < 57 )); then remaining_width=57; fi
   D__ODE_BASE=( \
     --width-1 3 \
     --width-2 16 \
     --width-3 1 \
-    --width-4 57 \
+    --width-4 $remaining_width \
   ); readonly D__ODE_BASE
 
   # dprint_ode options for normal messages
