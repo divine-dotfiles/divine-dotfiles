@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: reconcile
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    19
+#:revnumber:    20
 #:revdate:      2019.08.28
-#:revremark:    Support multitask queues when (un)installations are skipped
+#:revremark:    Prevent irrelevant tasks affecting overall status
 #:created_at:   2019.06.18
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -279,8 +279,8 @@ d__multitask_catch_check_code()
         # Allow installation
         d__multitask_task_status set can_be_installed
         ;;
-    3)  # Irrelevant: flip flags
-        for j in 0 1 2 4; do D__MULTITASK_STATUS_SUMMARY[$j]=false; done
+    3)  # Irrelevant: don't flip flags (task becomes not a part of deployment)
+        # for j in 0 1 2 4; do D__MULTITASK_STATUS_SUMMARY[$j]=false; done
 
         # Should not be touched
         d__multitask_task_status set is_irrelevant
@@ -355,21 +355,21 @@ d__multitask_reconcile_check_codes()
   # Storage variable for return code
   local return_code
 
-  # Sequentially check if at least one all-code survived
-  if [ "${D__MULTITASK_STATUS_SUMMARY[0]}" = true ]; then return_code=0
+  # Sequentially check if at least one all-code survived (start with irrelev.)
+  if [ "${D__MULTITASK_STATUS_SUMMARY[3]}" = true ]; then return_code=3
+  elif [ "${D__MULTITASK_STATUS_SUMMARY[0]}" = true ]; then return_code=0
   elif [ "${D__MULTITASK_STATUS_SUMMARY[1]}" = true ]; then return_code=1
   elif [ "${D__MULTITASK_STATUS_SUMMARY[2]}" = true ]; then return_code=2
-  elif [ "${D__MULTITASK_STATUS_SUMMARY[3]}" = true ]; then return_code=3
   elif [ "${D__MULTITASK_STATUS_SUMMARY[4]}" = true ]; then return_code=4
   else
-    # Nothing conclusive: check if any kind of installation was encountered
-    if [ -z ${D__MULTITASK_STATUS_SUMMARY[5]+isset} ]; then
-      # No installations: this is a mix on 'not installed' and 'irrelevant'
-      return_code=2
-    else
-      # Some installations: call this partially installed
-      return_code=4
-    fi
+
+    ## Its a mix, but definitely not a mix of 'irrelevant' + something else.
+    #. Thus it is an arbitrary mix of 'unknown', 'installed', 'not installed', 
+    #. and 'partly installed'.
+
+    # Some installations: call this partially installed
+    return_code=4
+
   fi
 
   # Reset flag storage (for following installations/removals)
