@@ -19,7 +19,7 @@ D_DPL_WARNING=
 #.  d_dpl_remove-like      - Function that behaves as d_dpl_remove in its return codes
 #
 ## Variables maintained (avoid touching these!):
-#.  $D__MULTITASK_NUM             - Index of current task
+#.  $D__MULTITASK_TASKNUM         - Index of current task
 #.  $D__MULTITASK_STATUS_SUMMARY  - Container for status summary
 #.  $D__MULTITASK_FLAGS           - Container for installed/not installed flags
 #

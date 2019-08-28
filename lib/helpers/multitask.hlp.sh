@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: reconcile
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    17
+#:revnumber:    18
 #:revdate:      2019.08.28
-#:revremark:    Make code catching a bit more transparent, part 2
+#:revremark:    D__MULTITASK_TASKNUM - make available earlier
 #:created_at:   2019.06.18
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -15,7 +15,8 @@
 d__multitask_check()
 {
   # Check whether at least one task name has been provided
-  if [ -z "${D_MULTITASK_NAMES+isset}" -o ${#D_MULTITASK_NAMES[@]} -eq 0 ]; then
+  if [ -z "${D_MULTITASK_NAMES+isset}" -o ${#D_MULTITASK_NAMES[@]} -eq 0 ]
+  then
 
     # No tasks: return default code
     return 0
@@ -27,6 +28,11 @@ d__multitask_check()
 
   # Iterate over task names
   for task_name in "${D_MULTITASK_NAMES[@]}"; do
+
+    # Figure out current task ordinal number
+    [ -z ${D__MULTITASK_TASKNUM+isset} ] \
+      && D__MULTITASK_TASKNUM=0 \
+      || (( ++D__MULTITASK_TASKNUM ))
 
     # Compose d_dpl_check function name for that task
     func_name="d_${task_name}_check"
@@ -57,7 +63,8 @@ d__multitask_check()
 d__multitask_install()
 {
   # Check whether at least one task name has been provided
-  if [ -z "${D_MULTITASK_NAMES+isset}" -o ${#D_MULTITASK_NAMES[@]} -eq 0 ]; then
+  if [ -z "${D_MULTITASK_NAMES+isset}" -o ${#D_MULTITASK_NAMES[@]} -eq 0 ]
+  then
 
     # No tasks: return default code
     return 0
@@ -69,6 +76,11 @@ d__multitask_install()
 
   # Iterate over task names
   for task_name in "${D_MULTITASK_NAMES[@]}"; do
+
+    # Figure out current task ordinal number
+    [ -z ${D__MULTITASK_TASKNUM+isset} ] \
+      && D__MULTITASK_TASKNUM=0 \
+      || (( ++D__MULTITASK_TASKNUM ))
 
     # Compose d_dpl_install function name for that task
     func_name="d_${task_name}_install"
@@ -109,7 +121,8 @@ d__multitask_install()
 d__multitask_remove()
 {
   # Check whether at least one task name has been provided
-  if [ -z "${D_MULTITASK_NAMES+isset}" -o ${#D_MULTITASK_NAMES[@]} -eq 0 ]; then
+  if [ -z "${D_MULTITASK_NAMES+isset}" -o ${#D_MULTITASK_NAMES[@]} -eq 0 ]
+  then
 
     # No tasks: return default code
     return 0
@@ -121,6 +134,13 @@ d__multitask_remove()
 
   # Iterate over task names in reverse order
   for (( i=$D__MULTITASK_MAX_NUM; i>=0; i-- )); do
+
+    # Figure out current task ordinal number
+    if [ -z ${D__MULTITASK_TASKNUM+isset} ]; then
+      D__MULTITASK_TASKNUM="$D__MULTITASK_MAX_NUM"
+    else
+      (( --D__MULTITASK_TASKNUM ))
+    fi
 
     # Extract task name
     task_name="${D_MULTITASK_NAMES[$i]}"
@@ -173,9 +193,6 @@ d__multitask_catch_check_code()
 {
   # Extract last returned code ASAP
   local last_code="$1"; shift
-
-  # Figure out current task number, assuming this function is called once per
-  [ -z ${D__MULTITASK_NUM+isset} ] && D__MULTITASK_NUM=0 || (( D__MULTITASK_NUM++ ))
 
   ## If not already, set up status array of booleans:
   #.  $D__MULTITASK_STATUS_SUMMARY[0] - true if all tasks are unknown
@@ -284,14 +301,17 @@ d__multitask_catch_check_code()
 d__multitask_reconcile_check_codes()
 {
   # Remember total number of tasks
-  D__MULTITASK_MAX_NUM=$(( $D__MULTITASK_NUM ))
+  D__MULTITASK_MAX_NUM=$(( $D__MULTITASK_TASKNUM ))
 
   # Reset task number counter (for following installations/removals)
-  unset D__MULTITASK_NUM
+  unset D__MULTITASK_TASKNUM
 
   # Settle user-or-os status
-  if [ "${D__MULTITASK_STATUS_SUMMARY[5]}" = true ]; then D_DPL_INSTALLED_BY_USER_OR_OS=true
-  else D_DPL_INSTALLED_BY_USER_OR_OS=false; fi
+  if [ "${D__MULTITASK_STATUS_SUMMARY[5]}" = true ]; then
+    D_DPL_INSTALLED_BY_USER_OR_OS=true
+  else
+    D_DPL_INSTALLED_BY_USER_OR_OS=false
+  fi
 
   # Storage variable for return code
   local return_code
@@ -337,9 +357,6 @@ d__multitask_task_is_installable()
 {
   # Make sure $D__MULTITASK_IS_FORCED is not inherited from previous tasks
   unset D__MULTITASK_IS_FORCED
-
-  # Figure out current task number, assuming this function is called once per
-  [ -z ${D__MULTITASK_NUM+isset} ] && D__MULTITASK_NUM=0 || (( D__MULTITASK_NUM++ ))
 
   # If task is irrelevant, return immediately
   if d__multitask_task_status is_irrelevant; then return 1; fi
@@ -474,13 +491,6 @@ d__multitask_task_is_removable()
   # Make sure $D__MULTITASK_IS_FORCED is not inherited from previous tasks
   unset D__MULTITASK_IS_FORCED
 
-  # Figure out current task number, assuming this function is called once per
-  if [ -z ${D__MULTITASK_NUM+isset} ]; then
-    D__MULTITASK_NUM="$D__MULTITASK_MAX_NUM"
-  else
-    (( D__MULTITASK_NUM-- ))
-  fi
-
   # If task is irrelevant, return immediately
   if d__multitask_task_status is_irrelevant; then return 1; fi
 
@@ -607,22 +617,22 @@ d__multitask_task_status()
 
     # Setting flag: ditch first arg and add necessary flag
     shift; case $1 in
-      is_irrelevant)      D__MULTITASK_FLAGS[$D__MULTITASK_NUM]+='x';;
-      can_be_installed)   D__MULTITASK_FLAGS[$D__MULTITASK_NUM]+='i';;
-      can_be_removed)     D__MULTITASK_FLAGS[$D__MULTITASK_NUM]+='r';;
-      is_skipped)         D__MULTITASK_FLAGS[$D__MULTITASK_NUM]+='s';;
-      *)                  return 1;;
+      is_irrelevant)    D__MULTITASK_FLAGS[$D__MULTITASK_TASKNUM]+='x';;
+      can_be_installed) D__MULTITASK_FLAGS[$D__MULTITASK_TASKNUM]+='i';;
+      can_be_removed)   D__MULTITASK_FLAGS[$D__MULTITASK_TASKNUM]+='r';;
+      is_skipped)       D__MULTITASK_FLAGS[$D__MULTITASK_TASKNUM]+='s';;
+      *)                return 1;;
     esac
 
   else
 
     # Checking flag: return 0/1 based on presence of requested flag
     case $1 in
-      is_irrelevant)      [[ ${D__MULTITASK_FLAGS[$D__MULTITASK_NUM]} == *x* ]];;
-      can_be_installed)   [[ ${D__MULTITASK_FLAGS[$D__MULTITASK_NUM]} == *i* ]];;
-      can_be_removed)     [[ ${D__MULTITASK_FLAGS[$D__MULTITASK_NUM]} == *r* ]];;
-      is_skipped)         [[ ${D__MULTITASK_FLAGS[$D__MULTITASK_NUM]} == *s* ]];;
-      *)                  return 1;;
+      is_irrelevant)    [[ ${D__MULTITASK_FLAGS[$D__MULTITASK_TASKNUM]} == *x* ]];;
+      can_be_installed) [[ ${D__MULTITASK_FLAGS[$D__MULTITASK_TASKNUM]} == *i* ]];;
+      can_be_removed)   [[ ${D__MULTITASK_FLAGS[$D__MULTITASK_TASKNUM]} == *r* ]];;
+      is_skipped)       [[ ${D__MULTITASK_FLAGS[$D__MULTITASK_TASKNUM]} == *s* ]];;
+      *)                return 1;;
     esac
 
   fi
