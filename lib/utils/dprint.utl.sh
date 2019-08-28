@@ -3,9 +3,9 @@
 #:kind:         func(script)
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    9
+#:revnumber:    10
 #:revdate:      2019.08.28
-#:revremark:    Remove upper width limit from fields in dprint_ode
+#:revremark:    Remove upper width limit from dprint_plaque
 #:created_at:   2018.12.20
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -710,7 +710,6 @@ dprint_plaque()
   # Force width into acceptable range
   [[ $width =~ ^[0-9]+$ ]] \
     && [ $width -ge 0 ] \
-    && [ $width -le 128 ] \
     || width=32
 
   # Storage variables
