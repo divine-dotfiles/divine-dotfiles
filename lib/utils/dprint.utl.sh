@@ -3,9 +3,9 @@
 #:kind:         func(script)
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    8
-#:revdate:      2019.08.16
-#:revremark:    Streamline simple dprint incarnations
+#:revnumber:    9
+#:revdate:      2019.08.28
+#:revremark:    Remove upper width limit from fields in dprint_ode
 #:created_at:   2018.12.20
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -341,7 +341,7 @@ dprint_ode()
           fi
           # Normalize width to acceptable range
           (( field_width_opt < 0 )) && field_width_opt=0
-          (( field_width_opt > 80 )) && field_width_opt=80
+          # (( field_width_opt > 80 )) && field_width_opt=80
           # If width is zero, store this info
           [ $field_width_opt -eq 0 ] && nullified_fieldnums+=($fieldnum)
           # Store width
