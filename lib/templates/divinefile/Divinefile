@@ -1,9 +1,9 @@
 #:title:        Divinefile annotated template
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    8
-#:revdate:      2019.08.07
-#:revremark:    Grand removal of non-ASCII chars
+#:revnumber:    9
+#:revdate:      2019.08.29
+#:revremark:    Make manifest flag appending explicit
 #:created_at:   2018.03.27
 
 ## Divinefile is a manifest of packages to be maintained via system's package 
@@ -32,10 +32,15 @@
 #>    (flags: ir)                 pkg3  | yum : pkg4
 #>    (priority: 500) (flags: r)  pkg5
 #
-## With regard to flags, a shorthand is provided, that works by *appending* 
-#. provided flags as opposed to overriding them as is normal:
+## With regard to flags, a shorthand is provided:
 #>    (i)       pkg1    # Parentheses must not contain ':'
 #>    ( r0! )   pkg2    # Multiple flags may be given too
+#
+## Flags may be appended to those currently in effect, instead of replacing 
+#. them, by including the plus sign '+' as the first non-whitespace char of the 
+#. flags' value:
+#>    (+r)          pkg1
+#>    (flags: + r)  pkg2
 #
 ## Lines may be made exclusive to particular OS family or distro. List of them 
 #. may be provided by separating with vartical bars:

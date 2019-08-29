@@ -1,9 +1,9 @@
 #:title:        Asset manifest annotated template
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    10
-#:revdate:      2019.08.27
-#:revremark:    Enrich asset manifest functionality
+#:revnumber:    11
+#:revdate:      2019.08.29
+#:revremark:    Make manifest flag appending explicit
 #:created_at:   2019.08.06
 
 ## This is an annotated example of an asset manifest. It is simply a list of 
@@ -36,9 +36,14 @@
 #.  * 'prefix'  - Asset's sub-directory (description below)
 #.  * 'queue'   - When set to value 'split', inserts queue split
 #
-## With regard to 'flags' key, a shorthand is provided, that works by 
-#. *appending* provided flags (as opposed to overriding them as is normal):
+## With regard to 'flags' key, a shorthand is provided:
 #>    (r) flagged-entry   # Parentheses must not contain colon ':'
+#
+## Flags may be appended to those currently in effect, instead of replacing 
+#. them, by including the plus sign '+' as the first non-whitespace char of the 
+#. flags' value:
+#>    (+r)          flagged-entry1
+#>    (flags: + r)  flagged-entry2
 #
 ##  OS:
 #

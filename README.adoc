@@ -1,9 +1,9 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revnumber: 43
+:revnumber: 44
 :revdate: 2019.08.29
-:revremark: Improve assets description
+:revremark: Make manifest flag appending explicit
 :doctype: article
 // Visual
 :toc:
@@ -1828,7 +1828,8 @@ Single match against any of the two is sufficient.
 Key `flags` adds a string of single-character flags to the entries.
 
 Flags specifically have a *shorthand*: whenever a key-value does not contain a `:` (colon) separator (i.e., there is no key), content of parentheses is interpreted as `flags`.
-Note, however that the shorthand (and only the shorthand) works by *appending* provided flags to the current value instead of substituting them.
+
+Flags may be appended to those currently in effect, instead of replacing them, by including the plus sign '+' as the first non-whitespace char of the flags' value.
 
 [source,bash]
 ----
@@ -1836,8 +1837,8 @@ Note, however that the shorthand (and only the shorthand) works by *appending* p
 
 (flags: a)
               entry2    # Flags: a
-       (b)
-       (c)    entry3    # Flags: a, b, c
+(+b)
+(flags: +c)   entry3    # Flags: a, b, c
               entry4    # Flags: a, b
 (flags: d)    entry5    # Flags: d
               entry6    # Flags: a, b
@@ -2011,7 +2012,7 @@ However, order of files/directories matching a RegEx entry is not guaranteed.
 --
 Concrete relative paths are simply appended to their parent directories.
 So, asset paths like `.`, `..`, `../..`, etc. will work.
-Asset manifests are designed for convenience, not security.
+Asset manifests are designed for convenience, not security: with free-form Bash code within deployments, security is pretty much a moot point.
 --
 
 .Example of asset manifest
@@ -2719,9 +2720,7 @@ populate_generic_queue() {
 
 [NOTE]
 --
-Normally, if you wish to use any <<link-queue-asset-automation,queue>> <<copy-queue-asset-automation,automation>>, you must use it only for the very first task that employs a queue, and append queue elements manually from that point on.
-
-However, if you use <<asset-manifests,asset manifests>>, you may <<asset-manifest-queue-split,split your queue>> directly within the asset manifest file.
+If you use <<asset-manifests,asset manifests>>, you may <<asset-manifest-queue-split,split your queue>> directly within the asset manifest file.
 --
 
 == Ways to contribute

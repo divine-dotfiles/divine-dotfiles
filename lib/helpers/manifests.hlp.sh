@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: manifests
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    25
-#:revdate:      2019.08.27
-#:revremark:    Ensure existence of asset directory
+#:revnumber:    26
+#:revdate:      2019.08.29
+#:revremark:    Make manifest flag appending explicit
 #:created_at:   2019.05.30
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -783,8 +783,22 @@ d__process_manifest()
           flags)
             # Remove all whitespace from within the value
             value="${value//[[:space:]]/}"
-            # Replace current flags
-            current_flags="$value"
+
+            # Check if the list of flags starts with '+'
+            if [[ $value = '+'* ]]; then
+
+              # Strip the '+'
+              value="${value:1:${#value}}"
+
+              # Append to current flags
+              current_flags+="$value"
+
+            else
+
+              # Replace current flags
+              current_flags="$value"
+
+            fi
             ;;
           prefix)
             # Clear leading and trailing slashes, if any
@@ -824,9 +838,26 @@ d__process_manifest()
 
         # Key-value parentheses do not contain a separator (':')
 
-        ## Special case: without separator, interpret key as a set of character 
-        #. flags that are to be *appended* to current list of flags
-        current_flags+="$chunk"
+        # Special case: without separator, interpret key as flags value
+
+        # Remove all whitespace from within the value
+        chunks="${chunks//[[:space:]]/}"
+
+        # Check if the list of flags starts with '+'
+        if [[ $chunks = '+'* ]]; then
+
+          # Strip the '+'
+          chunks="${chunks:1:${#chunks}}"
+
+          # Append to current flags
+          current_flags+="$chunks"
+
+        else
+
+          # Replace current flags
+          current_flags="$chunks"
+
+        fi
 
       fi
 
