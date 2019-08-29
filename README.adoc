@@ -1,9 +1,9 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revnumber: 42
-:revdate: 2019.08.28
-:revremark: Majorly improve queues
+:revnumber: 43
+:revdate: 2019.08.29
+:revremark: Improve assets description
 :doctype: article
 // Visual
 :toc:
@@ -1873,15 +1873,14 @@ _Odd number of backslashes at the right edge will result in line continuation._
 
 If you intend to distribute your deployments, you will soon encounter the problem of separating more-or-less static deployment logic from dynamic deployment assets.
 
-Lets study an example deployment that symlinks a configuration file into the system.
-It would be desirable to copy a sample of that configuration file into user's <<grail-directory,Grail directory>>, and then create a symlink to the copy.
-The user would then be free to inspect, modify, and synchronize that copy.
+Lets study an example deployment that symlinks configuration files into the system.
+It would be desirable to copy samples of those configuration files into user's <<grail-directory,Grail directory>>, and then create symlinks to the copies.
+The user would then be free to inspect, modify, and synchronize his copies as his personal versions.
 At the same time, the deployment logic is better kept within <<state-directory,state directory>>, where it would be easily updated by the framework.
 
 Each deployment has a designated *asset directory*: `grail/assets/*_DPL-NAME_*/`, path to which is readable from a <<var-dpl-asset-dir,variable>>.
 The asset directory is the space where user controls the behavior of the deployment by adding/modifying/removing asset files.
 Deployments, on their part, are free to provide initial/default versions of some or all assets.
-Watever assets are operated upon should be placed in the asset directory.
 
 To facilitate handling of assets, _Divine.dotfiles_ offers the mechanism of *asset manifests*.
 
@@ -1889,17 +1888,20 @@ To facilitate handling of assets, _Divine.dotfiles_ offers the mechanism of *ass
 ==== Asset manifests
 
 An *asset manifest* is a text file located in the same directory as the deployment file and named the same, except for exchanging `.dpl.sh` suffix for `.dpl.mnf`.
+It serves two purposes:
 
-Contents of an asset manifest describe a set of *assets* (files and directories) by providing relative paths to them.
-Whenever an asset manifest is processed, the framework:
+* An asset manifest can ensure that a copy of every asset that you provide is placed into the deployment's <<var-dpl-asset-dir,asset directory>> inside the user's <<grail-directory,Grail>>, _unless_ an asset by that name already exists there.
+* An asset manifest can automatically populate <<asset-arrays,global asset arrays>>, making the assets immediately available for processing by <<generic-queue,queues>> of <<link-queue,various>> <<copy-queue,kinds>>.
 
-* looks up the assets in both <<var-dpl-dir,deployment directory>> (deployment author's versions) and <<var-dpl-asset-dir,asset directory>> (deployment user's versions);
-* copies author's initial versions into asset directory, where necessary;
-* populates <<asset-arrays,global asset arrays>> that can then be used by <<generic-queue,queues>> of <<link-queue,various>> <<copy-queue,types>>.
+Entries in an asset manifest describe a set of *assets* (files and directories) by providing relative paths to them.
+Relative paths are resolved from:
+
+* <<var-dpl-dir,deployment directory>> (to locate initial versions provided by the author);
+* <<var-dpl-asset-dir,asset directory>> (to locate user's versions to be processed by the framework).
 
 [NOTE]
 --
-The framework never overwrites assets that are already present in asset directory.
+To reiterate, the framework never overwrites assets that are already present in asset directory.
 --
 
 Processing of asset manifests occurs:
@@ -1907,14 +1909,14 @@ Processing of asset manifests occurs:
 * During <<primary-routines,primary routines>>, immediately before sourcing the deployment file.
 * During <<attach-routine,attaching of deployments>>, so that the assets of newly introduced deployments are immediately present in <<grail-directory,the Grail>>.
 
-[[asset-manifest-syntax]]
-==== Asset manifest syntax
+[[asset-manifest-syntax-and-behavior]]
+==== Asset manifest syntax and behavior
 
 Asset manifests follow the general <<manifest-syntax,manifest syntax>>.
 
 Every entry is a *relative path*, which is resolved within <<var-dpl-dir,deployment>> and <<var-dpl-asset-dir,asset>> directories.
-Two types of paths are accepted: *concrete paths* and *RegEx patterns*.
-Leading and trailing slashes are removed from all paths in the asset manifests (including <<asset-manifest-prefix,`prefix`>> sub-paths).
+Two kinds of relative paths are accepted: *concrete paths* and *RegEx patterns*.
+Leading and trailing slashes are disregarded in all paths in the asset manifests (including <<asset-manifest-prefix,`prefix`>> sub-paths).
 
 The following <<manifest-entry-flags,*flags*>> are recognized within asset manifests for each asset entry:
 
@@ -1929,7 +1931,7 @@ The following <<manifest-entry-flags,*flags*>> are recognized within asset manif
 | `*r*`
 
 _**R**egEx_
-| The entry is interpreted as a **r**egex pattern (see <<asset-manifest-regex-note,note>> below), matching any number of assets.
+| The entry is interpreted as a **R**egEx pattern (see <<asset-manifest-regex-note,note>> below), matching any number of assets.
 
 | All matching files and directories within the <<var-dpl-dir,deployment directory>> are copied into the <<var-dpl-asset-dir,asset directory>>, unless the destination already exists.
 Afterward, matching files and directories within the <<var-dpl-asset-dir,*asset directory*>> are pushed onto the <<asset-arrays,asset arrays>>.
