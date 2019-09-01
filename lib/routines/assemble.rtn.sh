@@ -2,9 +2,9 @@
 #:title:        Divine Bash routine: assemble
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    26
-#:revdate:      2019.08.22
-#:revremark:    dpl-repos -> bundles; core -> essentials
+#:revnumber:    27
+#:revdate:      2019.09.01
+#:revremark:    First attempt at bundle filtering
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -42,6 +42,9 @@ d__dispatch_assembly_job()
 #.  * $D__DIR_DPLS         - user-defined custom deployments
 #.  * $D__DIR_BUNDLES    - cloned/downloaded deployments from Github
 #
+## If $D__REQ_BUNDLES is not empty, the search is narrowed down to the 
+#. directories of the attached bundles listed in that array.
+#
 ## Provides into the global scope:
 #.  $D__WORKLOAD    - (array) each taken priority contains a string 'taken'
 #.  $D__WORKLOAD_PKGS     - (array) Each priority taken by at least one package 
@@ -74,8 +77,49 @@ d__assemble_all_tasks()
   D__LIST_OF_INT_DPL_NAMES=()
   D__LIST_OF_INT_DPL_PATHS=()
 
+  # Storage variables
+  local dirs_to_scan bundle_handle bundle_dir
+
+  # Check if a list of bundles is given
+  if [ ${#D__REQ_BUNDLES[@]} -gt 0 ]; then
+
+    # Enter bundle filtering mode
+
+    # Iterate over given bundle handles
+    for bundle_handle in "${D__REQ_BUNDLES[@]}"; do
+
+      # Ensure the handle is non-empty
+      [ -n "$bundle_handle" ] || continue
+
+      # Accept one of two patterns: 'builtin_repo_name' and 'username/repo'
+      if [[ $bundle_handle =~ ^[0-9A-Za-z_.-]+$ ]]; then
+        bundle_dir="no-simpler/divine-bundle-$bundle_handle"
+      elif [[ $bundle_handle =~ ^[0-9A-Za-z_.-]+/[0-9A-Za-z_.-]+$ ]]; then
+        bundle_dir="$bundle_handle"
+      else
+        # Other patterns are not checked against Github
+        dprint_failure "Invalid bundle handle: $bundle_handle"
+        continue
+      fi
+
+      # Add the directory to the array of directories to scan
+      dirs_to_scan+=( "$D__DIR_BUNDLES/$bundle_dir" )
+
+    # Done iterating over given bundle handles
+    done
+
+  fi
+
+  # Check if list of directories to scan is populated
+  if [ ${#dirs_to_scan[@]} -eq 0 ]; then
+
+    # Populate with the default list
+    dirs_to_scan=( "$D__DIR_DPLS" "$D__DIR_BUNDLES" )
+
+  fi
+
   # Parse Divinefiles in all deployment directories
-  d__scan_for_divinefiles --enqueue "$D__DIR_DPLS" "$D__DIR_BUNDLES"
+  d__scan_for_divinefiles --enqueue "${dirs_to_scan[@]}"
 
   # Check return code
   case $? in
@@ -94,7 +138,7 @@ d__assemble_all_tasks()
   esac
 
   # Locate *.dpl.sh files in all supported directories
-  d__scan_for_dpl_files --fmwk-dir --enqueue "$D__DIR_DPLS" "$D__DIR_BUNDLES"
+  d__scan_for_dpl_files --fmwk-dir --enqueue "${dirs_to_scan[@]}"
   
   # Check return code
   case $? in

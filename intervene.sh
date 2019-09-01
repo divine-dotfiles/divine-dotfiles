@@ -2,9 +2,9 @@
 #:title:        Divine Bash script: intervene
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    75
-#:revdate:      2019.08.28
-#:revremark:    Check version of Bash and prevent Interrupted sys calls
+#:revnumber:    76
+#:revdate:      2019.09.01
+#:revremark:    First attempt at bundle filtering
 #:created_at:   2018.03.25
 
 ## Launches the Divine intervention
@@ -328,6 +328,7 @@ d__parse_arguments()
   D__REQ_ROUTINE=            # Routine to perform
   D__REQ_GROUPS=()           # Array of groups listed
   D__REQ_ARGS=()             # Array of non-option arguments
+  D__REQ_BUNDLES=()          # Array of bundles to process
   D__REQ_FILTER=false        # Flag for whether particular tasks are requested
   D__REQ_PACKAGES=true       # Flag for whether Divinefile is to be processed
   D__REQ_MAX_PRIORITY_LEN=0  # Number of digits in largest priority
@@ -368,7 +369,7 @@ d__parse_arguments()
   readonly D__REQ_ROUTINE
   
   # Storage variables
-  local delim=false i opt restore_nocasematch arg
+  local delim=false i opt opts no_more_args restore_nocasematch arg
 
   # Parse remaining args for supported options
   while [ $# -gt 0 ]; do
@@ -381,18 +382,27 @@ d__parse_arguments()
       --version)          d__load routine version;;
       -y|--yes)           D__OPT_ANSWER=true;;
       -n|--no)            D__OPT_ANSWER=false;;
+      -b|--bundle)        shift; (($#)) && D__REQ_BUNDLES+=("$1") || break;;
       -f|--force)         D__OPT_FORCE=true;;
       -e|--except)        D__OPT_INVERSE=true;;
       -w|--with-!)        D__OPT_EXCLAM=true;;
       -q|--quiet)         D__OPT_QUIET=true;;
       -v|--verbose)       D__OPT_QUIET=false;;
       -l|--link)          D__OPT_PLUG_LINK=true;;
-      -*)                 for i in $( seq 2 ${#1} ); do
-                            opt="${1:i-1:1}"
+      -*)                 opts="$1"; no_more_args=false
+                          for i in $( seq 2 ${#opts} ); do
+                            opt="${opts:i-1:1}"
                             case $opt in
                               h)  d__load routine help;;
                               y)  D__OPT_ANSWER=true;;
                               n)  D__OPT_ANSWER=false;;
+                              b)  if $no_more_args; then continue
+                                  else
+                                    shift; (($#)) \
+                                      && D__REQ_BUNDLES+=("$1") \
+                                      || no_more_args=true
+                                  fi
+                                  ;;
                               f)  D__OPT_FORCE=true;;
                               e)  D__OPT_INVERSE=true;;
                               w)  D__OPT_EXCLAM=true;;
@@ -404,13 +414,16 @@ d__parse_arguments()
                                     "$opt"
                                   d__load routine usage;;
                             esac
-                          done;;
+                          done
+                          $no_more_args && break
+                          ;;
       [0-9]|!)            D__REQ_GROUPS+=("$1");;
       *)                  [ -n "$1" ] && D__REQ_ARGS+=("$1");;
     esac; shift
   done
 
   # Freeze some variables
+  readonly D__REQ_BUNDLES
   readonly D__OPT_QUIET
   readonly D__OPT_ANSWER
   readonly D__OPT_FORCE
