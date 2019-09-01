@@ -2,9 +2,9 @@
 #:title:        Divine Bash routine: help
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    12
-#:revdate:      2019.08.22
-#:revremark:    dpl-repos -> bundles; core -> essentials
+#:revnumber:    13
+#:revdate:      2019.09.01
+#:revremark:    Add --bundle opt to reference materials
 #:created_at:   2018.03.25
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -42,69 +42,99 @@ NAME
     ${bold}${D__EXEC_NAME}${normal} - launch Divine intervention
 
 SYNOPSIS
-    $D__EXEC_NAME ${bold}i${normal}[nstall]            [-ynqvewf]... [--] [TASK]...
-    $D__EXEC_NAME ${bold}r${normal}[emove]             [-ynqvewf]... [--] [TASK]...
-    $D__EXEC_NAME ${bold}c${normal}[heck]              [-ynqvew]...  [--] [TASK]...
+    $D__EXEC_NAME ${bold}c${normal}[heck]              [-ynqvew]  [-b BUNDLE]... [--] [TASK]...
+    $D__EXEC_NAME ${bold}i${normal}[nstall]            [-ynqvewf] [-b BUNDLE]... [--] [TASK]...
+    $D__EXEC_NAME ${bold}r${normal}[emove]             [-ynqvewf] [-b BUNDLE]... [--] [TASK]...
 
-    $D__EXEC_NAME ${bold}a${normal}[ttach]             [-yn]...      [--] REPO...
-    $D__EXEC_NAME ${bold}d${normal}[etach]             [-yn]...      [--] REPO...
-    $D__EXEC_NAME ${bold}p${normal}[lug]               [-ynl]...     [--] REPO/DIR
-    $D__EXEC_NAME ${bold}u${normal}[pdate]             [-yn]...      [--] [TASK]...
+    $D__EXEC_NAME ${bold}a${normal}[ttach]             [-yn]                     [--] REPO...
+    $D__EXEC_NAME ${bold}d${normal}[etach]             [-yn]                     [--] REPO...
+    $D__EXEC_NAME ${bold}p${normal}[lug]               [-ynl]                    [--] REPO/DIR
+    $D__EXEC_NAME ${bold}u${normal}[pdate]             [-yn]                     [--] [TASK]...
 
     $D__EXEC_NAME --version
     $D__EXEC_NAME -h|--help
 
 DESCRIPTION
-    Modular cross-platform dotfiles framework. Works wherever Bash does.
-    
-    Launch with '-n' option for a harmless introductory dry run.
+    Divine.dotfiles promotes Bash scripts to portable deployments that are 
+    installed/removed in defined sequence. The term deployments includes 
+    Divinefiles as the special kind of the former.
 
-    ${bold}'Install' routine${normal} - installs tasks
+    Full documentation available at:
+      https://github.com/no-simpler/divine-dotfiles
 
-    - Collects tasks from two sources in 'grail/dpls' directory:
-      - Package names from special files named 'Divinefile'
-      - Deployments from special scripts named '*.dpl.sh'
-    - Sorts tasks by priority (${bold}ascending${normal} integer order)
-    - Updates installed packages using system's package manager
-    - Performs tasks in order:
-      - ${bold}Installs${normal} packages using system's package manager
-      - ${bold}Installs${normal} deployments using 'd_dpl_install' function in each
+    This divine intervention utility is the command line interface to the 
+    Divine.dotfiles framework. Intervention utility does:
 
-    ${bold}'Remove' routine${normal} - removes tasks
+    - ${bold}Primary routines${normal} on deployments and Divinefiles:
+      - ${bold}Check${normal} whether deployments are installed or not.
+      - ${bold}Install${normal} deployments.
+      - ${bold}Uninstall${normal} deployments.
+    - ${bold}Attach/detach${normal} third-party bundles of deployments from Github.
+    - ${bold}Plug in${normal} pre-made Grail directory from a repository or local directory.
+    - ${bold}Update${normal} framework itself, attached bundles, and Grail directory, if it 
+      is a cloned repository.
 
-    - Collects tasks from two sources in 'grail/dpls' directory:
-      - Package names from special files named 'Divinefile'
-      - Deployments from special scripts named '*.dpl.sh'
-    - ${bold}Reverse${normal}-sorts tasks by priority (${bold}descending${normal} integer order)
-    - Updates installed packages using system's package manager
-    - Performs tasks in order:
-      - ${bold}Removes${normal} deployments using 'd_dpl_remove' function in each
-      - ${bold}Removes${normal} packages using system's package manager
+    ${bold}Primary routines${normal}
+
+    Primary routines - the core of the framework - launch respective functions 
+    on deployments. Accepted values of TASK are (case-insensitive):
+
+    - Names of deployments.
+    - Reserved synonyms for Divinefiles: 'divinefile', 'dfile', 'df'.
+    - Single-digit names of deployment groups: '0', '1', '2', '3', '4', '5', 
+      '6', '7', '8', '9'.
+
+    - Without any arguments, all deployments are processed.
+    - By default, deployments are retrieved from two locations (at any depth):
+      - User's deployments: 'grail/dpls/'.
+      - Attached bundles of deployments: 'state/bundles/'.
+    - Particular bundles of deployments are requested by listing them with the 
+      '--bundle'/'-b' option.
+    - Particular deployments are requested by listing their names or single-
+      digit group names, in any combination.
+    - Dangerous deployments (marked with '!' flag) are ignored unless requested 
+      by name (not by single-digit group name), or unless '--with-!'/'-w' 
+      option is used.
+    - Option '--except'/'-e' inverts filtering: all deployments are processed, 
+      ${bold}except${normal} those listed. Note, that without any arguments, 
+      this is a no-opt. In this mode, dangerous deployments are still filtered 
+      out by default.
+
+    After filtering, deployments and packages from Divinefiles are sorted in 
+    order of ascending priority. For uninstallation, that order is fully 
+    reversed.
     
     ${bold}'Check' routine${normal} - checks status of tasks
 
-    - Collects tasks from two sources in 'grail/dpls' directory:
-      - Package names from special files named 'Divinefile'
-      - Deployments from special scripts named '*.dpl.sh'
-    - Sorts tasks by priority (${bold}ascending${normal} integer order)
-    - Checks and reports whether each task appears installed or not
+    Sequentially checks packages and deployments, reporting whether each 
+    appears installed or not
 
-    ${bold}'Attach' routine${normal} - imports deployments from Github
+    ${bold}'Install' routine${normal} - installs tasks
 
-    - Accepts deployments in any of two forms:
+    Updates installed packages using the system's package manager; then 
+    sequentially installs packages and deployments.
+
+    ${bold}'Remove' routine${normal} - removes tasks
+
+    Updates installed packages using the system's package manager; then 
+    sequentially uninstalls packages and deployments.
+
+    ${bold}'Attach' routine${normal} - attaches deployments from Github
+
+    - Accepts bundles of deployments in any of two forms:
       - Divine deployment package in the form 'NAME' (which translates to 
         Github repository 'no-simpler/divine-bundle-NAME')
       - Third-party deployment package (Github repository) in the form 
         'username/repository'
-    - Makes shallow clones of repositories or downloads them into internal 
+    - Makes shallow clones of repositories (or downloads them) into internal 
       directory
-    - Records source of successfull clone/download in Grail directory for 
+    - Records source of successfull clone/download in the Grail directory for 
       future replication/updating
     - Prompts before overwriting
 
-    ${bold}'Detach' routine${normal} - removes previously imported Github deployments
+    ${bold}'Detach' routine${normal} - removes previously attached Github deployments
 
-    - Accepts deployments in any of two forms:
+    - Accepts bundles of deployments in any of two forms:
       - Divine deployment package in the form 'NAME' (which translates to 
         Github repository 'no-simpler/divine-bundle-NAME')
       - Third-party deployment package (Github repository) in the form 
@@ -115,7 +145,7 @@ DESCRIPTION
     ${bold}'Plug' routine${normal} - replaces Grail directory
 
     - Allows to quickly plug-in pre-made (and possibly version controlled) 
-      version of Grail directory, containing user's assets and deployments
+      version of the Grail directory, containing user's assets and deployments
     - Accepts Grail directory in any of three forms:
       - Github repository in the form 'username/repository'
       - Address of a git repository
@@ -135,20 +165,21 @@ DESCRIPTION
     - Updates each task by either pulling from repository or re-downloading and 
       overwriting files one by one (where possible)
 
-    ${bold}Task list${normal}
-
-    Whenever a list of tasks is provided, only those tasks are performed. Task 
-    names are case insensitive. Names 'Divinefile'/'dfile'/'df' are reserved to 
-    refer to processing of Divinefiles. Other names refer to deployments or 
-    deployment groups.
-
 OPTIONS
     -y, --yes       Assume affirmative answer to every prompt. Deployments may 
                     override this option to make sure that user is prompted 
                     every time.
 
     -n, --no        Assume negatory answer to every prompt. In effect, skips 
-                    every task.
+                    every task. Including this option always results in a 'dry 
+                    run' where nothing is actually done.
+    
+    -b BUNDLE, --bundle BUNDLE
+                    (repeatable) If at least one such option is provided, the 
+                    search for deployments will be limited to the given 
+                    attached bundles of deployments. Accepted values of BUNDLE 
+                    are the same as the accepted values of REPO during 
+                    attaching of bundles.
 
     -f, --force     By default, framework tries NOT to:
                       * re-install something that appears already installed;

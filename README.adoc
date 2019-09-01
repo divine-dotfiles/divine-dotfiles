@@ -1,9 +1,9 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revnumber: 44
-:revdate: 2019.08.29
-:revremark: Make manifest flag appending explicit
+:revnumber: 45
+:revdate: 2019.09.01
+:revremark: Add --bundle opt to reference materials
 :doctype: article
 // Visual
 :toc:
@@ -453,15 +453,20 @@ This symlink is usually automatically created during framework installation.
 
 _Divine.dotfiles_ provides a command line interface via *Divine intervention utility `di`*.
 
-Intervention utility does:
+Intervention utility's functions are:
 
 . <<primary-routines,*Primary routines*>> on <<deployments,deployments>> and <<divinefiles,Divinefiles>>:
 .. *Check* whether deployments are installed or not.
 .. *Install* deployments.
 .. *Uninstall* deployments.
 . <<attach-routine,*Attach/detach*>> third-party bundles of deployments from Github.
-. <<plug-routine,*Plug in*>> your pre-made Grail directory from a repository or local directory.
+. <<plug-routine,*Plug in*>> pre-made Grail directory from a repository or local directory.
 . <<update-routine,*Update*>> framework itself, attached bundles, and Grail directory, if it is a cloned repository.
+
+[NOTE]
+--
+The term '<<deployments,deployments>>' includes <<divinefiles,Divinefiles>> as the special kind of the former.
+--
 
 [[primary-routines]]
 === Checking/installing/removing deployments
@@ -483,23 +488,24 @@ Accepted values of `*_NAME_*` are (case-insensitive):
 * Reserved synonyms for <<divinefiles,Divinefiles>>: `divinefile`, `dfile`, `df`.
 * Single-digit names of <<deployment-groups,deployment groups>>: `0`, `1`, `2`, `3`, `4`, `5`, `6`, `7`, `8`, `9`.
 
-Without any arguments, all deployments are processed.
-Deployments and Divinefiles are retrieved from two locations (at any depth):
-
-* Directory for user's deployments: `~/.divine/grail/dpls`.
-* Directory for attached bundles of deployments: `~/.divine/state/bundles`.
-
 ==== Filtering deployments
 
-* Again, without any arguments, all deployments are processed.
+The intervention utility filters the deployments according to these rules:
+
+* Without any arguments, all deployments are processed.
+* By default, deployments are retrieved from two locations (at any depth):
+** Directory for user's deployments: `grail/dpls/`.
+** Directory for attached bundles of deployments: `state/bundles/`.
+* Particular bundles of deployments are requested by listing them with the `--bundle`/`-b` option.
 * Particular deployments are requested by listing their names or <<deployment-groups,single-digit group names>>, in any combination.
-* <<dangerous-deployments,Dangerous>> deployments are ignored unless:
-** requested by name (not by single-digit group name),
-** or `--with-!`/`-w` option is used.
+* <<dangerous-deployments,Dangerous>> deployments are ignored unless requested by name (not by single-digit group name), or unless `--with-!`/`-w` option is used.
 * Option `--except`/`-e` inverts filtering: all deployments are processed, _except_ those listed.
 Note, that without any arguments, this is a no-opt.
 +
 In this mode, dangerous deployments are still filtered out by default.
+
+After filtering, deployments and packages from Divinefiles are sorted in order of ascending <<deployment-priority,priority>>.
+For uninstallation, that order is fully reversed.
 
 ==== Primary routine options
 
@@ -526,6 +532,12 @@ Access within deployments: `$D__OPT_ANSWER` (`true` / `false` / _empty_).
 This option is equivalent to a 'dry run' — apart from skip messages, nothing will actually be done.
 
 Access within deployments: `$D__OPT_ANSWER` (`true` / `false` / _empty_).
+
+a| [#bundle-option]#`*-b* *_BUNDLE_*`#,
+
+`*--bundle* *_BUNDLE_*`
+a| [.gray]##_(repeatable)_## If at least one such option is provided, the search for deployments will be limited to the given <<attach-routine,attached bundles>> of deployments.
+Accepted values of `*_BUNDLE_*` are the same as the <<accepted-repo-values,accepted values of `*_REPO_*`>> during attaching of bundles.
 
 | `*-f*`, `*--force*`
 a| By default, the framework does *not*:
@@ -579,7 +591,7 @@ $ *di* *a*[*ttach*] [-yn] [--] *_REPO_*…
 $ *di* *d*[*etach*] [-yn] [--] *_REPO_*…
 ----
 
-Accepted values of `*_REPO_*` are (case-insensitive):
+[#accepted-repo-values]#Accepted values of `*_REPO_*`# are (case-insensitive):
 
 * Github repository in the form: `no-simpler/divine-bundle-essentials`.
 * Specifically for Divine deployments, a shorthand is accepted:
@@ -732,9 +744,9 @@ A _Divine.dotfiles_ *deployment* is a Bash script named in `*_DPL-NAME_*.dpl.sh`
 
 To be picked up by the framework, deployments must be located at any depth under two recognized deployment directories:
 
-* `~/.divine/grail/dpls` — user's deployments.
+* `grail/dpls/` — user's deployments.
 Create your deployments here.
-* `~/.divine/state/bundles` — attached third-party bundles of deployments.
+* `state/bundles/` — attached third-party bundles of deployments.
 This one is maintained by the framework.
 
 === Deployment structure
@@ -1049,8 +1061,8 @@ A Divinefile is a manifest of system packages to be maintained using supported s
 * A Divinefile must be named, well, `Divinefile`.
 * There can absolutely be more than one — their contents are effectively merged.
 * The framework picks up every Divinefile located at any depth under two recognized deployment directories:
-** `~/.divine/grail/dpls` — user's Divinefiles. Create yours here.
-** `~/.divine/state/bundles` — attached third-party Divinefiles.
+** `grail/dpls/` — user's Divinefiles. Create yours here.
+** `state/bundles/` — attached third-party Divinefiles.
 * Divinefiles collectively are a deployment.
 
 === Divinefile usage
