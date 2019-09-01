@@ -3,9 +3,9 @@
 #:kind:         func(script,interavtive)
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    6
-#:revdate:      2019.08.07
-#:revremark:    Grand removal of non-ASCII chars
+#:revnumber:    7
+#:revdate:      2019.09.01
+#:revremark:    Tweak bolding in miscellaneous locations
 #:created_at:   2018.03.15
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -122,7 +122,10 @@ dmv()
   $version && {
     # Add bolding if available
     local bold normal
-    if which tput &>/dev/null; then bold=$(tput bold); normal=$(tput sgr0); fi
+    if type -P tput &>/dev/null && tput sgr0 &>/dev/null \
+      && [ -n "$(tput colors)" ] && [ "$(tput colors)" -ge 8 ]
+    then bold=$(tput bold); normal=$(tput sgr0)
+    else bold="$(printf "\033[1m")"; NORMAL="$(printf "\033[0m")"; fi
 
     # Store version message in a variable
     local version_msg
@@ -143,7 +146,10 @@ EOF
   $help && {
     # Add bolding if available
     local bold normal
-    if which tput &>/dev/null; then bold=$(tput bold); normal=$(tput sgr0); fi
+    if type -P tput &>/dev/null && tput sgr0 &>/dev/null \
+      && [ -n "$(tput colors)" ] && [ "$(tput colors)" -ge 8 ]
+    then bold=$(tput bold); normal=$(tput sgr0)
+    else bold="$(printf "\033[1m")"; NORMAL="$(printf "\033[0m")"; fi
 
     # Store help summary in a variable
     local help_msg

@@ -2,9 +2,9 @@
 #:title:        Divine Bash routine: usage
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    12
+#:revnumber:    13
 #:revdate:      2019.09.01
-#:revremark:    Make usage note narrower
+#:revremark:    Tweak bolding in miscellaneous locations
 #:created_at:   2018.03.25
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -32,7 +32,10 @@ d__show_usage_and_exit()
 {
   # Add bolding if available
   local bold normal
-  if which tput &>/dev/null; then bold=$(tput bold); normal=$(tput sgr0); fi
+  if type -P tput &>/dev/null && tput sgr0 &>/dev/null \
+    && [ -n "$(tput colors)" ] && [ "$(tput colors)" -ge 8 ]
+  then bold=$(tput bold); normal=$(tput sgr0)
+  else bold="$(printf "\033[1m")"; NORMAL="$(printf "\033[0m")"; fi
 
   local usage_tip
   read -r -d '' usage_tip << EOF
