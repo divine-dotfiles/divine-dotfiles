@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: manifests
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    26
-#:revdate:      2019.08.29
-#:revremark:    Make manifest flag appending explicit
+#:revnumber:    27
+#:revdate:      2019.09.01
+#:revremark:    Fix erroneous variable name
 #:created_at:   2019.05.30
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -841,21 +841,21 @@ d__process_manifest()
         # Special case: without separator, interpret key as flags value
 
         # Remove all whitespace from within the value
-        chunks="${chunks//[[:space:]]/}"
+        chunk="${chunk//[[:space:]]/}"
 
         # Check if the list of flags starts with '+'
-        if [[ $chunks = '+'* ]]; then
+        if [[ $chunk = '+'* ]]; then
 
           # Strip the '+'
-          chunks="${chunks:1:${#chunks}}"
+          chunk="${chunk:1:${#chunk}}"
 
           # Append to current flags
-          current_flags+="$chunks"
+          current_flags+="$chunk"
 
         else
 
           # Replace current flags
-          current_flags="$chunks"
+          current_flags="$chunk"
 
         fi
 
