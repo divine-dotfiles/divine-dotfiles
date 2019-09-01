@@ -2,9 +2,9 @@
 #:title:        Divine Bash script: intervene
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    76
+#:revnumber:    77
 #:revdate:      2019.09.01
-#:revremark:    First attempt at bundle filtering
+#:revremark:    Tweak fmwk version output
 #:created_at:   2018.03.25
 
 ## Launches the Divine intervention
@@ -64,6 +64,9 @@ d__populate_globals()
 {
   # Framework's displayed name
   readonly D__FMWK_NAME='Divine.dotfiles'
+
+  # Framework's displayed version
+  readonly D__FMWK_VERSION='1.0.0-beta1'
 
   # Executable's displayed name
   readonly D__EXEC_NAME="$( basename -- "${BASH_SOURCE[0]}" )"

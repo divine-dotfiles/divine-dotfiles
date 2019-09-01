@@ -2,9 +2,9 @@
 #:title:        Divine Bash routine: version
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    8
-#:revdate:      2019.08.07
-#:revremark:    Grand removal of non-ASCII chars
+#:revnumber:    9
+#:revdate:      2019.09.01
+#:revremark:    Tweak fmwk version output
 #:created_at:   2018.03.25
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -34,9 +34,16 @@ d__show_version_and_exit()
   local bold normal
   if which tput &>/dev/null; then bold=$(tput bold); normal=$(tput sgr0); fi
 
+  # Try to extract current git commit
+  local commit_sha
+  if cd -- "$D__DIR_FMWK"; then
+    commit_sha="$( git rev-parse --short HEAD 2>/dev/null )"
+  fi
+  [ -n "$commit_sha" ] && commit_sha=" ($commit_sha)"
+
   local version_msg
   read -r -d '' version_msg << EOF
-${bold}${D__FMWK_NAME}${normal} 1.7.0
+${bold}${D__FMWK_NAME}${normal} ${D__FMWK_VERSION}${commit_sha}
 <https://github.com/no-simpler/divine-dotfiles>
 This is free software: you are free to change and redistribute it
 There is NO WARRANTY, to the extent permitted by law
