@@ -1,9 +1,9 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revnumber: 45
+:revnumber: 46
 :revdate: 2019.09.01
-:revremark: Add --bundle opt to reference materials
+:revremark: Update joy ride description
 :doctype: article
 // Visual
 :toc:
@@ -316,65 +316,74 @@ After all installations are successful, *reload your shell/terminal*.
 
 ==== What it does
 
-When the dust settles, _voilà_:
+Once the bundle is fully installed, and the shell reloaded, _voilà_:
 
-* You will be greeted by `zsh` as the default shell.
-* Both https://ohmyz.sh[`oh-my-zsh`] and https://github.com/Bash-it/bash-it[`bash-it`] frameworks will be installed and loaded.
-(Existing installations will be re-used.)
-* A minimalistic shell theme will be active in both frameworks.
-* A few essential system packages will be available, e.g., `git`, `vim`, `curl`, etc.
-* Opinionated default configs will be plugged in for `git`, `vim`, `bash`, and `zsh`.
-* Divine utilites `dln`, `dmv`, and `dreadlink` will be available on `$PATH`.
+* You are greeted by https://sourceforge.net/projects/zsh[Zsh] as the default shell.
+* Basic necessities, such as https://git-scm.com[Git], https://www.vim.org[Vim], and https://gnupg.org[GnuPG] are available.
+* Both https://ohmyz.sh[oh-my-zsh] and https://github.com/Bash-it/bash-it[Bash-it] frameworks are now installed and loaded.
+* A minimalistic theme for both shell frameworks is active.
+* Opinionated configs are plugged in for Git, Vim, Bash, and Zsh.
+* Overwritten files and installations are safely backed up or re-used.
 
-All of the above is controlled from your <<grail-directory,Grail directory>> at `~/.divine/grail/assets/`:
+All of the above is controlled and customized from your <<grail-directory,Grail directory>>:
 
-[%header,cols="<.<1,<.<3",stripes=none]
+[source]
+----
+~/.divine/grail/assets/
+----
+
+.Description of asset directories for the bundle `essentials`
+[%header,cols="<.<1,^.<1,<.<3",stripes=none]
 |===
 
-^.^| Sub-directory
+^.^| Asset directory
 +++<br>+++
 `&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`
+^.^| `&nbsp;`
 ^.^| Content description
 
-| `*config-shell*/`
-| All shell startup scripts (runcoms)
+| `*bash-it*/`
+| *&dagger;*
+| Custom assets for https://github.com/Bash-it/bash-it[Bash-it] shell framework
 
-| `*config-git*/`
-| Global configuration files for `git`.
-
-| `*config-vim*/`
-| Global configs for `git` and `vim`, under respective names
-
-| `*fonts*/` *&dagger;*
-| Your personal font files, installed everywhere you take your Grail.
-
-| `*home-dirs*/` *&dagger;*
-| `*home-dirs.cfg*` — a sub-directory tree, maintained under `$HOME`
-
-| `*brewfile*/` *&dagger;*
+| `*brewfile*/`
+| *&dagger;*
 | https://github.com/Homebrew/homebrew-bundle[Brewfile], maintained on macOS
 
-| `*bash-it*/` *&dagger;*
-| Custom assets for https://github.com/Bash-it/bash-it[`bash-it`] shell framework
+| `*config-git*/`
+|
+| Global configuration for Git
 
-| `*oh-my-zsh*/` *&dagger;*
-| Custom assets for https://ohmyz.sh[`oh-my-zsh`] shell framework
+| `*config-shell*/`
+|
+| Startup scripts (https://en.wikipedia.org/wiki/Run_commands[runcoms]) for Bash and Zsh
+
+| `*config-vim*/`
+|
+| Global configuration for Vim
+
+| `*home-dirs*/`
+| *&dagger;*
+| File `*home-dirs.cfg*` defines a sub-directory tree, to be maintained under the home directory
+
+| `*oh-my-zsh*/`
+| *&dagger;*
+| Custom assets for https://ohmyz.sh[oh-my-zsh] shell framework
 
 | `*portable-bin*/`
-| User's personal shell commands, maintained on the `$PATH`
+|
+| Portable container for personal executables; this directory is maintained on the `$PATH`
 
 |===
-
-Notice that names of sub-directories inside `~/.divine/grail/assets/` match the names of their respective deployments.
 
 [NOTE]
 --
-Modifications in directories marked with the dagger symbol *&dagger;* require you to re-install their respective deployments in order for changes to take effect.
+Dagger *&dagger;* mark meaning: in order for the modifications in the asset directory to take effect, the deployment must be (re-)installed.
 --
 
 ==== Cleaning up
 
-Yes, all of the above is fully removable, and everything that was modified can be reversed.
+Yes, all of the above is fully removable.
 Below are the separate 'undo' steps, in order:
 
 [source,bash]
@@ -475,11 +484,11 @@ Primary routines — the core of the framework — launch respective functions o
 
 [source,subs="verbatim,quotes,attributes"]
 ----
-$ *di* *c*[*heck*]    [-ynqvewf] [--] [*_NAME_*]…
+$ *di* *c*[*heck*]    [-ynqvew]  [-b *_BUNDLE_*]… [--] [*_NAME_*]…
 
-$ *di* *i*[*nstall*]  [-ynqvewf] [--] [*_NAME_*]…
+$ *di* *i*[*nstall*]  [-ynqvewf] [-b *_BUNDLE_*]… [--] [*_NAME_*]…
 
-$ *di* *r*[*emove*]   [-ynqvew]  [--] [*_NAME_*]…
+$ *di* *r*[*emove*]   [-ynqvewf] [-b *_BUNDLE_*]… [--] [*_NAME_*]…
 ----
 
 Accepted values of `*_NAME_*` are (case-insensitive):
