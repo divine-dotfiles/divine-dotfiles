@@ -2,9 +2,9 @@
 #:title:        Divine Bash routine: assemble
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    27
+#:revnumber:    28
 #:revdate:      2019.09.01
-#:revremark:    First attempt at bundle filtering
+#:revremark:    Second attempt at bundle filtering
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -78,7 +78,7 @@ d__assemble_all_tasks()
   D__LIST_OF_INT_DPL_PATHS=()
 
   # Storage variables
-  local dirs_to_scan bundle_handle bundle_dir
+  local dirs_to_scan=() bundle_handle bundle_dir
 
   # Check if a list of bundles is given
   if [ ${#D__REQ_BUNDLES[@]} -gt 0 ]; then
