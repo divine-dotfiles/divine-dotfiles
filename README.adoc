@@ -1,9 +1,9 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revnumber: 59
+:revnumber: 60
 :revdate: 2019.09.02
-:revremark: Test new table layout, pt. 10
+:revremark: Test new table layout, pt. 11
 :doctype: article
 // Visual
 :toc:
@@ -2092,33 +2092,15 @@ Instead it creates a <<split-queue,queue split>> point wherever it appears.
 
 |===
 
-[.note]
-[%noheader,cols="<.<a"]
-|===
-| [#asset-manifest-regex-note]#Under the hood#, RegEx patterns are fed to the http://man7.org/linux/man-pages/man1/find.1.html[find] utility, using https://en.wikibooks.org/wiki/Regular_Expressions/POSIX-Extended_Regular_Expressions[POSIX Extended Regular Expressions] dialect, in the manner similar to the following:
-
-[source,bash]
-----
-find . -regex "^\./${PATTERN}$"
-----
-
+[#asset-manifest-regex-note]#Under the hood#, RegEx patterns are fed to the http://man7.org/linux/man-pages/man1/find.1.html[find] utility, using https://en.wikibooks.org/wiki/Regular_Expressions/POSIX-Extended_Regular_Expressions[POSIX Extended Regular Expressions] dialect, in the manner similar to the following: `find . -regex "^\./${PATTERN}$"`.
 As a consequence, the patterns should not include `^` and `$` meta-characters.
-|===
 
-[.note]
-[%noheader,cols="<.<a"]
-|===
-| Order of entries in the asset manifest is guaranteed to correspond to the order of elements in <<asset-arrays,asset arrays>>.
+Order of entries in the asset manifest is guaranteed to correspond to the order of elements in <<asset-arrays,asset arrays>>.
 However, order of files/directories matching a RegEx entry is not guaranteed.
-|===
 
-[.note]
-[%noheader,cols="<.<a"]
-|===
-| Concrete relative paths are simply appended to their parent directories.
-So, asset paths like `.`, `..`, `../..`, etc. will work.
-Asset manifests are designed for convenience, not security: with free-form Bash code within deployments, security is pretty much a moot point.
-|===
+Relative paths from a manifest are simply appended to their respective parent directory.
+Paths like `.`, `..`, `../..`, etc. will work.
+Keep in mind, tha asset manifests are designed for convenience, not security: with free-form Bash code within deployments, security is pretty much a moot point.
 
 .Example of asset manifest
 [source]
