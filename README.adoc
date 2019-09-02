@@ -1,9 +1,9 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revnumber: 52
+:revnumber: 53
 :revdate: 2019.09.02
-:revremark: Test new table layout, pt. 3
+:revremark: Test new table layout, pt. 4
 :doctype: article
 // Visual
 :toc:
@@ -445,6 +445,7 @@ _Divine.dotfiles_ is installed, by default, to `~/.divine/`, and is contained en
 
 The framework itself consists of the following main parts:
 
+.Framework structure
 [%noheader,cols="<.<a",stripes=none]
 |===
 
@@ -485,7 +486,7 @@ _(Entire directory is, naturally, maintained by the framework.)_
 <<intervention-utility,*Divine intervention utility*>>, the command line interface to the framework.
 _(File is maintained by the framework.)_
 
-| +++<p align="center">+++`[$PATH directory]/*di*`+++</p>+++
+| +++<p align="center">+++`<a directory on $PATH>/*di*`+++</p>+++
 
 Symlink to the intervention utility, providing an easy access.
 This symlink is usually automatically created during framework installation.
@@ -556,16 +557,13 @@ For uninstallation, that order is fully reversed.
 
 ==== Primary routine options
 
-[%header,cols="<.<1,<.<3",stripes=none]
+.Primary routine options
+[%noheader,cols="<.<a",stripes=none]
 |===
 
-^.^| Option
-+++<br>+++
-`&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`
-^.^| Description
-
 | `*-y*`, `*--yes*`
-| Normally, framework prompts user right before sourcing each deployment script.
+
+Normally, framework prompts user right before sourcing each deployment script.
 Other events — like offering an optional framework dependency — also trigger a prompt.
 
 With this option, affirmative answer is assumed to every non-<<urgent-prompt,urgent>> prompt.
@@ -575,19 +573,20 @@ Note, that deployments are free to add any number of custom prompts unaffected b
 Access within deployments: `$D__OPT_ANSWER` (`true` / `false` / _empty_).
 
 | `*-n*`, `*--no*`
-| With this option, negatory answer is assumed to every built-it prompt.
+
+With this option, negatory answer is assumed to every built-it prompt.
 This option is equivalent to a 'dry run' — apart from skip messages, nothing will actually be done.
 
 Access within deployments: `$D__OPT_ANSWER` (`true` / `false` / _empty_).
 
-a| [#bundle-option]#`*-b* *_BUNDLE_*`#,
+| [#bundle-option]#`*-b* *_BUNDLE_*`, `*--bundle* *_BUNDLE_*`#
 
-`*--bundle* *_BUNDLE_*`
-a| [.gray]##_(repeatable)_## If at least one such option is provided, the search for deployments will be limited to the given <<attach-routine,attached bundles>> of deployments.
+[.gray]##_(repeatable)_## If at least one such option is provided, the search for deployments will be limited to the given <<attach-routine,attached bundles>> of deployments.
 Accepted values of `*_BUNDLE_*` are the same as the <<accepted-repo-values,accepted values of `*_REPO_*`>> during attaching of bundles.
 
 | `*-f*`, `*--force*`
-a| By default, the framework does *not*:
+
+By default, the framework does *not*:
 
 * re-install deployments that appear already installed;
 * uninstall deployments that appear already not installed;
@@ -598,23 +597,27 @@ This option overrules such considerations.
 Access within deployments: `$D__OPT_FORCE` (`true` / `false`).
 
 | `*-e*`, `*--except*`
-| This option inverts the behavior of deployment filter: instead of processing only listed deployments, all deployments are processed _except_ listed.
+
+This option inverts the behavior of deployment filter: instead of processing only listed deployments, all deployments are processed _except_ listed.
 
 Access within deployments: `$D__OPT_INVERSE` (`true` / `false`).
 
 | `*-w*`, `*--with-!*`
-| By default framework ignores <<dangerous-deployments,dangerous deployments>> unless they are named explicitly.
+
+By default framework ignores <<dangerous-deployments,dangerous deployments>> unless they are named explicitly.
 This option disables such behavior.
 
 Access within deployments: `$D__OPT_EXCLAM` (`true` / `false`).
 
 | `*-v*`, `*--verbose*`
-| Increase amount of output
+
+Increase amount of output
 
 Access within deployments: `$D__OPT_QUIET` (`true` / `false`).
 
 | `*-q*`, `*--quiet*`
-| [.gray]##_(default)_## Decrease amount of output
+
+[.gray]##_(default)_## Decrease amount of output
 
 Access within deployments: `$D__OPT_QUIET` (`true` / `false`).
 
@@ -667,25 +670,20 @@ Thus, by synchronizing Grail between machines, you will have the same set of bot
 
 ==== Attach/detach routine options
 
-Below is the list of options for attaching/detaching third-party bundles of deployments.
-Additional info about routine's behavior is also given.
-
-[%header,cols="<.<1,<.<3",stripes=none]
+.Attach/detach routine options
+[%noheader,cols="<.<a",stripes=none]
 |===
 
-^.^| Option
-+++<br>+++
-`&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`
-^.^| Description
-
 | `*-y*`, `*--yes*`
-| Normally, framework prompts user right before cloning/downloading repository.
+
+Normally, framework prompts user right before cloning/downloading repository.
 Other events — like offering an optional framework dependency — also trigger a prompt.
 
 With this option, affirmative answer is assumed to every built-it prompt.
 
 | `*-n*`, `*--no*`
-| With this option, negatory answer is assumed to every built-it prompt.
+
+With this option, negatory answer is assumed to every built-it prompt.
 This option is equivalent to a 'dry run' — apart from skip messages, nothing will actually be done.
 
 |===
@@ -713,35 +711,31 @@ If provided argument can be interpreted in multiple ways, the framework will ite
 
 ==== Plug routine options
 
-Below is the list of options for plugging in <<grail-directory,Grail directory>>.
-Additional info about routine's behavior is also given.
-
-[%header,cols="<.<1,<.<3",stripes=none]
+.Plug routine options
+[%noheader,cols="<.<a",stripes=none]
 |===
 
-^.^| Option
-+++<br>+++
-`&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`
-^.^| Description
-
 | `*-y*`, `*--yes*`
-a| Normally, framework prompts user right before overwriting existing Grail directory.
+
+Normally, framework prompts user right before overwriting existing Grail directory.
 Other events — like offering an optional framework dependency — also trigger a prompt.
 
 With this option, affirmative answer is assumed to every built-it prompt.
 
 [.note]
 [%noheader,cols="<.<a"]
-|===
-| If provided argument can be interpreted in multiple ways, the first option will be silently settled upon.
-|===
+!===
+! If provided argument can be interpreted in multiple ways, the first viable interpretation will be silently settled upon.
+!===
 
 | `*-n*`, `*--no*`
-| With this option, negatory answer is assumed to every built-it prompt.
+
+With this option, negatory answer is assumed to every built-it prompt.
 This option is equivalent to a 'dry run' — apart from skip messages, nothing will actually be done.
 
 | `*-l*`, `*--link*`
-| With this option, symlink is created to the directory, path to which is given, instead of copying it.
+
+With this option, symlink is created to the directory, path to which is given, instead of copying it.
 In this mode, given argument is not considered as a repository.
 
 |===
@@ -763,25 +757,20 @@ Update routine is three-pronged, and you are free to engage any and all of the p
 
 ==== Updating routine options
 
-Below is the list of options for updating framework, <<grail-directory,the Grail>>, and <<attach-routine,attached bundles>>.
-Additional info about routine's behavior is also given.
-
-[%header,cols="<.<1,<.<3",stripes=none]
+.Updating routine options
+[%noheader,cols="<.<a",stripes=none]
 |===
 
-^.^| Option
-+++<br>+++
-`&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`
-^.^| Description
-
 | `*-y*`, `*--yes*`
-a| Normally, framework prompts user right before pulling from remote repository.
+
+Normally, framework prompts user right before pulling from remote repository.
 Other events — like offering an optional framework dependency — also trigger a prompt.
 
 With this option, affirmative answer is assumed to every built-it prompt.
 
 | `*-n*`, `*--no*`
-| With this option, negatory answer is assumed to every built-it prompt.
+
+With this option, negatory answer is assumed to every built-it prompt.
 This option is equivalent to a 'dry run' — apart from skip messages, nothing will actually be done.
 
 |===
