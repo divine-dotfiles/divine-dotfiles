@@ -1,9 +1,9 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revnumber: 58
+:revnumber: 59
 :revdate: 2019.09.02
-:revremark: Test new table layout, pt. 9
+:revremark: Test new table layout, pt. 10
 :doctype: article
 // Visual
 :toc:
@@ -2022,6 +2022,7 @@ Leading and trailing slashes are disregarded in all paths in the asset manifests
 
 The following <<manifest-entry-flags,*flags*>> are recognized within asset manifests for each asset entry:
 
+.Asset manifest entry flags
 [%header,cols="<.<4,^.<1,<.<4",stripes=none]
 |===
 
@@ -2075,17 +2076,17 @@ _Irrelevant when the <<asset-flag-d,`d` flag>> is in effect._
 
 The following <<manifest-key-values,*key-values*>> are recognized within asset manifests:
 
-[%header,cols="<.<1,<.<3",stripes=none]
+.Asset manifest key-values
+[%noheader,cols="<.<a",stripes=none]
 |===
 
-^.^| Key-value
-^.^| Description
+| [#asset-manifest-prefix]#`(*prefix: _SUBPATH_*)`#
 
-| [#asset-manifest-prefix]#`(prefix:**_SUBPATH_**)`#
-| If you — the deployment author — want to contain your assets under some sub-path within the deployment directory, but you don't want that sub-path to be carried over to the asset directory, specify that sub-path in the `prefix` <<manifest-key-values,key>>.
+If you — the deployment author — want to contain your assets under some sub-path within the deployment directory, but you don't want that sub-path to be carried over to the asset directory, specify that sub-path in the `prefix` <<manifest-key-values,key>>.
 
-| [#asset-manifest-queue-split]#`(queue:split)`#
-| This key-value does not work like the other key-values.
+| [#asset-manifest-queue-split]#`(*queue: split*)`#
+
+This key-value does not work like the other key-values.
 It does not affect the asset entries in any way.
 Instead it creates a <<split-queue,queue split>> point wherever it appears.
 
@@ -2097,12 +2098,12 @@ Instead it creates a <<split-queue,queue split>> point wherever it appears.
 | [#asset-manifest-regex-note]#Under the hood#, RegEx patterns are fed to the http://man7.org/linux/man-pages/man1/find.1.html[find] utility, using https://en.wikibooks.org/wiki/Regular_Expressions/POSIX-Extended_Regular_Expressions[POSIX Extended Regular Expressions] dialect, in the manner similar to the following:
 
 [source,bash]
-|===--
+----
 find . -regex "^\./${PATTERN}$"
 ----
 
 As a consequence, the patterns should not include `^` and `$` meta-characters.
---
+|===
 
 [.note]
 [%noheader,cols="<.<a"]
@@ -2184,14 +2185,13 @@ d_queue_item_remove()   { :; }
 
 Following Bash arrays should be populated before any of the built-in helpers are called:
 
-[%header,cols="<.<1,<.<3",stripes=none]
+.Variables required to set up generic queue
+[%noheader,cols="<.<a",stripes=none]
 |===
 
-^.^| Variable name
-^.^| Description
-
 | [#var-queue-main]#`*D_QUEUE_MAIN*`#
-| Each member of this array defines a queue item.
+
+Each member of this array defines a queue item.
 
 Members of this array are simple strings.
 In generic queues, the framework uses the strings themselves only for debug messages.
@@ -2206,20 +2206,19 @@ Failing that, the queue will fail utterly and miserably.
 You have been warned.
 |===
 
-==== Generic queue special functions
+==== Generic queue hooks
 
 Following built-in functions may be implemented to provide queue logic (all are optional):
 
-[%header,cols="<.<1,<.<3",stripes=none]
+.Generic queue hooks
+[%noheader,cols="<.<a",stripes=none]
 |===
 
-^.^| Function name
-^.^| Description
-
-2+^.^h| Mini-primaries
+^.^h| Mini-primaries
 
 | [#func-queue-item-check]#`*d_queue_item_check*`#
-a| This function is called once for every queue item.
+
+This function is called once for every queue item.
 It is similar to its <<func-dpl-check,deployment-level cousin>>, `d_dpl_check`.
 
 Supported return codes:
@@ -2230,7 +2229,8 @@ Supported return codes:
 * `*3*` — *'Invalid'*: input for this queue item prevents it from being processed correctly.
 
 | [#func-queue-item-install]#`*d_queue_item_install*`#
-a| This function is called no more than once for every queue item.
+
+This function is called no more than once for every queue item.
 It is similar to its <<func-dpl-install,deployment-level cousin>>, `d_dpl_install`.
 
 Supported return codes:
@@ -2242,7 +2242,8 @@ Supported return codes:
 * `*4*` — *'Failed to install'* and also abort further queue installation.
 
 | [#func-queue-item-remove]#`*d_queue_item_remove*`#
-a| This function is called no more than once for every queue item.
+
+This function is called no more than once for every queue item.
 It is similar to its <<func-dpl-remove,deployment-level cousin>>, `d_dpl_remove`.
 
 Supported return codes:
@@ -2253,10 +2254,11 @@ Supported return codes:
 * `*3*` — *'Uninstalled successfully'* and also abort further queue uninstallation.
 * `*4*` — *'Failed to uninstall'* and also abort further queue uninstallation.
 
-2+^.^h| Other queue hooks
+^.^h| Other queue hooks
 
 | `*d_queue_pre_process*`
-a| This function is called once per queue processing, before checking begins.
+
+This function is called once per queue processing, before checking begins.
 It is a good place to inspect/tweak the queue as a whole, and to choose whether to proceed.
 
 Supported return codes:
@@ -2265,7 +2267,8 @@ Supported return codes:
 * `*1*` — *'Skip all queue processing'*: something is abnormal with the queue.
 
 | `*d_queue_post_process*`
-a| This function is called once per queue processing, after checking is completed.
+
+This function is called once per queue processing, after checking is completed.
 It is a good place to inspect/tweak the queue as a whole after it has been checked, and to choose whether to proceed.
 
 Supported return codes:
@@ -2279,21 +2282,22 @@ Supported return codes:
 
 Following built-in variables are available/recognized during processing of each queue item:
 
-[%header,cols="<.<1,<.<3",stripes=none]
+.Generic queue special variables
+[%noheader,cols="<.<a",stripes=none]
 |===
 
-^.^| Variable name
-^.^| Description
-
 | `*D__QUEUE_ITEM_NUM*`
-| Index of current item in `*D_QUEUE_MAIN*`.
+
+Index of current item in `*D_QUEUE_MAIN*`.
 This index is helpful if you keep multiple arrays of related queue data.
 
 | `*D__QUEUE_ITEM_TITLE*`
-| Content of `*D_QUEUE_MAIN*` for current item.
+
+Content of `*D_QUEUE_MAIN*` for current item.
 
 | `*D__QUEUE_ITEM_IS_FORCED*`
-a| By default, the framework does *not*:
+
+By default, the framework does *not*:
 
 * re-install queue items that appear already installed;
 * uninstall queue items that appear already not installed;
@@ -2309,15 +2313,16 @@ You are left to decide on whether to treat such cases specially.
 `*D__QUEUE_ITEM_STASH_VALUE*`
 
 `*D__QUEUE_ITEM_STASH_FLAG*`
-a| Stash key and stash value for current item.
+
+Stash key and stash value for current item.
 The third variable is `true` if stash record exists, `false` if stash record does not exist, and not set if stash is not used for this item.
 
 [.note]
 [%noheader,cols="<.<a"]
-|===
-| Queue mechanism uses stash to keep persistent records of (un)installing queue items.
+!===
+! Queue mechanism uses stash to keep persistent records of (un)installing queue items.
 Ideally, there is no reason for you to know this or use these variables.
-|===
+!===
 
 |===
 
@@ -2343,10 +2348,10 @@ Only the key `os` is recognized within queue manifests.
 . Within the deployment, customize the <<var-dpl-que-path,`D_DPL_QUE_PATH`>> variable to point to asset copy within <<grail-directory,the Grail>>, e.g.:
 +
 [source,bash]
-|===--
+----
 D_DPL_QUE_PATH="$D__DPL_ASSET_DIR/$D_DPL_NAME.dpl.que"
 ----
---
+|===
 
 [[link-queue]]
 === Link queue
@@ -2386,21 +2391,22 @@ populate_link_queue() {
 Following Bash arrays should be populated before any of the built-in helpers are called.
 Note, that you can <<link-queue-asset-automation,automate>> this process.
 
-[%header,cols="<.<1,<.<3",stripes=none]
+.Variables required to set up link queue
+[%noheader,cols="<.<a",stripes=none]
 |===
 
-^.^| Variable name
-^.^| Description
-
 | `*D_QUEUE_MAIN*`
-| This variable is still the main definition of the queue.
+
+This variable is still the main definition of the queue.
 In the context of link queue, for each absolute path in `*D_DPL_ASSET_PATHS*`, this array must contain a shortened relative version, resolvable from the asset directory.
 
 | `*D_DPL_ASSET_PATHS*`
-| Each member of this array is an absolute path to which a symlink should be maintained.
+
+Each member of this array is an absolute path to which a symlink should be maintained.
 
 | `*D_DPL_TARGET_PATHS*`
-| For each path in `*D_DPL_ASSET_PATHS*`, this array must contain the intended absolute path to a symlink, which will point to the respective asset.
+
+For each path in `*D_DPL_ASSET_PATHS*`, this array must contain the intended absolute path to a symlink, which will point to the respective asset.
 
 |===
 
@@ -2412,20 +2418,19 @@ Failing that, the queue will fail utterly and miserably.
 You have been warned.
 |===
 
-==== Link queue special functions
+==== Link queue hooks
 
 Following built-in functions may be implemented to provide queue logic (all are optional):
 
-[%header,cols="<.<1,<.<3",stripes=none]
+.Link queue hooks
+[%noheader,cols="<.<a",stripes=none]
 |===
 
-^.^| Function name
-^.^| Description
-
-2+^.^h| Pre-primary hooks
+^.^h| Pre-primary hooks
 
 | `*d_link_queue_item_pre_install*`
-a| This function is called once, immediately before <<func-queue-item-install,installing>> the symlink.
+
+This function is called once, immediately before <<func-queue-item-install,installing>> the symlink.
 
 Supported return codes:
 
@@ -2433,17 +2438,19 @@ Supported return codes:
 * `*1*` — *'Failed to pre-process'*: current item should not be symlinked.
 
 | `*d_link_queue_item_pre_remove*`
-a| This function is called once, immediately before <<func-queue-item-remove,uninstalling>> the symlink.
+
+This function is called once, immediately before <<func-queue-item-remove,uninstalling>> the symlink.
 
 Supported return codes:
 
 * `*0*` — *'Pre-processed successfully'*: [.gray]##_(default)_## current item is ready to be uninstalled.
 * `*1*` — *'Failed to pre-process'*: current item should not be uninstalled.
 
-2+^.^h| Other queue hooks
+^.^h| Other queue hooks
 
 | `*d_link_queue_pre_process*`
-a| This function is called once per link queue processing, before checking begins.
+
+This function is called once per link queue processing, before checking begins.
 It is a good place to inspect/tweak the link queue as a whole, and to choose whether to proceed.
 
 Supported return codes:
@@ -2452,7 +2459,8 @@ Supported return codes:
 * `*1*` — *'Skip all link queue processing'*: something is abnormal with the queue.
 
 | `*d_link_queue_post_process*`
-a| This function is called once per link queue processing, after checking is completed.
+
+This function is called once per link queue processing, after checking is completed.
 It is a good place to inspect/tweak the link queue as a whole after it has been checked, and to choose whether to proceed.
 
 Supported return codes:
@@ -2559,21 +2567,22 @@ populate_copy_queue() {
 Following Bash arrays should be populated before any of the built-in helpers are called.
 Note, that you can <<copy-queue-asset-automation,automate>> this process.
 
-[%header,cols="<.<1,<.<3",stripes=none]
+.Variables required to set up copy queue
+[%noheader,cols="<.<a",stripes=none]
 |===
 
-^.^| Variable name
-^.^| Description
-
 | `*D_QUEUE_MAIN*`
-| This variable is still the main definition of the queue.
+
+This variable is still the main definition of the queue.
 In the context of copy queue, for each absolute path in `*D_DPL_ASSET_PATHS*`, this array must contain a shortened relative version, resolvable from the asset directory.
 
 | `*D_DPL_ASSET_PATHS*`
-| Each member of this array is an absolute path to file that is to be copied.
+
+Each member of this array is an absolute path to file that is to be copied.
 
 | `*D_DPL_TARGET_PATHS*`
-| For each path in `*D_DPL_ASSET_PATHS*`, this array must contain the destination absolute path for copying.
+
+For each path in `*D_DPL_ASSET_PATHS*`, this array must contain the destination absolute path for copying.
 
 |===
 
@@ -2585,20 +2594,19 @@ Failing that, the queue will fail utterly and miserably.
 You have been warned.
 |===
 
-==== Copy queue special functions
+==== Copy queue hooks
 
 Following built-in functions may be implemented to provide queue logic (all are optional):
 
-[%header,cols="<.<1,<.<3",stripes=none]
+.Copy queue hooks
+[%noheader,cols="<.<a",stripes=none]
 |===
 
-^.^| Function name
-^.^| Description
-
-2+^.^h| Pre-primary hooks
+^.^h| Pre-primary hooks
 
 | `*d_copy_queue_item_pre_install*`
-a| This function is called once, immediately before <<func-queue-item-install,copying>>.
+
+This function is called once, immediately before <<func-queue-item-install,copying>>.
 
 Supported return codes:
 
@@ -2606,17 +2614,19 @@ Supported return codes:
 * `*1*` — *'Failed to pre-process'*: current item should not be copied.
 
 | `*d_copy_queue_item_pre_remove*`
-a| This function is called once, immediately before <<func-queue-item-remove,removing>> the copy.
+
+This function is called once, immediately before <<func-queue-item-remove,removing>> the copy.
 
 Supported return codes:
 
 * `*0*` — *'Pre-processed successfully'*: [.gray]##_(default)_## current item is ready to be un-copied.
 * `*1*` — *'Failed to pre-process'*: current item should not be un-copied.
 
-2+^.^h| Other queue hooks
+^.^h| Other queue hooks
 
 | `*d_copy_queue_pre_process*`
-a| This function is called once per copy queue processing, before checking begins.
+
+This function is called once per copy queue processing, before checking begins.
 It is a good place to inspect/tweak the copy queue as a whole, and to choose whether to proceed.
 
 Supported return codes:
@@ -2625,7 +2635,8 @@ Supported return codes:
 * `*1*` — *'Skip all copy queue processing'*: something is abnormal with the queue.
 
 | `*d_copy_queue_post_process*`
-a| This function is called once per copy queue processing, after checking is completed.
+
+This function is called once per copy queue processing, after checking is completed.
 It is a good place to inspect/tweak the copy queue as a whole after it has been checked, and to choose whether to proceed.
 
 Supported return codes:
@@ -2723,14 +2734,13 @@ d_love_remove()   { :; }
 
 Following Bash arrays should be populated before any of the built-in helpers are called:
 
-[%header,cols="<.<1,<.<3",stripes=none]
+.Variables required to set up multitask deployment
+[%noheader,cols="<.<a",stripes=none]
 |===
 
-^.^| Variable name
-^.^| Description
-
 | [#var-multitask-names]#`*D_MULTITASK_NAMES*`#
-a| Each member of this array defines a task.
+
+Each member of this array defines a task.
 
 Members of this array are strings, and are used in forming names of sub-primaries, which you then have to implement:
 
@@ -2743,33 +2753,34 @@ Members of this array are strings, and are used in forming names of sub-primarie
 
 [.note]
 [%noheader,cols="<.<a"]
-|===
-| This array must be consecutive.
+!===
+! This array must be consecutive.
 You have been warned.
-|===
+!===
 
 |===
 
-==== Multitask special functions
+==== Multitask hooks
 
 Following built-in functions may be implemented to provide task logic (all are optional):
 
-[%header,cols="<.<1,<.<3",stripes=none]
+.Multitask hooks
+[%noheader,cols="<.<a",stripes=none]
 |===
 
-^.^| Function name
-^.^| Description
-
-2+^.^h| Sub-primaries
+^.^h| Sub-primaries
 
 | [#func-task-check]#`*d{us}__TASK__{us}check*`#
-a| See the guidelines to the <<func-dpl-check,deployment-level sibling>>, `d_dpl_check`.
+
+See the guidelines to the <<func-dpl-check,deployment-level sibling>>, `d_dpl_check`.
 
 | [#func-task-install]#`*d{us}__TASK__{us}install*`#
-a| See the guidelines to the <<func-dpl-install,deployment-level sibling>>, `d_dpl_install`.
+
+See the guidelines to the <<func-dpl-install,deployment-level sibling>>, `d_dpl_install`.
 
 | [#func-task-remove]#`*d{us}__TASK__{us}remove*`#
-a| See the guidelines to the <<func-dpl-remove,deployment-level sibling>>, `d_dpl_remove`.
+
+See the guidelines to the <<func-dpl-remove,deployment-level sibling>>, `d_dpl_remove`.
 
 |===
 
@@ -2852,7 +2863,7 @@ An OS distribution adapter allows the framework to interact with that OS and wit
 
 * An adapter is a Bash script with special functions implemented.
 * Adapter template and guidelines are located in `lib/templates/adapters/distro.adp.sh`.
-* Active adapters are put into `lib/adapters/distro`.
+* Active adapters are put into `lib/adapters/distro/`.
 
 Adapters for all OS distributions out there will be welcomed with open arms.
 
@@ -2861,59 +2872,48 @@ Adapters for all OS distributions out there will be welcomed with open arms.
 Divine deployments are deployments developed and distributed along with _Divine.dotfiles_.
 Apart from being useful by themselves, they serve as an illustration of the framework's mechanisms put to good use.
 
-[%header,cols="<.^1,<.^3",stripes=none]
+.List of Divine deployments
+[%noheader,cols="<.<a",stripes=none]
 |===
 
-^.^| Link to deployments' page
-^.^| Description
-
-| https://github.com/no-simpler/divine-bundle-essentials[Essentials]
-| _(fully functional, not yet fully documented)_
+| https://github.com/no-simpler/divine-bundle-essentials[Essentials] _(fully functional, not yet fully documented)_
 
 A bundle of bread-and-butter deployments, mostly centered around 'classic' dotfiles.
 
-| https://github.com/no-simpler/divine-bundle-gpg-primer[GnuPG best practices]
-| _(fully functional on macOS, not yet fully documented)_
+| https://github.com/no-simpler/divine-bundle-gpg-primer[GnuPG best practices] _(fully functional on macOS, not yet fully documented)_
 
 Automates adherence to best security practices in regards to https://www.gnupg.org[GnuPG].
 
-| https://github.com/no-simpler/divine-bundle-ssh-primer[SSH key handling]
-| _(fully functional on macOS, not yet fully documented)_
+| https://github.com/no-simpler/divine-bundle-ssh-primer[SSH key handling] _(fully functional on macOS, not yet fully documented)_
 
 Automates secure stashing and retrieval of SSH secret keys.
 
-| https://github.com/no-simpler/divine-bundle-fonts[Fonts collection]
-| _(fully functional on macOS & Ubuntu, not yet fully documented)_
+| https://github.com/no-simpler/divine-bundle-fonts[Fonts collection] _(fully functional on macOS & Ubuntu, not yet fully documented)_
 
 Maintains a collection of personal font files across machines.
 
-2+^.^h| macOS-specific deployments
+^.^h| macOS-specific deployments
 
-| https://github.com/no-simpler/divine-bundle-macos-local-server[Local development server]
-| _(fully functional on macOS, not yet fully documented)_
+| https://github.com/no-simpler/divine-bundle-macos-local-server[Local development server] _(fully functional on macOS, not yet fully documented)_
 
 Maintains a local development server on macOS.
 For the most part, it automates instructions from https://getgrav.org/blog/macos-mojave-apache-multiple-php-versions[this article].
 
-| https://github.com/no-simpler/divine-bundle-macos-tilde-switch[Tilde-switch]
-| _(fully functional on macOS, not yet fully documented)_
+| https://github.com/no-simpler/divine-bundle-macos-tilde-switch[Tilde-switch] _(fully functional on macOS, not yet fully documented)_
 
 Programmatically switches keys tilde `~` and plus-minus `±` on a MacBook’s built-in physical keyboard.
 
-2+^.^h| App-specific configuration deployments
+^.^h| App-specific configuration deployments
 
-| https://github.com/no-simpler/divine-bundle-config-vscode[Visual Studio Code]
-| _(fully functional on macOS, not yet fully documented)_
+| https://github.com/no-simpler/divine-bundle-config-vscode[Visual Studio Code] _(fully functional on macOS, not yet fully documented)_
 
 Maintains configuration for https://code.visualstudio.com[VS Code].
 
-| https://github.com/no-simpler/divine-bundle-config-hyperjs[Hyper.js]
-| _(fully functional on macOS, not yet fully documented)_
+| https://github.com/no-simpler/divine-bundle-config-hyperjs[Hyper.js] _(fully functional on macOS, not yet fully documented)_
 
 Maintains configuration for https://hyper.is[Hyper] terminal.
 
-| https://github.com/no-simpler/divine-bundle-config-transmissionbt[Transmission BT]
-| _(fully functional on macOS, not yet fully documented)_
+| https://github.com/no-simpler/divine-bundle-config-transmissionbt[Transmission BT] _(fully functional on macOS, not yet fully documented)_
 
 Maintains configuration for https://transmissionbt.com[Transmission].
 
