@@ -1,9 +1,9 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revnumber: 57
+:revnumber: 58
 :revdate: 2019.09.02
-:revremark: Test new table layout, pt. 8
+:revremark: Test new table layout, pt. 9
 :doctype: article
 // Visual
 :toc:
@@ -1081,10 +1081,10 @@ Intervention utility has the `--yes`/`-y` option that effectively skips all norm
 It is possible to force the appearance of an *urgent prompt* before the deployment is sourced regardless of said option.
 To do so, use any of these flags:
 
-* `c` — always prompt during `**c**heck` routine.
-* `i` — always prompt during `**i**nstall` routine.
-* `r` — always prompt during `**r**emove` routine.
-* `a` — **a**ll of the avove.
+* `*c*` — always prompt during `**c**heck` routine.
+* `*i*` — always prompt during `**i**nstall` routine.
+* `*r*` — always prompt during `**r**emove` routine.
+* `*a*` — **a**ll of the avove.
 
 When a prompt is forced by a flag, it remains urgent even without `--yes` option.
 Urgent prompts are styled to stand out a bit more in terminal.
@@ -1377,19 +1377,19 @@ When this variable is non-empty, you also have the built-in <<func-os-pkgmgr,pac
 
 ^.^h| [#marker-vars]#Marker variables in <<func-dpl-check,`d_dpl_check`>>#
 
-| [#var-another-prompt]#`D_DPL_NEEDS_ANOTHER_PROMPT`#
+| [#var-another-prompt]#`*D_DPL_NEEDS_ANOTHER_PROMPT*`#
 
 Set this variable to `true` to trigger an <<urgent-prompt,urgent prompt>> before the framework proceeds to (un)installation.
 
 _Works only during `install`/`remove` <<primary-routines,routine>> and only if set within <<func-dpl-check,`d_dpl_check`>> primary._
 
-| [#var-another-warning]#`D_DPL_NEEDS_ANOTHER_WARNING`#
+| [#var-another-warning]#`*D_DPL_NEEDS_ANOTHER_WARNING*`#
 
-If `*_D_DPL_NEEDS_ANOTHER_PROMPT_*` is set to `true` and this variable is non-empty, then this textual warning is shown to the user.
+If `$D_DPL_NEEDS_ANOTHER_PROMPT` is set to `true` and this variable is non-empty, then its content is shown to the user as textual warning.
 
 _Works only during `install`/`remove` <<primary-routines,routine>> and only if set within <<func-dpl-check,`d_dpl_check`>> primary._
 
-| [#var-user-or-os]#`D_DPL_INSTALLED_BY_USER_OR_OS`#
+| [#var-user-or-os]#`*D_DPL_INSTALLED_BY_USER_OR_OS*`#
 
 Set this variable to `true` to signal to the framework: whatever parts of current deployment are installed, have been installed by other methods, not by this framework.
 
@@ -1491,7 +1491,7 @@ $ dprint_debug -l -n 'Extracting archive from:' -i "$archive_path" \
 The `dprint` functions have the following *in common*:
 
 * The output is prepended with a thematically styled 'fat' arrow: `=\=>`.
-* All lines but the first are indented with four spaces.
+* All lines after the first are indented with four spaces.
 * The output message is assembled from given ``*_CHUNK_*``s, which are just strings.
 ** Special `*_CHUNK_*`, `-n`, inserts a line break.
 +
@@ -1600,41 +1600,35 @@ Returns:
 Below is the list of `dprompt` options.
 Unrecognized options are silently ignored.
 
-[%header,cols="<.<1,<.<3",stripes=none]
+.List of `dprompt` options
+[%noheader,cols="<.<a",stripes=none]
 |===
 
-^.^| `dprompt` option
-+++<br>+++
-`&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`
-^.^| Description
+| `*-a* *_ANSWER_*` `*--answer* *_ANSWER_*`
 
-a| `*-a* *_ANSWER_*`,
-
-`*--answer* *_ANSWER_*`
-a| * If `*_ANSWER_*` is `true`, returns `0` immediately.
+* If `*_ANSWER_*` is `true`, returns `0` immediately.
 * If `*_ANSWER_*` is `false`, returns `1` immediately.
 * Otherwise, proceeds with prompting.
 
 [.note]
 [%noheader,cols="<.<a"]
-|===
-| Call `dprompt --answer "$D__OPT_ANSWER"` to make the prompt honor `--yes`/`--no` options of the <<intervention-utility,intervention utility>>.
-|===
+!===
+! Call `dprompt --answer "$D__OPT_ANSWER"` to make the prompt honor `--yes`/`--no` options of the <<intervention-utility,intervention utility>>.
+!===
 
-a| `*-p* *_PROMPT_*`,
+| `*-p* *_PROMPT_*`, `*--prompt* *_PROMPT_*`
 
-`*--prompt* *_PROMPT_*`
-a| Customizes prompt text.
+Customizes prompt text.
 Limit this to a few words, e.g., `Are you sure?`.
 Long-winded descriptions are better served in chunks as regular arguments.
 
-a| `*-c* *_COLOR_*`,
+| `*-c* *_COLOR_*`, `*--color* *_COLOR_*`
 
-`*--color* *_COLOR_*`
-a| Uses one of the built-in colors in styling of the prompt: `$BLACK`, `$RED`, `$GREEN`, `$YELLOW` (_default_), `$BLUE`, `$MAGENTA`, `$CYAN`, `$WHITE`.
+Uses one of the built-in colors in styling of the prompt: `$BLACK`, `$RED`, `$GREEN`, `$YELLOW` (_default_), `$BLUE`, `$MAGENTA`, `$CYAN`, `$WHITE`.
 
-a| `*-b*`
-a| (_repeatable_) Gradually removes built-in coloring and bolding effects.
+| `*-b*`
+
+(_repeatable_) Gradually removes built-in coloring and bolding effects.
 Depending on number of `-b` options, the following styling is used:
 
 * 0:  bold, color, inverted color
@@ -1643,24 +1637,29 @@ Depending on number of `-b` options, the following styling is used:
 * 3:  color
 * 4+: _none_, synonym of `--bare`
 
-a| `*--bare*`
-a| Completely removes built-in coloring and bolding from the prompt.
+| `*--bare*`
+
+Completely removes built-in coloring and bolding from the prompt.
 Synonym of `-bbbb`.
 
-a| `*-r*`, `*--arrow*`
-a| Always prepend 'fat' arrow, `=\=>`, to the prompt.
+| `*-r*`, `*--arrow*`
+
+Always prepend 'fat' arrow, `=\=>`, to the prompt.
 Without this option, the arrow is only printed when there is at least one non-option argument.
 
-a| `*-k*`, `*--any-key*`
-a| Special mode: return `0` on any key press after the prompt.
+| `*-k*`, `*--any-key*`
+
+Special mode: return `0` on any key press after the prompt.
 
 With this option `0` is immediately returned for both `true` and `false` values of `--answer` option.
 
-a| `*-y*`, `*--yes-no*`
-a| Default mode: yes or no prompt.
+| `*-y*`, `*--yes-no*`
 
-a| `*-q*`, `*--or-quit*`
-a| In default mode, this option introduces the third option: `q` (stands for 'quit').
+Default mode: yes or no prompt.
+
+| `*-q*`, `*--or-quit*`
+
+In default mode, this option introduces the third option: `q` (stands for 'quit').
 If user presses `q`, code `2` is returned by `dprompt`.
 
 |===
@@ -1745,74 +1744,79 @@ Rules of key-value store are:
 
 Depending on first argument, usage is as follows.
 
-[%header,cols="<.<1,<.<3",stripes=none]
+.Usage patterns of `dstash`
+[%noheader,cols="<.<a",stripes=none]
 |===
 
-^.^| `dstash` arguments
-^.^| Description
-
 | `*ready*`
-| (_default task_) Checks that stashing system is primed and ready.
+
+(_default task_) Checks that stashing system is primed and ready.
 
 Returns `0` if stash is ready, or `2` if not.
 
 | `*has* *_KEY_*`
-| Checks if stash contains at least one `*_KEY_*` with any value.
+
+Checks if stash contains at least one `*_KEY_*` with any value.
 
 Returns `0` if so, or `1` otherwise.
 
 | `*set* *_KEY_* [*_VALUE_*]`
-| Ensures presence of single `*_KEY_*` and sets it to `*_VALUE_*`.
+
+Ensures presence of single `*_KEY_*` and sets it to `*_VALUE_*`.
 
 Returns `0` on success, or `1` otherwise.
 
 | `*add* *_KEY_* [*_VALUE_*]`
-| Adds one instance of `*_KEY_*` and sets it to `*_VALUE_*`.
+
+Adds one instance of `*_KEY_*` and sets it to `*_VALUE_*`.
 
 Returns `0` on success, or `1` otherwise.
 
 | `*get* *_KEY_*`
-| Prints the value of the first instance of `*_KEY_*` to `stdout`.
+
+Prints the value of the first instance of `*_KEY_*` to `stdout`.
 
 Returns `0` on success (even if nothing was printed), or `1` otherwise.
 
 | `*list* *_KEY_*`
-| Prints each value of `*_KEY_*` on a line to `stdout`.
+
+Prints each value of `*_KEY_*` on a line to `stdout`.
 
 Returns `0` on success (even if nothing was printed), or `1` otherwise.
 
 | `*unset* *_KEY_* [*_VALUE_*]`
-| If `*_VALUE_*` is provided: removes each instance of `*_KEY_*` containing that value.
+
+If `*_VALUE_*` is provided: removes each instance of `*_KEY_*` containing that value.
 
 Without `*_VALUE_*`: removes all instances of `*_KEY_*`.
 
 Returns `0` on success (even if nothing was removed), or `1` otherwise.
 
 | `*clear*`
-| Clears all records from this stash.
+
+Clears all records from this stash.
 
 |===
 
 Below is the list of `dstash` options.
 
-[%header,cols="<.<1,<.<3",stripes=none]
+.List of `dstash` options
+[%noheader,cols="<.<a",stripes=none]
 |===
 
-^.^| `dstash` option
-+++<br>+++
-`&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`
-^.^| Description
+| `*-s*`, `*--skip-checks*`
 
-a| `*-s*`, `*--skip-checks*`
-a| Normally, each invocation of `dstash` (with any arguments) starts with integrity check.
+Normally, each invocation of `dstash` (with any arguments) starts with integrity check.
 For repeated calls within a deployment, such checks become redundant.
 After ensuring that `dstash ready`, use this option on every subsequent call to `dstash` to forego integrity checks.
 
-a| `*-r*`, `*--root*`
-a| Works with <<stash-types,root stash>> instead of default deployment stash.
+| `*-r*`, `*--root*`
 
-a| `*-g*`, `*--grail*`
-a| Works with <<stash-types,Grail stash>> instead of default deployment stash.
+Works with <<stash-types,root stash>> instead of default deployment stash.
+
+| `*-g*`, `*--grail*`
+
+Works with <<stash-types,Grail stash>> instead of default deployment stash.
 
 |===
 
