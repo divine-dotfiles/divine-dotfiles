@@ -1,9 +1,9 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revnumber: 49
+:revnumber: 50
 :revdate: 2019.09.02
-:revremark: Test new table layout
+:revremark: Add fonts dpl; tweak references to essentials bundle
 :doctype: article
 // Visual
 :toc:
@@ -61,7 +61,7 @@ Built-in OS detection mechanisms facilitate writing portable deployments.
 +
 Deployment ecosystem is designed with distribution and pluggability in mind.
 
-<<divine-deployments,*Divine deployments*>> (distributed separately) — such as our majestic https://github.com/no-simpler/divine-bundle-essentials['essentials' bundle] — strive to exemplify what a good deployment should look like.
+<<divine-deployments,*Divine deployments*>> (distributed separately) — such as our majestic https://github.com/no-simpler/divine-bundle-essentials[`essentials` bundle] — strive to exemplify what a good deployment should look like.
 
 === Example deployment
 
@@ -122,7 +122,7 @@ Use built-in OS detection mechanism to perform certain tasks on certain distribu
 
 | +++<p align="center">+++<<attach-routine,*Third-party deployments (bundles)*>>+++</p>+++
 
-Attach pre-made bundles of deployments from Github (such as our glorious https://github.com/no-simpler/divine-bundle-essentials['essentials' bundle]) without polluting your precious Grail [.small]#_(heheh)_#
+Attach pre-made bundles of deployments from Github (such as our glorious https://github.com/no-simpler/divine-bundle-essentials[`essentials` bundle]) without polluting your precious Grail [.small]#_(heheh)_#
 
 | +++<p align="center">+++<<stash,*Stash*>>+++</p>+++
 
@@ -318,7 +318,7 @@ bash -c 'TMP=$(mktemp); URL=https://raw.github.com/no-simpler/divine-dotfiles/ma
 | This chained command does three things:
 
 . Install the framework without any prompts.
-. Attach our illustrious https://github.com/no-simpler/divine-bundle-essentials['essentials' bundle] of Divine deployments.
+. Attach our illustrious https://github.com/no-simpler/divine-bundle-essentials[`essentials` bundle] of Divine deployments.
 . Run deployment installation routine.
 Expect a prompt for sudo password here (it will be explained).
 
@@ -958,7 +958,7 @@ a| *'Critical failure'*: same as 'Failed to uninstall', except:
 | It is worth noting that intended semantics of uninstallation are not direct inverse to that of installation.
 Ideally, if no installation via the framework has previously occurred, uninstallation should do nothing.
 
-This philosophy is followed by our magnificent https://github.com/no-simpler/divine-bundle-essentials['essentials' bundle] of Divine deployments.
+This philosophy is followed by our magnificent https://github.com/no-simpler/divine-bundle-essentials[`essentials` bundle] of Divine deployments.
 |===
 
 [[deployment-metadata]]
@@ -2842,6 +2842,11 @@ Automates adherence to best security practices in regards to https://www.gnupg.o
 | _(fully functional on macOS, not yet fully documented)_
 
 Automates secure stashing and retrieval of SSH secret keys.
+
+| https://github.com/no-simpler/divine-bundle-fonts[Fonts collection]
+| _(fully functional on macOS & Ubuntu, not yet fully documented)_
+
+Maintains a collection of personal font files across machines.
 
 2+^.^h| macOS-specific deployments
 
