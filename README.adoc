@@ -1,9 +1,9 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revnumber: 56
+:revnumber: 57
 :revdate: 2019.09.02
-:revremark: Test new table layout, pt. 7
+:revremark: Test new table layout, pt. 8
 :doctype: article
 // Visual
 :toc:
@@ -824,7 +824,7 @@ Return code of `d_dpl_check()` determines current status of the deployment:
 [%noheader,cols="<.<a",stripes=none]
 |===
 
-| `*0*`: *'Unknown'*
+| `*0*`: *Unknown*
 
 Meaning: no reliable way to tell whether this deployment is installed or not.
 
@@ -835,7 +835,7 @@ Routines that will proceed further:
 * `install`
 * `remove`
 
-| `*1*`: *'Installed'*
+| `*1*`: *Installed*
 
 Meaning: as it stands, intended goal of installing this deployment is entirely achieved.
 
@@ -843,7 +843,7 @@ Routines that will proceed further:
 
 * `remove`
 
-| `*2*`: *'Not installed'*
+| `*2*`: *Not installed*
 
 Meaning: as it stands, intended goal of installing this deployment is entirely not achieved.
 
@@ -851,7 +851,7 @@ Routines that will proceed further:
 
 * `install`
 
-| `*3*`: *'Irrelevant'*
+| `*3*`: *Irrelevant*
 
 Meaning: processing this deployment in current environment does not make sense.
 
@@ -859,7 +859,7 @@ This code is appropriate, for example, if current OS is unsupported.
 
 None of the routines will proceed further.
 
-| `*4*`: *'Partly installed'*
+| `*4*`: *Partly installed*
 
 Meaning: as it stands, intended goal of installing this deployment is partly achieved and partly not achieved.
 
@@ -883,35 +883,35 @@ Return code of `d_dpl_install()` determines output of `install` routine:
 [%noheader,cols="<.<a",stripes=none]
 |===
 
-| `*0*`: *'Successfully installed'*
+| `*0*`: *Successfully installed*
 
 Meaning: intended goal of installing this deployment is entirely achieved.
 
 _This return code is assumed if `d_dpl_install()` is not implemented or if unsupported code is returned._
 
-| `*1*`: *'Failed to install'*
+| `*1*`: *Failed to install*
 
 Meaning: intended goal of installing this deployment is _not entirely_ achieved due to error.
 
-| `*2*`: *'Skipped'*
+| `*2*`: *Skipped*
 
 Meaning: intended goal of installing this deployment is _entirely not_ achieved because nothing has been done.
 
-| `*100*`: *'Reboot needed'*
+| `*100*`: *Reboot needed*
 
 Meaning: same as 'Successfully installed', except:
 
 * Intervention will gracefully shut down without moving past this deployment.
 * User will be asked to reboot the machine and resume afterward.
 
-| `*101*`: *'User attention needed'*
+| `*101*`: *User attention needed*
 
 Meaning: same as 'Successfully installed', except:
 
 * Intervention will gracefully shut down without moving past this deployment.
 * Deployment is expected to print explanation to `stderr`.
 
-| `*102*`: *'Critical failure'*
+| `*102*`: *Critical failure*
 
 Meaning: same as 'Failed to install', except:
 
@@ -931,37 +931,37 @@ Return code of `d_dpl_remove()` determines output of `remove` routine:
 [%noheader,cols="<.<a",stripes=none]
 |===
 
-| `*0*`: *'Successfully uninstalled'*
+| `*0*`: *Successfully uninstalled*
 
 Meaning: effects of previously installing this deployment are entirely reversed.
 
 _This return code is assumed if `d_dpl_remove()` is not implemented or if unsupported code is returned._
 
-| `*1*`: *'Failed to uninstall'*
+| `*1*`: *Failed to uninstall*
 
 Meaning: effects of previously installing this deployment are _not entirely_ reversed due to error.
 
-| `*2*`: *'Skipped'*
+| `*2*`: *Skipped*
 
 Meaning: effects of previously installing this deployment are _entirely not_ reversed because nothing has been done.
 
-| `*100*`: *'Reboot needed'*
+| `*100*`: *Reboot needed*
 
 Meaning: same as 'Successfully uninstalled', except:
 
 * Intervention will gracefully shut down without moving past this deployment.
 * User will be asked to reboot the machine and resume afterward.
 
-| `*101*`: *'User attention needed'*
+| `*101*`: *User attention needed*
 
 Meaning: same as 'Successfully uninstalled', except:
 
 * Intervention will gracefully shut down without moving past this deployment.
 * Deployment is expected to print explanation to `stderr`.
 
-| `*102*`: *'Critical failure'*
+| `*102*`: *Critical failure*
 
-Meaning: same as 'Failed to uninstall', except:
+Meaning: same as uninstall', excep:
 
 * Intervention will shut down without moving past this deployment.
 * Output will mention critical failure.
@@ -991,7 +991,7 @@ This philosophy is followed by our magnificent https://github.com/no-simpler/div
 [.note]
 [%noheader,cols="<.<a"]
 |===
-| Although all deployment metadata look like Bash variable assignments, they are in face extracted from the file _before_ it is interpreted by Bash.
+| Although all deployment metadata look like Bash variable assignments, they are in fact extracted from the file _before_ it is interpreted by Bash.
 
 For each reserved 'variable' name, first line that looks like the usual Bash assignment is used.
 
@@ -1053,11 +1053,11 @@ Flags alter some of the framework's behavior toward the deployment.
 
 Below is the exhaustive rundown of supported flags and their effects.
 
-.Rundown of supported deployment flags
+.List of supported deployment flags
 [%noheader,cols="<.<a",stripes=none]
 |===
 
-| [#deployment-groups]#`[0-9]`#
+| [#deployment-groups]#`*[0-9]*`# _(any single digit)_
 
 Assigns the deployment to one of the ten single-digit *groups*.
 Groups of deployments may be processed together by referring to them by that group's digit in place of deployment name.
@@ -1069,22 +1069,22 @@ Groups of deployments may be processed together by referring to them by that gro
 The framework guards against using reserved words as deployment names.
 !===
 
-| [#dangerous-deployments]#`!`#
+| [#dangerous-deployments]#`*!*`# _(an exclamation mark)_
 
 Marks the deployment as *dangerous*.
 By default, framework ignores dangerous deployments unless they are listed by name or by name of their group.
 Another way to include dangerous deployments is the `--with-!`/`-w` option on intervention utility.
 
-| [#urgent-prompt]#`[cira]`#
+| [#urgent-prompt]#`*[cira]*`# _(any of the four lowercase letters)_
 
 Intervention utility has the `--yes`/`-y` option that effectively skips all normal prompts and confirmations.
 It is possible to force the appearance of an *urgent prompt* before the deployment is sourced regardless of said option.
 To do so, use any of these flags:
 
-* `c` — always prompt during `check` routine.
-* `i` — always prompt during `install` routine.
-* `r` — always prompt during `remove` routine.
-* `a` — all of the avove.
+* `c` — always prompt during `**c**heck` routine.
+* `i` — always prompt during `**i**nstall` routine.
+* `r` — always prompt during `**r**emove` routine.
+* `a` — **a**ll of the avove.
 
 When a prompt is forced by a flag, it remains urgent even without `--yes` option.
 Urgent prompts are styled to stand out a bit more in terminal.
@@ -1219,87 +1219,95 @@ All such functions are call-only, i.e., *not* for re-implementation.
 
 === Variables available to deployments
 
-The following variables are available/recognized in each deployment:
-
-[%header,cols="<.<1,<.<3",stripes=none]
+.List of variables available/recognized in each deployment
+[%noheader,cols="<.<a",stripes=none]
 |===
 
-^.^| Variable name
-^.^| Value description
-
-2+^.^h| <<deployment-metadata,Deployment metadata>>
+^.^h| <<deployment-metadata,Deployment metadata>>
 
 | `*D_DPL_NAME*`
-| Explicit name for the deployment.
+
+Explicit name for the deployment.
 
 This variable will be non-empty even if there is no assignment within the file.
 
 | `*D_DPL_DESC*`
-| One-line description of the deployment.
+
+One-line description of the deployment.
 
 | `*D_DPL_PRIORITY*`
-| Priority of the deployment (non-negative integer).
+
+Priority of the deployment (non-negative integer).
 
 This variable will be non-empty even if there is no assignment within the file.
 
 | `*D_DPL_FLAGS*`
-| One-character flags, causing special treatment.
+
+One-character flags, causing special treatment.
 
 | `*D_DPL_WARNING*`
-| One-line cautionary message about this deployment.
 
-2+^.^h| Special directory paths
+One-line cautionary message about this deployment.
+
+^.^h| Special directory paths
 
 | [#var-dpl-dir]#`*D__DPL_DIR*`#
-| Absolute path to directory containing `*.dpl.sh` file.
+
+Absolute path to directory containing `*.dpl.sh` file.
 
 | [#var-dpl-asset-dir]#`*D__DPL_ASSET_DIR*`#
-| Generated absolute path to directory assigned to hold assets of current deployment.
+
+Generated absolute path to directory assigned to hold assets of current deployment.
 
 Located within <<grail-directory,the Grail>>, specifically `grail/assets/*_D_DPL_NAME_*/`.
 
 | [#var-dpl-backup-dir]#`*D__DPL_BACKUP_DIR*`#
-| Generated absolute path to directory assigned to hold backups of current deployment.
+
+Generated absolute path to directory assigned to hold backups of current deployment.
 
 Located within <<state-directory,state directory>>, specifically `state/backups/*_D_DPL_NAME_*/`.
 
-2+^.^h| Special file paths
+^.^h| Special file paths
 
 | [#var-dpl-sh-path]#`*D__DPL_SH_PATH*`#
-| Absolute path to `*.dpl.sh` file.
+
+Absolute path to `*.dpl.sh` file.
 
 | [#var-dpl-mnf-path]#`*D__DPL_MNF_PATH*`#
-a| Generated absolute path to asset manifest of current deployment.
+
+Generated absolute path to asset manifest of current deployment.
 This path does not necessarily exist.
 
 Same as `*_D__DPL_SH_PATH_*`, but with suffix changed to `*.dpl.mnf`.
 
 [.note]
 [%noheader,cols="<.<a"]
-|===
-| Asset manifests are also processed by routines that don't source deployments.
+!===
+! Asset manifests are also processed by routines that don't source deployments.
 
 Thus, path to asset manifest is locked, and this variable is read-only.
-|===
+!===
 
 | [#var-dpl-que-path]#`*D_DPL_QUE_PATH*`#
-a| Generated absolute path to queue manifest of current deployment.
+
+Generated absolute path to queue manifest of current deployment.
 This path does not necessarily exist.
 
 Same as `*_D__DPL_SH_PATH_*`, but with suffix changed to `*.dpl.que`.
 
 [.note]
 [%noheader,cols="<.<a"]
-|===
-| Queue manifests are processed only after sourcing their deployment file.
+!===
+! Queue manifests are processed only after sourcing their deployment file.
 
 Thus, you are free to adjust this path at the top level of deployment script.
-|===
+!===
 
-2+^.^h| [#detected-os]#Detected operating system (OS)#
+^.^h| [#detected-os]#Detected operating system (OS)#
 
 | [#var-os-family]#`*D__OS_FAMILY*`#
-a| Broad description of current OS.
+
+Broad description of current OS.
 
 Exhaustive list of possible values:
 
@@ -1313,22 +1321,23 @@ Exhaustive list of possible values:
 
 [.note]
 [%noheader,cols="<.<a"]
-|===
-| Note that `linux` and `wsl` are separate entries.
+!===
+! Note that `linux` and `wsl` are separate entries.
 Check for both to determine whether currently under modern Linux, e.g.:
 
 [source,bash,subs="verbatim,attributes"]
-|===--
+----
 case $D__OS_FAMILY in
   linux{vbar}wsl)   echo linux;;
   *)           echo other;;
 esac
 ----
 
---
+!===
 
 | [#var-os-distro]#`*D__OS_DISTRO*`#
-a| Best guess on the name of the current OS distribution.
+
+Best guess on the name of the current OS distribution.
 
 Exhaustive list of possible values:
 
@@ -1341,12 +1350,13 @@ Exhaustive list of possible values:
 
 [.note]
 [%noheader,cols="<.<a"]
-|===
-| This list is incomplete; you can help by <<contributing-os-support,expanding it>>.
-|===
+!===
+! This list is incomplete; you can help by <<contributing-os-support,expanding it>>.
+!===
 
 | [#var-os-pkgmgr]#`*D__OS_PKGMGR*`#
-a| Name of supported system package manager available on current system.
+
+Name of supported system package manager available on current system.
 
 Exhaustive list of possible values:
 
@@ -1359,26 +1369,29 @@ Exhaustive list of possible values:
 
 [.note]
 [%noheader,cols="<.<a"]
-|===
-| This list is incomplete; you can help by <<contributing-os-support,expanding it>>.
-|===
+!===
+! This list is incomplete; you can help by <<contributing-os-support,expanding it>>.
+!===
 
 When this variable is non-empty, you also have the built-in <<func-os-pkgmgr,package manager wrapper>>, `d__os_pkgmgr()`, at your disposal.
 
-2+^.^h| [#marker-vars]#Marker variables in <<func-dpl-check,`d_dpl_check`>>#
+^.^h| [#marker-vars]#Marker variables in <<func-dpl-check,`d_dpl_check`>>#
 
 | [#var-another-prompt]#`D_DPL_NEEDS_ANOTHER_PROMPT`#
-| Set this variable to `true` to trigger an <<urgent-prompt,urgent prompt>> before the framework proceeds to (un)installation.
+
+Set this variable to `true` to trigger an <<urgent-prompt,urgent prompt>> before the framework proceeds to (un)installation.
 
 _Works only during `install`/`remove` <<primary-routines,routine>> and only if set within <<func-dpl-check,`d_dpl_check`>> primary._
 
 | [#var-another-warning]#`D_DPL_NEEDS_ANOTHER_WARNING`#
-| If `*_D_DPL_NEEDS_ANOTHER_PROMPT_*` is set to `true` and this variable is non-empty, then this textual warning is shown to the user.
+
+If `*_D_DPL_NEEDS_ANOTHER_PROMPT_*` is set to `true` and this variable is non-empty, then this textual warning is shown to the user.
 
 _Works only during `install`/`remove` <<primary-routines,routine>> and only if set within <<func-dpl-check,`d_dpl_check`>> primary._
 
 | [#var-user-or-os]#`D_DPL_INSTALLED_BY_USER_OR_OS`#
-a| Set this variable to `true` to signal to the framework: whatever parts of current deployment are installed, have been installed by other methods, not by this framework.
+
+Set this variable to `true` to signal to the framework: whatever parts of current deployment are installed, have been installed by other methods, not by this framework.
 
 _Works only if set within `d_dpl_check()` primary._
 
@@ -1389,39 +1402,44 @@ This affects behavior of the following return codes of <<func-dpl-check,`d_dpl_c
 
 [.note]
 [%noheader,cols="<.<a"]
-|===
-| This is useful for deployments designed to not interfere with manual tinkering.
-|===
+!===
+! This is useful for deployments designed to not interfere with manual tinkering.
+!===
 
-2+^.^h| Parameters of current request
+^.^h| Parameters of current request
 
 | `*D__REQ_ROUTINE*`
-a| Name of <<primary-routines,primary routine>> currently being executed:
+
+Name of <<primary-routines,primary routine>> currently being executed:
 
 * `check`
 * `install`
 * `remove`
 
 | `*D__OPT_FORCE*`
-a| Whether `-f` / `--force` option is provided:
+
+Whether `-f` / `--force` option is provided:
 
 * `true`
 * `false`
 
 | [#var-opt-quiet]#`*D__OPT_QUIET*`#
-a| Which verbosity options is provided last:
+
+Which verbosity options is provided last:
 
 * `true` — quiet mode (or no verbosity options)
 * `false` — verbose mode
 
 | `*D__OPT_EXCLAM*`
-a| Whether `-w` / `--with-!` option is provided to process <<dangerous-deployments,dangerous>> deployments:
+
+Whether `-w` / `--with-!` option is provided to process <<dangerous-deployments,dangerous>> deployments:
 
 * `true`
 * `false`
 
 | `*D__OPT_ANSWER*`
-a| Which blanket answer is provided last.
+
+Which blanket answer is provided last.
 This affects all non-<<urgent-prompt,urgent>> built-in prompts.
 
 * `true` — affirmative answer is provided
