@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: queue
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    36
-#:revdate:      2019.08.28
-#:revremark:    Support multitask queues when (un)installations are skipped
+#:revnumber:    37
+#:revdate:      2019.09.02
+#:revremark:    Add exhaustive number of hooks to queues
 #:created_at:   2019.06.10
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -47,14 +47,30 @@ d__queue_check()
   # Rely on stashing
   dstash ready || return 3
 
-  # Launch pre-processing if it is implemented
-  if declare -f d_queue_pre_process &>/dev/null \
-    && ! d_queue_pre_process
-  then
-    dprint_debug 'Queue pre-processing signaled error'
-    return 3
+  # Storage variable
+  local return_code_hook
+
+  # Check if queue pre-processing hook is implemented
+  if declare -f d_queue_pre_check &>/dev/null; then
+    
+    # Launch pre-processing hook, store return code
+    d_queue_pre_check; return_code_hook=$?
+
+    # Unset the hook to prevent it from polluting other queues
+    unset -f d_queue_pre_check
+
+    # Check if returned code is non-zero
+    if [ $return_code_hook -ne 0 ]; then
+
+      # Announce and return
+      dprint_debug \
+        "Queue pre-check hook forces early return with code $return_code_hook"
+      return $return_code_hook
+
+    fi
+
   fi
-  
+
   # Announce checking
   dprint_debug -n \
     "Checking queue items $D__QUEUE_SECTMIN-$D__QUEUE_SECTMAX" \
@@ -75,14 +91,11 @@ d__queue_check()
   D_DPL_INSTALLED_BY_USER_OR_OS=true
 
   # If necessary functions are not implemented: implement a dummy
-  if ! declare -f d_queue_item_check &>/dev/null; then
-    d_queue_item_check() { :; }
-  fi
   if ! declare -f d_queue_item_pre_check &>/dev/null; then
     d_queue_item_pre_check() { :; }
   fi
-  if ! declare -f d_queue_post_process &>/dev/null; then
-    d_queue_post_process() { :; }
+  if ! declare -f d_queue_item_check &>/dev/null; then
+    d_queue_item_check() { :; }
   fi
 
   # Iterate over items in deployment's main queue
@@ -250,17 +263,11 @@ d__queue_check()
   # Done iterating over items in deployment's main queue
   done
 
-  # Check if there was at least one good item in queue
-  if ! $good_items_exist; then
-    dprint_debug 'Not a single good queue item provided'
-    return 3
-  fi
+  # Unset the hooks to prevent them from polluting other queues
+  unset -f d_queue_item_pre_check d_queue_item_check
 
-  # Launch post-processing
-  if ! d_queue_post_process; then
-    dprint_debug 'Queue post-processing signaled error'
-    return 3
-  fi
+  # Storage variable
+  local return_code_main
 
   # Check if additional user prompt is warranted
   if $should_prompt_again; then
@@ -268,12 +275,41 @@ d__queue_check()
     D_DPL_NEEDS_ANOTHER_WARNING='Irregularities detected with this deployment'
   fi
 
-  # Return appropriately
-  if $all_installed; then return 1
-  elif $all_not_installed; then return 2
-  elif $all_unknown; then return 0
-  elif $some_installed; then return 4
-  else return 2; fi
+  # Devise return code
+  if ! $good_items_exist; then
+    dprint_debug 'Not a single good queue item provided'
+    return_code_main=3
+  elif $all_installed; then return_code_main=1
+  elif $all_not_installed; then return_code_main=2
+  elif $all_unknown; then return_code_main=0
+  elif $some_installed; then return_code_main=4
+  else return_code_main=2; fi
+
+  # Check if queue post-processing hook is implemented
+  if declare -f d_queue_post_check &>/dev/null; then
+    
+    # Launch post-processing hook, store return code
+    D__QUEUE_RETURN_CODE=$return_code_main
+    d_queue_post_check; return_code_hook=$?
+    unset D__QUEUE_RETURN_CODE
+
+    # Unset the hook to prevent it from polluting other queues
+    unset -f d_queue_post_check
+
+    # Check if returned code is non-zero
+    if [ $return_code_hook -ne 0 ]; then
+
+      # Announce and return
+      dprint_debug \
+        "Queue post-check hook forces return with code $return_code_hook"
+      return $return_code_hook
+
+    fi
+
+  fi
+
+  # Return
+  return $return_code_main
 }
 
 d__queue_install()
@@ -303,6 +339,35 @@ d__queue_install()
     D__QUEUE_SECTMAX=${#D_QUEUE_MAIN[@]}
   fi
 
+  # Storage variable
+  local return_code_hook
+
+  # Check if queue pre-processing hook is implemented
+  if declare -f d_queue_pre_install &>/dev/null; then
+    
+    # Launch pre-processing hook, store return code
+    d_queue_pre_install; return_code_hook=$?
+
+    # Unset the hook to prevent it from polluting other queues
+    unset -f d_queue_pre_install
+
+    # Check if returned code is non-zero
+    if [ $return_code_hook -ne 0 ]; then
+
+      # Announce and return
+      dprint_debug \
+        "Queue pre-install hook forces early return with code $return_code_hook"
+      return $return_code_hook
+
+    fi
+
+  fi
+
+  # Announce installing
+  dprint_debug -n \
+    "Installing queue items $D__QUEUE_SECTMIN-$D__QUEUE_SECTMAX" \
+    "(queue section #$secnum)"
+
   # Storage and status variables
   local all_newly_installed=true all_already_installed=true all_failed=true
   local good_items_exist=false some_failed=false early_exit=false
@@ -312,11 +377,6 @@ d__queue_install()
   if ! declare -f d_queue_item_install &>/dev/null; then
     d_queue_item_install() { :; }
   fi
-
-  # Announce checking
-  dprint_debug -n \
-    "Installing queue items $D__QUEUE_SECTMIN-$D__QUEUE_SECTMAX" \
-    "(queue section #$secnum)"
 
   # Iterate over items in deployment's main queue
   for (( D__QUEUE_ITEM_NUM=$D__QUEUE_SECTMIN; \
@@ -427,32 +487,61 @@ d__queue_install()
   # Done iterating over items in deployment's main queue
   done
 
-  # Check if there was at least one good item in queue
-  if ! $good_items_exist; then
-    dprint_debug 'Not a single queue item valid for installation'
-    return 2
-  fi
+  # Unset the hook to prevent it from polluting other queues
+  unset -f d_queue_item_install
 
   # Check if early exit occurred
   if $early_exit; then
     dprint_skip 'Installation halted before all items were processed'
   fi
 
-  # Return appropriately
-  if $all_newly_installed; then return 0
+  # Storage variable
+  local return_code_main
+
+  # Devise return code
+  if ! $good_items_exist; then
+    dprint_debug 'Not a single queue item valid for installation'
+    return_code_main=2
+  elif $all_newly_installed; then return_code_main=0
   elif $all_already_installed; then
     dprint_skip 'All items already installed'
-    return 0
+    return_code_main=0
   elif $all_failed; then
     dprint_failure 'All items failed to install'
-    return 1
+    return_code_main=1
   elif $some_failed; then
     dprint_failure 'Some items failed to install'
-    return 1
+    return_code_main=1
   else
     dprint_skip 'Some items already installed'
-    return 0
+    return_code_main=0
   fi
+
+  # Check if queue post-processing hook is implemented
+  if declare -f d_queue_post_install &>/dev/null; then
+    
+    # Launch post-processing hook, store return code
+    D__QUEUE_RETURN_CODE=$return_code_main
+    d_queue_post_install; return_code_hook=$?
+    unset D__QUEUE_RETURN_CODE
+
+    # Unset the hook to prevent it from polluting other queues
+    unset -f d_queue_post_install
+
+    # Check if returned code is non-zero
+    if [ $return_code_hook -ne 0 ]; then
+
+      # Announce and return
+      dprint_debug \
+        "Queue post-install hook forces return with code $return_code_hook"
+      return $return_code_hook
+
+    fi
+
+  fi
+
+  # Return
+  return $return_code_main
 }
 
 d__queue_remove()
@@ -482,6 +571,35 @@ d__queue_remove()
     D__QUEUE_SECTMAX=${#D_QUEUE_MAIN[@]}
   fi
 
+  # Storage variable
+  local return_code_hook
+
+  # Check if queue pre-processing hook is implemented
+  if declare -f d_queue_pre_remove &>/dev/null; then
+    
+    # Launch pre-processing hook, store return code
+    d_queue_pre_remove; return_code_hook=$?
+
+    # Unset the hook to prevent it from polluting other queues
+    unset -f d_queue_pre_remove
+
+    # Check if returned code is non-zero
+    if [ $return_code_hook -ne 0 ]; then
+
+      # Announce and return
+      dprint_debug \
+        "Queue pre-remove hook forces early return with code $return_code_hook"
+      return $return_code_hook
+
+    fi
+
+  fi
+
+  # Announce removing
+  dprint_debug -n \
+    "Removing queue items $D__QUEUE_SECTMIN-$D__QUEUE_SECTMAX" \
+    "(queue section #$secnum)"
+
   # Storage and status variables
   local all_newly_removed=true all_already_removed=true all_failed=true
   local good_items_exist=false some_failed=false early_exit=false
@@ -491,11 +609,6 @@ d__queue_remove()
   if ! declare -f d_queue_item_remove &>/dev/null; then
     d_queue_item_remove() { :; }
   fi
-
-  # Announce checking
-  dprint_debug -n \
-    "Removing queue items $D__QUEUE_SECTMIN-$D__QUEUE_SECTMAX" \
-    "(queue section #$secnum)"
 
   # Iterate over items in deployment's main queue (in reverse order)
   for (( D__QUEUE_ITEM_NUM=$D__QUEUE_SECTMAX-1; \
@@ -604,32 +717,61 @@ d__queue_remove()
   # Done iterating over items in deployment's main queue
   done
 
-  # Check if there was at least one good item in queue
-  if ! $good_items_exist; then
-    dprint_debug 'Not a single queue item valid for removal'
-    return 2
-  fi
+  # Unset the hook to prevent it from polluting other queues
+  unset -f d_queue_item_remove
 
   # Check if early exit occurred
   if $early_exit; then
     dprint_skip 'Removal halted before all items were processed'
   fi
 
-  # Return appropriately
-  if $all_newly_removed; then return 0
+  # Storage variable
+  local return_code_main
+
+  # Devise return code
+  if ! $good_items_exist; then
+    dprint_debug 'Not a single queue item valid for removal'
+    return_code_main=2
+  elif $all_newly_removed; then return_code_main=0
   elif $all_already_removed; then
     dprint_skip 'All items already removed'
-    return 0
+    return_code_main=0
   elif $all_failed; then
     dprint_failure 'All items failed to remove'
-    return 1
+    return_code_main=1
   elif $some_failed; then
     dprint_failure 'Some items failed to remove'
-    return 1
+    return_code_main=1
   else
     dprint_skip 'Some items already removed'
-    return 0
+    return_code_main=0
   fi
+
+  # Check if queue post-processing hook is implemented
+  if declare -f d_queue_post_remove &>/dev/null; then
+    
+    # Launch post-processing hook, store return code
+    D__QUEUE_RETURN_CODE=$return_code_main
+    d_queue_post_remove; return_code_hook=$?
+    unset D__QUEUE_RETURN_CODE
+
+    # Unset the hook to prevent it from polluting other queues
+    unset -f d_queue_post_remove
+
+    # Check if returned code is non-zero
+    if [ $return_code_hook -ne 0 ]; then
+
+      # Announce and return
+      dprint_debug \
+        "Queue post-remove hook forces return with code $return_code_hook"
+      return $return_code_hook
+
+    fi
+
+  fi
+
+  # Return
+  return $return_code_main
 }
 
 #>  d__queue_item_status [ set FLAG ] | FLAG

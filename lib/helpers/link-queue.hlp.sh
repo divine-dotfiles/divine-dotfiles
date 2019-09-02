@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: link-queue
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    10
-#:revdate:      2019.08.28
-#:revremark:    Silence calls to mv -n
+#:revnumber:    11
+#:revdate:      2019.09.02
+#:revremark:    Add exhaustive number of hooks to queues
 #:created_at:   2019.04.02
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -44,32 +44,15 @@
 d__link_queue_check()
 {
   # Redirect pre-processing
-  d_queue_pre_process()
-  {
-    # Redirect to built-in helper
-    d__link_queue_pre_process
+  d_queue_pre_check() { d__link_queue_pre_check; }
 
-    # Try user-provided helper
-    if declare -f d_link_queue_pre_process &>/dev/null; then
-      d_link_queue_pre_process || return 1
-    fi
-  }
-
-  # Redirect item check to built-in helper
-  d_queue_item_check() { d__link_queue_item_is_installed; }
+  # Redirect item check
+  d_queue_item_check() { d__link_queue_item_check; }
 
   # Redirect post-processing
-  d_queue_post_process()
-  {
-    # Try user-provided helper
-    if declare -f d_link_queue_post_process &>/dev/null; then
-      d_link_queue_post_process
-    else
-      :
-    fi
-  }
+  d_queue_post_check() { d__link_queue_post_check; }
 
-  # Delegate to helper
+  # Delegate to built-in helper
   d__queue_check
 }
 
@@ -92,22 +75,16 @@ d__link_queue_check()
 #
 d__link_queue_install()
 {
-  # Redirect installation with optional pre-processing
-  d_queue_item_install()
-  {
-    # Try user-provided helper
-    if declare -f d_link_queue_item_pre_install &>/dev/null \
-      && ! d_link_queue_item_pre_install
-    then
-      dprint_debug 'Pre-installation signaled error'
-      return 2
-    fi
+  # Redirect pre-processing
+  d_queue_pre_install() { d__link_queue_pre_install; }
 
-    # Redirect to built-in helper
-    d__link_queue_item_install
-  }
+  # Redirect item install
+  d_queue_item_install() { d__link_queue_item_install; }
 
-  # Delegate to helper
+  # Redirect post-processing
+  d_queue_post_install() { d__link_queue_post_install; }
+
+  # Delegate to built-in helper
   d__queue_install
 }
 
@@ -130,26 +107,20 @@ d__link_queue_install()
 #
 d__link_queue_remove()
 {
-  # Redirect removal with optional pre-processing
-  d_queue_item_remove()
-  {
-    # Try user-provided helper
-    if declare -f d_link_queue_item_pre_remove &>/dev/null \
-      && ! d_link_queue_item_pre_remove
-    then
-      dprint_debug 'Pre-removal signaled error'
-      return 2
-    fi
+  # Redirect pre-processing
+  d_queue_pre_remove() { d__link_queue_pre_remove; }
 
-    # Redirect to built-in helper
-    d__link_queue_item_remove
-  }
+  # Redirect item remove
+  d_queue_item_remove() { d__link_queue_item_remove; }
 
-  # Delegate to helper
+  # Redirect post-processing
+  d_queue_post_remove() { d__link_queue_post_remove; }
+
+  # Delegate to built-in helper
   d__queue_remove
 }
 
-d__link_queue_pre_process()
+d__link_queue_pre_check()
 {
   # Override targets for current OS family, if that variable is non-empty
   d__adapter_override_dpl_targets_for_os_family
@@ -195,19 +166,57 @@ d__link_queue_pre_process()
 
   fi
 
+  # Check if queue pre-processing hook is implemented
+  if declare -f d_link_queue_pre_check &>/dev/null; then
+    
+    # Storage variable
+    local return_code_hook
+
+    # Launch pre-processing hook, store return code
+    d_link_queue_pre_check; return_code_hook=$?
+
+    # Unset the hook to prevent it from polluting other queues
+    unset -f d_link_queue_pre_check
+
+    # If returned code is non-zero, re-return it
+    [ $return_code_hook -ne 0 ] && return $return_code_hook
+
+  fi
+
   # Return
   return 0
 }
 
-d__link_queue_item_is_installed()
+d__link_queue_item_check()
 {
+  # Storage variables
+  local return_code_main return_code_hook
+
+  # Check if queue item pre-processing hook is implemented
+  if declare -f d_link_queue_item_pre_check &>/dev/null; then
+    
+    # Launch pre-processing hook, store return code
+    d_link_queue_item_pre_check; return_code_hook=$?
+
+    # Check if returned code is non-zero
+    if [ $return_code_hook -ne 0 ]; then
+    
+      # Anounce and re-return the non-zero code
+      dprint_debug "Pre-check hook forces return code $return_code_hook" \
+        -n "on item '$D__QUEUE_ITEM_TITLE'"
+      return $return_code_hook
+
+    fi
+
+  fi
+ 
   # Storage variables
   local target_path="${D_DPL_TARGET_PATHS[$D__QUEUE_ITEM_NUM]}"
   local asset_path="${D_DPL_ASSET_PATHS[$D__QUEUE_ITEM_NUM]}"
   local backup_path="$D__DPL_BACKUP_DIR/$D__QUEUE_ITEM_STASH_KEY"
 
-  # Check if original and replacement paths are both not empty
-  [ -n "$target_path" -a -n "$asset_path" ] || {
+  # Check if either original or replacement path is empty
+  if ! [ -n "$target_path" -a -n "$asset_path" ]; then
 
     # Compose debug output
     local output
@@ -225,57 +234,155 @@ d__link_queue_item_is_installed()
       fi
     fi
 
-    # Report and return
+    # Report and store return code
     dprint_debug "$D__QUEUE_ITEM_TITLE: $output"
-    return 3
-    
-  }
+    return_code_main=3
 
-  # If replacement file/dir is not readable, skip it
-  [ -r "$asset_path" ] || {
+  # Check if replacement file/dir is not readable
+  elif ! [ -r "$asset_path" ]; then
+
+    # Report and store return code
     dprint_debug "Unreadable asset at: $asset_path"
-    return 3
-  }
-
-  # Check if replacement is installed
-  if dln -?q -- "$asset_path" "$target_path" "$backup_path"; then
-
-    # Replacement is installed with backup
-    # dprint_debug "Backup stored at: $backup_path"
-    return 1
+    return_code_main=3
 
   else
 
-    # Check if it's just backup that is missing
-    if dln -?q -- "$asset_path" "$target_path"; then
+    # Original and replacement paths are both not empty
 
-      # Replacement is installed without backup
-      return 1
+    # Check if replacement is installed
+    if dln -?q -- "$asset_path" "$target_path" "$backup_path"; then
+
+      # Replacement is installed with backup
+      # dprint_debug "Backup stored at: $backup_path"
+      return_code_main=1
 
     else
 
-      # Replacement is not installed
+      # Check if it's just backup that is missing
+      if dln -?q -- "$asset_path" "$target_path"; then
 
-      # Check if backup path exists, which would be abnormal
-      if [ -e "$backup_path" ]; then
+        # Replacement is installed without backup
+        return_code_main=1
 
-        # Report not installed with orphaned backup
-        dprint_debug "Orphaned backup: $backup_path" \
-          -n "of target path: $target_path" \
-          -n "(force-remove to restore)"
-        
+      else
+
+        # Replacement is not installed
+
+        # Check if backup path exists, which would be abnormal
+        if [ -e "$backup_path" ]; then
+
+          # Report not installed with orphaned backup
+          dprint_debug "Orphaned backup: $backup_path" \
+            -n "of target path: $target_path" \
+            -n "(force-remove to restore)"
+          
+        fi
+
+        # Return appropriate status
+        return_code_main=2
+
       fi
 
-      # Return appropriate status
-      return 2
+    fi
+    
+  fi
+
+  # Check if queue item post-processing hook is implemented
+  if declare -f d_link_queue_item_post_check &>/dev/null; then
+    
+    # Launch post-processing hook, store return code
+    D__QUEUE_ITEM_RETURN_CODE=$return_code_main
+    d_link_queue_item_post_check; return_code_hook=$?
+    unset D__QUEUE_ITEM_RETURN_CODE
+
+    # Check if returned code is non-zero
+    if [ $return_code_hook -ne 0 ]; then
+    
+      # Anounce and re-return the non-zero code
+      dprint_debug "Post-check hook forces return code $return_code_hook" \
+        -n "on item '$D__QUEUE_ITEM_TITLE'"
+      return $return_code_hook
 
     fi
 
   fi
+
+  # Return
+  return $return_code_main
+}
+
+d__link_queue_post_check()
+{
+  # Unset item hooks to prevent them from polluting other queues
+  unset -f d_link_queue_item_pre_check d_link_queue_item_post_check
+
+  # Check if queue post-processing hook is implemented
+  if declare -f d_link_queue_post_check &>/dev/null; then
+    
+    # Storage variable
+    local return_code_hook
+
+    # Launch post-processing hook, store return code
+    d_link_queue_post_check; return_code_hook=$?
+
+    # Unset the hook to prevent it from polluting other queues
+    unset -f d_link_queue_post_check
+
+    # If returned code is non-zero, re-return it
+    [ $return_code_hook -ne 0 ] && return $return_code_hook
+
+  fi
+
+  # Otherwise, return zero
+  return 0
+}
+
+d__link_queue_pre_install()
+{
+  # Check if queue pre-processing hook is implemented
+  if declare -f d_link_queue_pre_install &>/dev/null; then
+    
+    # Storage variable
+    local return_code_hook
+
+    # Launch pre-processing hook, store return code
+    d_link_queue_pre_install; return_code_hook=$?
+
+    # Unset the hook to prevent it from polluting other queues
+    unset -f d_link_queue_pre_install
+
+    # If returned code is non-zero, re-return it
+    [ $return_code_hook -ne 0 ] && return $return_code_hook
+
+  fi
+
+  # Return
+  return 0
 }
 
 d__link_queue_item_install()
 {
+  # Storage variables
+  local return_code_main return_code_hook
+
+  # Check if queue item pre-processing hook is implemented
+  if declare -f d_link_queue_item_pre_install &>/dev/null; then
+    
+    # Launch pre-processing hook, store return code
+    d_link_queue_item_pre_install; return_code_hook=$?
+
+    # Check if returned code is non-zero
+    if [ $return_code_hook -ne 0 ]; then
+    
+      # Anounce and re-return the non-zero code
+      dprint_debug "Pre-install hook forces return code $return_code_hook" \
+        -n "on item '$D__QUEUE_ITEM_TITLE'"
+      return $return_code_hook
+
+    fi
+
+  fi
+ 
   # Storage variables
   local target_path="${D_DPL_TARGET_PATHS[$D__QUEUE_ITEM_NUM]}"
   local asset_path="${D_DPL_ASSET_PATHS[$D__QUEUE_ITEM_NUM]}"
@@ -285,7 +392,7 @@ d__link_queue_item_install()
   if dln -f -- "$asset_path" "$target_path" "$backup_path"; then
 
     # Return success
-    return 0
+    return_code_main=0
 
   else
 
@@ -293,13 +400,106 @@ d__link_queue_item_install()
     dprint_debug 'Error on creating symlink' \
       -n "from: $target_path" -n "to: $asset_path" \
       -n 'and backing up to:' -i "$backup_path"
-    return 1
+    return_code_main=1
 
   fi
+
+  # Check if queue item post-processing hook is implemented
+  if declare -f d_link_queue_item_post_install &>/dev/null; then
+    
+    # Launch post-processing hook, store return code
+    D__QUEUE_ITEM_RETURN_CODE=$return_code_main
+    d_link_queue_item_post_install; return_code_hook=$?
+    unset D__QUEUE_ITEM_RETURN_CODE
+
+    # Check if returned code is non-zero
+    if [ $return_code_hook -ne 0 ]; then
+    
+      # Anounce and re-return the non-zero code
+      dprint_debug "Post-install hook forces return code $return_code_hook" \
+        -n "on item '$D__QUEUE_ITEM_TITLE'"
+      return $return_code_hook
+
+    fi
+
+  fi
+
+  # Return
+  return $return_code_main
+}
+
+d__link_queue_post_install()
+{
+  # Unset item hooks to prevent them from polluting other queues
+  unset -f d_link_queue_item_pre_install d_link_queue_item_post_install
+
+  # Check if queue post-processing hook is implemented
+  if declare -f d_link_queue_post_install &>/dev/null; then
+    
+    # Storage variable
+    local return_code_hook
+
+    # Launch post-processing hook, store return code
+    d_link_queue_post_install; return_code_hook=$?
+
+    # Unset the hook to prevent it from polluting other queues
+    unset -f d_link_queue_post_install
+
+    # If returned code is non-zero, re-return it
+    [ $return_code_hook -ne 0 ] && return $return_code_hook
+
+  fi
+
+  # Otherwise, return zero
+  return 0
+}
+
+d__link_queue_pre_remove()
+{
+  # Check if queue pre-processing hook is implemented
+  if declare -f d_link_queue_pre_remove &>/dev/null; then
+    
+    # Storage variable
+    local return_code_hook
+
+    # Launch pre-processing hook, store return code
+    d_link_queue_pre_remove; return_code_hook=$?
+
+    # Unset the hook to prevent it from polluting other queues
+    unset -f d_link_queue_pre_remove
+
+    # If returned code is non-zero, re-return it
+    [ $return_code_hook -ne 0 ] && return $return_code_hook
+
+  fi
+
+  # Return
+  return 0
 }
 
 d__link_queue_item_remove()
 {
+  # Storage variables
+  local return_code_main return_code_hook
+
+  # Check if queue item pre-processing hook is implemented
+  if declare -f d_link_queue_item_pre_remove &>/dev/null; then
+    
+    # Launch pre-processing hook, store return code
+    d_link_queue_item_pre_remove; return_code_hook=$?
+
+    # Check if returned code is non-zero
+    if [ $return_code_hook -ne 0 ]; then
+    
+      # Anounce and re-return the non-zero code
+      dprint_debug "Pre-remove hook forces return code $return_code_hook" \
+        -n "on item '$D__QUEUE_ITEM_TITLE'"
+      return $return_code_hook
+
+    fi
+
+  fi
+ 
   # Storage variables
   local target_path="${D_DPL_TARGET_PATHS[$D__QUEUE_ITEM_NUM]}"
   local asset_path="${D_DPL_ASSET_PATHS[$D__QUEUE_ITEM_NUM]}"
@@ -313,7 +513,7 @@ d__link_queue_item_remove()
 
       # Return success
       # dprint_debug "Backup restored to: $target_path"
-      return 0
+      return_code_main=0
 
     else
 
@@ -321,7 +521,7 @@ d__link_queue_item_remove()
       dprint_debug 'Error on removing symlink' \
           -n "from: $target_path" -n "to: $asset_path" \
           -n 'and restoring backup from:' -i "$backup_path"
-      return 1
+      return_code_main=1
 
     fi
 
@@ -334,14 +534,61 @@ d__link_queue_item_remove()
       if dln -fr -- "$asset_path" "$target_path"; then
 
         # Return success
-        return 0
+        return_code_main=0
 
       else
 
         # Report and return failure
         dprint_debug 'Error on removing symlink' \
           -n "from: $target_path" -n "to: $asset_path"
-        return 1
+        return_code_main=1
+
+      fi
+
+    else
+
+      # No installation detected
+
+      # If being forced, try to restore orphaned backup
+      if $D__QUEUE_ITEM_IS_FORCED && [ -e "$backup_path" ]; then
+
+        # Remove whatever sits on original location and check status
+        if rm -rf -- "$target_path"; then
+
+          # Move backup path to original location, and check status
+          if mv -n -- "$backup_path" "$target_path" &>/dev/null; then
+
+            # Report and return success
+            dprint_debug "Restored orphaned backup to: $target_path"
+            return_code_main=0
+          
+          else
+
+            # Report and return failure
+            dprint_debug 'Error on moving orphaned backup' \
+              -n "from: $backup_path" -n "to: $backup_path"
+            return_code_main=1
+
+          fi
+        
+        else
+
+          # Failed to remove file at original location
+      
+          # Report and return failure
+          dprint_debug 'Error on clobbering path:' \
+            -n "$target_path" -n "while restoring orphaned backup"
+          return_code_main=1
+
+        fi
+
+      else
+
+        # No installation and not forced
+
+        # There is nothing to do with this item
+        dprint_debug "$D__QUEUE_ITEM_TITLE: Nothing to remove/restore"
+        return_code_main=0
 
       fi
 
@@ -349,38 +596,52 @@ d__link_queue_item_remove()
 
   fi
 
-  # If got here and being forced, try to restore orphaned backup
-  if $D__QUEUE_ITEM_IS_FORCED && [ -e "$backup_path" ]; then
-
-    # Remove whatever sits on original location and check status
-    if ! rm -rf -- "$target_path"; then
-
-      # Report and return failure
-      dprint_debug 'Error on clobbering path:' \
-        -n "$target_path" -n "while restoring orphaned backup"
-      return 1
-
-    fi
-
-    # Move backup path to original location, and check status
-    if mv -n -- "$backup_path" "$target_path" &>/dev/null; then
-
-      # Report and return success
-      dprint_debug "Restored orphaned backup to: $target_path"
-      return 0
+  # Check if queue item post-processing hook is implemented
+  if declare -f d_link_queue_item_post_remove &>/dev/null; then
     
-    else
+    # Launch post-processing hook, store return code
+    D__QUEUE_ITEM_RETURN_CODE=$return_code_main
+    d_link_queue_item_post_remove; return_code_hook=$?
+    unset D__QUEUE_ITEM_RETURN_CODE
 
-      # Report and return failure
-      dprint_debug 'Error on moving orphaned backup' \
-        -n "from: $backup_path" -n "to: $backup_path"
-      return 1
+    # Check if returned code is non-zero
+    if [ $return_code_hook -ne 0 ]; then
+    
+      # Anounce and re-return the non-zero code
+      dprint_debug "Post-remove hook forces return code $return_code_hook" \
+        -n "on item '$D__QUEUE_ITEM_TITLE'"
+      return $return_code_hook
 
     fi
-  
+
   fi
 
-  # Otherwise, there is nothing to do with this item
-  dprint_debug "$D__QUEUE_ITEM_TITLE: Nothing to remove/restore"
+  # Return
+  return $return_code_main
+}
+
+d__link_queue_post_remove()
+{
+  # Unset item hooks to prevent them from polluting other queues
+  unset -f d_link_queue_item_pre_remove d_link_queue_item_post_remove
+
+  # Check if queue post-processing hook is implemented
+  if declare -f d_link_queue_post_remove &>/dev/null; then
+    
+    # Storage variable
+    local return_code_hook
+
+    # Launch post-processing hook, store return code
+    d_link_queue_post_remove; return_code_hook=$?
+
+    # Unset the hook to prevent it from polluting other queues
+    unset -f d_link_queue_post_remove
+
+    # If returned code is non-zero, re-return it
+    [ $return_code_hook -ne 0 ] && return $return_code_hook
+
+  fi
+
+  # Otherwise, return zero
   return 0
 }

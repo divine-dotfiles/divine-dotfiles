@@ -21,13 +21,13 @@ D_DPL_WARNING=
 #
 ## Functions to implement (all are optional):
 #.  * Executed during checking:
-#.      d_queue_pre_process         - Executed once, early, before 
+#.      d_queue_pre_check         - Executed once, early, before 
 #.                                            checking begins
 #.      d_queue_item_pre_check   - Executed for every queue item, 
 #.                                            before checking it
 #.      d_queue_item_check   - Executed for every queue item,
 #.                                            to check it
-#.      d_queue_post_process        - Executed once, after all queue 
+#.      d_queue_post_check        - Executed once, after all queue 
 #.                                            items are checked
 #.  * Executed during installation:
 #.      d_queue_item_install        - Executed for every queue item,
@@ -66,7 +66,7 @@ d_dpl_check()    { d__queue_check;    }
 d_dpl_install()  { d__queue_install;  }
 d_dpl_remove()   { d__queue_remove;   }
 
-#>  d_queue_pre_process
+#>  d_queue_pre_check
 #
 ## Allows to perform arbitrary actions before items in queue are checked
 #
@@ -76,7 +76,7 @@ d_dpl_remove()   { d__queue_remove;   }
 #.  0 - Pre-processing succeeded
 #.  1 - Otherwise: do not proceed with this deployment
 #
-d_queue_pre_process()
+d_queue_pre_check()
 {
   :
 }
@@ -129,7 +129,7 @@ d_queue_item_check()
   :
 }
 
-#>  d_queue_post_process
+#>  d_queue_post_check
 #
 ## Allows to perform arbitrary actions after all items in queue have been 
 #. checked
@@ -140,7 +140,7 @@ d_queue_item_check()
 #.  0 - Post-processing succeeded
 #.  1 - Otherwise: do not proceed with this deployment
 #
-d_queue_post_process()
+d_queue_post_check()
 {
   :
 }

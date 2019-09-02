@@ -23,8 +23,8 @@ D_DPL_WARNING=
 #
 ## Functions to implement (all are optional):
 #.  * Executed during checking:
-#.      d_copy_queue_pre_process    - Custom queue pre-processing
-#.      d_copy_queue_post_process   - Custom queue post-processing
+#.      d_copy_queue_pre_check    - Custom queue pre-processing
+#.      d_copy_queue_post_check   - Custom queue post-processing
 #.  * Executed during installation:
 #.      d_copy_queue_item_pre_install   - Pre-installation actions for each item
 #.  * Executed during removal:
@@ -73,7 +73,7 @@ d_dpl_check()    { d__copy_queue_check;    }
 d_dpl_install()  { d__copy_queue_install;  }
 d_dpl_remove()   { d__copy_queue_remove;   }
 
-#>  d_copy_queue_pre_process
+#>  d_copy_queue_pre_check
 #
 ## Allows to perform arbitrary actions before items in queue are checked
 #
@@ -83,12 +83,12 @@ d_dpl_remove()   { d__copy_queue_remove;   }
 #.  0 - Pre-processing succeeded
 #.  1 - Otherwise: do not proceed with this deployment
 #
-d_copy_queue_pre_process()
+d_copy_queue_pre_check()
 {
   :
 }
 
-#>  d_copy_queue_post_process
+#>  d_copy_queue_post_check
 #
 ## Allows to perform arbitrary actions after all items in queue have been 
 #. checked
@@ -99,7 +99,7 @@ d_copy_queue_pre_process()
 #.  0 - Post-processing succeeded
 #.  1 - Otherwise: do not proceed with this deployment
 #
-d_copy_queue_post_process()
+d_copy_queue_post_check()
 {
   :
 }
