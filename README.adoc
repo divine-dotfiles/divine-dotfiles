@@ -1,9 +1,9 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revnumber: 54
+:revnumber: 55
 :revdate: 2019.09.02
-:revremark: Test new table layout, pt. 5
+:revremark: Test new table layout, pt. 6
 :doctype: article
 // Visual
 :toc:
@@ -824,9 +824,9 @@ Return code of `d_dpl_check()` determines current status of the deployment:
 [%noheader,cols="<.<a",stripes=none]
 |===
 
-| +++<p align="center">+++`*0*`+++</p>+++
+| `*0*`: *'Unknown'*
 
-*'Unknown'*: [.gray]##_(default)_## no reliable way to tell whether this deployment is installed or not.
+Meaning: no reliable way to tell whether this deployment is installed or not.
 
 _This return code is assumed if `d_dpl_check()` is not implemented or if unsupported code is returned._
 
@@ -835,33 +835,33 @@ Routines that will proceed further:
 * `install`
 * `remove`
 
-| +++<p align="center">+++`*1*`+++</p>+++
+| `*1*`: *'Installed'*
 
-*'Installed'*: as it stands, intended goal of installing this deployment is entirely achieved.
+Meaning: as it stands, intended goal of installing this deployment is entirely achieved.
 
 Routines that will proceed further:
 
 * `remove`
 
-| +++<p align="center">+++`*2*`+++</p>+++
+| `*2*`: *'Not installed'*
 
-*'Not installed'*: as it stands, intended goal of installing this deployment is entirely not achieved.
+Meaning: as it stands, intended goal of installing this deployment is entirely not achieved.
 
 Routines that will proceed further:
 
 * `install`
 
-| +++<p align="center">+++`*3*`+++</p>+++
+| `*3*`: *'Irrelevant'*
 
-*'Irrelevant'*: processing this deployment in current environment does not make sense.
+Meaning: processing this deployment in current environment does not make sense.
 
 This code is appropriate, for example, if current OS is unsupported.
 
 None of the routines will proceed further.
 
-| +++<p align="center">+++`*4*`+++</p>+++
+| `*4*`: *'Partly installed'*
 
-*'Partly installed'*: as it stands, intended goal of installing this deployment is partly achieved and partly not achieved.
+Meaning: as it stands, intended goal of installing this deployment is partly achieved and partly not achieved.
 
 This code differs from 'Unknown' in semantics and output styling.
 
@@ -883,37 +883,37 @@ Return code of `d_dpl_install()` determines output of `install` routine:
 [%noheader,cols="<.<a",stripes=none]
 |===
 
-| +++<p align="center">+++`*0*`+++</p>+++
+| `*0*`: *'Successfully installed'*
 
-*'Successfully installed'*: [.gray]##_(default)_## intended goal of installing this deployment is entirely achieved.
+Meaning: intended goal of installing this deployment is entirely achieved.
 
 _This return code is assumed if `d_dpl_install()` is not implemented or if unsupported code is returned._
 
-| +++<p align="center">+++`*1*`+++</p>+++
+| `*1*`: *'Failed to install'*
 
-*'Failed to install'*: intended goal of installing this deployment is _not entirely_ achieved due to error.
+Meaning: intended goal of installing this deployment is _not entirely_ achieved due to error.
 
-| +++<p align="center">+++`*2*`+++</p>+++
+| `*2*`: *'Skipped'*
 
-*'Skipped'*: intended goal of installing this deployment is _entirely not_ achieved because nothing has been done.
+Meaning: intended goal of installing this deployment is _entirely not_ achieved because nothing has been done.
 
-| +++<p align="center">+++`*100*`+++</p>+++
+| `*100*`: *'Reboot needed'*
 
-*'Reboot needed'*: same as 'Successfully installed', except:
+Meaning: same as 'Successfully installed', except:
 
 * Intervention will gracefully shut down without moving past this deployment.
-* User will be asked to reboot the machine and continue afterward.
+* User will be asked to reboot the machine and resume afterward.
 
-| +++<p align="center">+++`*101*`+++</p>+++
+| `*101*`: *'User attention needed'*
 
-*'User attention needed'*: same as 'Successfully installed', except:
+Meaning: same as 'Successfully installed', except:
 
 * Intervention will gracefully shut down without moving past this deployment.
 * Deployment is expected to print explanation to `stderr`.
 
-| +++<p align="center">+++`*102*`+++</p>+++
+| `*102*`: *'Critical failure'*
 
-*'Critical failure'*: same as 'Failed to install', except:
+Meaning: same as 'Failed to install', except:
 
 * Intervention will shut down without moving past this deployment.
 * Output will mention critical failure.
@@ -931,37 +931,37 @@ Return code of `d_dpl_remove()` determines output of `remove` routine:
 [%noheader,cols="<.<a",stripes=none]
 |===
 
-| +++<p align="center">+++`*0*`+++</p>+++
+| `*0*`: *'Successfully uninstalled'*
 
-*'Successfully uninstalled'*: [.gray]##_(default)_## effects of previously installing this deployment are entirely reversed.
+Meaning: effects of previously installing this deployment are entirely reversed.
 
 _This return code is assumed if `d_dpl_remove()` is not implemented or if unsupported code is returned._
 
-| +++<p align="center">+++`*1*`+++</p>+++
+| `*1*`: *'Failed to uninstall'*
 
-*'Failed to uninstall'*: effects of previously installing this deployment are _not entirely_ reversed due to error.
+Meaning: effects of previously installing this deployment are _not entirely_ reversed due to error.
 
-| +++<p align="center">+++`*2*`+++</p>+++
+| `*2*`: *'Skipped'*
 
-*'Skipped'*: effects of previously installing this deployment are _entirely not_ reversed because nothing has been done.
+Meaning: effects of previously installing this deployment are _entirely not_ reversed because nothing has been done.
 
-| +++<p align="center">+++`*100*`+++</p>+++
+| `*100*`: *'Reboot needed'*
 
-*'Reboot needed'*: same as 'Successfully uninstalled', except:
+Meaning: same as 'Successfully uninstalled', except:
 
 * Intervention will gracefully shut down without moving past this deployment.
-* User will be asked to reboot the machine and continue afterward.
+* User will be asked to reboot the machine and resume afterward.
 
-| +++<p align="center">+++`*101*`+++</p>+++
+| `*101*`: *'User attention needed'*
 
-*'User attention needed'*: same as 'Successfully uninstalled', except:
+Meaning: same as 'Successfully uninstalled', except:
 
 * Intervention will gracefully shut down without moving past this deployment.
 * Deployment is expected to print explanation to `stderr`.
 
-| +++<p align="center">+++`*102*`+++</p>+++
+| `*102*`: *'Critical failure'*
 
-*'Critical failure'*: same as 'Failed to uninstall', except:
+Meaning: same as 'Failed to uninstall', except:
 
 * Intervention will shut down without moving past this deployment.
 * Output will mention critical failure.
