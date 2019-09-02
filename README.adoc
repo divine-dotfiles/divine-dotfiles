@@ -1,9 +1,9 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revnumber: 55
+:revnumber: 56
 :revdate: 2019.09.02
-:revremark: Test new table layout, pt. 6
+:revremark: Test new table layout, pt. 7
 :doctype: article
 // Visual
 :toc:
@@ -1053,30 +1053,31 @@ Flags alter some of the framework's behavior toward the deployment.
 
 Below is the exhaustive rundown of supported flags and their effects.
 
-[%header,cols="^.<1,<.<3",stripes=none]
+.Rundown of supported deployment flags
+[%noheader,cols="<.<a",stripes=none]
 |===
 
-^.^| Flag character (RegEx)
-^.^| Effect on deployment handling
-
 | [#deployment-groups]#`[0-9]`#
-a| Assigns the deployment to one of the ten single-digit *groups*.
+
+Assigns the deployment to one of the ten single-digit *groups*.
 Groups of deployments may be processed together by referring to them by that group's digit in place of deployment name.
 
 [.note]
 [%noheader,cols="<.<a"]
-|===
-| Deployments may not have a single-digit name.
+!===
+! A deployment may not have a single-digit name.
 The framework guards against using reserved words as deployment names.
-|===
+!===
 
 | [#dangerous-deployments]#`!`#
-| Marks the deployment as *dangerous*.
+
+Marks the deployment as *dangerous*.
 By default, framework ignores dangerous deployments unless they are listed by name or by name of their group.
 Another way to include dangerous deployments is the `--with-!`/`-w` option on intervention utility.
 
 | [#urgent-prompt]#`[cira]`#
-a| Intervention utility has the `--yes`/`-y` option that effectively skips all normal prompts and confirmations.
+
+Intervention utility has the `--yes`/`-y` option that effectively skips all normal prompts and confirmations.
 It is possible to force the appearance of an *urgent prompt* before the deployment is sourced regardless of said option.
 To do so, use any of these flags:
 
