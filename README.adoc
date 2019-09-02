@@ -1,9 +1,9 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revnumber: 46
-:revdate: 2019.09.01
-:revremark: Update joy ride description
+:revnumber: 47
+:revdate: 2019.09.02
+:revremark: Change adoc NOTEs to one-cell tables for mobile
 :doctype: article
 // Visual
 :toc:
@@ -27,19 +27,19 @@ image::lib/img/divine-dotfiles-plaque.png[Divine.dotfiles,align="center"]
 New machine or new OS?
 Set it up with a single `*di install --yes*`.
 
-[NOTE]
---
-`di` stands for **d**ivine **i**ntervention.
---
+[.note]
+|===
+| `di` stands for **d**ivine **i**ntervention.
+|===
 
 _Divine.dotfiles_ promotes Bash scripts to portable _deployments_ that are installed/removed in defined sequence.
 
 == In a nutshell
 
-[NOTE]
---
-First time users are welcome to take a <<joy-ride,joy ride>> for quick appraisal.
---
+[.note]
+|===
+| First time users are welcome to take a <<joy-ride,joy ride>> for quick appraisal.
+|===
 
 _Divine.dotfiles_ leverages *deployments*.
 
@@ -142,19 +142,19 @@ Following OS distributions are openly supported:
 ** *Ubuntu*
 --
 +
-[NOTE]
---
-This list is incomplete; you can help by <<contributing-os-support,expanding it>>.
---
+[.note]
+|===
+| This list is incomplete; you can help by <<contributing-os-support,expanding it>>.
+|===
 
 * `bash 3.2+` and either `curl` or `wget`
 +
-[NOTE]
---
-`git` is not a hard requirement, but it is not flaccid either.
+[.note]
+|===
+| `git` is not a hard requirement, but it is not flaccid either.
 You can install _Divine.dotfiles_ without `git`.
 But then the framework will bug you with suggestions to auto-install it until you relent.
---
+|===
 
 === Installing the framework
 
@@ -165,16 +165,16 @@ To install _Divine.dotfiles_ framework, run the following single command in Term
 bash -c 'TMP=$(mktemp); URL=https://raw.github.com/no-simpler/divine-dotfiles/master/lib/install/install.sh; if curl --version &>/dev/null; then curl -fsSL $URL >$TMP; elif wget --version &>/dev/null; then wget -qO $TMP $URL; else printf >&2 "\n==> Error: failed to detect neither curl nor wget\n"; rm -f $TMP; exit 1; fi || { printf >&2 "\n==> Error: failed to download installation script\n"; rm -f $TMP; exit 2; }; chmod +x $TMP && $TMP "$@"; RC=$?; rm -f $TMP; ((RC)) && exit 3 || exit 0' bash
 ----
 
-[NOTE]
---
-Installation is completely safe:
+[.note]
+|===
+| Installation is completely safe:
 
 * No files are overwritten.
 * This repository is cloned/downloaded.
 * One symlink is (optionally) created.
 
 Oh, and you will be prompted for everything.
---
+|===
 
 ==== Installation options and overrides
 
@@ -298,9 +298,9 @@ bash -c 'TMP=$(mktemp); URL=https://raw.github.com/no-simpler/divine-dotfiles/ma
 && ~/.divine/intervene.sh install --yes
 ----
 
-[NOTE]
---
-This chained command does three things:
+[.note]
+|===
+| This chained command does three things:
 
 . Install the framework without any prompts.
 . Attach our illustrious https://github.com/no-simpler/divine-bundle-essentials['essentials' bundle] of Divine deployments.
@@ -310,7 +310,7 @@ Expect a prompt for sudo password here (it will be explained).
 Divine deployments *_never overwrite_* pre-existing files on your system without backing them up.
 
 Everything that is backed up is *_automatically restored_* upon uninstallation.
---
+|===
 
 After all installations are successful, *reload your shell/terminal*.
 
@@ -376,10 +376,10 @@ All of the above is controlled and customized from your <<grail-directory,Grail 
 
 |===
 
-[NOTE]
---
-Dagger *&dagger;* mark meaning: in order for the modifications in the asset directory to take effect, the deployment must be (re-)installed.
---
+[.note]
+|===
+| Dagger *&dagger;* mark meaning: in order for the modifications in the asset directory to take effect, the deployment must be (re-)installed.
+|===
 
 ==== Cleaning up
 
@@ -416,10 +416,10 @@ The framework itself consists of the following main parts:
 | [#grail-directory]#`~/.divine/*grail/*`#
 a| *The Grail directory* houses user’s deployments, assets, and persistent settings.
 
-[NOTE]
---
-If you settle on using _Divine.dotfiles_, we recommend taking Grail directory under version control and syncing it, e.g., via cloud services or Github.
---
+[.note]
+|===
+| If you settle on using _Divine.dotfiles_, we recommend taking Grail directory under version control and syncing it, e.g., via cloud services or Github.
+|===
 
 Sub-structured as follows:
 
@@ -472,10 +472,10 @@ Intervention utility's functions are:
 . <<plug-routine,*Plug in*>> pre-made Grail directory from a repository or local directory.
 . <<update-routine,*Update*>> framework itself, attached bundles, and Grail directory, if it is a cloned repository.
 
-[NOTE]
---
-The term '<<deployments,deployments>>' includes <<divinefiles,Divinefiles>> as the special kind of the former.
---
+[.note]
+|===
+| The term '<<deployments,deployments>>' includes <<divinefiles,Divinefiles>> as the special kind of the former.
+|===
 
 [[primary-routines]]
 === Checking/installing/removing deployments
@@ -582,10 +582,10 @@ Access within deployments: `$D__OPT_QUIET` (`true` / `false`).
 
 |===
 
-[NOTE]
---
-Even though every option above serves a function within the framework, it is also up to deployment authors to honor their semantics.
---
+[.note]
+|===
+| Even though every option above serves a function within the framework, it is also up to deployment authors to honor their semantics.
+|===
 
 [[attach-routine]]
 === Attaching third-party deployments
@@ -617,13 +617,13 @@ Detaching deployments deletes the copy of their repository, but it is up to you 
 * Uninstall the deployments beforehand (re-attach if you forgot).
 * Remove any assets that might have been copied into your <<grail-directory,Grail>> assets directory.
 
-[NOTE]
---
-Attached bundles are cloned/downloaded into your <<state-directory,state directory>>, but _attachment records_ are stored in <<grail-directory,the Grail>>.
+[.note]
+|===
+| Attached bundles are cloned/downloaded into your <<state-directory,state directory>>, but _attachment records_ are stored in <<grail-directory,the Grail>>.
 On every launch, intervention utility synchronizes Grail records with actual repositories in state directory.
 
 Thus, by synchronizing Grail between machines, you will have the same set of both personal and attached deployments everywhere.
---
+|===
 
 ==== Attach/detach routine options
 
@@ -690,10 +690,10 @@ Other events — like offering an optional framework dependency — also trigger
 
 With this option, affirmative answer is assumed to every built-it prompt.
 
-[NOTE]
---
-If provided argument can be interpreted in multiple ways, the first option will be silently settled upon.
---
+[.note]
+|===
+| If provided argument can be interpreted in multiple ways, the first option will be silently settled upon.
+|===
 
 | `*-n*`, `*--no*`
 | With this option, negatory answer is assumed to every built-it prompt.
@@ -931,13 +931,13 @@ a| *'Critical failure'*: same as 'Failed to uninstall', except:
 
 |===
 
-[NOTE]
---
-It is worth noting that intended semantics of uninstallation are not direct inverse to that of installation.
+[.note]
+|===
+| It is worth noting that intended semantics of uninstallation are not direct inverse to that of installation.
 Ideally, if no installation via the framework has previously occurred, uninstallation should do nothing.
 
 This philosophy is followed by our magnificent https://github.com/no-simpler/divine-bundle-essentials['essentials' bundle] of Divine deployments.
---
+|===
 
 [[deployment-metadata]]
 === Deployment metadata
@@ -950,9 +950,9 @@ This philosophy is followed by our magnificent https://github.com/no-simpler/div
 * <<deployment-flags,`D_DPL_FLAGS`>> — one-character flags, causing special treatment.
 * <<deployment-warning,`D_DPL_WARNING`>> — one-line cautionary message about this deployment.
 
-[NOTE]
---
-Although all deployment metadata look like Bash variable assignments, they are in face extracted from the file _before_ it is interpreted by Bash.
+[.note]
+|===
+| Although all deployment metadata look like Bash variable assignments, they are in face extracted from the file _before_ it is interpreted by Bash.
 
 For each reserved 'variable' name, first line that looks like the usual Bash assignment is used.
 
@@ -962,7 +962,7 @@ With that in mind, follow these simple rules for deployment metadata:
 * Do not use Bash substitutions or comments.
 * Avoid leading and trailing whitespace, as well as whitespace around the `=`.
 * Matching quotes around the value are allowed (they are stripped in the processing).
---
+|===
 
 [[deployment-name-and-desc]]
 ==== Deployment name and description
@@ -1024,11 +1024,11 @@ Below is the exhaustive rundown of supported flags and their effects.
 a| Assigns the deployment to one of the ten single-digit *groups*.
 Groups of deployments may be processed together by referring to them by that group's digit in place of deployment name.
 
-[NOTE]
---
-Deployments may not have a single-digit name.
+[.note]
+|===
+| Deployments may not have a single-digit name.
 The framework guards against using reserved words as deployment names.
---
+|===
 
 | [#dangerous-deployments]#`!`#
 | Marks the deployment as *dangerous*.
@@ -1082,19 +1082,19 @@ Divinefiles are referred to with synonyms: `divinefile`, `dfile`, or `df`.
 As with all deployment names, these are case insensitive.
 Divinefiles are processed in their merged entirety or not processed at all.
 
-[NOTE]
---
-Yes, you also cannot name regular deployments `divinefile`, `dfile`, or `df`.
+[.note]
+|===
+| Yes, you also cannot name regular deployments `divinefile`, `dfile`, or `df`.
 The framework guards against using reserved words as deployment names.
---
+|===
 
 You can assign deployment-style <<deployment-priority,*priorities*>> and <<deployment-flags,*flags*>> to individual packages within Divinefiles.
 Packages are intertwined with regular deployments in a shared workflow.
 
-[NOTE]
---
-For more complex system package installations, e.g., involving particular versions or special package manager options, use regular deployments.
---
+[.note]
+|===
+| For more complex system package installations, e.g., involving particular versions or special package manager options, use regular deployments.
+|===
 
 === Divinefile syntax
 
@@ -1106,10 +1106,10 @@ Keys `flags` and `priority` set the respective attributes for the packages, and 
 Within a line, each vertical bar `|` starts an *alt-list*, which fully overrides the original list for a particular package manager.
 Within an alt-list, everything to the left of first colon `:` is read as package manager name; everything to the right — as the alt-list itself.
 
-[NOTE]
---
-Package manager name is matched against <<var-os-pkgmgr,`$D__OS_PKGMGR`>> built-in variable.
---
+[.note]
+|===
+| Package manager name is matched against <<var-os-pkgmgr,`$D__OS_PKGMGR`>> built-in variable.
+|===
 
 .Example of Divinefile
 [source]
@@ -1141,13 +1141,13 @@ Sourcing occurs as late as possible, after exhausting excuses to skip it.
 
 A subshell is created for every deployment, shielding other deployments from it.
 
-[NOTE]
---
-Naturally, there is no way to prevent deployments from negatively affecting your system.
+[.note]
+|===
+| Naturally, there is no way to prevent deployments from negatively affecting your system.
 Deployments are free-form Bash scripts, and sandboxing them beyond a subshell would defeat their purpose.
 
 If there is a voice of wisdom here, it says, 'Be careful.'
---
+|===
 
 It is good style to isolate all deployment logic within functions and global variables, and then call/use them within <<primary-functions,primary functions>>.
 
@@ -1163,13 +1163,13 @@ Whenever the framework does _not_ expect you to reassign a global variable or re
 * `*D__*` prefix — for names of read-only internal variables;
 * `*d__*` prefix — for names of call-only internal functions.
 
-[NOTE]
---
-Some of the most used framework functions have grown so attached to their `d` prefix, that they omit the underscores altogether.
+[.note]
+|===
+| Some of the most used framework functions have grown so attached to their `d` prefix, that they omit the underscores altogether.
 Examples are: `dprint_*` family of functions, `dprompt`, `dstash`, `dln`, `dcp`, etc.
 
 All such functions are call-only, i.e., *not* for re-implementation.
---
+|===
 
 === Variables available to deployments
 
@@ -1228,12 +1228,12 @@ This path does not necessarily exist.
 
 Same as `*_D__DPL_SH_PATH_*`, but with suffix changed to `*.dpl.mnf`.
 
-[NOTE]
---
-Asset manifests are also processed by routines that don't source deployments.
+[.note]
+|===
+| Asset manifests are also processed by routines that don't source deployments.
 
 Thus, path to asset manifest is locked, and this variable is read-only.
---
+|===
 
 | [#var-dpl-que-path]#`*D_DPL_QUE_PATH*`#
 a| Generated absolute path to queue manifest of current deployment.
@@ -1241,12 +1241,12 @@ This path does not necessarily exist.
 
 Same as `*_D__DPL_SH_PATH_*`, but with suffix changed to `*.dpl.que`.
 
-[NOTE]
---
-Queue manifests are processed only after sourcing their deployment file.
+[.note]
+|===
+| Queue manifests are processed only after sourcing their deployment file.
 
 Thus, you are free to adjust this path at the top level of deployment script.
---
+|===
 
 2+^.^h| [#detected-os]#Detected operating system (OS)#
 
@@ -1263,13 +1263,13 @@ Exhaustive list of possible values:
 * `solaris` — https://en.wikipedia.org/wiki/Solaris_(operating_system)[Oracle Solaris]
 * `wsl` — https://en.wikipedia.org/wiki/Windows_Subsystem_for_Linux[Windows Subsystem for Linux]
 
-[NOTE]
---
-Note that `linux` and `wsl` are separate entries.
+[.note]
+|===
+| Note that `linux` and `wsl` are separate entries.
 Check for both to determine whether currently under modern Linux, e.g.:
 
 [source,bash,subs="verbatim,attributes"]
-----
+|===--
 case $D__OS_FAMILY in
   linux{vbar}wsl)   echo linux;;
   *)           echo other;;
@@ -1290,10 +1290,10 @@ Exhaustive list of possible values:
 * `ubuntu`
 * _empty_ — failed to reliably detect a supported distribution
 
-[NOTE]
---
-This list is incomplete; you can help by <<contributing-os-support,expanding it>>.
---
+[.note]
+|===
+| This list is incomplete; you can help by <<contributing-os-support,expanding it>>.
+|===
 
 | [#var-os-pkgmgr]#`*D__OS_PKGMGR*`#
 a| Name of supported system package manager available on current system.
@@ -1307,10 +1307,10 @@ Exhaustive list of possible values:
 * `yum`
 * _empty_ — failed to reliably detect a supported package manager
 
-[NOTE]
---
-This list is incomplete; you can help by <<contributing-os-support,expanding it>>.
---
+[.note]
+|===
+| This list is incomplete; you can help by <<contributing-os-support,expanding it>>.
+|===
 
 When this variable is non-empty, you also have the built-in <<func-os-pkgmgr,package manager wrapper>>, `d__os_pkgmgr()`, at your disposal.
 
@@ -1336,10 +1336,10 @@ This affects behavior of the following return codes of <<func-dpl-check,`d_dpl_c
 * `1` ('installed') — prohibits uninstalling;
 * `4` ('partly installed') — prohibits uninstalling.
 
-[NOTE]
---
-This is useful for deployments designed to not interfere with manual tinkering.
---
+[.note]
+|===
+| This is useful for deployments designed to not interfere with manual tinkering.
+|===
 
 2+^.^h| Parameters of current request
 
@@ -1483,11 +1483,11 @@ Prepend this to your priveleged calls to inform user of why they need to enter t
 
 |===
 
-[NOTE]
---
-Notice the word '_notable_' used throughout.
+[.note]
+|===
+| Notice the word '_notable_' used throughout.
 In general, it is *not* _notable_ when your deployment works as expected.
---
+|===
 
 [[func-dprompt]]
 ==== `dprompt` function
@@ -1544,10 +1544,10 @@ a| * If `*_ANSWER_*` is `true`, returns `0` immediately.
 * If `*_ANSWER_*` is `false`, returns `1` immediately.
 * Otherwise, proceeds with prompting.
 
-[NOTE]
---
-Call `dprompt --answer "$D__OPT_ANSWER"` to make the prompt honor `--yes`/`--no` options of the <<intervention-utility,intervention utility>>.
---
+[.note]
+|===
+| Call `dprompt --answer "$D__OPT_ANSWER"` to make the prompt honor `--yes`/`--no` options of the <<intervention-utility,intervention utility>>.
+|===
 
 a| `*-p* *_PROMPT_*`,
 
@@ -1744,12 +1744,12 @@ a| Works with <<stash-types,Grail stash>> instead of default deployment stash.
 
 |===
 
-[NOTE]
---
-Records of attaching third-party bundles are stored in <<stash-types,Grail stash>>.
+[.note]
+|===
+| Records of attaching third-party bundles are stored in <<stash-types,Grail stash>>.
 
 Records of installing optional framework dependencies are stored in <<stash-types,root stash>>.
---
+|===
 
 === Manifests
 
@@ -1811,13 +1811,13 @@ entry6                  # Regular entry (no color)
 entry7                  # Regular entry (no color)
 ----
 
-[NOTE]
---
-There are a few keys that are universal to all types of manifests.
+[.note]
+|===
+| There are a few keys that are universal to all types of manifests.
 They are described below.
 
 Particular kinds of manifests support additional keys.
---
+|===
 
 ==== OS-specific manifest entries
 
@@ -1837,11 +1837,11 @@ Entire list of OS's may be negated (inverted) by prepending it with a `!`.
                                 #. any OS. This is synonymous to empty list.
 ----
 
-[NOTE]
---
-OS names are matched against <<var-os-family,`$D\__OS_FAMILY`>> and <<var-os-distro,`$D__OS_DISTRO`>> built-in variables.
+[.note]
+|===
+| OS names are matched against <<var-os-family,`$D\__OS_FAMILY`>> and <<var-os-distro,`$D__OS_DISTRO`>> built-in variables.
 Single match against any of the two is sufficient.
---
+|===
 
 [[manifest-entry-flags]]
 ==== Manifest entry flags
@@ -1921,10 +1921,10 @@ Relative paths are resolved from:
 * <<var-dpl-dir,deployment directory>> (to locate initial versions provided by the author);
 * <<var-dpl-asset-dir,asset directory>> (to locate user's versions to be processed by the framework).
 
-[NOTE]
---
-To reiterate, the framework never overwrites assets that are already present in asset directory.
---
+[.note]
+|===
+| To reiterate, the framework never overwrites assets that are already present in asset directory.
+|===
 
 Processing of asset manifests occurs:
 
@@ -2011,30 +2011,30 @@ Instead it creates a <<split-queue,queue split>> point wherever it appears.
 
 |===
 
-[NOTE]
---
-[#asset-manifest-regex-note]#Under the hood#, RegEx patterns are fed to the http://man7.org/linux/man-pages/man1/find.1.html[find] utility, using https://en.wikibooks.org/wiki/Regular_Expressions/POSIX-Extended_Regular_Expressions[POSIX Extended Regular Expressions] dialect, in the manner similar to the following:
+[.note]
+|===
+| [#asset-manifest-regex-note]#Under the hood#, RegEx patterns are fed to the http://man7.org/linux/man-pages/man1/find.1.html[find] utility, using https://en.wikibooks.org/wiki/Regular_Expressions/POSIX-Extended_Regular_Expressions[POSIX Extended Regular Expressions] dialect, in the manner similar to the following:
 
 [source,bash]
-----
+|===--
 find . -regex "^\./${PATTERN}$"
 ----
 
 As a consequence, the patterns should not include `^` and `$` meta-characters.
 --
 
-[NOTE]
---
-Order of entries in the asset manifest is guaranteed to correspond to the order of elements in <<asset-arrays,asset arrays>>.
+[.note]
+|===
+| Order of entries in the asset manifest is guaranteed to correspond to the order of elements in <<asset-arrays,asset arrays>>.
 However, order of files/directories matching a RegEx entry is not guaranteed.
---
+|===
 
-[NOTE]
---
-Concrete relative paths are simply appended to their parent directories.
+[.note]
+|===
+| Concrete relative paths are simply appended to their parent directories.
 So, asset paths like `.`, `..`, `../..`, etc. will work.
 Asset manifests are designed for convenience, not security: with free-form Bash code within deployments, security is pretty much a moot point.
---
+|===
 
 .Example of asset manifest
 [source]
@@ -2115,12 +2115,12 @@ In generic queues, the framework uses the strings themselves only for debug mess
 
 |===
 
-[NOTE]
---
-The queue arrays must be consecutive.
+[.note]
+|===
+| The queue arrays must be consecutive.
 Failing that, the queue will fail utterly and miserably.
 You have been warned.
---
+|===
 
 ==== Generic queue special functions
 
@@ -2228,11 +2228,11 @@ You are left to decide on whether to treat such cases specially.
 a| Stash key and stash value for current item.
 The third variable is `true` if stash record exists, `false` if stash record does not exist, and not set if stash is not used for this item.
 
-[NOTE]
---
-Queue mechanism uses stash to keep persistent records of (un)installing queue items.
+[.note]
+|===
+| Queue mechanism uses stash to keep persistent records of (un)installing queue items.
 Ideally, there is no reason for you to know this or use these variables.
---
+|===
 
 |===
 
@@ -2248,16 +2248,16 @@ Unlike with <<asset-manifests,asset manifests>>, you are free to customize the l
 Queue manifests follow the general <<manifest-syntax,manifest syntax>>.
 Only the key `os` is recognized within queue manifests.
 
-[NOTE]
---
-A suggested way of using queue manifests is:
+[.note]
+|===
+| A suggested way of using queue manifests is:
 
 . Provide a sample queue manifest of some entries in whatever form.
 . Declare the queue manifest an asset, by listing it in your <<asset-manifests,asset manifest>>.
 . Within the deployment, customize the <<var-dpl-que-path,`D_DPL_QUE_PATH`>> variable to point to asset copy within <<grail-directory,the Grail>>, e.g.:
 +
 [source,bash]
-----
+|===--
 D_DPL_QUE_PATH="$D__DPL_ASSET_DIR/$D_DPL_NAME.dpl.que"
 ----
 --
@@ -2318,12 +2318,12 @@ In the context of link queue, for each absolute path in `*D_DPL_ASSET_PATHS*`, t
 
 |===
 
-[NOTE]
---
-The queue arrays must be consecutive and have the same number of elements.
+[.note]
+|===
+| The queue arrays must be consecutive and have the same number of elements.
 Failing that, the queue will fail utterly and miserably.
 You have been warned.
---
+|===
 
 ==== Link queue special functions
 
@@ -2411,11 +2411,11 @@ D_DPL_TARGET_DIR_FEDORA=/path/on/fedora
 D_DPL_TARGET_DIR_WSL=/path/on/wsl
 ----
 
-[NOTE]
---
-The OS handles are matched against both  <<var-os-family,`$D\__OS_FAMILY`>> and <<var-os-distro,`$D__OS_DISTRO`>> built-in variables.
+[.note]
+|===
+| The OS handles are matched against both  <<var-os-family,`$D\__OS_FAMILY`>> and <<var-os-distro,`$D__OS_DISTRO`>> built-in variables.
 A match against distro overrules a match against family, because such is life.
---
+|===
 
 [[copy-queue]]
 === Copy queue
@@ -2432,15 +2432,15 @@ To use it:
 . Populate a few specially named arrays with necessary paths.
 . Delegate your deployment's <<primary-functions,primaries>> to built-in helpers.
 
-[NOTE]
---
-Copy queue does not touch pre-existing files:
+[.note]
+|===
+| Copy queue does not touch pre-existing files:
 
 * If a file by that name already exists at destination — no copying is done.
 * Upon uninstallation, a file is only erased if there is a record of it previously being copied into that location.
 
 If you want to actually substitute existing files (while backing them up), prefer the <<link-queue,link queue>>.
---
+|===
 
 This kind of deployment is best demonstrated with an example:
 
@@ -2488,12 +2488,12 @@ In the context of copy queue, for each absolute path in `*D_DPL_ASSET_PATHS*`, t
 
 |===
 
-[NOTE]
---
-The queue arrays must be consecutive and have the same number of elements.
+[.note]
+|===
+| The queue arrays must be consecutive and have the same number of elements.
 Failing that, the queue will fail utterly and miserably.
 You have been warned.
---
+|===
 
 ==== Copy queue special functions
 
@@ -2581,11 +2581,11 @@ D_DPL_TARGET_DIR_FEDORA=/path/on/fedora
 D_DPL_TARGET_DIR_WSL=/path/on/wsl
 ----
 
-[NOTE]
---
-The OS handles are matched against both  <<var-os-family,`$D\__OS_FAMILY`>> and <<var-os-distro,`$D__OS_DISTRO`>> built-in variables.
+[.note]
+|===
+| The OS handles are matched against both  <<var-os-family,`$D\__OS_FAMILY`>> and <<var-os-distro,`$D__OS_DISTRO`>> built-in variables.
 A match against distro overrules a match against family, because such is life.
---
+|===
 
 [[multitask]]
 === Multitask
@@ -2650,11 +2650,11 @@ Members of this array are strings, and are used in forming names of sub-primarie
           d{us}**__TASK__**{us}remove
 ----
 
-[NOTE]
---
-This array must be consecutive.
+[.note]
+|===
+| This array must be consecutive.
 You have been warned.
---
+|===
 
 |===
 
@@ -2739,10 +2739,10 @@ populate_generic_queue() {
 }
 ----
 
-[NOTE]
---
-If you use <<asset-manifests,asset manifests>>, you may <<asset-manifest-queue-split,split your queue>> directly within the asset manifest file.
---
+[.note]
+|===
+| If you use <<asset-manifests,asset manifests>>, you may <<asset-manifest-queue-split,split your queue>> directly within the asset manifest file.
+|===
 
 == Ways to contribute
 
