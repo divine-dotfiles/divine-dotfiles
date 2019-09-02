@@ -1,9 +1,9 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revnumber: 51
+:revnumber: 52
 :revdate: 2019.09.02
-:revremark: Test new table layout, pt. 2
+:revremark: Test new table layout, pt. 3
 :doctype: article
 // Visual
 :toc:
@@ -269,45 +269,57 @@ By default, a copy of your usage files (including <<grail-directory,the Grail>>)
 
 Add flavoring to your uninstallation as such:
 
-[header,cols="<.^1,<.^4",stripes=none]
+.Framework uninstallation options and overrides
+[%noheader,cols="<.<a",stripes=none]
 |===
 
-2+^.^h| Prepend on the left
+^.^h| Prepend on the left
 
 | `*D_FMWK_DIR=_DIRPATH_*`
-| Uninstall framework within `*_DIRPATH_*` instead of default `~/.divine/`
 
-2+^.^h| Append on the right
+Uninstall framework within `*_DIRPATH_*` instead of default `~/.divine/`
+
+^.^h| Append on the right
 
 | `*--yes*`
-| Uninstall everything without prompts
+
+Uninstall everything without prompts
 
 | `*--no*`
-| Uninstall absolutely nothing
+
+Uninstall absolutely nothing
 
 | `*--utils-yes*`
-| Uninstall system packages installed by the framework (e.g., `git`) without prompt
+
+Uninstall system packages installed by the framework (e.g., `git`) without prompt
 
 | `*--utils-no*`
-| Skip uninstalling system packages installed by the framework (e.g., `git`)
+
+Skip uninstalling system packages installed by the framework (e.g., `git`)
 
 | `*--backup-yes*`
-| [.gray]##_(default)_## Make backup of usage files (including Grail dir) without prompt
+
+[.gray]##_(default)_## Make backup of usage files (including Grail dir) without prompt
 
 | `*--backup-no*`
-| Skip backing up usage files (including Grail dir)
+
+Skip backing up usage files (including Grail dir)
 
 | `*--framework-yes*`
-| Erase framework directory without prompt
+
+Erase framework directory without prompt
 
 | `*--framework-no*`
-| Uninstall absolutely nothing (synonym of `--no`)
+
+Uninstall absolutely nothing (synonym of `--no`)
 
 | `*--verbose*`
-| Increase amount of output
+
+Increase amount of output
 
 | `*--quiet*`
-| [.gray]##_(default)_## Decrease amount of output
+
+[.gray]##_(default)_## Decrease amount of output
 
 |===
 
@@ -361,46 +373,40 @@ All of the above is controlled and customized from your <<grail-directory,Grail 
 ----
 
 .Description of asset directories for the bundle `essentials`
-[%header,cols="<.<1,^.<1,<.<3",stripes=none]
+[%noheader,cols="<.<a",stripes=none]
 |===
 
-^.^| Asset directory
-+++<br>+++
-`&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`
-^.^| `&nbsp;`
-^.^| Content description
+| `*bash-it*/` *&dagger;*
 
-| `*bash-it*/`
-| *&dagger;*
-| Custom assets for https://github.com/Bash-it/bash-it[Bash-it] shell framework
+Custom assets for https://github.com/Bash-it/bash-it[Bash-it] shell framework
 
-| `*brewfile*/`
-| *&dagger;*
-| https://github.com/Homebrew/homebrew-bundle[Brewfile], maintained on macOS
+| `*brewfile*/` *&dagger;*
+
+https://github.com/Homebrew/homebrew-bundle[Brewfile], maintained on macOS
 
 | `*config-git*/`
-|
-| Global configuration for Git
+
+Global configuration for Git
 
 | `*config-shell*/`
-|
-| Startup scripts (https://en.wikipedia.org/wiki/Run_commands[runcoms]) for Bash and Zsh
+
+Startup scripts (https://en.wikipedia.org/wiki/Run_commands[runcoms]) for Bash and Zsh
 
 | `*config-vim*/`
-|
-| Global configuration for Vim
 
-| `*home-dirs*/`
-| *&dagger;*
-| File `*home-dirs.cfg*` defines a sub-directory tree, to be maintained under the home directory
+Global configuration for Vim
 
-| `*oh-my-zsh*/`
-| *&dagger;*
-| Custom assets for https://ohmyz.sh[oh-my-zsh] shell framework
+| `*home-dirs*/` *&dagger;*
+
+File `*home-dirs.cfg*` defines a sub-directory tree, to be maintained under the home directory
+
+| `*oh-my-zsh*/` *&dagger;*
+
+Custom assets for https://ohmyz.sh[oh-my-zsh] shell framework
 
 | `*portable-bin*/`
-|
-| Portable container for personal executables; this directory is maintained on the `$PATH`
+
+Portable container for personal executables; this directory is maintained on the `$PATH`
 
 |===
 
@@ -439,48 +445,49 @@ _Divine.dotfiles_ is installed, by default, to `~/.divine/`, and is contained en
 
 The framework itself consists of the following main parts:
 
-[header,cols="<.<1,<.<3",stripes=none]
+[%noheader,cols="<.<a",stripes=none]
 |===
 
-| [#grail-directory]#`~/.divine/*grail/*`#
-a| *The Grail directory* houses user’s deployments, assets, and persistent settings.
+| +++<p align="center">+++[#grail-directory]#`~/.divine/*grail*/`#+++</p>+++
 
-[.note]
-[%noheader,cols="<.<a"]
-|===
-| If you settle on using _Divine.dotfiles_, we recommend taking Grail directory under version control and syncing it, e.g., via cloud services or Github.
-|===
+*The Grail directory* houses user’s deployments, assets, and persistent settings.
+
+If you settle on using _Divine.dotfiles_, we recommend taking your Grail directory under version control and syncing it, e.g., via cloud services or Github.
 
 Sub-structured as follows:
 
-* `*assets/*` — Directory for user's assets, such as config files.
-* `*dpls/*` — Directory for user's deployments.
-* `.stash.cfg` — _Grail <<stash,stash>> entries maintained by the framework._
-* `.stash.cfg.md5` — _Grail <<stash,stash>> integrity checksum maintained by the framework._
+* `*assets*/` — Directory for user's assets, such as config files.
+* `*dpls*/` — Directory for user's deployments.
+* `*.stash.cfg*` — _Grail <<stash,stash>> entries maintained by the framework._
+* `*.stash.cfg.md5*` — _Grail <<stash,stash>> integrity checksum maintained by the framework._
 
-| [#state-directory]#`~/.divine/*state/*`#
-a| *The state directory* stores data on the current state of deployments on current machine.
+| +++<p align="center">+++[#state-directory]#`~/.divine/*state*/`#+++</p>+++
+
+*The state directory* stores data on the current state of deployments on current machine.
 _(Entire directory is maintained by the framework.)_
 
 Sub-structured as follows:
 
-* `*backups/*` — _Divine.dotfiles_ provides facilities to back up existing files from the system.
+* `*backups*/` — _Divine.dotfiles_ provides facilities to back up existing files from the system.
 This directory stores such backups.
-* `*bundles/*` — _Divine.dotfiles_ provides facilities to <<attach-routine,attach third-party bundles of deployments>> from Github.
+* `*bundles*/` — _Divine.dotfiles_ provides facilities to <<attach-routine,attach third-party bundles of deployments>> from Github.
 This directory stores such deployments.
-* `*stash/*` — _Divine.dotfiles_ provides a <<stash,persistent key-value store>> for use within deployments.
+* `*stash*/` — _Divine.dotfiles_ provides a <<stash,persistent key-value store>> for use within deployments.
 This directory houses key-value containers.
 
-| [#lib-directory]#`~/.divine/*lib/*`#
-| Guts of the framework, structured to the best of creator's ability.
+| +++<p align="center">+++[#lib-directory]#`~/.divine/*lib*/`#+++</p>+++
+
+Guts of the framework, structured to the best of creator's ability.
 _(Entire directory is, naturally, maintained by the framework.)_
 
-| `~/.divine/intervene.sh`
-| <<intervention-utility,*Divine intervention utility*>>, the command line interface to the framework.
+| +++<p align="center">+++`~/.divine/*intervene.sh*`+++</p>+++
+
+<<intervention-utility,*Divine intervention utility*>>, the command line interface to the framework.
 _(File is maintained by the framework.)_
 
-| `[$PATH directory]/di`
-| Symlink to the intervention utility, providing an easy access.
+| +++<p align="center">+++`[$PATH directory]/*di*`+++</p>+++
+
+Symlink to the intervention utility, providing an easy access.
 This symlink is usually automatically created during framework installation.
 
 |===
