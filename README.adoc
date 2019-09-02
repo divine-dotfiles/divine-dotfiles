@@ -1,9 +1,9 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revnumber: 47
+:revnumber: 48
 :revdate: 2019.09.02
-:revremark: Change adoc NOTEs to one-cell tables for mobile
+:revremark: Improve [.note] rendering
 :doctype: article
 // Visual
 :toc:
@@ -28,6 +28,7 @@ New machine or new OS?
 Set it up with a single `*di install --yes*`.
 
 [.note]
+[%noheader,cols="<.<a"]
 |===
 | `di` stands for **d**ivine **i**ntervention.
 |===
@@ -37,6 +38,7 @@ _Divine.dotfiles_ promotes Bash scripts to portable _deployments_ that are insta
 == In a nutshell
 
 [.note]
+[%noheader,cols="<.<a"]
 |===
 | First time users are welcome to take a <<joy-ride,joy ride>> for quick appraisal.
 |===
@@ -143,6 +145,7 @@ Following OS distributions are openly supported:
 --
 +
 [.note]
+[%noheader,cols="<.<a"]
 |===
 | This list is incomplete; you can help by <<contributing-os-support,expanding it>>.
 |===
@@ -150,6 +153,7 @@ Following OS distributions are openly supported:
 * `bash 3.2+` and either `curl` or `wget`
 +
 [.note]
+[%noheader,cols="<.<a"]
 |===
 | `git` is not a hard requirement, but it is not flaccid either.
 You can install _Divine.dotfiles_ without `git`.
@@ -166,6 +170,7 @@ bash -c 'TMP=$(mktemp); URL=https://raw.github.com/no-simpler/divine-dotfiles/ma
 ----
 
 [.note]
+[%noheader,cols="<.<a"]
 |===
 | Installation is completely safe:
 
@@ -299,6 +304,7 @@ bash -c 'TMP=$(mktemp); URL=https://raw.github.com/no-simpler/divine-dotfiles/ma
 ----
 
 [.note]
+[%noheader,cols="<.<a"]
 |===
 | This chained command does three things:
 
@@ -377,6 +383,7 @@ All of the above is controlled and customized from your <<grail-directory,Grail 
 |===
 
 [.note]
+[%noheader,cols="<.<a"]
 |===
 | Dagger *&dagger;* mark meaning: in order for the modifications in the asset directory to take effect, the deployment must be (re-)installed.
 |===
@@ -417,6 +424,7 @@ The framework itself consists of the following main parts:
 a| *The Grail directory* houses user’s deployments, assets, and persistent settings.
 
 [.note]
+[%noheader,cols="<.<a"]
 |===
 | If you settle on using _Divine.dotfiles_, we recommend taking Grail directory under version control and syncing it, e.g., via cloud services or Github.
 |===
@@ -473,6 +481,7 @@ Intervention utility's functions are:
 . <<update-routine,*Update*>> framework itself, attached bundles, and Grail directory, if it is a cloned repository.
 
 [.note]
+[%noheader,cols="<.<a"]
 |===
 | The term '<<deployments,deployments>>' includes <<divinefiles,Divinefiles>> as the special kind of the former.
 |===
@@ -583,6 +592,7 @@ Access within deployments: `$D__OPT_QUIET` (`true` / `false`).
 |===
 
 [.note]
+[%noheader,cols="<.<a"]
 |===
 | Even though every option above serves a function within the framework, it is also up to deployment authors to honor their semantics.
 |===
@@ -618,6 +628,7 @@ Detaching deployments deletes the copy of their repository, but it is up to you 
 * Remove any assets that might have been copied into your <<grail-directory,Grail>> assets directory.
 
 [.note]
+[%noheader,cols="<.<a"]
 |===
 | Attached bundles are cloned/downloaded into your <<state-directory,state directory>>, but _attachment records_ are stored in <<grail-directory,the Grail>>.
 On every launch, intervention utility synchronizes Grail records with actual repositories in state directory.
@@ -691,6 +702,7 @@ Other events — like offering an optional framework dependency — also trigger
 With this option, affirmative answer is assumed to every built-it prompt.
 
 [.note]
+[%noheader,cols="<.<a"]
 |===
 | If provided argument can be interpreted in multiple ways, the first option will be silently settled upon.
 |===
@@ -932,6 +944,7 @@ a| *'Critical failure'*: same as 'Failed to uninstall', except:
 |===
 
 [.note]
+[%noheader,cols="<.<a"]
 |===
 | It is worth noting that intended semantics of uninstallation are not direct inverse to that of installation.
 Ideally, if no installation via the framework has previously occurred, uninstallation should do nothing.
@@ -951,6 +964,7 @@ This philosophy is followed by our magnificent https://github.com/no-simpler/div
 * <<deployment-warning,`D_DPL_WARNING`>> — one-line cautionary message about this deployment.
 
 [.note]
+[%noheader,cols="<.<a"]
 |===
 | Although all deployment metadata look like Bash variable assignments, they are in face extracted from the file _before_ it is interpreted by Bash.
 
@@ -1025,6 +1039,7 @@ a| Assigns the deployment to one of the ten single-digit *groups*.
 Groups of deployments may be processed together by referring to them by that group's digit in place of deployment name.
 
 [.note]
+[%noheader,cols="<.<a"]
 |===
 | Deployments may not have a single-digit name.
 The framework guards against using reserved words as deployment names.
@@ -1083,6 +1098,7 @@ As with all deployment names, these are case insensitive.
 Divinefiles are processed in their merged entirety or not processed at all.
 
 [.note]
+[%noheader,cols="<.<a"]
 |===
 | Yes, you also cannot name regular deployments `divinefile`, `dfile`, or `df`.
 The framework guards against using reserved words as deployment names.
@@ -1092,6 +1108,7 @@ You can assign deployment-style <<deployment-priority,*priorities*>> and <<deplo
 Packages are intertwined with regular deployments in a shared workflow.
 
 [.note]
+[%noheader,cols="<.<a"]
 |===
 | For more complex system package installations, e.g., involving particular versions or special package manager options, use regular deployments.
 |===
@@ -1107,6 +1124,7 @@ Within a line, each vertical bar `|` starts an *alt-list*, which fully overrides
 Within an alt-list, everything to the left of first colon `:` is read as package manager name; everything to the right — as the alt-list itself.
 
 [.note]
+[%noheader,cols="<.<a"]
 |===
 | Package manager name is matched against <<var-os-pkgmgr,`$D__OS_PKGMGR`>> built-in variable.
 |===
@@ -1142,6 +1160,7 @@ Sourcing occurs as late as possible, after exhausting excuses to skip it.
 A subshell is created for every deployment, shielding other deployments from it.
 
 [.note]
+[%noheader,cols="<.<a"]
 |===
 | Naturally, there is no way to prevent deployments from negatively affecting your system.
 Deployments are free-form Bash scripts, and sandboxing them beyond a subshell would defeat their purpose.
@@ -1164,6 +1183,7 @@ Whenever the framework does _not_ expect you to reassign a global variable or re
 * `*d__*` prefix — for names of call-only internal functions.
 
 [.note]
+[%noheader,cols="<.<a"]
 |===
 | Some of the most used framework functions have grown so attached to their `d` prefix, that they omit the underscores altogether.
 Examples are: `dprint_*` family of functions, `dprompt`, `dstash`, `dln`, `dcp`, etc.
@@ -1229,6 +1249,7 @@ This path does not necessarily exist.
 Same as `*_D__DPL_SH_PATH_*`, but with suffix changed to `*.dpl.mnf`.
 
 [.note]
+[%noheader,cols="<.<a"]
 |===
 | Asset manifests are also processed by routines that don't source deployments.
 
@@ -1242,6 +1263,7 @@ This path does not necessarily exist.
 Same as `*_D__DPL_SH_PATH_*`, but with suffix changed to `*.dpl.que`.
 
 [.note]
+[%noheader,cols="<.<a"]
 |===
 | Queue manifests are processed only after sourcing their deployment file.
 
@@ -1264,6 +1286,7 @@ Exhaustive list of possible values:
 * `wsl` — https://en.wikipedia.org/wiki/Windows_Subsystem_for_Linux[Windows Subsystem for Linux]
 
 [.note]
+[%noheader,cols="<.<a"]
 |===
 | Note that `linux` and `wsl` are separate entries.
 Check for both to determine whether currently under modern Linux, e.g.:
@@ -1291,6 +1314,7 @@ Exhaustive list of possible values:
 * _empty_ — failed to reliably detect a supported distribution
 
 [.note]
+[%noheader,cols="<.<a"]
 |===
 | This list is incomplete; you can help by <<contributing-os-support,expanding it>>.
 |===
@@ -1308,6 +1332,7 @@ Exhaustive list of possible values:
 * _empty_ — failed to reliably detect a supported package manager
 
 [.note]
+[%noheader,cols="<.<a"]
 |===
 | This list is incomplete; you can help by <<contributing-os-support,expanding it>>.
 |===
@@ -1337,6 +1362,7 @@ This affects behavior of the following return codes of <<func-dpl-check,`d_dpl_c
 * `4` ('partly installed') — prohibits uninstalling.
 
 [.note]
+[%noheader,cols="<.<a"]
 |===
 | This is useful for deployments designed to not interfere with manual tinkering.
 |===
@@ -1484,6 +1510,7 @@ Prepend this to your priveleged calls to inform user of why they need to enter t
 |===
 
 [.note]
+[%noheader,cols="<.<a"]
 |===
 | Notice the word '_notable_' used throughout.
 In general, it is *not* _notable_ when your deployment works as expected.
@@ -1545,6 +1572,7 @@ a| * If `*_ANSWER_*` is `true`, returns `0` immediately.
 * Otherwise, proceeds with prompting.
 
 [.note]
+[%noheader,cols="<.<a"]
 |===
 | Call `dprompt --answer "$D__OPT_ANSWER"` to make the prompt honor `--yes`/`--no` options of the <<intervention-utility,intervention utility>>.
 |===
@@ -1745,6 +1773,7 @@ a| Works with <<stash-types,Grail stash>> instead of default deployment stash.
 |===
 
 [.note]
+[%noheader,cols="<.<a"]
 |===
 | Records of attaching third-party bundles are stored in <<stash-types,Grail stash>>.
 
@@ -1812,6 +1841,7 @@ entry7                  # Regular entry (no color)
 ----
 
 [.note]
+[%noheader,cols="<.<a"]
 |===
 | There are a few keys that are universal to all types of manifests.
 They are described below.
@@ -1838,6 +1868,7 @@ Entire list of OS's may be negated (inverted) by prepending it with a `!`.
 ----
 
 [.note]
+[%noheader,cols="<.<a"]
 |===
 | OS names are matched against <<var-os-family,`$D\__OS_FAMILY`>> and <<var-os-distro,`$D__OS_DISTRO`>> built-in variables.
 Single match against any of the two is sufficient.
@@ -1922,6 +1953,7 @@ Relative paths are resolved from:
 * <<var-dpl-asset-dir,asset directory>> (to locate user's versions to be processed by the framework).
 
 [.note]
+[%noheader,cols="<.<a"]
 |===
 | To reiterate, the framework never overwrites assets that are already present in asset directory.
 |===
@@ -2012,6 +2044,7 @@ Instead it creates a <<split-queue,queue split>> point wherever it appears.
 |===
 
 [.note]
+[%noheader,cols="<.<a"]
 |===
 | [#asset-manifest-regex-note]#Under the hood#, RegEx patterns are fed to the http://man7.org/linux/man-pages/man1/find.1.html[find] utility, using https://en.wikibooks.org/wiki/Regular_Expressions/POSIX-Extended_Regular_Expressions[POSIX Extended Regular Expressions] dialect, in the manner similar to the following:
 
@@ -2024,12 +2057,14 @@ As a consequence, the patterns should not include `^` and `$` meta-characters.
 --
 
 [.note]
+[%noheader,cols="<.<a"]
 |===
 | Order of entries in the asset manifest is guaranteed to correspond to the order of elements in <<asset-arrays,asset arrays>>.
 However, order of files/directories matching a RegEx entry is not guaranteed.
 |===
 
 [.note]
+[%noheader,cols="<.<a"]
 |===
 | Concrete relative paths are simply appended to their parent directories.
 So, asset paths like `.`, `..`, `../..`, etc. will work.
@@ -2116,6 +2151,7 @@ In generic queues, the framework uses the strings themselves only for debug mess
 |===
 
 [.note]
+[%noheader,cols="<.<a"]
 |===
 | The queue arrays must be consecutive.
 Failing that, the queue will fail utterly and miserably.
@@ -2229,6 +2265,7 @@ a| Stash key and stash value for current item.
 The third variable is `true` if stash record exists, `false` if stash record does not exist, and not set if stash is not used for this item.
 
 [.note]
+[%noheader,cols="<.<a"]
 |===
 | Queue mechanism uses stash to keep persistent records of (un)installing queue items.
 Ideally, there is no reason for you to know this or use these variables.
@@ -2249,6 +2286,7 @@ Queue manifests follow the general <<manifest-syntax,manifest syntax>>.
 Only the key `os` is recognized within queue manifests.
 
 [.note]
+[%noheader,cols="<.<a"]
 |===
 | A suggested way of using queue manifests is:
 
@@ -2319,6 +2357,7 @@ In the context of link queue, for each absolute path in `*D_DPL_ASSET_PATHS*`, t
 |===
 
 [.note]
+[%noheader,cols="<.<a"]
 |===
 | The queue arrays must be consecutive and have the same number of elements.
 Failing that, the queue will fail utterly and miserably.
@@ -2412,6 +2451,7 @@ D_DPL_TARGET_DIR_WSL=/path/on/wsl
 ----
 
 [.note]
+[%noheader,cols="<.<a"]
 |===
 | The OS handles are matched against both  <<var-os-family,`$D\__OS_FAMILY`>> and <<var-os-distro,`$D__OS_DISTRO`>> built-in variables.
 A match against distro overrules a match against family, because such is life.
@@ -2433,6 +2473,7 @@ To use it:
 . Delegate your deployment's <<primary-functions,primaries>> to built-in helpers.
 
 [.note]
+[%noheader,cols="<.<a"]
 |===
 | Copy queue does not touch pre-existing files:
 
@@ -2489,6 +2530,7 @@ In the context of copy queue, for each absolute path in `*D_DPL_ASSET_PATHS*`, t
 |===
 
 [.note]
+[%noheader,cols="<.<a"]
 |===
 | The queue arrays must be consecutive and have the same number of elements.
 Failing that, the queue will fail utterly and miserably.
@@ -2582,6 +2624,7 @@ D_DPL_TARGET_DIR_WSL=/path/on/wsl
 ----
 
 [.note]
+[%noheader,cols="<.<a"]
 |===
 | The OS handles are matched against both  <<var-os-family,`$D\__OS_FAMILY`>> and <<var-os-distro,`$D__OS_DISTRO`>> built-in variables.
 A match against distro overrules a match against family, because such is life.
@@ -2651,6 +2694,7 @@ Members of this array are strings, and are used in forming names of sub-primarie
 ----
 
 [.note]
+[%noheader,cols="<.<a"]
 |===
 | This array must be consecutive.
 You have been warned.
@@ -2740,6 +2784,7 @@ populate_generic_queue() {
 ----
 
 [.note]
+[%noheader,cols="<.<a"]
 |===
 | If you use <<asset-manifests,asset manifests>>, you may <<asset-manifest-queue-split,split your queue>> directly within the asset manifest file.
 |===
