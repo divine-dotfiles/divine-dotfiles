@@ -1,9 +1,9 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revnumber: 50
+:revnumber: 51
 :revdate: 2019.09.02
-:revremark: Add fonts dpl; tweak references to essentials bundle
+:revremark: Test new table layout, pt. 2
 :doctype: article
 // Visual
 :toc:
@@ -96,6 +96,7 @@ But wait, there’s [.small]#_(hopefully)_# more.
 
 === Framework features
 
+.Framework features
 [%noheader,cols="<.<a",stripes=none]
 |===
 
@@ -194,45 +195,57 @@ Oh, and you will be prompted for everything.
 
 Add flavoring to your installation as such:
 
-[header,cols="<.^1,<.^3",stripes=none]
+.Framework installation options and overrides
+[%noheader,cols="<.<a",stripes=none]
 |===
 
-2+^.^h| Prepend on the left
+^.^h| Prepend on the left
 
 | `*D_FMWK_DIR=_DIRPATH_*`
-| Install framework within `*_DIRPATH_*` instead of default `~/.divine/`
+
+Install framework within `*_DIRPATH_*` instead of default `~/.divine/`
 
 | `*D_SHORTCUT_NAME=_CMD_*`
-| Name shortcut shell command `*_CMD_*` instead of default `di`
+
+Name shortcut shell command `*_CMD_*` instead of default `di`
 
 | `*D_SHORTCUT_DIR=_DIRPATH_*`
-| Install shortcut shell command within `*_DIRPATH_*` instead of the default way: choosing among directories on `$PATH`
 
-2+^.^h| Append on the right
+Install shortcut shell command within `*_DIRPATH_*` instead of the default way: choosing among directories on `$PATH`
+
+^.^h| Append on the right
 
 | `*--yes*`
-| Install everything without prompts
+
+Install everything without prompts
 
 | `*--no*`
-| Install absolutely nothing
+
+Install absolutely nothing
 
 | `*--framework-yes*`
-| Install framework without prompt
+
+Install framework without prompt
 
 | `*--framework-no*`
-| Install absolutely nothing (synonym of `--no`)
+
+Install absolutely nothing (synonym of `--no`)
 
 | `*--shortcut-yes*`
-| Install shortcut shell command without prompt
+
+Install shortcut shell command without prompt
 
 | `*--shortcut-no*`
-| Skip installing shortcut shell command
+
+Skip installing shortcut shell command
 
 | `*--verbose*`
-| Increase amount of output
+
+Increase amount of output
 
 | `*--quiet*`
-| [.gray]##_(default)_## Decrease amount of output
+
+[.gray]##_(default)_## Decrease amount of output
 
 |===
 
