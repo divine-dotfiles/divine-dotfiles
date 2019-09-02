@@ -1,9 +1,9 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revnumber: 61
+:revnumber: 62
 :revdate: 2019.09.02
-:revremark: Reword asset regex notes
+:revremark: Demote queue array notes to normal paragraphs
 :doctype: article
 // Visual
 :toc:
@@ -2181,13 +2181,9 @@ In generic queues, the framework uses the strings themselves only for debug mess
 
 |===
 
-[.note]
-[%noheader,cols="<.<a"]
-|===
-| The queue arrays must be consecutive.
+The queue arrays must be consecutive.
 Failing that, the queue will fail utterly and miserably.
 You have been warned.
-|===
 
 ==== Generic queue hooks
 
@@ -2393,13 +2389,9 @@ For each path in `*D_DPL_ASSET_PATHS*`, this array must contain the intended abs
 
 |===
 
-[.note]
-[%noheader,cols="<.<a"]
-|===
-| The queue arrays must be consecutive and have the same number of elements.
+The queue arrays must be consecutive and have the same number of elements.
 Failing that, the queue will fail utterly and miserably.
 You have been warned.
-|===
 
 ==== Link queue hooks
 
@@ -2569,13 +2561,9 @@ For each path in `*D_DPL_ASSET_PATHS*`, this array must contain the destination 
 
 |===
 
-[.note]
-[%noheader,cols="<.<a"]
-|===
-| The queue arrays must be consecutive and have the same number of elements.
+The queue arrays must be consecutive and have the same number of elements.
 Failing that, the queue will fail utterly and miserably.
 You have been warned.
-|===
 
 ==== Copy queue hooks
 
