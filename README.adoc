@@ -1,9 +1,9 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revnumber: 64
+:revnumber: 65
 :revdate: 2019.09.03
-:revremark: Polish the wording and layout
+:revremark: Add 'f' flag to asset manifest entries
 :doctype: article
 // Visual
 :toc:
@@ -2015,7 +2015,7 @@ Leading and trailing slashes are disregarded in all paths in the asset manifests
 
 The following <<manifest-entry-flags,*flags*>> are recognized within asset manifests for each asset entry:
 
-.Asset manifest entry flags
+.List of asset manifest entry flags
 [%header,cols="<.<4,^.<1,<.<4",stripes=none]
 |===
 
@@ -2064,6 +2064,23 @@ _**p**rovided-only_
 | The asset entry is considered limited to those matching files and directories, versions of which are **p**rovided by the author.
 
 _Irrelevant when the <<asset-flag-d,`d` flag>> is in effect._
+
+| Pre-existing files in the user's <<grail-directory,Grail>> are not overwritten under any circumstances.
+
+| `*f*`
+
+_**f**orce-copy_
+| The framework ensures that a byte-by-byte copy of the provided version of an asset is present in the user's <<grail-directory,Grail>>.
+If a differing version is found there, it is renamed by appending `-backup` suffix (with optional trailing ordinal for multiple backups), and the proper version is placed instead.
+An alert is shown to the user whenever this happens.
+
+*_Use this option sparingly!_*
+The user is normally entitled to fully control their own Grail directory.
+Replacing files there undermines the trust in your deployment.
+
+This flag, however, is useful for supplying and updating READMEs.
+In fact, whenever a file matching the RegEx pattern `README(\.[a-z]+)?` (case-sensitive) is replaced via this flag, the framework does not issue an alert or create a backup.
+Naturally, this is designed for convenience, not security.
 
 |===
 

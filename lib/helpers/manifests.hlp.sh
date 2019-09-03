@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: manifests
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    27
-#:revdate:      2019.09.01
-#:revremark:    Fix erroneous variable name
+#:revnumber:    28
+#:revdate:      2019.09.03
+#:revremark:    Add 'f' flag to asset manifest entries
 #:created_at:   2019.05.30
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -93,11 +93,12 @@ d__process_asset_manifest_of_current_dpl()
     fi
 
     # Set default flags
-    flag_r=false
-    flag_d=false
-    flag_o=false
-    flag_n=false
-    flag_p=false
+    flag_r=false  # RegEx flag
+    flag_d=false  # Deployment-dir-only flag
+    flag_o=false  # Optional flag
+    flag_n=false  # No-queue flag
+    flag_p=false  # Provided-only flag
+    flag_f=false  # Force flag
 
     # Extract flags
     for (( j=0; j<${#D__MANIFEST_LINE_FLAGS[$i]}; j++ )); do
@@ -107,6 +108,7 @@ d__process_asset_manifest_of_current_dpl()
         o)  flag_o=true;;
         n)  flag_n=true;;
         p)  flag_p=true;;
+        f)  flag_f=true;;
       esac
     done
 
@@ -216,7 +218,7 @@ d__process_asset_manifest_of_current_dpl()
           dest_path="$D__DPL_ASSET_DIR/$relative_path"
 
           # Copy asset, or set failure marker
-          d__copy_asset "$src_path" "$dest_path" \
+          d__copy_asset $flag_f "$src_path" "$dest_path" \
             || all_good=false
 
           # Check if pushing onto asset arrays and if limited to provided
@@ -278,7 +280,7 @@ d__process_asset_manifest_of_current_dpl()
       if [ -e "$src_path" ]; then
 
         # Copy asset, or set failure marker
-        d__copy_asset "$src_path" "$dest_path" \
+        d__copy_asset $flag_f "$src_path" "$dest_path" \
           || all_good=false
 
         # Check if pushing onto asset arrays and if limited to provided
@@ -380,7 +382,11 @@ d__process_queue_manifest_of_current_dpl()
   return 0
 }
 
-#>  d__copy_asset REL_PATH SRC_PATH DEST_PATH
+#>  d__copy_asset FORCE_FLAG REL_PATH SRC_PATH DEST_PATH
+#
+## If force flag is 'true', the asset is copied unless DEST_PATH is already a 
+#. byte-by-byte copy of the SRC_PATH. Otherwise the asset is copied only if 
+#. DEST_PATH does not exist at all.
 #
 ## Returns:
 #.  0 - Asset is in place as required
@@ -388,7 +394,8 @@ d__process_queue_manifest_of_current_dpl()
 #
 d__copy_asset()
 {
-  # Compose absolute paths
+  # Extract flag and absolute paths
+  local force; [ "$1" = true ] && force=true || force=false; shift; 
   local src_path="$1"; shift
   local dest_path="$1"; shift
 
@@ -396,29 +403,96 @@ d__copy_asset()
   if [ -r "$src_path" ]; then
 
     # Check if destination path exists
-    if ! [ -e "$dest_path" ]; then
+    if [ -e "$dest_path" ]; then
 
-      # Compose destination's parent path
-      dest_parent_path="$( dirname -- "$dest_path" )"
+      # Destination path exists: check if forcing
+      if $force; then
 
-      # Ensure target directory is available
-      if ! mkdir -p -- "$dest_parent_path" &>/dev/null; then
+        # If source and destination are byte-by-byte copies, return success
+        cmp -s "$src_path" "$dest_path" && return 0
 
-        # Report and return failure
-        dprint_failure "Failed to create directory: $dest_parent_path"
-        return 1
-      
+        # Check if file is a readme
+        if [ -f "$dest_path" ] \
+          && [[ "$( basename -- "$dest_path" )" =~ ^README(\.[a-z]+)?$ ]]
+        then
+
+          # The pre-existing file is a README
+
+          # Overwrite READMEs without backup
+          if ! rm -f -- "$dest_path"; then
+            dprint_failure "Failed to remove: $dest_path" \
+              -n 'while updating to newer version'
+            return 1
+          fi
+
+        else
+
+          # Compose backup location for destination
+          local backup_path="$dest_path-backup"
+
+          # Check if that backup location is occupied
+          if [ -e "$backup_path" ]; then
+
+            # Location occupied: try alternatives
+            local i=1
+            while ((i<=1000)); do
+              if [ -e "${backup_path}${i}" ]; then
+                ((++i))
+              else
+                backup_path="${backup_path}${i}"
+                break
+              fi
+            done
+
+          fi
+
+          # If unable to settle on backup location, report and return error
+          if [ -e "$backup_path" ]; then
+            dprint_failure "Failed to find a backup slot for: $dest_path"
+            return 1
+          fi
+
+          # Move pre-existing destination to backup location, or return error
+          if mv -n -- "$dest_path" "$backup_path" &>/dev/null; then
+            dprint_alert 'Replacing asset with a newer version:' \
+              -i "$dest_path"
+          else
+            dprint_failure "Failed to move: $dest_path" -n "to: $backup_path"
+            return 1
+          fi
+
+        fi
+
+      else
+
+        # Destination path exists and not forcing: return success
+        return 0
+
       fi
 
-      # Copy initial version to assets directory
-      if ! cp -Rn -- "$src_path" "$dest_path" &>/dev/null; then
-        
-        # Report and return failure
-        dprint_failure "Failed to copy: $src_path" -n "to: $dest_path"
-        return 1
-      
-      fi
+    fi
 
+    # At this point destination path is empty
+
+    # Compose destination's parent path
+    dest_parent_path="$( dirname -- "$dest_path" )"
+
+    # Ensure target directory is available
+    if ! mkdir -p -- "$dest_parent_path" &>/dev/null; then
+
+      # Report and return failure
+      dprint_failure "Failed to create directory: $dest_parent_path"
+      return 1
+    
+    fi
+
+    # Copy initial version to assets directory
+    if ! cp -Rn -- "$src_path" "$dest_path" &>/dev/null; then
+      
+      # Report and return failure
+      dprint_failure "Failed to copy: $src_path" -n "to: $dest_path"
+      return 1
+    
     fi
 
   else
