@@ -1,9 +1,9 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revnumber: 63
-:revdate: 2019.09.02
-:revremark: Add exhaustive number of hooks to queues
+:revnumber: 64
+:revdate: 2019.09.03
+:revremark: Polish the wording and layout
 :doctype: article
 // Visual
 :toc:
@@ -40,7 +40,7 @@ _Divine.dotfiles_ promotes Bash scripts to portable _deployments_ that are insta
 [.note]
 [%noheader,cols="<.<a"]
 |===
-| First time users are welcome to take a <<joy-ride,joy ride>> for quick appraisal.
+| First time users are welcome to take a <<joy-ride,joy ride>> for a quick tour de force.
 |===
 
 _Divine.dotfiles_ leverages *deployments*.
@@ -51,9 +51,9 @@ As such, authoring a deployment is akin to implementing an interface.
 
 The goals of _Divine.dotfiles_ are:
 
-* *Streamlining* of setting-up any machine that runs Bash.
+* *Automation* of setting-up any machine that runs Bash.
 +
-The <<intervention-utility,intervention utility>> is an easy and practical tool for handling any number of deployments.
+The <<intervention-utility,intervention utility `di`>> is a practical tool for handling any number of deployments.
 * *Cross-platformness* within Unix-like world.
 +
 Built-in OS detection mechanisms facilitate writing portable deployments.
@@ -102,7 +102,7 @@ But wait, there’s [.small]#_(hopefully)_# more.
 
 | +++<p align="center">+++<<divinefiles,*Divinefile*>>+++</p>+++
 
-Special deployment that maintains a stable set of system packages across machines and OS's
+Special deployment that maintains a stable set of system packages across machines and OS's.
 
 | +++<p align="center">+++<<grail-directory,*The Grail directory*>>+++</p>+++
 
@@ -111,31 +111,31 @@ On a new machine — plug in your Grail [.small]#_(heh)_# from a repo or a loca
 
 | +++<p align="center">+++<<deployment-priority,*Priorities*>>+++</p>+++
 
-Easily marshal your deployments in order, which is automatically reversed for uninstallation
+Easily marshal your deployments in order, which is automatically reversed for uninstallation.
 
 | +++<p align="center">+++<<deployment-groups,*Groups*>>+++</p>+++
 
-Split your deployment collection into groups to easily handle selective installations
+Split your deployment collection into groups to easily handle selective installations.
 
 | +++<p align="center">+++<<detected-os,*Cross-platformness*>>+++</p>+++
 
-Use built-in OS detection mechanism to perform certain tasks on certain distributions or OS families
+Use built-in OS detection mechanism to perform certain tasks on certain distributions or OS families.
 
 | +++<p align="center">+++<<attach-routine,*Third-party deployments (bundles)*>>+++</p>+++
 
-Attach pre-made bundles of deployments from Github (such as our glorious https://github.com/no-simpler/divine-bundle-essentials[`essentials` bundle]) without polluting your precious Grail [.small]#_(heheh)_#
+Attach pre-made bundles of deployments from Github (such as our glorious https://github.com/no-simpler/divine-bundle-essentials[`essentials` bundle]).
 
 | +++<p align="center">+++<<stash,*Stash*>>+++</p>+++
 
-Persistent key-value store for use within your deployments
+Persistent key-value store for use within your deployments.
 
 | +++<p align="center">+++<<assets,*Assets*>>+++</p>+++
 
-Easily separate your deployments into static logic and dynamic content
+Easily separate your deployments into static logic and dynamic content.
 
 | +++<p align="center">+++<<generic-queue,*Queues*>> and <<multitask,*multitask*>>+++</p>+++
 
-Delegate to built-in mechanisms for deployments that perform a series of tasks
+Delegate to built-in mechanisms for deployments that perform a series of tasks.
 
 |===
 
@@ -332,25 +332,18 @@ Here’s a safe and fully removable way to acquaint yourself with the framework 
 
 [source,bash]
 ----
-bash -c 'TMP=$(mktemp); URL=https://raw.github.com/no-simpler/divine-dotfiles/master/lib/install/install.sh; if curl --version &>/dev/null; then curl -fsSL $URL >$TMP; elif wget --version &>/dev/null; then wget -qO $TMP $URL; else printf >&2 "\n==> Error: failed to detect neither curl nor wget\n"; rm -f $TMP; exit 1; fi || { printf >&2 "\n==> Error: failed to download installation script\n"; rm -f $TMP; exit 2; }; chmod +x $TMP && $TMP "$@"; RC=$?; rm -f $TMP; ((RC)) && exit 3 || exit 0' bash --yes \
-&& ~/.divine/intervene.sh attach essentials --yes \
-&& ~/.divine/intervene.sh install --yes
+# Install Divine.dotfiles framework without prompts
+bash -c 'TMP=$(mktemp); URL=https://raw.github.com/no-simpler/divine-dotfiles/master/lib/install/install.sh; if curl --version &>/dev/null; then curl -fsSL $URL >$TMP; elif wget --version &>/dev/null; then wget -qO $TMP $URL; else printf >&2 "\n==> Error: failed to detect neither curl nor wget\n"; rm -f $TMP; exit 1; fi || { printf >&2 "\n==> Error: failed to download installation script\n"; rm -f $TMP; exit 2; }; chmod +x $TMP && $TMP "$@"; RC=$?; rm -f $TMP; ((RC)) && exit 3 || exit 0' bash --yes
+
+# Attach Divine deployments to your Grail directory:
+~/.divine/intervene.sh attach essentials --yes
+
+# Install deployments
+~/.divine/intervene.sh install --yes
 ----
 
-[.note]
-[%noheader,cols="<.<a"]
-|===
-| This chained command does three things:
-
-. Install the framework without any prompts.
-. Attach our illustrious https://github.com/no-simpler/divine-bundle-essentials[`essentials` bundle] of Divine deployments.
-. Run deployment installation routine.
-Expect a prompt for sudo password here (it will be explained).
-
 Divine deployments *_never overwrite_* pre-existing files on your system without backing them up.
-
 Everything that is backed up is *_automatically restored_* upon uninstallation.
-|===
 
 After all installations are successful, *reload your shell/terminal*.
 
@@ -423,10 +416,10 @@ Below are the separate 'undo' steps, in order:
 
 [source,bash]
 ----
-# Uninstall Divine deployments, restoring everything to pre-installation state:
+# Uninstall deployments:
 ~/.divine/intervene.sh remove --yes
 
-# Detach Divine deployments from your copy of the framework:
+# Detach Divine deployments from your Grail directory:
 ~/.divine/intervene.sh detach essentials --yes
 
 # Erase the framework without keeping backups:
@@ -2893,14 +2886,11 @@ Members of this array are strings, and are used in forming names of sub-primarie
           d{us}**__TASK__**{us}remove
 ----
 
-[.note]
-[%noheader,cols="<.<a"]
-!===
-! This array must be consecutive.
-You have been warned.
-!===
-
 |===
+
+The multitask array must be consecutive.
+Failing that, the deployment will fail utterly and miserably.
+You have been warned.
 
 ==== Multitask hooks
 
