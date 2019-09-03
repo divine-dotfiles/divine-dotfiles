@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: link-queue
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    12
+#:revnumber:    13
 #:revdate:      2019.09.03
-#:revremark:    Compartmentalize link and copy primaries
+#:revremark:    Optimize queue item hook checks
 #:created_at:   2019.04.02
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -183,6 +183,16 @@ d__link_queue_pre_check()
 
   fi
 
+  # If queue item pre-processing hook is not implemented, implement dummy
+  if declare -f d_link_queue_item_pre_check &>/dev/null; then
+    d_link_queue_item_pre_check() { :; }
+  fi
+
+  # If queue item post-processing hook is not implemented, implement dummy
+  if declare -f d_link_queue_item_post_check &>/dev/null; then
+    d_link_queue_item_post_check() { :; }
+  fi
+
   # Return
   return 0
 }
@@ -192,44 +202,34 @@ d__link_queue_item_check()
   # Storage variables
   local return_code_main return_code_hook
 
-  # Check if queue item pre-processing hook is implemented
-  if declare -f d_link_queue_item_pre_check &>/dev/null; then
-    
-    # Launch pre-processing hook, store return code
-    d_link_queue_item_pre_check; return_code_hook=$?
+  # Launch pre-processing hook, store return code
+  d_link_queue_item_pre_check; return_code_hook=$?
 
-    # Check if returned code is non-zero
-    if [ $return_code_hook -ne 0 ]; then
-    
-      # Anounce and re-return the non-zero code
-      dprint_debug "Pre-check hook forces return code $return_code_hook" \
-        -n "on item '$D__QUEUE_ITEM_TITLE'"
-      return $return_code_hook
-
-    fi
+  # Check if returned code is non-zero
+  if [ $return_code_hook -ne 0 ]; then
+  
+    # Anounce and re-return the non-zero code
+    dprint_debug "Pre-check hook forces return code $return_code_hook" \
+      -n "on item '$D__QUEUE_ITEM_TITLE'"
+    return $return_code_hook
 
   fi
  
   # Run item check and catch return code
   d__link_queue_item_check_subroutine; return_code_main=$?
 
-  # Check if queue item post-processing hook is implemented
-  if declare -f d_link_queue_item_post_check &>/dev/null; then
-    
-    # Launch post-processing hook, store return code
-    D__QUEUE_ITEM_RETURN_CODE=$return_code_main
-    d_link_queue_item_post_check; return_code_hook=$?
-    unset D__QUEUE_ITEM_RETURN_CODE
+  # Launch post-processing hook, store return code
+  D__QUEUE_ITEM_RETURN_CODE=$return_code_main
+  d_link_queue_item_post_check; return_code_hook=$?
+  unset D__QUEUE_ITEM_RETURN_CODE
 
-    # Check if returned code is non-zero
-    if [ $return_code_hook -ne 0 ]; then
-    
-      # Anounce and re-return the non-zero code
-      dprint_debug "Post-check hook forces return code $return_code_hook" \
-        -n "on item '$D__QUEUE_ITEM_TITLE'"
-      return $return_code_hook
-
-    fi
+  # Check if returned code is non-zero
+  if [ $return_code_hook -ne 0 ]; then
+  
+    # Anounce and re-return the non-zero code
+    dprint_debug "Post-check hook forces return code $return_code_hook" \
+      -n "on item '$D__QUEUE_ITEM_TITLE'"
+    return $return_code_hook
 
   fi
 
@@ -362,6 +362,16 @@ d__link_queue_pre_install()
 
   fi
 
+  # If queue item pre-processing hook is not implemented, implement dummy
+  if declare -f d_link_queue_item_pre_install &>/dev/null; then
+    d_link_queue_item_pre_install() { :; }
+  fi
+
+  # If queue item post-processing hook is not implemented, implement dummy
+  if declare -f d_link_queue_item_post_install &>/dev/null; then
+    d_link_queue_item_post_install() { :; }
+  fi
+
   # Return
   return 0
 }
@@ -371,44 +381,34 @@ d__link_queue_item_install()
   # Storage variables
   local return_code_main return_code_hook
 
-  # Check if queue item pre-processing hook is implemented
-  if declare -f d_link_queue_item_pre_install &>/dev/null; then
-    
-    # Launch pre-processing hook, store return code
-    d_link_queue_item_pre_install; return_code_hook=$?
+  # Launch pre-processing hook, store return code
+  d_link_queue_item_pre_install; return_code_hook=$?
 
-    # Check if returned code is non-zero
-    if [ $return_code_hook -ne 0 ]; then
-    
-      # Anounce and re-return the non-zero code
-      dprint_debug "Pre-install hook forces return code $return_code_hook" \
-        -n "on item '$D__QUEUE_ITEM_TITLE'"
-      return $return_code_hook
-
-    fi
+  # Check if returned code is non-zero
+  if [ $return_code_hook -ne 0 ]; then
+  
+    # Anounce and re-return the non-zero code
+    dprint_debug "Pre-install hook forces return code $return_code_hook" \
+      -n "on item '$D__QUEUE_ITEM_TITLE'"
+    return $return_code_hook
 
   fi
- 
+
   # Run item installation and catch return code
   d__link_queue_item_install_subroutine; return_code_main=$?
 
-  # Check if queue item post-processing hook is implemented
-  if declare -f d_link_queue_item_post_install &>/dev/null; then
-    
-    # Launch post-processing hook, store return code
-    D__QUEUE_ITEM_RETURN_CODE=$return_code_main
-    d_link_queue_item_post_install; return_code_hook=$?
-    unset D__QUEUE_ITEM_RETURN_CODE
+  # Launch post-processing hook, store return code
+  D__QUEUE_ITEM_RETURN_CODE=$return_code_main
+  d_link_queue_item_post_install; return_code_hook=$?
+  unset D__QUEUE_ITEM_RETURN_CODE
 
-    # Check if returned code is non-zero
-    if [ $return_code_hook -ne 0 ]; then
-    
-      # Anounce and re-return the non-zero code
-      dprint_debug "Post-install hook forces return code $return_code_hook" \
-        -n "on item '$D__QUEUE_ITEM_TITLE'"
-      return $return_code_hook
-
-    fi
+  # Check if returned code is non-zero
+  if [ $return_code_hook -ne 0 ]; then
+  
+    # Anounce and re-return the non-zero code
+    dprint_debug "Post-install hook forces return code $return_code_hook" \
+      -n "on item '$D__QUEUE_ITEM_TITLE'"
+    return $return_code_hook
 
   fi
 
@@ -485,6 +485,16 @@ d__link_queue_pre_remove()
 
   fi
 
+  # If queue item pre-processing hook is not implemented, implement dummy
+  if declare -f d_link_queue_item_pre_remove &>/dev/null; then
+    d_link_queue_item_pre_remove() { :; }
+  fi
+
+  # If queue item post-processing hook is not implemented, implement dummy
+  if declare -f d_link_queue_item_post_remove &>/dev/null; then
+    d_link_queue_item_post_remove() { :; }
+  fi
+
   # Return
   return 0
 }
@@ -494,44 +504,34 @@ d__link_queue_item_remove()
   # Storage variables
   local return_code_main return_code_hook
 
-  # Check if queue item pre-processing hook is implemented
-  if declare -f d_link_queue_item_pre_remove &>/dev/null; then
-    
-    # Launch pre-processing hook, store return code
-    d_link_queue_item_pre_remove; return_code_hook=$?
+  # Launch pre-processing hook, store return code
+  d_link_queue_item_pre_remove; return_code_hook=$?
 
-    # Check if returned code is non-zero
-    if [ $return_code_hook -ne 0 ]; then
-    
-      # Anounce and re-return the non-zero code
-      dprint_debug "Pre-remove hook forces return code $return_code_hook" \
-        -n "on item '$D__QUEUE_ITEM_TITLE'"
-      return $return_code_hook
-
-    fi
+  # Check if returned code is non-zero
+  if [ $return_code_hook -ne 0 ]; then
+  
+    # Anounce and re-return the non-zero code
+    dprint_debug "Pre-remove hook forces return code $return_code_hook" \
+      -n "on item '$D__QUEUE_ITEM_TITLE'"
+    return $return_code_hook
 
   fi
 
   # Run item removal and catch return code
   d__link_queue_item_remove_subroutine; return_code_main=$?
  
-  # Check if queue item post-processing hook is implemented
-  if declare -f d_link_queue_item_post_remove &>/dev/null; then
-    
-    # Launch post-processing hook, store return code
-    D__QUEUE_ITEM_RETURN_CODE=$return_code_main
-    d_link_queue_item_post_remove; return_code_hook=$?
-    unset D__QUEUE_ITEM_RETURN_CODE
+  # Launch post-processing hook, store return code
+  D__QUEUE_ITEM_RETURN_CODE=$return_code_main
+  d_link_queue_item_post_remove; return_code_hook=$?
+  unset D__QUEUE_ITEM_RETURN_CODE
 
-    # Check if returned code is non-zero
-    if [ $return_code_hook -ne 0 ]; then
-    
-      # Anounce and re-return the non-zero code
-      dprint_debug "Post-remove hook forces return code $return_code_hook" \
-        -n "on item '$D__QUEUE_ITEM_TITLE'"
-      return $return_code_hook
-
-    fi
+  # Check if returned code is non-zero
+  if [ $return_code_hook -ne 0 ]; then
+  
+    # Anounce and re-return the non-zero code
+    dprint_debug "Post-remove hook forces return code $return_code_hook" \
+      -n "on item '$D__QUEUE_ITEM_TITLE'"
+    return $return_code_hook
 
   fi
 
