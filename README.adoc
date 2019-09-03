@@ -1,9 +1,9 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revnumber: 72
+:revnumber: 73
 :revdate: 2019.09.03
-:revremark: On macOS ask for re-log instead of shell reload
+:revremark: Tweak the wording
 :doctype: article
 // Visual
 :toc:
@@ -159,6 +159,8 @@ Following OS distributions are openly supported:
 |===
 | This list is incomplete; you can help by <<contributing-os-support,expanding it>>.
 |===
++
+The framework will work on other operating systems too, but without support for automatic installation of system packages (e.g., <<divinefiles,Divinefiles>> will not work).
 
 * `bash 3.2+` and either `curl` or `wget`
 +
@@ -337,7 +339,7 @@ bash -c 'TMP=$(mktemp); URL=https://raw.github.com/no-simpler/divine-dotfiles/ma
 && ~/.divine/intervene.sh install --yes
 ----
 
-This command: installs the framework without prompts; attaches the https://github.com/no-simpler/divine-bundle-essentials[`essentials`] bundle of deployments to your Grail directory; installs the deployments.
+This command: installs the framework without prompts; attaches the https://github.com/no-simpler/divine-bundle-essentials[`essentials`] bundle of Divine deployments to your Grail directory; installs the deployments.
 
 Divine deployments *_never overwrite_* pre-existing files on your system without backing them up.
 Everything that is backed up is *_automatically restored_* upon uninstallation.
