@@ -2,9 +2,9 @@
 #:title:        Divine Bash script: intervene
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    78
+#:revnumber:    79
 #:revdate:      2019.09.03
-#:revremark:    Final polishing before 1.0.0
+#:revremark:    Expand Bash check into pre-flight checks
 #:created_at:   2018.03.25
 
 ## Launches the Divine intervention
@@ -16,8 +16,8 @@
 # Driver function
 d__main()
 {
-  # Check version of Bash
-  d__check_bash
+  # Fundamental checks and fixes
+  d__pre_flight_checks
 
   # Define constant globals
   d__populate_globals
@@ -32,20 +32,20 @@ d__main()
   d__perform_routine
 }
 
-#>  d__check_bash
+#>  d__pre_flight_checks
 #
-## Checks major version of Bash, applies fixes as necessary, or halts the 
-#. script
+## Checks major version of Bash; applies fixes as necessary; halts the script 
+#. if something smells fishy
 #
 ## Returns:
 #.  0 - All good
-#.  1 - (script exit) Unable to work with current version of Bash
+#.  1 - (script exit) Unable to work in current environment
 #
 ## Prints:
 #.  stdout: *nothing*
 #.  stderr: Error descriptions, if any
 #
-d__check_bash()
+d__pre_flight_checks()
 {
   # Retrieve and inspect major Bash version
   case ${BASH_VERSION:0:1} in
@@ -63,7 +63,10 @@ d__check_bash()
         "${BASH_VERSION}"
       exit 1
       ;;
-  esac; return 0
+  esac
+  
+  # Return zero if gotten to here
+  return 0
 }
 
 #>  d__populate_globals
