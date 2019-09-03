@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: copy-queue
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    14
+#:revnumber:    15
 #:revdate:      2019.09.03
-#:revremark:    Optimize queue item hook checks
+#:revremark:    Add negation to declare fall
 #:created_at:   2019.05.23
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -179,13 +179,13 @@ d__copy_queue_pre_check()
   fi
 
   # If queue item pre-processing hook is not implemented, implement dummy
-  if declare -f d_link_queue_item_pre_check &>/dev/null; then
-    d_link_queue_item_pre_check() { :; }
+  if ! declare -f d_copy_queue_item_pre_check &>/dev/null; then
+    d_copy_queue_item_pre_check() { :; }
   fi
 
   # If queue item post-processing hook is not implemented, implement dummy
-  if declare -f d_link_queue_item_post_check &>/dev/null; then
-    d_link_queue_item_post_check() { :; }
+  if ! declare -f d_copy_queue_item_post_check &>/dev/null; then
+    d_copy_queue_item_post_check() { :; }
   fi
 
   # Return
@@ -347,13 +347,13 @@ d__copy_queue_pre_install()
   fi
 
   # If queue item pre-processing hook is not implemented, implement dummy
-  if declare -f d_link_queue_item_pre_install &>/dev/null; then
-    d_link_queue_item_pre_install() { :; }
+  if ! declare -f d_copy_queue_item_pre_install &>/dev/null; then
+    d_copy_queue_item_pre_install() { :; }
   fi
 
   # If queue item post-processing hook is not implemented, implement dummy
-  if declare -f d_link_queue_item_post_install &>/dev/null; then
-    d_link_queue_item_post_install() { :; }
+  if ! declare -f d_copy_queue_item_post_install &>/dev/null; then
+    d_copy_queue_item_post_install() { :; }
   fi
 
   # Return
@@ -545,13 +545,13 @@ d__copy_queue_pre_remove()
   fi
 
   # If queue item pre-processing hook is not implemented, implement dummy
-  if declare -f d_link_queue_item_pre_remove &>/dev/null; then
-    d_link_queue_item_pre_remove() { :; }
+  if ! declare -f d_copy_queue_item_pre_remove &>/dev/null; then
+    d_copy_queue_item_pre_remove() { :; }
   fi
 
   # If queue item post-processing hook is not implemented, implement dummy
-  if declare -f d_link_queue_item_post_remove &>/dev/null; then
-    d_link_queue_item_post_remove() { :; }
+  if ! declare -f d_copy_queue_item_post_remove &>/dev/null; then
+    d_copy_queue_item_post_remove() { :; }
   fi
 
   # Return
