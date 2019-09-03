@@ -1,9 +1,9 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revnumber: 74
+:revnumber: 75
 :revdate: 2019.09.03
-:revremark: Update the lead paragraph
+:revremark: Remove 'we' and 'our' from the text
 :doctype: article
 // Visual
 :toc:
@@ -123,7 +123,7 @@ Use built-in OS detection mechanism to perform certain tasks on certain distribu
 
 | +++<p align="center">+++<<attach-routine,*Third-party deployments (bundles)*>>+++</p>+++
 
-Attach pre-made bundles of deployments from Github (such as our glorious https://github.com/no-simpler/divine-bundle-essentials[`essentials`] bundle).
+Attach pre-made bundles of deployments from Github (such as the glorious https://github.com/no-simpler/divine-bundle-essentials[`essentials`] bundle).
 
 | +++<p align="center">+++<<stash,*Stash*>>+++</p>+++
 
@@ -438,7 +438,7 @@ The framework itself consists of the following main parts:
 
 *The Grail directory* houses user’s deployments, assets, and persistent settings.
 
-If you settle on using _Divine.dotfiles_, we recommend taking your Grail directory under version control and syncing it, e.g., via cloud services or Github.
+If you settle on using _Divine.dotfiles_, it is recommended to take your Grail directory under version control and syncing it, e.g., via cloud services or Github.
 
 Sub-structured as follows:
 
@@ -959,7 +959,7 @@ Meaning: same as uninstall', excep:
 | It is worth noting that intended semantics of uninstallation are not direct inverse to that of installation.
 Ideally, if no installation via the framework has previously occurred, uninstallation should do nothing.
 
-This philosophy is followed by our magnificent https://github.com/no-simpler/divine-bundle-essentials[`essentials`] bundle of Divine deployments.
+This philosophy is followed by the magnificent https://github.com/no-simpler/divine-bundle-essentials[`essentials`] bundle of Divine deployments.
 |===
 
 [[deployment-metadata]]
