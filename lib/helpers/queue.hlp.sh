@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: queue
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    37
-#:revdate:      2019.09.02
-#:revremark:    Add exhaustive number of hooks to queues
+#:revnumber:    38
+#:revdate:      2019.09.03
+#:revremark:    Modify stashing pattern
 #:created_at:   2019.06.10
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -125,7 +125,7 @@ d__queue_check()
 
       # If stash key is empty, generate one
       [ -z "$D__QUEUE_ITEM_STASH_KEY" ] \
-        && D__QUEUE_ITEM_STASH_KEY="$( dmd5 -s "$D__QUEUE_ITEM_TITLE" )"
+        && D__QUEUE_ITEM_STASH_KEY="item_$( dmd5 -s "$D__QUEUE_ITEM_TITLE" )"
 
       # Validate stash key
       if ! d__stash_validate_key "$D__QUEUE_ITEM_STASH_KEY"; then

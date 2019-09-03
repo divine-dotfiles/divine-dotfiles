@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: copy-queue
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    15
+#:revnumber:    16
 #:revdate:      2019.09.03
-#:revremark:    Add negation to declare fall
+#:revremark:    Modify stashing pattern
 #:created_at:   2019.05.23
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -177,6 +177,14 @@ d__copy_queue_pre_check()
     [ $return_code_hook -ne 0 ] && return $return_code_hook
 
   fi
+
+  # Implement generic queue item pre-check, to use particular stash key
+  d_queue_item_pre_check()
+  {
+    D__QUEUE_ITEM_STASH_KEY="copy_$( \
+      dmd5 -s "${D_DPL_TARGET_PATHS[$D__QUEUE_ITEM_NUM]}" \
+    )"
+  }
 
   # If queue item pre-processing hook is not implemented, implement dummy
   if ! declare -f d_copy_queue_item_pre_check &>/dev/null; then
@@ -485,6 +493,9 @@ d__copy_queue_item_install_subroutine()
 
   # Check if copying is successful
   if [ $? -eq 0 ]; then
+
+    # Stash path to the destination
+    D__QUEUE_ITEM_STASH_VALUE="$to_path"
 
     # Return success
     return 0

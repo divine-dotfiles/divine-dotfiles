@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: link-queue
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    14
+#:revnumber:    15
 #:revdate:      2019.09.03
-#:revremark:    Add negation to declare fall
+#:revremark:    Modify stashing pattern
 #:created_at:   2019.04.02
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -182,6 +182,14 @@ d__link_queue_pre_check()
     [ $return_code_hook -ne 0 ] && return $return_code_hook
 
   fi
+
+  # Implement generic queue item pre-check, to use particular stash key
+  d_queue_item_pre_check()
+  {
+    D__QUEUE_ITEM_STASH_KEY="link_$( \
+      dmd5 -s "${D_DPL_TARGET_PATHS[$D__QUEUE_ITEM_NUM]}" \
+    )"
+  }
 
   # If queue item pre-processing hook is not implemented, implement dummy
   if ! declare -f d_link_queue_item_pre_check &>/dev/null; then
@@ -425,6 +433,9 @@ d__link_queue_item_install_subroutine()
 
   # Attempt to install
   if dln -f -- "$asset_path" "$target_path" "$backup_path"; then
+
+    # Stash path to the target
+    D__QUEUE_ITEM_STASH_VALUE="$target_path"
 
     # Return success
     return 0
