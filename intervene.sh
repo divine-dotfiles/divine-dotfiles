@@ -2,9 +2,9 @@
 #:title:        Divine Bash script: intervene
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    77
-#:revdate:      2019.09.01
-#:revremark:    Tweak fmwk version output
+#:revnumber:    78
+#:revdate:      2019.09.03
+#:revremark:    Final polishing before 1.0.0
 #:created_at:   2018.03.25
 
 ## Launches the Divine intervention
@@ -17,20 +17,7 @@
 d__main()
 {
   # Check version of Bash
-  case ${BASH_VERSION:0:1} in
-    3|4)
-      # Prevent 'write error: Interrupted system call'
-      trap '' SIGWINCH
-      ;;
-    5|6)
-      :
-      ;;
-    *)
-      printf >&2 "Divine.dotfiles: Unsupported version of Bash -- '%s'\n\n" \
-        "${BASH_VERSION}"
-      exit 1
-      ;;
-  esac
+  d__check_bash
 
   # Define constant globals
   d__populate_globals
@@ -43,6 +30,40 @@ d__main()
 
   # Perform requested routine
   d__perform_routine
+}
+
+#>  d__check_bash
+#
+## Checks major version of Bash, applies fixes as necessary, or halts the 
+#. script
+#
+## Returns:
+#.  0 - All good
+#.  1 - (script exit) Unable to work with current version of Bash
+#
+## Prints:
+#.  stdout: *nothing*
+#.  stderr: Error descriptions, if any
+#
+d__check_bash()
+{
+  # Retrieve and inspect major Bash version
+  case ${BASH_VERSION:0:1} in
+    3|4)
+      # Prevent 'write error: Interrupted system call'
+      trap '' SIGWINCH
+      ;;
+    5|6)
+      # This is fine
+      :
+      ;;
+    *)
+      # Other Bash versions are not supported (yet?)
+      printf >&2 "Divine.dotfiles: Unsupported version of Bash -- '%s'\n\n" \
+        "${BASH_VERSION}"
+      exit 1
+      ;;
+  esac; return 0
 }
 
 #>  d__populate_globals
@@ -66,7 +87,7 @@ d__populate_globals()
   readonly D__FMWK_NAME='Divine.dotfiles'
 
   # Framework's displayed version
-  readonly D__FMWK_VERSION='1.0.0-beta1'
+  readonly D__FMWK_VERSION='1.0.0'
 
   # Executable's displayed name
   readonly D__EXEC_NAME="$( basename -- "${BASH_SOURCE[0]}" )"
