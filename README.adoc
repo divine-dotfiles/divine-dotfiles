@@ -1,9 +1,9 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revnumber: 73
+:revnumber: 74
 :revdate: 2019.09.03
-:revremark: Tweak the wording
+:revremark: Update the lead paragraph
 :doctype: article
 // Visual
 :toc:
@@ -33,7 +33,7 @@ Set it up with a single `*di install --yes*`.
 | `di` stands for **d**ivine **i**ntervention.
 |===
 
-_Divine.dotfiles_ promotes Bash scripts to portable _deployments_ that are installed/removed in defined sequence.
+_Divine.dotfiles_ encourages treating Bash scripts as *deployments* — portable packages that are (un)installed via the neat command line interface.
 
 == In a nutshell
 
