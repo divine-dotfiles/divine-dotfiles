@@ -2,9 +2,9 @@
 #:title:        Divine Bash script: intervene
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    79
+#:revnumber:    80
 #:revdate:      2019.09.03
-#:revremark:    Expand Bash check into pre-flight checks
+#:revremark:    Set umask 022 in pre-flight
 #:created_at:   2018.03.25
 
 ## Launches the Divine intervention
@@ -47,6 +47,9 @@ d__main()
 #
 d__pre_flight_checks()
 {
+  # Set sane umask
+  umask g-w,o-w
+
   # Retrieve and inspect major Bash version
   case ${BASH_VERSION:0:1} in
     3|4)
