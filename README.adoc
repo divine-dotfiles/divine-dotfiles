@@ -1,7 +1,7 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revnumber: 66
+:revnumber: 67
 :revdate: 2019.09.03
 :revremark: Tweak wording
 :doctype: article
@@ -328,7 +328,7 @@ Increase amount of output
 
 First timer?
 Looking for a feel of what _Divine.dotfiles_ offers?
-Here’s a safe and fully removable way to acquaint yourself with the framework (this is all one long shell command):
+Here’s a safe and fully removable way to acquaint yourself with the framework:
 
 [source,bash]
 ----
