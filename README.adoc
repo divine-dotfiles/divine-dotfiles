@@ -1,7 +1,7 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revnumber: 70
+:revnumber: 71
 :revdate: 2019.09.03
 :revremark: Polish the wording
 :doctype: article
@@ -107,7 +107,7 @@ Special deployment that maintains a stable set of system packages across machine
 | +++<p align="center">+++<<grail-directory,*The Grail directory*>>+++</p>+++
 
 Store your deployments and assets (e.g., personal config files) in one place.
-On a new machine — plug in your Grail [.small]#_(heh)_# from a repo or a local dir with one command.
+On a new machine — <<plug-routine,plug in>> your Grail [.small]#_(heh)_# from a repo or a local dir with one command.
 
 | +++<p align="center">+++<<deployment-priority,*Priorities*>>+++</p>+++
 
