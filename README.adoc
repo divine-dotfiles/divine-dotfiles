@@ -1,9 +1,9 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revnumber: 69
+:revnumber: 70
 :revdate: 2019.09.03
-:revremark: Polish the wording and layout
+:revremark: Polish the wording
 :doctype: article
 // Visual
 :toc:
@@ -395,7 +395,7 @@ All of the above is controlled and customized from your <<grail-directory,Grail 
 [.note]
 [%noheader,cols="<.<a"]
 |===
-| Dagger *&dagger;* mark meaning: in order for the modifications in the asset directory to take effect, the deployment must be (re-)installed.
+| Dagger *&dagger;* mark meaning: in order for the modifications in that asset directory to take effect, the deployment must be (re-)installed.
 |===
 
 ==== Cleaning up
