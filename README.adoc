@@ -1,9 +1,9 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revnumber: 71
+:revnumber: 72
 :revdate: 2019.09.03
-:revremark: Polish the wording
+:revremark: On macOS ask for re-log instead of shell reload
 :doctype: article
 // Visual
 :toc:
@@ -343,6 +343,7 @@ Divine deployments *_never overwrite_* pre-existing files on your system without
 Everything that is backed up is *_automatically restored_* upon uninstallation.
 
 After all installations are successful, *reload your shell/terminal*.
+(On macOS, if the default shell has been changed, you have to re-log into the system.)
 
 ==== What it does
 
