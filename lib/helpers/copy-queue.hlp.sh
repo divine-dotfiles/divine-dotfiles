@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: copy-queue
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    12
-#:revdate:      2019.09.02
-#:revremark:    Add exhaustive number of hooks to queues
+#:revnumber:    13
+#:revdate:      2019.09.03
+#:revremark:    Compartmentalize link and copy primaries
 #:created_at:   2019.05.23
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -204,7 +204,36 @@ d__copy_queue_item_check()
     fi
 
   fi
+
+  # Run item check and catch return code
+  d__copy_queue_item_check_subroutine; return_code_main=$?
  
+  # Check if queue item post-processing hook is implemented
+  if declare -f d_copy_queue_item_post_check &>/dev/null; then
+    
+    # Launch post-processing hook, store return code
+    D__QUEUE_ITEM_RETURN_CODE=$return_code_main
+    d_copy_queue_item_post_check; return_code_hook=$?
+    unset D__QUEUE_ITEM_RETURN_CODE
+
+    # Check if returned code is non-zero
+    if [ $return_code_hook -ne 0 ]; then
+    
+      # Anounce and re-return the non-zero code
+      dprint_debug "Post-check hook forces return code $return_code_hook" \
+        -n "on item '$D__QUEUE_ITEM_TITLE'"
+      return $return_code_hook
+
+    fi
+
+  fi
+
+  # Return
+  return $return_code_main
+}
+
+d__copy_queue_item_check_subroutine()
+{
   # Storage variables
   local to_path="${D_DPL_TARGET_PATHS[$D__QUEUE_ITEM_NUM]}"
   local from_path="${D_DPL_ASSET_PATHS[$D__QUEUE_ITEM_NUM]}"
@@ -231,14 +260,14 @@ d__copy_queue_item_check()
 
     # Report and store return code
     dprint_debug "$D__QUEUE_ITEM_TITLE: $output"
-    return_code_main=3
+    return 3
 
   # Check if source filepath is not readable
   elif ! [ -r "$from_path" ]; then
 
     # Report and store return code
     dprint_debug "Unreadable source at: $from_path"
-    return_code_main=3
+    return 3
 
   else
 
@@ -248,7 +277,7 @@ d__copy_queue_item_check()
     if [ -e "$to_path" ]; then
 
       # Destination exists, so it is assumed installed
-      return_code_main=1
+      return 1
     
     else
 
@@ -265,34 +294,11 @@ d__copy_queue_item_check()
       fi
 
       # Return appropriate status
-      return_code_main=2
+      return 2
 
     fi
 
   fi
-
-  # Check if queue item post-processing hook is implemented
-  if declare -f d_copy_queue_item_post_check &>/dev/null; then
-    
-    # Launch post-processing hook, store return code
-    D__QUEUE_ITEM_RETURN_CODE=$return_code_main
-    d_copy_queue_item_post_check; return_code_hook=$?
-    unset D__QUEUE_ITEM_RETURN_CODE
-
-    # Check if returned code is non-zero
-    if [ $return_code_hook -ne 0 ]; then
-    
-      # Anounce and re-return the non-zero code
-      dprint_debug "Post-check hook forces return code $return_code_hook" \
-        -n "on item '$D__QUEUE_ITEM_TITLE'"
-      return $return_code_hook
-
-    fi
-
-  fi
-
-  # Return
-  return $return_code_main
 }
 
 d__copy_queue_post_check()

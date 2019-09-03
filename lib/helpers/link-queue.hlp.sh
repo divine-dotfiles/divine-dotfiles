@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: link-queue
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    11
-#:revdate:      2019.09.02
-#:revremark:    Add exhaustive number of hooks to queues
+#:revnumber:    12
+#:revdate:      2019.09.03
+#:revremark:    Compartmentalize link and copy primaries
 #:created_at:   2019.04.02
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -210,6 +210,35 @@ d__link_queue_item_check()
 
   fi
  
+  # Run item check and catch return code
+  d__link_queue_item_check_subroutine; return_code_main=$?
+
+  # Check if queue item post-processing hook is implemented
+  if declare -f d_link_queue_item_post_check &>/dev/null; then
+    
+    # Launch post-processing hook, store return code
+    D__QUEUE_ITEM_RETURN_CODE=$return_code_main
+    d_link_queue_item_post_check; return_code_hook=$?
+    unset D__QUEUE_ITEM_RETURN_CODE
+
+    # Check if returned code is non-zero
+    if [ $return_code_hook -ne 0 ]; then
+    
+      # Anounce and re-return the non-zero code
+      dprint_debug "Post-check hook forces return code $return_code_hook" \
+        -n "on item '$D__QUEUE_ITEM_TITLE'"
+      return $return_code_hook
+
+    fi
+
+  fi
+
+  # Return
+  return $return_code_main
+}
+
+d__link_queue_item_check_subroutine()
+{
   # Storage variables
   local target_path="${D_DPL_TARGET_PATHS[$D__QUEUE_ITEM_NUM]}"
   local asset_path="${D_DPL_ASSET_PATHS[$D__QUEUE_ITEM_NUM]}"
@@ -236,14 +265,14 @@ d__link_queue_item_check()
 
     # Report and store return code
     dprint_debug "$D__QUEUE_ITEM_TITLE: $output"
-    return_code_main=3
+    return 3
 
   # Check if replacement file/dir is not readable
   elif ! [ -r "$asset_path" ]; then
 
     # Report and store return code
     dprint_debug "Unreadable asset at: $asset_path"
-    return_code_main=3
+    return 3
 
   else
 
@@ -254,7 +283,7 @@ d__link_queue_item_check()
 
       # Replacement is installed with backup
       # dprint_debug "Backup stored at: $backup_path"
-      return_code_main=1
+      return 1
 
     else
 
@@ -262,7 +291,7 @@ d__link_queue_item_check()
       if dln -?q -- "$asset_path" "$target_path"; then
 
         # Replacement is installed without backup
-        return_code_main=1
+        return 1
 
       else
 
@@ -279,36 +308,13 @@ d__link_queue_item_check()
         fi
 
         # Return appropriate status
-        return_code_main=2
+        return 2
 
       fi
 
     fi
     
   fi
-
-  # Check if queue item post-processing hook is implemented
-  if declare -f d_link_queue_item_post_check &>/dev/null; then
-    
-    # Launch post-processing hook, store return code
-    D__QUEUE_ITEM_RETURN_CODE=$return_code_main
-    d_link_queue_item_post_check; return_code_hook=$?
-    unset D__QUEUE_ITEM_RETURN_CODE
-
-    # Check if returned code is non-zero
-    if [ $return_code_hook -ne 0 ]; then
-    
-      # Anounce and re-return the non-zero code
-      dprint_debug "Post-check hook forces return code $return_code_hook" \
-        -n "on item '$D__QUEUE_ITEM_TITLE'"
-      return $return_code_hook
-
-    fi
-
-  fi
-
-  # Return
-  return $return_code_main
 }
 
 d__link_queue_post_check()
@@ -383,26 +389,8 @@ d__link_queue_item_install()
 
   fi
  
-  # Storage variables
-  local target_path="${D_DPL_TARGET_PATHS[$D__QUEUE_ITEM_NUM]}"
-  local asset_path="${D_DPL_ASSET_PATHS[$D__QUEUE_ITEM_NUM]}"
-  local backup_path="$D__DPL_BACKUP_DIR/$D__QUEUE_ITEM_STASH_KEY"
-
-  # Attempt to install
-  if dln -f -- "$asset_path" "$target_path" "$backup_path"; then
-
-    # Return success
-    return_code_main=0
-
-  else
-
-    # Report and return
-    dprint_debug 'Error on creating symlink' \
-      -n "from: $target_path" -n "to: $asset_path" \
-      -n 'and backing up to:' -i "$backup_path"
-    return_code_main=1
-
-  fi
+  # Run item installation and catch return code
+  d__link_queue_item_install_subroutine; return_code_main=$?
 
   # Check if queue item post-processing hook is implemented
   if declare -f d_link_queue_item_post_install &>/dev/null; then
@@ -426,6 +414,30 @@ d__link_queue_item_install()
 
   # Return
   return $return_code_main
+}
+
+d__link_queue_item_install_subroutine()
+{
+  # Storage variables
+  local target_path="${D_DPL_TARGET_PATHS[$D__QUEUE_ITEM_NUM]}"
+  local asset_path="${D_DPL_ASSET_PATHS[$D__QUEUE_ITEM_NUM]}"
+  local backup_path="$D__DPL_BACKUP_DIR/$D__QUEUE_ITEM_STASH_KEY"
+
+  # Attempt to install
+  if dln -f -- "$asset_path" "$target_path" "$backup_path"; then
+
+    # Return success
+    return 0
+
+  else
+
+    # Report and return
+    dprint_debug 'Error on creating symlink' \
+      -n "from: $target_path" -n "to: $asset_path" \
+      -n 'and backing up to:' -i "$backup_path"
+    return 1
+
+  fi
 }
 
 d__link_queue_post_install()
@@ -499,7 +511,36 @@ d__link_queue_item_remove()
     fi
 
   fi
+
+  # Run item removal and catch return code
+  d__link_queue_item_remove_subroutine; return_code_main=$?
  
+  # Check if queue item post-processing hook is implemented
+  if declare -f d_link_queue_item_post_remove &>/dev/null; then
+    
+    # Launch post-processing hook, store return code
+    D__QUEUE_ITEM_RETURN_CODE=$return_code_main
+    d_link_queue_item_post_remove; return_code_hook=$?
+    unset D__QUEUE_ITEM_RETURN_CODE
+
+    # Check if returned code is non-zero
+    if [ $return_code_hook -ne 0 ]; then
+    
+      # Anounce and re-return the non-zero code
+      dprint_debug "Post-remove hook forces return code $return_code_hook" \
+        -n "on item '$D__QUEUE_ITEM_TITLE'"
+      return $return_code_hook
+
+    fi
+
+  fi
+
+  # Return
+  return $return_code_main
+}
+
+d__link_queue_item_remove_subroutine()
+{
   # Storage variables
   local target_path="${D_DPL_TARGET_PATHS[$D__QUEUE_ITEM_NUM]}"
   local asset_path="${D_DPL_ASSET_PATHS[$D__QUEUE_ITEM_NUM]}"
@@ -595,29 +636,6 @@ d__link_queue_item_remove()
     fi
 
   fi
-
-  # Check if queue item post-processing hook is implemented
-  if declare -f d_link_queue_item_post_remove &>/dev/null; then
-    
-    # Launch post-processing hook, store return code
-    D__QUEUE_ITEM_RETURN_CODE=$return_code_main
-    d_link_queue_item_post_remove; return_code_hook=$?
-    unset D__QUEUE_ITEM_RETURN_CODE
-
-    # Check if returned code is non-zero
-    if [ $return_code_hook -ne 0 ]; then
-    
-      # Anounce and re-return the non-zero code
-      dprint_debug "Post-remove hook forces return code $return_code_hook" \
-        -n "on item '$D__QUEUE_ITEM_TITLE'"
-      return $return_code_hook
-
-    fi
-
-  fi
-
-  # Return
-  return $return_code_main
 }
 
 d__link_queue_post_remove()
