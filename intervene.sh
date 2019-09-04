@@ -2,9 +2,9 @@
 #:title:        Divine Bash script: intervene
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    80
-#:revdate:      2019.09.03
-#:revremark:    Set umask 022 in pre-flight
+#:revnumber:    81
+#:revdate:      2019.09.04
+#:revremark:    Add internal dependency on gh-fetcher
 #:created_at:   2018.03.25
 
 ## Launches the Divine intervention
@@ -160,6 +160,7 @@ d__populate_globals()
     'procedure sys-pkg-checks' \
     'util dtrim' \
     'util dreadlink' \
+    'helper gh-fetcher' \
     'util dmv' \
     'util dln' \
     'helper queue' \
