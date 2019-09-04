@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: gh-fetcher
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    7
+#:revnumber:    8
 #:revdate:      2019.09.04
-#:revremark:    Set stash record when pulling from deployments
+#:revremark:    Add one debug msg when repo is already cloned
 #:created_at:   2019.09.04
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -149,6 +149,17 @@ d__ensure_gh_repo()
     # Check if destination is a repository properly cloned from given source
     if [ "$( git remote get-url origin 2>/dev/null )" = "${repo_url}.git" ]
     then
+
+      # Fire debug message
+      if ! $pull_only; then
+        if [ -n "$name" ]; then
+          dprint_debug "Detected that $name from:" \
+            -i "$repo_url" -n 'is already cloned into:' -i "$perm_dest"
+        else
+          dprint_debug "Detected that a Github repository from:" \
+            -i "$repo_url" -n 'is already cloned into:' -i "$perm_dest"
+        fi
+      fi
 
       # Pull from remote, minding the global verbosity setting
       if $D__OPT_QUIET; then
