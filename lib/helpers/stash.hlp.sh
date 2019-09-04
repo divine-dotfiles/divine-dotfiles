@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: stash
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    7
-#:revdate:      2019.08.16
-#:revremark:    Fix d__stash_set description
+#:revnumber:    8
+#:revdate:      2019.09.04
+#:revremark:    Stub new stash subcommand, list-keys
 #:created_at:   2019.05.15
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -44,6 +44,7 @@
 #.  get KEY           - Print first value of KEY to stdout
 #.  list KEY          - Print each value of KEY on a line to stdout
 #.  unset KEY [VALUE] - Remove KEY from stash where set to VALUE, or completely
+#.  list-keys         - Print each KEY on a line to stdout
 #.  clear             - Clear stash entirely
 #
 ## Returns:
@@ -104,6 +105,8 @@ dstash()
     get)    d__stash_get "$@";;
     list)   d__stash_list "$@";;
     unset)  d__stash_unset "$@";;
+    list-keys)
+            d__stash_list_keys "$@";;
     clear)  >"$D__STASH_FILEPATH" && return 0 || return 1;;
     *)      dprint_debug 'dstash called with illegal task:' -i "$1"; return 1;;
   esac
@@ -347,6 +350,20 @@ d__stash_unset()
 
   # Update stash file checksum and return zero regardless
   d__stash_store_md5; return 0
+}
+
+#>  d__stash_list_keys
+#
+## Prints each KEY currently in the stash to its own line in stdout. If there 
+#. are no keys, prints nothing and returns non-zero. Arguments are ignored.
+#
+## Returns:
+#.  0 - Task performed successfully
+#.  1 - Zero keys in the stash, or failed to unset key
+#
+d__stash_list_keys()
+{
+  :
 }
 
 #>  d__stash_pre_flight_checks [-r|-g]
