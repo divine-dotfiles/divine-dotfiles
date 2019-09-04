@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: gh-fetcher
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    6
+#:revnumber:    7
 #:revdate:      2019.09.04
-#:revremark:    Switch around d__get_gh_repo and d__ensure_gh_repo
+#:revremark:    Set stash record when pulling from deployments
 #:created_at:   2019.09.04
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -364,6 +364,9 @@ d__ensure_gh_repo()
 
       # Move destination to backup location
       if mv -n -- "$perm_dest" "$backup_path" &>/dev/null; then
+
+        # Set stash record
+        dstash -s "$stash_key" "$stash_val"
 
         # Fire debug message
         dprint_debug 'Moved existing path at:' -i "$perm_dest" \
