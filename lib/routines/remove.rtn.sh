@@ -2,9 +2,9 @@
 #:title:        Divine Bash routine: remove
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    48
-#:revdate:      2019.08.22
-#:revremark:    Fix dprint_debug breaking code catching
+#:revnumber:    49
+#:revdate:      2019.09.04
+#:revremark:    Transfer check code to un(installation) in D__DPL_CHECK_CODE
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -526,6 +526,12 @@ d__remove_dpls()
         # Print descriptive introduction if haven't already
         $intro_printed || dprint_ode "${D__ODE_NAME[@]}" -c "$YELLOW" -- \
             '>>>' 'Removing' ':' "$task_desc" "$task_name"
+
+        # Expose additional variables to deployment
+        readonly D__DPL_CHECK_CODE="$dpl_status"
+        readonly D_DPL_INSTALLED_BY_USER_OR_OS
+        readonly D_DPL_NEEDS_ANOTHER_PROMPT
+        readonly D_DPL_NEEDS_ANOTHER_WARNING
 
         # Get return code of d_dpl_remove, or fall back to zero
         if declare -f d_dpl_remove &>/dev/null; then
