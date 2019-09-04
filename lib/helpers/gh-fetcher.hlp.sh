@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: gh-fetcher
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    8
+#:revnumber:    9
 #:revdate:      2019.09.04
-#:revremark:    Add one debug msg when repo is already cloned
+#:revremark:    Expand debug message when updating cloned repo
 #:created_at:   2019.09.04
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -151,13 +151,23 @@ d__ensure_gh_repo()
     then
 
       # Fire debug message
-      if ! $pull_only; then
+      if $pull_only; then
+        if [ -n "$name" ]; then
+          dprint_debug "Pulling updates for $name from a Github repository:" \
+            -i "$repo_url" -n 'into:' -i "$perm_dest"
+        else
+          dprint_debug "Pulling updates from a Github repository:" \
+            -i "$repo_url" -n 'into:' -i "$perm_dest"
+        fi
+      else
         if [ -n "$name" ]; then
           dprint_debug "Detected that $name from:" \
-            -i "$repo_url" -n 'is already cloned into:' -i "$perm_dest"
+            -i "$repo_url" -n 'is already cloned into:' -i "$perm_dest" \
+            -n 'Proceeding to pull updates from remote'
         else
           dprint_debug "Detected that a Github repository from:" \
-            -i "$repo_url" -n 'is already cloned into:' -i "$perm_dest"
+            -i "$repo_url" -n 'is already cloned into:' -i "$perm_dest" \
+            -n 'Proceeding to pull updates from remote'
         fi
       fi
 
