@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: gh-fetcher
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    2
+#:revnumber:    3
 #:revdate:      2019.09.04
-#:revremark:    Implement d__get_gh_repo
+#:revremark:    Add check for empty destination; silence dreadlink
 #:created_at:   2019.09.04
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -93,8 +93,26 @@ d__get_gh_repo()
 
   fi
 
+  # Check if given path is empty
+  if [ -z "$perm_dest" ]; then
+
+    # Unacceptable: assemble failure report
+    local failure_report=()
+    if [ -n "$name" ]; then
+      failure_report+=( "Refusing to retrieve $name from:" )
+    else
+      failure_report+=( 'Refusing to retrieve a Github repository from:' )
+    fi
+    failure_report+=( -i "$repo_url" -n 'because no destination is provided' )
+
+    # Report and return failure
+    dprint_failure "${failure_report[@]}"
+    return 1
+
+  fi
+
   # Canonicalize destination path
-  perm_dest="$( dreadlink -qm -- "$perm_dest" )"
+  perm_dest="$( dreadlink -qm -- "$perm_dest" 2>/dev/null )"
 
   # Internal flag for whether a directory was created
   local perm_dest_created=false
