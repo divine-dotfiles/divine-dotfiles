@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: gh-fetcher
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    4
+#:revnumber:    5
 #:revdate:      2019.09.04
-#:revremark:    Implement d__ensure_gh_repo; polish d__get_gh_repo
+#:revremark:    Ensure parent directory for destination is created
 #:created_at:   2019.09.04
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -714,6 +714,28 @@ d__ensure_gh_repo()
 
   fi
 
+  # Ensure parent dir at least exists
+  if ! mkdir -p -- "$( dirname -- "$perm_dest" )" &>/dev/null; then
+
+    # Failed to make directory: assemble failure report
+    local failure_report=()
+    if [ -n "$name" ]; then
+      failure_report+=( "Failed to retrieve $name from:" )
+    else
+      failure_report+=( 'Failed to retrieve a Github repository from:' )
+    fi
+    failure_report+=( -i "$repo_url" -n 'into:' -i "$perm_dest" )
+    failure_report+=( \
+      -n "due to error during creation of destination's parent directory" \
+    )
+
+    # Attempt to remove temp dir; report and return failure
+    rm -rf -- "$temp_dest"
+    dprint_failure "${failure_report[@]}"
+    return 1
+
+  fi
+
   # Determine if called within a deployment by checking dpl stash readiness
   if dstash ready 2>/dev/null; then
 
@@ -808,9 +830,9 @@ d__ensure_gh_repo()
       # Failed to move into place: assemble failure report
       local failure_report=()
       if [ -n "$name" ]; then
-        failure_report+=( "Failed to move temporary copy of $name at:" )
+        failure_report+=( "Failed to move temporary copy of $name from:" )
       else
-        failure_report+=( 'Failed to move temporary copy at:' )
+        failure_report+=( 'Failed to move temporary copy from:' )
       fi
       failure_report+=( \
         -i "$temp_dest" \
@@ -914,9 +936,9 @@ d__ensure_gh_repo()
         local failure_report=()
         failure_report+=( "Failed to overwrite root dile/dir: $rel_path" )
         if [ -n "$name" ]; then
-          failure_report+=( "while moving temporary copy of $name at:" )
+          failure_report+=( "while moving temporary copy of $name from:" )
         else
-          failure_report+=( 'while moving temporary copy at:' )
+          failure_report+=( 'while moving temporary copy from:' )
         fi
         failure_report+=( \
           -i "$temp_dest" \
@@ -941,9 +963,9 @@ d__ensure_gh_repo()
       local failure_report=()
       failure_report+=( "Failed to move root dile/dir: $rel_path" )
       if [ -n "$name" ]; then
-        failure_report+=( "while moving temporary copy of $name at:" )
+        failure_report+=( "while moving temporary copy of $name from:" )
       else
-        failure_report+=( 'while moving temporary copy at:' )
+        failure_report+=( 'while moving temporary copy from:' )
       fi
       failure_report+=( \
         -i "$temp_dest" \
