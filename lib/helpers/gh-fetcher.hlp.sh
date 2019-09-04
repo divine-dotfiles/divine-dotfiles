@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: gh-fetcher
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    9
+#:revnumber:    10
 #:revdate:      2019.09.04
-#:revremark:    Expand debug message when updating cloned repo
+#:revremark:    Compartmentalize re-used code; start on primaries
 #:created_at:   2019.09.04
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -13,7 +13,7 @@
 #. directories.
 #
 
-#>  d__ensure_gh_repo [-p] [-n NAME] [--] SRC DEST
+#>  d__ensure_gh_repo [-upP] [-n NAME] [--] SRC DEST
 #
 ## Ensures directory at DEST contains the most recent revision of files from 
 #. the Github repository at SRC.
@@ -53,8 +53,14 @@
 #.  -n NAME, --name NAME  - Use NAME in human-readable output to reference the 
 #.                          content of the repository. Otherwise, messages are 
 #.                          more generic.
-#.  -p, --pull-only       - Restrict the function to pulling from remotes in 
-#.                          already properly cloned repositories.
+#
+## Mode (one active at a time, last option wins):
+#.  -u, --unrestrict      - (default) Try to pull updates from remote, then, if 
+#.                          unsuccessful, try cloning/downloading.
+#.  -p, --pull-only       - Only pull from remotes in already properly cloned 
+#.                          repositories; don't clone or download anything.
+#.  -P, --no-pull         - Do not try to pull from remotes, insted go directly 
+#.                          to cloning/downloading.
 #
 ## Returns:
 #.  0 - SRC is a git repository, and it is now cloned/downloaded to DEST
@@ -68,17 +74,21 @@ d__ensure_gh_repo()
 {
   # Parse options
   local args=() opts opt i
-  local name pull_only=false
+  local name restricted
   while (($#)); do
     case $1 in
-      --)             shift; args+=("$@"); break;;
-      -p|--pull-only) pull_only=true;;
-      -n|--name)      shift; (($#)) && name="$1" || break;;
+      --)               shift; args+=("$@"); break;;
+      -p|--pull-only)   restricted=pull_only;;
+      -P|--no-pull)     restricted=no_pull;;
+      -u|--unrestrict)  restricted=;;
+      -n|--name)        shift; (($#)) && name="$1" || break;;
       -*)   opts="$1"; shift
             for (( i=1; i<${#opts}; ++i )); do
               opt="${opts:i:1}"
               case $opt in
-                p)  pull_only=true;;
+                p)  restricted=pull_only;;
+                P)  restricted=no_pull;;
+                u)  restricted=;;
                 n)  if (($#)); then name="$1"; shift; else
                       dprint_debug "${FUNCNAME}: Ignoring option '$opt'" \
                         'without its required argument'
@@ -99,170 +109,21 @@ d__ensure_gh_repo()
   local user_repo="$1"; shift
   local perm_dest="$1"; shift
 
-  # Check if username/repository is valid
-  if [[ $user_repo =~ ^[0-9A-Za-z_.-]+/[0-9A-Za-z_.-]+$ ]]; then
-
-    # Compose full repo url
-    local repo_url="https://github.com/$user_repo"
-
-  else
-
-    # Refuse to work with the argument
-    local failure_report=()
-    if [ -n "$name" ]; then
-      failure_report+=( "Refusing to access a Github repository for $name" )
-    else
-      failure_report+=( 'Refusing to access a Github repository' )
-    fi
-    failure_report+=( -n "due to invalid repository handle: '$user_repo'" )
-
-    # Report and return failure
-    dprint_failure "${failure_report[@]}"
-    return 1
-
-  fi
-
-  # Check if given destination path is empty
-  if [ -z "$perm_dest" ]; then
-
-    # Unacceptable: assemble failure report
-    local failure_report=()
-    if [ -n "$name" ]; then
-      failure_report+=( "Refusing to access a Github repository for $name at:" )
-    else
-      failure_report+=( 'Refusing to access a Github repository at:' )
-    fi
-    failure_report+=( -i "$repo_url" -n 'because no destination is given' )
-
-    # Report and return failure
-    dprint_failure "${failure_report[@]}"
-    return 1
-
-  fi
+  # Compose repo url from username/repository
+  local repo_url
+  d__validate_user_repo_and_compose_url || return 1
 
   # Canonicalize destination path
-  perm_dest="$( dreadlink -qm -- "$perm_dest" 2>/dev/null )"
+  d__check_and_canonicalize_dest_path || return 1
 
-  # Check if destination can be changed into
-  if cd -- "$perm_dest" &>/dev/null; then
-
-    # Check if destination is a repository properly cloned from given source
-    if [ "$( git remote get-url origin 2>/dev/null )" = "${repo_url}.git" ]
-    then
-
-      # Fire debug message
-      if $pull_only; then
-        if [ -n "$name" ]; then
-          dprint_debug "Pulling updates for $name from a Github repository:" \
-            -i "$repo_url" -n 'into:' -i "$perm_dest"
-        else
-          dprint_debug "Pulling updates from a Github repository:" \
-            -i "$repo_url" -n 'into:' -i "$perm_dest"
-        fi
-      else
-        if [ -n "$name" ]; then
-          dprint_debug "Detected that $name from:" \
-            -i "$repo_url" -n 'is already cloned into:' -i "$perm_dest" \
-            -n 'Proceeding to pull updates from remote'
-        else
-          dprint_debug "Detected that a Github repository from:" \
-            -i "$repo_url" -n 'is already cloned into:' -i "$perm_dest" \
-            -n 'Proceeding to pull updates from remote'
-        fi
-      fi
-
-      # Pull from remote, minding the global verbosity setting
-      if $D__OPT_QUIET; then
-
-        # Pull and rebase quietly
-        git pull --rebase --stat origin master &>/dev/null
-
-      else
-
-        # Pull and rebase normally, but re-paint output
-        local line
-        git pull --rebase --stat origin master 2>&1 \
-          | while IFS= read -r line || [ -n "$line" ]; do
-          printf "${CYAN}==> %s${NORMAL}\n" "$line"
-        done
-
-      fi
-
-      # Check return status
-      if [ "${PIPESTATUS[0]}" -eq 0 ]; then
-
-        # Assemble success report
-        local success_report=()
-        if [ -n "$name" ]; then
-          success_report+=( "Successfully updated $name at:" )
-        else
-          success_report+=( 'Successfully updated the local copy at:' )
-        fi
-        success_report+=( \
-          -i "$perm_dest" \
-          -n 'from the remote Github repository:' \
-          -i "$repo_url" \
-        )
-
-        # Report and return success
-        dprint_debug "${success_report[@]}"
-        return 0
-
-      else
-
-        # Failed to update
-
-        # Check if restricted to updating
-        if $pull_only; then
-
-          # Unacceptable: assemble failure report
-          local failure_report=()
-          if [ -n "$name" ]; then
-            failure_report+=( "Failed to update $name at:" )
-          else
-            failure_report+=( 'Failed to update the local copy at:' )
-          fi
-          failure_report+=( \
-            -i "$perm_dest" \
-            -n 'from the remote Github repository:' \
-            -i "$repo_url" \
-          )
-
-          # Report and return failure
-          dprint_failure "${failure_report[@]}"
-          return 1
-
-        fi
-
-      fi
-
-    # Done with checking if destination is a properly cloned repository
-    fi
-
-  # Done with checking if destination can be changed into
-  fi
-
-  # Check if restricted to updating
-  if $pull_only; then
-
-    # Go no further: assemble failure report
-    local failure_report=()
-    if [ -n "$name" ]; then
-      failure_report+=( "Unable to update $name at:" )
-    else
-      failure_report+=( 'Unable to update the local directory at:' )
-    fi
-    failure_report+=( \
-      -i "$perm_dest" \
-      -n 'because it is not a clone of the expected Github repository:' \
-      -i "$repo_url" \
-    )
-
-    # Report and return failure
-    dprint_failure "${failure_report[@]}"
-    return 1
-
-  fi
+  # Check if restricted in some way
+  case $restricted in
+    no_pull) :;;
+    *)  d__pull_updates_from_remote; case $? in 
+          0) return 0;; 1) return 1;; *) :;;
+        esac
+        ;;
+  esac
 
   # Determine if called within a deployment by checking dpl stash readiness
   local in_dpl=false
@@ -307,6 +168,7 @@ d__ensure_gh_repo()
   local temp_dest="$( mktemp -d )"
 
   # Attempt to clone/download the remote repository
+  local repo_is_cloned=
   if ! d__get_gh_repo -qln "$name" -- "$user_repo" "$temp_dest"; then
 
     # Unable to get the repo: print additional failure notice
@@ -386,8 +248,13 @@ d__ensure_gh_repo()
       # Move destination to backup location
       if mv -n -- "$perm_dest" "$backup_path" &>/dev/null; then
 
-        # Set stash record
-        dstash -s "$stash_key" "$stash_val"
+        # Set stash records
+        dstash -s set "$stash_key" "$stash_val"
+        if $repo_is_cloned; then
+          dstash -s set "status_$stash_key" 'cloned'
+        else
+          dstash -s set "status_$stash_key" 'downloaded'
+        fi
 
         # Fire debug message
         dprint_debug 'Moved existing path at:' -i "$perm_dest" \
@@ -422,12 +289,13 @@ d__ensure_gh_repo()
     if mv -n -- "$temp_dest" "$perm_dest" &>/dev/null; then
 
       # And that's it folks
+      local verb; $repo_is_cloned && verb=cloned || verb=downloaded
       if [ -n "$name" ]; then
-        dprint_debug "Successfully cloned/downloaded $name from:" \
+        dprint_debug "Successfully $verb $name from:" \
           -i "$repo_url" -n 'into:' -i "$perm_dest"
       else
         dprint_debug \
-          "Successfully cloned/downloaded a Github repository from:" \
+          "Successfully $verb a Github repository from:" \
           -i "$repo_url" -n 'into:' -i "$perm_dest"
       fi
       return 0
@@ -593,11 +461,12 @@ d__ensure_gh_repo()
     \( -type f -or -type d \) -print0 )
 
   # And that's all she wrote
+  local verb; $repo_is_cloned && verb=cloned || verb=downloaded
   if [ -n "$name" ]; then
-    dprint_debug "Successfully cloned/downloaded $name from:" \
+    dprint_debug "Successfully $verb $name from:" \
       -i "$repo_url" -n 'into:' -i "$perm_dest"
   else
-    dprint_debug "Successfully cloned/downloaded a Github repository from:" \
+    dprint_debug "Successfully $verb a Github repository from:" \
       -i "$repo_url" -n 'into:' -i "$perm_dest"
   fi
   return 0
@@ -679,49 +548,11 @@ d__get_gh_repo()
 
     # Non lenient: perform extensive argument checks
 
-    # Check if username/repository is valid
-    if [[ $user_repo =~ ^[0-9A-Za-z_.-]+/[0-9A-Za-z_.-]+$ ]]; then
-
-      # Compose full repo url
-      local repo_url="https://github.com/$user_repo"
-
-    else
-
-      # Refuse to work with the argument
-      local failure_report=()
-      if [ -n "$name" ]; then
-        failure_report+=( "Refusing to retrieve $name" )
-      else
-        failure_report+=( 'Refusing to retrieve a Github repository' )
-      fi
-      failure_report+=( -n "due to invalid repository handle: $user_repo'" )
-
-      # Report and return failure
-      dprint_failure "${failure_report[@]}"
-      return 1
-
-    fi
-
-    # Check if given destination path is empty
-    if [ -z "$perm_dest" ]; then
-
-      # Unacceptable: assemble failure report
-      local failure_report=()
-      if [ -n "$name" ]; then
-        failure_report+=( "Refusing to retrieve $name from:" )
-      else
-        failure_report+=( 'Refusing to retrieve a Github repository from:' )
-      fi
-      failure_report+=( -i "$repo_url" -n 'because no destination is given' )
-
-      # Report and return failure
-      dprint_failure "${failure_report[@]}"
-      return 1
-
-    fi
+    # Compose repo url from username/repository
+    local repo_url; d__validate_user_repo_and_compose_url || return 1
 
     # Canonicalize destination path
-    perm_dest="$( dreadlink -qm -- "$perm_dest" 2>/dev/null )"
+    d__check_and_canonicalize_dest_path || return 1
 
     # Check if destination exists as anything but an empty directory
     if [ -e "$perm_dest" ] \
@@ -797,6 +628,9 @@ d__get_gh_repo()
     fi
   fi
 
+  # Internal marker for type of installation
+  local repo_is_cloned_int
+
   # First, attempt to check existense of repository using git
   if git --version &>/dev/null; then
 
@@ -813,6 +647,7 @@ d__get_gh_repo()
       then
 
         # Announce success
+        repo_is_cloned_int=true
         dprint_debug 'Cloned Github repository from:' -i "$repo_url" \
           -n 'into:' -i "$perm_dest"
 
@@ -906,6 +741,7 @@ d__get_gh_repo()
       if [ $? -eq 0 ]; then
 
         # Announce success
+        repo_is_cloned_int=false
         dprint_debug 'Downloaded and untarred a Github repository from:' \
           -i "https://api.github.com/repos/${user_repo}/tarball" \
           -n 'into:' -i "$perm_dest" -n 'using curl and tar'
@@ -951,6 +787,7 @@ d__get_gh_repo()
       if [ $? -eq 0 ]; then
 
         # Announce success
+        repo_is_cloned_int=false
         dprint_debug 'Downloaded and untarred a Github repository from:' \
           -i "https://api.github.com/repos/${user_repo}/tarball" \
           -n 'into:' -i "$perm_dest" -n 'using wget and tar'
@@ -1007,15 +844,439 @@ d__get_gh_repo()
   
   fi
 
+  # If set, modigy outer marker
+  if ! [ -z ${repo_is_cloned+isset} ]; then
+    repo_is_cloned="$repo_is_cloned_int"
+  fi
+
   # If gotten here, all is good
   if ! $quiet; then
+    local verb; $repo_is_cloned_int && verb=cloned || verb=downloaded
     if [ -n "$name" ]; then
-      dprint_debug "Successfully cloned/downloaded $name from:" \
+      dprint_debug "Successfully $verb $name from:" \
         -i "$repo_url" -n 'into:' -i "$perm_dest"
     else
-      dprint_debug "Successfully cloned/downloaded a Github repository from:" \
+      dprint_debug "Successfully $verb a Github repository from:" \
         -i "$repo_url" -n 'into:' -i "$perm_dest"
     fi
   fi
   return 0
+}
+
+#>  d__gh_clone_check SRC DEST
+#
+## Implemented check primary that detects whether the Github repository at SRC 
+#. appears to be cloned/downloaded into the DEST, and how does that correspond 
+#. to current records in stash
+#
+d__gh_clone_check()
+{
+  # Rely on stashing
+  dstash ready || return 3
+
+  # Extract user_repo and destination
+  local user_repo="$1"; shift
+  local perm_dest="$1"; shift
+
+  # Compose stashing data
+  local stash_key="gh_$( dmd5 -s "${user_repo}___${perm_dest}" )"
+  local stash_val="$perm_dest"
+  local backup_path="$D__DPL_BACKUP_DIR/$stash_key"
+
+  # Check if stash has a record
+  if dstash -s has "$stash_key"; then
+
+    ## Stash record exists and almost certainly with the right value (chance of 
+    #. md5 checksum collision is negligible)
+    #
+
+    # Check if repo has been recorded as cloned or downloaded
+    if [ "$( dstash -s get "status_$stash_key" )" = 'cloned' ]; then
+
+      # Check if a cloned repository resides at the given path
+      if d__check_if_dest_is_proper_clone; then
+
+        # Recorded as clone, and destination is a proper clone: installed
+        return 1
+
+      else
+
+        # Recorded as clone, but destination is not a proper clone
+
+        # Print output based on current state of destination
+        if [ -d "$perm_dest" ]; then
+          dprint_alert \
+            "Despite record of cloning Github repository $user_repo" \
+            -n "into: $perm_dest" \
+            -n 'that directory is currently not the clone'        
+        else
+          dprint_alert \
+            "Despite record of cloning Github repository $user_repo" \
+            -n "into: $perm_dest" \
+            -n 'that path is currently not a directory'        
+        fi
+
+      fi
+    
+    else
+
+      # Repository is recorded as downloaded
+
+      # Check if destination is a non-empty dir
+      if [ -d "$perm_dest" ]; then
+
+        if [ -n "$( ls -A -- "$perm_dest" 2>/dev/null )" ]; then
+
+          # Recorded as downloaded, but there is no way to tell
+          dprint_alert \
+            "Github repository $user_repo is recorded as downloaded" \
+            -n "into: $perm_dest" \
+            -n 'but there is no way to confirm it'
+          D_DPL_NEEDS_ANOTHER_PROMPT=true
+          return 1
+
+        else
+
+          # Recorded as downloaded, but directory is empty
+          dprint_alert \
+            "Despite record of downloading Github repository $user_repo" \
+            -n "into: $perm_dest" \
+            -n 'that directory is currently empty'
+
+        fi
+
+      else
+
+        # Recorded as downloaded, but not a directory
+        dprint_alert \
+          "Despite record of downloading Github repository $user_repo" \
+          -n "into: $perm_dest" \
+          -n 'that path is currently not a directory'
+
+      fi
+
+    fi
+
+    # At this point, something is not right
+
+    # Check if forcing
+    if $D__OPT_FORCE; then
+
+      # In force mode, allow this with another prompt
+      D_DPL_NEEDS_ANOTHER_PROMPT=true
+      return 0
+
+    else
+
+      # In normal mode, inform of force option and mark irrelevant
+      case $D__REQ_ROUTINE in
+        check)    return 0;;
+        install)  dprint_alert 'Retry with --force option to install anyway';;
+        remove)   dprint_alert 'Retry with --force option to remove anyway';;
+      esac
+      return 3
+
+    fi
+
+  else
+
+    # No stash record
+
+    # Check if a cloned repository resides at the given path
+    if d__check_if_dest_is_proper_clone; then
+
+      # No record, but destination is a proper clone: installed by user or OS
+      dprint_debug "No record of cloning Github repository $user_repo" \
+        -n "into: $perm_dest" \
+        -n 'but the directory is nevertheless a clone of that repository'
+      D_DPL_INSTALLED_BY_USER_OR_OS=true
+      return 1
+
+    else
+
+      # No record, and destination is not a proper clone
+
+      # Print output based on current state of destination
+      if [ -e "$perm_dest" ]; then
+        if [ -d "$perm_dest"]; then
+          dprint_alert "Cloning Github repository $user_repo" \
+            -n "into: $perm_dest" \
+            -n 'will overwrite the existing directory (it will be backed up)'
+        else
+          dprint_alert "Cloning Github repository $user_repo" \
+            -n "into: $perm_dest" \
+            -n 'will overwrite the existing file (it will be backed up)'
+        fi
+      fi
+
+      D_DPL_NEEDS_ANOTHER_PROMPT=true
+      return 2
+
+    fi
+
+  fi
+}
+
+#>  d__gh_clone_install SRC DEST
+#
+## Implemented install primary that entirely delegates to the helper
+#
+d__gh_clone_install() { d__ensure_gh_repo "$1" "$2"; }
+
+#>  d__gh_clone_remove SRC DEST
+#
+## Implemented remove primary that entirely delegates to the helper
+#
+d__gh_clone_remove()
+{
+  # Extract user_repo and destination
+  local user_repo="$1"; shift
+  local perm_dest="$1"; shift
+
+  # Compose stashing data
+  local stash_key="gh_$( dmd5 -s "${user_repo}___${perm_dest}" )"
+  local stash_val="$perm_dest"
+  local backup_path="$D__DPL_BACKUP_DIR/$stash_key"
+
+  # Check if stash has a record
+  if dstash -s has "$stash_key"; then
+    
+    :
+
+  else
+
+    :
+
+  fi
+}
+
+#>  d__validate_user_repo_and_compose_url
+#
+## INTERNAL USE ONLY
+#
+## IN:
+#.  > $user_repo
+#.  > $name
+#
+## OUT:
+#.  < $repo_url
+#.  < 1
+#
+d__validate_user_repo_and_compose_url()
+{
+  if [[ $user_repo =~ ^[0-9A-Za-z_.-]+/[0-9A-Za-z_.-]+$ ]]; then
+
+    # Compose full repo url
+    repo_url="https://github.com/$user_repo"
+
+  else
+
+    # Refuse to work with the argument
+    local failure_report=()
+    if [ -n "$name" ]; then
+      failure_report+=( "Refusing to retrieve $name" )
+    else
+      failure_report+=( 'Refusing to retrieve a Github repository' )
+    fi
+    failure_report+=( -n "due to invalid repository handle: $user_repo'" )
+
+    # Report and return failure
+    dprint_failure "${failure_report[@]}"
+    return 1
+
+  fi
+}
+
+#>  d__check_and_canonicalize_dest_path
+#
+## INTERNAL USE ONLY
+#
+## IN:
+#.  > $perm_dest
+#.  > $repo_url
+#.  > $name
+#
+## OUT:
+#.  < $perm_dest
+#.  < 1
+#
+d__check_and_canonicalize_dest_path()
+{
+  # Check if given destination path is empty
+  if [ -z "$perm_dest" ]; then
+
+    # Unacceptable: assemble failure report
+    local failure_report=()
+    if [ -n "$name" ]; then
+      failure_report+=( "Refusing to retrieve $name from:" )
+    else
+      failure_report+=( 'Refusing to retrieve a Github repository from:' )
+    fi
+    failure_report+=( -i "$repo_url" -n 'because no destination is given' )
+
+    # Report and return failure
+    dprint_failure "${failure_report[@]}"
+    return 1
+
+  fi
+
+  # Canonicalize destination path
+  perm_dest="$( dreadlink -qm -- "$perm_dest" 2>/dev/null )"
+}
+
+#>  d__check_if_dest_is_proper_clone
+#
+## INTERNAL USE ONLY
+#
+## IN:
+#.  > $perm_dest
+#.  > $repo_url
+#.  > $restricted
+#.  > $name
+#
+## OUT:
+#.  < 0 - quit out (success)
+#.  < 1 - quit out (fail)
+#.  < 2 - continue
+#
+d__pull_updates_from_remote()
+{
+  # Check if destination can be changed into and if it is a proper clone
+  if d__check_if_dest_is_proper_clone; then
+
+    # Fire debug message
+    if [ "$restricted" = pull_only ]; then
+      if [ -n "$name" ]; then
+        dprint_debug "Pulling updates for $name from a Github repository:" \
+          -i "$repo_url" -n 'into:' -i "$perm_dest"
+      else
+        dprint_debug "Pulling updates from a Github repository:" \
+          -i "$repo_url" -n 'into:' -i "$perm_dest"
+      fi
+    else
+      if [ -n "$name" ]; then
+        dprint_debug "Detected that $name from:" \
+          -i "$repo_url" -n 'is already cloned into:' -i "$perm_dest" \
+          -n 'Proceeding to pull updates from remote'
+      else
+        dprint_debug "Detected that a Github repository from:" \
+          -i "$repo_url" -n 'is already cloned into:' -i "$perm_dest" \
+          -n 'Proceeding to pull updates from remote'
+      fi
+    fi
+
+    # Pull from remote, minding the global verbosity setting
+    if $D__OPT_QUIET; then
+
+      # Pull and rebase quietly
+      git pull --rebase --stat origin master &>/dev/null
+
+    else
+
+      # Pull and rebase normally, but re-paint output
+      local line
+      git pull --rebase --stat origin master 2>&1 \
+        | while IFS= read -r line || [ -n "$line" ]; do
+        printf "${CYAN}==> %s${NORMAL}\n" "$line"
+      done
+
+    fi
+
+    # Check return status
+    if [ "${PIPESTATUS[0]}" -eq 0 ]; then
+
+      # Assemble success report
+      local success_report=()
+      if [ -n "$name" ]; then
+        success_report+=( "Successfully updated $name at:" )
+      else
+        success_report+=( 'Successfully updated the local copy at:' )
+      fi
+      success_report+=( \
+        -i "$perm_dest" \
+        -n 'from the remote Github repository:' \
+        -i "$repo_url" \
+      )
+
+      # Report and return success
+      dprint_debug "${success_report[@]}"
+      return 0
+
+    else
+
+      # Failed to update
+
+      # Check if restricted to updating
+      if [ "$restricted" = pull_only ]; then
+
+        # Unacceptable: assemble failure report
+        local failure_report=()
+        if [ -n "$name" ]; then
+          failure_report+=( "Failed to update $name at:" )
+        else
+          failure_report+=( 'Failed to update the local copy at:' )
+        fi
+        failure_report+=( \
+          -i "$perm_dest" \
+          -n 'from the remote Github repository:' \
+          -i "$repo_url" \
+        )
+
+        # Report and return failure
+        dprint_failure "${failure_report[@]}"
+        return 1
+
+      fi
+
+    fi
+
+  else
+
+    # Destination is not a proper clone
+
+    # Check if restricted to updating
+    if [ "$restricted" = pull_only ]; then
+
+      # Go no further: assemble failure report
+      local failure_report=()
+      if [ -n "$name" ]; then
+        failure_report+=( "Unable to update $name at:" )
+      else
+        failure_report+=( 'Unable to update the local directory at:' )
+      fi
+      failure_report+=( \
+        -i "$perm_dest" \
+        -n 'because it is not a clone of the expected Github repository:' \
+        -i "$repo_url" \
+      )
+
+      # Report and return failure
+      dprint_failure "${failure_report[@]}"
+      return 1
+
+    fi
+
+  fi
+
+  # Not updated, but not restricted either: continue
+  return 2
+}
+
+#>  d__check_if_dest_is_proper_clone
+#
+## INTERNAL USE ONLY
+#
+## IN:
+#.  > $perm_dest
+#.  > $repo_url
+#
+## OUT:
+#.  < 0/1
+#
+d__check_if_dest_is_proper_clone()
+{
+  # Check if destination can be changed into and if it is a proper clone
+  if cd -- "$perm_dest" &>/dev/null \
+    && [ "$( git remote get-url origin 2>/dev/null )" = "${repo_url}.git" ]
+  then return 0; else return 1; fi
 }
