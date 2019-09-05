@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: gh-fetcher
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    10
-#:revdate:      2019.09.04
-#:revremark:    Compartmentalize re-used code; start on primaries
+#:revnumber:    11
+#:revdate:      2019.09.05
+#:revremark:    Implement install primary, start on remove
 #:created_at:   2019.09.04
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -1017,15 +1017,39 @@ d__gh_clone_check()
   fi
 }
 
-#>  d__gh_clone_install SRC DEST
+#>  d__gh_clone_install SRC DEST [NAME]
 #
 ## Implemented install primary that entirely delegates to the helper
 #
-d__gh_clone_install() { d__ensure_gh_repo "$1" "$2"; }
+d__gh_clone_install()
+{
+  # Extract user_repo, destination, and optional name
+  local user_repo="$1"; shift
+  local perm_dest="$1"; shift
+  local name="$1"; shift
+
+  # Check if the deployment is already installed by this framework
+  if [ "$D__DPL_CHECK_CODE" = 1 -a "$D_DPL_INSTALLED_BY_USER_OR_OS" != true ]
+  then
+
+    # Forced re-installation: just pull updates from remote
+    d__ensure_gh_repo --pull-only --name "$name" -- "$user_repo" "$perm_dest"
+
+  else
+
+    ## In all other cases: be that a clean installation; or a forced 
+    #. re-installation over something done by user or OS - the only requirement 
+    #. is to not accidentally pull from remote, polluting pre-existing files.
+    #
+    d__ensure_gh_repo --no-pull --name "$name" -- "$user_repo" "$perm_dest"
+
+  fi
+}
 
 #>  d__gh_clone_remove SRC DEST
 #
-## Implemented remove primary that entirely delegates to the helper
+## Implemented remove primary that tries to do as little damage as possible, 
+#. while still getting the job done
 #
 d__gh_clone_remove()
 {
@@ -1033,21 +1057,37 @@ d__gh_clone_remove()
   local user_repo="$1"; shift
   local perm_dest="$1"; shift
 
-  # Compose stashing data
-  local stash_key="gh_$( dmd5 -s "${user_repo}___${perm_dest}" )"
-  local stash_val="$perm_dest"
-  local backup_path="$D__DPL_BACKUP_DIR/$stash_key"
+  # Inspect return code of check routine
+  case $D__DPL_CHECK_CODE in
+    1)  # Installed: 
 
-  # Check if stash has a record
-  if dstash -s has "$stash_key"; then
-    
-    :
+        # Check if installed by user or OS
+        if [ "$D_DPL_INSTALLED_BY_USER_OR_OS" = true ]; then
 
-  else
+          # Installed by user or OS: replace the installation completely
+          d__ensure_gh_repo --no-pull --name "$name" -- \
+            "$user_repo" "$perm_dest"
+        
+        else
 
-    :
+          # Installed by this framework: just pull updates
+          d__ensure_gh_repo --pull-only --name "$name" -- \
+            "$user_repo" "$perm_dest"
 
-  fi
+        fi
+        ;;
+    2)  ## Not installed: install normally (pulling updates will not be an 
+        #. option anyway)
+        #
+        d__ensure_gh_repo --no-pull --name "$name" -- "$user_repo" "$perm_dest"
+        ;;
+    *)  ## Unknown: this is a forced healing of whatever damage is done. Since 
+        #. the user wants a forced installation, install without pulling, 
+        #. possibly clobbering existing backup
+        #
+        d__ensure_gh_repo --no-pull --name "$name" -- "$user_repo" "$perm_dest"
+        ;;
+  esac
 }
 
 #>  d__validate_user_repo_and_compose_url
