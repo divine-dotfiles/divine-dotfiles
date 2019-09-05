@@ -1,0 +1,3 @@
+* [`*feature*`] List all stashed keys with `dstash list-keys`.
+* [`*feature*`] Check whether stash contains a key with particular value with `dstash has _KEY_ _VALUE_`.
+* [`*other*`] Optimize code in `stash.hlp.sh`
