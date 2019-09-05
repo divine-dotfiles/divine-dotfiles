@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: stash
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    10
+#:revnumber:    11
 #:revdate:      2019.09.05
-#:revremark:    Almost entirely rewrite dstash, for optimization
+#:revremark:    Fix variable misnaming; tweak return code on unset
 #:created_at:   2019.05.15
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -135,8 +135,8 @@ dstash()
     get)        d__validate_dstash_key "$dkey" && d___stash_get;;
     list)       d__validate_dstash_key "$dkey" && d___stash_list;;
     unset)      d__validate_dstash_key "$dkey" && d___stash_unset;;
-    list-keys)  d___stash_list_keys "$@";;
-    clear)      >"$stash_filepath";;
+    list-keys)  d___stash_list_keys;;
+    clear)      d___stash_clear;;
     *)          dprint_failure \
                   "${FUNCNAME}: Ignoring unrecognized task: '$task'"
                 return 0
@@ -150,12 +150,12 @@ dstash()
 #>  d__validate_dstash_key KEY
 #
 ## Checks if KEY is safe for stashing. Practically, it means ensuring that key 
-#. consists of allowed characters only, which are: ASCII letters (both cases) 
-#. and digits, underscore (_), and hyphen (-).
+#. consists of allowed characters only: ASCII letters (both cases) and digits, 
+#. underscore '_', and hyphen '-'.
 #
 ## Returns:
-#.  0 - Key is acceptable
-#.  1 - Otherwise
+#.  0 - Key is acceptable.
+#.  1 - Otherwise.
 #
 d__validate_dstash_key()
 {
@@ -279,14 +279,14 @@ d___stash_add()
 d___stash_get()
 {
   # Search for the $dkey
-  local result="$( grep -m 1 ^"$dkey"= -- "$stash_filepath" &>/dev/null \
+  local result="$( grep -m 1 ^"$dkey"= -- "$stash_filepath" 2>/dev/null \
     || exit $? )"
 
   # If grep returned non-zero, pass it along
   if (($?)); then return 1; fi
 
   # Print the result, chopping off the '$dkey=' part from it
-  printf '%s\n' "${result#$1=}"
+  printf '%s\n' "${result#$dkey=}"
 }
 
 #>  d___stash_list
@@ -323,8 +323,7 @@ d___stash_list()
 ## INTERNAL USE ONLY
 #
 ## Unsets (removes) all instances of $dkey. If $dvalue is given, unsets only 
-#. those instances of $dkey, that are currently set to $dvalue. Returns 
-#. non-zero if there was nothing to remove.
+#. those instances of $dkey, that are currently set to $dvalue.
 #
 ## In:
 #>  $dkey
@@ -333,8 +332,9 @@ d___stash_list()
 #>  $stash_md5_filepath
 #
 ## Returns:
-#.  0 - Task performed successfully
-#.  1 - Otherwise: $dkey not found, or other failure
+#.  0 - Task performed successfully.
+#.  1 - Otherwise: failed to replace the file with new version, which does not 
+#.      contain desired instances of $dkey.
 #
 d___stash_unset()
 {
@@ -394,6 +394,28 @@ d___stash_list_keys()
 
   # Return based on results
   $found && return 0 || return 1
+}
+
+#>  d___stash_clear
+#
+## INTERNAL USE ONLY
+#
+## Erases the stash completely.
+#
+## In:
+#>  $stash_filepath
+#>  $stash_md5_filepath
+#
+## Returns:
+#.  0 - (always) Successfully erased
+#
+d___stash_clear()
+{
+  # Erase stash file
+  >"$stash_filepath"
+
+  # Update stash file checksum and return zero always
+  d___stash_store_md5; return 0
 }
 
 #>  d___stash_pre_flight_checks
