@@ -1,0 +1,1 @@
+* [`*other*`] Demote `dmd5.utl.sh` to a small helper implemented in `dep-checks.pcd.sh`.
