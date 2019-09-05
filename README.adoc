@@ -1,9 +1,9 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revnumber: 73
-:revdate: 2019.09.03
-:revremark: Tweak the wording
+:revnumber: 76
+:revdate: 2019.09.05
+:revremark: Modify README to reflect stash improvements
 :doctype: article
 // Visual
 :toc:
@@ -1699,14 +1699,8 @@ Returns zero/non-zero appropriately.
 [[stash]]
 === Stash
 
-_Divine.dotfiles_ provides a persistent key-value storage and retrieval system.
-It is based in file system, i.e., data is stored in files.
-It is accessible within deployments via `dstash` function.
-
-[source,subs="verbatim,quotes,attributes"]
-----
-*dstash* *ready*|*has*|*set*|*add*|*get*|*list*|*unset*|*clear* [-rgs] [ *_KEY_* [*_VALUE_*] ]
-----
+_Divine.dotfiles_ provides a persistent key-value storage/retrieval system.
+It is based in the file system, i.e., all data is stored in files.
 
 [#stash-types]#There are three levels of stashing system#:
 
@@ -1727,57 +1721,73 @@ Rules of key-value store are:
 * Values must not exceed single line of text, but are otherwise unrestricted, and may be empty.
 * Multiple instances of a key are allowed, values may be duplicate.
 
+Stashing is accessible from within the deployments via the `dstash` function.
+
+[source,subs="verbatim,quotes,attributes"]
+----
+*dstash* [-drgsq] [--] [ *_CMD_* [ *_KEY_* [*_VALUE_*] ] ]
+----
+
 Depending on first argument, usage is as follows.
 
 .Usage patterns of `dstash`
 [%noheader,cols="<.<a",stripes=none]
 |===
 
-| `*ready*`
+| `dstash *ready*`
 
-(_default task_) Checks that stashing system is primed and ready.
+(_default task_) Checks whether the stashing system on selected <<stash-types,level>> is primed and ready.
+By default, prints loud error messages if something is critically wrong with the stash.
 
 Returns `0` if stash is ready, or `2` if not.
 
-| `*has* *_KEY_*`
+| `dstash *has* *_KEY_* [*_VALUE_*]`
 
-Checks if stash contains at least one `*_KEY_*` with any value.
+If `*_VALUE_*` is not given: checks whether the stash contains at least one `*_KEY_*` with any value.
+
+If `*_VALUE_*` is given: checks whether the stash contains at least one `*_KEY_*` that is set to `*_VALUE_*`.
 
 Returns `0` if so, or `1` otherwise.
 
-| `*set* *_KEY_* [*_VALUE_*]`
+| `dstash *set* *_KEY_* [*_VALUE_*]`
 
-Ensures presence of single `*_KEY_*` and sets it to `*_VALUE_*`.
-
-Returns `0` on success, or `1` otherwise.
-
-| `*add* *_KEY_* [*_VALUE_*]`
-
-Adds one instance of `*_KEY_*` and sets it to `*_VALUE_*`.
+Ensures that the stash contains a _single_ instance of `*_KEY_*`, and that it is set to `*_VALUE_*`.
 
 Returns `0` on success, or `1` otherwise.
 
-| `*get* *_KEY_*`
+| `dstash *add* *_KEY_* [*_VALUE_*]`
+
+Adds one instance of `*_KEY_*` and sets it to `*_VALUE_*`, regardless of possibly pre-existing instances of `*_KEY_*`.
+
+Returns `0` on success, or `1` otherwise.
+
+| `dstash *get* *_KEY_*`
 
 Prints the value of the first instance of `*_KEY_*` to `stdout`.
 
 Returns `0` on success (even if nothing was printed), or `1` otherwise.
 
-| `*list* *_KEY_*`
+| `dstash *list* *_KEY_*`
 
-Prints each value of `*_KEY_*` on a line to `stdout`.
+Prints the value of each `*_KEY_*` on a new line to `stdout`.
 
 Returns `0` on success (even if nothing was printed), or `1` otherwise.
 
-| `*unset* *_KEY_* [*_VALUE_*]`
+| `dstash *unset* *_KEY_* [*_VALUE_*]`
 
-If `*_VALUE_*` is provided: removes each instance of `*_KEY_*` containing that value.
-
-Without `*_VALUE_*`: removes all instances of `*_KEY_*`.
+If `*_VALUE_*` is not given: removes all instances of `*_KEY_*`.
+If `*_VALUE_*` is given: removes each instance of `*_KEY_*` that is set to `*_VALUE_*`.
 
 Returns `0` on success (even if nothing was removed), or `1` otherwise.
 
-| `*clear*`
+| `dstash *list-keys*`
+
+Prints each `*_KEY_*` currently in the stash on a new line to `stdout`.
+Possible duplicate keys are _not_ pruned.
+
+Returns `0` on success (even if nothing was printed), or `1` otherwise.
+
+| `dstash *clear*`
 
 Clears all records from this stash.
 
@@ -1791,17 +1801,29 @@ Below is the list of `dstash` options.
 
 | `*-s*`, `*--skip-checks*`
 
-Normally, each invocation of `dstash` (with any arguments) starts with integrity check.
-For repeated calls within a deployment, such checks become redundant.
-After ensuring that `dstash ready`, use this option on every subsequent call to `dstash` to forego integrity checks.
+Without this option, every invocation of `dstash` (with any arguments) begins with stash readiness check.
+If the function is called multiple times within a deployment, such checks become redundant.
+It is recommended that after initial `dstash ready`, this option is then included with any subsequent invocations, to forego readiness checks.
+
+| `*-q*`, `*--quiet*`
+
+Without this option, any error during the stash readiness checks triggers an error message that always appears.
+This option causes such error messages to instead honor the global verbosity setting.
+This option is intended to be included with readiness checks in cases where not using stash is also a viable option.
+
+^.^h| Stash <<stash-types,level>> (one active at a time, last option wins)
+
+| `*-d*`, `*--dpl*`
+
+_(default)_ Directs to work with the <<stash-types,deployment stash>>
 
 | `*-r*`, `*--root*`
 
-Works with <<stash-types,root stash>> instead of default deployment stash.
+Directs to work with the <<stash-types,root stash>> instead of default deployment stash.
 
 | `*-g*`, `*--grail*`
 
-Works with <<stash-types,Grail stash>> instead of default deployment stash.
+Directs to work with the <<stash-types,Grail stash>> instead of default deployment stash.
 
 |===
 
