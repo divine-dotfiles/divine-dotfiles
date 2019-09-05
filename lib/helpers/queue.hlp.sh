@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: queue
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    38
-#:revdate:      2019.09.03
-#:revremark:    Modify stashing pattern
+#:revnumber:    39
+#:revdate:      2019.09.05
+#:revremark:    Almost entirely rewrite dstash, for optimization
 #:created_at:   2019.06.10
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -128,7 +128,7 @@ d__queue_check()
         && D__QUEUE_ITEM_STASH_KEY="item_$( dmd5 -s "$D__QUEUE_ITEM_TITLE" )"
 
       # Validate stash key
-      if ! d__stash_validate_key "$D__QUEUE_ITEM_STASH_KEY"; then
+      if ! d__validate_dstash_key "$D__QUEUE_ITEM_STASH_KEY"; then
 
         # Set flag, report error, and skip item
         d__queue_item_status set is_invalid
