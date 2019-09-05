@@ -2,9 +2,9 @@
 #:title:        Divine Bash procedure: dep-checks
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    10
-#:revdate:      2019.08.24
-#:revremark:    Use ERE and -regex when finding regex manifest entries
+#:revnumber:    11
+#:revdate:      2019.09.05
+#:revremark:    Delete dmd5 util; implement it in dep-checks
 #:created_at:   2019.07.05
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -226,6 +226,71 @@ EOF
       "$D__FMWK_NAME" \
       'Missing or incompatible system dependency' \
       'awk'
+
+    # Flip flag
+    all_good=false
+
+  fi
+
+  #
+  # md5
+  #
+
+  if md5sum --version &>/dev/null; then
+
+    # Make md5sum the utility of choice for md5 checksums
+    dmd5()
+    {
+      if [ "$1" = -s ]; then
+        local md5="$( md5sum <<<"$2" 2>/dev/null | awk '{print $1}' )"
+      else
+        local md5="$( md5sum -- "$1" 2>/dev/null | awk '{print $1}' )"
+      fi
+      if [ ${#md5} -eq 32 ]; then printf '%s\n' "$md5"; return 0; fi
+      printf >&2 '%s: %s\n' "$D__FMWK_NAME" \
+        'Failed to calculate a valid md5 checksum using `md5sum`'
+      return 1
+    }
+
+  elif md5 -r <<<test &>/dev/null; then
+
+    # Make md5 the utility of choice for md5 checksums
+    dmd5()
+    {
+      if [ "$1" = -s ]; then
+        local md5="$( md5 -r <<<"$2" 2>/dev/null | awk '{print $1}' )"
+      else
+        local md5="$( md5 -r -- "$1" 2>/dev/null | awk '{print $1}' )"
+      fi
+      if [ ${#md5} -eq 32 ]; then printf '%s\n' "$md5"; return 0; fi
+      printf >&2 '%s: %s\n' "$D__FMWK_NAME" \
+        'Failed to calculate a valid md5 checksum using `md5 -r`'
+      return 1
+    }
+
+  elif openssl version &>/dev/null; then
+
+    # Make openssl the utility of choice for md5 checksums
+    dmd5()
+    {
+      if [ "$1" = -s ]; then
+        local md5="$( openssl md5 <<<"$2" 2>/dev/null | awk '{print $1}' )"
+      else
+        local md5="$( openssl md5 -- "$1" 2>/dev/null | awk '{print $1}' )"
+      fi
+      if [ ${#md5} -eq 32 ]; then printf '%s\n' "$md5"; return 0; fi
+      printf >&2 '%s: %s\n' "$D__FMWK_NAME" \
+        'Failed to calculate a valid md5 checksum using `openssl md5`'
+      return 1
+    }
+
+  else
+
+    # Announce failure
+    printf >&2 '%s: %s: %s\n' \
+      "$D__FMWK_NAME" \
+      'Missing or incompatible system dependencies' \
+      'md5sum / md5 / openssl'
 
     # Flip flag
     all_good=false
