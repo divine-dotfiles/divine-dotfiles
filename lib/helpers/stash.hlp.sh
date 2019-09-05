@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: stash
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    11
+#:revnumber:    12
 #:revdate:      2019.09.05
-#:revremark:    Fix variable misnaming; tweak return code on unset
+#:revremark:    Polish docs a bit
 #:created_at:   2019.05.15
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -16,7 +16,7 @@
 #. own stash. Stash files are named '.stash.cfg'.
 #
 
-#>  dstash [-rgs] [--] [ CMD [ KEY [VALUE] ] ]
+#>  dstash [-rgsq] [--] [ CMD [ KEY [VALUE] ] ]
 #
 ## Main interface into the stash, be that on deployment, root, or Grail level. 
 #. Dispatches task based on first non-opt argument.
@@ -58,8 +58,8 @@
 #.                      but the very first call.
 #.  -q|--quiet        - Slightly decreases the amount of error messages that 
 #.                      are always printed, regardless of global verbosity. 
-#.                      This is intended to be used when not using stash is 
-#.                      still a viable option.
+#.                      This is intended to be added to readiness checks in 
+#.                      cases where not using stash is also a viable option.
 #
 ## Stash level (one is active at a time, last option wins):
 #.  -d|--dpl    - (default) Use deployment stash. Deployment stash is stored 
