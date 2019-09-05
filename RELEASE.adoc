@@ -1,3 +1,4 @@
 * [`*feature*`] List all stashed keys with `dstash list-keys`.
 * [`*feature*`] Check whether stash contains a key with particular value with `dstash has _KEY_ _VALUE_`.
 * [`*other*`] Optimize code in `stash.hlp.sh`
+* [`*feature*`] Install/remove primaries can now access return code of their check primary in `D__DPL_CHECK_CODE`.
