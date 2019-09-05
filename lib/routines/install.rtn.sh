@@ -2,9 +2,9 @@
 #:title:        Divine Bash routine: install
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    47
-#:revdate:      2019.08.22
-#:revremark:    Fix dprint_debug breaking code catching
+#:revnumber:    49
+#:revdate:      2019.09.05
+#:revremark:    Expand check code transfer onto multitask; also transfer statuses
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -501,6 +501,9 @@ d__install_dpls()
         # Print descriptive introduction, if haven't already
         $intro_printed || dprint_ode "${D__ODE_NAME[@]}" -c "$YELLOW" -- \
           '>>>' 'Installing' ':' "$task_desc" "$task_name"
+
+        # Expose check code to deployment
+        D__DPL_CHECK_CODE="$dpl_status"
 
         # Get return code of d_dpl_install, or fall back to zero
         if declare -f d_dpl_install &>/dev/null; then

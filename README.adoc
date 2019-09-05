@@ -1,9 +1,9 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revnumber: 76
+:revnumber: 77
 :revdate: 2019.09.05
-:revremark: Modify README to reflect stash improvements
+:revremark: Modify README to reflect code transfer
 :doctype: article
 // Visual
 :toc:
@@ -1360,25 +1360,26 @@ Exhaustive list of possible values:
 
 When this variable is non-empty, you also have the built-in <<func-os-pkgmgr,package manager wrapper>>, `d__os_pkgmgr()`, at your disposal.
 
-^.^h| [#marker-vars]#Marker variables in <<func-dpl-check,`d_dpl_check`>>#
+^.^h| [#marker-vars]#Marker variables in <<func-dpl-check,check>> primary#
 
 | [#var-another-prompt]#`*D_DPL_NEEDS_ANOTHER_PROMPT*`#
 
 Set this variable to `true` to trigger an <<urgent-prompt,urgent prompt>> before the framework proceeds to (un)installation.
 
-_Works only during `install`/`remove` <<primary-routines,routine>> and only if set within <<func-dpl-check,`d_dpl_check`>> primary._
+_Works only during `install`/`remove` <<primary-routines,routines>> and only if set within <<func-dpl-check,check>> primary._
 
 | [#var-another-warning]#`*D_DPL_NEEDS_ANOTHER_WARNING*`#
 
 If `$D_DPL_NEEDS_ANOTHER_PROMPT` is set to `true` and this variable is non-empty, then its content is shown to the user as textual warning.
 
-_Works only during `install`/`remove` <<primary-routines,routine>> and only if set within <<func-dpl-check,`d_dpl_check`>> primary._
+_Works only during `install`/`remove` <<primary-routines,routines>> and only if set within <<func-dpl-check,check>> primary._
 
 | [#var-user-or-os]#`*D_DPL_INSTALLED_BY_USER_OR_OS*`#
 
 Set this variable to `true` to signal to the framework: whatever parts of current deployment are installed, have been installed by other methods, not by this framework.
 
-_Works only if set within `d_dpl_check()` primary._
+_Works only if set within check primary._
+_Value of `true` is preserved into install/remove primaries, even in <<multitask,multitask>> sub-primaries._
 
 This affects behavior of the following return codes of <<func-dpl-check,`d_dpl_check`>>:
 
@@ -1390,6 +1391,13 @@ This affects behavior of the following return codes of <<func-dpl-check,`d_dpl_c
 !===
 ! This is useful for deployments designed to not interfere with manual tinkering.
 !===
+
+^.^h| Check code in <<func-dpl-install,install>>/<<func-dpl-remove,remove>> primaries
+
+| [#var-check-code]#`*D__DPL_CHECK_CODE*`#
+
+Within install/remove primaries, this variable contains the code returned by their respective check primary.
+This is also the case within <<multitask,multitask>> sub-primaries.
 
 ^.^h| Parameters of current request
 
