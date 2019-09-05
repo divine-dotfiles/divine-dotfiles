@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: stash
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    8
-#:revdate:      2019.09.04
-#:revremark:    Stub new stash subcommand, list-keys
+#:revnumber:    9
+#:revdate:      2019.09.05
+#:revremark:    Do rough implementations: list-keys, has K V
 #:created_at:   2019.05.15
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -13,39 +13,63 @@
 #
 ## Stashing allows to create/retrieve/update/delete key-value pairs that 
 #. persist between invocations of deployment scripts. Each deployment gets its 
-#. own stash. Stash is a specially named text file in backups directory.
+#. own stash. Stash files are named '.stash.cfg'.
 #
 
-#>  dstash ready|has|set|add|get|list|unset|clear [-rgs] [ KEY [VALUE] ]
+#>  dstash [-rgs] [--] [ CMD [ KEY [VALUE] ] ]
 #
-## Main stashing command. Dispatches task based on first non-opt argument.
+## Main interface into the stash, be that on deployment, root, or Grail level. 
+#. Dispatches task based on first non-opt argument.
 #
-## Stash key must be a non-empty string consisting of alphanumeric characters, 
-#. plus '_' and '-'.
+## Performs given CMD, where each CMD has its own requirements on presence of 
+#. KEY and VALUE.
+#
+## Stash key, when required, must be a string of alphanumeric characters, 
+#. underscores '_', and hyphens '-'. Stash values may contain any characters 
+#. except newlines; whitespace on both edges will be stripped. Empty values are 
+#. allowed.
+#
+## Stash is NOT a hash table: multiple instances of the same key are allowed. 
+#. Keys set to empty values are allowed as well.
+#
+## CMD patterns:
+#.  ready             - (default) Ensures that stashing system is ready; 
+#.                      returns non-zero if not. Checks differ based on stash 
+#.                      level. These checks are normally run for every CMD.
+#.  has KEY [VALUE]   - Checks if stash contains KEY that is set to VALUE, or 
+#.                      if it contains KEY with any value.
+#.  set KEY [VALUE]   - Ensures that there is a single instance of KEY and that 
+#.                      it is set to VALUE; VALUE can be empty.
+#.  add KEY [VALUE]   - Adds record of KEY set to VALUE, regardless of whether 
+#.                      stash already contains KEY; VALUE can be empty.
+#.  get KEY           - Prints first value of KEY to stdout.
+#.  list KEY          - Prints each value of KEY on a line to stdout.
+#.  unset KEY [VALUE] - Removes records for KEY from stash; either where set to 
+#.                      VALUE, or completely.
+#.  list-keys         - Prints each KEY in STASH on a line to stdout; does not 
+#.                      prune duplicates.
+#.  clear             - Erases all stash records completely.
 #
 ## Options:
-#.  -g|--grail  - Use grail stash, instead of box-specific. Grail stash is 
-#.                stored in grail directory, where it is set to be carried 
-#.                between machines using Divine.ditfiles. For example, grail 
-#.                stash is used to record which deployment distributions are 
-#.                added by user.
-#.  -r|-root  - Use root stash, instead of deployment-specific. Root stash is 
-#.              used, for example, during installation of Divine.dotfiles 
-#.              framework itself.
-#.  -s|--skip-checks  - Forego stash health checks. Use with care for multiple 
-#.                      successive calls.
+#.  -s|--skip-checks  - Normally, pre-flight stash readiness checks are run for 
+#.                      every CMD. This option directs to skip most checks. If 
+#.                      this function is invoked multiple times in the same 
+#.                      context, it is advisable to include this option in all 
+#.                      but the very first call.
 #
-## Parameters:
-#.  Name of task to perform, followed by appropriate arguments:
-#.  ready             - (default) Return 0 if stash is ready, or 2 if not
-#.  has KEY           - Check if KEY is stashed with any value
-#.  set KEY [VALUE]   - Set/update KEY to VALUE; VALUE can be empty
-#.  add KEY [VALUE]   - Add another VALUE to KEY; VALUE can be empty
-#.  get KEY           - Print first value of KEY to stdout
-#.  list KEY          - Print each value of KEY on a line to stdout
-#.  unset KEY [VALUE] - Remove KEY from stash where set to VALUE, or completely
-#.  list-keys         - Print each KEY on a line to stdout
-#.  clear             - Clear stash entirely
+## Stash level (one is active at a time, last option wins):
+#.  -d|--dpl    - (default) Use deployment stash. Deployment stash is stored 
+#.                under state directory, in a directory named after the current 
+#.                deployment. As deployment names are unique, no more than one 
+#.                deployment uses a given deployment stash.
+#.  -r|--root   - Use root stash. Root stash is stored in the root state 
+#.                directory, where it is shared by all deployments and 
+#.                framework components on current machine. Divine.dotfiles 
+#.                employs root stash during installation of the framework, to 
+#.                record installation path of the shortcut shell command.
+#.  -g|--grail  - Use Grail stash. Grail stash is stored in Grail directory, 
+#.                where it may be synced between machines. Divine.dotfiles 
+#.                employs Grail stash to record bundles attached by user.
 #
 ## Returns:
 #.  0 - Task performed
@@ -55,28 +79,33 @@
 dstash()
 {
   # Parse options
-  local args=() stash_mode= do_checks=true i opt
+  local args=() opts opt i
+  local stash_mode= do_checks=true
   while (($#)); do
     case $1 in
-      -g|--grail)         stash_mode=-g;;
-      -r|--root)          stash_mode=-r;;
-      -s|--skip-checks)   do_checks=false;;
-      -?*)                for i in $( seq 2 ${#1} ); do
-                            opt="${1:i-1:1}"
-                            case $opt in
-                              g)  stash_mode=-g;;
-                              r)  stash_mode=-r;;
-                              s)  do_checks=false;;
-                              *)  dprint_debug \
-                                  "dstash called with illegal option -- $opt"
-                                  return 1;;
-                            esac
-                          done;;
-      *)                  args+=("$1");;
-    esac
-    shift
-  done
-  set -- "${args[@]}"
+      --)               shift; args+=("$@"); break;;
+      -d|--dpl)         stash_mode=;;
+      -r|--root)        stash_mode=-r;;
+      -g|--grail)       stash_mode=-g;;
+      -s|--skip-checks) do_checks=false;;
+      -*)   opts="$1"; shift
+            for (( i=1; i<${#opts}; ++i )); do
+              opt="${opts:i:1}"
+              case $opt in
+                d)  stash_mode=;;
+                r)  stash_mode=-r;;
+                g)  stash_mode=-g;;
+                s)  do_checks=false;;
+                *)  dprint_debug \
+                      "${FUNCNAME}: Ignoring unrecognized option: '$opt'"
+                    ;;
+              esac
+            done
+            continue
+            ;;
+      *)    args+=("$1");;
+    esac; shift
+  done; set -- "${args[@]}"
 
   # Perform pre-flight checks first, unless ordered to skip
   if $do_checks; then
@@ -97,28 +126,31 @@ dstash()
   (($#)) || return 0
 
   # Dispatch task based on first argument
-  local task="$1"; shift; case $task in
-    ready)  return 0;;
-    has)    d__stash_has "$@";;
-    set)    d__stash_set "$@";;
-    add)    d__stash_add "$@";;
-    get)    d__stash_get "$@";;
-    list)   d__stash_list "$@";;
-    unset)  d__stash_unset "$@";;
-    list-keys)
-            d__stash_list_keys "$@";;
-    clear)  >"$D__STASH_FILEPATH" && return 0 || return 1;;
-    *)      dprint_debug 'dstash called with illegal task:' -i "$1"; return 1;;
+  local task="$1"; shift
+  case $task in
+    ready)      return 0;;
+    has)        d__stash_has "$@";;
+    set)        d__stash_set "$@";;
+    add)        d__stash_add "$@";;
+    get)        d__stash_get "$@";;
+    list)       d__stash_list "$@";;
+    unset)      d__stash_unset "$@";;
+    list-keys)  d__stash_list_keys "$@";;
+    clear)      >"$D__STASH_FILEPATH" && return 0 || return 1;;
+    *)  dprint_debug "${FUNCNAME}: Ignoring unrecognized task: '$task'"
+        return 0
+        ;;
   esac
 
   # Return status of dispatched command
   return $?
 }
 
-#>  d__stash_has [-s] KEY
+#>  d__stash_has [-s] KEY [VALUE]
 #
 ## Checks whether KEY is currently set to any value, including empty string.
-#. Extra arguments are ignored.
+#. If VALUE is given, checks if there is at least one occurrence of KEY set to 
+#. VALUE.
 #
 ## Options:
 #.  -s  - (first arg) Skip argument checks (for internal calls)
@@ -136,7 +168,12 @@ d__stash_has()
   if [ "$1" = -s ]; then shift; else d__stash_validate_key "$1" || return 1; fi
 
   # Check for existense in stash file
-  grep -q ^"$1"= -- "$D__STASH_FILEPATH" &>/dev/null && return 0 || return 1
+  if [ -n "$2" ]; then
+    grep -Fxq "$1=$2" -- "$D__STASH_FILEPATH" &>/dev/null
+  else
+    grep -q ^"$1"= -- "$D__STASH_FILEPATH" &>/dev/null
+  fi
+  [ $? -eq 0 ] && return 0 || return 1
 }
 
 #>  d__stash_set KEY [VALUE]
@@ -355,15 +392,26 @@ d__stash_unset()
 #>  d__stash_list_keys
 #
 ## Prints each KEY currently in the stash to its own line in stdout. If there 
-#. are no keys, prints nothing and returns non-zero. Arguments are ignored.
+#. are no keys, prints nothing. Arguments are ignored.
 #
 ## Returns:
-#.  0 - Task performed successfully
-#.  1 - Zero keys in the stash, or failed to unset key
+#.  0 - Always
 #
 d__stash_list_keys()
 {
-  :
+  # Storage variables
+  local key value
+
+  # Iterate over lines in stash file, break each line on first '='
+  while IFS='=' read -r key value; do
+
+    # If key is not empty, print it
+    [ -n "$key" ] && printf '%s\n' "$key" && 
+
+  done <"$D__STASH_FILEPATH"
+
+  # Return zero always
+  return 0
 }
 
 #>  d__stash_pre_flight_checks [-r|-g]
