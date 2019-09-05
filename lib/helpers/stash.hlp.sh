@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: stash
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    13
+#:revnumber:    14
 #:revdate:      2019.09.05
-#:revremark:    Polish docs a bit, part 2
+#:revremark:    Fix logic error
 #:created_at:   2019.05.15
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -216,18 +216,71 @@ d___stash_has()
 #
 d___stash_set()
 {
-  # If key is currently set, unset it
-  if d___stash_has; then d___stash_unset || return 1; fi
+  # Storage variables
+  local temp=$(mktemp) line found=false should_replace=false
 
-  # Append record at the end
-  if ! printf '%s\n' "$dkey=$dvalue" >>"$stash_filepath"; then
-    dprint_failure 'Failed to set record:' -i "$dkey=$dvalue" \
-      -n 'in stash file at:' -i "$stash_filepath"
-    return 1
+  # Iterate over lines in current stash file
+  while read -r line; do
+
+    # Check if current line is for the required key
+    if [[ $line = "$dkey="* ]]; then
+
+      # If already surely replacing, just skip this line
+      $should_replace && continue
+
+      # Check if current line sets the required value
+      if [ "$line" = "$dkey=$dvalue" ]; then
+
+        ## This is the required line: if not yet found, copy it to temp, 
+        #. otherwise this is a duplicate, and we should replace anyway.
+        #
+        if $found; then should_replace=true
+        else printf '%s\n' "$line"; found=true; fi
+
+      else
+
+        # This key is set to the wrong value: skip line and set flag
+        should_replace=true
+
+      fi
+
+    else
+
+      # Regular line, with different key: copy to temp
+      printf '%s\n' "$line"
+
+    fi
+
+  done <"$stash_filepath" >$temp
+
+  # Check if required key-value has been found and copied to temp file
+  if ! $found; then
+  
+    # Not found: append manually and set flag
+    printf '%s\n' "$dkey=$dvalue" >>$temp
+    should_replace=true
+  
   fi
 
-  # Update stash file checksum and return zero regardless
-  d___stash_store_md5; return 0
+  # Check if assembled temp file needs to replace the original
+  if $should_replace; then
+
+    # Move temp to location of stash file
+    if ! mv -f -- $temp "$stash_filepath"; then
+      dprint_failure "Failed to move temp file from: $temp" \
+        -n "to: $stash_filepath" -n 'while unsetting keys'
+      return 1
+    fi
+
+    # Update stash file checksum and return zero always
+    d___stash_store_md5; return 0
+
+  else
+
+    # If there is no need for replacing, erase the temp file and return zero
+    rm -f -- $temp; return 0
+
+  fi
 }
 
 #>  d___stash_add
@@ -333,40 +386,39 @@ d___stash_list()
 #
 ## Returns:
 #.  0 - Task performed successfully.
-#.  1 - Otherwise: failed to replace the file with new version, which does not 
-#.      contain desired instances of $dkey.
+#.  1 - Otherwise: failed to perform unsetting (key-values likely remain).
 #
 d___stash_unset()
 {
   # Storage variables
-  local temp="$( mktemp )" line found=false
+  local temp=$(mktemp) line
 
   # Fork depending on whether a value is given
   if [ -z "${dvalue+isset}" ]; then
 
     # No value: copy stash file, but without lines starting with '$dkey='
     while read -r line; do
-      [[ $line = "$dkey="* ]] && found=true || printf '%s\n' "$line"
-    done <"$stash_filepath" >"$temp"
+      [[ $line = "$dkey="* ]] || printf '%s\n' "$line"
+    done <"$stash_filepath" >$temp
 
   else
 
     # Value given: copy stash file, but without lines '$dkey=$dvalue'
     while read -r line; do
-      [ "$line" = "$dkey=$dvalue" ] && found=true || printf '%s\n' "$line"
-    done <"$stash_filepath" >"$temp"
+      [ "$line" = "$dkey=$dvalue" ] || printf '%s\n' "$line"
+    done <"$stash_filepath" >$temp
 
   fi
 
   # Move temp to location of stash file
-  mv -f -- "$temp" "$stash_filepath" || {
+  if ! mv -f -- $temp "$stash_filepath"; then
     dprint_failure "Failed to move temp file from: $temp" \
       -n "to: $stash_filepath" -n 'while unsetting keys'
     return 1
-  }
+  fi
 
-  # Update stash file checksum and return based on results
-  d___stash_store_md5; $found && return 0 || return 1
+  # Update stash file checksum and return zero always
+  d___stash_store_md5; return 0
 }
 
 #>  d___stash_list_keys
