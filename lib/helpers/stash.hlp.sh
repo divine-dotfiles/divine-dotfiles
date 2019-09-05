@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: stash
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    12
+#:revnumber:    13
 #:revdate:      2019.09.05
-#:revremark:    Polish docs a bit
+#:revremark:    Polish docs a bit, part 2
 #:created_at:   2019.05.15
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -16,7 +16,7 @@
 #. own stash. Stash files are named '.stash.cfg'.
 #
 
-#>  dstash [-rgsq] [--] [ CMD [ KEY [VALUE] ] ]
+#>  dstash [-drgsq] [--] [ CMD [ KEY [VALUE] ] ]
 #
 ## Main interface into the stash, be that on deployment, root, or Grail level. 
 #. Dispatches task based on first non-opt argument.
