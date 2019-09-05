@@ -2,9 +2,9 @@
 #:title:        Divine Bash script: intervene
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    80
-#:revdate:      2019.09.03
-#:revremark:    Set umask 022 in pre-flight
+#:revnumber:    82
+#:revdate:      2019.09.05
+#:revremark:    Delete dmd5 util; implement it in dep-checks
 #:created_at:   2018.03.25
 
 ## Launches the Divine intervention
@@ -152,7 +152,6 @@ d__populate_globals()
     'procedure print-colors' \
     'util dprint' \
     'util dprompt' \
-    'util dmd5' \
     'helper stash' \
     'procedure stash-checks' \
     'procedure detect-os' \
