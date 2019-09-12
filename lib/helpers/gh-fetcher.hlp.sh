@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: gh-fetcher
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    11
-#:revdate:      2019.09.05
-#:revremark:    Implement install primary, start on remove
+#:revnumber:    12
+#:revdate:      2019.09.12
+#:revremark:    Add some work on remove primary
 #:created_at:   2019.09.04
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -111,15 +111,15 @@ d__ensure_gh_repo()
 
   # Compose repo url from username/repository
   local repo_url
-  d__validate_user_repo_and_compose_url || return 1
+  d___validate_user_repo_and_compose_url || return 1
 
   # Canonicalize destination path
-  d__check_and_canonicalize_dest_path || return 1
+  d___check_and_canonicalize_dest_path || return 1
 
   # Check if restricted in some way
   case $restricted in
     no_pull) :;;
-    *)  d__pull_updates_from_remote; case $? in 
+    *)  d___pull_updates_from_remote; case $? in 
           0) return 0;; 1) return 1;; *) :;;
         esac
         ;;
@@ -202,8 +202,8 @@ d__ensure_gh_repo()
 
   fi
 
-  # Determine if called within a deployment by checking dpl stash readiness
-  if dstash ready 2>/dev/null; then
+  # Check if called within a deployment
+  if $in_dpl; then
 
     # Called within deployment: compose stashing data
     local stash_key="gh_$( dmd5 -s "${user_repo}___${perm_dest}" )"
@@ -215,7 +215,7 @@ d__ensure_gh_repo()
 
       # Check if backup location is occupied
       if [ -e "$backup_path" ]; then
-      
+
         if rm -rf -- "$backup_path" &>/dev/null; then
 
           # Fire debug message
@@ -426,7 +426,7 @@ d__ensure_gh_repo()
         rm -rf -- "$temp_dest"
         dprint_failure "${failure_report[@]}"
         return 1
-      
+
       fi
 
     fi
@@ -549,10 +549,10 @@ d__get_gh_repo()
     # Non lenient: perform extensive argument checks
 
     # Compose repo url from username/repository
-    local repo_url; d__validate_user_repo_and_compose_url || return 1
+    local repo_url; d___validate_user_repo_and_compose_url || return 1
 
     # Canonicalize destination path
-    d__check_and_canonicalize_dest_path || return 1
+    d___check_and_canonicalize_dest_path || return 1
 
     # Check if destination exists as anything but an empty directory
     if [ -e "$perm_dest" ] \
@@ -670,7 +670,7 @@ d__get_gh_repo()
         return 1
 
       fi
-      
+
     else
 
       # Failed to connect to repo: assemble failure report
@@ -841,7 +841,7 @@ d__get_gh_repo()
       return 1
 
     fi
-  
+
   fi
 
   # If set, modigy outer marker
@@ -863,11 +863,22 @@ d__get_gh_repo()
   return 0
 }
 
-#>  d__gh_clone_check SRC DEST
+#>  d__gh_clone_check SRC DEST [NAME]
 #
 ## Implemented check primary that detects whether the Github repository at SRC 
 #. appears to be cloned/downloaded into the DEST, and how does that correspond 
-#. to current records in stash
+#. to current records in stash.
+#
+## Returns:
+#.  0 - Force + record (clone) + not proper clone (with extra prompt).
+#.      Force + record (download) + not dir/empty dir (with extra prompt).
+#.  1 - Record (clone) + proper clone.
+#.      Record (download) + exist but not proper clone (with extra prompt).
+#.      No record + proper clone (by user or OS).
+#.  2 - No record + not proper clone.
+#.  3 - Deployment stash not available.
+#.      Record (clone) + not clone.
+#.      Record (download) + not dir/empty dir.
 #
 d__gh_clone_check()
 {
@@ -877,6 +888,7 @@ d__gh_clone_check()
   # Extract user_repo and destination
   local user_repo="$1"; shift
   local perm_dest="$1"; shift
+  local name="$1"; shift
 
   # Compose stashing data
   local stash_key="gh_$( dmd5 -s "${user_repo}___${perm_dest}" )"
@@ -894,7 +906,7 @@ d__gh_clone_check()
     if [ "$( dstash -s get "status_$stash_key" )" = 'cloned' ]; then
 
       # Check if a cloned repository resides at the given path
-      if d__check_if_dest_is_proper_clone; then
+      if d___check_if_dest_is_proper_clone; then
 
         # Recorded as clone, and destination is a proper clone: installed
         return 1
@@ -904,20 +916,27 @@ d__gh_clone_check()
         # Recorded as clone, but destination is not a proper clone
 
         # Print output based on current state of destination
-        if [ -d "$perm_dest" ]; then
-          dprint_alert \
-            "Despite record of cloning Github repository $user_repo" \
-            -n "into: $perm_dest" \
-            -n 'that directory is currently not the clone'        
+        local alert_report=()
+        if [ -n "$name" ]; then
+          alert_report+=( \
+            "Despite record of installing $name" \
+            -n "by cloning Github repository $user_repo" \
+          )
         else
-          dprint_alert \
+          alert_report+=( \
             "Despite record of cloning Github repository $user_repo" \
-            -n "into: $perm_dest" \
-            -n 'that path is currently not a directory'        
+          )
         fi
+        alert_report+=( -n "into: $perm_dest" )
+        if [ -d "$perm_dest" ]; then
+          alert_report+=( -n 'that directory is currently not the clone' )
+        else
+          alert_report+=( -n 'that path is currently not a directory' )
+        fi
+        dprint_alert "${alert_report[@]}"
 
       fi
-    
+
     else
 
       # Repository is recorded as downloaded
@@ -928,30 +947,58 @@ d__gh_clone_check()
         if [ -n "$( ls -A -- "$perm_dest" 2>/dev/null )" ]; then
 
           # Recorded as downloaded, but there is no way to tell
-          dprint_alert \
-            "Github repository $user_repo is recorded as downloaded" \
-            -n "into: $perm_dest" \
-            -n 'but there is no way to confirm it'
+          local alert_report=()
+          if [ -n "$name" ]; then
+            alert_report+=( "$name from Github repository $user_repo" \
+              -n 'is recorded as downloaded into:' -i "$perm_dest" )
+          else
+            alert_report+=( \
+              "Github repository $user_repo is recorded as downloaded" \
+              -n "into: $perm_dest" \
+            )
+          fi
+          alert_report+=( -n 'but it is hard to confirm it' )
+          dprint_alert "${alert_report[@]}"
           D_DPL_NEEDS_ANOTHER_PROMPT=true
           return 1
 
         else
 
           # Recorded as downloaded, but directory is empty
-          dprint_alert \
-            "Despite record of downloading Github repository $user_repo" \
-            -n "into: $perm_dest" \
-            -n 'that directory is currently empty'
+          local alert_report=()
+          if [ -n "$name" ]; then
+            alert_report+=( \
+              "Despite record of installing $name" \
+              -n "by downloading Github repository $user_repo" \
+            )
+          else
+            alert_report+=( \
+              "Despite record of downloading Github repository $user_repo" \
+            )
+          fi
+          alert_report+=( -n "into: $perm_dest" \
+            -n 'that directory is currently empty' )
+          dprint_alert "${alert_report[@]}"
 
         fi
 
       else
 
         # Recorded as downloaded, but not a directory
-        dprint_alert \
-          "Despite record of downloading Github repository $user_repo" \
-          -n "into: $perm_dest" \
-          -n 'that path is currently not a directory'
+        local alert_report=()
+        if [ -n "$name" ]; then
+          alert_report+=( \
+            "Despite record of installing $name" \
+            -n "by downloading Github repository $user_repo" \
+          )
+        else
+          alert_report+=( \
+            "Despite record of downloading Github repository $user_repo" \
+          )
+        fi
+        alert_report+=( -n "into: $perm_dest" \
+          -n 'that path is currently not a directory' )
+        dprint_alert "${alert_report[@]}"
 
       fi
 
@@ -983,12 +1030,23 @@ d__gh_clone_check()
     # No stash record
 
     # Check if a cloned repository resides at the given path
-    if d__check_if_dest_is_proper_clone; then
+    if d___check_if_dest_is_proper_clone; then
 
       # No record, but destination is a proper clone: installed by user or OS
-      dprint_debug "No record of cloning Github repository $user_repo" \
-        -n "into: $perm_dest" \
-        -n 'but the directory is nevertheless a clone of that repository'
+      local alert_report=()
+      if [ -n "$name" ]; then
+        alert_report+=( \
+          "No record of installing $name" \
+          -n "by cloning Github repository $user_repo" \
+        )
+      else
+        alert_report+=( \
+          "No record of cloning Github repository $user_repo" \
+        )
+      fi
+      alert_report+=( -n "into: $perm_dest" \
+        -n 'but the directory is nevertheless a clone of that repository' )
+      dprint_debug "${alert_report[@]}"
       D_DPL_INSTALLED_BY_USER_OR_OS=true
       return 1
 
@@ -998,15 +1056,26 @@ d__gh_clone_check()
 
       # Print output based on current state of destination
       if [ -e "$perm_dest" ]; then
-        if [ -d "$perm_dest"]; then
-          dprint_alert "Cloning Github repository $user_repo" \
-            -n "into: $perm_dest" \
-            -n 'will overwrite the existing directory (it will be backed up)'
+        local alert_report=()
+        if [ -n "$name" ]; then
+          alert_report+=( \
+            "Installing $name by cloning Github repository $user_repo" \
+          )
         else
-          dprint_alert "Cloning Github repository $user_repo" \
-            -n "into: $perm_dest" \
-            -n 'will overwrite the existing file (it will be backed up)'
+          alert_report+=( "Cloning Github repository $user_repo" )
         fi
+        alert_report+=( -n "into: $perm_dest" )
+        if [ -d "$perm_dest"]; then
+          alert_report+=( \
+            -n 'will overwrite the existing directory (it will be backed up)' \
+          )
+        else
+          alert_report+=( \
+            -n 'will overwrite the existing file (it will be backed up)' \
+          )
+        fi
+        dprint_debug "${alert_report[@]}"
+
       fi
 
       D_DPL_NEEDS_ANOTHER_PROMPT=true
@@ -1046,7 +1115,7 @@ d__gh_clone_install()
   fi
 }
 
-#>  d__gh_clone_remove SRC DEST
+#>  d__gh_clone_remove SRC DEST [NAME]
 #
 ## Implemented remove primary that tries to do as little damage as possible, 
 #. while still getting the job done
@@ -1056,30 +1125,43 @@ d__gh_clone_remove()
   # Extract user_repo and destination
   local user_repo="$1"; shift
   local perm_dest="$1"; shift
+  local name="$1"; shift
+
+  # Compose stashing data
+  local stash_key="gh_$( dmd5 -s "${user_repo}___${perm_dest}" )"
+  local stash_val="$perm_dest"
+  local backup_path="$D__DPL_BACKUP_DIR/$stash_key"
 
   # Inspect return code of check routine
   case $D__DPL_CHECK_CODE in
-    1)  # Installed: 
+    1)  # Installed
 
         # Check if installed by user or OS
         if [ "$D_DPL_INSTALLED_BY_USER_OR_OS" = true ]; then
 
-          # Installed by user or OS: replace the installation completely
+          # Installed by user or OS: 
           d__ensure_gh_repo --no-pull --name "$name" -- \
             "$user_repo" "$perm_dest"
-        
+
         else
 
-          # Installed by this framework: just pull updates
-          d__ensure_gh_repo --pull-only --name "$name" -- \
-            "$user_repo" "$perm_dest"
+          # Installed by this framework: remove it and restore backup, if any
+          d___erase_destination || return 1
+
+          # Restore backup
+          d___restore_backup
+          
+          # Return success
+          return 0
 
         fi
         ;;
-    2)  ## Not installed: install normally (pulling updates will not be an 
-        #. option anyway)
+    2)  ## Not installed; no record of installation; dest is not a clone. Even 
+        #. in forced removal, this is a no-go.
         #
-        d__ensure_gh_repo --no-pull --name "$name" -- "$user_repo" "$perm_dest"
+        dprint_alert 'Not touching local directory at:' -i "$perm_dest" \
+          -n "as it is unlikely to be the copy of the Github repository $user_repo"
+        return 0
         ;;
     *)  ## Unknown: this is a forced healing of whatever damage is done. Since 
         #. the user wants a forced installation, install without pulling, 
@@ -1090,7 +1172,102 @@ d__gh_clone_remove()
   esac
 }
 
-#>  d__validate_user_repo_and_compose_url
+#>  d___erase_destination
+#
+## INTERNAL USE ONLY
+#
+## IN:
+#.  > $user_repo
+#.  > $perm_dest
+#.  > $name
+#
+## OUT:
+#.  < 0/1
+#
+d___erase_destination()
+{
+  # Erase destination
+  if rm -rf -- "$perm_dest" &>/dev/null; then
+
+    # Fire debug message
+    if [ -n "$name" ]; then
+      dprint_debug \
+        "Erased local copy of $name from Github repository $user_repo at:" \
+        -i "$perm_dest"
+    else
+      dprint_debug "Erased local copy of Github repository $user_repo at:" \
+        -i "$perm_dest"
+    fi
+
+  else
+
+    # Failed to remove pre-existing file: assemble failure report
+    local failure_report=()
+    if [ -n "$name" ]; then
+      failure_report+=( "Failed to erase local copy of $name" \
+        -n "from Github repository $user_repo at:" )
+    else
+      failure_report+=( \
+        "Failed to erase local copy of Github repository $user_repo at:" )
+    fi
+    failure_report+=( -i "$perm_dest" )
+
+    # Report and return failure
+    dprint_failure "${failure_report[@]}"
+    return 1
+
+  fi
+}
+
+#>  d___erase_destination
+#
+## INTERNAL USE ONLY
+#
+## IN:
+#.  > $user_repo
+#.  > $perm_dest
+#.  > $name
+#.  > $backup_path
+#
+## OUT:
+#.  < 0/1
+#
+d___restore_backup()
+{
+  # Check if backup exists
+  [ -e "$backup_path" ] || return 0
+
+  # Move backup path back to original location
+  if mv -n -- "$backup_path" "$perm_dest" &>/dev/null; then
+
+    # Fire debug message
+    dprint_debug 'Moved backup from:' -i "$perm_dest" \
+      -n 'to original location at:' -i "$backup_path"
+
+  else
+
+    # Failed to back up: assemble failure report
+    local failure_report=()
+    if [ -n "$name" ]; then
+      failure_report+=( "Failed to overwrite $name at:" )
+    else
+      failure_report+=( 'Failed to overwrite at:' )
+    fi
+    failure_report+=( \
+      -i "$perm_dest" \
+      -n 'due to failure to back it up to:' \
+      -i "$backup_path" \
+    )
+
+    # Attempt to remove temp dir; report and return failure
+    rm -rf -- "$temp_dest"
+    dprint_failure "${failure_report[@]}"
+    return 1
+
+  fi
+}
+
+#>  d___validate_user_repo_and_compose_url
 #
 ## INTERNAL USE ONLY
 #
@@ -1102,7 +1279,7 @@ d__gh_clone_remove()
 #.  < $repo_url
 #.  < 1
 #
-d__validate_user_repo_and_compose_url()
+d___validate_user_repo_and_compose_url()
 {
   if [[ $user_repo =~ ^[0-9A-Za-z_.-]+/[0-9A-Za-z_.-]+$ ]]; then
 
@@ -1127,7 +1304,7 @@ d__validate_user_repo_and_compose_url()
   fi
 }
 
-#>  d__check_and_canonicalize_dest_path
+#>  d___check_and_canonicalize_dest_path
 #
 ## INTERNAL USE ONLY
 #
@@ -1140,7 +1317,7 @@ d__validate_user_repo_and_compose_url()
 #.  < $perm_dest
 #.  < 1
 #
-d__check_and_canonicalize_dest_path()
+d___check_and_canonicalize_dest_path()
 {
   # Check if given destination path is empty
   if [ -z "$perm_dest" ]; then
@@ -1164,7 +1341,7 @@ d__check_and_canonicalize_dest_path()
   perm_dest="$( dreadlink -qm -- "$perm_dest" 2>/dev/null )"
 }
 
-#>  d__check_if_dest_is_proper_clone
+#>  d___pull_updates_from_remote
 #
 ## INTERNAL USE ONLY
 #
@@ -1179,10 +1356,10 @@ d__check_and_canonicalize_dest_path()
 #.  < 1 - quit out (fail)
 #.  < 2 - continue
 #
-d__pull_updates_from_remote()
+d___pull_updates_from_remote()
 {
   # Check if destination can be changed into and if it is a proper clone
-  if d__check_if_dest_is_proper_clone; then
+  if d___check_if_dest_is_proper_clone; then
 
     # Fire debug message
     if [ "$restricted" = pull_only ]; then
@@ -1302,7 +1479,7 @@ d__pull_updates_from_remote()
   return 2
 }
 
-#>  d__check_if_dest_is_proper_clone
+#>  d___check_if_dest_is_proper_clone
 #
 ## INTERNAL USE ONLY
 #
@@ -1313,7 +1490,7 @@ d__pull_updates_from_remote()
 ## OUT:
 #.  < 0/1
 #
-d__check_if_dest_is_proper_clone()
+d___check_if_dest_is_proper_clone()
 {
   # Check if destination can be changed into and if it is a proper clone
   if cd -- "$perm_dest" &>/dev/null \
