@@ -3,9 +3,9 @@
 #:kind:         func(script)
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    2
+#:revnumber:    3
 #:revdate:      2019.09.16
-#:revremark:    Add notch/lop capabilities
+#:revremark:    Add multiline messages to d__fail and d__notify
 #:created_at:   2019.09.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -599,7 +599,8 @@ d__fail()
   if ((${#args[@]})); then
     pft+=': %s\n'
     [ -n "$title" ] && pfa+=("$BOLD$title$NORMAL") || pfa+=("${BOLD}Failure$NORMAL")
-    local msg; read -r msg <<<"${args[*]}"; [ -n "$msg" ] && pfa+=("${args[*]}") || pfa+=('<no description>')
+    [ -n "${args[0]}" ] && pfa+=("${args[0]}") || pfa+=('<empty description>')
+    for ((i=1;i<${#args[@]};++i)); do pft+='    %s\n'; [ -n "${args[$i]}" ] && pfa+=("${args[$i]}") || pfa+=('<empty description>'); done
   else
     pft+='\n'
     [ -n "$title" ] && pfa+=("$BOLD$title$NORMAL") || pfa+=("${BOLD}Something went wrong$NORMAL")
@@ -724,7 +725,8 @@ d__notify()
   # Compose the leading line depending on the options
   if ((${#args[@]})); then
     if [ -n "$title" ]; then pft+=' %s:'; pfa+=("$tp$title"); fi
-    pft+=' %s\n'; local msg; read -r msg <<<"${args[*]}"; [ -n "$msg" ] && pfa+=("$ts${args[*]}") || pfa+=("$ts<no description>")
+    pft+=' %s\n'; [ -n "${args[0]}" ] && pfa+=("${args[0]}") || pfa+=('<empty description>')
+    for ((i=1;i<${#args[@]};++i)); do pft+='    %s\n'; [ -n "${args[$i]}" ] && pfa+=("${args[$i]}") || pfa+=('<empty description>'); done
   else
     pft+=' %s\n'; if [ -n "$title" ]; then pfa+=("$tp$title$ts"); else pfa+=("${tp}Generic alert$ts"); fi
   fi
