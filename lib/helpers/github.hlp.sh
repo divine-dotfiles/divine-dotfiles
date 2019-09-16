@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: github
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    1
-#:revdate:      2019.09.13
-#:revremark:    Break Github fetcher into util and helper
+#:revnumber:    2
+#:revdate:      2019.09.16
+#:revremark:    Work on remove primary
 #:created_at:   2019.09.13
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -289,7 +289,7 @@ d__gh_clone_remove()
         # Check if installed by user or OS
         if [ "$D_DPL_INSTALLED_BY_USER_OR_OS" = true ]; then
 
-          # Installed by user or OS: 
+          # Installed by user or OS: forced re-installation
           d__ensure_gh_repo --no-pull --name "$name" -- \
             "$user_repo" "$perm_dest"
 
@@ -309,8 +309,32 @@ d__gh_clone_remove()
     2)  ## Not installed; no record of installation; dest is not a clone. Even 
         #. in forced removal, this is a no-go.
         #
-        dprint_alert 'Not touching local directory at:' -i "$perm_dest" \
-          -n "as it is unlikely to be the copy of the Github repository $user_repo"
+
+        # Print output based on current state of destination
+        if [ -e "$perm_dest" ]; then
+
+          local alert_report=()
+          alert_report+=( -n "into: $perm_dest" )
+          if [ -d "$perm_dest"]; then
+            alert_report+=( 'Not touching local directory at:' )
+          else
+            alert_report+=( 'Not touching local file at:' )
+          fi
+          alert_report+=( -i "$perm_dest" )
+          if [ -n "$name" ]; then
+            alert_report+=( \
+              "because it is unclear if it is a copy of $name" \
+              -n "from Github repository $user_repo" \
+            )
+          else
+            alert_report+=( \
+              "because it is unclear if it is a copy" \
+              "of Github repository $user_repo" \
+            )
+          fi
+          dprint_debug "${alert_report[@]}"
+
+        fi
         return 0
         ;;
     *)  ## Unknown: this is a forced healing of whatever damage is done. Since 
