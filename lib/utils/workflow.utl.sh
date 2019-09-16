@@ -3,9 +3,9 @@
 #:kind:         func(script)
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    1
-#:revdate:      2019.09.12
-#:revremark:    Initialize workflow
+#:revnumber:    2
+#:revdate:      2019.09.16
+#:revremark:    Add notch/lop capabilities
 #:created_at:   2019.09.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -14,7 +14,7 @@
 #. code and managing debug output.
 #
 
-#>  d__context [-l] [-t TITLE] [--] push|pop DESCRIPTION...
+#>  d__context [-l] [-t TITLE] [--] push|pop|notch|lop DESCRIPTION...
 #
 ## Manipulates Divine workflow context stack.
 #
@@ -29,7 +29,12 @@
 #.  2: Deployment 'example'
 #
 ## In the example above, the 'push' and 'pop' operations add and remove items 
-#. from below, respectively.
+#. from below, respectively. The 'notch' operation places an invisible mark 
+#. at the tip of the stack; the subsequent 'lop' operation repeatedly executes 
+#. a 'pop' until the next notch is reached, and then removes that notch.
+#
+## In the context of the context stack, the latest pushed item is called the 
+#. *tip*, and the items pushed after the latest notch are called the *head*.
 #
 ## Every stack manipulation triggers a debug message that honors the global 
 #. verbosity setting. If a 'push' is prepended to every logical unit of code, 
@@ -63,8 +68,10 @@
 #.  * Title is styled in bold.
 #
 ## Uses in global scope:
-#>  $D__CONTEXT   - Global storage for the Divine workflow context stack.
-#>  $D__OPT_QUIET - Global verbosity setting.
+#>  $D__CONTEXT         - Global storage for the Divine workflow context stack.
+#>  $D__CONTEXT_NOTCHES - Global storage for the notches made on the context 
+#.                        stack.
+#>  $D__OPT_QUIET       - Global verbosity setting.
 #
 ## Options:
 #.  -l, --loud                - Announce context switching regardless of the 
@@ -83,7 +90,8 @@
 #.  0 - Modified the stack as requested.
 #.  1 - Stack not modified: no arguments or unrecognized routine name.
 #.  2 - Stack not modified: pushing without a DESCRIPTION.
-#.  3 - Stack not modified: popping from an empty stack.
+#.  3 - Stack not modified: popping or lopping from an empty stack.
+#.  4 - Stack not modified: notching at the same position.
 #
 ## Prints:
 #.  stdout: Nothing.
@@ -125,6 +133,18 @@ d__context()
           if (($#)); then read -r msg <<<"$*"; [ -n "$msg" ] || msg='<empty description>'; else msg="${D__CONTEXT[$level]}"; fi
           unset D__CONTEXT[$level]
           ;;
+    notch)  if ((${#D__CONTEXT_NOTCHES[@]})); then
+              if [ ${D__CONTEXT_NOTCHES[${#D__CONTEXT_NOTCHES[@]}-1]} -eq ${#D__CONTEXT[@]} ]; then printf >&2 '%s %s\n' "$RED$BOLD==>$NORMAL" "$FUNCNAME: Attempted to make a duplicate notch on the context stack"; return 4; fi
+            else D__CONTEXT_NOTCHES+=("${#D__CONTEXT[@]}"); return 0; fi
+            ;;
+    lop)  local min num=${#D__CONTEXT_NOTCHES[@]} level msg; if (($num)); then ((--num)); min=${D__CONTEXT_NOTCHES[$num]}; else num=; min=0; fi
+          if [ $min -ge ${#D__CONTEXT[@]} ]; then printf >&2 '%s %s\n' "$RED$BOLD==>$NORMAL" "$FUNCNAME: Attempted to lop an empty head from the context stack"; return 3; fi
+          [ -n "$title" ] || title='End'; while [ ${#D__CONTEXT[@]} -gt $min ]; do
+            level=$((${#D__CONTEXT[@]}-1)); msg="${D__CONTEXT[$level]}"; unset D__CONTEXT[$level]
+            if $quiet; then $D__OPT_QUIET && return 0; printf >&2 "%s %s: %s\n" "$CYAN==>" "$BOLD$title$NORMAL$CYAN" "$msg$NORMAL"
+            else printf >&2 "%s %s: %s\n" "$YELLOW$BOLD==>$NORMAL" "$BOLD$title$NORMAL" "$msg"; fi
+          done; [ -n "$num" ] && unset D__CONTEXT_NOTCHES[$num]; return 0
+          ;;
     *)    printf >&2 '%s %s\n' "$RED$BOLD==>$NORMAL" "$FUNCNAME: Ignoring unrecognized routine: '${args[0]}'"; return 1;;
   esac
 
@@ -140,9 +160,10 @@ d__context()
 #
 ## Wrapper around almost any single Bash command. When d__cmd is prepended to 
 #. CMD, CMD is executed as normal, then its return code is inspected. If the 
-#. return code is non-zero, a failure message is printed using d__fail. The 
-#. output is titled, by default, 'Command failed', and shows the command that 
-#. has failed, along with the current context stack.
+#. return code is non-zero, a failure message is printed using d__fail, and the 
+#. head is lopped from the current workflow context stack. The output is 
+#. titled, by default, 'Command failed', and shows the command that has 
+#. failed, along with the current context stack.
 #
 ## The command CMD must be a single command, consisting of any number of WORDs. 
 #. Keep in ming that Bash will parse the call to this function before the 
@@ -174,8 +195,9 @@ d__context()
 #. All of them modify the output of d__fail.
 #
 ## Semantics of failure:
-#.  --opt--         - Make the command optional, i.e., failure messages will be 
-#.                    more tame.
+#.  --opt--         - Make the command optional: if there is a failure, the 
+#.                    head of the context stacked will not be lopped and the 
+#.                    failure messages will be styled less urgently.
 #.  --alrt-- ALERT  - This short phrase will override the default title of 
 #.                    the output of d__fail.
 #.  --crcm-- MSG    - Provided message will be printed to the user by d__fail, 
@@ -520,7 +542,8 @@ d__pipe()
 #>  d__fail [-t TITLE] [--] [DESCRIPTION...]
 #
 ## Debug printer: announces a failure of some kind. The output is printed 
-#. regardless of the global verbosity setting.
+#. regardless of the global verbosity setting. Invariably lops the head of the 
+#. current workflow context stack.
 #
 ## The layout of the output is as follows.
 #
@@ -590,19 +613,14 @@ d__fail()
     done
   fi
 
-  # Add circumstances and consequences, if provided by d__* function
-  if ! [ -z ${d__crcm+isset} ]; then
-    pft+='    %s: %s\n'; pfa+=( "${BOLD}Circumstances$NORMAL" "$d__crcm" )
-  fi
-  if ! [ -z ${d__rslt+isset} ]; then
-    pft+='    %s: %s\n'; pfa+=( "${BOLD}Result$NORMAL" "$d__rslt" )
-  fi
-
   # Print the output
   printf >&2 "$pft" "${pfa[@]}"
+
+  # Lop the head of the context stack
+  d__context -- lop
 }
 
-#>  d__notify [-clsv] [-t TITLE] [--] [DESCRIPTION...]
+#>  d__notify [-1chlstvx] [-t TITLE] [--] [DESCRIPTION...]
 #
 ## Debug printer: announces a development of any kind. Whether the output is 
 #. printed depends on the global verbosity setting.
@@ -636,16 +654,21 @@ d__fail()
 #.  -t TITLE, --title TITLE   - Custom title for the message.
 #
 ## Options for context (one active at a time, last option wins):
-#.  -c, --context             - Include in the output the entire workflow 
+#.  -c, --context-all         - Include in the output the entire workflow 
 #.                              context stack.
-#.  -h, --context-head        - Include in the output the latest item on the 
-#.                              workflow context stack in the output.
-#.  --context-<NUM>           - Include in the output NUM latest items on the 
+#.  -h, --context-head        - Include in the output the items on the workflow 
+#.                              context stack that have been pushed since the 
+#.                              latest notch in the output.
+#.  -1, --context-tip         - Include in the output the latest item on the 
 #.                              workflow context stack in the output.
 #
-## Options for special styling (only relevant with the --loud option):
+## Options for special styling. These modes are only relevant with the --loud 
+#. option and when the terminal coloring is available (one active at a time, 
+#. last option wins):
 #.  -v, --success   - Style the notification as a success message by painting 
 #.                    the introductory arrow in green.
+#.  -x, --failure   - Style the notification as a failure message by painting 
+#.                    the introductory arrow in red.
 #.  -s, --skip      - Style the notification as a skip message by painting the 
 #.                    introductory arrow in white.
 #
@@ -665,24 +688,22 @@ d__notify()
   local args=() arg opt context quiet=true title stl; while (($#)); do arg="$1"; shift; case $arg in
     -*) case ${arg:1} in
           -)          args+=("$@"); break;;
-          c)          context=e;;
-          h)          context=h;;
-          -context*)  case ${arg:9} in '') context=e;; -head) context=h;;
-                        -*) arg=$((${arg:10})); if ((${#D__CONTEXT[@]} < $arg)); then
-                              printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" "$FUNCNAME: Too many context items requested: '--context-$arg' (have: ${#D__CONTEXT[@]})"
-                            fi; context=$arg;;
-                        *)  printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" "$FUNCNAME: Ignoring unrecognized context-related option: '$arg'"
-                      esac;;
+          c|-context-all)   context=e;;
+          h|-context-head)  context=h;;
+          1|-context-tip)   context=t;;
           l|-loud)    quiet=false;;
           v|-success) stl=v;;
+          x|-failure) stl=x;;
           s|-skip)    stl=s;;
           t|-title)   if (($#)); then read -r title <<<"$1"; [ -n "$title" ] || title='<empty title>'; shift; else printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" "$FUNCNAME: Ignoring option lacking required argument: '$arg'"; fi;;
           *)  for ((i=1;i<${#arg};++i)); do opt="${arg:i:1}"
                 case $opt in
                   c)  context=e;;
                   h)  context=h;;
+                  1)  context=t;;
                   l)  quiet=false;;
                   v)  stl=v;;
+                  x)  stl=x;;
                   s)  stl=s;;
                   t)  if (($#)); then read -r title <<<"$1"; [ -n "$title" ] || title='<empty title>'; shift; else printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" "$FUNCNAME: Ignoring option lacking required argument: '$opt'"; fi;;
                   *)  printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" "$FUNCNAME: Ignoring unrecognized option: '$opt'";;
@@ -709,23 +730,18 @@ d__notify()
   fi
 
   # If context stack has at least one item, print the entire stack
-  if ((${#D__CONTEXT[@]})); then
+  if [ -n "$context" ]; then
     case $context in
-      '') :;;
-      e)  pft+='    %s: %s\n'; pfa+=( "${tp}Context$ts" "${D__CONTEXT[0]}" )
-          for ((i=1;i<${#D__CONTEXT[@]};++i)); do
-            pft+='             %s\n'; pfa+=("${D__CONTEXT[$i]}")
-          done;;
-      h)  pft+='    %s: %s\n'; pfa+=( "${tp}Context$ts" "${D__CONTEXT[${#D__CONTEXT[@]}-1]}" );;
-      *)  if (($context)); then
-            local min=$((${#D__CONTEXT[@]}-$context)); (($min<0)) && min=0
-            pft+='    %s: %s\n'; pfa+=( "${tp}Context$ts" "${D__CONTEXT[$min]}" )
-            for ((i=$min+1;i<${#D__CONTEXT[@]};++i)); do
-              pft+='             %s\n'; pfa+=("${D__CONTEXT[$i]}")
-            done
-          fi
-          ;;
+      e)  context=0;;
+      h)  context=${#D__CONTEXT_NOTCHES[@]}; (($context)) && context=$((${D__CONTEXT_NOTCHES[$context-1]})) || context=0;;
+      t)  context=${#D__CONTEXT[@]}; (($context)) && context=$(($context-1)) || context=0;;
     esac
+    if ((${#D__CONTEXT[@]} > $context)); then
+      pft+='    %s: %s\n'; pfa+=( "${tp}Context$ts" "${D__CONTEXT[$context]}" )
+      for ((i=$context+1;i<${#D__CONTEXT[@]};++i)); do
+        pft+='             %s\n'; pfa+=("${D__CONTEXT[$i]}")
+      done
+    fi
   fi
 
   # Print the output
@@ -737,8 +753,10 @@ d__notify()
 ## INTERNAL USE ONLY
 #
 ## This function unifies failure output of functions d__cmd, d__require, and 
-#. d__pipe. Whenever one of these functions calls this one, the layout of the 
-#. output is as follows.
+#. d__pipe; it also lops the head of the current workflow context stack, unless 
+#. the the $opt local variable in the calling context is set to true.
+#
+## The layout of the output is as follows.
 #
 ##  ==> <TITLE>: <CMD>
 #.          [<LABEL>: '<WORD>']...
@@ -806,35 +824,7 @@ d___fail_from_cmd()
 
   # Print the output
   printf >&2 "$pft%s" "${pfa[@]}" "$NORMAL"
-}
 
-
-d__declare_global_colors()
-{
-  # Check if terminal is connected
-  if [ -t 1 ]; then
-
-    # Terminal connected: check if tput can be used
-    if type -P tput &>/dev/null \
-      && tput sgr0 &>/dev/null \
-      && [ -n "$( tput colors )" ] \
-      && [ "$( tput colors )" -ge 8 ]
-    then
-
-      # tput is suitable: use it
-      d__colorize_with_tput && return 0 || return 1
-
-    else
-
-      # Unsupported tput, such as on FreeBSD: use escape sequences instead
-      d__colorize_with_escseq && return 0 || return 1
-
-    fi
-
-  else
-
-    # Terminal not connected: don’t colorize
-    d__do_not_colorize && return 2 || return 1
-
-  fi
+  # If not optional, lop the head of the context stack
+  $opt || d__context -- lop
 }
