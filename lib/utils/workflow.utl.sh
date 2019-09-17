@@ -3,9 +3,9 @@
 #:kind:         func(script)
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    3
-#:revdate:      2019.09.16
-#:revremark:    Add multiline messages to d__fail and d__notify
+#:revnumber:    4
+#:revdate:      2019.09.17
+#:revremark:    d__context: Accept lopping when there are no items
 #:created_at:   2019.09.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -31,7 +31,9 @@
 ## In the example above, the 'push' and 'pop' operations add and remove items 
 #. from below, respectively. The 'notch' operation places an invisible mark 
 #. at the tip of the stack; the subsequent 'lop' operation repeatedly executes 
-#. a 'pop' until the next notch is reached, and then removes that notch.
+#. a 'pop' until the next notch is reached, and then removes that notch. Any 
+#. number of notches can be made, as long as they are not duplicated (at the 
+#. same position). If no notches are left, the root of the stack is the limit.
 #
 ## In the context of the context stack, the latest pushed item is called the 
 #. *tip*, and the items pushed after the latest notch are called the *head*.
@@ -82,6 +84,9 @@
 #.  $1  - Name of the routine to run:
 #.          * push  - Add one item at the bottom of the stack.
 #.          * pop   - Remove one item at the bottom of the stack.
+#.          * notch - Place a notch at the bottom of the stack.
+#.          * lop   - Repeatedly pop until the next notch is reached, then 
+#.                    remove that notch.
 #.  $*  - Human-readable description of the stack item. During the 'pop' 
 #.        routine it overrides the description of the popped item, which is 
 #.        printed by default.
@@ -90,7 +95,7 @@
 #.  0 - Modified the stack as requested.
 #.  1 - Stack not modified: no arguments or unrecognized routine name.
 #.  2 - Stack not modified: pushing without a DESCRIPTION.
-#.  3 - Stack not modified: popping or lopping from an empty stack.
+#.  3 - Stack not modified: popping from an empty stack.
 #.  4 - Stack not modified: notching at the same position.
 #
 ## Prints:
@@ -138,7 +143,6 @@ d__context()
             else D__CONTEXT_NOTCHES+=("${#D__CONTEXT[@]}"); return 0; fi
             ;;
     lop)  local min num=${#D__CONTEXT_NOTCHES[@]} level msg; if (($num)); then ((--num)); min=${D__CONTEXT_NOTCHES[$num]}; else num=; min=0; fi
-          if [ $min -ge ${#D__CONTEXT[@]} ]; then printf >&2 '%s %s\n' "$RED$BOLD==>$NORMAL" "$FUNCNAME: Attempted to lop an empty head from the context stack"; return 3; fi
           [ -n "$title" ] || title='End'; while [ ${#D__CONTEXT[@]} -gt $min ]; do
             level=$((${#D__CONTEXT[@]}-1)); msg="${D__CONTEXT[$level]}"; unset D__CONTEXT[$level]
             if $quiet; then $D__OPT_QUIET && return 0; printf >&2 "%s %s: %s\n" "$CYAN==>" "$BOLD$title$NORMAL$CYAN" "$msg$NORMAL"
