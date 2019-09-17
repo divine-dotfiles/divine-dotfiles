@@ -1,9 +1,9 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revnumber: 77
-:revdate: 2019.09.05
-:revremark: Modify README to reflect code transfer
+:revnumber: 78
+:revdate: 2019.09.17
+:revremark: Add section on Divine workflow
 :doctype: article
 // Visual
 :toc:
@@ -1201,6 +1201,90 @@ Examples are: `dprint_*` family of functions, `dprompt`, `dstash`, `dln`, `dcp`,
 
 All such functions are call-only, i.e., *not* for re-implementation.
 |===
+
+==== Divine workflow
+
+The Divine workflow is the recommended way to organize Bash code within deployments.
+The framework provides a set of functions that facilitate breaking down Bash code into meaningful blocks.
+The goal here is to both annotate the code and automatically provide useful debug output.
+
+The Divine workflow boils down to the following principles:
+
+* Everything should be written within Bash functions.
+* There should be a function for every logical sub-routine.
+* The workflow context should be maintained by calling <<func_context,`d{dus}context`>> at specific junctions:
+** At the beginning of a <<primary-functions,primary function>> — `d{dus}context notch`.
+** At the top of every sub-routine — `d{dus}context push`.
+* Whenever a sub-routine needs to fail, two pathways are available:
+** Critical commands should be enwrapped in <<func_cmd,`d{dus}cmd`>>, <<func_pipe,`d{dus}pipe`>>, or <<func_require,`d{dus}require`>>.
+** 'Manual' failures should be orchestrated via <<func_fail,`d{dus}fail`>>.
+* To interact with the user along the way:
+** Non-failure alerts should be delivered via <<func_notify,`d{dus}notify`>>.
+** Prompts that include information on current workflow context can be initiated via <<func_prompt,`d{dus}prompt`>>.
+* <<func_context,`d{dus}context`>> should again be used to wrap things up:
+** Before successfully returning from a sub-routine — `d{dus}context pop`.
+** Before successfully returning from a <<primary-functions,primary function>> — `d{dus}context lop`.
+
+.Illustration of the Divine workflow
+[source,bash]
+----
+# grail/dpls/example.dpl.sh
+
+d__dpl_install()
+{
+  d__context notch          # mark beginning of primary
+  
+  perform_task || return 1  # do the work
+
+  d__context lop            # lop off everything down to and including the notch
+  return 0
+}
+
+perform_task()
+{
+  d__context push 'Performing task'
+
+  perform_sub_task || return 1
+
+  d__context pop
+  return 0
+}
+
+perform_sub_task()
+{
+  d__context push 'Performing sub-task'
+
+  d__require [ --THIS-- "$this_number" -eq --THAT-- "$that_number" ] \
+    --else-- 'Refusing to proceed' \
+    || return 1
+
+  d__notify --loud --context-head --title Attention -- 'Please re-log'
+
+  d__context pop
+  return 0
+}
+----
+
+.Example of success output from the illustration of the Divine workflow above
+[source,subs="verbatim,quotes,attributes"]
+----
+[.yellow]#*==>*# *Attention:* Please re-log
+    *Context:* Performing task
+             Performing sub-task
+----
+
+.Example of failure output from the illustration of the Divine workflow above
+[source,subs="verbatim,quotes,attributes"]
+----
+[.red]#*==>*# *Command failed:* [ *THIS* -eq *THAT* ]
+        *THIS:* '0'
+        *THAT:* '1'
+    *Context:* …
+             Installing deployment 'example'
+             Performing task
+             Performing sub-task
+    *Result:* Refusing to proceed
+----
 
 === Variables available to deployments
 
