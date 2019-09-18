@@ -3,7 +3,7 @@
 :email: grayarea@protonmail.ch
 :revnumber: 81
 :revdate: 2019.09.18
-:revremark: Polish README
+:revremark: Merge workflow feature
 :doctype: article
 // Visual
 :toc:
@@ -1193,14 +1193,109 @@ Whenever the framework does _not_ expect you to reassign a global variable or re
 * `*D__*` prefix — for names of read-only internal variables;
 * `*d__*` prefix — for names of call-only internal functions.
 
-[.note]
-[%noheader,cols="<.<a"]
-|===
-| Some of the most used framework functions have grown so attached to their `d` prefix, that they omit the underscores altogether.
-Examples are: `dprint_*` family of functions, `dprompt`, `dstash`, `dln`, `dcp`, etc.
+[[divine-workflow]]
+==== Divine workflow
 
-All such functions are call-only, i.e., *not* for re-implementation.
-|===
+The Divine workflow is the recommended way to organize Bash code within deployments.
+The framework provides a set of functions that facilitate breaking down Bash code into meaningful blocks.
+The goal here is to both annotate the code and automatically provide useful debug output.
+
+Central to the idea of the Divine workflow is the concept of *workflow context*.
+The workflow context is a stack (very similar to the function https://en.wikipedia.org/wiki/Call_stack[call stack]) that at any moment contains the hierarchy of tasks currently being performed.
+An example of the context stack would look like this:
+
+.Illustration of the Divine workflow context stack
+====
+[start=0]
+. Running _Divine.dotfiles_ `install` routine.
+. Installing deployments at priority `4096`.
+. Deployment `example`.
++
+---
+. Executing a particular task within the deployment.
+. Executing a sub-task.
+====
+
+The context stack starts at the root and grows down to arbitrary depth.
+Context items are pushed and popped from the bottom.
+*Notches* (represented by a horizontal line in the illustration) delimit logical layers and provide a way to quickly pop multiple items.
+
+[[divine-workflow-guide]]
+With the idea of context in mind, the Divine workflow boils down to the following principles:
+
+* Everything should be written within Bash functions.
+* There should be a function for every logical sub-routine.
+* The workflow context should be maintained by calling <<func-context,`d{dus}context`>> at specific junctions:
+** At the beginning of a <<primary-functions,primary function>> — `d{dus}context notch`.
+** At the top of every sub-routine — `d{dus}context push`.
+* Whenever a sub-routine needs to fail, two pathways are available:
+** Critical commands should be enwrapped in <<func-cmd,`d{dus}cmd`>>, <<func-pipe,`d{dus}pipe`>>, or <<func-require,`d{dus}require`>>.
+** 'Manual' failures should be orchestrated via <<func-fail,`d{dus}fail`>>.
+* To interact with the user along the way:
+** Non-failure alerts should be delivered via <<func-notify,`d{dus}notify`>>.
+** Prompts that include information on current workflow context can be initiated via <<func-prompt,`d{dus}prompt`>>.
+* <<func-context,`d{dus}context`>> should again be used to wrap things up:
+** Before successfully returning from a sub-routine — `d{dus}context pop`.
+** Before successfully returning from a <<primary-functions,primary function>> — `d{dus}context lop`.
+
+.Illustration of the Divine workflow
+[source,bash]
+----
+# grail/dpls/example.dpl.sh
+
+d__dpl_install()
+{
+  d__context notch          # mark beginning of primary
+  
+  perform_task || return 1  # do the work
+
+  d__context lop            # lop off everything down to and including the notch
+  return 0
+}
+
+perform_task()
+{
+  d__context push 'Performing task'
+
+  perform_sub_task || return 1
+
+  d__context pop
+  return 0
+}
+
+perform_sub_task()
+{
+  d__context push 'Performing sub-task'
+
+  d__require [ --THIS-- "$this_number" -eq --THAT-- "$that_number" ] \
+    --else-- 'Refusing to proceed' \
+    || return 1
+
+  d__notify --loud --context-head --title Attention -- 'Sub-task done'
+
+  d__context pop
+  return 0
+}
+----
+
+.Example of success output from the illustration of the Divine workflow above
+[source,subs="verbatim,quotes,attributes"]
+----
+[.yellow]#*==>*# *Attention:* Sub-task done
+    *Context:* Performing task
+             Performing sub-task
+----
+
+.Example of failure output from the illustration of the Divine workflow above
+[source,subs="verbatim,quotes,attributes"]
+----
+[.red]#*==>*# *Command failed:* [ *THIS* -eq *THAT* ]
+        *THIS:* '0'
+        *THAT:* '1'
+    *Context:* Performing task
+             Performing sub-task
+    *Result:* Refusing to proceed
+----
 
 === Variables available to deployments
 
@@ -1443,221 +1538,544 @@ This affects all non-<<urgent-prompt,urgent>> built-in prompts.
 
 === Functions available to deployments
 
-[[func-dprint]]
-==== `dprint` family of functions
+[[func-context]]
+==== Function `d{dus}context`
 
-Functions named with prefix `dprint_` serve to unify styling and behavior of output across _Divine.dotfiles_.
-They all print to `stderr`.
-
-You are advised to serve all output of your deployments through one of these, in keeping with their semantics.
+The function `d{dus}context` manipulates the current Divine <<divine-workflow,workflow>> context stack.
+For notes on usage within the Divine workflow, see the workflow <<divine-workflow-guide,guidelines>>.
 
 [source,subs="verbatim,quotes,attributes"]
 ----
-*dprint_debug*    [-l] [-n] [*_CHUNK_*|-n|-i]...    {dhs} Debug message (appears 
-                                              {hs}. only in --verbose mode)
-
-*dprint_alert*         [-n] [*_CHUNK_*|-n|-i]...    {hs} Notable event/problem
-
-*dprint_skip*          [-n] [*_CHUNK_*|-n|-i]...    {hs} Notable skip
-
-*dprint_success*       [-n] [*_CHUNK_*|-n|-i]...    {hs} Notable success
-
-*dprint_failure*       [-n] [*_CHUNK_*|-n|-i]...    {hs} Notable failure
-
-*dprint_sudo*          [-n] [*_CHUNK_*|-n|-i]...    {dhs} Warning of upcoming sudo 
-                                              {hs}. password prompt (appears only 
-                                              {hs}. when caller currently does not
-                                              {hs}. have sudo privelege)
+*d{dus}context* [-l] [-t *_TITLE_*] [--] *push*|*pop*|*notch*|*lop* *_DESCRIPTION_*...
 ----
 
-.Example output of using a `dprint_*` function (coloring omitted)
-[source,subs="verbatim,quotes,attributes"]
-----
-$ dprint_debug -l -n 'Extracting archive from:' -i "$archive_path" \
--n 'to your home directory'
+The `push` and `pop` operations add and remove context items from below, respectively.
+The `notch` operation places an invisible mark at the tip of the stack.
+The `lop` operation repeatedly executes a `pop` until the next notch (or root) is reached, and then removes that notch.
 
-*==>* Extracting archive from:
-        /home/user/downloads/filename.tar.gz
-    to your home directory
-----
+Any number of notches can be made, as long as they are not duplicated (at the same position).
+Within the context stack, the latest pushed item is called the *tip*, and the items pushed after the latest notch are called the *head*.
 
-The `dprint` functions have the following *in common*:
+Most stack manipulations trigger a debug message that honors the global verbosity setting, as stored in <<var-opt-quiet,`$D{dus}OPT_QUIET`>>.
+If a `push` is prepended to every logical unit of code, and then a matching `pop` is appended at the end, a useful pattern of breadcrumbs arises in the debug output.
+Other Divine workflow utilities (<<func-notify,`d{dus}notify`>>, <<func-prompt,`d{dus}prompt`>>, <<func-fail,`d{dus}fail`>>, <<func-cmd,`d{dus}cmd`>>, <<func-pipe,`d{dus}pipe`>>, <<func-require,`d{dus}require`>>) include the state of the context stack in their error output.
 
-* The output is prepended with a thematically styled 'fat' arrow: `=\=>`.
-* All lines after the first are indented with four spaces.
-* The output message is assembled from given ``*_CHUNK_*``s, which are just strings.
-** Special `*_CHUNK_*`, `-n`, inserts a line break.
-+
-If `-n` is the very first chunk, line break appears before the introductory arrow.
-** Special `*_CHUNK_*`, `-i`, inserts a line break followed by additional four-space indentation.
-** In the produced message, normal chunks are separated with single space.
-* Unrecognized options are treated as literal chunks.
-
-The `dprint` functions *differ* in the following:
-
-* `dprint_debug` honors current verbosity mode, as stored in <<var-opt-quiet,`$D__OPT_QUIET`>>.
-+
-All other `dprint` functions print their message regardless of verbosity.
-To make `dprint_debug` the same way, add `-l` option as its very first argument.
-* Entire message of `dprint_debug` is colored to stand out.
-All other `dprint` functions print their message in terminal's font color.
-* `dprint_sudo` prints its message only if calling context currently has no superuser priveleges.
-Otherwise, nothing is printed.
-* `dprint_sudo` is the only one that provides a default message if no chunks are given.
-It reads:
-+
-`*=\=>* Sudo password is required`
-
-The `dprint` functions carry following *semantics*:
-
-[%header,cols="<.<1,<.<3",stripes=none]
-|===
-
-^.^| Function
-^.^| Semantics
-
-| `*dprint_debug*`
-a| `[.blue]#*=\=>* Stage of internal logic#`
-
-The intention is to quickly locate the point of failure, in case an error appears.
-Only printed in verbose mode.
-
-Put this everywhere: it won't show by default anyway.
-| `*dprint_alert*`
-a| `[.yellow]#*=\=>*# Notable non-fatal event/problem`
-
-Sprinkle this sparingly, or it will likely be ignored.
-| `*dprint_skip*`
-a| `[.white]#*=\=>*# Notable non-fatal skipping of logic`
-
-Use this if the skip is not problematic.
-| `*dprint_success*`
-a| `[.green]#*=\=>*# Notable success`
-
-Avoid this unless the success is extraordinary.
-| `*dprint_failure*`
-a| `[.red]#*=\=>*# Notable failure, fatal or not`
-
-Issue this on everything that is abnormal.
-| `*dprint_sudo*`
-a| `[.yellow]#*=\=>*# Warning of upcoming sudo password prompt`
-
-Prepend this to your priveleged calls to inform user of why they need to enter their password.
-
-|===
-
-[.note]
-[%noheader,cols="<.<a"]
-|===
-| Notice the word '_notable_' used throughout.
-In general, it is *not* _notable_ when your deployment works as expected.
-|===
-
-[[func-dprompt]]
-==== `dprompt` function
-
-Function `dprompt` serves to unify styling and behavior of user prompts across _Divine.dotfiles_.
-It prints to `stderr`.
-
-You are advised to serve all user prompts of your deployments through this function.
-
-[source,subs="verbatim,quotes,attributes"]
-----
-*dprompt* [-a *_ANSWER_*] [-p *_PROMPT_*] [-c *_COLOR_*] [-brkyq]... \
-  [--] [-n] [*_CHUNKS_*|-n|-i]...
-----
-
-Interactively promts user for either:
-
-* yes/no answer (default prompt message: `Proceed?`)
-* any key press (default prompt message: `Press any key to continue`)
-
-.Example output of using a `dprompt` function
-[source,subs="verbatim,quotes,attributes"]
-----
-$ dprompt --prompt 'Are you sure?' --bare --or-quit -- -n 'Next step is risky!'
-
-*==>* Next step is risky!
-    Are you sure? [y/n/q]
-----
-
-Prints introductory message composed from ``*_CHUNK_*``s (these work the same as in `dprint` functions).
-Then, prints the prompt message followed by declaration of expected response, e.g., `[y/n]`.
+Each item on the context stack must be given a `*_DESCRIPTION_*`.
+As a matter of good style, the `*_DESCRIPTION_*` should be worded around either a noun or a verb in its -ing form (gerund).
+Repetition of information from above levels should be minimized.
 
 Returns:
 
-* `0` on affirmative answer,
-* `1` on negatory answer,
-* `2` on special 'quit' answer (enabled by `--or-quit` option).
+* `0` — Stack modified as requested.
+* `1` — Stack not modified: no arguments or unrecognized first argument.
+* `2` — Stack not modified: pushing without a `*_DESCRIPTION_*`.
+* `3` — Stack not modified: popping from an empty stack.
+* `4` — Stack not modified: notching at the same position.
 
-Below is the list of `dprompt` options.
-Unrecognized options are silently ignored.
-
-.List of `dprompt` options
+.List of `d{dus}context` options
 [%noheader,cols="<.<a",stripes=none]
 |===
 
-| `*-a* *_ANSWER_*` `*--answer* *_ANSWER_*`
+| `*-t* *_TITLE_*`, `*--title* *_TITLE_*`
 
-* If `*_ANSWER_*` is `true`, returns `0` immediately.
-* If `*_ANSWER_*` is `false`, returns `1` immediately.
-* Otherwise, proceeds with prompting.
+Sets custom title for the debug message.
+Default titles are (in *bold*):
 
-[.note]
-[%noheader,cols="<.<a"]
-!===
-! Call `dprompt --answer "$D__OPT_ANSWER"` to make the prompt honor `--yes`/`--no` options of the <<intervention-utility,intervention utility>>.
-!===
+* When pushing an item:
++
+[source,subs="verbatim,quotes,attributes"]
+----
+==> *Start*: Description of the context item.
+----
+* When popping an item:
++
+[source,subs="verbatim,quotes,attributes"]
+----
+==> *End*: Description of the context item.
+----
 
-| `*-p* *_PROMPT_*`, `*--prompt* *_PROMPT_*`
+| `*-l*`, `*--loud*`
 
-Customizes prompt text.
-Limit this to a few words, e.g., `Are you sure?`.
-Long-winded descriptions are better served in chunks as regular arguments.
-
-| `*-c* *_COLOR_*`, `*--color* *_COLOR_*`
-
-Uses one of the built-in colors in styling of the prompt: `$BLACK`, `$RED`, `$GREEN`, `$YELLOW` (_default_), `$BLUE`, `$MAGENTA`, `$CYAN`, `$WHITE`.
-
-| `*-b*`
-
-(_repeatable_) Gradually removes built-in coloring and bolding effects.
-Depending on number of `-b` options, the following styling is used:
-
-* 0:  bold, color, inverted color
-* 1:  bold, color
-* 2:  bold
-* 3:  color
-* 4+: _none_, synonym of `--bare`
-
-| `*--bare*`
-
-Completely removes built-in coloring and bolding from the prompt.
-Synonym of `-bbbb`.
-
-| `*-r*`, `*--arrow*`
-
-Always prepend 'fat' arrow, `=\=>`, to the prompt.
-Without this option, the arrow is only printed when there is at least one non-option argument.
-
-| `*-k*`, `*--any-key*`
-
-Special mode: return `0` on any key press after the prompt.
-
-With this option `0` is immediately returned for both `true` and `false` values of `--answer` option.
-
-| `*-y*`, `*--yes-no*`
-
-Default mode: yes or no prompt.
-
-| `*-q*`, `*--or-quit*`
-
-In default mode, this option introduces the third option: `q` (stands for 'quit').
-If user presses `q`, code `2` is returned by `dprompt`.
+Prints the debug output regardless of the global verbosity setting.
 
 |===
 
-[[func_dmd5]]
+[[func-notify]]
+==== Function `d{dus}notify`
+
+The function `d{dus}notify` conveys any non-failure notifications to the user.
+For notes on usage within the Divine workflow, see the workflow <<divine-workflow-guide,guidelines>>.
+
+[source,subs="verbatim,quotes,attributes"]
+----
+*d{dus}notify* [-1chlsuvx] [-t *_TITLE_*] [--] [*_DESCRIPTION_*...]
+----
+
+Whether the output is printed depends on the global verbosity setting, as stored in <<var-opt-quiet,`$D{dus}OPT_QUIET`>>.
+
+Returns:
+
+* `0` — Always.
+
+.The layout of the output of `d{dus}notify` (without any arguments)
+[source,subs="verbatim,quotes,attributes"]
+----
+==> *_TITLE_*
+----
+
+.The layout of the output of `d{dus}notify` (all optional parts included)
+[source,subs="verbatim,quotes,attributes"]
+----
+==> *_TITLE_*: *_DESCRIPTION-0_*
+    *_DESCRIPTION-1_*
+    ...
+    Context: *_CONTEXT-0_*
+             *_CONTEXT-1_*
+             ...
+----
+
+* `*_TITLE_*` — _(optional)_ Short heading for the notification.
+Defaults to:
+** Without a `*_DESCRIPTION_*` — omitted.
+** With a `*_DESCRIPTION_*` — `Generic alert`.
+* `*_DESCRIPTION_*` — _(optional)_ Short elaboration on the notification.
+* `*_CONTEXT_*` — _(optional)_ Some part of the context stack, as requested by any of the relevant options.
+The entire context block is omitted if the context stack is not requested or is empty.
+
+.List of `d{dus}notify` options
+[%noheader,cols="<.<a",stripes=none]
+|===
+
+| `*-t* *_TITLE_*`, `*--title* *_TITLE_*`
+
+Sets custom title for the notification.
+
+Without this option, the `*_TITLE_*` defaults to:
+
+** Without a `*_DESCRIPTION_*` — omitted.
+** With a `*_DESCRIPTION_*` — `Generic alert`.
+
+| `*-l*`, `*--loud*`
+
+Prints the notification regardless of the global verbosity setting.
+This also causes a change in styling of the message.
+
+| `*-u*`, `*--sudo*`
+
+Print the notification only if the caller lacks the `sudo` privelege.
+Automatically makes the notification `--loud`.
+Also, automatically sets the `*_TITLE_*` to `Password prompt` and the `*_DESCRIPTION_*` to `The upcoming command requires sudo priveleges.`, unless these parts are already set.
+
+^.^h| Context-related options (one active at a time, last option wins)
+
+| `*-c*`, `*--context-all*`
+
+Includes the entire workflow context stack in the output.
+
+| `*-h*`, `*--context-head*`
+
+Includes the head of the workflow context stack (the items pushed since the last notch) in the output.
+
+| `*-1*`, `*--context-tip*`
+
+Includes the tip of the workflow context stack (the last pushed item) in the output.
+
+^.^h| Coloring options (one active at a time, last option wins)
+
+| `*-v*`, `*--success*`
+
+In the `--loud` mode, colors the introductory arrow in green, if the terminal coloring is available.
+
+| `*-x*`, `*--failure*`
+
+In the `--loud` mode, colors the introductory arrow in red, if the terminal coloring is available.
+
+| `*-s*`, `*--skip*`
+
+In the `--loud` mode, colors the introductory arrow in white, if the terminal coloring is available.
+
+|===
+
+[[func-prompt]]
+==== Function `d{dus}prompt`
+
+The function `d{dus}prompt` is the preferred user-prompting mechanism.
+For notes on usage within the Divine workflow, see the workflow <<divine-workflow-guide,guidelines>>.
+
+[source,subs="verbatim,quotes,attributes"]
+----
+*d{dus}prompt* [-1bchkqsvxy] [-p *_PROMPT_*] [-a *_ANSWER_*] [-t *_TITLE_*] [--] [*_DESCRIPTION_*...]
+----
+
+Two prompting modes are supported:
+
+* Decision prompt (yes or no): returns `0` for the affirmative answer and `1` for the negatory answer.
+* Any key prompt: returns `0` for any key press.
+
+If the option `--or-quit` is used, both modes return `2` whenever the user chooses to quit.
+
+.The layout of the output of `d{dus}prompt` (without any arguments)
+[source,subs="verbatim,quotes,attributes"]
+----
+*_PROMPT_* *_KEYS_*
+----
+
+.The layout of the output of `d{dus}prompt` (all optional parts included)
+[source,subs="verbatim,quotes,attributes"]
+----
+==> *_TITLE_*: *_DESCRIPTION-0_*
+    *_DESCRIPTION-1_*
+    ...
+    Context: *_CONTEXT-0_*
+             *_CONTEXT-1_*
+             ...
+    *_PROMPT_* *_KEYS_*
+----
+
+If the prompt contains no optional parts, it is considered a one-liner, and the introductory arrow is omitted.
+
+* `*_PROMPT_*` — Short conclusion for the prompt. Defaults to `Proceed?`.
+* `*_KEYS_*` — Short explanation of accepted key presses:
+** Decision prompt: `[y/n]`
+** Decision prompt (with `--or-quit`): `[y/n/q]`
+** Any key prompt: `[<any key>]`
+** Any key prompt (with `--or-quit`): `[<any key>/q]`
+* `*_TITLE_*` — _(optional)_ Short heading for the prompt.
+If the `*_DECSRIPTION_*` is empty and if the prompt is not a one-liner, defaults to `User attention required`.
+* `*_DESCRIPTION_*` — _(optional)_ Short elaboration on the prompt.
+* `*_CONTEXT_*` — _(optional)_ Some part of the context stack, as requested by any of the relevant options.
+The entire context block is omitted if the context stack is not requested or is empty.
+
+.List of `d{dus}prompt` options
+[%noheader,cols="<.<a",stripes=none]
+|===
+
+| `*-t* *_TITLE_*`, `*--title* *_TITLE_*`
+
+Sets custom `*_TITLE_*` for the leading line.
+
+Without this option:
+
+* If the `*_DESCRIPTION_*` is provided, the title is omitted.
+* If the `*_DESCRIPTION_*` is not provided, the title defaults to `Generic alert`.
+
+| `*-p* *_PROMPT_*`, `*--prompt* *_PROMPT_*`
+
+Sets custom `*_PROMPT_*`.
+Without this option, the `*_PROMPT_*` defaults to `Proceed?`.
+
+| `*-a* *_ANSWER_*`, `*--answer* *_ANSWER_*`
+
+Provides an opportunity to skip the prompt if the value of `*_ANSWER_*` is either `true` or `false`.
+
+In the decision mode:
+
+* If `*_ANSWER_*` is `true`, returns 0.
+* If `*_ANSWER_*` is `false`, returns 1.
+* Otherwise, proceeds with prompting.
+
+In the any-key mode:
+
+* If `*_ANSWER_*` is either `true` or `false`, returns 0.
+* Otherwise, proceeds with prompting.
+
+| `*-q*`, `*--or-quit*`
+
+In both prompting modes, provides an extra option: 'quit'.
+The returned value for the 'quit' option is always `2`.
+
+^.^h| Prompting modes (one active at a time, last option wins)
+
+| `*-y*`, `*--yes-no*`
+
+_(default)_
+Prompts for a yes/no decision.
+
+| `*-k*`, `*--any-key*`
+
+Prompts for any key press.
+
+^.^h| Context-related options (one active at a time, last option wins)
+
+| `*-c*`, `*--context-all*`
+
+Includes the entire workflow context stack in the output.
+
+| `*-h*`, `*--context-head*`
+
+Includes the head of the workflow context stack (the items pushed since the last notch) in the output.
+
+| `*-1*`, `*--context-tip*`
+
+Includes the tip of the workflow context stack (the last pushed item) in the output.
+
+^.^h| Coloring options (one active at a time, last option wins)
+
+| `*-v*`, `*--success*`
+
+Colors the introductory arrow and the `*_PROMPT_*` in green, if the terminal coloring is available.
+
+| `*-x*`, `*--failure*`
+
+Colors the introductory arrow and the `*_PROMPT_*` in red, if the terminal coloring is available.
+
+| `*-s*`, `*--skip*`
+
+Colors the introductory arrow and the `*_PROMPT_*` in white, if the terminal coloring is available.
+
+| `*-b*`, `*--bare*`
+
+Removes coloring completely.
+
+|===
+
+[[func-fail]]
+==== Function `d{dus}fail`
+
+The function `d{dus}fail` announces a failure to the user and pops every item in the workflow context down to and including the latest notch (or root).
+For notes on usage within the Divine workflow, see the workflow <<divine-workflow-guide,guidelines>>.
+
+[source,subs="verbatim,quotes,attributes"]
+----
+*d{dus}fail* [-t *_TITLE_*] [--] [*_DESCRIPTION_*...]
+----
+
+As mentioned, every call to this function includes a call to `d{dus}context lop`.
+Thus this function should not be used for non-consequential failures that do not affect the workflow context.
+(For such things, `d{dus}notify --failure` works nicely.)
+
+Returns:
+
+* `0` — Always, as in 'failed successfully'.
+
+.The layout of the output of `d{dus}fail` (without any arguments and with empty context stack)
+[source,subs="verbatim,quotes,attributes"]
+----
+==> *_TITLE_*
+----
+
+.The layout of the output of `d{dus}fail` (all optional parts included)
+[source,subs="verbatim,quotes,attributes"]
+----
+==> *_TITLE_*: *_DESCRIPTION-0_*
+    *_DESCRIPTION-1_*
+    ...
+    Context: *_CONTEXT-0_*
+             *_CONTEXT-1_*
+             ...
+----
+
+* `*_TITLE_*` — _(optional)_ Short heading for the failure.
+Defaults to:
+** Without a `*_DESCRIPTION_*` — `Failure`.
+** With a `*_DESCRIPTION_*` — `Something went wrong`.
+* `*_DESCRIPTION_*` — _(optional)_ Short elaboration on the failure.
+* `*_CONTEXT_*` — The head of the context stack, which is about to be lopped off.
+The entire context block is omitted if the context stack is empty.
+
+.List of `d{dus}notify` options
+[%noheader,cols="<.<a",stripes=none]
+|===
+
+| `*-t* *_TITLE_*`, `*--title* *_TITLE_*`
+
+Sets custom title for the failure.
+
+Without this option, the `*_TITLE_*` defaults to:
+
+* Without a `*_DESCRIPTION_*` — `Failure`.
+* With a `*_DESCRIPTION_*` — `Something went wrong`.
+
+|===
+
+[[func-cmd]]
+==== Function `d{dus}cmd`
+
+The function `d{dus}cmd` is a wrapper around a single simple Bash command.
+For notes on usage within the Divine workflow, see the workflow <<divine-workflow-guide,guidelines>>.
+
+[source,subs="verbatim,quotes,attributes"]
+----
+*d{dus}cmd* [_options_] [--] *_CMD_*...
+----
+
+Executes the command `*_CMD_*` as normal, then inspects its return code.
+If the return code is non-zero, prints a failure message (similar to the output of <<func-fail,`d__fail`>> in appearance), and then pops every item in the workflow context down to and including the latest notch (or root).
+The output is titled, by default, 'Command failed', and shows the command that has failed, along with the current context stack.
+
+The command `*_CMD_*` must be a single simple command, consisting of any number of ``WORD``s.
+Naturally, Bash will parse the arguments to this function before the function itself does.
+As such, here are some examples of what the `*_CMD_*` can and cannot contain:
+
+* Yes: Simple commands, including `test`, `[`, or `[[`.
+* Yes: Variable expansions, though keep in mind that they will be expanded before the actual command is interpreted.
+* Yes: Input redirections.
+* Maybe:  Output redirections. (They will affect this function which might just do exactly what is needed.)
+* *NO*: Operators `&&` and `||` (use <<func-require,`d__require`>>).
+* *NO*: Pipes (use <<func-pipe,`d__pipe`>>).
+* *NO*: Negation operator `!` (use the `--neg--` option).
+* *NO*: Constructs such as `if` or `case`.
+* *NO*: Arithmetic context.
+
+Returns:
+
+* `0` — The `*_CMD_*` returned zero (after optional negation).
+* `1` — Otherwise.
+* `2` — Called without arguments.
+
+.The layout of the output of `d{dus}cmd` in case of failure (all optional parts included)
+[source,subs="verbatim,quotes,attributes"]
+----
+==> *_TITLE_*: *_CMD_*
+        *_LABEL-0_*: *_WORD-0_*
+        *_LABEL-1_*: *_WORD-1_*
+        ...
+    Context: *_CONTEXT-0_*
+             *_CONTEXT-1_*
+             ...
+    Circumstances: *_CRCM_*
+    Result: *_RSLT_*
+----
+
+* `*_TITLE_*` — _(optional)_ Short heading for the failure.
+Defaults to `Command failed`.
+* `*_CMD_*` — The command that failed, with labels pasted in.
+* `*_LABEL_*` — The list of labels and their disambiguations.
+Labels are created via corresponding options, described below.
+* `*_CONTEXT_*` — The head of the context stack, which is about to be lopped off.
+The entire context block is omitted if the context stack is empty.
+* `*_CRCM_*` — _(optional)_ The description of circumstances of the command call, if provided by the caller.
+* `*_RSLT_*` — _(optional)_ The description of consequences of the command failure, if provided by the caller.
+
+.List of `d{dus}cmd` options
+[%noheader,cols="<.<a",stripes=none]
+|===
+
+| `*----*`
+
+Stops processing options for the 'outer' function, and reads the rest of the arguments as parts of the `*_CMD_*`.
+
+| `*--neg--*`
+
+Negates the return code of the `*_CMD_*`, as if it is prepended with a `!` operator.
+
+^.^h| Verbosity modes (one active at a time, last option wins)
+
+| `*--v--*`
+
+Does not suppress neither `stdout` nor `stderr` of the `*_CMD_*`.
+
+| `*--q--*`
+
+_(default)_
+Suppresses `stderr` of the `*_CMD_*`.
+
+| `*--qq--*`
+
+Suppresses both `stdout` and `stderr` of the `*_CMD_*`.
+
+^.^h| Semantics of failure
+
+| `*--opt--*`
+
+Makes the `*_CMD_*` optional: if there is a failure, the head of the context stacked is not lopped off, and the failure output is styled less urgently.
+
+| `*--alrt--* *_TITLE_*`
+
+Sets the custom title for the failure output.
+
+| `*--crcm--* *_CRCM_*`
+
+Sets the custom circumstances description for the failure output.
+
+| `*--else--* *_RSLT_*`
+
+Sets the custom consequences description for the failure output.
+
+^.^h| Label options (each must preceed the single `WORD` of the `*_CMD_*`)
+
+| `*--_LABEL_--*`
+
+Normally d__fail outputs the offending `*_CMD_*` in its entirety, which can get quite lengthy.
+When a `WORD` of the `*_CMD_*` is prepended with a label option, the label is shown in the failure output instead of the actual `WORD`.
+Then, after `*_CMD_*` is printed, each label is also printed on its own line, accompanied by the `WORD` that it stands for.
+This is similar to footnotes.
+
+| `*--#_NUM_--*`
+
+A previously assigned label may be re-used if the `WORD` is repeated within the `*_CMD_*` multiple times.
+Labels are automatically numbered, starting from zero: use the label number prepended with a hash/pound `#`` to reference a previous label.
+Make sure that you assign such backreferences to ``WORD``s that are actually identical.
+
+|===
+
+[[func-pipe]]
+==== Function `d{dus}pipe`
+
+This function extends <<func-cmd,`d{dus}cmd`>>, and thus its reference applies fully wherever not overridden by this section.
+
+The function `d{dus}pipe` extends `d{dus}cmd` by adding the possibility to chain up to three commands in a continuous Bash pipe.
+Note, that the actual pipe operator `|` cannot be used directly, because it would affect this function and not get passed down.
+Instead, the special pipe option is added.
+
+When this function is used without the special options, `d{dus}pipe` becomes functionally identical to `d{dus}cmd`.
+The intention of two different functions is to underscore semantics and to lighten up the load of parsing arguments in `d{dus}cmd`.
+
+All `d{dus}cmd` options are supported.
+If the `--qq--` option is used, `stdout` is only suppressed for the last command in the queue; otherwise it would defeat the pipe's purpose.
+
+.List of `d{dus}pipe` options (on top of those in `d{dus}cmd`)
+[%noheader,cols="<.<a",stripes=none]
+|===
+
+| `*--p--*`, `*--P--*`, `*--pipe--*`
+
+Inserts Bash's `\|` operator at that location.
+Only first two instances of this option are recognized.
+
+| `*--ret__NUM__--*`
+
+Normally, the return code of the last command in the pipe is inspected to make judgement on whether the whole command ran successfully.
+To change which command's return code represents the success of the pipe, its number must be provided with this option.
+Commands in the pipe are numbered starting from zero, left to right.
+
+|===
+
+[[func-require]]
+==== Function `d{dus}require`
+
+This function extends <<func-cmd,`d{dus}cmd`>>, and thus its reference applies fully wherever not overridden by this section.
+
+Firstly, `d{dus}require` changes semantics a little: while `d{dus}cmd` is intended to be used on commands that perform an action that produces side effects, this version is intended for checks/tests that ensure that certain requirements are met.
+As such, `d{dus}require` sets the title of potential `d{dus}fail` message to `Requirement failed` instead of the default `Command failed`.
+
+Secondly, `d{dus}require` extends `d{dus}cmd` by adding the possibility to chain up to three commands with Bash's `&&` and `||` operators.
+Note, that the actual and/or operators cannot be used directly, because they would affect this function and not get passed down.
+Instead, the special options are added.
+
+Otherwise, `d{dus}require` is functionally identical to `d{dus}cmd`.
+The intention of two different functions is to underscore semantics and to lighten up the load of parsing arguments in `d{dus}cmd`.
+
+All `d{dus}cmd` options are supported.
+The option `--neg--` applies to individual commands within the and/or chain; it has to be used for every negated requirement at any time before the start of the next requirement.
+
+.List of `d{dus}require` options (on top of those in `d{dus}cmd`)
+[%noheader,cols="<.<a",stripes=none]
+|===
+
+^.^h| And/or options (only the first two are recognized)
+
+| `*--and--*`, `*--AND--*`
+
+Inserts Bash's `&&` operator at that location.
+
+| `*--or--*`, `*--OR--*`
+
+Inserts Bash's `\|\|` operator at that location.
+
+|===
+
+[[func-dmd5]]
 ==== `dmd5` function
 
 Function `dmd5` provides a cross-platform way of calculating an md5 checksum of a file or a string.
