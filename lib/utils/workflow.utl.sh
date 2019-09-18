@@ -3,9 +3,9 @@
 #:kind:         func(script)
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    4
-#:revdate:      2019.09.17
-#:revremark:    d__context: Accept lopping when there are no items
+#:revnumber:    5
+#:revdate:      2019.09.18
+#:revremark:    Implement d__prompt
 #:created_at:   2019.09.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -78,7 +78,7 @@
 ## Options:
 #.  -l, --loud                - Announce context switching regardless of the 
 #.                              global verbosity setting.
-#.  -t TITLE, --title TITLE   - Custom title for the message.
+#.  -t TITLE, --title TITLE   - Custom title for the leading line.
 #
 ## Parameters:
 #.  $1  - Name of the routine to run:
@@ -558,7 +558,7 @@ d__pipe()
 #.                    * 'Failure'               - If the DESCRIPTION is given.
 #.                    * 'Something went wrong'  - Otherwise.
 #.  * DESCRIPTION - Short elaboration on the failure. May be omitted.
-#.  * CONTEXT     - Entire context stack at call time. Omitted if empty.
+#.  * CONTEXT     - Head of the context stack. Omitted if empty.
 #
 ## The output is prepended with a 'fat' ASCII arrow '==>'. The lines of the 
 #. output consist of a title and a message, delimited by a colon. If no 
@@ -569,7 +569,7 @@ d__pipe()
 #.  * Titles and some parts of CMD are styled in bold.
 #
 ## Options:
-#.  -t TITLE, --title TITLE   - Custom title for the message.
+#.  -t TITLE, --title TITLE   - Custom title for the leading line.
 #
 ## Returns:
 #.  0 - Always.
@@ -610,10 +610,11 @@ d__fail()
     [ -n "$title" ] && pfa+=("$BOLD$title$NORMAL") || pfa+=("${BOLD}Something went wrong$NORMAL")
   fi
 
-  # If context stack has at least one item, print the entire stack
-  if ((${#D__CONTEXT[@]})); then
-    pft+='    %s: %s\n'; pfa+=( "${BOLD}Context$NORMAL" "${D__CONTEXT[0]}" )
-    for ((i=1;i<${#D__CONTEXT[@]};++i)); do
+  # Print the head of the stack
+  local tmp=${#D__CONTEXT_NOTCHES[@]}; (($tmp)) && tmp=$((${D__CONTEXT_NOTCHES[$tmp-1]})) || tmp=0
+  if ((${#D__CONTEXT[@]} > $tmp)); then
+    pft+='    %s: %s\n'; pfa+=( "${BOLD}Context$NORMAL" "${D__CONTEXT[$tmp]}" )
+    for ((i=$tmp+1;i<${#D__CONTEXT[@]};++i)); do
       pft+='             %s\n'; pfa+=("${D__CONTEXT[$i]}")
     done
   fi
@@ -637,10 +638,11 @@ d__fail()
 #
 ##  * TITLE       - Short heading of the notification. If the DESCRIPTION is 
 #.                  not given, defaults to 'Generic alert'.
-#.  * DESCRIPTION - Short elaboration on the failure. Omitted if not given 
+#.  * DESCRIPTION - Short elaboration on the notification. Omitted if not given 
 #.                  explicitly.
-#.  * CONTEXT     - Entire context stack at call time. Omitted if not requested 
-#.                  explicitly. Also, omitted if empty.
+#.  * CONTEXT     - Some part of the context stack, depending on the given 
+#.                  options. Omitted if the context is not requested 
+#.                  explicitly. Also, omitted if the context stack empty.
 #
 ## The output is prepended with a 'fat' ASCII arrow '==>'. The lines of the 
 #. output consist of a title and a message, delimited by a colon.
@@ -656,7 +658,7 @@ d__fail()
 ## Options:
 #.  -l, --loud                - Announce context switching regardless of the 
 #.                              global verbosity setting.
-#.  -t TITLE, --title TITLE   - Custom title for the message.
+#.  -t TITLE, --title TITLE   - Custom title for the leading line.
 #
 ## Options for context (one active at a time, last option wins):
 #.  -c, --context-all         - Include in the output the entire workflow 
@@ -722,20 +724,20 @@ d__notify()
   if $quiet; then $D__OPT_QUIET && return 0
     pfa+=("$CYAN==>$NORMAL"); local tp="$CYAN$BOLD" ts="$NORMAL$CYAN"
   else
-    case $stl in v) pfa+=("$GREEN$BOLD==>$NORMAL");; s) pfa+=("$WHITE$BOLD==>$NORMAL");; *) pfa+=("$YELLOW$BOLD==>$NORMAL");; esac
+    case $stl in v) pfa+=("$GREEN$BOLD==>$NORMAL");; x) pfa+=("$RED$BOLD==>$NORMAL");; s) pfa+=("$WHITE$BOLD==>$NORMAL");; *) pfa+=("$YELLOW$BOLD==>$NORMAL");; esac
     local tp="$BOLD" ts="$NORMAL"
   fi
 
   # Compose the leading line depending on the options
   if ((${#args[@]})); then
-    if [ -n "$title" ]; then pft+=' %s:'; pfa+=("$tp$title"); fi
+    if [ -n "$title" ]; then pft+=' %s:'; pfa+=("$tp$title$ts"); fi
     pft+=' %s\n'; [ -n "${args[0]}" ] && pfa+=("${args[0]}") || pfa+=('<empty description>')
     for ((i=1;i<${#args[@]};++i)); do pft+='    %s\n'; [ -n "${args[$i]}" ] && pfa+=("${args[$i]}") || pfa+=('<empty description>'); done
   else
     pft+=' %s\n'; if [ -n "$title" ]; then pfa+=("$tp$title$ts"); else pfa+=("${tp}Generic alert$ts"); fi
   fi
 
-  # If context stack has at least one item, print the entire stack
+  # Print whatever part of the stack is requested
   if [ -n "$context" ]; then
     case $context in
       e)  context=0;;
@@ -752,6 +754,219 @@ d__notify()
 
   # Print the output
   printf >&2 "$pft%s" "${pfa[@]}" "$NORMAL"
+}
+
+#>  d__prompt [-1bchkqsvxy] [-p PROMPT] [-a ANSWER] [-t TITLE] [--] [DESCRIPTION...]
+#
+## Prompting mechanism: requests a key press and returns corresponding integer:
+#.  * Yes/no:       'y' or 'n' (or 'q')   returns 0 or 1 (or 2) respectively
+#.  * Any key:      <any> (or 'q')        returns 0 (or 2) respectively
+#
+#. Does not return until a supported key is pressed.
+#
+## The layout of the output is as follows.
+#
+##  [==> ][<TITLE> | <DESCRIPTION> | <TITLE>: <DESCRIPTION>]
+#.        [Context: <CONTEXT>...]
+#.        <PROMPT> <KEYS>
+#
+## If PROMPT is the only explicitly given part, then the entire output is a 
+#. one-liner.
+#
+##  * TITLE       - Short heading of the prompt. If the DESCRIPTION is empty 
+#.                  and if the prompt is not a one-liner, defaults to 'User 
+#.                  attention required'.
+#.  * DESCRIPTION - Short elaboration on the prompt. Omitted if not given 
+#.                  explicitly.
+#.  * CONTEXT     - Some part of the context stack, depending on the given 
+#.                  options. Omitted if the context is not requested 
+#.                  explicitly. Also, omitted if the context stack empty.
+#.  * PROMPT      - Short conclusion for the prompt. Defaults to 'Proceed?'.
+#.  * KEYS        - Short explanation of what is expected from the user:
+#.                    * Yes/no:               [y/n]
+#.                    * Yes/no (with 'q'):    [y/n/q]
+#.                    * Any key:              [<any key>]
+#.                    * Yes/no (with 'q'):    [<any key>/q]
+#
+## If the prompt contains anything other than the PROMPT line, the entire 
+#. output is prepended with a 'fat' ASCII arrow '==>'. The lines of the output 
+#. consist of a title and a message, delimited by a colon.
+#
+## If terminal coloring is available:
+#.  * Arrow is styled in bold yellow.
+#.  * Titles and some parts of CMD are styled in bold.
+#.  * Prompt is colored with inverted yellow.
+#
+## Options:
+#.  -t TITLE, --title TITLE     - Custom title for the leading line.
+#.  -p PROMPT, --prompt PROMPT  - Custom prompt conclusion.
+#.  -a ANSWER, --answer ANSWER  - Provides an opportunity to skip the prompt by 
+#.                                quickly returning depending on the value of 
+#.                                ANSWER passed in.
+#.                                In 'yes/no (or quit)' mode:
+#.                                  * If ANSWER is 'true', returns 0.
+#.                                  * If ANSWER is 'false', returns 1.
+#.                                  * Otherwise, proceeds with prompting.
+#.                                In 'any key (or quit)' mode:
+#.                                  * If ANSWER is 'true'/'false', returns 0.
+#.                                  * Otherwise, proceeds with prompting.
+#.  -q, --or-quit               - In both prompting modes, provides an extra 
+#.                                option: 'quit'. The returned value for 'quit' 
+#.                                is always 2.
+#
+## Prompting mode (one active at a time, last option wins):
+#.  -y, --yes-no    - (default) Prompt for a yes/no answer.
+#.  -k, --any-key   - Prompt for any key at all.
+#
+## Options for context (one active at a time, last option wins):
+#.  -c, --context-all         - Include in the output the entire workflow 
+#.                              context stack.
+#.  -h, --context-head        - Include in the output the items on the workflow 
+#.                              context stack that have been pushed since the 
+#.                              latest notch in the output.
+#.  -1, --context-tip         - Include in the output the latest item on the 
+#.                              workflow context stack in the output.
+#
+## Options for special styling. These modes are only relevant when the terminal 
+#. coloring is available (one active at a time, last option wins):
+#.  -v, --success   - Style the prompt in a success theme by painting the 
+#.                    introductory arrow and the prompt itself in green.
+#.  -x, --failure   - Style the prompt in a failure theme by painting the 
+#.                    introductory arrow and the prompt itself in red.
+#.  -s, --skip      - Style the prompt in a skip theme by painting the 
+#.                    introductory arrow and the prompt itself in white.
+#.  -b, --bare      - Do not color the prompt at all. Bolding effects are 
+#.                    retained.
+#
+## Returns:
+#.  0 - Always.
+#
+## Prints:
+#.  stdout: Nothing.
+#.  stderr: Debug messages about argument errors and the prompt itself.
+#
+d__prompt()
+{
+  # Assemble template and arguments for the eventual call to printf
+  local pft= pfa=() i tp ts clr
+
+  # Regular call: pluck out options, round up arguments
+  local args=() arg opt mode=y or_quit=false context one_line=true prompt answer title stl; while (($#)); do arg="$1"; shift; case $arg in
+    -*) case ${arg:1} in
+          -)          args+=("$@"); break;;
+          y|-yes-no)  mode=y;;
+          k|-any-key) mode=k;;
+          q|-or-quit) or_quit=true;;
+          c|-context-all)   context=e; one_line=false;;
+          h|-context-head)  context=h; one_line=false;;
+          1|-context-tip)   context=t; one_line=false;;
+          b|-bare)    stl=b;;
+          v|-success) stl=v;;
+          x|-failure) stl=x;;
+          s|-skip)    stl=s;;
+          p|-prompt)  if (($#)); then read -r prompt <<<"$1"; [ -n "$prompt" ] || prompt='<empty prompt>'; shift; else printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" "$FUNCNAME: Ignoring option lacking required argument: '$arg'"; fi;;
+          a|-answer)  if (($#)); then read -r answer <<<"$1"; shift; else printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" "$FUNCNAME: Ignoring option lacking required argument: '$arg'"; fi;;
+          t|-title)   if (($#)); then read -r title <<<"$1"; [ -n "$title" ] || title='<empty title>'; one_line=false; shift; else printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" "$FUNCNAME: Ignoring option lacking required argument: '$arg'"; fi;;
+          *)  for ((i=1;i<${#arg};++i)); do opt="${arg:i:1}"
+                case $opt in
+                  y)  mode=y;;
+                  k)  mode=k;;
+                  q)  or_quit=true;;
+                  c)  context=e; one_line=false;;
+                  h)  context=h; one_line=false;;
+                  1)  context=t; one_line=false;;
+                  b)  stl=b;;
+                  v)  stl=v;;
+                  x)  stl=x;;
+                  s)  stl=s;;
+                  p)  if (($#)); then read -r prompt <<<"$1"; [ -n "$prompt" ] || prompt='<empty prompt>'; shift; else printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" "$FUNCNAME: Ignoring option lacking required argument: '$opt'"; fi;;
+                  a)  if (($#)); then read -r answer <<<"$1"; shift; else printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" "$FUNCNAME: Ignoring option lacking required argument: '$opt'"; fi;;
+                  t)  if (($#)); then read -r title <<<"$1"; [ -n "$title" ] || title='<empty title>'; one_line=false; shift; else printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" "$FUNCNAME: Ignoring option lacking required argument: '$opt'"; fi;;
+                  *)  printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" "$FUNCNAME: Ignoring unrecognized option: '$opt'";;
+                esac
+              done;;
+        esac;;
+    *)  args+=("$arg");;
+  esac; done
+
+  # Quick return if an answer is provided
+  case $answer in
+    true)   case $mode in
+              y)  d__notify -- 'Decision prompt is pre-accepted; skipping.'; return 0;;
+              k)  d__notify -- 'Any key prompt is pre-accepted; skipping.'; return 0;;
+            esac;;
+    false)  case $mode in
+              y)  d__notify -- 'Decision prompt is pre-rejected; skipping.'; return 1;;
+              k)  d__notify -- 'Any key prompt is pre-accepted; skipping.'; return 0;;
+            esac;;
+  esac
+
+  # Settle on coloring
+  case $stl in b) :;; v) clr="$GREEN";; x) clr="$RED";; s) clr="$WHITE";; *) clr="$YELLOW";; esac
+
+  # Settle on the opening arrow
+  ((${#args[@]})) && one_line=false
+
+  # Print multi-line sections
+  if ! $one_line; then
+
+    # Print introductory arrow
+    pft+='%s '; pfa+=("$clr$BOLD==>$NORMAL")
+
+    # Compose the leading line depending on the options
+    if ((${#args[@]})); then
+      if [ -n "$title" ]; then pft+='%s: %s\n'; pfa+=("$BOLD$title$NORMAL"); else pft+='%s\n' ; fi
+      [ -n "${args[0]}" ] && pfa+=("${args[0]}") || pfa+=('<empty description>')
+      for ((i=1;i<${#args[@]};++i)); do pft+='    %s\n'; [ -n "${args[$i]}" ] && pfa+=("${args[$i]}") || pfa+=('<empty description>'); done
+    else
+      pft+='%s\n'; [ -n "$title" ] && pfa+=("$BOLD$title$NORMAL") || pfa+=("${BOLD}User attention required$NORMAL")
+    fi
+
+    # Print whatever part of the stack is requested
+    if [ -n "$context" ]; then
+      case $context in
+        e)  context=0;;
+        h)  context=${#D__CONTEXT_NOTCHES[@]}; (($context)) && context=$((${D__CONTEXT_NOTCHES[$context-1]})) || context=0;;
+        t)  context=${#D__CONTEXT[@]}; (($context)) && context=$(($context-1)) || context=0;;
+      esac
+      if ((${#D__CONTEXT[@]} > $context)); then
+        pft+='    %s: %s\n'; pfa+=( "${BOLD}Context$NORMAL" "${D__CONTEXT[$context]}" )
+        for ((i=$context+1;i<${#D__CONTEXT[@]};++i)); do
+          pft+='             %s\n'; pfa+=("${D__CONTEXT[$i]}")
+        done
+      fi
+    fi
+
+  # Done printing multi-line sections
+  fi
+
+  # Compose the prompt
+  $one_line && pft+='%s ' || pft+='    %s '
+  [ -n "$prompt" ] && i="$prompt" || i='Proceed?'
+  case $mode in
+    y)  $or_quit && i+=' [y/n/q]' || i+=' [y/n]';;
+    k)  $or_quit && i+=' [<any key>/q]' || i+=' [<any key>]';;
+  esac
+  [ "$stl" = b ] && pfa+=("$BOLD$i$NORMAL") || pfa+=("$clr$REVERSE$BOLD $i $NORMAL")
+
+  # Print the output
+  printf >&2 "$pft" "${pfa[@]}"
+
+  # Read the response and return appropriately
+  case $mode in
+    y)  while true; do
+          read -rsn1 input; case $input in
+            y|Y)  printf >&2 '%s\n' 'y'; return 0;;
+            n|N)  printf >&2 '%s\n' 'n'; return 1;;
+            q|Q)  if $or_quit; then printf >&2 '%s\n' 'q'; return 2; fi;;
+          esac
+        done;;
+    k)  while true; do
+          read -rsn1 input
+          if $or_quit; then case $input in q|Q) printf >&2 '%s\n' 'q'; return 2;; esac fi
+          printf >&2 '%s\n' "$NORMAL"; return 0
+        done;;
+  esac
 }
 
 #>  d___fail_from_cmd
@@ -778,8 +993,11 @@ d__notify()
 #.                    * 'Optional requirement failed' - for d__require.
 #.  * CMD         - The (optional) command that failed.
 #.  * LABEL+WORD  - Disambiguation of any labels in CMD, if any are defined.
-#.  * CRCM        - Message describing the circumstances of the failure.
-#.  * RSLT        - Message describing the consequences of the failure.
+#.  * CONTEXT     - Head of the context stack. Omitted if empty.
+#.  * CRCM        - Message describing the circumstances of the failure. 
+#.                  Omitted if empty.
+#.  * RSLT        - Message describing the consequences of the failure. Omitted 
+#.                  if empty.
 #
 ## Local variables that are transferred into the scope of this function if it 
 #. is called from within d__cmd/d__require/d__pipe:
@@ -812,10 +1030,11 @@ d___fail_from_cmd()
     pft+='        %s: %s\n'; pfa+=( "$tp${labels[$i]}$ts" "'${hunks[$i]}'" )
   done
 
-  # If context stack has at least one item, print the entire stack
-  if ((${#D__CONTEXT[@]})); then
-    pft+='    %s: %s\n'; pfa+=( "${tp}Context$ts" "${D__CONTEXT[0]}" )
-    for ((i=1;i<${#D__CONTEXT[@]};++i)); do
+  # Print the head of the stack
+  local tmp=${#D__CONTEXT_NOTCHES[@]}; (($tmp)) && tmp=$((${D__CONTEXT_NOTCHES[$tmp-1]})) || tmp=0
+  if ((${#D__CONTEXT[@]} > $tmp)); then
+    pft+='    %s: %s\n'; pfa+=( "${tp}Context$ts" "${D__CONTEXT[$tmp]}" )
+    for ((i=$tmp+1;i<${#D__CONTEXT[@]};++i)); do
       pft+='             %s\n'; pfa+=("${D__CONTEXT[$i]}")
     done
   fi
