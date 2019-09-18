@@ -3,9 +3,9 @@
 #:kind:         func(script)
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    6
+#:revnumber:    7
 #:revdate:      2019.09.18
-#:revremark:    Tweak the workflow comments
+#:revremark:    Add --sudo option to d__notify
 #:created_at:   2019.09.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -618,7 +618,7 @@ d__fail()
   d__context -- lop
 }
 
-#>  d__notify [-1chlsvx] [-t TITLE] [--] [DESCRIPTION...]
+#>  d__notify [-1chlsuvx] [-t TITLE] [--] [DESCRIPTION...]
 #
 ## Debug printer: announces a development of any kind. Whether the output is 
 #. printed depends on the global verbosity setting.
@@ -650,6 +650,9 @@ d__fail()
 ## Options:
 #.  -l, --loud                - Announce context switching regardless of the 
 #.                              global verbosity setting.
+#.  -u, --sudo                - Print the notification only if the caller lacks 
+#.                              the sudo privelege. Automatically makes the 
+#.                              notification `--loud`.
 #.  -t TITLE, --title TITLE   - Custom title for the leading line.
 #
 ## Options for context (one active at a time, last option wins):
@@ -684,13 +687,14 @@ d__notify()
   local pft='%s' pfa=() i
 
   # Regular call: pluck out options, round up arguments
-  local args=() arg opt context quiet=true title stl; while (($#)); do arg="$1"; shift; case $arg in
+  local args=() arg opt context quiet=true sudo=false title stl; while (($#)); do arg="$1"; shift; case $arg in
     -*) case ${arg:1} in
           -)          args+=("$@"); break;;
           c|-context-all)   context=e;;
           h|-context-head)  context=h;;
           1|-context-tip)   context=t;;
           l|-loud)    quiet=false;;
+          u|-sudo)    sudo=true;;
           v|-success) stl=v;;
           x|-failure) stl=x;;
           s|-skip)    stl=s;;
@@ -701,6 +705,7 @@ d__notify()
                   h)  context=h;;
                   1)  context=t;;
                   l)  quiet=false;;
+                  u)  sudo=true;;
                   v)  stl=v;;
                   x)  stl=x;;
                   s)  stl=s;;
@@ -711,6 +716,13 @@ d__notify()
         esac;;
     *)  args+=("$arg");;
   esac; done
+
+  # Settle on sudo option
+  if $sudo; then sudo -n true 2>/dev/null && return 0
+    quiet=false
+    [ -n "$title" ] || title='Password prompt'
+    ((${#args[@]})) || args='The upcoming command requires sudo priveleges.'
+  fi
 
   # Settle on quiet call and formatting
   if $quiet; then $D__OPT_QUIET && return 0
