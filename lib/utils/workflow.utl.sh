@@ -3,9 +3,9 @@
 #:kind:         func(script)
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    7
+#:revnumber:    8
 #:revdate:      2019.09.18
-#:revremark:    Add --sudo option to d__notify
+#:revremark:    Fix faulty logic in d__context notch
 #:created_at:   2019.09.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -138,9 +138,10 @@ d__context()
           if (($#)); then read -r msg <<<"$*"; [ -n "$msg" ] || msg='<empty description>'; else msg="${D__CONTEXT[$level]}"; fi
           unset D__CONTEXT[$level]
           ;;
-    notch)  if ((${#D__CONTEXT_NOTCHES[@]})); then
-              if [ ${D__CONTEXT_NOTCHES[${#D__CONTEXT_NOTCHES[@]}-1]} -eq ${#D__CONTEXT[@]} ]; then printf >&2 '%s %s\n' "$RED$BOLD==>$NORMAL" "$FUNCNAME: Attempted to make a duplicate notch on the context stack"; return 4; fi
-            else D__CONTEXT_NOTCHES+=("${#D__CONTEXT[@]}"); return 0; fi
+    notch)  if ((${#D__CONTEXT_NOTCHES[@]})) && [ ${D__CONTEXT_NOTCHES[${#D__CONTEXT_NOTCHES[@]}-1]} -eq ${#D__CONTEXT[@]} ]; then
+              printf >&2 '%s %s\n' "$RED$BOLD==>$NORMAL" "$FUNCNAME: Attempted to make a duplicate notch on the context stack"; return 4
+            fi
+            D__CONTEXT_NOTCHES+=("${#D__CONTEXT[@]}"); return 0
             ;;
     lop)  local min num=${#D__CONTEXT_NOTCHES[@]} level msg; if (($num)); then ((--num)); min=${D__CONTEXT_NOTCHES[$num]}; else num=; min=0; fi
           [ -n "$title" ] || title='End'; while [ ${#D__CONTEXT[@]} -gt $min ]; do
