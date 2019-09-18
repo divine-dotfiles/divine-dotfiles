@@ -3,9 +3,9 @@
 #:kind:         func(script)
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    5
+#:revnumber:    6
 #:revdate:      2019.09.18
-#:revremark:    Implement d__prompt
+#:revremark:    Tweak the workflow comments
 #:created_at:   2019.09.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -311,10 +311,6 @@ d__cmd()
 #. negated requirement, at any time before the special option is included, 
 #. which starts the next requirement.
 #
-## This function, being a workhorse for the framework, foregoes argument 
-#. validation in some edge cases, to lighten repetitive processing. Usage notes 
-#. must be followed closely.
-#
 ## And-or options (only first two occurrences are processed, others ignored):
 #.  --and--, --AND--        - Inserts Bash '&&' operator at that location.
 #.  --or--, --OR--          - Inserts Bash '||' operator at that location.
@@ -441,10 +437,6 @@ d__require()
 ## All d__cmd options are fully supported. If the --qq-- option is used, stdout 
 #. is only suppressed for the last command in the queue; otherwise it would 
 #. defeat the pipe's purpose.
-#
-## This function, being a workhorse for the framework, foregoes argument 
-#. validation in some edge cases, to lighten repetitive processing. Usage notes 
-#. must be followed closely.
 #
 ## Piping options:
 #.  --P--, --p--, --pipe--  - Inserts normal Bash pipe '|' at that location. 
@@ -626,7 +618,7 @@ d__fail()
   d__context -- lop
 }
 
-#>  d__notify [-1chlstvx] [-t TITLE] [--] [DESCRIPTION...]
+#>  d__notify [-1chlsvx] [-t TITLE] [--] [DESCRIPTION...]
 #
 ## Debug printer: announces a development of any kind. Whether the output is 
 #. printed depends on the global verbosity setting.
