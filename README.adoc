@@ -1,9 +1,9 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revnumber: 78
-:revdate: 2019.09.17
-:revremark: Add section on Divine workflow
+:revnumber: 79
+:revdate: 2019.09.18
+:revremark: Tweak Divine workflow section
 :doctype: article
 // Visual
 :toc:
@@ -1193,22 +1193,33 @@ Whenever the framework does _not_ expect you to reassign a global variable or re
 * `*D__*` prefix — for names of read-only internal variables;
 * `*d__*` prefix — for names of call-only internal functions.
 
-[.note]
-[%noheader,cols="<.<a"]
-|===
-| Some of the most used framework functions have grown so attached to their `d` prefix, that they omit the underscores altogether.
-Examples are: `dprint_*` family of functions, `dprompt`, `dstash`, `dln`, `dcp`, etc.
-
-All such functions are call-only, i.e., *not* for re-implementation.
-|===
-
 ==== Divine workflow
 
 The Divine workflow is the recommended way to organize Bash code within deployments.
 The framework provides a set of functions that facilitate breaking down Bash code into meaningful blocks.
 The goal here is to both annotate the code and automatically provide useful debug output.
 
-The Divine workflow boils down to the following principles:
+Central to the idea of the Divine workflow is the concept of *workflow context*.
+The workflow context is a stack (very similar to the function https://en.wikipedia.org/wiki/Call_stack[call stack]) that at any moment contains the hierarchy of tasks currently being performed.
+An example of the context stack would look like this:
+
+.Illustration of the Divine workflow context stack
+====
+[start=0]
+. Running _Divine.dotfiles_ `install` routine.
+. Installing deployments at priority `4096`.
+. Deployment `example`.
++
+---
+. Executing a particular task within the deployment.
+. Executing a sub-task.
+====
+
+The context stack starts at the root and grows down to arbitrary depth.
+Context items are pushed and popped from the bottom.
+*Notches* (represented by a horizontal line in the illustration) delimit logical layers and provide a way to quickly pop multiple items.
+
+With the idea of context in mind, the Divine workflow boils down to the following principles:
 
 * Everything should be written within Bash functions.
 * There should be a function for every logical sub-routine.
@@ -1258,7 +1269,7 @@ perform_sub_task()
     --else-- 'Refusing to proceed' \
     || return 1
 
-  d__notify --loud --context-head --title Attention -- 'Please re-log'
+  d__notify --loud --context-head --title Attention -- 'Sub-task done'
 
   d__context pop
   return 0
@@ -1268,7 +1279,7 @@ perform_sub_task()
 .Example of success output from the illustration of the Divine workflow above
 [source,subs="verbatim,quotes,attributes"]
 ----
-[.yellow]#*==>*# *Attention:* Please re-log
+[.yellow]#*==>*# *Attention:* Sub-task done
     *Context:* Performing task
              Performing sub-task
 ----
@@ -1279,9 +1290,7 @@ perform_sub_task()
 [.red]#*==>*# *Command failed:* [ *THIS* -eq *THAT* ]
         *THIS:* '0'
         *THAT:* '1'
-    *Context:* …
-             Installing deployment 'example'
-             Performing task
+    *Context:* Performing task
              Performing sub-task
     *Result:* Refusing to proceed
 ----
