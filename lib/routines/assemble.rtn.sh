@@ -2,9 +2,9 @@
 #:title:        Divine Bash routine: assemble
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    28
-#:revdate:      2019.09.01
-#:revremark:    Second attempt at bundle filtering
+#:revnumber:    29
+#:revdate:      2019.09.12
+#:revremark:    Ditch dtrim
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -543,10 +543,9 @@ d__scan_for_dpl_files()
         <"$divinedpl_filepath" )
 
       # Process name if it is present
-      # Trim name, removing quotes if any
-      name="$( dtrim -Q -- "$name" )"
-      # Truncate name to 64 chars
-      name="$( dtrim -- "${name::64}" )"
+      # Remove quotes, trim to 64 chars, trim whitespace
+      [[ $name = \'*\' || $name = \"*\" ]] && name="${name:1:${#name}-2}"
+      read -r name <<<"${name::64}"
       # Detect whether name is not empty
       [ -n "$name" ] || {
         # Fall back to name precefing *.dpl.sh suffix
@@ -590,7 +589,8 @@ d__scan_for_dpl_files()
       read -r flags < <( sed -n "s/$D__REGEX_DPL_FLAGS/\1/p" \
         <"$divinedpl_filepath" )
       # Trim flags, removing quotes, if any
-      flags="$( dtrim -Q -- "$flags" )"
+      [[ $flags = \'*\' || $flags = \"*\" ]] && flags="${flags:1:${#flags}-2}"
+      read -r flags <<<"$flags"
 
       # Run dpl through filters
       d__run_dpl_through_filters "$name" "$flags" || adding=false
@@ -604,11 +604,13 @@ d__scan_for_dpl_files()
 
       # Process priority if it is present
       # Trim priority
-      priority="$( dtrim -Q -- "$priority" )"
-      # Remove leading zeroes if any
-      priority="$( sed 's/^0*//' <<<"$priority" )"
+      [[ $priority = \'*\' || $priority = \"*\" ]] \
+        && priority="${priority:1:${#priority}-2}"
+      read -r priority <<<"$priority"
       # Detect whether priority is acceptable
-      [[ $priority =~ ^[0-9]+$ ]] || priority="$D__CONST_DEF_PRIORITY"
+      [[ $priority =~ ^[0-9]+$ ]] \
+        && priority=$(($priority)) \
+        || priority="$D__CONST_DEF_PRIORITY"
 
       # Mark current priority as taken
       D__WORKLOAD["$priority"]='taken'

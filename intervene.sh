@@ -2,9 +2,9 @@
 #:title:        Divine Bash script: intervene
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    82
-#:revdate:      2019.09.05
-#:revremark:    Delete dmd5 util; implement it in dep-checks
+#:revnumber:    83
+#:revdate:      2019.09.12
+#:revremark:    Ditch dtrim
 #:created_at:   2018.03.25
 
 ## Launches the Divine intervention
@@ -157,7 +157,6 @@ d__populate_globals()
     'procedure detect-os' \
     'helper offer' \
     'procedure sys-pkg-checks' \
-    'util dtrim' \
     'util dreadlink' \
     'util dmv' \
     'util dln' \

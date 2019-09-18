@@ -12,3 +12,4 @@
 ** `*d__require*` — command wrapper with support for and/or chaining.
 * [`*other*`] Optimize code in `stash.hlp.sh`
 * [`*other*`] Demote `dmd5.utl.sh` to a small helper implemented in `dep-checks.pcd.sh`.
+* [`*other*`] Delete `dtrim.utl.sh` completely; replace with ad-hoc trimming via shell tools.
