@@ -3,9 +3,9 @@
 #:kind:         func(script)
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    11
+#:revnumber:    12
 #:revdate:      2019.09.19
-#:revremark:    Fix missing coloring in d__notify
+#:revremark:    Rewrite d__context for the new verbosity system
 #:created_at:   2019.09.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -14,7 +14,7 @@
 #. code and managing debug output.
 #
 
-#>  d__context [-l] [-t TITLE] [--] push|pop|notch|lop DESCRIPTION...
+#>  d__context [-lq]... [-t TITLE] [--] push|pop|notch|lop DESCRIPTION...
 #
 ## Manipulates Divine workflow context stack.
 #
@@ -76,8 +76,20 @@
 #>  $D__OPT_QUIET       - Global verbosity setting.
 #
 ## Options:
-#.  -l, --loud                - Announce context switching regardless of the 
-#.                              global verbosity setting.
+#.  -q, --quiet               - (repeatable) The amount of these options 
+#.                              designates the quiet level of the debug output.
+#.                              Changes to context are announced only if the 
+#.                              value in $D__OPT_VERBOSITY is equal to or 
+#.                              greater than the quiet level.
+#.                              If this option is not given at all, the default 
+#.                              quiet levels per operation are:
+#.                                * 'push'  - 1
+#.                                * 'pop'   - 2
+#.                                * 'lop'   - (tied to the level of the 
+#.                                            underlying 'pop')
+#.                              Adding and removing notches is always one level 
+#.                              above popping.
+#.  -l, --loud                - Sets the quiet level to zero.
 #.  -t TITLE, --title TITLE   - Custom title for the leading line.
 #
 ## Parameters:
@@ -105,59 +117,97 @@
 d__context()
 {
   # Pluck out options, round up arguments
-  local args=() arg opt quiet=true title i; while (($#)); do arg="$1"; shift; case $arg in
+  local args=() arg opt qt=n ttl i
+  while (($#)); do arg="$1"; shift; case $arg in
     -*) case ${arg:1} in
           -)        args+=("$@"); break;;
-          l|-loud)  quiet=false;;
-          t|-title) if (($#)); then read -r title <<<"$1"; [ -n "$title" ] || title='<empty title>'; shift; else printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" "$FUNCNAME: Ignoring option lacking required argument: '$opt'"; fi;;
+          l|-loud)  qt=0;;
+          q|-quiet) ((++qt));;
+          t|-title) if (($#)); then read -r ttl <<<"$1"
+                      [ -n "$ttl" ] || ttl='<empty title>'; shift
+                    else printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" 
+                      "$FUNCNAME: Ignoring option lacking required argument:" \
+                      " '$opt'"
+                    fi;;
           *)  for ((i=1;i<${#arg};++i)); do opt="${arg:i:1}"
                 case $opt in
-                  l)  quiet=false;;
-                  t)  if (($#)); then read -r title <<<"$1"; [ -n "$title" ] || title='<empty title>'; shift; else printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" "$FUNCNAME: Ignoring option lacking required argument: '$opt'"; fi;;
-                  *)  printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" "$FUNCNAME: Ignoring unrecognized option: '$opt'";;
+                  l)  qt=0;;
+                  q)  ((++qt));;
+                  t)  if (($#)); then read -r ttl <<<"$1"
+                        [ -n "$ttl" ] || ttl='<empty title>'; shift
+                      else printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" \
+                          "$FUNCNAME: Ignoring option lacking required" \
+                          " argument: '$opt'"
+                      fi;;
+                  *)  printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" \
+                        "$FUNCNAME: Ignoring unrecognized option: '$opt'";;
                 esac
               done;;
         esac;;
     *)  args+=("$arg");;
   esac; done
-  if ! ((${#args[@]})); then printf >&2 '%s %s\n' "$RED$BOLD==>$NORMAL" "$FUNCNAME: Refusing to work without arguments"; return 1; fi
+  if ! ((${#args[@]})); then printf >&2 '%s %s\n' "$RED$BOLD==>$NORMAL" \
+    "$FUNCNAME: Refusing to work without arguments"; return 1; fi
 
-  # Inspect the first argument; modify the global array accordingly; prepare for potential debug output
+  # Fork based on operation
   case ${args[0]} in
-    push) set -- "${args[@]}"; shift; local level msg
-          if ! (($#)); then printf >&2 '%s %s\n' "$RED$BOLD==>$NORMAL" "$FUNCNAME: Attempted to push an empty item onto the context stack"; return 2; fi
-          level=${#D__CONTEXT[@]}
-          [ -n "$title" ] || title='Start'
-          read -r msg <<<"$*"; [ -n "$msg" ] || msg='<empty description>'
-          D__CONTEXT+=("$msg")
+    push) set -- "${args[@]}"; shift
+          if ! (($#)); then printf >&2 '%s %s\n' "$RED$BOLD==>$NORMAL" \
+            "$FUNCNAME: Attempted to push an empty item onto the context stack"
+            return 2; fi
+          local msg; read -r msg <<<"$*"
+          [ -n "$msg" ] || msg='<empty description>'; D__CONTEXT+=("$msg")
+          [ $qt = n ] && qt=1; (($D__OPT_VERBOSITY<$qt)) && return 0
+          [ -n "$ttl" ] || ttl='Start'
           ;;
-    pop)  set -- "${args[@]}"; shift; local level msg
+    pop)  set -- "${args[@]}"; shift; local level
           level=$((${#D__CONTEXT[@]}-1))
-          if (($level<0)); then printf >&2 '%s %s\n' "$RED$BOLD==>$NORMAL" "$FUNCNAME: Attempted to pop from the empty context stack"; return 3; fi
-          [ -n "$title" ] || title='End'
-          if (($#)); then read -r msg <<<"$*"; [ -n "$msg" ] || msg='<empty description>'; else msg="${D__CONTEXT[$level]}"; fi
-          unset D__CONTEXT[$level]
+          if (($level<0)); then printf >&2 '%s %s\n' "$RED$BOLD==>$NORMAL" \
+            "$FUNCNAME: Attempted to pop from the empty context stack"
+            return 3; fi
+          local msg; if (($#)); then read -r msg <<<"$*"
+            [ -n "$msg" ] || msg='<empty description>'
+          else msg="${D__CONTEXT[$level]}"; fi; unset D__CONTEXT[$level]
+          [ $qt = n ] && qt=2; (($D__OPT_VERBOSITY<$qt)) && return 0
+          [ -n "$ttl" ] || ttl='End'
           ;;
-    notch)  if ((${#D__CONTEXT_NOTCHES[@]})) && [ ${D__CONTEXT_NOTCHES[${#D__CONTEXT_NOTCHES[@]}-1]} -eq ${#D__CONTEXT[@]} ]; then
-              printf >&2 '%s %s\n' "$RED$BOLD==>$NORMAL" "$FUNCNAME: Attempted to make a duplicate notch on the context stack"; return 4
+    notch)  if ((${#D__CONTEXT_NOTCHES[@]})) \
+              && [ ${D__CONTEXT_NOTCHES[${#D__CONTEXT_NOTCHES[@]}-1]} \
+              -eq ${#D__CONTEXT[@]} ]; then
+              printf >&2 '%s %s%s\n' "$RED$BOLD==>$NORMAL" \
+                "$FUNCNAME: Attempted to make a duplicate notch" \
+                " on the context stack"; return 4
             fi
-            D__CONTEXT_NOTCHES+=("${#D__CONTEXT[@]}"); return 0
+            D__CONTEXT_NOTCHES+=("${#D__CONTEXT[@]}")
+            [ $qt = n ] && qt=3; (($D__OPT_VERBOSITY<$qt)) && return 0
+            ttl='Notched'; local msg="At position ${#D__CONTEXT[@]}"
             ;;
-    lop)  local min num=${#D__CONTEXT_NOTCHES[@]} level msg; if (($num)); then ((--num)); min=${D__CONTEXT_NOTCHES[$num]}; else num=; min=0; fi
-          [ -n "$title" ] || title='End'; while [ ${#D__CONTEXT[@]} -gt $min ]; do
-            level=$((${#D__CONTEXT[@]}-1)); msg="${D__CONTEXT[$level]}"; unset D__CONTEXT[$level]
-            if $quiet; then $D__OPT_QUIET && return 0; printf >&2 "%s %s: %s\n" "$CYAN==>" "$BOLD$title$NORMAL$CYAN" "$msg$NORMAL"
-            else printf >&2 "%s %s: %s\n" "$YELLOW$BOLD==>$NORMAL" "$BOLD$title$NORMAL" "$msg"; fi
-          done; [ -n "$num" ] && unset D__CONTEXT_NOTCHES[$num]; return 0
+    lop)  local min num=${#D__CONTEXT_NOTCHES[@]} level qtp=false msg
+          if (($num)); then ((--num)); min=${D__CONTEXT_NOTCHES[$num]}
+          else num=; min=0; fi; [ -n "$ttl" ] || ttl='End'
+          [ $qt = n ] && qt=2; (($D__OPT_VERBOSITY<$qt)) && qtp=true
+          while ((${#D__CONTEXT[@]}>$min)); do
+            level=$((${#D__CONTEXT[@]}-1)); msg="${D__CONTEXT[$level]}"
+            unset D__CONTEXT[$level]; $qtp && continue
+            if (($qt)); then printf >&2 "%s %s: %s\n" "$CYAN==>" \
+              "$BOLD$ttl$NORMAL$CYAN" "$msg$NORMAL"
+            else printf >&2 "%s %s: %s\n" "$YELLOW$BOLD==>$NORMAL" \
+              "$BOLD$ttl$NORMAL" "$msg"; fi
+          done; [ -n "$num" ] && unset D__CONTEXT_NOTCHES[$num]
+          (($D__OPT_VERBOSITY<=$qt)) && return 0
+          ttl='De-notched'; msg="At position $min"
           ;;
-    *)    printf >&2 '%s %s\n' "$RED$BOLD==>$NORMAL" "$FUNCNAME: Ignoring unrecognized routine: '${args[0]}'"; return 1;;
+    *)    printf >&2 '%s %s\n' "$RED$BOLD==>$NORMAL" \
+            "$FUNCNAME: Ignoring unrecognized routine: '${args[0]}'"
+          return 1
+          ;;
   esac
 
-  # Print the debug output, if necessary
-  if $quiet; then $D__OPT_QUIET && return 0
-    printf >&2 "%s %s: %s\n" "$CYAN==>" "$BOLD$title$NORMAL$CYAN" "$msg$NORMAL"
+  # Print the debug output
+  if (($qt)); then
+    printf >&2 "%s %s: %s\n" "$CYAN==>" "$BOLD$ttl$NORMAL$CYAN" "$msg$NORMAL"
   else
-    printf >&2 "%s %s: %s\n" "$YELLOW$BOLD==>$NORMAL" "$BOLD$title$NORMAL" "$msg"
+    printf >&2 "%s %s: %s\n" "$YELLOW$BOLD==>$NORMAL" "$BOLD$ttl$NORMAL" "$msg"
   fi
 }
 
