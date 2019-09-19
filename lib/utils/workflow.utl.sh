@@ -3,9 +3,9 @@
 #:kind:         func(script)
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    18
+#:revnumber:    19
 #:revdate:      2019.09.19
-#:revremark:    Put d__context back together (not worth it)
+#:revremark:    Tweak quiet level of d__context lop (still not ideal)
 #:created_at:   2019.09.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -194,7 +194,7 @@ d__context()
               else printf >&2 "%s %s: %s\n" "$YELLOW$BOLD==>$NORMAL" \
                 "$BOLD$ttl$NORMAL" "$msg"; fi
             done; [ -n "$num" ] && unset D__CONTEXT_NOTCHES[$num]
-            (($D__OPT_VERBOSITY<=$qt)) && return 0
+            ((++qt)); (($D__OPT_VERBOSITY<$qt)) && return 0
             ttl='De-notched'; msg="At position $min";;
     *)  printf >&2 '%s %s\n' "$RED$BOLD==>$NORMAL" \
           "$FUNCNAME: Ignoring unrecognized routine: '${args[0]}'"
