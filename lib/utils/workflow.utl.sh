@@ -3,9 +3,9 @@
 #:kind:         func(script)
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    17
+#:revnumber:    18
 #:revdate:      2019.09.19
-#:revremark:    Fix syntax error in d__notify
+#:revremark:    Put d__context back together (not worth it)
 #:created_at:   2019.09.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -117,7 +117,7 @@
 d__context()
 {
   # Pluck out options, round up arguments
-  local args=() arg opt qt=n ttl msg i
+  local args=() arg opt qt=n ttl i
   while (($#)); do arg="$1"; shift; case $arg in
     -*) case ${arg:1} in
           -)        args+=("$@"); break;;
@@ -151,10 +151,51 @@ d__context()
 
   # Fork based on operation
   case ${args[0]} in
-    push)   d___context_push;;
-    pop)    d___context_pop;;
-    notch)  d___context_notch;;
-    lop)    d___context_lop;;
+    push)   set -- "${args[@]}"; shift
+            if ! (($#)); then printf >&2 '%s %s%s\n' "$RED$BOLD==>$NORMAL" \
+              "$FUNCNAME: Attempted to push an empty item onto the" \
+              " context stack"
+              return 2
+            fi
+            local msg; read -r msg <<<"$*"
+            [ -n "$msg" ] || msg='<empty description>'; D__CONTEXT+=("$msg")
+            [ $qt = n ] && qt=1; (($D__OPT_VERBOSITY<$qt)) && return 0
+            [ -n "$ttl" ] || ttl='Start';;
+    pop)    set -- "${args[@]}"; shift; local level
+            level=$((${#D__CONTEXT[@]}-1))
+            if (($level<0)); then printf >&2 '%s %s\n' "$RED$BOLD==>$NORMAL" \
+              "$FUNCNAME: Attempted to pop from the empty context stack"
+              return 3; fi
+            local msg; if (($#)); then read -r msg <<<"$*"
+              [ -n "$msg" ] || msg='<empty description>'
+            else msg="${D__CONTEXT[$level]}"; fi
+            unset D__CONTEXT[$level]
+            [ $qt = n ] && qt=2; (($D__OPT_VERBOSITY<$qt)) && return 0
+            [ -n "$ttl" ] || ttl='End';;
+    notch)  if ((${#D__CONTEXT_NOTCHES[@]})) \
+              && [ ${D__CONTEXT_NOTCHES[${#D__CONTEXT_NOTCHES[@]}-1]} \
+              -eq ${#D__CONTEXT[@]} ]; then
+              printf >&2 '%s %s%s\n' "$RED$BOLD==>$NORMAL" \
+                "$FUNCNAME: Attempted to make a duplicate notch" \
+                " on the context stack"; return 4
+            fi
+            D__CONTEXT_NOTCHES+=("${#D__CONTEXT[@]}")
+            [ $qt = n ] && qt=3; (($D__OPT_VERBOSITY<$qt)) && return 0
+            ttl='Notched'; local msg="At position ${#D__CONTEXT[@]}";;
+    lop)    local min num=${#D__CONTEXT_NOTCHES[@]} level qtp=false msg
+            if (($num)); then ((--num)); min=${D__CONTEXT_NOTCHES[$num]}
+            else num=; min=0; fi; [ -n "$ttl" ] || ttl='End'
+            [ $qt = n ] && qt=2; (($D__OPT_VERBOSITY<$qt)) && qtp=true
+            while ((${#D__CONTEXT[@]}>$min)); do
+              level=$((${#D__CONTEXT[@]}-1)); msg="${D__CONTEXT[$level]}"
+              unset D__CONTEXT[$level]; $qtp && continue
+              if (($qt)); then printf >&2 "%s %s: %s\n" "$CYAN==>" \
+                "$BOLD$ttl$NORMAL$CYAN" "$msg$NORMAL"
+              else printf >&2 "%s %s: %s\n" "$YELLOW$BOLD==>$NORMAL" \
+                "$BOLD$ttl$NORMAL" "$msg"; fi
+            done; [ -n "$num" ] && unset D__CONTEXT_NOTCHES[$num]
+            (($D__OPT_VERBOSITY<=$qt)) && return 0
+            ttl='De-notched'; msg="At position $min";;
     *)  printf >&2 '%s %s\n' "$RED$BOLD==>$NORMAL" \
           "$FUNCNAME: Ignoring unrecognized routine: '${args[0]}'"
         return 1;;
@@ -166,82 +207,6 @@ d__context()
   else
     printf >&2 "%s %s: %s\n" "$YELLOW$BOLD==>$NORMAL" "$BOLD$ttl$NORMAL" "$msg"
   fi
-}
-
-#>  d___context_push
-#
-## INTERNAL USE ONLY
-#
-d___context_push()
-{
-  set -- "${args[@]}"; shift
-  if ! (($#)); then printf >&2 '%s %s\n' "$RED$BOLD==>$NORMAL" \
-    "$FUNCNAME: Attempted to push an empty item onto the context stack"
-    return 2
-  fi
-  read -r msg <<<"$*"; [ -n "$msg" ] || msg='<empty description>'
-  D__CONTEXT+=("$msg")
-  [ $qt = n ] && qt=1; (($D__OPT_VERBOSITY<$qt)) && return 0
-  [ -n "$ttl" ] || ttl='Start'
-}
-
-#>  d___context_pop
-#
-## INTERNAL USE ONLY
-#
-d___context_pop()
-{
-  set -- "${args[@]}"; shift; local level
-  level=$((${#D__CONTEXT[@]}-1))
-  if (($level<0)); then printf >&2 '%s %s\n' "$RED$BOLD==>$NORMAL" \
-    "$FUNCNAME: Attempted to pop from the empty context stack"
-    return 3; fi
-  if (($#)); then read -r msg <<<"$*"
-    [ -n "$msg" ] || msg='<empty description>'
-  else msg="${D__CONTEXT[$level]}"; fi
-  unset D__CONTEXT[$level]
-  [ $qt = n ] && qt=2; (($D__OPT_VERBOSITY<$qt)) && return 0
-  [ -n "$ttl" ] || ttl='End'
-}
-
-#>  d___context_notch
-#
-## INTERNAL USE ONLY
-#
-d___context_notch()
-{
-  if ((${#D__CONTEXT_NOTCHES[@]})) \
-    && [ ${D__CONTEXT_NOTCHES[${#D__CONTEXT_NOTCHES[@]}-1]} \
-    -eq ${#D__CONTEXT[@]} ]; then
-    printf >&2 '%s %s%s\n' "$RED$BOLD==>$NORMAL" \
-      "$FUNCNAME: Attempted to make a duplicate notch" \
-      " on the context stack"; return 4
-  fi
-  D__CONTEXT_NOTCHES+=("${#D__CONTEXT[@]}")
-  [ $qt = n ] && qt=3; (($D__OPT_VERBOSITY<$qt)) && return 0
-  ttl='Notched'; msg="At position ${#D__CONTEXT[@]}"
-}
-
-#>  d___context_lop
-#
-## INTERNAL USE ONLY
-#
-d___context_lop()
-{
-  local min num=${#D__CONTEXT_NOTCHES[@]} level qtp=false
-  if (($num)); then ((--num)); min=${D__CONTEXT_NOTCHES[$num]}
-  else num=; min=0; fi; [ -n "$ttl" ] || ttl='End'
-  [ $qt = n ] && qt=2; (($D__OPT_VERBOSITY<$qt)) && qtp=true
-  while ((${#D__CONTEXT[@]}>$min)); do
-    level=$((${#D__CONTEXT[@]}-1)); msg="${D__CONTEXT[$level]}"
-    unset D__CONTEXT[$level]; $qtp && continue
-    if (($qt)); then printf >&2 "%s %s: %s\n" "$CYAN==>" \
-      "$BOLD$ttl$NORMAL$CYAN" "$msg$NORMAL"
-    else printf >&2 "%s %s: %s\n" "$YELLOW$BOLD==>$NORMAL" \
-      "$BOLD$ttl$NORMAL" "$msg"; fi
-  done; [ -n "$num" ] && unset D__CONTEXT_NOTCHES[$num]
-  (($D__OPT_VERBOSITY<=$qt)) && return 0
-  ttl='De-notched'; msg="At position $min"
 }
 
 #>  d__cmd [<options>] [----] CMD...
