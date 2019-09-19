@@ -3,9 +3,9 @@
 #:kind:         func(script)
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    16
+#:revnumber:    17
 #:revdate:      2019.09.19
-#:revremark:    Rewrite d__notify for new verbosity system
+#:revremark:    Fix syntax error in d__notify
 #:created_at:   2019.09.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -917,7 +917,7 @@ d__notify()
           h|-context-head)  context=h;;
           1|-context-tip)   context=t;;
           l|-loud)    qt=0;;
-          q|-quiet)   ((++qt))
+          q|-quiet)   ((++qt));;
           u|-sudo)    sudo=true;;
           v|-success) stl=v;;
           x|-failure) stl=x;;
