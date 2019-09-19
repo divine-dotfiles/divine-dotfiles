@@ -3,9 +3,9 @@
 #:kind:         func(script)
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    9
+#:revnumber:    10
 #:revdate:      2019.09.19
-#:revremark:    Fix missing local var declaration
+#:revremark:    Remove full stops at the end of context item descriptions
 #:created_at:   2019.09.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -722,7 +722,7 @@ d__notify()
   if $sudo; then sudo -n true 2>/dev/null && return 0
     quiet=false
     [ -n "$title" ] || title='Password prompt'
-    ((${#args[@]})) || args='The upcoming command requires sudo priveleges.'
+    ((${#args[@]})) || args='The upcoming command requires sudo priveleges'
   fi
 
   # Settle on quiet call and formatting
@@ -897,12 +897,12 @@ d__prompt()
   # Quick return if an answer is provided
   case $answer in
     true)   case $mode in
-              y)  d__notify -- 'Decision prompt is pre-accepted; skipping.'; return 0;;
-              k)  d__notify -- 'Any key prompt is pre-accepted; skipping.'; return 0;;
+              y)  d__notify -- 'Decision prompt is pre-accepted; skipping'; return 0;;
+              k)  d__notify -- 'Any key prompt is pre-accepted; skipping'; return 0;;
             esac;;
     false)  case $mode in
-              y)  d__notify -- 'Decision prompt is pre-rejected; skipping.'; return 1;;
-              k)  d__notify -- 'Any key prompt is pre-accepted; skipping.'; return 0;;
+              y)  d__notify -- 'Decision prompt is pre-rejected; skipping'; return 1;;
+              k)  d__notify -- 'Any key prompt is pre-accepted; skipping'; return 0;;
             esac;;
   esac
 
