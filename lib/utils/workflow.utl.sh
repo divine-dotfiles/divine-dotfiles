@@ -3,9 +3,9 @@
 #:kind:         func(script)
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    14
+#:revnumber:    15
 #:revdate:      2019.09.19
-#:revremark:    Reqrite d__cmd and siblings to fit in 80 columns of src
+#:revremark:    Reqrite d__fail to fit in 80 columns of src
 #:created_at:   2019.09.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -650,7 +650,8 @@ d__pipe()
                           "$FUNCNAME: Ignoring backreference that is not yet" \
                           " assigned: '--#$tmp--'"
                       else
-                        case $pcnt in 0) args0+=("$1");; 1) args1+=("$1");; 2) args2+=("$1");; esac
+                        case $pcnt in 0) args0+=("$1");; 1) args1+=("$1");;
+                          2) args2+=("$1");; esac
                         d__cmd+=" $BOLD${labels[$tmp]}$NORMAL"; shift
                       fi
                     else
@@ -669,7 +670,8 @@ d__pipe()
                         " argument: '--$tmp--'"
                     fi;;
       esac;;
-    *)  case $pcnt in 0) args0+=("$tmp");; 1) args1+=("$tmp");; 2) args2+=("$tmp");; esac
+    *)  case $pcnt in 0) args0+=("$tmp");; 1) args1+=("$tmp");;
+          2) args2+=("$tmp");; esac
         d__cmd+=" $tmp";;
   esac; done
   if ! ((${#args0[@]})); then printf >&2 '%s %s\n' \
@@ -777,11 +779,22 @@ d__fail()
   local args=() arg opt title; while (($#)); do arg="$1"; shift; case $arg in
     -*) case ${arg:1} in
           -)        args+=("$@"); break;;
-          t|-title) if (($#)); then read -r title <<<"$1"; [ -n "$title" ] || title='<empty title>'; shift; else printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" "$FUNCNAME: Ignoring option lacking required argument: '$arg'"; fi;;
+          t|-title) if (($#)); then read -r title <<<"$1"
+                      [ -n "$title" ] || title='<empty title>'; shift
+                    else printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" \
+                      "$FUNCNAME: Ignoring option lacking required" \
+                      " argument: '$arg'"
+                    fi;;
           *)  for ((i=1;i<${#arg};++i)); do opt="${arg:i:1}"
                 case $opt in
-                  t)  if (($#)); then read -r title <<<"$1"; [ -n "$title" ] || title='<empty title>'; shift; else printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" "$FUNCNAME: Ignoring option lacking required argument: '$opt'"; fi;;
-                  *)  printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" "$FUNCNAME: Ignoring unrecognized option: '$opt'";;
+                  t)  if (($#)); then read -r title <<<"$1"
+                        [ -n "$title" ] || title='<empty title>'; shift
+                      else printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" \
+                        "$FUNCNAME: Ignoring option lacking required" \
+                        " argument: '$opt'"
+                      fi;;
+                  *)  printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" \
+                        "$FUNCNAME: Ignoring unrecognized option: '$opt'";;
                 esac
               done;;
         esac;;
@@ -792,16 +805,22 @@ d__fail()
   pft+=' %s'
   if ((${#args[@]})); then
     pft+=': %s\n'
-    [ -n "$title" ] && pfa+=("$BOLD$title$NORMAL") || pfa+=("${BOLD}Failure$NORMAL")
+    [ -n "$title" ] && pfa+=("$BOLD$title$NORMAL") \
+      || pfa+=("${BOLD}Failure$NORMAL")
     [ -n "${args[0]}" ] && pfa+=("${args[0]}") || pfa+=('<empty description>')
-    for ((i=1;i<${#args[@]};++i)); do pft+='    %s\n'; [ -n "${args[$i]}" ] && pfa+=("${args[$i]}") || pfa+=('<empty description>'); done
+    for ((i=1;i<${#args[@]};++i)); do
+      pft+='    %s\n'; [ -n "${args[$i]}" ] \
+        && pfa+=("${args[$i]}") || pfa+=('<empty description>')
+    done
   else
     pft+='\n'
-    [ -n "$title" ] && pfa+=("$BOLD$title$NORMAL") || pfa+=("${BOLD}Something went wrong$NORMAL")
+    [ -n "$title" ] && pfa+=("$BOLD$title$NORMAL") \
+      || pfa+=("${BOLD}Something went wrong$NORMAL")
   fi
 
   # Print the head of the stack
-  local tmp=${#D__CONTEXT_NOTCHES[@]}; (($tmp)) && tmp=$((${D__CONTEXT_NOTCHES[$tmp-1]})) || tmp=0
+  local tmp=${#D__CONTEXT_NOTCHES[@]}; (($tmp)) \
+    && tmp=$((${D__CONTEXT_NOTCHES[$tmp-1]})) || tmp=0
   if ((${#D__CONTEXT[@]} > $tmp)); then
     pft+='    %s: %s\n'; pfa+=( "${BOLD}Context$NORMAL" "${D__CONTEXT[$tmp]}" )
     for ((i=$tmp+1;i<${#D__CONTEXT[@]};++i)); do
