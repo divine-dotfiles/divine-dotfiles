@@ -4,8 +4,8 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revnumber:    9
-#:revdate:      2019.09.18
-#:revremark:    Merge workflow feature
+#:revdate:      2019.09.19
+#:revremark:    Fix missing local var declaration
 #:created_at:   2019.09.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -105,7 +105,7 @@
 d__context()
 {
   # Pluck out options, round up arguments
-  local args=() arg opt quiet=true title; while (($#)); do arg="$1"; shift; case $arg in
+  local args=() arg opt quiet=true title i; while (($#)); do arg="$1"; shift; case $arg in
     -*) case ${arg:1} in
           -)        args+=("$@"); break;;
           l|-loud)  quiet=false;;
