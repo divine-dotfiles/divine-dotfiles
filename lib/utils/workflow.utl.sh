@@ -3,9 +3,9 @@
 #:kind:         func(script)
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    15
+#:revnumber:    16
 #:revdate:      2019.09.19
-#:revremark:    Reqrite d__fail to fit in 80 columns of src
+#:revremark:    Rewrite d__notify for new verbosity system
 #:created_at:   2019.09.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -835,7 +835,7 @@ d__fail()
   d__context -- lop
 }
 
-#>  d__notify [-1chlsuvx] [-t TITLE] [--] [DESCRIPTION...]
+#>  d__notify [-1chlqsuvx] [-t TITLE] [--] [DESCRIPTION...]
 #
 ## Debug printer: announces a development of any kind. Whether the output is 
 #. printed depends on the global verbosity setting.
@@ -865,8 +865,13 @@ d__fail()
 #.  * Titles and some parts of CMD are styled in bold.
 #
 ## Options:
-#.  -l, --loud                - Announce context switching regardless of the 
-#.                              global verbosity setting.
+#.  -q, --quiet               - (repeatable) The amount of these options 
+#.                              designates the quiet level. The output is only 
+#.                              printed if the value in $D__OPT_VERBOSITY is 
+#.                              equal to or greater than the quiet level.
+#.                              If this option is not given at all, the default 
+#.                              quiet level of this function is 1.
+#.  -l, --loud                - Sets the quiet level to zero.
 #.  -u, --sudo                - Print the notification only if the caller lacks 
 #.                              the sudo privelege. Automatically makes the 
 #.                              notification `--loud`.
@@ -904,30 +909,44 @@ d__notify()
   local pft='%s' pfa=() i
 
   # Regular call: pluck out options, round up arguments
-  local args=() arg opt context quiet=true sudo=false title stl; while (($#)); do arg="$1"; shift; case $arg in
+  local args=() arg opt context qt=n quiet=true sudo=false title stl
+  while (($#)); do arg="$1"; shift; case $arg in
     -*) case ${arg:1} in
           -)          args+=("$@"); break;;
           c|-context-all)   context=e;;
           h|-context-head)  context=h;;
           1|-context-tip)   context=t;;
-          l|-loud)    quiet=false;;
+          l|-loud)    qt=0;;
+          q|-quiet)   ((++qt))
           u|-sudo)    sudo=true;;
           v|-success) stl=v;;
           x|-failure) stl=x;;
           s|-skip)    stl=s;;
-          t|-title)   if (($#)); then read -r title <<<"$1"; [ -n "$title" ] || title='<empty title>'; shift; else printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" "$FUNCNAME: Ignoring option lacking required argument: '$arg'"; fi;;
+          t|-title)   if (($#)); then read -r title <<<"$1"
+                        [ -n "$title" ] || title='<empty title>'; shift
+                      else printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" \
+                        "$FUNCNAME: Ignoring option lacking required" \
+                        " argument: '$arg'"
+                      fi;;
           *)  for ((i=1;i<${#arg};++i)); do opt="${arg:i:1}"
                 case $opt in
                   c)  context=e;;
                   h)  context=h;;
                   1)  context=t;;
-                  l)  quiet=false;;
+                  l)  qt=0;;
+                  q)  ((++qt));;
                   u)  sudo=true;;
                   v)  stl=v;;
                   x)  stl=x;;
                   s)  stl=s;;
-                  t)  if (($#)); then read -r title <<<"$1"; [ -n "$title" ] || title='<empty title>'; shift; else printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" "$FUNCNAME: Ignoring option lacking required argument: '$opt'"; fi;;
-                  *)  printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" "$FUNCNAME: Ignoring unrecognized option: '$opt'";;
+                  t)  if (($#)); then read -r title <<<"$1"
+                        [ -n "$title" ] || title='<empty title>'; shift
+                      else printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" \
+                        "$FUNCNAME: Ignoring option lacking required" \
+                        " argument: '$opt'"
+                      fi;;
+                  *)  printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" \
+                        "$FUNCNAME: Ignoring unrecognized option: '$opt'";;
                 esac
               done;;
         esac;;
@@ -936,34 +955,43 @@ d__notify()
 
   # Settle on sudo option
   if $sudo; then sudo -n true 2>/dev/null && return 0
-    quiet=false
-    [ -n "$title" ] || title='Password prompt'
+    qt=0; [ -n "$title" ] || title='Password prompt'
     ((${#args[@]})) || args='The upcoming command requires sudo priveleges'
   fi
 
   # Settle on quiet call and formatting
-  if $quiet; then $D__OPT_QUIET && return 0
+  [ $qt = n ] && qt=1; (($D__OPT_VERBOSITY<$qt)) && return 0
+  if (($qt)); then
     pfa+=("$CYAN==>$NORMAL"); local tp="$CYAN$BOLD" ts="$NORMAL$CYAN"
   else
-    case $stl in v) pfa+=("$GREEN$BOLD==>$NORMAL");; x) pfa+=("$RED$BOLD==>$NORMAL");; s) pfa+=("$WHITE$BOLD==>$NORMAL");; *) pfa+=("$YELLOW$BOLD==>$NORMAL");; esac
+    case $stl in v) pfa+=("$GREEN$BOLD==>$NORMAL");;
+      x) pfa+=("$RED$BOLD==>$NORMAL");; s) pfa+=("$WHITE$BOLD==>$NORMAL");;
+      *) pfa+=("$YELLOW$BOLD==>$NORMAL");; esac
     local tp="$BOLD" ts="$NORMAL"
   fi
 
   # Compose the leading line depending on the options
   if ((${#args[@]})); then
     if [ -n "$title" ]; then pft+=' %s:'; pfa+=("$tp$title$ts"); fi
-    pft+=' %s\n'; [ -n "${args[0]}" ] && pfa+=("$ts${args[0]}") || pfa+=("$ts<empty description>")
-    for ((i=1;i<${#args[@]};++i)); do pft+='    %s\n'; [ -n "${args[$i]}" ] && pfa+=("${args[$i]}") || pfa+=('<empty description>'); done
+    pft+=' %s\n'; [ -n "${args[0]}" ] \
+      && pfa+=("$ts${args[0]}") || pfa+=("$ts<empty description>")
+    for ((i=1;i<${#args[@]};++i)); do
+      pft+='    %s\n'; [ -n "${args[$i]}" ] \
+        && pfa+=("${args[$i]}") || pfa+=('<empty description>')
+    done
   else
-    pft+=' %s\n'; if [ -n "$title" ]; then pfa+=("$tp$title$ts"); else pfa+=("${tp}Generic alert$ts"); fi
+    pft+=' %s\n'; if [ -n "$title" ]; then pfa+=("$tp$title$ts")
+    else pfa+=("${tp}Generic alert$ts"); fi
   fi
 
   # Print whatever part of the stack is requested
   if [ -n "$context" ]; then
     case $context in
       e)  context=0;;
-      h)  context=${#D__CONTEXT_NOTCHES[@]}; (($context)) && context=$((${D__CONTEXT_NOTCHES[$context-1]})) || context=0;;
-      t)  context=${#D__CONTEXT[@]}; (($context)) && context=$(($context-1)) || context=0;;
+      h)  context=${#D__CONTEXT_NOTCHES[@]}; (($context)) \
+            && context=$((${D__CONTEXT_NOTCHES[$context-1]})) || context=0;;
+      t)  context=${#D__CONTEXT[@]}; (($context)) \
+            && context=$(($context-1)) || context=0;;
     esac
     if ((${#D__CONTEXT[@]} > $context)); then
       pft+='    %s: %s\n'; pfa+=( "${tp}Context$ts" "${D__CONTEXT[$context]}" )
@@ -977,7 +1005,8 @@ d__notify()
   printf >&2 "$pft%s" "${pfa[@]}" "$NORMAL"
 }
 
-#>  d__prompt [-1bchkqsvxy] [-p PROMPT] [-a ANSWER] [-t TITLE] [--] [DESCRIPTION...]
+#>  d__prompt [-1bchkqsvxy] [-p PROMPT] [-a ANSWER] [-t TITLE] [--] \
+#>    [DESCRIPTION...]
 #
 ## Prompting mechanism: requests a key press and returns corresponding integer:
 #.  * Yes/no:       'y' or 'n' (or 'q')   returns 0 or 1 (or 2) respectively
@@ -1072,7 +1101,9 @@ d__prompt()
   local pft= pfa=() i tp ts clr
 
   # Regular call: pluck out options, round up arguments
-  local args=() arg opt mode=y or_quit=false context one_line=true prompt answer title stl; while (($#)); do arg="$1"; shift; case $arg in
+  local args=() arg opt mode=y or_quit=false context one_line=true
+  local prompt answer title stl
+  while (($#)); do arg="$1"; shift; case $arg in
     -*) case ${arg:1} in
           -)          args+=("$@"); break;;
           y|-yes-no)  mode=y;;
@@ -1085,9 +1116,24 @@ d__prompt()
           v|-success) stl=v;;
           x|-failure) stl=x;;
           s|-skip)    stl=s;;
-          p|-prompt)  if (($#)); then read -r prompt <<<"$1"; [ -n "$prompt" ] || prompt='<empty prompt>'; shift; else printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" "$FUNCNAME: Ignoring option lacking required argument: '$arg'"; fi;;
-          a|-answer)  if (($#)); then read -r answer <<<"$1"; shift; else printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" "$FUNCNAME: Ignoring option lacking required argument: '$arg'"; fi;;
-          t|-title)   if (($#)); then read -r title <<<"$1"; [ -n "$title" ] || title='<empty title>'; one_line=false; shift; else printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" "$FUNCNAME: Ignoring option lacking required argument: '$arg'"; fi;;
+          p|-prompt)  if (($#)); then read -r prompt <<<"$1"
+                        [ -n "$prompt" ] || prompt='<empty prompt>'; shift
+                      else printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" \
+                        "$FUNCNAME: Ignoring option lacking required" \
+                        " argument: '$arg'"
+                      fi;;
+          a|-answer)  if (($#)); then read -r answer <<<"$1"; shift
+                      else printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" \
+                        "$FUNCNAME: Ignoring option lacking required" \
+                        " argument: '$arg'"
+                      fi;;
+          t|-title)   if (($#)); then read -r title <<<"$1"
+                        [ -n "$title" ] || title='<empty title>'
+                        one_line=false; shift
+                      else printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" \
+                        "$FUNCNAME: Ignoring option lacking required" \
+                        " argument: '$arg'"
+                      fi;;
           *)  for ((i=1;i<${#arg};++i)); do opt="${arg:i:1}"
                 case $opt in
                   y)  mode=y;;
@@ -1100,10 +1146,26 @@ d__prompt()
                   v)  stl=v;;
                   x)  stl=x;;
                   s)  stl=s;;
-                  p)  if (($#)); then read -r prompt <<<"$1"; [ -n "$prompt" ] || prompt='<empty prompt>'; shift; else printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" "$FUNCNAME: Ignoring option lacking required argument: '$opt'"; fi;;
-                  a)  if (($#)); then read -r answer <<<"$1"; shift; else printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" "$FUNCNAME: Ignoring option lacking required argument: '$opt'"; fi;;
-                  t)  if (($#)); then read -r title <<<"$1"; [ -n "$title" ] || title='<empty title>'; one_line=false; shift; else printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" "$FUNCNAME: Ignoring option lacking required argument: '$opt'"; fi;;
-                  *)  printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" "$FUNCNAME: Ignoring unrecognized option: '$opt'";;
+                  p)  if (($#)); then read -r prompt <<<"$1"
+                        [ -n "$prompt" ] || prompt='<empty prompt>'; shift
+                      else printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" \
+                        "$FUNCNAME: Ignoring option lacking required" \
+                        " argument: '$opt'"
+                      fi;;
+                  a)  if (($#)); then read -r answer <<<"$1"; shift
+                      else printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" \
+                        "$FUNCNAME: Ignoring option lacking required" \
+                        " argument: '$opt'"
+                      fi;;
+                  t)  if (($#)); then read -r title <<<"$1"
+                        [ -n "$title" ] || title='<empty title>'
+                        one_line=false; shift
+                      else printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" \
+                        "$FUNCNAME: Ignoring option lacking required" \
+                        " argument: '$opt'"
+                      fi;;
+                  *)  printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" \
+                        "$FUNCNAME: Ignoring unrecognized option: '$opt'";;
                 esac
               done;;
         esac;;
@@ -1113,17 +1175,22 @@ d__prompt()
   # Quick return if an answer is provided
   case $answer in
     true)   case $mode in
-              y)  d__notify -- 'Decision prompt is pre-accepted; skipping'; return 0;;
-              k)  d__notify -- 'Any key prompt is pre-accepted; skipping'; return 0;;
+              y)  d__notify -qq -- 'Decision prompt is pre-accepted; skipping'
+                  return 0;;
+              k)  d__notify -qq -- 'Any key prompt is pre-accepted; skipping'
+                  return 0;;
             esac;;
     false)  case $mode in
-              y)  d__notify -- 'Decision prompt is pre-rejected; skipping'; return 1;;
-              k)  d__notify -- 'Any key prompt is pre-accepted; skipping'; return 0;;
+              y)  d__notify -qq -- 'Decision prompt is pre-rejected; skipping'
+                  return 1;;
+              k)  d__notify -qq -- 'Any key prompt is pre-accepted; skipping'
+                  return 0;;
             esac;;
   esac
 
   # Settle on coloring
-  case $stl in b) :;; v) clr="$GREEN";; x) clr="$RED";; s) clr="$WHITE";; *) clr="$YELLOW";; esac
+  case $stl in b) :;; v) clr="$GREEN";; x) clr="$RED";; s) clr="$WHITE";;
+    *) clr="$YELLOW";; esac
 
   # Settle on the opening arrow
   ((${#args[@]})) && one_line=false
@@ -1136,22 +1203,31 @@ d__prompt()
 
     # Compose the leading line depending on the options
     if ((${#args[@]})); then
-      if [ -n "$title" ]; then pft+='%s: %s\n'; pfa+=("$BOLD$title$NORMAL"); else pft+='%s\n' ; fi
-      [ -n "${args[0]}" ] && pfa+=("${args[0]}") || pfa+=('<empty description>')
-      for ((i=1;i<${#args[@]};++i)); do pft+='    %s\n'; [ -n "${args[$i]}" ] && pfa+=("${args[$i]}") || pfa+=('<empty description>'); done
+      if [ -n "$title" ]; then pft+='%s: %s\n'; pfa+=("$BOLD$title$NORMAL")
+      else pft+='%s\n' ; fi
+      [ -n "${args[0]}" ] \
+        && pfa+=("${args[0]}") || pfa+=('<empty description>')
+      for ((i=1;i<${#args[@]};++i)); do
+        pft+='    %s\n'; [ -n "${args[$i]}" ] \
+          && pfa+=("${args[$i]}") || pfa+=('<empty description>')
+      done
     else
-      pft+='%s\n'; [ -n "$title" ] && pfa+=("$BOLD$title$NORMAL") || pfa+=("${BOLD}User attention required$NORMAL")
+      pft+='%s\n'; [ -n "$title" ] && pfa+=("$BOLD$title$NORMAL") \
+        || pfa+=("${BOLD}User attention required$NORMAL")
     fi
 
     # Print whatever part of the stack is requested
     if [ -n "$context" ]; then
       case $context in
         e)  context=0;;
-        h)  context=${#D__CONTEXT_NOTCHES[@]}; (($context)) && context=$((${D__CONTEXT_NOTCHES[$context-1]})) || context=0;;
-        t)  context=${#D__CONTEXT[@]}; (($context)) && context=$(($context-1)) || context=0;;
+        h)  context=${#D__CONTEXT_NOTCHES[@]}; (($context)) \
+              && context=$((${D__CONTEXT_NOTCHES[$context-1]})) || context=0;;
+        t)  context=${#D__CONTEXT[@]}; (($context)) \
+              && context=$(($context-1)) || context=0;;
       esac
       if ((${#D__CONTEXT[@]} > $context)); then
-        pft+='    %s: %s\n'; pfa+=( "${BOLD}Context$NORMAL" "${D__CONTEXT[$context]}" )
+        pft+='    %s: %s\n'
+        pfa+=( "${BOLD}Context$NORMAL" "${D__CONTEXT[$context]}" )
         for ((i=$context+1;i<${#D__CONTEXT[@]};++i)); do
           pft+='             %s\n'; pfa+=("${D__CONTEXT[$i]}")
         done
@@ -1168,7 +1244,8 @@ d__prompt()
     y)  $or_quit && i+=' [y/n/q]' || i+=' [y/n]';;
     k)  $or_quit && i+=' [<any key>/q]' || i+=' [<any key>]';;
   esac
-  [ "$stl" = b ] && pfa+=("$BOLD$i$NORMAL") || pfa+=("$clr$REVERSE$BOLD $i $NORMAL")
+  [ "$stl" = b ] && pfa+=("$BOLD$i$NORMAL") \
+    || pfa+=("$clr$REVERSE$BOLD $i $NORMAL")
 
   # Print the output
   printf >&2 "$pft" "${pfa[@]}"
@@ -1184,7 +1261,9 @@ d__prompt()
         done;;
     k)  while true; do
           read -rsn1 input
-          if $or_quit; then case $input in q|Q) printf >&2 '%s\n' 'q'; return 2;; esac fi
+          if $or_quit; then
+            case $input in q|Q) printf >&2 '%s\n' 'q'; return 2;; esac
+          fi
           printf >&2 '%s\n' "$NORMAL"; return 0
         done;;
   esac
