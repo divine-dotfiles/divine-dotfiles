@@ -3,9 +3,9 @@
 #:kind:         func(script)
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    13
+#:revnumber:    14
 #:revdate:      2019.09.19
-#:revremark:    Break d__context into subfunctions
+#:revremark:    Reqrite d__cmd and siblings to fit in 80 columns of src
 #:created_at:   2019.09.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -333,28 +333,48 @@ d__cmd()
         q)    q=1;;
         qq)   q=2;;
         opt)  opt=true;;
-        alrt) if (($#)); then local d__alrt; read -r d__alrt <<<"$1"; [ -n "$d__alrt" ] || d__alrt='<empty title>'; shift; else printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" "$FUNCNAME: Ignoring option lacking required argument: '--$tmp--'"; fi;;
-        crcm) if (($#)); then local d__crcm; read -r d__crcm <<<"$1"; [ -n "$d__crcm" ] || d__crcm='<empty description>'; shift; else printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" "$FUNCNAME: Ignoring option lacking required argument: '--$tmp--'"; fi;;
-        else) if (($#)); then local d__rslt; read -r d__rslt <<<"$1"; [ -n "$d__rslt" ] || d__rslt='<empty description>'; shift; else printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" "$FUNCNAME: Ignoring option lacking required argument: '--$tmp--'"; fi;;
+        alrt) if (($#)); then local d__alrt; read -r d__alrt <<<"$1"
+                [ -n "$d__alrt" ] || d__alrt='<empty title>'; shift
+              else printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" \
+                "$FUNCNAME: Ignoring option lacking required argument:" \
+                " '--$tmp--'"
+              fi;;
+        crcm) if (($#)); then local d__crcm; read -r d__crcm <<<"$1"
+                [ -n "$d__crcm" ] || d__crcm='<empty description>'; shift
+              else printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" \
+                "$FUNCNAME: Ignoring option lacking required argument:" \
+                " '--$tmp--'"
+              fi;;
+        else) if (($#)); then local d__rslt; read -r d__rslt <<<"$1"
+                [ -n "$d__rslt" ] || d__rslt='<empty description>'; shift
+              else printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" \
+                "$FUNCNAME: Ignoring option lacking required argument:" \
+                " '--$tmp--'"
+              fi;;
         \#*)  if (($#)); then tmp="${tmp:1}"
                 if [ -z ${labels[$tmp]+isset} ]; then
-                  printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" "$FUNCNAME: Ignoring backreference that is not yet assigned: '--#$tmp--'"
+                  printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" \
+                    "$FUNCNAME: Ignoring backreference that is not yet" \
+                    " assigned: '--#$tmp--'"
                 else
                   args+=("$1"); d__cmd+=" $BOLD${labels[$tmp]}$NORMAL"; shift
                 fi
               else
-                printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" "$FUNCNAME: Ignoring option lacking required argument: '--$tmp--'"
+                printf >&2 '%s %s: %s\n' "$YELLOW$BOLD==>$NORMAL" "$FUNCNAME" \
+                  "Ignoring option lacking required argument: '--$tmp--'"
               fi;;
         *)    if (($#)); then
                 labels+=("$tmp"); hunks+=("$1")
                 args+=("$1"); d__cmd+=" $BOLD$tmp$NORMAL"; shift
               else
-                printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" "$FUNCNAME: Ignoring option lacking required argument: '--$tmp--'"
+                printf >&2 '%s %s: %s\n' "$YELLOW$BOLD==>$NORMAL" "$FUNCNAME" \
+                  "Ignoring option lacking required argument: '--$tmp--'"
               fi;;
       esac;;
     *)  args+=("$tmp"); d__cmd+=" $tmp";;
   esac; done
-  if ! ((${#args[@]})); then printf >&2 '%s %s\n' "$RED$BOLD==>$NORMAL" "$FUNCNAME: Refusing to work without arguments"; return 2; fi
+  if ! ((${#args[@]})); then printf >&2 '%s %s\n' "$RED$BOLD==>$NORMAL" \
+    "$FUNCNAME: Refusing to work without arguments"; return 2; fi
 
   # Run command, applying output redirections
   case $q in
@@ -366,8 +386,10 @@ d__cmd()
   # Inspect the return code
   if $neg; then [ $tmp -ne 0 ]; else [ $tmp -eq 0 ]; fi
   if [ $? -eq 0 ]; then return 0; else
-    if [ -z ${d__alrt+isset} ]; then local d__alrt; $opt && d__alrt='Optional command failed' || d__alrt='Command failed'; fi
-    $neg && d__cmd="!$d__cmd" || d__cmd="${d__cmd:1}"; d___fail_from_cmd; return 1
+    if [ -z ${d__alrt+isset} ]; then local d__alrt
+      $opt && d__alrt='Optional command failed' || d__alrt='Command failed'; fi
+    $neg && d__cmd="!$d__cmd" || d__cmd="${d__cmd:1}"
+    d___fail_from_cmd; return 1
   fi
 }
 
@@ -402,54 +424,94 @@ d__cmd()
 d__require()
 {
   # Pluck out options, round up arguments
-  local args0=() args1=() args2=() tmp pcnt= d__cmd=() labels=() hunks=() neg=(false) q=1 ret=() opt=false
+  local args0=() args1=() args2=() tmp pcnt= d__cmd=() labels=() hunks=()
+  local neg=(false) q=1 ret=() opt=false
   while (($#)); do tmp="$1"; shift; case $tmp in
     --*--)  tmp="${tmp:2:${#tmp}-4}"
       case $tmp in
-        '')       case ${#pcnt} in 0) args0+=("$@");; 1) args1+=("$@");; 2) args2+=("$@");; esac
+        '')       case ${#pcnt} in 0) args0+=("$@");; 1) args1+=("$@");;
+                    2) args2+=("$@");; esac
                   d__cmd[${#pcnt}]+=" $*"; break;;
         and|AND)  if ((${#pcnt}<2)); then
                     d__cmd[${#pcnt}]+=" $BOLD&&$NORMAL"; pcnt+=a; neg+=(false)
                   else
-                    printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" "$FUNCNAME: Ignoring surplus option: '--$tmp--'"
+                    printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" \
+                      "$FUNCNAME: Ignoring surplus option: '--$tmp--'"
                   fi;;
         or|OR)    if ((${#pcnt}<2)); then
                     d__cmd[${#pcnt}]+=" $BOLD||$NORMAL"; pcnt+=o; neg+=(false)
                   else
-                    printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" "$FUNCNAME: Ignoring surplus option: '--$tmp--'"
+                    printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" \
+                      "$FUNCNAME: Ignoring surplus option: '--$tmp--'"
                   fi;;
         neg)      neg[${#pcnt}]=true;;
         v)        q=0;;
         q)        q=1;;
         qq)       q=2;;
         opt)      opt=true;;
-        alrt)     if (($#)); then local d__alrt; read -r d__alrt <<<"$1"; [ -n "$d__alrt" ] || d__alrt='<empty title>'; shift; else printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" "$FUNCNAME: Ignoring option lacking required argument: '--$tmp--'"; fi;;
-        crcm)     if (($#)); then local d__crcm; read -r d__crcm <<<"$1"; [ -n "$d__crcm" ] || d__crcm='<empty description>'; shift; else printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" "$FUNCNAME: Ignoring option lacking required argument: '--$tmp--'"; fi;;
-        else)     if (($#)); then local d__rslt; read -r d__rslt <<<"$1"; [ -n "$d__rslt" ] || d__rslt='<empty description>'; shift; else printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" "$FUNCNAME: Ignoring option lacking required argument: '--$tmp--'"; fi;;
+        alrt)     if (($#)); then local d__alrt; read -r d__alrt <<<"$1"
+                    [ -n "$d__alrt" ] || d__alrt='<empty title>'; shift
+                  else printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" \
+                    "$FUNCNAME: Ignoring option lacking required argument:" \
+                    " '--$tmp--'"
+                  fi;;
+        crcm)     if (($#)); then local d__crcm; read -r d__crcm <<<"$1"
+                    [ -n "$d__crcm" ] || d__crcm='<empty description>'; shift
+                  else printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" \
+                    "$FUNCNAME: Ignoring option lacking required argument:" \
+                    " '--$tmp--'"
+                  fi;;
+        else)     if (($#)); then local d__rslt; read -r d__rslt <<<"$1"
+                    [ -n "$d__rslt" ] || d__rslt='<empty description>'; shift
+                  else printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" \
+                    "$FUNCNAME: Ignoring option lacking required argument:" \
+                    " '--$tmp--'"
+                  fi;;
         \#*)      if (($#)); then tmp="${tmp:1}"
                     if [ -z ${labels[$tmp]+isset} ]; then
-                      printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" "$FUNCNAME: Ignoring backreference that is not yet assigned: '--#$tmp--'"
+                      printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" \
+                        "$FUNCNAME: Ignoring backreference that is not yet" \
+                        " assigned: '--#$tmp--'"
                     else
-                      case ${#pcnt} in 0) args0+=("$1");; 1) args1+=("$1");; 2) args2+=("$1");; esac
+                      case ${#pcnt} in 0) args0+=("$1");; 1) args1+=("$1");;
+                        2) args2+=("$1");; esac
                       d__cmd+=" $BOLD${labels[$tmp]}$NORMAL"; shift
                     fi
                   else
-                    printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" "$FUNCNAME: Ignoring option lacking required argument: '--$tmp--'"
+                    printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" \
+                      "$FUNCNAME: Ignoring option lacking required" \
+                      " argument: '--$tmp--'"
                   fi;;
         *)        if (($#)); then
                     labels+=("$tmp"); hunks+=("$1")
-                    case ${#pcnt} in 0) args0+=("$1");; 1) args1+=("$1");; 2) args2+=("$1");; esac
+                    case ${#pcnt} in 0) args0+=("$1");; 1) args1+=("$1");;
+                      2) args2+=("$1");; esac
                     d__cmd+=" $BOLD$tmp$NORMAL"; shift
                   else
-                    printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" "$FUNCNAME: Ignoring option lacking required argument: '--$tmp--'"
+                    printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" \
+                      "$FUNCNAME: Ignoring option lacking required argument:" \
+                      " '--$tmp--'"
                   fi;;
       esac;;
-    *)  case ${#pcnt} in 0) args0+=("$tmp");; 1) args1+=("$tmp");; 2) args2+=("$tmp");; esac
+    *)  case ${#pcnt} in 0) args0+=("$tmp");; 1) args1+=("$tmp");;
+          2) args2+=("$tmp");; esac
         d__cmd[${#pcnt}]+=" $tmp";;
   esac; done
-  if ! ((${#args0[@]})); then printf >&2 '%s %s\n' "$RED$BOLD==>$NORMAL" "$FUNCNAME: Refusing to work without arguments in first requirement"; return 2; fi
-  ((${#pcnt}>0)) && if ! ((${#args1[@]})); then printf >&2 '%s %s\n' "$RED$BOLD==>$NORMAL" "$FUNCNAME: Refusing to work without arguments in second requirement"; return 2; fi
-  ((${#pcnt}>1)) && if ! ((${#args2[@]})); then printf >&2 '%s %s\n' "$RED$BOLD==>$NORMAL" "$FUNCNAME: Refusing to work without arguments in third requirement"; return 2; fi
+  if ! ((${#args0[@]})); then printf >&2 '%s %s\n' \
+    "$RED$BOLD==>$NORMAL" \
+    "$FUNCNAME: Refusing to work without arguments in first requirement"
+    return 2
+  fi
+  if ((${#pcnt}>0)) && ! ((${#args1[@]})); then printf >&2 '%s %s\n' \
+    "$RED$BOLD==>$NORMAL" \
+    "$FUNCNAME: Refusing to work without arguments in second requirement"
+    return 2
+  fi
+  if ((${#pcnt}>1)) && ! ((${#args2[@]})); then printf >&2 '%s %s\n' \
+    "$RED$BOLD==>$NORMAL" \
+    "$FUNCNAME: Refusing to work without arguments in third requirement"
+    return 2
+  fi
 
   # Run first command, applying output redirections
   case $q in
@@ -486,22 +548,25 @@ d__require()
   case ${#pcnt} in
     0)  [ ${ret[0]} -eq 0 ];;
     1)  case $pcnt in
-          a) [ ${ret[0]} -eq 0 ] && [ ${ret[1]} -eq 0 ];;
-          o) [ ${ret[0]} -eq 0 ] || [ ${ret[1]} -eq 0 ];;
+          a) [ ${ret[0]} -eq 0 -a ${ret[1]} -eq 0 ];;
+          o) [ ${ret[0]} -eq 0 -o ${ret[1]} -eq 0 ];;
         esac
         ;;
     2)  case $pcnt in
-          aa) [ ${ret[0]} -eq 0 ] && [ ${ret[1]} -eq 0 ] && [ ${ret[2]} -eq 0 ];;
-          oo) [ ${ret[0]} -eq 0 ] || [ ${ret[1]} -eq 0 ] || [ ${ret[2]} -eq 0 ];;
-          ao) [ ${ret[0]} -eq 0 ] && [ ${ret[1]} -eq 0 ] || [ ${ret[2]} -eq 0 ];;
-          oa) [ ${ret[0]} -eq 0 ] || [ ${ret[1]} -eq 0 ] && [ ${ret[2]} -eq 0 ];;
+          aa) [ ${ret[0]} -eq 0 -a ${ret[1]} -eq 0 -a ${ret[2]} -eq 0 ];;
+          oo) [ ${ret[0]} -eq 0 -o ${ret[1]} -eq 0 -o ${ret[2]} -eq 0 ];;
+          ao) [ ${ret[0]} -eq 0 -a ${ret[1]} -eq 0 -o ${ret[2]} -eq 0 ];;
+          oa) [ ${ret[0]} -eq 0 -o ${ret[1]} -eq 0 -a ${ret[2]} -eq 0 ];;
         esac
         ;;
   esac
 
   # Inspect the combined return code
   if [ $? -eq 0 ]; then return 0; else
-    if [ -z ${d__alrt+isset} ]; then local d__alrt; $opt && d__alrt='Optional requirement failed' || d__alrt='Requirement failed'; fi
+    if [ -z ${d__alrt+isset} ]; then local d__alrt
+      $opt && d__alrt='Optional requirement failed' \
+        || d__alrt='Requirement failed'
+    fi
     d__cmd="${d__cmd[*]}"; d___fail_from_cmd; return 1
   fi
 }
@@ -537,50 +602,91 @@ d__require()
 d__pipe()
 {
   # Pluck out options, round up arguments
-  local args0=() args1=() args2=() tmp pcnt=0 d__cmd labels=() hunks=() neg=false q=1 opt=false
+  local args0=() args1=() args2=() tmp pcnt=0 d__cmd labels=() hunks=()
+  local neg=false q=1 opt=false
   while (($#)); do tmp="$1"; shift; case $tmp in
     --*--)  tmp="${tmp:2:${#tmp}-4}"
       case $tmp in
-        '')         case $pcnt in 0) args0+=("$@");; 1) args1+=("$@");; 2) args2+=("$@");; esac
+        '')         case $pcnt in 0) args0+=("$@");; 1) args1+=("$@");;
+                      2) args2+=("$@");; esac
                     d__cmd+=" $*"; break;;
         P|p|pipe)   if ((pcnt<2)); then
                       ((++pcnt)); d__cmd+=" $BOLD|$NORMAL"
                     else
-                      printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" "$FUNCNAME: Ignoring surplus option: '--$tmp--'"
+                      printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" \
+                        "$FUNCNAME: Ignoring surplus option: '--$tmp--'"
                     fi;;
-        ret*)       tmp="${tmp:3}"; case $tmp in 0|1|2) local ret=$tmp;; *) printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" "$FUNCNAME: Ignoring return directive with illegal command number: '--ret$tmp--'";; esac;;
+        ret*)       tmp="${tmp:3}"; case $tmp in 0|1|2) local ret=$tmp;;
+                      *)  printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" \
+                            "$FUNCNAME: Ignoring return directive with" \
+                            " illegal command number: '--ret$tmp--'";;
+                    esac;;
         neg)        neg=true;;
         v)          q=0;;
         q)          q=1;;
         qq)         q=2;;
         opt)        opt=true;;
-        alrt)       if (($#)); then local d__alrt; read -r d__alrt <<<"$1"; [ -n "$d__alrt" ] || d__alrt='<empty title>'; shift; else printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" "$FUNCNAME: Ignoring option lacking required argument: '--$tmp--'"; fi;;
-        crcm)       if (($#)); then local d__crcm; read -r d__crcm <<<"$1"; [ -n "$d__crcm" ] || d__crcm='<empty description>'; shift; else printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" "$FUNCNAME: Ignoring option lacking required argument: '--$tmp--'"; fi;;
-        else)       if (($#)); then local d__rslt; read -r d__rslt <<<"$1"; [ -n "$d__rslt" ] || d__rslt='<empty description>'; shift; else printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" "$FUNCNAME: Ignoring option lacking required argument: '--$tmp--'"; fi;;
+        alrt)       if (($#)); then local d__alrt; read -r d__alrt <<<"$1"
+                      [ -n "$d__alrt" ] || d__alrt='<empty title>'; shift
+                    else printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" \
+                      "$FUNCNAME: Ignoring option lacking required argument:" \
+                      " '--$tmp--'"
+                    fi;;
+        crcm)       if (($#)); then local d__crcm; read -r d__crcm <<<"$1"
+                      [ -n "$d__crcm" ] || d__crcm='<empty description>'; shift
+                    else printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" \
+                      "$FUNCNAME: Ignoring option lacking required argument:" \
+                      " '--$tmp--'"
+                    fi;;
+        else)       if (($#)); then local d__rslt; read -r d__rslt <<<"$1"
+                      [ -n "$d__rslt" ] || d__rslt='<empty description>'; shift
+                    else printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" \
+                      "$FUNCNAME: Ignoring option lacking required argument:" \
+                      " '--$tmp--'"
+                    fi;;
         \#*)        if (($#)); then tmp="${tmp:1}"
                       if [ -z ${labels[$tmp]+isset} ]; then
-                        printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" "$FUNCNAME: Ignoring backreference that is not yet assigned: '--#$tmp--'"
+                        printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" \
+                          "$FUNCNAME: Ignoring backreference that is not yet" \
+                          " assigned: '--#$tmp--'"
                       else
                         case $pcnt in 0) args0+=("$1");; 1) args1+=("$1");; 2) args2+=("$1");; esac
                         d__cmd+=" $BOLD${labels[$tmp]}$NORMAL"; shift
                       fi
                     else
-                      printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" "$FUNCNAME: Ignoring option lacking required argument: '--$tmp--'"
+                      printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" \
+                        "$FUNCNAME: Ignoring option lacking required" \
+                        " argument: '--$tmp--'"
                     fi;;
         *)          if (($#)); then
                       labels+=("$tmp"); hunks+=("$1")
-                      case $pcnt in 0) args0+=("$1");; 1) args1+=("$1");; 2) args2+=("$1");; esac
+                      case $pcnt in 0) args0+=("$1");; 1) args1+=("$1");;
+                        2) args2+=("$1");; esac
                       d__cmd+=" $BOLD$tmp$NORMAL"; shift
                     else
-                      printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" "$FUNCNAME: Ignoring option lacking required argument: '--$tmp--'"
+                      printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" \
+                        "$FUNCNAME: Ignoring option lacking required" \
+                        " argument: '--$tmp--'"
                     fi;;
       esac;;
     *)  case $pcnt in 0) args0+=("$tmp");; 1) args1+=("$tmp");; 2) args2+=("$tmp");; esac
         d__cmd+=" $tmp";;
   esac; done
-  if ! ((${#args0[@]})); then printf >&2 '%s %s\n' "$RED$BOLD==>$NORMAL" "$FUNCNAME: Refusing to work without arguments in first command"; return 2; fi
-  (($pcnt>0)) && if ! ((${#args1[@]})); then printf >&2 '%s %s\n' "$RED$BOLD==>$NORMAL" "$FUNCNAME: Refusing to work without arguments in second command"; return 2; fi
-  (($pcnt>1)) && if ! ((${#args2[@]})); then printf >&2 '%s %s\n' "$RED$BOLD==>$NORMAL" "$FUNCNAME: Refusing to work without arguments in third command"; return 2; fi
+  if ! ((${#args0[@]})); then printf >&2 '%s %s\n' \
+    "$RED$BOLD==>$NORMAL" \
+    "$FUNCNAME: Refusing to work without arguments in first command"
+    return 2
+  fi
+  if (($pcnt>0)) && ! ((${#args1[@]})); then printf >&2 '%s %s\n' \
+    "$RED$BOLD==>$NORMAL" \
+    "$FUNCNAME: Refusing to work without arguments in second command"
+    return 2
+  fi
+  if (($pcnt>1)) && ! ((${#args2[@]})); then printf >&2 '%s %s\n' \
+    "$RED$BOLD==>$NORMAL" \
+    "$FUNCNAME: Refusing to work without arguments in third command"
+    return 2
+  fi
 
   # Launch the pipe
   [ -z ${ret+isset} ] && local ret=$pcnt
@@ -594,18 +700,23 @@ d__pipe()
     1)  case $q in
           0)  "${args0[@]}" | "${args1[@]}"; tmp=${PIPESTATUS[$ret]}
               ;;
-          1)  "${args0[@]}" 2>/dev/null | "${args1[@]}" 2>/dev/null; tmp=${PIPESTATUS[$ret]}
+          1)  "${args0[@]}" 2>/dev/null | "${args1[@]}" 2>/dev/null
+              tmp=${PIPESTATUS[$ret]}
               ;;
-          2)  "${args0[@]}" 2>/dev/null | "${args1[@]}" 1>/dev/null 2>&1; tmp=${PIPESTATUS[$ret]}
+          2)  "${args0[@]}" 2>/dev/null | "${args1[@]}" 1>/dev/null 2>&1
+              tmp=${PIPESTATUS[$ret]}
               ;;
         esac
         ;;
     2)  case $q in
-          0)  "${args0[@]}" | "${args1[@]}" | "${args2[@]}"; tmp=${PIPESTATUS[$ret]}
+          0)  "${args0[@]}" | "${args1[@]}" | "${args2[@]}"
+              tmp=${PIPESTATUS[$ret]}
               ;;
-          1)  "${args0[@]}" 2>/dev/null | "${args1[@]}" 2>/dev/null | "${args2[@]}" 2>/dev/null; tmp=${PIPESTATUS[$ret]}
+          1)  "${args0[@]}" 2>/dev/null | "${args1[@]}" 2>/dev/null \
+                | "${args2[@]}" 2>/dev/null; tmp=${PIPESTATUS[$ret]}
               ;;
-          2)  "${args0[@]}" 2>/dev/null | "${args1[@]}" 2>/dev/null | "${args2[@]}" 1>/dev/null 2>&1; tmp=${PIPESTATUS[$ret]}
+          2)  "${args0[@]}" 2>/dev/null | "${args1[@]}" 2>/dev/null \
+                | "${args2[@]}" 1>/dev/null 2>&1; tmp=${PIPESTATUS[$ret]}
               ;;
         esac
         ;;
@@ -614,8 +725,11 @@ d__pipe()
   # Inspect the return code
   if $neg; then [ $tmp -ne 0 ]; else [ $tmp -eq 0 ]; fi
   if [ $? -eq 0 ]; then return 0; else
-    if [ -z ${d__alrt+isset} ]; then local d__alrt; $opt && d__alrt='Optional command failed' || d__alrt='Command failed'; fi
-    $neg && d__cmd="!$d__cmd" || d__cmd="${d__cmd:1}"; d___fail_from_cmd; return 1
+    if [ -z ${d__alrt+isset} ]; then local d__alrt
+      $opt && d__alrt='Optional command failed' || d__alrt='Command failed'
+    fi
+    $neg && d__cmd="!$d__cmd" || d__cmd="${d__cmd:1}"
+    d___fail_from_cmd; return 1
   fi
 }
 
@@ -1119,7 +1233,8 @@ d___fail_from_cmd()
   done
 
   # Print the head of the stack
-  local tmp=${#D__CONTEXT_NOTCHES[@]}; (($tmp)) && tmp=$((${D__CONTEXT_NOTCHES[$tmp-1]})) || tmp=0
+  local tmp=${#D__CONTEXT_NOTCHES[@]}
+  (($tmp)) && tmp=$((${D__CONTEXT_NOTCHES[$tmp-1]})) || tmp=0
   if ((${#D__CONTEXT[@]} > $tmp)); then
     pft+='    %s: %s\n'; pfa+=( "${tp}Context$ts" "${D__CONTEXT[$tmp]}" )
     for ((i=$tmp+1;i<${#D__CONTEXT[@]};++i)); do
