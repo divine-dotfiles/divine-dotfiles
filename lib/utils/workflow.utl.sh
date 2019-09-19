@@ -3,9 +3,9 @@
 #:kind:         func(script)
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    10
+#:revnumber:    11
 #:revdate:      2019.09.19
-#:revremark:    Remove full stops at the end of context item descriptions
+#:revremark:    Fix missing coloring in d__notify
 #:created_at:   2019.09.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -736,7 +736,7 @@ d__notify()
   # Compose the leading line depending on the options
   if ((${#args[@]})); then
     if [ -n "$title" ]; then pft+=' %s:'; pfa+=("$tp$title$ts"); fi
-    pft+=' %s\n'; [ -n "${args[0]}" ] && pfa+=("${args[0]}") || pfa+=('<empty description>')
+    pft+=' %s\n'; [ -n "${args[0]}" ] && pfa+=("$ts${args[0]}") || pfa+=("$ts<empty description>")
     for ((i=1;i<${#args[@]};++i)); do pft+='    %s\n'; [ -n "${args[$i]}" ] && pfa+=("${args[$i]}") || pfa+=('<empty description>'); done
   else
     pft+=' %s\n'; if [ -n "$title" ]; then pfa+=("$tp$title$ts"); else pfa+=("${tp}Generic alert$ts"); fi
