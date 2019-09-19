@@ -2,9 +2,9 @@
 #:title:        Divine Bash script: intervene
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    83
-#:revdate:      2019.09.12
-#:revremark:    Ditch dtrim
+#:revnumber:    84
+#:revdate:      2019.09.19
+#:revremark:    Add D__OPT_VERBOSITY; plan to deprecate D__OPT_QUIET
 #:created_at:   2018.03.25
 
 ## Launches the Divine intervention
@@ -365,7 +365,8 @@ d__parse_arguments()
   D__OPT_INVERSE=false       # Flag for whether filtering is inverted
   D__OPT_FORCE=false         # Flag for forceful mode
   D__OPT_EXCLAM=false        # Flag for whether include '!'-dpls by default
-  D__OPT_QUIET=true          # Verbosity setting
+  D__OPT_QUIET=true          # Verbosity setting (being deprecated)
+  D__OPT_VERBOSITY=0         # New verbosity setting
   D__OPT_ANSWER=             # Blanket answer to all prompts
   D__OPT_PLUG_LINK=false     # Flag for whether copy or symlink Grail dir
 
@@ -414,8 +415,8 @@ d__parse_arguments()
       -f|--force)         D__OPT_FORCE=true;;
       -e|--except)        D__OPT_INVERSE=true;;
       -w|--with-!)        D__OPT_EXCLAM=true;;
-      -q|--quiet)         D__OPT_QUIET=true;;
-      -v|--verbose)       D__OPT_QUIET=false;;
+      -q|--quiet)         D__OPT_QUIET=true; D__OPT_VERBOSITY=0;;
+      -v|--verbose)       D__OPT_QUIET=false; ((++D__OPT_VERBOSITY));;
       -l|--link)          D__OPT_PLUG_LINK=true;;
       -*)                 opts="$1"; no_more_args=false
                           for i in $( seq 2 ${#opts} ); do
@@ -434,8 +435,8 @@ d__parse_arguments()
                               f)  D__OPT_FORCE=true;;
                               e)  D__OPT_INVERSE=true;;
                               w)  D__OPT_EXCLAM=true;;
-                              q)  D__OPT_QUIET=true;;
-                              v)  D__OPT_QUIET=false;;
+                              q)  D__OPT_QUIET=true; D__OPT_VERBOSITY=0;;
+                              v)  D__OPT_QUIET=false; ((++D__OPT_VERBOSITY));;
                               l)  D__OPT_PLUG_LINK=true;;
                               *)  printf >&2 "%s: Illegal option -- '%s'\n\n" \
                                     "$D__FMWK_NAME" \
@@ -453,6 +454,7 @@ d__parse_arguments()
   # Freeze some variables
   readonly D__REQ_BUNDLES
   readonly D__OPT_QUIET
+  readonly D__OPT_VERBOSITY
   readonly D__OPT_ANSWER
   readonly D__OPT_FORCE
   readonly D__OPT_INVERSE
