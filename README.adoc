@@ -1,9 +1,9 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revnumber: 81
-:revdate: 2019.09.18
-:revremark: Merge workflow feature
+:revnumber: 82
+:revdate: 2019.09.20
+:revremark: Merge feat-tweak-workflow
 :doctype: article
 // Visual
 :toc:
@@ -594,17 +594,28 @@ This option disables such behavior.
 
 Access within deployments: `$D__OPT_EXCLAM` (`true` / `false`).
 
-| `*-v*`, `*--verbose*`
+| [#global-verbosity-level]#`*-v*`, `*--verbose*`#
 
-Increase amount of output
+_(repeatable)_
+Gradually increase the amount of output.
 
-Access within deployments: `$D__OPT_QUIET` (`true` / `false`).
+Every instance of this option increments by one the *global verbosity level* of the framework.
+The debug output in the deployments and the framework components has the *quiet level*.
+For a message to be printed, the global verbosity level must be greater than or equal to that message's quiet level.
+
+Currently, the maximum quiet level used across the framework is `3`.
+Thus, launching the <<intervention-utility,intervention>> with `-vvv` yields the most complete output.
+
+Access within deployments: `$D__OPT_VERBOSITY` (non-negative integer).
 
 | `*-q*`, `*--quiet*`
 
-[.gray]##_(default)_## Decrease amount of output
+_(default)_
+Reset the amount of output to the minimal level.
 
-Access within deployments: `$D__OPT_QUIET` (`true` / `false`).
+This option reverts the <<global-verbosity-level,global verbosity level>> to its defaul value of zero.
+
+Access within deployments: `$D__OPT_VERBOSITY` (non-negative integer).
 
 |===
 
@@ -1513,10 +1524,19 @@ Whether `-f` / `--force` option is provided:
 
 | [#var-opt-quiet]#`*D__OPT_QUIET*`#
 
-Which verbosity options is provided last:
+_(deprecated)_
+Which of verbosity options (`--verbose` or `--quiet`) is provided last:
 
 * `true` — quiet mode (or no verbosity options)
 * `false` — verbose mode
+
+This Boolean variable is being gradually supplanted by the new, more granular <<global-verbosity-level,verbosity system>>, as stored in <<var-opt-verbosity,`D{dus}OPT_VERBOSITY`>>.
+It is not recommended to use this variable.
+
+| [#var-opt-verbosity]#`*D__OPT_VERBOSITY*`#
+
+Represent the current <<global-verbosity-level,global verbosity level>>.
+The value is a non-negative integer, where zero stands for the minimal verbosity.
 
 | `*D__OPT_EXCLAM*`
 
@@ -1556,7 +1576,7 @@ The `lop` operation repeatedly executes a `pop` until the next notch (or root) i
 Any number of notches can be made, as long as they are not duplicated (at the same position).
 Within the context stack, the latest pushed item is called the *tip*, and the items pushed after the latest notch are called the *head*.
 
-Most stack manipulations trigger a debug message that honors the global verbosity setting, as stored in <<var-opt-quiet,`$D{dus}OPT_QUIET`>>.
+Most stack manipulations trigger a debug message that honors the <<global-verbosity-level,global verbosity level>>, as stored in <<var-opt-verbosity,`$D{dus}OPT_VERBOSITY`>>.
 If a `push` is prepended to every logical unit of code, and then a matching `pop` is appended at the end, a useful pattern of breadcrumbs arises in the debug output.
 Other Divine workflow utilities (<<func-notify,`d{dus}notify`>>, <<func-prompt,`d{dus}prompt`>>, <<func-fail,`d{dus}fail`>>, <<func-cmd,`d{dus}cmd`>>, <<func-pipe,`d{dus}pipe`>>, <<func-require,`d{dus}require`>>) include the state of the context stack in their error output.
 
@@ -1594,9 +1614,26 @@ Default titles are (in *bold*):
 ==> *End*: Description of the context item.
 ----
 
+| `*-q*`, `*--quiet*`
+
+_(reeatable, verbosity option)_
+If at least one `--quiet` option is provided, then the amount of them designates the function's *quiet level*.
+The debug output from stack manipulations is printed only if the <<global-verbosity-level,global verbosity level>> is greater than or equal to the quiet level of the output.
+
+If no verbosity options are given, than the default quiet levels of the commands are:
+
+* `*push*` — `1`
+* `*pop*` — `2`
+* `*lop*` — tied to the quiet level of the underlying ``pop``s.
+* `*notch*` and the removal of a notch during `*lop*` — always greater by one than the quiet level of `pop`.
+
 | `*-l*`, `*--loud*`
 
-Prints the debug output regardless of the global verbosity setting.
+_(verbosity option)_
+Sets the quiet level to zero.
+In effect this will cause the output to be printed regardless of the <<global-verbosity-level,global verbosity level>>.
+
+Options are read left-to-right: if both verbosity options are mixed together, the total quiet level is the amount of `--quiet` options after the last `--loud` option.
 
 |===
 
@@ -1611,7 +1648,7 @@ For notes on usage within the Divine workflow, see the workflow <<divine-workflo
 *d{dus}notify* [-1chlsuvx] [-t *_TITLE_*] [--] [*_DESCRIPTION_*...]
 ----
 
-Whether the output is printed depends on the global verbosity setting, as stored in <<var-opt-quiet,`$D{dus}OPT_QUIET`>>.
+Whether the output is printed depends on the <<global-verbosity-level,global verbosity level>>, as stored in <<var-opt-verbosity,`$D{dus}OPT_VERBOSITY`>>.
 
 Returns:
 
@@ -1655,10 +1692,22 @@ Without this option, the `*_TITLE_*` defaults to:
 ** Without a `*_DESCRIPTION_*` — omitted.
 ** With a `*_DESCRIPTION_*` — `Generic alert`.
 
+| `*-q*`, `*--quiet*`
+
+_(reeatable, verbosity option)_
+If at least one `--quiet` option is provided, then the amount of them designates the function's *quiet level*.
+The notification is printed only if the <<global-verbosity-level,global verbosity level>> is greater than or equal to the notification's quiet level.
+
+If no verbosity options are given, than the default quiet level is `1`.
+
 | `*-l*`, `*--loud*`
 
-Prints the notification regardless of the global verbosity setting.
+_(verbosity option)_
+Sets the quiet level to zero.
+In effect this will cause the output to be printed regardless of the <<global-verbosity-level,global verbosity level>>.
 This also causes a change in styling of the message.
+
+Options are read left-to-right: if both verbosity options are mixed together, the total quiet level is the amount of `--quiet` options after the last `--loud` option.
 
 | `*-u*`, `*--sudo*`
 
@@ -2234,7 +2283,7 @@ It is recommended that after initial `dstash ready`, this option is then include
 | `*-q*`, `*--quiet*`
 
 Without this option, any error during the stash readiness checks triggers an error message that always appears.
-This option causes such error messages to instead honor the global verbosity setting.
+This option causes such error messages to instead honor the <<global-verbosity-level,global verbosity level>>.
 This option is intended to be included with readiness checks in cases where not using stash is also a viable option.
 
 ^.^h| Stash <<stash-types,level>> (one active at a time, last option wins)
