@@ -2,15 +2,9 @@
 #:title:        Divine Bash script: intervene
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-<<<<<<< HEAD
 #:revnumber:    85
 #:revdate:      2019.09.20
-#:revremark:    Merge latest dev into feat-gh-fetcher
-=======
-#:revnumber:    85
-#:revdate:      2019.09.20
-#:revremark:    Merge latest dev into feat-gh-fetcher
->>>>>>> dev
+#:revremark:    Fix faulty merge
 #:created_at:   2018.03.25
 
 ## Launches the Divine intervention
