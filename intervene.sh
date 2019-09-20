@@ -4,7 +4,7 @@
 #:email:        grayarea@protonmail.ch
 #:revnumber:    85
 #:revdate:      2019.09.20
-#:revremark:    Merge feat-tweak-workflow
+#:revremark:    Merge feat-backup-utils into dev
 #:created_at:   2018.03.25
 
 ## Launches the Divine intervention

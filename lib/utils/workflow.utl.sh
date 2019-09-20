@@ -5,7 +5,7 @@
 #:email:        grayarea@protonmail.ch
 #:revnumber:    21
 #:revdate:      2019.09.20
-#:revremark:    Merge feat-tweak-workflow
+#:revremark:    Merge feat-backup-utils into dev
 #:created_at:   2019.09.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
