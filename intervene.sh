@@ -2,9 +2,9 @@
 #:title:        Divine Bash script: intervene
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    85
+#:revnumber:    86
 #:revdate:      2019.09.20
-#:revremark:    Fix faulty merge
+#:revremark:    Fix internal dependencies list
 #:created_at:   2018.03.25
 
 ## Launches the Divine intervention
@@ -158,7 +158,8 @@ d__populate_globals()
     'helper offer' \
     'procedure sys-pkg-checks' \
     'util dreadlink' \
-    'helper gh-fetcher' \
+    'util github' \
+    'helper github' \
     'util dmv' \
     'util dln' \
     'helper queue' \
