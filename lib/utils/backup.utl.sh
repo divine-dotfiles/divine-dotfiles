@@ -2,9 +2,9 @@
 #:title:        Divine Bash utils: backup
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    3
+#:revnumber:    4
 #:revdate:      2019.09.20
-#:revremark:    Finish implementing backup push/popping
+#:revremark:    Tweak comments a bit
 #:created_at:   2019.09.18
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -160,7 +160,7 @@ d__push_backup()
   return 0
 }
 
-#>  d__pop_backup [-de] [--] ORIG_PATH [BACKUP_PATH]
+#>  d__pop_backup [-de]... [--] ORIG_PATH [BACKUP_PATH]
 #
 ## This function ensures that the latest backup is moved back to the ORIG_PATH, 
 #. and if anything exists there currently, it is, itself, backed up. Thus, if 
