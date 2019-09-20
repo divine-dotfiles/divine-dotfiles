@@ -3,9 +3,9 @@
 #:kind:         func(script)
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    19
-#:revdate:      2019.09.19
-#:revremark:    Tweak quiet level of d__context lop (still not ideal)
+#:revnumber:    20
+#:revdate:      2019.09.20
+#:revremark:    Provide an earlier return option for d__notify --sudo
 #:created_at:   2019.09.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -883,7 +883,7 @@ d__notify()
           1|-context-tip)   context=t;;
           l|-loud)    qt=0;;
           q|-quiet)   ((++qt));;
-          u|-sudo)    sudo=true;;
+          u|-sudo)    sudo -n true 2>/dev/null && return 0; sudo=true;;
           v|-success) stl=v;;
           x|-failure) stl=x;;
           s|-skip)    stl=s;;
@@ -900,7 +900,7 @@ d__notify()
                   1)  context=t;;
                   l)  qt=0;;
                   q)  ((++qt));;
-                  u)  sudo=true;;
+                  u)  sudo -n true 2>/dev/null && return 0; sudo=true;;
                   v)  stl=v;;
                   x)  stl=x;;
                   s)  stl=s;;
@@ -919,7 +919,7 @@ d__notify()
   esac; done
 
   # Settle on sudo option
-  if $sudo; then sudo -n true 2>/dev/null && return 0
+  if $sudo; then
     qt=0; [ -n "$title" ] || title='Password prompt'
     ((${#args[@]})) || args='The upcoming command requires sudo priveleges'
   fi
