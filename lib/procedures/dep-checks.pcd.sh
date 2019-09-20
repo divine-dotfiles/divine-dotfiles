@@ -2,9 +2,9 @@
 #:title:        Divine Bash procedure: dep-checks
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    11
-#:revdate:      2019.09.05
-#:revremark:    Delete dmd5 util; implement it in dep-checks
+#:revnumber:    13
+#:revdate:      2019.09.20
+#:revremark:    Merge fix-dmd5 into dev
 #:created_at:   2019.07.05
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -242,9 +242,9 @@ EOF
     dmd5()
     {
       if [ "$1" = -s ]; then
-        local md5="$( md5sum <<<"$2" 2>/dev/null | awk '{print $1}' )"
+        local md5="$( printf %s "$2" | md5sum | awk '{print $1}' )"
       else
-        local md5="$( md5sum -- "$1" 2>/dev/null | awk '{print $1}' )"
+        local md5="$( md5sum -- "$1" | awk '{print $1}' )"
       fi
       if [ ${#md5} -eq 32 ]; then printf '%s\n' "$md5"; return 0; fi
       printf >&2 '%s: %s\n' "$D__FMWK_NAME" \
@@ -258,9 +258,9 @@ EOF
     dmd5()
     {
       if [ "$1" = -s ]; then
-        local md5="$( md5 -r <<<"$2" 2>/dev/null | awk '{print $1}' )"
+        local md5="$( md5 -rs "$2" | awk '{print $1}' )"
       else
-        local md5="$( md5 -r -- "$1" 2>/dev/null | awk '{print $1}' )"
+        local md5="$( md5 -r -- "$1" | awk '{print $1}' )"
       fi
       if [ ${#md5} -eq 32 ]; then printf '%s\n' "$md5"; return 0; fi
       printf >&2 '%s: %s\n' "$D__FMWK_NAME" \
@@ -274,9 +274,9 @@ EOF
     dmd5()
     {
       if [ "$1" = -s ]; then
-        local md5="$( openssl md5 <<<"$2" 2>/dev/null | awk '{print $1}' )"
+        local md5="$( printf %s "$2" | openssl md5 | awk '{print $1}' )"
       else
-        local md5="$( openssl md5 -- "$1" 2>/dev/null | awk '{print $1}' )"
+        local md5="$( openssl md5 -- "$1" | awk '{print $1}' )"
       fi
       if [ ${#md5} -eq 32 ]; then printf '%s\n' "$md5"; return 0; fi
       printf >&2 '%s: %s\n' "$D__FMWK_NAME" \
