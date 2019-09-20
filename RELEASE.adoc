@@ -2,6 +2,7 @@
 * [`*feature*`] Check whether stash contains a key with particular value with `dstash has _KEY_ _VALUE_`.
 * [`*feature*`] Install/remove primaries can now access return code of their check primary in `D__DPL_CHECK_CODE`.
 
+* [`*other*`] Implement a multi-level verbosity system to gradually supplant the existing Boolean one.
 * [`*other*`] Implement the Divine workflow system along with its functions:
 ** `*d__context*` — workflow context handler.
 ** `*d__notify*` — debug printer.
