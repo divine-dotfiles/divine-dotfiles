@@ -2,9 +2,9 @@
 #:title:        Divine Bash routine: remove
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    48
-#:revdate:      2019.08.22
-#:revremark:    Fix dprint_debug breaking code catching
+#:revnumber:    52
+#:revdate:      2019.09.20
+#:revremark:    Merge latest dev into feat-gh-fetcher
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -340,10 +340,9 @@ d__remove_dpls()
     read -r name < <( sed -n "s/$D__REGEX_DPL_NAME/\1/p" \
       <"$divinedpl_filepath" )
     # Process name
-    # Trim name, removing quotes if any
-    name="$( dtrim -Q -- "$name" )"
-    # Truncate name to 64 chars
-    name="$( dtrim -- "${name::64}" )"
+    # Remove quotes, trim to 64 chars, trim whitespace
+    [[ $name = \'*\' || $name = \"*\" ]] && name="${name:1:${#name}-2}"
+    read -r name <<<"${name::64}"
     # Detect whether name is not empty
     [ -n "$name" ] || {
       # Fall back to name precefing *.dpl.sh suffix
@@ -356,21 +355,25 @@ d__remove_dpls()
       <"$divinedpl_filepath" )
     # Process description
     # Trim description, removing quotes if any
-    desc="$( dtrim -Q -- "$desc" )"
+    [[ $desc = \'*\' || $desc = \"*\" ]] && desc="${desc:1:${#desc}-2}"
+    read -r desc <<<"$desc"
 
     # Extract warning assignment from *.dpl.sh file (first one wins)
     read -r warning < <( sed -n "s/$D__REGEX_DPL_WARNING/\1/p" \
       <"$divinedpl_filepath" )
     # Process warning
     # Trim warning, removing quotes if any
-    warning="$( dtrim -Q -- "$warning" )"
+    [[ $warning = \'*\' || $warning = \"*\" ]] \
+      && warning="${warning:1:${#warning}-2}"
+    read -r warning <<<"$warning"
 
     # Extract mode assignment from *.dpl.sh file (first one wins)
     read -r mode < <( sed -n "s/$D__REGEX_DPL_FLAGS/\1/p" \
       <"$divinedpl_filepath" )
     # Process mode
     # Trim mode, removing quotes if any
-    mode="$( dtrim -Q -- "$mode" )"
+    [[ $mode = \'*\' || $mode = \"*\" ]] && mode="${mode:1:${#mode}-2}"
+    read -r mode <<<"$mode"
 
     # Process $D_DPL_FLAGS
     aa_mode=false
@@ -526,6 +529,9 @@ d__remove_dpls()
         # Print descriptive introduction if haven't already
         $intro_printed || dprint_ode "${D__ODE_NAME[@]}" -c "$YELLOW" -- \
             '>>>' 'Removing' ':' "$task_desc" "$task_name"
+
+        # Expose check code to deployment
+        D__DPL_CHECK_CODE="$dpl_status"
 
         # Get return code of d_dpl_remove, or fall back to zero
         if declare -f d_dpl_remove &>/dev/null; then

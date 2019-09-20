@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: reconcile
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    20
-#:revdate:      2019.08.28
-#:revremark:    Prevent irrelevant tasks affecting overall status
+#:revnumber:    22
+#:revdate:      2019.09.20
+#:revremark:    Merge latest dev into feat-gh-fetcher
 #:created_at:   2019.06.18
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -26,7 +26,9 @@ d__multitask_check()
   # Storage variables
   local task_name func_name return_code
 
-  # Global status variable
+  # Global status variables
+  D__MULTITASK_CHECK_CODES=()
+  D__MULTITASK_ANOTHER_WARNINGS=()
   D__MULTITASK_TASKS_ARE_QUEUES=()
 
   # Iterate over task names
@@ -39,6 +41,11 @@ d__multitask_check()
 
     # Set marker var for whether current task is a queue
     D__MULTITASK_TASK_IS_QUEUE=
+
+    # Clear marker variables
+    D_DPL_INSTALLED_BY_USER_OR_OS=
+    D_DPL_NEEDS_ANOTHER_PROMPT=
+    D_DPL_NEEDS_ANOTHER_WARNING=
 
     # Compose d_dpl_check function name for that task
     func_name="d_${task_name}_check"
@@ -56,7 +63,7 @@ d__multitask_check()
 
     fi
 
-    # Check if current task if queue
+    # Store marker of whether current task is a queue
     if [ -n "$D__MULTITASK_TASK_IS_QUEUE" ]; then
       D__MULTITASK_TASKS_ARE_QUEUES[$D__MULTITASK_TASKNUM]=true
     else
@@ -103,6 +110,20 @@ d__multitask_install()
 
       # If d_dpl_install function is implemented, run it
       if declare -f -- "$func_name" &>/dev/null; then
+
+        # Expose check code and other check statuses to the primary
+        D__DPL_CHECK_CODE="${D__MULTITASK_CHECK_CODES[$D__MULTITASK_TASKNUM]}"
+        if d__multitask_task_status is_user_or_os; then
+          D_DPL_INSTALLED_BY_USER_OR_OS=true
+        else
+          D_DPL_INSTALLED_BY_USER_OR_OS=false
+        fi
+        if d__multitask_task_status needs_prompt; then
+          D_DPL_NEEDS_ANOTHER_PROMPT=true
+        else
+          D_DPL_NEEDS_ANOTHER_PROMPT=false
+        fi
+        D_DPL_NEEDS_ANOTHER_WARNING="${D__MULTITASK_ANOTHER_WARNINGS[$D__MULTITASK_TASKNUM]}"
 
         # Run the function and store its return code
         "$func_name"; return_code=$?
@@ -180,6 +201,20 @@ d__multitask_remove()
       # If d_dpl_remove function is implemented, run it
       if declare -f -- "$func_name" &>/dev/null; then
 
+        # Expose check code and other check statuses to the primary
+        D__DPL_CHECK_CODE="${D__MULTITASK_CHECK_CODES[$D__MULTITASK_TASKNUM]}"
+        if d__multitask_task_status is_user_or_os; then
+          D_DPL_INSTALLED_BY_USER_OR_OS=true
+        else
+          D_DPL_INSTALLED_BY_USER_OR_OS=false
+        fi
+        if d__multitask_task_status needs_prompt; then
+          D_DPL_NEEDS_ANOTHER_PROMPT=true
+        else
+          D_DPL_NEEDS_ANOTHER_PROMPT=false
+        fi
+        D_DPL_NEEDS_ANOTHER_WARNING="${D__MULTITASK_ANOTHER_WARNINGS[$D__MULTITASK_TASKNUM]}"
+
         # Run the function and store its return code
         "$func_name"; return_code=$?
 
@@ -239,12 +274,33 @@ d__multitask_catch_check_code()
   #.  $D__MULTITASK_STATUS_SUMMARY[2] - true if all tasks are not installed
   #.  $D__MULTITASK_STATUS_SUMMARY[3] - true if all tasks are irrelevant
   #.  $D__MULTITASK_STATUS_SUMMARY[4] - true if all tasks are partly installed
-  #.  $D__MULTITASK_STATUS_SUMMARY[5] - true if all installed by user or OS
+  #.  $D__MULTITASK_STATUS_SUMMARY[5] - true if al least one task requested 
+  #.                                    another prompt; false otherwise
+  #.  $D__MULTITASK_STATUS_SUMMARY[6] - true if all installed by user or OS
   #.                                  false if some installed by fmwk
   #.                                  unset if no installed parts encountered
   #
   [ -z ${D__MULTITASK_STATUS_SUMMARY+isset} ] \
-    && D__MULTITASK_STATUS_SUMMARY=( true true true true true )
+    && D__MULTITASK_STATUS_SUMMARY=( true true true true true false )
+
+  # Store current check code
+  D__MULTITASK_CHECK_CODES[$D__MULTITASK_TASKNUM]=$last_code
+
+  # Check if user-or-os marker is currently set
+  if [ "$D_DPL_INSTALLED_BY_USER_OR_OS" = true ]; then
+    d__multitask_task_status set is_user_or_os
+  fi
+
+  # Check if another prompt marker is currently set
+  if [ "$D_DPL_NEEDS_ANOTHER_PROMPT" = true ]; then
+    d__multitask_task_status set needs_prompt
+    D__MULTITASK_STATUS_SUMMARY[5]=true
+  fi
+
+  # Check if another warning marker is currently set
+  if [ -n "$D_DPL_NEEDS_ANOTHER_WARNING" ]; then
+    D__MULTITASK_ANOTHER_WARNINGS[$D__MULTITASK_TASKNUM]="$D_DPL_NEEDS_ANOTHER_WARNING"
+  fi
 
   # Small storage variable
   local j
@@ -260,8 +316,8 @@ d__multitask_catch_check_code()
           # Installed by user or OS: no actions allowed
 
           # Unless some fmwk installations already detected, mark as user or OS
-          [ "${D__MULTITASK_STATUS_SUMMARY[5]}" = false ] \
-            || D__MULTITASK_STATUS_SUMMARY[5]=true
+          [ "${D__MULTITASK_STATUS_SUMMARY[6]}" = false ] \
+            || D__MULTITASK_STATUS_SUMMARY[6]=true
 
         else
 
@@ -269,7 +325,7 @@ d__multitask_catch_check_code()
           d__multitask_task_status set can_be_removed
 
           # Definitely not user or OS
-          D__MULTITASK_STATUS_SUMMARY[5]=false
+          D__MULTITASK_STATUS_SUMMARY[6]=false
 
         fi
         ;;
@@ -295,8 +351,8 @@ d__multitask_catch_check_code()
           d__multitask_task_status set can_be_installed
 
           # Unless some fmwk installations already detected, mark as user or OS
-          [ "${D__MULTITASK_STATUS_SUMMARY[5]}" = false ] \
-            || D__MULTITASK_STATUS_SUMMARY[5]=true
+          [ "${D__MULTITASK_STATUS_SUMMARY[6]}" = false ] \
+            || D__MULTITASK_STATUS_SUMMARY[6]=true
 
         else
 
@@ -305,7 +361,7 @@ d__multitask_catch_check_code()
           d__multitask_task_status set can_be_removed
 
           # Definitely not user or OS
-          D__MULTITASK_STATUS_SUMMARY[5]=false
+          D__MULTITASK_STATUS_SUMMARY[6]=false
 
         fi
         ;;
@@ -317,7 +373,7 @@ d__multitask_catch_check_code()
         d__multitask_task_status set can_be_removed
 
         # With an unknown, we can't say it's all user or OS
-        D__MULTITASK_STATUS_SUMMARY[5]=false
+        D__MULTITASK_STATUS_SUMMARY[6]=false
         ;;
   esac
 
@@ -346,11 +402,26 @@ d__multitask_reconcile_check_codes()
   unset D__MULTITASK_TASKNUM
 
   # Settle user-or-os status
-  if [ "${D__MULTITASK_STATUS_SUMMARY[5]}" = true ]; then
+  if [ "${D__MULTITASK_STATUS_SUMMARY[6]}" = true ]; then
     D_DPL_INSTALLED_BY_USER_OR_OS=true
   else
     D_DPL_INSTALLED_BY_USER_OR_OS=false
   fi
+
+  # Settle on prompt
+  if [ "${D__MULTITASK_STATUS_SUMMARY[5]}" = true ]; then
+    D_DPL_NEEDS_ANOTHER_PROMPT=true
+  else
+    D_DPL_NEEDS_ANOTHER_PROMPT=false
+  fi
+
+  # Settle on warnings
+  D_DPL_NEEDS_ANOTHER_WARNING=
+  local warning
+  for warning in "${D__MULTITASK_ANOTHER_WARNINGS[@]}"; do
+    D_DPL_NEEDS_ANOTHER_WARNING+="$warning; "
+  done
+  D_DPL_NEEDS_ANOTHER_WARNING="${D_DPL_NEEDS_ANOTHER_WARNING%; }"
 
   # Storage variable for return code
   local return_code
@@ -660,6 +731,8 @@ d__multitask_task_status()
       can_be_installed) D__MULTITASK_FLAGS[$D__MULTITASK_TASKNUM]+='i';;
       can_be_removed)   D__MULTITASK_FLAGS[$D__MULTITASK_TASKNUM]+='r';;
       is_skipped)       D__MULTITASK_FLAGS[$D__MULTITASK_TASKNUM]+='s';;
+      is_user_or_os)    D__MULTITASK_FLAGS[$D__MULTITASK_TASKNUM]+='u';;
+      needs_prompt)     D__MULTITASK_FLAGS[$D__MULTITASK_TASKNUM]+='p';;
       *)                return 1;;
     esac
 
@@ -671,6 +744,8 @@ d__multitask_task_status()
       can_be_installed) [[ ${D__MULTITASK_FLAGS[$D__MULTITASK_TASKNUM]} == *i* ]];;
       can_be_removed)   [[ ${D__MULTITASK_FLAGS[$D__MULTITASK_TASKNUM]} == *r* ]];;
       is_skipped)       [[ ${D__MULTITASK_FLAGS[$D__MULTITASK_TASKNUM]} == *s* ]];;
+      is_user_or_os)    [[ ${D__MULTITASK_FLAGS[$D__MULTITASK_TASKNUM]} == *u* ]];;
+      needs_prompt)     [[ ${D__MULTITASK_FLAGS[$D__MULTITASK_TASKNUM]} == *p* ]];;
       *)                return 1;;
     esac
 
