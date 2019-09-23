@@ -3,9 +3,9 @@
 #:kind:         func(script)
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    22
+#:revnumber:    23
 #:revdate:      2019.09.23
-#:revremark:    Modify stash to fit into workflow
+#:revremark:    Fix wrong var in arg parsing
 #:created_at:   2019.09.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -127,7 +127,7 @@ d__context()
                       [ -n "$ttl" ] || ttl='<empty title>'; shift
                     else printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" 
                       "$FUNCNAME: Ignoring option lacking required argument:" \
-                      " '$opt'"
+                      " '$arg'"
                     fi;;
           *)  for ((i=1;i<${#arg};++i)); do opt="${arg:i:1}"
                 case $opt in
