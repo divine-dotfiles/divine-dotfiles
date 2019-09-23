@@ -2,8 +2,8 @@
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
 :revnumber: 83
-:revdate: 2019.09.20
-:revremark: Merge feat-backup-utils into dev
+:revdate: 2019.09.23
+:revremark: Describe improvements to d__notify
 :doctype: article
 // Visual
 :toc:
@@ -1570,7 +1570,7 @@ For notes on usage within the Divine workflow, see the workflow <<divine-workflo
 
 [source,subs="verbatim,quotes,attributes"]
 ----
-*d{dus}context* [-l] [-t *_TITLE_*] [--] *push*|*pop*|*notch*|*lop* *_DESCRIPTION_*...
+*d{dus}context* [-lq] [-t *_TITLE_*] [--] *push*|*pop*|*notch*|*lop* *_DESCRIPTION_*...
 ----
 
 The `push` and `pop` operations add and remove context items from below, respectively.
@@ -1649,7 +1649,7 @@ For notes on usage within the Divine workflow, see the workflow <<divine-workflo
 
 [source,subs="verbatim,quotes,attributes"]
 ----
-*d{dus}notify* [-1chlsuvx] [-t *_TITLE_*] [--] [*_DESCRIPTION_*...]
+*d{dus}notify* [-1acdhlqsuvx] [-t *_TITLE_*] [--] [*_DESCRIPTION_*...]
 ----
 
 Whether the output is printed depends on the <<global-verbosity-level,global verbosity level>>, as stored in <<var-opt-verbosity,`$D{dus}OPT_VERBOSITY`>>.
@@ -1709,7 +1709,6 @@ If no verbosity options are given, than the default quiet level is `1`.
 _(verbosity option)_
 Sets the quiet level to zero.
 In effect this will cause the output to be printed regardless of the <<global-verbosity-level,global verbosity level>>.
-This also causes a change in styling of the message.
 
 Options are read left-to-right: if both verbosity options are mixed together, the total quiet level is the amount of `--quiet` options after the last `--loud` option.
 
@@ -1735,17 +1734,30 @@ Includes the tip of the workflow context stack (the last pushed item) in the out
 
 ^.^h| Coloring options (one active at a time, last option wins)
 
+| `*-d*`, `*--debug*`
+
+_(default)_
+Colors the entire output in cyan, if the terminal coloring is available.
+
+| `*-a*`, `*--alert*`
+
+Colors the introductory arrow in yellow, if the terminal coloring is available.
+The rest of the output is left in normal terminal color.
+
 | `*-v*`, `*--success*`
 
-In the `--loud` mode, colors the introductory arrow in green, if the terminal coloring is available.
+Colors the introductory arrow in green, if the terminal coloring is available.
+The rest of the output is left in normal terminal color.
 
 | `*-x*`, `*--failure*`
 
-In the `--loud` mode, colors the introductory arrow in red, if the terminal coloring is available.
+Colors the introductory arrow in red, if the terminal coloring is available.
+The rest of the output is left in normal terminal color.
 
 | `*-s*`, `*--skip*`
 
-In the `--loud` mode, colors the introductory arrow in white, if the terminal coloring is available.
+Colors the introductory arrow in white, if the terminal coloring is available.
+The rest of the output is left in normal terminal color.
 
 |===
 
