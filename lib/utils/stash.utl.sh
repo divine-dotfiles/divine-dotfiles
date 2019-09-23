@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: stash
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    14
-#:revdate:      2019.09.05
-#:revremark:    Fix logic error
+#:revnumber:    15
+#:revdate:      2019.09.23
+#:revremark:    Move stash to utilities, pt.1
 #:created_at:   2019.05.15
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
