@@ -4,8 +4,8 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revnumber:    21
-#:revdate:      2019.09.20
-#:revremark:    Merge feat-backup-utils into dev
+#:revdate:      2019.09.23
+#:revremark:    d__notify: separate options for verbosity and styling
 #:created_at:   2019.09.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -800,7 +800,7 @@ d__fail()
   d__context -- lop
 }
 
-#>  d__notify [-1chlqsuvx] [-t TITLE] [--] [DESCRIPTION...]
+#>  d__notify [-1acdhlqsuvx] [-t TITLE] [--] [DESCRIPTION...]
 #
 ## Debug printer: announces a development of any kind. Whether the output is 
 #. printed depends on the global verbosity setting.
@@ -823,11 +823,13 @@ d__fail()
 #
 ## If terminal coloring is available:
 #.  * The entire output is painted cyan.
-#.  * Titles and some parts of CMD are styled in bold.
+#.  * Titles are styled in bold.
 #
-## If terminal coloring is available, and the --loud option is used:
-#.  * Arrow is styled in bold yellow.
-#.  * Titles and some parts of CMD are styled in bold.
+## If terminal coloring is available, and any of the alternative semantic 
+#. styling options is used:
+#.  * Arrow is styled in bold color (depending on the particular option).
+#.  * Other parts use the normal terminal color.
+#.  * Titles are styled in bold.
 #
 ## Options:
 #.  -q, --quiet               - (repeatable) The amount of these options 
@@ -851,9 +853,12 @@ d__fail()
 #.  -1, --context-tip         - Include in the output the latest item on the 
 #.                              workflow context stack in the output.
 #
-## Options for special styling. These modes are only relevant with the --loud 
-#. option and when the terminal coloring is available (one active at a time, 
-#. last option wins):
+## Options for semantic styling. These modes are only relevant when the 
+#. terminal coloring is available (one active at a time, last option wins):
+#.  -d, --debug     - (default) Style the notification as a debug message by 
+#.                    painting it entirely in cyan.
+#.  -a, --alert     - Style the notification as an alert message by painting 
+#.                    the introductory arrow in yellow.
 #.  -v, --success   - Style the notification as a success message by painting 
 #.                    the introductory arrow in green.
 #.  -x, --failure   - Style the notification as a failure message by painting 
@@ -870,11 +875,8 @@ d__fail()
 #
 d__notify()
 {
-  # Assemble template and arguments for the eventual call to printf
-  local pft='%s' pfa=() i
-
   # Regular call: pluck out options, round up arguments
-  local args=() arg opt context qt=n quiet=true sudo=false title stl
+  local args=() arg opt context qt=n quiet=true sudo=false title stl i
   while (($#)); do arg="$1"; shift; case $arg in
     -*) case ${arg:1} in
           -)          args+=("$@"); break;;
@@ -924,16 +926,18 @@ d__notify()
     ((${#args[@]})) || args='The upcoming command requires sudo priveleges'
   fi
 
-  # Settle on quiet call and formatting
+  # Settle on quiet call
   [ $qt = n ] && qt=1; (($D__OPT_VERBOSITY<$qt)) && return 0
-  if (($qt)); then
-    pfa+=("$CYAN==>$NORMAL"); local tp="$CYAN$BOLD" ts="$NORMAL$CYAN"
-  else
-    case $stl in v) pfa+=("$GREEN$BOLD==>$NORMAL");;
-      x) pfa+=("$RED$BOLD==>$NORMAL");; s) pfa+=("$WHITE$BOLD==>$NORMAL");;
-      *) pfa+=("$YELLOW$BOLD==>$NORMAL");; esac
-    local tp="$BOLD" ts="$NORMAL"
-  fi
+
+  # Assemble template and arguments for the eventual call to printf
+  local pft='%s' pfa=() tp="$BOLD" ts="$NORMAL"
+
+  # Settle on formatting
+  case $stl in a) pfa+=("$YELLOW$BOLD==>$NORMAL");;
+    v) pfa+=("$GREEN$BOLD==>$NORMAL");; x) pfa+=("$RED$BOLD==>$NORMAL");;
+    s) pfa+=("$WHITE$BOLD==>$NORMAL");;
+    *) tp="$CYAN$BOLD" ts="$NORMAL$CYAN"; pfa+=("$CYAN==>$NORMAL");;
+  esac
 
   # Compose the leading line depending on the options
   if ((${#args[@]})); then
