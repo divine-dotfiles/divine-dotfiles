@@ -3,7 +3,7 @@
 :email: grayarea@protonmail.ch
 :revnumber: 84
 :revdate: 2019.09.23
-:revremark: Merge latest dev into feat-init-train
+:revremark: Restore double underscore to stash function
 :doctype: article
 // Visual
 :toc:
@@ -2169,9 +2169,9 @@ It relies on at least one of the following utilities being available in the syst
 
 Returns zero on success and non-zero if something goes wrong.
 
-==== Function `dstash`
+==== Function `d{dus}stash`
 
-Function `dstash` is so important that it deserved its <<stash,own section>>.
+Function `d{dus}stash` is so important that it deserved its <<stash,own section>>.
 
 [[func-push-backup]]
 ==== Function `d__push_backup`
@@ -2319,27 +2319,27 @@ Rules of key-value store are:
 * Values must not exceed single line of text, but are otherwise unrestricted, and may be empty.
 * Multiple instances of a key are allowed, values may be duplicate.
 
-Stashing is accessible from within the deployments via the `dstash` function.
+Stashing is accessible from within the deployments via the `d{dus}stash` function.
 
 [source,subs="verbatim,quotes,attributes"]
 ----
-*dstash* [-drgsq] [--] [ *_CMD_* [ *_KEY_* [*_VALUE_*] ] ]
+*d{dus}stash* [-drgsq] [--] [ *_CMD_* [ *_KEY_* [*_VALUE_*] ] ]
 ----
 
 Depending on first argument, usage is as follows.
 
-.Usage patterns of `dstash`
+.Usage patterns of `d{dus}stash`
 [%noheader,cols="<.<a",stripes=none]
 |===
 
-| `dstash *ready*`
+| `d{dus}stash *ready*`
 
 (_default task_) Checks whether the stashing system on selected <<stash-types,level>> is primed and ready.
 By default, prints loud error messages if something is critically wrong with the stash.
 
 Returns `0` if stash is ready, or `2` if not.
 
-| `dstash *has* *_KEY_* [*_VALUE_*]`
+| `d{dus}stash *has* *_KEY_* [*_VALUE_*]`
 
 If `*_VALUE_*` is not given: checks whether the stash contains at least one `*_KEY_*` with any value.
 
@@ -2347,61 +2347,61 @@ If `*_VALUE_*` is given: checks whether the stash contains at least one `*_KEY_*
 
 Returns `0` if so, or `1` otherwise.
 
-| `dstash *set* *_KEY_* [*_VALUE_*]`
+| `d{dus}stash *set* *_KEY_* [*_VALUE_*]`
 
 Ensures that the stash contains a _single_ instance of `*_KEY_*`, and that it is set to `*_VALUE_*`.
 
 Returns `0` on success, or `1` otherwise.
 
-| `dstash *add* *_KEY_* [*_VALUE_*]`
+| `d{dus}stash *add* *_KEY_* [*_VALUE_*]`
 
 Adds one instance of `*_KEY_*` and sets it to `*_VALUE_*`, regardless of possibly pre-existing instances of `*_KEY_*`.
 
 Returns `0` on success, or `1` otherwise.
 
-| `dstash *get* *_KEY_*`
+| `d{dus}stash *get* *_KEY_*`
 
 Prints the value of the first instance of `*_KEY_*` to `stdout`.
 
 Returns `0` on success (even if nothing was printed), or `1` otherwise.
 
-| `dstash *list* *_KEY_*`
+| `d{dus}stash *list* *_KEY_*`
 
 Prints the value of each `*_KEY_*` on a new line to `stdout`.
 
 Returns `0` on success (even if nothing was printed), or `1` otherwise.
 
-| `dstash *unset* *_KEY_* [*_VALUE_*]`
+| `d{dus}stash *unset* *_KEY_* [*_VALUE_*]`
 
 If `*_VALUE_*` is not given: removes all instances of `*_KEY_*`.
 If `*_VALUE_*` is given: removes each instance of `*_KEY_*` that is set to `*_VALUE_*`.
 
 Returns `0` on success (even if nothing was removed), or `1` otherwise.
 
-| `dstash *list-keys*`
+| `d{dus}stash *list-keys*`
 
 Prints each `*_KEY_*` currently in the stash on a new line to `stdout`.
 Possible duplicate keys are _not_ pruned.
 
 Returns `0` on success (even if nothing was printed), or `1` otherwise.
 
-| `dstash *clear*`
+| `d{dus}stash *clear*`
 
 Clears all records from this stash.
 
 |===
 
-Below is the list of `dstash` options.
+Below is the list of `d{dus}stash` options.
 
-.List of `dstash` options
+.List of `d{dus}stash` options
 [%noheader,cols="<.<a",stripes=none]
 |===
 
 | `*-s*`, `*--skip-checks*`
 
-Without this option, every invocation of `dstash` (with any arguments) begins with stash readiness check.
+Without this option, every invocation of `d{dus}stash` (with any arguments) begins with stash readiness check.
 If the function is called multiple times within a deployment, such checks become redundant.
-It is recommended that after initial `dstash ready`, this option is then included with any subsequent invocations, to forego readiness checks.
+It is recommended that after initial `d{dus}stash ready`, this option is then included with any subsequent invocations, to forego readiness checks.
 
 | `*-q*`, `*--quiet*`
 

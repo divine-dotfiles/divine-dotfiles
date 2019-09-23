@@ -2,9 +2,9 @@
 #:title:        Divine Bash routine: install
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    50
-#:revdate:      2019.09.12
-#:revremark:    Ditch dtrim
+#:revnumber:    51
+#:revdate:      2019.09.23
+#:revremark:    Restore double underscore to stash function
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -232,7 +232,7 @@ d__install_pkgs()
 
       # Check return status
       if [ "${PIPESTATUS[0]}" -eq 0 ]; then
-        dstash --root --skip-checks set "pkg_$( dmd5 -s "$pkgname" )"
+        d__stash --root --skip-checks set "pkg_$( dmd5 -s "$pkgname" )"
         dprint_ode "${D__ODE_NAME[@]}" -c "$GREEN" -- \
           'vvv' 'Installed' ':' "$task_desc" "$task_name"
       else

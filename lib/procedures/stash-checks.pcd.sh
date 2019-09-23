@@ -2,9 +2,9 @@
 #:title:        Divine Bash procedure: stash-checks
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    7
-#:revdate:      2019.08.16
-#:revremark:    d__stash -> dstash
+#:revnumber:    8
+#:revdate:      2019.09.23
+#:revremark:    Restore double underscore to stash function
 #:created_at:   2019.07.05
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -25,7 +25,7 @@
 d__run_stash_checks()
 {
   # Ensure Grail stash is available
-  dstash --grail ready || {
+  d__stash --grail ready || {
     dprint_failure \
       'Failed to prepare Divine stashing system in Grail directory at:' \
       -i "$D__DIR_GRAIL"
@@ -33,7 +33,7 @@ d__run_stash_checks()
   }
 
   # Ensure root stash is available
-  dstash --root ready || {
+  d__stash --root ready || {
     dprint_failure \
       'Failed to prepare Divine stashing system in state directory at:' \
       -i "$D__DIR_STASH"

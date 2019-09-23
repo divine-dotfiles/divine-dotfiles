@@ -2,9 +2,9 @@
 #:title:        Divine.dotfiles macOS adapter
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    18
-#:revdate:      2019.08.16
-#:revremark:    d__stash -> dstash
+#:revnumber:    19
+#:revdate:      2019.09.23
+#:revremark:    Restore double underscore to stash function
 #:created_at:   2019.06.04
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -117,7 +117,7 @@ d__adapter_offer_to_install_brew()
     if [ "${PIPESTATUS[0]}" -eq 0 ]; then
 
       # Make record of installation
-      if dstash -r -s add installed_homebrew; then
+      if d__stash -r -s add installed_homebrew; then
         dprint_debug "Recorded installation of Homebrew to root stash"
       else
         dprint_failure \

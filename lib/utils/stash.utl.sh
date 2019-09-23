@@ -1,22 +1,23 @@
 #!/usr/bin/env bash
-#:title:        Divine Bash deployment helpers: stash
+#:title:        Divine Bash utils: stash
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    15
+#:revnumber:    2
 #:revdate:      2019.09.23
-#:revremark:    Move stash to utilities, pt.1
+#:revremark:    Restore double underscore to stash function
 #:created_at:   2019.05.15
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
 #
-## Helper function for any deployments that require persistent state
+## Utility for any deployments and framework components that require persistent 
+#. state
 #
 ## Stashing allows to create/retrieve/update/delete key-value pairs that 
 #. persist between invocations of deployment scripts. Each deployment gets its 
 #. own stash. Stash files are named '.stash.cfg'.
 #
 
-#>  dstash [-drgsq] [--] [ CMD [ KEY [VALUE] ] ]
+#>  d__stash [-drgsq] [--] [ CMD [ KEY [VALUE] ] ]
 #
 ## Main interface into the stash, be that on deployment, root, or Grail level. 
 #. Dispatches task based on first non-opt argument.
@@ -80,44 +81,39 @@
 #.  1 - Meaning differs between tasks
 #.  2 - Stashing system is not operational
 #
-dstash()
+d__stash()
 {
   # Parse options
-  local args=() opts opt i
+  local args=() arg opt i
   local stash_level=d do_checks=true quiet=false
-  while (($#)); do
-    case $1 in
-      --)               shift; args+=("$@"); break;;
-      -d|--dpl)         stash_level=d;;
-      -r|--root)        stash_level=r;;
-      -g|--grail)       stash_level=g;;
-      -s|--skip-checks) do_checks=false;;
-      -q|--quiet)       quiet=true;;
-      -*)   opts="$1"; shift
-            for (( i=1; i<${#opts}; ++i )); do
-              opt="${opts:i:1}"
-              case $opt in
-                d)  stash_level=d;;
-                r)  stash_level=r;;
-                g)  stash_level=g;;
-                s)  do_checks=false;;
-                q)  quiet=true;;
-                *)  dprint_failure \
-                      "${FUNCNAME}: Ignoring unrecognized option: '$opt'"
-                    ;;
-              esac
-            done
-            continue
-            ;;
-      *)    args+=("$1");;
-    esac; shift
-  done; set -- "${args[@]}"
+  while (($#)); do arg="$1"; shift; case $arg in
+    -*) case ${arg:1} in
+          -)              args+=("$@"); break;;
+          d|-dpl)         stash_level=d;;
+          r|-root)        stash_level=r;;
+          g|-grail)       stash_level=g;;
+          s|-skip-checks) do_checks=false;;
+          q|-quiet)       quiet=true;;
+          *)  for ((i=1;i<${#arg};++i)); do opt="${arg:i:1}"
+                case $opt in
+                  d)  stash_level=d;;
+                  r)  stash_level=r;;
+                  g)  stash_level=g;;
+                  s)  do_checks=false;;
+                  q)  quiet=true;;
+                  *)  printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" \
+                        "$FUNCNAME: Ignoring unrecognized option: '$opt'";;
+                esac
+              done;;
+        esac;;
+    *)  args+=("$arg");;
+  esac; done; set -- "${args[@]}"
 
   # Initialize local variables
   local stash_filepath stash_md5_filepath
 
   # Run pre-flight checks
-  d___stash_pre_flight_checks || return 2
+  d___check_stashing_system || return 2
 
   # Extract task name, or quick return
   if (($#)); then local task="$1"; shift; else return 0; fi
@@ -129,12 +125,12 @@ dstash()
   # Dispatch appropriate task
   case $task in
     ready)      :;;
-    has)        d__validate_dstash_key "$dkey" && d___stash_has;;
-    set)        d__validate_dstash_key "$dkey" && d___stash_set;;
-    add)        d__validate_dstash_key "$dkey" && d___stash_add;;
-    get)        d__validate_dstash_key "$dkey" && d___stash_get;;
-    list)       d__validate_dstash_key "$dkey" && d___stash_list;;
-    unset)      d__validate_dstash_key "$dkey" && d___stash_unset;;
+    has)        d__validate_stash_key "$dkey" && d___stash_has;;
+    set)        d__validate_stash_key "$dkey" && d___stash_set;;
+    add)        d__validate_stash_key "$dkey" && d___stash_add;;
+    get)        d__validate_stash_key "$dkey" && d___stash_get;;
+    list)       d__validate_stash_key "$dkey" && d___stash_list;;
+    unset)      d__validate_stash_key "$dkey" && d___stash_unset;;
     list-keys)  d___stash_list_keys;;
     clear)      d___stash_clear;;
     *)          dprint_failure \
@@ -147,7 +143,7 @@ dstash()
   return $?
 }
 
-#>  d__validate_dstash_key KEY
+#>  d__validate_stash_key KEY
 #
 ## Checks if KEY is safe for stashing. Practically, it means ensuring that key 
 #. consists of allowed characters only: ASCII letters (both cases) and digits, 
@@ -157,7 +153,7 @@ dstash()
 #.  0 - Key is acceptable.
 #.  1 - Otherwise.
 #
-d__validate_dstash_key()
+d__validate_stash_key()
 {
   (($#)) || dprint_failure "${FUNCNAME}: Called without an argument"
   if [ -z "$1" ]; then
@@ -470,7 +466,7 @@ d___stash_clear()
   d___stash_store_md5; return 0
 }
 
-#>  d___stash_pre_flight_checks
+#>  d___check_stashing_system
 #
 ## INTERNAL USE ONLY
 #
@@ -491,7 +487,7 @@ d___stash_clear()
 #.  0 - Ready for stashing
 #.  1 - Otherwise
 #
-d___stash_pre_flight_checks()
+d___check_stashing_system()
 {
   # Check if extended diagnostics are required
   if $do_checks; then

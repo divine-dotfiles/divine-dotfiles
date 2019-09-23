@@ -2,9 +2,9 @@
 #:title:        Divine Bash routine: check
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    48
-#:revdate:      2019.09.12
-#:revremark:    Ditch dtrim
+#:revnumber:    49
+#:revdate:      2019.09.23
+#:revremark:    Restore double underscore to stash function
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -174,7 +174,7 @@ d__check_pkgs()
     if $proceeding; then
       if d__os_pkgmgr check "$pkgname"; then        
         # Check if record of installation exists in root stash
-        if dstash --root --skip-checks has "pkg_$( dmd5 -s "$pkgname" )"; then
+        if d__stash --root --skip-checks has "pkg_$( dmd5 -s "$pkgname" )"; then
           # Installed by this framework
           dprint_ode "${D__ODE_NAME[@]}" -c "$GREEN" -- \
             'vvv' 'Installed' ':' "$task_desc" "$task_name"

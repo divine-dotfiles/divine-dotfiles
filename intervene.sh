@@ -2,9 +2,9 @@
 #:title:        Divine Bash script: intervene
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    85
-#:revdate:      2019.09.20
-#:revremark:    Merge feat-backup-utils into dev
+#:revnumber:    87
+#:revdate:      2019.09.23
+#:revremark:    Restore double underscore to stash function
 #:created_at:   2018.03.25
 
 ## Launches the Divine intervention
@@ -152,7 +152,7 @@ d__populate_globals()
     'procedure print-colors' \
     'util dprint' \
     'util dprompt' \
-    'helper stash' \
+    'util stash' \
     'procedure stash-checks' \
     'procedure detect-os' \
     'helper offer' \

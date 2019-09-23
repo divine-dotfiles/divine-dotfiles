@@ -2,9 +2,9 @@
 #:title:        Divine Bash routine: attach
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    18
-#:revdate:      2019.08.28
-#:revremark:    Silence calls to mv -n
+#:revnumber:    19
+#:revdate:      2019.09.23
+#:revremark:    Restore double underscore to stash function
 #:created_at:   2019.05.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -268,7 +268,7 @@ d__attach_dpl_repo()
   }
 
   # Record this to Grail stash
-  if dstash -g -s add dpl_repos "$user_repo"; then
+  if d__stash -g -s add dpl_repos "$user_repo"; then
     dprint_debug "Recorded attached repository '$user_repo' in Grail stash"
   else
     dprint_debug \
