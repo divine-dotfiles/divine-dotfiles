@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
-#:title:        Divine Bash deployment helpers: offer
+#:title:        Divine Bash utils: offer
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    17
+#:revnumber:    2
 #:revdate:      2019.09.23
-#:revremark:    Move offer to utils
+#:revremark:    First version of init train
 #:created_at:   2019.07.06
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
 #
-## Helper function that offers to install required/optional dependency
+## Helper util that offers to install required/optional dependency
 #
 
 #>  d__offer_system_pkg [--exit-on-q] UTIL_NAME

@@ -2,9 +2,9 @@
 #:title:        Divine Bash script: intervene
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    87
+#:revnumber:    88
 #:revdate:      2019.09.23
-#:revremark:    Restore double underscore to stash function
+#:revremark:    First version of init train
 #:created_at:   2018.03.25
 
 ## Launches the Divine intervention
@@ -148,15 +148,16 @@ d__populate_globals()
 
   # Ordered list of script's internal dependencies
   D__INTERNAL_DEPENDENCIES=( \
-    'procedure dep-checks' \
     'procedure print-colors' \
     'util dprint' \
     'util dprompt' \
+    'util workflow' \
+    'procedure checks-1-sys' \
     'util stash' \
-    'procedure stash-checks' \
+    'procedure checks-2-stash' \
     'procedure detect-os' \
-    'helper offer' \
-    'procedure sys-pkg-checks' \
+    'util offer' \
+    'procedure checks-3-opt' \
     'util dreadlink' \
     'util dmv' \
     'util dln' \

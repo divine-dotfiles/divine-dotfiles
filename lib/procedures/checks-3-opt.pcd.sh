@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-#:title:        Divine Bash procedure: sys-pkg-checks
+#:title:        Divine Bash procedure: third-checks
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    7
+#:revnumber:    8
 #:revdate:      2019.09.23
-#:revremark:    Restore double underscore to stash function
+#:revremark:    First version of init train
 #:created_at:   2019.07.05
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
