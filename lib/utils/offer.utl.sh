@@ -2,9 +2,9 @@
 #:title:        Divine Bash deployment helpers: offer
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    16
+#:revnumber:    17
 #:revdate:      2019.09.23
-#:revremark:    Restore double underscore to stash function
+#:revremark:    Move offer to utils
 #:created_at:   2019.07.06
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
