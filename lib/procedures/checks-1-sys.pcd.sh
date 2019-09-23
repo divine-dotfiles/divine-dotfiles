@@ -2,9 +2,9 @@
 #:title:        Divine Bash procedure: first-checks
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    14
+#:revnumber:    2
 #:revdate:      2019.09.23
-#:revremark:    First version of init train
+#:revremark:    Remove dev-time stops
 #:created_at:   2019.07.05
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -32,7 +32,7 @@ d__check_system_dependencies()
   if $all_good; then
     d__context -t 'Done' -- pop 'System dependencies are in order'
     d__context -- lop
-    exit 0
+    return 0
   else
     d__fail -t 'Shutting down' -- 'Missing or incompatible system dependencies'
     exit 1
@@ -43,7 +43,7 @@ d___check_find()
 {
   # TEST 1: this command must find just root path '/'
   arr=(); while IFS= read -r -d $'\0' var; do arr+=("$var")
-  done < <( findsn4ke -L / -path / -name / -mindepth 0 -maxdepth 0 \
+  done < <( find -L / -path / -name / -mindepth 0 -maxdepth 0 \
     \( -type f -or -type d \) -print0 2>/dev/null || exit $? )
   if [ $? -eq 0 -a ${#arr[@]} -eq 1 -a "${arr[0]}" = '/' ]; then
     d__notify -qqqt "Utility 'find': Test 1" -- 'Passed'
@@ -224,8 +224,9 @@ d___check_github()
   if git --version $>/dev/null; then D__GH_METHOD=g
   else
     if tar --version &>/dev/null; then
-    if curl --version &>/dev/null; then D__GH_METHOD=c
-    elif wget --version &>/dev/null; then D__GH_METHOD=w; fi
+      if curl --version &>/dev/null; then D__GH_METHOD=c
+      elif wget --version &>/dev/null; then D__GH_METHOD=w; fi
+    fi
   fi
   if [ -z ${D__GH_METHOD+isset} ]; then
     d__notify -lx -- 'Could not detect a utility to calculate md5 checksums'

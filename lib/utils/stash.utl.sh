@@ -2,9 +2,9 @@
 #:title:        Divine Bash utils: stash
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    3
+#:revnumber:    4
 #:revdate:      2019.09.23
-#:revremark:    Modify stash to fit into workflow
+#:revremark:    Remove dev-time stops
 #:created_at:   2019.05.15
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -515,42 +515,37 @@ d___stash_clear()
 #
 d___check_stashing_system()
 {
-  # Establish stash directory, fire initial debug message
-  local stash_dirpath
-  case $stash_level in
-    r)  d__notify -qq -- 'Accessing root-level stash'
-        stash_dirpath="$D__DIR_STASH";;
-    g)  d__notify -qq -- 'Accessing Grail-level stash'
-        stash_dirpath="$D__DIR_GRAIL";;
-    *)  d__notify -qq -- 'Accessing stash for deployment '$D_DPL_NAME''
-        stash_dirpath="$D__DIR_STASH/$D_DPL_NAME";;
-  esac
-
-  # Check if extended diagnostics are required
+  # Check if extended diagnostics are required, fire initial debug message
   if $do_checks; then
 
     # Сheck for necessary variables
     case $stash_level in
-      r)  if ! [ -n "$D__DIR_STASH" ]; then
+      r)  if [ -n "$D__DIR_STASH" ]; then
+            d__notify -qq -- 'Deep-accessing root-level stash'
+          else
             d__notify $quiet -- \
               'Root-level stash has been accessed with empty $D__DIR_STASH'
             return 1
           fi
           ;;
-      g)  if ! [ -n "$D__DIR_GRAIL" ]; then
+      g)  if [ -n "$D__DIR_GRAIL" ]; then
+            d__notify -qq -- 'Deep-accessing Grail-level stash'
+          else
             d__notify $quiet -- \
               'Grail-level stash has been accessed with empty $D__DIR_GRAIL'
             return 1
           fi
           ;;
-      *)  if ! [ -n "$D__DIR_STASH" ]; then
-            d__notify $quiet -- \
-              'Dpl-level stash has been accessed with empty $D__DIR_STASH'
-            return 1
-          fi
-          if ! [ -n "$D_DPL_NAME" ]; then
+      *)  if [ -n "$D_DPL_NAME" ]; then
+            d__notify -qq -- 'Deep-accessing dpl-level stash'
+          else
             d__notify $quiet -- \
               'Dpl-level stash has been accessed with empty $D_DPL_NAME'
+            return 1
+          fi
+          if ! [ -n "$D__DIR_STASH" ]; then
+            d__notify $quiet -- \
+              'Dpl-level stash has been accessed with empty $D__DIR_STASH'
             return 1
           fi
           ;;
@@ -563,7 +558,25 @@ d___check_stashing_system()
       return 1
     fi
 
+  else
+
+    # Fire initial debug message
+    case $stash_level in
+      r)  d__notify -qqq -- 'Quick-accessing root-level stash';;
+      g)  d__notify -qqq -- 'Quick-accessing Grail-level stash';;
+      *)  d__notify -qqq -- \
+            'Quick-accessing stash for deployment '$D_DPL_NAME'';;
+    esac
+
   fi  
+
+  # Establish stash directory
+  local stash_dirpath
+  case $stash_level in
+    r)  stash_dirpath="$D__DIR_STASH";;
+    g)  stash_dirpath="$D__DIR_GRAIL";;
+    *)  stash_dirpath="$D__DIR_STASH/$D_DPL_NAME";;
+  esac
 
   # Ensure directory for this stash exists
   if ! mkdir -p -- "$stash_dirpath"; then
