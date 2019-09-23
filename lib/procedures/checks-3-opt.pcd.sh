@@ -2,9 +2,9 @@
 #:title:        Divine Bash procedure: third-checks
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    8
+#:revnumber:    2
 #:revdate:      2019.09.23
-#:revremark:    First version of init train
+#:revremark:    Check for Github capability early
 #:created_at:   2019.07.05
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -33,6 +33,25 @@ d__run_sys_pkg_checks()
       d__uninstall_all_offered_utils;;
     *)  return 0;;
   esac
+}
+
+#>  d__check_github
+#
+## Checks whether the framework has the capacity to interact with Github (clone 
+#. or download the repositories)
+#
+d__check_github()
+{
+  D__GH_METHOD=
+  if git --version &>/dev/null; then D__GH_METHOD=g
+  elif tar --version &>/dev/null; then
+    if curl --version &>/dev/null; then D__GH_METHOD=c
+    elif wget --version &>/dev/null; then D__GH_METHOD=w; fi
+  fi
+  readonly D__GH_METHOD
+  if [ -z "$D__GH_METHOD" ]; then
+    d__notify -lx -- 'Unable to clone/download Github repositories'
+  fi
 }
 
 #>  d__offer_git_and_friends
@@ -295,4 +314,6 @@ d__uninstall_homebrew()
 }
 
 d__run_sys_pkg_checks
+d__check_github
 unset -f d__run_sys_pkg_checks
+unset -f d__check_github
