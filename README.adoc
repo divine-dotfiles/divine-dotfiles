@@ -1,9 +1,9 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revnumber: 84
+:revnumber: 85
 :revdate: 2019.09.23
-:revremark: Restore double underscore to stash function
+:revremark: Modify stash to fit into workflow
 :doctype: article
 // Visual
 :toc:
@@ -1649,7 +1649,7 @@ For notes on usage within the Divine workflow, see the workflow <<divine-workflo
 
 [source,subs="verbatim,quotes,attributes"]
 ----
-*d{dus}notify* [-1acdhlqsuvx] [-t *_TITLE_*] [--] [*_DESCRIPTION_*...]
+*d{dus}notify* [-!1cdhlqsuvx] [-t *_TITLE_*] [--] [*_DESCRIPTION_*...]
 ----
 
 Whether the output is printed depends on the <<global-verbosity-level,global verbosity level>>, as stored in <<var-opt-verbosity,`$D{dus}OPT_VERBOSITY`>>.
@@ -1739,7 +1739,7 @@ Includes the tip of the workflow context stack (the last pushed item) in the out
 _(default)_
 Colors the entire output in cyan, if the terminal coloring is available.
 
-| `*-a*`, `*--alert*`
+| `*-!*`, `*--alert*`
 
 Colors the introductory arrow in yellow, if the terminal coloring is available.
 The rest of the output is left in normal terminal color.
@@ -1769,7 +1769,7 @@ For notes on usage within the Divine workflow, see the workflow <<divine-workflo
 
 [source,subs="verbatim,quotes,attributes"]
 ----
-*d{dus}prompt* [-1bchkqsvxy] [-p *_PROMPT_*] [-a *_ANSWER_*] [-t *_TITLE_*] [--] [*_DESCRIPTION_*...]
+*d{dus}prompt* [-!1bchkqsvxy] [-p *_PROMPT_*] [-a *_ANSWER_*] [-t *_TITLE_*] [--] [*_DESCRIPTION_*...]
 ----
 
 Two prompting modes are supported:
@@ -1875,6 +1875,11 @@ Includes the head of the workflow context stack (the items pushed since the last
 Includes the tip of the workflow context stack (the last pushed item) in the output.
 
 ^.^h| Coloring options (one active at a time, last option wins)
+
+| `*-!*`, `*--alert*`
+
+_(default)_
+Colors the introductory arrow and the `*_PROMPT_*` in yellow, if the terminal coloring is available.
 
 | `*-v*`, `*--success*`
 
@@ -2388,6 +2393,8 @@ Returns `0` on success (even if nothing was printed), or `1` otherwise.
 | `d{dus}stash *clear*`
 
 Clears all records from this stash.
+
+| If called with an unsupported routine name, the function returns `3`.
 
 |===
 

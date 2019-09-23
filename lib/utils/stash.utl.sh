@@ -2,9 +2,9 @@
 #:title:        Divine Bash utils: stash
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    2
+#:revnumber:    3
 #:revdate:      2019.09.23
-#:revremark:    Restore double underscore to stash function
+#:revremark:    Modify stash to fit into workflow
 #:created_at:   2019.05.15
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -80,6 +80,7 @@
 #.  0 - Task performed
 #.  1 - Meaning differs between tasks
 #.  2 - Stashing system is not operational
+#.  3 - Called with an unrecognized routine name
 #
 d__stash()
 {
@@ -101,8 +102,8 @@ d__stash()
                   g)  stash_level=g;;
                   s)  do_checks=false;;
                   q)  quiet=true;;
-                  *)  printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" \
-                        "$FUNCNAME: Ignoring unrecognized option: '$opt'";;
+                  *)  d__notify -lat "$FUNCNAME" -- \
+                        "Ignoring unrecognized option: '$opt'";;
                 esac
               done;;
         esac;;
@@ -111,6 +112,9 @@ d__stash()
 
   # Initialize local variables
   local stash_filepath stash_md5_filepath
+
+  # Options for d__notify
+  $quiet && quiet='-qq' || quiet='-lx'
 
   # Run pre-flight checks
   d___check_stashing_system || return 2
@@ -133,9 +137,9 @@ d__stash()
     unset)      d__validate_stash_key "$dkey" && d___stash_unset;;
     list-keys)  d___stash_list_keys;;
     clear)      d___stash_clear;;
-    *)          dprint_failure \
-                  "${FUNCNAME}: Ignoring unrecognized task: '$task'"
-                return 0
+    *)          d__notify -lxt "${FUNCNAME}" \
+                  "Refusing to work with unrecognized routine: '$task'"
+                return 3
                 ;;
   esac
 
@@ -155,12 +159,12 @@ d__stash()
 #
 d__validate_stash_key()
 {
-  (($#)) || dprint_failure "${FUNCNAME}: Called without an argument"
+  (($#)) || d__notify -lxt "${FUNCNAME}" 'Called without arguments'
   if [ -z "$1" ]; then
-    dprint_failure 'Illegal stash key: must be not empty'
+    d__notify -lxt "${FUNCNAME}" 'Empty stash key' 'The key must be non-empty'
   elif ! [[ $1 =~ ^[a-zA-Z0-9_-]+$ ]]; then
-    dprint_failure "Illegal stash key: '$1'" \
-      "Must consist of alphanumeric chars, underscore'_', and hyphen '-'"
+    d__notify -lxt "${FUNCNAME}" "Illegal stash key: '$1'" \
+      "Allowed characters: alphanumeric chars, underscore'_', and hyphen '-'"
   else return 0; fi
   return 1
 }
@@ -187,8 +191,10 @@ d___stash_has()
 {
   # Fork depending on whether a value is given
   if [ -z "${dvalue+isset}" ]; then
+    d__notify -qqqt 'Stash' -- "Checking for key '$dkey'"
     grep -q ^"$dkey"= -- "$stash_filepath" &>/dev/null || return 1
   else
+    d__notify -qqqt 'Stash' -- "Checking for key '$dkey' with value '$dvalue'"
     grep -Fxq "$dkey=$dvalue" -- "$stash_filepath" &>/dev/null || return 1
   fi
 }
@@ -212,6 +218,9 @@ d___stash_has()
 #
 d___stash_set()
 {
+  # Announce
+  d__notify -qqqt 'Stash' -- "Setting key '$dkey' to value '$dvalue'"
+
   # Storage variables
   local temp=$(mktemp) line found=false should_replace=false
 
@@ -263,8 +272,8 @@ d___stash_set()
 
     # Move temp to location of stash file
     if ! mv -f -- $temp "$stash_filepath"; then
-      dprint_failure "Failed to move temp file from: $temp" \
-        -n "to: $stash_filepath" -n 'while unsetting keys'
+      d__notify -lx -- "Failed to move temp file from: $temp" \
+        "to: $stash_filepath" 'while setting keys'
       return 1
     fi
 
@@ -298,10 +307,13 @@ d___stash_set()
 #
 d___stash_add()
 {
+  # Announce
+  d__notify -qqqt 'Stash' -- "Adding to key '$dkey' value '$dvalue'"
+  
   # Append record at the end
   if ! printf '%s\n' "$dkey=$dvalue" >>"$stash_filepath"; then
-    dprint_failure 'Failed to add record:' -i "$dkey=$dvalue" \
-      -n 'in stash file at:' -i "$stash_filepath"
+    d__notify -lx -- "Failed to add record: $dkey=$dvalue" \
+      "in stash file at: $stash_filepath"
     return 1
   fi
 
@@ -327,6 +339,9 @@ d___stash_add()
 #
 d___stash_get()
 {
+  # Announce
+  d__notify -qqqt 'Stash' -- "Retrieving value for key '$dkey'"
+  
   # Search for the $dkey
   local result="$( grep -m 1 ^"$dkey"= -- "$stash_filepath" 2>/dev/null \
     || exit $? )"
@@ -356,6 +371,9 @@ d___stash_get()
 #
 d___stash_list()
 {
+  # Announce
+  d__notify -qqqt 'Stash' -- "Listing values for key '$dkey'"
+  
   # Storage variables
   local found=false left right
 
@@ -385,7 +403,7 @@ d___stash_list()
 #.  1 - Otherwise: failed to perform unsetting (key-values likely remain).
 #
 d___stash_unset()
-{
+{  
   # Storage variables
   local temp=$(mktemp) line
 
@@ -393,6 +411,7 @@ d___stash_unset()
   if [ -z "${dvalue+isset}" ]; then
 
     # No value: copy stash file, but without lines starting with '$dkey='
+    d__notify -qqqt 'Stash' -- "Unsetting key '$dkey'"
     while read -r line; do
       [[ $line = "$dkey="* ]] || printf '%s\n' "$line"
     done <"$stash_filepath" >$temp
@@ -400,6 +419,7 @@ d___stash_unset()
   else
 
     # Value given: copy stash file, but without lines '$dkey=$dvalue'
+    d__notify -qqqt 'Stash' -- "Unsetting key '$dkey' with value '$dvalue'"
     while read -r line; do
       [ "$line" = "$dkey=$dvalue" ] || printf '%s\n' "$line"
     done <"$stash_filepath" >$temp
@@ -408,8 +428,8 @@ d___stash_unset()
 
   # Move temp to location of stash file
   if ! mv -f -- $temp "$stash_filepath"; then
-    dprint_failure "Failed to move temp file from: $temp" \
-      -n "to: $stash_filepath" -n 'while unsetting keys'
+    d__notify -lx -- "Failed to move temp file from: $temp" \
+      "to: $stash_filepath" 'while unsetting keys'
     return 1
   fi
 
@@ -433,6 +453,9 @@ d___stash_unset()
 #
 d___stash_list_keys()
 {
+  # Announce
+  d__notify -qqqt 'Stash' -- 'Listing all keys'
+  
   # Storage variables
   local found=false left right
 
@@ -459,6 +482,9 @@ d___stash_list_keys()
 #
 d___stash_clear()
 {
+  # Announce
+  d__notify -qqt 'Stash' -- 'Clearing all contents'
+  
   # Erase stash file
   >"$stash_filepath"
 
@@ -489,37 +515,42 @@ d___stash_clear()
 #
 d___check_stashing_system()
 {
+  # Establish stash directory, fire initial debug message
+  local stash_dirpath
+  case $stash_level in
+    r)  d__notify -qq -- 'Accessing root-level stash'
+        stash_dirpath="$D__DIR_STASH";;
+    g)  d__notify -qq -- 'Accessing Grail-level stash'
+        stash_dirpath="$D__DIR_GRAIL";;
+    *)  d__notify -qq -- 'Accessing stash for deployment '$D_DPL_NAME''
+        stash_dirpath="$D__DIR_STASH/$D_DPL_NAME";;
+  esac
+
   # Check if extended diagnostics are required
   if $do_checks; then
 
-    # Fire a debug message and check for necessary variables
+    # Сheck for necessary variables
     case $stash_level in
-      r)  if [ -n "$D__DIR_STASH" ]; then
-            dprint_debug 'Preparing root-level stash'
-          else
-            d___stash_report_error 'Root-level stash has been accessed' \
-              'without $D__DIR_STASH populated'
+      r)  if ! [ -n "$D__DIR_STASH" ]; then
+            d__notify $quiet -- \
+              'Root-level stash has been accessed with empty $D__DIR_STASH'
             return 1
           fi
           ;;
-      g)  if [ -n "$D__DIR_GRAIL" ]; then
-            dprint_debug 'Preparing Grail-level stash'
-          else
-            d___stash_report_error 'Grail-level stash has been accessed' \
-              'without $D__DIR_GRAIL populated'
+      g)  if ! [ -n "$D__DIR_GRAIL" ]; then
+            d__notify $quiet -- \
+              'Grail-level stash has been accessed with empty $D__DIR_GRAIL'
             return 1
           fi
           ;;
-      *)  if [ -n "$D_DPL_NAME" ]; then
-            dprint_debug "Preparing stash for deployment '$D_DPL_NAME'"
-          else
-            d___stash_report_error 'Deployment-level stash has been accessed' \
-              'without $D_DPL_NAME populated'
+      *)  if ! [ -n "$D__DIR_STASH" ]; then
+            d__notify $quiet -- \
+              'Dpl-level stash has been accessed with empty $D__DIR_STASH'
             return 1
           fi
-          if ! [ -n "$D__DIR_STASH" ]; then
-            d___stash_report_error 'Deployment-level stash has been accessed' \
-              'without $D_DPL_NAME populated'
+          if ! [ -n "$D_DPL_NAME" ]; then
+            d__notify $quiet -- \
+              'Dpl-level stash has been accessed with empty $D_DPL_NAME'
             return 1
           fi
           ;;
@@ -527,25 +558,16 @@ d___check_stashing_system()
 
     # Check if name for stash file is set globally
     if ! [ -n "$D__CONST_NAME_STASHFILE" ]; then
-      d___stash_report_error 'Stashing has been accessed' \
-        'without $D__CONST_NAME_STASHFILE populated'
+      d__notify $quiet -- \
+        'Stashing has been accessed with empty $D__CONST_NAME_STASHFILE'
       return 1
     fi
 
-  fi
-
-  # Establish stash directory
-  local stash_dirpath
-  case $stash_level in
-    r)  stash_dirpath="$D__DIR_STASH";;
-    g)  stash_dirpath="$D__DIR_GRAIL";;
-    *)  stash_dirpath="$D__DIR_STASH/$D_DPL_NAME";;
-  esac
+  fi  
 
   # Ensure directory for this stash exists
   if ! mkdir -p -- "$stash_dirpath"; then
-    d___stash_report_error 'Failed to create stash directory at:' \
-      -i "$stash_dirpath"
+    d__notify $quiet -- "Failed to create stash directory at: $stash_dirpath"
     return 1
   fi
 
@@ -558,16 +580,15 @@ d___check_stashing_system()
 
     # Ensure path to stash file is not occupied by not-file
     if [ -e "$stash_filepath" -a ! -f "$stash_filepath" ]; then
-      d___stash_report_error 'Stash filepath occupied by a non-file:' \
-        -i "$stash_filepath"
+      d__notify $quiet -- \
+        "Stash filepath occupied by a non-file: $stash_filepath"
       return 1
     fi
 
     # Ensure path to stash md5 file is not occupied by not-file
     if [ -e "$stash_md5_filepath" -a ! -f "$stash_md5_filepath" ]; then
-      d___stash_report_error \
-        'Stash checksum filepath occupied by a non-file:' \
-        -i "$stash_md5_filepath"
+      d__notify $quiet -- \
+        "Stash checksum filepath occupied by a non-file: $stash_md5_filepath"
       return 1
     fi
 
@@ -576,15 +597,15 @@ d___check_stashing_system()
 
       # Touch up a fresh empty file
       if ! touch -- "$stash_filepath"; then
-        d___stash_report_error 'Failed to create fresh stash file at:' \
-          -i "$stash_filepath"
+        d__notify $quiet -- \
+          "Failed to create fresh stash file at: $stash_filepath"
         return 1
       fi
 
       # Store md5 of empty file
       if ! dmd5 "$stash_filepath" >"$stash_md5_filepath"; then
-        d___stash_report_error 'Failed to create stash checksum file at:' \
-          -i "$stash_md5_filepath"
+        d__notify $quiet -- \
+          "Failed to create stash checksum file at: $stash_md5_filepath"
         return 1
       fi
 
@@ -592,15 +613,14 @@ d___check_stashing_system()
 
     # Ensure stash file is a writable files
     if ! [ -w "$stash_filepath" ]; then
-      d___stash_report_error 'Stash filepath is not writable:' \
-        -i "$stash_filepath"
+      d__notify $quiet -- "Stash filepath is not writable: $stash_filepath"
       return 1
     fi
 
     # Ensure stash checksum file is a writable files
     if ! [ -w "$stash_md5_filepath" ]; then
-      d___stash_report_error 'Stash checksum filepath is not writable:' \
-        -i "$stash_md5_filepath"
+      d__notify $quiet -- \
+        "Stash checksum filepath is not writable: $stash_md5_filepath"
       return 1
     fi
 
@@ -632,8 +652,8 @@ d___stash_store_md5()
 {
   # Store current md5 checksum to intended file, or report error
   dmd5 "$stash_filepath" >"$stash_md5_filepath" && return 0
-  d___stash_report_error 'Failed to create stash checksum file at:' \
-    -i "$stash_md5_filepath"
+  d__notify $quiet -- \
+    "Failed to create stash checksum file at: $stash_md5_filepath"
   return 1
 }
 
@@ -666,34 +686,22 @@ d___stash_check_md5()
 
     # Stored checksum is likely valid, but does not match
 
-    # Report error
-    dprint_failure 'Mismatched checksum on stash file:' \
-      -i "$stash_filepath"
-
-    # Prompt user
-    dprompt --color "$RED" --answer "$D__OPT_ANSWER" \
-      --prompt 'Ignore incorrect checksum?' -- \
-      'Current checksum of stash file:' -i "$stash_filepath" \
-      -n 'does not match stored checksum in:' -i "$stash_md5_filepath" \
-      -n 'This suggests manual tinkering with framework directories' \
-      -n "${BOLD}Without reliable stash," \
-      "deployments may act unpredictably!${NORMAL}"
+    # Report error, prompt user
+    d__notify -lx -- "Mismatched checksum on stash file: $stash_filepath"
+    d__prompt -xhap "$D__OPT_ANSWER" 'Ignore incorrect checksum?' -- \
+      "Current checksum of stash file: $stash_filepath" \
+      "does not match stored checksum in: $stash_md5_filepath" \
+      'This suggests manual tinkering with framework directories'
 
   else
 
     # Stored checksum is either garbage or non-existent
 
-    # Report error
-    dprint_failure 'Missing checksum on stash file:' \
-      -i "$stash_filepath"
-
-    # Prompt user
-    dprompt --color "$RED" --answer "$D__OPT_ANSWER" \
-      --prompt 'Ignore missing checksum?' -- \
-      'There is no stored checksum for stash file at:' -i "$stash_filepath" \
-      -n 'This suggests manual tinkering with framework directories' \
-      -n "${BOLD}Without reliable stash," \
-      "deployments may act unpredictably!${NORMAL}"
+    # Report error, prompt user
+    d__notify -lx -- "Missing checksum on stash file: $stash_filepath"
+    d__prompt -xhap "$D__OPT_ANSWER" 'Ignore incorrect checksum?' -- \
+      "There is no stored checksum for stash file at: $stash_filepath" \
+      'This suggests manual tinkering with framework directories'
 
   fi
 
@@ -704,28 +712,14 @@ d___stash_check_md5()
     d___stash_store_md5
 
     # Warn of the decision and return
-    dprint_alert 'Working with unverified stash'
+    d__notify -la -- 'Working with unverified stash'
     return 0
 
   else
 
     # Warn of the decision and return
-    dprint_failure 'Refused to work with unverified stash'
+    d__notify -lx -- 'Refused to work with unverified stash'
     return 1
 
   fi
-}
-
-#>  d___stash_report_error
-#
-## INTERNAL USE ONLY
-#
-## Calls appropriate printer depending on $quiet option
-#
-## In:
-#>  $quiet
-#
-d___stash_report_error()
-{
-  $quiet && dprint_debug "$@" || dprint_failure "$@"
 }
