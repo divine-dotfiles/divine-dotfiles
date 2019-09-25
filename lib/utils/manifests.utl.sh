@@ -4,7 +4,7 @@
 #:email:        grayarea@protonmail.ch
 #:revnumber:    28
 #:revdate:      2019.09.25
-#:revremark:    Move minifests from helpers to utilities, pt.1
+#:revremark:    Move minifests from helpers to utilities, pt.2
 #:created_at:   2019.05.30
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
