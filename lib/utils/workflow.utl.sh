@@ -3,9 +3,9 @@
 #:kind:         func(script)
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    22
+#:revnumber:    23
 #:revdate:      2019.09.23
-#:revremark:    Merge feat-tweak-workflow into dev
+#:revremark:    Fix wrong var in arg parsing
 #:created_at:   2019.09.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -127,7 +127,7 @@ d__context()
                       [ -n "$ttl" ] || ttl='<empty title>'; shift
                     else printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" 
                       "$FUNCNAME: Ignoring option lacking required argument:" \
-                      " '$opt'"
+                      " '$arg'"
                     fi;;
           *)  for ((i=1;i<${#arg};++i)); do opt="${arg:i:1}"
                 case $opt in
@@ -197,7 +197,7 @@ d__context()
             ((++qt)); (($D__OPT_VERBOSITY<$qt)) && return 0
             ttl='De-notched'; msg="At position $min";;
     *)  printf >&2 '%s %s\n' "$RED$BOLD==>$NORMAL" \
-          "$FUNCNAME: Ignoring unrecognized routine: '${args[0]}'"
+          "$FUNCNAME: Refusing to work with unrecognized routine: '${args[0]}'"
         return 1;;
   esac
 
@@ -800,7 +800,7 @@ d__fail()
   d__context -- lop
 }
 
-#>  d__notify [-1acdhlqsuvx] [-t TITLE] [--] [DESCRIPTION...]
+#>  d__notify [-!1cdhlqsuvx] [-t TITLE] [--] [DESCRIPTION...]
 #
 ## Debug printer: announces a development of any kind. Whether the output is 
 #. printed depends on the global verbosity setting.
@@ -857,7 +857,7 @@ d__fail()
 #. terminal coloring is available (one active at a time, last option wins):
 #.  -d, --debug     - (default) Style the notification as a debug message by 
 #.                    painting it entirely in cyan.
-#.  -a, --alert     - Style the notification as an alert message by painting 
+#.  -!, --alert     - Style the notification as an alert message by painting 
 #.                    the introductory arrow in yellow.
 #.  -v, --success   - Style the notification as a success message by painting 
 #.                    the introductory arrow in green.
@@ -886,6 +886,8 @@ d__notify()
           l|-loud)    qt=0;;
           q|-quiet)   ((++qt));;
           u|-sudo)    sudo -n true 2>/dev/null && return 0; sudo=true;;
+          !|-alert)   stl=a;;
+          d|-debug)   stl=d;;
           v|-success) stl=v;;
           x|-failure) stl=x;;
           s|-skip)    stl=s;;
@@ -903,6 +905,8 @@ d__notify()
                   l)  qt=0;;
                   q)  ((++qt));;
                   u)  sudo -n true 2>/dev/null && return 0; sudo=true;;
+                  !)  stl=a;;
+                  d)  stl=d;;
                   v)  stl=v;;
                   x)  stl=x;;
                   s)  stl=s;;
@@ -974,7 +978,7 @@ d__notify()
   printf >&2 "$pft%s" "${pfa[@]}" "$NORMAL"
 }
 
-#>  d__prompt [-1bchkqsvxy] [-p PROMPT] [-a ANSWER] [-t TITLE] [--] \
+#>  d__prompt [-!1bchkqsvxy] [-p PROMPT] [-a ANSWER] [-t TITLE] [--] \
 #>    [DESCRIPTION...]
 #
 ## Prompting mechanism: requests a key press and returns corresponding integer:
@@ -1048,6 +1052,8 @@ d__notify()
 #
 ## Options for special styling. These modes are only relevant when the terminal 
 #. coloring is available (one active at a time, last option wins):
+#.  -!, --alert     - Style the prompt in an alert theme by painting the 
+#.                    introductory arrow and the prompt itself in yellow.
 #.  -v, --success   - Style the prompt in a success theme by painting the 
 #.                    introductory arrow and the prompt itself in green.
 #.  -x, --failure   - Style the prompt in a failure theme by painting the 
@@ -1082,6 +1088,7 @@ d__prompt()
           h|-context-head)  context=h; one_line=false;;
           1|-context-tip)   context=t; one_line=false;;
           b|-bare)    stl=b;;
+          !|-alert)   stl=a;;
           v|-success) stl=v;;
           x|-failure) stl=x;;
           s|-skip)    stl=s;;
@@ -1112,6 +1119,7 @@ d__prompt()
                   h)  context=h; one_line=false;;
                   1)  context=t; one_line=false;;
                   b)  stl=b;;
+                  !)  stl=a;;
                   v)  stl=v;;
                   x)  stl=x;;
                   s)  stl=s;;

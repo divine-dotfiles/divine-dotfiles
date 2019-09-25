@@ -3,9 +3,9 @@
 #:kind:         global_var,func(script)
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    6
-#:revdate:      2019.08.16
-#:revremark:    Streamline simple dprint incarnations
+#:revnumber:    7
+#:revdate:      2019.09.23
+#:revremark:    Fix potentially faulty check for brew
 #:created_at:   2019.03.15
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -104,7 +104,7 @@ d__detect_os_family()
     source "$adapter_filepath"
 
     # Run d__adapter_detect_os_family function
-    d__adapter_detect_os_family &>/dev/null
+    d__adapter_detect_os_family
 
     # If OS family is successfully detected, break immediately
     [ -n "$d__os_family" ] && break
@@ -217,7 +217,7 @@ d__detect_os_distro_and_pkgmgr()
     source "$adapter_filepath"
 
     # Run d__adapter_detect_os_distro function
-    d__adapter_detect_os_distro &>/dev/null
+    d__adapter_detect_os_distro
 
     # If OS distro is successfully detected, break immediately
     [ -n "$d__os_distro" ] && break
@@ -272,7 +272,7 @@ d__detect_os_distro_and_pkgmgr()
   unset -f d__os_pkgmgr
 
   # Run function that is ought to detect system's package manager
-  d__adapter_detect_os_pkgmgr &>/dev/null
+  d__adapter_detect_os_pkgmgr
 
   # Analyze detected OS package manager
   if [ "$d__os_pkgmgr" = "$D__OS_PKGMGR" ]; then

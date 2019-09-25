@@ -2,9 +2,9 @@
 #:title:        Divine Bash routine: detach
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    14
-#:revdate:      2019.08.22
-#:revremark:    dpl-repos -> bundles; core -> essentials
+#:revnumber:    15
+#:revdate:      2019.09.23
+#:revremark:    Restore double underscore to stash function
 #:created_at:   2019.06.28
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -184,7 +184,7 @@ d__detach_dpl_repo()
   fi
 
   # Repository erased, now remove record from Grail stash
-  if dstash -g -s unset dpl_repos "$user_repo"; then
+  if d__stash -g -s unset dpl_repos "$user_repo"; then
     dprint_debug \
       "Cleared record of attached repository "$user_repo" in Grail stash"
   else

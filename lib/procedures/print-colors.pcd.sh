@@ -3,9 +3,9 @@
 #:kind:         global_var
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    5
-#:revdate:      2019.08.08
-#:revremark:    Improve colorization fallback; add it to fmwk (un)installation
+#:revnumber:    6
+#:revdate:      2019.09.23
+#:revremark:    First version of init train
 #:created_at:   2018.12.20
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -16,13 +16,13 @@
 
 #>  d__declare_global_colors
 #
-## Provides global read-only variables that allow delimiting portions of a text 
-#. string to be colored or formatted using various effects. If the terminal 
-#. does not support at least 8 colors, assigns empty strings to all the 
-#. globals, so they are still safe to use, but don't produce any effect.
+## This function populates read-only global variables with invisible special 
+#. values, each of which changes visual formatting of the terminal output. 
+#. Eight text colors and a handful of formatting effects are included. If the 
+#. terminal does not appear to be connected, the globals are instead populated 
+#. with empty values.
 #
 ## Requires:
-#.  bash >=3.2
 #.  tput
 #.  tput colors >=8
 #
@@ -81,6 +81,10 @@ d__declare_global_colors()
 
 d__colorize_with_tput()
 {
+  # Fire debug message
+  (($D__OPT_VERBOSITY<3)) \
+    || printf >&2 '%s\n' '==> Coloring terminal output with tput'
+
   # Status variable
   local all_good=true
 
@@ -142,6 +146,10 @@ d__colorize_with_tput()
 
 d__colorize_with_escseq()
 {
+  # Fire debug message
+  (($D__OPT_VERBOSITY<3)) \
+    || printf >&2 '%s\n' '==> Coloring terminal output with esc sequences'
+
   # Status variable
   local all_good=true
 
@@ -203,6 +211,10 @@ d__colorize_with_escseq()
 
 d__do_not_colorize()
 {
+  # Fire debug message
+  (($D__OPT_VERBOSITY<3)) \
+    || printf >&2 '%s\n' '==> Omitting coloring of terminal output'
+
   # Status variable
   local all_good=true
 

@@ -2,9 +2,9 @@
 #:title:        Divine Bash script: intervene
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    85
-#:revdate:      2019.09.20
-#:revremark:    Merge feat-backup-utils into dev
+#:revnumber:    88
+#:revdate:      2019.09.25
+#:revremark:    Rename INTERNAL_DEPENDENCIES to INIT_TRAIN
 #:created_at:   2018.03.25
 
 ## Launches the Divine intervention
@@ -147,16 +147,17 @@ d__populate_globals()
   readonly D__SUFFIX_DPL_QUE='.dpl.que'
 
   # Ordered list of script's internal dependencies
-  D__INTERNAL_DEPENDENCIES=( \
-    'procedure dep-checks' \
+  D__INIT_TRAIN=( \
     'procedure print-colors' \
     'util dprint' \
     'util dprompt' \
-    'helper stash' \
-    'procedure stash-checks' \
+    'util workflow' \
+    'procedure prep-1-sys' \
+    'util stash' \
+    'procedure prep-2-stash' \
     'procedure detect-os' \
-    'helper offer' \
-    'procedure sys-pkg-checks' \
+    'util offer' \
+    'procedure prep-3-opt' \
     'util dreadlink' \
     'util dmv' \
     'util dln' \
@@ -164,9 +165,9 @@ d__populate_globals()
     'helper link-queue' \
     'helper copy-queue' \
     'helper multitask' \
-    'helper manifests' \
+    'util manifests' \
     'procedure dpl-repo-sync' \
-  ); readonly D__INTERNAL_DEPENDENCIES
+  ); readonly D__INIT_TRAIN
 
   # Name of Divinefile
   readonly D__CONST_NAME_DIVINEFILE='Divinefile'
@@ -508,7 +509,7 @@ d__parse_arguments()
 #. (hard dependencies).
 #
 ## Requires:
-#.  $D__INTERNAL_DEPENDENCIES   - From d__populate_globals
+#.  $D__INIT_TRAIN   - From d__populate_globals
 #
 ## Returns:
 #.  0 - All dependencies successfully sourced
@@ -524,7 +525,7 @@ d__import_dependencies()
   local dependency
 
   # Iterate over dependencies
-  for dependency in "${D__INTERNAL_DEPENDENCIES[@]}"; do
+  for dependency in "${D__INIT_TRAIN[@]}"; do
 
     # Load dependency or halt script
     d__load $dependency || exit 1
