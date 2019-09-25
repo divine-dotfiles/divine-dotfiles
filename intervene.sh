@@ -4,7 +4,7 @@
 #:email:        grayarea@protonmail.ch
 #:revnumber:    88
 #:revdate:      2019.09.25
-#:revremark:    Rename procedures from 'checks' to 'prep'
+#:revremark:    Move minifests from helpers to utilities, pt.3
 #:created_at:   2018.03.25
 
 ## Launches the Divine intervention
@@ -165,7 +165,7 @@ d__populate_globals()
     'helper link-queue' \
     'helper copy-queue' \
     'helper multitask' \
-    'helper manifests' \
+    'util manifests' \
     'procedure dpl-repo-sync' \
   ); readonly D__INTERNAL_DEPENDENCIES
 
