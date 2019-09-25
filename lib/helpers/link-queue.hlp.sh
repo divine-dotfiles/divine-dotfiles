@@ -2,9 +2,8 @@
 #:title:        Divine Bash deployment helpers: link-queue
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    15
-#:revdate:      2019.09.03
-#:revremark:    Modify stashing pattern
+#:revdate:      2019.09.25
+#:revremark:    No remark
 #:created_at:   2019.04.02
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>

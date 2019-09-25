@@ -2,9 +2,8 @@
 #:title:        Divine.dotfiles template OS distro adapter
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    17
-#:revdate:      2019.08.21
-#:revremark:    Bring distro adapter guidelines up to date
+#:revdate:      2019.09.25
+#:revremark:    No remark
 #:created_at:   2019.06.04
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>

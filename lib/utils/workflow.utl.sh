@@ -3,9 +3,8 @@
 #:kind:         func(script)
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    23
-#:revdate:      2019.09.23
-#:revremark:    Fix wrong var in arg parsing
+#:revdate:      2019.09.25
+#:revremark:    No remark
 #:created_at:   2019.09.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>

@@ -2,9 +2,8 @@
 #:title:        Divine Bash utils: backup
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    5
-#:revdate:      2019.09.20
-#:revremark:    Merge feat-backup-utils into dev
+#:revdate:      2019.09.25
+#:revremark:    No remark
 #:created_at:   2019.09.18
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>

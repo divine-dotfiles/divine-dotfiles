@@ -2,9 +2,8 @@
 #:title:        Divine Bash routine: usage
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    14
-#:revdate:      2019.09.01
-#:revremark:    Prettify usage message more
+#:revdate:      2019.09.25
+#:revremark:    No remark
 #:created_at:   2018.03.25
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>

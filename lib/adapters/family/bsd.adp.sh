@@ -2,9 +2,8 @@
 #:title:        Divine.dotfiles BSD adapter
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    12
-#:revdate:      2019.08.08
-#:revremark:    Rely on global  instead of local 
+#:revdate:      2019.09.25
+#:revremark:    No remark
 #:created_at:   2019.06.04
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>

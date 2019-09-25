@@ -2,9 +2,8 @@
 #:title:        Divine.dotfiles macOS adapter
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    20
-#:revdate:      2019.09.23
-#:revremark:    Fix potentially faulty check for brew
+#:revdate:      2019.09.25
+#:revremark:    No remark
 #:created_at:   2019.06.04
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>

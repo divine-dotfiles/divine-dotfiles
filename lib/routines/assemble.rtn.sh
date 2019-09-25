@@ -2,9 +2,8 @@
 #:title:        Divine Bash routine: assemble
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    29
-#:revdate:      2019.09.12
-#:revremark:    Ditch dtrim
+#:revdate:      2019.09.25
+#:revremark:    No remark
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>

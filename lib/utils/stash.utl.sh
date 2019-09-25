@@ -2,9 +2,8 @@
 #:title:        Divine Bash utils: stash
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    4
 #:revdate:      2019.09.25
-#:revremark:    Improve debug output of stash
+#:revremark:    No remark
 #:created_at:   2019.05.15
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>

@@ -2,9 +2,8 @@
 #:title:        Divine Bash utils: manifests
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    28
 #:revdate:      2019.09.25
-#:revremark:    Move minifests from helpers to utilities, pt.3
+#:revremark:    No remark
 #:created_at:   2019.05.30
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>

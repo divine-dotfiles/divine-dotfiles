@@ -2,9 +2,8 @@
 #:title:        Divine Bash routine: plug
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    15
-#:revdate:      2019.08.28
-#:revremark:    Silence calls to mv -n
+#:revdate:      2019.09.25
+#:revremark:    No remark
 #:created_at:   2019.06.26
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>

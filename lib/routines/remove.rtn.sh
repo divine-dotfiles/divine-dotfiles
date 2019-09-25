@@ -2,9 +2,8 @@
 #:title:        Divine Bash routine: remove
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    52
-#:revdate:      2019.09.23
-#:revremark:    Restore double underscore to stash function
+#:revdate:      2019.09.25
+#:revremark:    No remark
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>

@@ -2,9 +2,8 @@
 #:title:        Divine Bash procedure: prep-2-stash
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    9
 #:revdate:      2019.09.25
-#:revremark:    Rename procedures from 'checks' to 'prep'
+#:revremark:    No remark
 #:created_at:   2019.07.05
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>

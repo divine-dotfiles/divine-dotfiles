@@ -1,9 +1,8 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revnumber: 85
 :revdate: 2019.09.25
-:revremark: Bonus round: polish help routine and README
+:revremark: No remark
 :doctype: article
 // Visual
 :toc:
