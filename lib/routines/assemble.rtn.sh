@@ -2,9 +2,8 @@
 #:title:        Divine Bash routine: assemble
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    30
-#:revdate:      2019.09.20
-#:revremark:    Merge latest dev into feat-gh-fetcher
+#:revdate:      2019.09.25
+#:revremark:    Remove revision numbers from all src files
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>

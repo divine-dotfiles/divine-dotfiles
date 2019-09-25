@@ -2,9 +2,8 @@
 #:title:        Divine Bash routine: attach
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    19
-#:revdate:      2019.09.23
-#:revremark:    Restore double underscore to stash function
+#:revdate:      2019.09.25
+#:revremark:    Remove revision numbers from all src files
 #:created_at:   2019.05.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>

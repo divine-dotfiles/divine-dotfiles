@@ -3,9 +3,8 @@
 #:kind:         func(script,interactive)
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    6
-#:revdate:      2019.08.07
-#:revremark:    Grand removal of non-ASCII chars
+#:revdate:      2019.09.25
+#:revremark:    Remove revision numbers from all src files
 #:created_at:   2018.12.20
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>

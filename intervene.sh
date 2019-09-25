@@ -2,9 +2,8 @@
 #:title:        Divine Bash script: intervene
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    88
 #:revdate:      2019.09.25
-#:revremark:    Rename INTERNAL_DEPENDENCIES to INIT_TRAIN
+#:revremark:    Remove revision numbers from all src files
 #:created_at:   2018.03.25
 
 ## Launches the Divine intervention

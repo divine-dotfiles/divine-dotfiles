@@ -2,9 +2,8 @@
 #:title:        Divine.dotfiles Ubuntu adapter
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    14
-#:revdate:      2019.08.05
-#:revremark:    Unmute calls to d__os_pkgmgr (except update)
+#:revdate:      2019.09.25
+#:revremark:    Remove revision numbers from all src files
 #:created_at:   2019.06.04
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>

@@ -3,9 +3,8 @@
 #:kind:         func(script,interavtive)
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    7
-#:revdate:      2019.09.01
-#:revremark:    Tweak bolding in miscellaneous locations
+#:revdate:      2019.09.25
+#:revremark:    Remove revision numbers from all src files
 #:created_at:   2018.03.15
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
