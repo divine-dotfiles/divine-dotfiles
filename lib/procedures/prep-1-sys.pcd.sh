@@ -4,7 +4,7 @@
 #:email:        grayarea@protonmail.ch
 #:revnumber:    2
 #:revdate:      2019.09.25
-#:revremark:    Rename procedures from 'checks' to 'prep'
+#:revremark:    Remove forgotten github checks from prep-1
 #:created_at:   2019.07.05
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -217,21 +217,6 @@ d___check_md5()
     d__notify -lx -- 'Could not detect a utility to calculate md5 checksums'
     all_good=false
   fi
-}
-
-d___check_github()
-{
-  if git --version $>/dev/null; then D__GH_METHOD=g
-  else
-    if tar --version &>/dev/null; then
-      if curl --version &>/dev/null; then D__GH_METHOD=c
-      elif wget --version &>/dev/null; then D__GH_METHOD=w; fi
-    fi
-  fi
-  if [ -z ${D__GH_METHOD+isset} ]; then
-    d__notify -lx -- 'Could not detect a utility to calculate md5 checksums'
-  fi
-  readonly D__GH_METHOD
 }
 
 d__check_system_dependencies
