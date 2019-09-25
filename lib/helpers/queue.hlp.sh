@@ -3,8 +3,8 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revnumber:    40
-#:revdate:      2019.09.20
-#:revremark:    Merge latest dev into feat-gh-fetcher
+#:revdate:      2019.09.23
+#:revremark:    Restore double underscore to stash function
 #:created_at:   2019.06.10
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -45,7 +45,7 @@ d__queue_check()
   fi
 
   # Rely on stashing
-  dstash ready || return 3
+  d__stash ready || return 3
 
   # Storage variable
   local return_code_hook
@@ -128,7 +128,7 @@ d__queue_check()
         && D__QUEUE_ITEM_STASH_KEY="item_$( dmd5 -s "$D__QUEUE_ITEM_TITLE" )"
 
       # Validate stash key
-      if ! d__validate_dstash_key "$D__QUEUE_ITEM_STASH_KEY"; then
+      if ! d__validate_stash_key "$D__QUEUE_ITEM_STASH_KEY"; then
 
         # Set flag, report error, and skip item
         d__queue_item_status set is_invalid
@@ -177,13 +177,13 @@ d__queue_check()
             ;;
       esac
     
-    elif dstash -s has "$D__QUEUE_ITEM_STASH_KEY"; then
+    elif d__stash -s has "$D__QUEUE_ITEM_STASH_KEY"; then
 
       # Record of installation exists
       D__QUEUE_ITEM_STASH_FLAG=true
 
       # Populate stash value
-      D__QUEUE_ITEM_STASH_VALUE="$( dstash -s get "$D__QUEUE_ITEM_STASH_KEY" )"
+      D__QUEUE_ITEM_STASH_VALUE="$( d__stash -s get "$D__QUEUE_ITEM_STASH_KEY" )"
 
       # Check if item is installed as advertised
       d_queue_item_check; case $? in
@@ -391,9 +391,9 @@ d__queue_install()
     D__QUEUE_ITEM_IS_FORCED=false
     if d__queue_item_status uses_stash; then
       D__QUEUE_ITEM_STASH_KEY="${D__QUEUE_STASH_KEYS[$D__QUEUE_ITEM_NUM]}"
-      if dstash -s has "$D__QUEUE_ITEM_STASH_KEY"; then
+      if d__stash -s has "$D__QUEUE_ITEM_STASH_KEY"; then
         D__QUEUE_ITEM_STASH_FLAG=true
-        D__QUEUE_ITEM_STASH_VALUE="$( dstash -s get \
+        D__QUEUE_ITEM_STASH_VALUE="$( d__stash -s get \
           "$D__QUEUE_ITEM_STASH_KEY" )"
       else
         D__QUEUE_ITEM_STASH_FLAG=false
@@ -413,7 +413,7 @@ d__queue_install()
         0|3)  # Installed successfully
               all_already_installed=false
               all_failed=false
-              dstash -s set "$D__QUEUE_ITEM_STASH_KEY" \
+              d__stash -s set "$D__QUEUE_ITEM_STASH_KEY" \
                 "$D__QUEUE_ITEM_STASH_VALUE"
               d__queue_item_dprint_debug 'Installed'
               ;;
@@ -446,7 +446,7 @@ d__queue_install()
         0|3)  # Re-installed successfully
               all_newly_installed=false
               all_failed=false
-              dstash -s set "$D__QUEUE_ITEM_STASH_KEY" \
+              d__stash -s set "$D__QUEUE_ITEM_STASH_KEY" \
                 "$D__QUEUE_ITEM_STASH_VALUE"
               d__queue_item_dprint_debug 'Force-installed'
               ;;
@@ -623,9 +623,9 @@ d__queue_remove()
     D__QUEUE_ITEM_IS_FORCED=false
     if d__queue_item_status uses_stash; then
       D__QUEUE_ITEM_STASH_KEY="${D__QUEUE_STASH_KEYS[$D__QUEUE_ITEM_NUM]}"
-      if dstash -s has "$D__QUEUE_ITEM_STASH_KEY"; then
+      if d__stash -s has "$D__QUEUE_ITEM_STASH_KEY"; then
         D__QUEUE_ITEM_STASH_FLAG=true
-        D__QUEUE_ITEM_STASH_VALUE="$( dstash -s get \
+        D__QUEUE_ITEM_STASH_VALUE="$( d__stash -s get \
           "$D__QUEUE_ITEM_STASH_KEY" )"
       else
         D__QUEUE_ITEM_STASH_FLAG=false
@@ -645,7 +645,7 @@ d__queue_remove()
         0|3)  # Removed successfully
               all_already_removed=false
               all_failed=false
-              dstash -s unset "$D__QUEUE_ITEM_STASH_KEY"
+              d__stash -s unset "$D__QUEUE_ITEM_STASH_KEY"
               d__queue_item_dprint_debug 'Removed'
               ;;
         1|4)  # Failed to remove
@@ -677,7 +677,7 @@ d__queue_remove()
         0|3)  # Re-removed successfully
               all_newly_removed=false
               all_failed=false
-              dstash -s unset "$D__QUEUE_ITEM_STASH_KEY"
+              d__stash -s unset "$D__QUEUE_ITEM_STASH_KEY"
               d__queue_item_dprint_debug 'Force-removed'
               ;;
         1|4)  # Failed to re-remove

@@ -3,8 +3,8 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revnumber:    14
-#:revdate:      2019.09.01
-#:revremark:    Tweak bolding in miscellaneous locations
+#:revdate:      2019.09.25
+#:revremark:    Bonus round: polish help routine and README
 #:created_at:   2018.03.25
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -45,14 +45,14 @@ NAME
     ${bold}${D__EXEC_NAME}${normal} - launch Divine intervention
 
 SYNOPSIS
-    $D__EXEC_NAME ${bold}c${normal}[heck]              [-ynqvew]  [-b BUNDLE]... [--] [TASK]...
-    $D__EXEC_NAME ${bold}i${normal}[nstall]            [-ynqvewf] [-b BUNDLE]... [--] [TASK]...
-    $D__EXEC_NAME ${bold}r${normal}[emove]             [-ynqvewf] [-b BUNDLE]... [--] [TASK]...
+    $D__EXEC_NAME ${bold}c${normal}[heck]     [-ynqvew]  [-b BUNDLE]... [--] [TASK]...
+    $D__EXEC_NAME ${bold}i${normal}[nstall]   [-ynqvewf] [-b BUNDLE]... [--] [TASK]...
+    $D__EXEC_NAME ${bold}r${normal}[emove]    [-ynqvewf] [-b BUNDLE]... [--] [TASK]...
 
-    $D__EXEC_NAME ${bold}a${normal}[ttach]             [-yn]                     [--] REPO...
-    $D__EXEC_NAME ${bold}d${normal}[etach]             [-yn]                     [--] REPO...
-    $D__EXEC_NAME ${bold}p${normal}[lug]               [-ynl]                    [--] REPO/DIR
-    $D__EXEC_NAME ${bold}u${normal}[pdate]             [-yn]                     [--] [TASK]...
+    $D__EXEC_NAME ${bold}a${normal}[ttach]    [-yn]                     [--] REPO...
+    $D__EXEC_NAME ${bold}d${normal}[etach]    [-yn]                     [--] REPO...
+    $D__EXEC_NAME ${bold}p${normal}[lug]      [-ynl]                    [--] REPO/DIR
+    $D__EXEC_NAME ${bold}u${normal}[pdate]    [-yn]                     [--] [TASK]...
 
     $D__EXEC_NAME --version
     $D__EXEC_NAME -h|--help
@@ -60,18 +60,18 @@ SYNOPSIS
 DESCRIPTION
     Divine.dotfiles promotes Bash scripts to portable deployments that are 
     installed/removed in defined sequence. The term deployments includes 
-    Divinefiles as the special kind of the former.
+    Divinefiles as a special kind.
 
-    Full documentation available at:
+    Full documentation is available at:
       https://github.com/no-simpler/divine-dotfiles
 
-    This divine intervention utility is the command line interface to the 
-    Divine.dotfiles framework. Intervention utility does:
+    This Divine intervention utility is the command line interface to the 
+    Divine.dotfiles framework. The intervention utility does:
 
     - ${bold}Primary routines${normal} on deployments and Divinefiles:
       - ${bold}Check${normal} whether deployments are installed or not.
       - ${bold}Install${normal} deployments.
-      - ${bold}Uninstall${normal} deployments.
+      - ${bold}Remove${normal} (uninstall) deployments.
     - ${bold}Attach/detach${normal} third-party bundles of deployments from Github.
     - ${bold}Plug in${normal} pre-made Grail directory from a repository or local directory.
     - ${bold}Update${normal} framework itself, attached bundles, and Grail directory, if it 
@@ -91,8 +91,6 @@ DESCRIPTION
     - By default, deployments are retrieved from two locations (at any depth):
       - User's deployments: 'grail/dpls/'.
       - Attached bundles of deployments: 'state/bundles/'.
-    - Particular bundles of deployments are requested by listing them with the 
-      '--bundle'/'-b' option.
     - Particular deployments are requested by listing their names or single-
       digit group names, in any combination.
     - Dangerous deployments (marked with '!' flag) are ignored unless requested 
@@ -102,6 +100,8 @@ DESCRIPTION
       ${bold}except${normal} those listed. Note, that without any arguments, 
       this is a no-opt. In this mode, dangerous deployments are still filtered 
       out by default.
+    - The search can be narrowed down to particular bundles of deployments by 
+      listing each with the '--bundle'/'-b' option.
 
     After filtering, deployments and packages from Divinefiles are sorted in 
     order of ascending priority. For uninstallation, that order is fully 
@@ -110,17 +110,17 @@ DESCRIPTION
     ${bold}'Check' routine${normal} - checks status of tasks
 
     Sequentially checks packages and deployments, reporting whether each 
-    appears installed or not
+    appears installed or not.
 
     ${bold}'Install' routine${normal} - installs tasks
 
-    Updates installed packages using the system's package manager; then 
-    sequentially installs packages and deployments.
+    Sequentially installs packages and deployments. Before starting, launches 
+    the update routine on the system's package manager.
 
     ${bold}'Remove' routine${normal} - removes tasks
 
-    Updates installed packages using the system's package manager; then 
-    sequentially uninstalls packages and deployments.
+    Sequentially uninstalls packages and deployments. Before starting, launches 
+    the update routine on the system's package manager.
 
     ${bold}'Attach' routine${normal} - attaches deployments from Github
 
@@ -206,9 +206,17 @@ OPTIONS
                     Prefer to symlink external Grail directory and avoid 
                     cloning or downloading repositories.
 
-    -q, --quiet     (default) Decreases amount of status messages
+    -v, --verbose   (repeatable) Gradually increase the amount of output.
+                    Every instance of this option increments by one the global 
+                    verbosity level of the framework. The debug output in the 
+                    deployments and the framework components has the quiet 
+                    level. For a message to be printed, the global verbosity 
+                    level must be greater than or equal to that message's quiet 
+                    level.
 
-    -v, --verbose   Increases amount of status messages
+    -q, --quiet     (default) Reset the amount of output to the minimal level. 
+                    This option reverts the global verbosity level to its 
+                    defaul value of zero.
 
     --version       Show framework version
 

@@ -2,9 +2,9 @@
 #:title:        Divine.dotfiles fmwk install script
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    53
-#:revdate:      2019.08.22
-#:revremark:    dpl-repos -> bundles; core -> essentials
+#:revnumber:    54
+#:revdate:      2019.09.23
+#:revremark:    Restore double underscore to stash function
 #:created_at:   2019.07.22
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -577,7 +577,7 @@ d__install_shortcut()
   if $shortcut_installed; then
 
     # Keep record of installation location
-    if dstash_root_add di_shortcut "$shortcut_filepath"; then
+    if d__stash_root_add di_shortcut "$shortcut_filepath"; then
       dprint_debug 'Stored shortcut location in root stash'
     else
       dprint_failure 'Failed to store shortcut location in root stash' \
@@ -720,7 +720,7 @@ dprompt()
   if $yes; then return 0; else return 1; fi
 }
 
-dstash_root_add()
+d__stash_root_add()
 {
   # Key variables
   local stash_dirpath="$D_FMWK_DIR/state/stash"

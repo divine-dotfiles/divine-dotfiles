@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-#:title:        Divine Bash procedure: sys-pkg-checks
+#:title:        Divine Bash procedure: prep-3-opt
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    6
-#:revdate:      2019.08.16
-#:revremark:    d__stash -> dstash
+#:revnumber:    2
+#:revdate:      2019.09.25
+#:revremark:    Rename procedures from 'checks' to 'prep'
 #:created_at:   2019.07.05
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -33,6 +33,25 @@ d__run_sys_pkg_checks()
       d__uninstall_all_offered_utils;;
     *)  return 0;;
   esac
+}
+
+#>  d__check_github
+#
+## Checks whether the framework has the capacity to interact with Github (clone 
+#. or download the repositories)
+#
+d__check_github()
+{
+  D__GH_METHOD=
+  if git --version &>/dev/null; then D__GH_METHOD=g
+  elif tar --version &>/dev/null; then
+    if curl --version &>/dev/null; then D__GH_METHOD=c
+    elif wget --version &>/dev/null; then D__GH_METHOD=w; fi
+  fi
+  readonly D__GH_METHOD
+  if [ -z "$D__GH_METHOD" ]; then
+    d__notify -lx -- 'Unable to clone/download Github repositories'
+  fi
 }
 
 #>  d__offer_git_and_friends
@@ -133,7 +152,7 @@ d__uninstall_all_offered_utils()
   local installed_utils=() installed_util
 
   # Check if there are any utilities recorded
-  if dstash -r -s has installed_util; then
+  if d__stash -r -s has installed_util; then
 
     # Check if $D__OS_PKGMGR is detected
     if [ -z "$D__OS_PKGMGR" ]; then
@@ -148,7 +167,7 @@ d__uninstall_all_offered_utils()
     # Read list from stash
     while read -r installed_util; do
       installed_utils+=( "$installed_util" )
-    done < <( dstash -r -s list installed_util )
+    done < <( d__stash -r -s list installed_util )
 
   fi
 
@@ -186,7 +205,7 @@ d__uninstall_all_offered_utils()
 
       # Announce success and unset stash variable
       dprint_success "Successfully uninstalled $installed_util"
-      dstash -r -s unset installed_util "$installed_util"
+      d__stash -r -s unset installed_util "$installed_util"
       anything_uninstalled=true
 
     else
@@ -215,7 +234,7 @@ d__uninstall_all_offered_utils()
 d__uninstall_homebrew()
 {
   # Check if there is any work to do
-  if ! dstash -r -s has installed_homebrew; then
+  if ! d__stash -r -s has installed_homebrew; then
     # No record of Homebrew installation: silently return a-ok
     return 0
   fi
@@ -262,7 +281,7 @@ d__uninstall_homebrew()
 
         # Announce, erase stash record, and save status
         dprint_success 'Successfully uninstalled Homebrew'
-        dstash -r -s unset installed_homebrew
+        d__stash -r -s unset installed_homebrew
         all_good=true
 
       else
@@ -295,4 +314,6 @@ d__uninstall_homebrew()
 }
 
 d__run_sys_pkg_checks
+d__check_github
 unset -f d__run_sys_pkg_checks
+unset -f d__check_github

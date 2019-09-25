@@ -2,9 +2,9 @@
 #:title:        Divine.dotfiles macOS adapter
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    18
-#:revdate:      2019.08.16
-#:revremark:    d__stash -> dstash
+#:revnumber:    20
+#:revdate:      2019.09.23
+#:revremark:    Fix potentially faulty check for brew
 #:created_at:   2019.06.04
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -28,7 +28,14 @@ d__adapter_detect_os_pkgmgr()
   d__adapter_offer_to_install_brew
 
   # Afterward, check if brew is available
-  if HOMEBREW_NO_AUTO_UPDATE=1 brew --version &>/dev/null; then
+  if type -P brew &>/dev/null; then
+
+    # Check if brew is in error state
+    if ! HOMEBREW_NO_AUTO_UPDATE=1 brew --version &>/dev/null; then
+      d__notify -lx -- 'Homebrew appears to be in an error state' \
+        "Please, see the output of 'brew --version'"
+      return 1
+    fi
 
     # Set marker variable
     d__os_pkgmgr='brew'
@@ -74,7 +81,7 @@ d__adapter_override_dpl_targets_for_os_distro()
 d__adapter_offer_to_install_brew()
 {
   # Check if Homebrew is already installed
-  if HOMEBREW_NO_AUTO_UPDATE=1 brew --version &>/dev/null; then
+  if type -P brew &>/dev/null; then
     return 0
   fi
 
@@ -117,7 +124,7 @@ d__adapter_offer_to_install_brew()
     if [ "${PIPESTATUS[0]}" -eq 0 ]; then
 
       # Make record of installation
-      if dstash -r -s add installed_homebrew; then
+      if d__stash -r -s add installed_homebrew; then
         dprint_debug "Recorded installation of Homebrew to root stash"
       else
         dprint_failure \

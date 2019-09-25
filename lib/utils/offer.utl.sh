@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
-#:title:        Divine Bash deployment helpers: offer
+#:title:        Divine Bash utils: offer
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    15
-#:revdate:      2019.08.16
-#:revremark:    d__stash -> dstash
+#:revnumber:    2
+#:revdate:      2019.09.23
+#:revremark:    First version of init train
 #:created_at:   2019.07.06
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
 #
-## Helper function that offers to install required/optional dependency
+## Helper util that offers to install required/optional dependency
 #
 
 #>  d__offer_system_pkg [--exit-on-q] UTIL_NAME
@@ -92,7 +92,7 @@ d__offer_system_pkg()
           if [ "${PIPESTATUS[0]}" -eq 0 ]; then
 
             # Make record of installation
-            if dstash -r -s add installed_util "$util_name"; then
+            if d__stash -r -s add installed_util "$util_name"; then
               dprint_debug "Recorded installation of $util_name to root stash"
             else
               dprint_failure \

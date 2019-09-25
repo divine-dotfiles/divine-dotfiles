@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
-#:title:        Divine Bash deployment helpers: manifests
+#:title:        Divine Bash utils: manifests
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revnumber:    28
-#:revdate:      2019.09.03
-#:revremark:    Add 'f' flag to asset manifest entries
+#:revdate:      2019.09.25
+#:revremark:    Move minifests from helpers to utilities, pt.3
 #:created_at:   2019.05.30
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
 #
-## Helper function that prepares deployment's asset and queue manifests
+## Utility that prepares deployment manifests for assets and queue items
 #
 
 #>  d__process_asset_manifest_of_current_dpl

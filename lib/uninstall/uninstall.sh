@@ -2,9 +2,9 @@
 #:title:        Divine.dotfiles fmwk uninstall script
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    56
-#:revdate:      2019.08.28
-#:revremark:    Silence calls to mv -n
+#:revnumber:    57
+#:revdate:      2019.09.23
+#:revremark:    Restore double underscore to stash function
 #:created_at:   2019.07.22
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -148,10 +148,10 @@ d__pre_flight_checks()
   fi
 
   # Check if stash has record of shortcut installation
-  if dstash_root has di_shortcut; then
+  if d__stash_root has di_shortcut; then
 
     # Extract stashed record into global variable
-    D_SHORTCUT_FILEPATH="$( dstash_root -s get di_shortcut )"
+    D_SHORTCUT_FILEPATH="$( d__stash_root -s get di_shortcut )"
 
     # Check if it is the same as user-provided location
     if [ -n "$D_SHORTCUT_FILEPATH" ]; then
@@ -183,7 +183,7 @@ d__pre_flight_checks()
   D_INSTALLED_UTIL_NAMES=()
 
   # Check if there is record of Homebrew installation
-  if dstash_root -s has installed_homebrew; then
+  if d__stash_root -s has installed_homebrew; then
 
     # Set preliminary status, add to global list, report
     D_STATUS_UTILS=false
@@ -193,12 +193,12 @@ d__pre_flight_checks()
   fi
 
   # Check if there is record of system utility installations
-  if dstash_root -s has installed_util; then
+  if d__stash_root -s has installed_util; then
 
     # Collect util names into global list
     local util_name
     while read -r util_name; do D_INSTALLED_UTIL_NAMES+=( "$util_name" )
-    done < <( dstash_root -s list installed_util )
+    done < <( d__stash_root -s list installed_util )
 
     # Set preliminary status, report
     D_STATUS_UTILS=false
@@ -517,17 +517,17 @@ d__uninstall_utils()
       D_INSTALLED_UTIL_NAMES=()
 
       # Check if there is still a record of Homebrew installation
-      if dstash_root -s has installed_homebrew; then
+      if d__stash_root -s has installed_homebrew; then
         D_INSTALLED_UTIL_NAMES+=( brew )
       fi
 
       # Check if there are still records of system utility installations
-      if dstash_root -s has installed_util; then
+      if d__stash_root -s has installed_util; then
 
         # Collect util names into global list
         local util_name
         while read -r util_name; do D_INSTALLED_UTIL_NAMES+=( "$util_name" )
-        done < <( dstash_root -s list installed_util )
+        done < <( d__stash_root -s list installed_util )
 
       fi
 
@@ -1003,7 +1003,7 @@ dprompt()
   if $yes; then return 0; else return 1; fi
 }
 
-dstash_root()
+d__stash_root()
 {
   # Key variables
   local stash_dirpath="$D_FMWK_DIR/state/stash"
