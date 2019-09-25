@@ -3,8 +3,8 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revnumber:    14
-#:revdate:      2019.09.01
-#:revremark:    Tweak bolding in miscellaneous locations
+#:revdate:      2019.09.25
+#:revremark:    Bonus round: update help routine with verbosity opts
 #:created_at:   2018.03.25
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -206,9 +206,17 @@ OPTIONS
                     Prefer to symlink external Grail directory and avoid 
                     cloning or downloading repositories.
 
-    -q, --quiet     (default) Decreases amount of status messages
+    -v, --verbose   (repeatable) Gradually increase the amount of output.
+                    Every instance of this option increments by one the global 
+                    verbosity level of the framework. The debug output in the 
+                    deployments and the framework components has the quiet 
+                    level. For a message to be printed, the global verbosity 
+                    level must be greater than or equal to that message's quiet 
+                    level.
 
-    -v, --verbose   Increases amount of status messages
+    -q, --quiet     (default) Reset the amount of output to the minimal level. 
+                    This option reverts the global verbosity level to its 
+                    defaul value of zero.
 
     --version       Show framework version
 
