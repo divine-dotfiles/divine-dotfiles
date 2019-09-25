@@ -2,7 +2,7 @@
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
 :revdate: 2019.09.25
-:revremark: Remove revision numbers from all src files
+:revremark: Describe new behavior of d__cmd and siblings
 :doctype: article
 // Visual
 :toc:
@@ -1619,11 +1619,11 @@ Default titles are (in *bold*):
 
 | `*-q*`, `*--quiet*`
 
-_(reeatable, verbosity option)_
+_(repeatable, verbosity option)_
 If at least one `--quiet` option is provided, then the amount of them designates the function's *quiet level*.
 The debug output from stack manipulations is printed only if the <<global-verbosity-level,global verbosity level>> is greater than or equal to the quiet level of the output.
 
-If no verbosity options are given, than the default quiet levels of the commands are:
+If no verbosity options are given, than the default quiet levels for the commands of this function are:
 
 * `*push*` — `1`
 * `*pop*` — `2`
@@ -1697,11 +1697,11 @@ Without this option, the `*_TITLE_*` defaults to:
 
 | `*-q*`, `*--quiet*`
 
-_(reeatable, verbosity option)_
+_(repeatable, verbosity option)_
 If at least one `--quiet` option is provided, then the amount of them designates the function's *quiet level*.
 The notification is printed only if the <<global-verbosity-level,global verbosity level>> is greater than or equal to the notification's quiet level.
 
-If no verbosity options are given, than the default quiet level is `1`.
+If no verbosity options are given, than the default quiet level for this function is `1`.
 
 | `*-l*`, `*--loud*`
 
@@ -1973,13 +1973,13 @@ If the return code is non-zero, prints a failure message (similar to the output 
 The output is titled, by default, 'Command failed', and shows the command that has failed, along with the current context stack.
 
 The command `*_CMD_*` must be a single simple command, consisting of any number of ``WORD``s.
-Naturally, Bash will parse the arguments to this function before the function itself does.
+Naturally, Bash will parse the arguments to this function they trickle down to the underlying command.
 As such, here are some examples of what the `*_CMD_*` can and cannot contain:
 
 * Yes: Simple commands, including `test`, `[`, or `[[`.
 * Yes: Variable expansions, though keep in mind that they will be expanded before the actual command is interpreted.
 * Yes: Input redirections.
-* Maybe:  Output redirections. (They will affect this function which might just do exactly what is needed.)
+* Maybe:  Output redirections. (They will affect this outer function which might just do exactly what is needed.)
 * *NO*: Operators `&&` and `||` (use <<func-require,`d__require`>>).
 * *NO*: Pipes (use <<func-pipe,`d__pipe`>>).
 * *NO*: Negation operator `!` (use the `--neg--` option).
@@ -2006,10 +2006,10 @@ Returns:
     Result: *_RSLT_*
 ----
 
-* `*_TITLE_*` — _(optional)_ Short heading for the failure.
+* `*_TITLE_*` — Short heading for the failure.
 Defaults to `Command failed`.
 * `*_CMD_*` — The command that failed, with labels pasted in.
-* `*_LABEL_*` — The list of labels and their disambiguations.
+* `*_LABEL_*` — _(optional)_ The list of labels and their disambiguations.
 Labels are created via corresponding options, described below.
 * `*_CONTEXT_*` — The head of the context stack, which is about to be lopped off.
 The entire context block is omitted if the context stack is empty.
@@ -2028,20 +2028,42 @@ Stops processing options for the 'outer' function, and reads the rest of the arg
 
 Negates the return code of the `*_CMD_*`, as if it is prepended with a `!` operator.
 
-^.^h| Verbosity modes (one active at a time, last option wins)
+^.^h| Output suppression modes (one active at a time, last option wins)
 
-| `*--v--*`
+| `*--sn--*`
 
-Does not suppress neither `stdout` nor `stderr` of the `*_CMD_*`.
+Suppresses neither `stdout` nor `stderr` of the `*_CMD_*`.
 
-| `*--q--*`
+| `*--so--*`
+
+Suppresses `stdout` of the `*_CMD_*`.
+
+| `*--se--*`
 
 _(default)_
 Suppresses `stderr` of the `*_CMD_*`.
 
-| `*--qq--*`
+| `*--sb--*`
 
 Suppresses both `stdout` and `stderr` of the `*_CMD_*`.
+
+^.^h| Verbosity modes (one active at a time, last option wins)
+
+| `*--q--*`, `*--q…--*`
+
+_(repeatable, verbosity option)_
+If at least one such option is provided, then the amount of them designates the function's *quiet level*.
+Whatever output of the `*_CMD_*` is _not_ suppressed is printed only if the <<global-verbosity-level,global verbosity level>> is greater than or equal to the function's quiet level.
+
+If no verbosity options are given, than the default quiet level for this function is `0`.
+
+| `*--l--*`
+
+_(verbosity option)_
+Sets the quiet level to zero.
+In effect this will cause the non-suppressed output to be printed regardless of the <<global-verbosity-level,global verbosity level>>.
+
+Options are read left-to-right: if both verbosity options are mixed together, the total quiet level is the amount of `--q--` options after the last `--l--` option.
 
 ^.^h| Semantics of failure
 
@@ -2096,7 +2118,7 @@ When this function is used without the special options, `d{dus}pipe` becomes fun
 The intention of two different functions is to underscore semantics and to lighten up the load of parsing arguments in `d{dus}cmd`.
 
 All `d{dus}cmd` options are supported.
-If the `--qq--` option is used, `stdout` is only suppressed for the last command in the queue; otherwise it would defeat the pipe's purpose.
+If the `--so--` or the `--sb--` option is used, `stdout` is only suppressed for the last command in the queue; otherwise it would defeat the pipe's purpose.
 
 .List of `d{dus}pipe` options (on top of those in `d{dus}cmd`)
 [%noheader,cols="<.<a",stripes=none]

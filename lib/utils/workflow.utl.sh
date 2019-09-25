@@ -4,7 +4,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.09.25
-#:revremark:    Remove revision numbers from all src files
+#:revremark:    Make d__cmd and siblings obey verbosity level
 #:created_at:   2019.09.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -238,10 +238,23 @@ d__context()
 #.              arguments as the WORDs that constitute the command
 #.  --neg--   - Negate the return code of CMD, as if by prepending '!' to it.
 #
-## Verbosity modes (one active at a time, last option wins)
-#.  --v--     - Do not suppress neither stdout nor stderr of CMD.
-#.  --q--     - (default) Suppress stderr of CMD.
-#.  --qq--    - Suppress both stdout and stderr of CMD.
+## Output suppression modes (one active at a time, last option wins):
+#.  --sn--    - Do not suppress neither stdout nor stderr of the command.
+#.  --so--    - Suppress stdout of the command.
+#.  --se--    - (default) Suppress stderr of the command.
+#.  --sb--    - Suppress both stdout and stderr of the command.
+#
+## Verbosity modes (one active at a time, last option wins):
+#.  --q--     - (repeatable) The amount of these options designates the quiet 
+#.              level of the command. Whatever output is not suppressed is 
+#.              printed only if the value in $D__OPT_VERBOSITY is equal to or 
+#.              greater than the quiet level.
+#.              The particular option can be repeated within the hyphens, e.g., 
+#.              '--qqq--'. Be aware, that only the first character is checked 
+#.              to be 'q', the others are simply counted.
+#.              If this option is not given at all, the default quiet level is 
+#.              zero.
+#.  --l--     - Sets the quiet level to zero.
 #
 ## Options below are relevant only when CMD fails (after optional negation). 
 #. All of them modify the output of d__fail.
@@ -287,15 +300,18 @@ d__context()
 d__cmd()
 {
   # Pluck out options, round up arguments
-  local args=() tmp d__cmd labels=() hunks=() neg=false q=1 opt=false
+  local args=() tmp d__cmd labels=() hunks=() neg=false qt=0 sup=e opt=false
   while (($#)); do tmp="$1"; shift; case $tmp in
     --*--)  tmp="${tmp:2:${#tmp}-4}"
       case $tmp in
         '')   args+=("$@"); d__cmd+=" $*"; break;;
         neg)  neg=true;;
-        v)    q=0;;
-        q)    q=1;;
-        qq)   q=2;;
+        sn)   sup=n;;
+        so)   sup=o;;
+        se)   sup=e;;
+        sb)   sup=b;;
+        q*)   ((qt+=${#tmp}));;
+        l)    qt=0;;
         opt)  opt=true;;
         alrt) if (($#)); then local d__alrt; read -r d__alrt <<<"$1"
                 [ -n "$d__alrt" ] || d__alrt='<empty title>'; shift
@@ -341,10 +357,12 @@ d__cmd()
     "$FUNCNAME: Refusing to work without arguments"; return 2; fi
 
   # Run command, applying output redirections
-  case $q in
-    0)  "${args[@]}"; tmp=$?;;
-    1)  "${args[@]}" 2>/dev/null; tmp=$?;;
-    2)  "${args[@]}" 1>/dev/null 2>&1; tmp=$?;;
+  (($D__OPT_VERBOSITY<$qt)) && sup=b
+  case $sup in
+    n)  "${args[@]}"; tmp=$?;;
+    o)  "${args[@]}" 1>/dev/null; tmp=$?;;
+    e)  "${args[@]}" 2>/dev/null; tmp=$?;;
+    b)  "${args[@]}" 1>/dev/null 2>&1; tmp=$?;;
   esac
 
   # Inspect the return code
@@ -389,7 +407,7 @@ d__require()
 {
   # Pluck out options, round up arguments
   local args0=() args1=() args2=() tmp pcnt= d__cmd=() labels=() hunks=()
-  local neg=(false) q=1 ret=() opt=false
+  local neg=(false) qt=0 sup=e ret=() opt=false
   while (($#)); do tmp="$1"; shift; case $tmp in
     --*--)  tmp="${tmp:2:${#tmp}-4}"
       case $tmp in
@@ -409,9 +427,12 @@ d__require()
                       "$FUNCNAME: Ignoring surplus option: '--$tmp--'"
                   fi;;
         neg)      neg[${#pcnt}]=true;;
-        v)        q=0;;
-        q)        q=1;;
-        qq)       q=2;;
+        sn)       sup=n;;
+        so)       sup=o;;
+        se)       sup=e;;
+        sb)       sup=b;;
+        q*)       ((qt+=${#tmp}));;
+        l)        qt=0;;
         opt)      opt=true;;
         alrt)     if (($#)); then local d__alrt; read -r d__alrt <<<"$1"
                     [ -n "$d__alrt" ] || d__alrt='<empty title>'; shift
@@ -478,20 +499,23 @@ d__require()
   fi
 
   # Run first command, applying output redirections
-  case $q in
-    0)  "${args0[@]}"; tmp=$?;;
-    1)  "${args0[@]}" 2>/dev/null; tmp=$?;;
-    2)  "${args0[@]}" 1>/dev/null 2>&1; tmp=$?;;
+  (($D__OPT_VERBOSITY<$qt)) && sup=b
+  case $sup in
+    n)  "${args0[@]}"; tmp=$?;;
+    o)  "${args0[@]}" 1>/dev/null; tmp=$?;;
+    e)  "${args0[@]}" 2>/dev/null; tmp=$?;;
+    b)  "${args0[@]}" 1>/dev/null 2>&1; tmp=$?;;
   esac
   if ${neg[0]}; then d__cmd[0]="!${d__cmd[0]}"; [ $tmp -ne 0 ]; ret+=($?)
   else d__cmd[0]="${d__cmd[0]:1}"; ret+=($tmp); fi
 
   # Run second command, applying output redirections
   if ((${#pcnt}>0)); then
-    case $q in
-      0)  "${args1[@]}"; tmp=$?;;
-      1)  "${args1[@]}" 2>/dev/null; tmp=$?;;
-      2)  "${args1[@]}" 1>/dev/null 2>&1; tmp=$?;;
+    case $sup in
+      n)  "${args1[@]}"; tmp=$?;;
+      o)  "${args1[@]}" 1>/dev/null; tmp=$?;;
+      e)  "${args1[@]}" 2>/dev/null; tmp=$?;;
+      b)  "${args1[@]}" 1>/dev/null 2>&1; tmp=$?;;
     esac
     if ${neg[1]}; then d__cmd[1]="!${d__cmd[1]}"; [ $tmp -ne 0 ]; ret+=($?)
     else d__cmd[1]="${d__cmd[1]:1}"; ret+=($tmp); fi
@@ -499,10 +523,11 @@ d__require()
 
   # Run third command, applying output redirections
   if ((${#pcnt}>1)); then
-    case $q in
-      0)  "${args2[@]}"; tmp=$?;;
-      1)  "${args2[@]}" 2>/dev/null; tmp=$?;;
-      2)  "${args2[@]}" 1>/dev/null 2>&1; tmp=$?;;
+    case $sup in
+      n)  "${args2[@]}"; tmp=$?;;
+      o)  "${args2[@]}" 1>/dev/null; tmp=$?;;
+      e)  "${args2[@]}" 2>/dev/null; tmp=$?;;
+      b)  "${args2[@]}" 1>/dev/null 2>&1; tmp=$?;;
     esac
     if ${neg[2]}; then d__cmd[2]="!${d__cmd[2]}"; [ $tmp -ne 0 ]; ret+=($?)
     else d__cmd[2]="${d__cmd[2]:1}"; ret+=($tmp); fi
@@ -547,9 +572,9 @@ d__require()
 #. is to underscore semantics and to lighten up the load of parsing arguments 
 #. in d__cmd.
 #
-## All d__cmd options are fully supported. If the --qq-- option is used, stdout 
-#. is only suppressed for the last command in the queue; otherwise it would 
-#. defeat the pipe's purpose.
+## All d__cmd options are fully supported. If the --so-- or the --sb-- option 
+#. is used, stdout is only suppressed for the last command in the queue; 
+#. otherwise it would defeat the pipe's purpose.
 #
 ## Piping options:
 #.  --P--, --p--, --pipe--  - Inserts normal Bash pipe '|' at that location. 
@@ -567,7 +592,7 @@ d__pipe()
 {
   # Pluck out options, round up arguments
   local args0=() args1=() args2=() tmp pcnt=0 d__cmd labels=() hunks=()
-  local neg=false q=1 opt=false
+  local neg=false qt=0 sup=e opt=false
   while (($#)); do tmp="$1"; shift; case $tmp in
     --*--)  tmp="${tmp:2:${#tmp}-4}"
       case $tmp in
@@ -586,9 +611,12 @@ d__pipe()
                             " illegal command number: '--ret$tmp--'";;
                     esac;;
         neg)        neg=true;;
-        v)          q=0;;
-        q)          q=1;;
-        qq)         q=2;;
+        sn)         sup=n;;
+        so)         sup=o;;
+        se)         sup=e;;
+        sb)         sup=b;;
+        q*)         ((qt+=${#tmp}));;
+        l)          qt=0;;
         opt)        opt=true;;
         alrt)       if (($#)); then local d__alrt; read -r d__alrt <<<"$1"
                       [ -n "$d__alrt" ] || d__alrt='<empty title>'; shift
@@ -655,33 +683,41 @@ d__pipe()
   fi
 
   # Launch the pipe
+  (($D__OPT_VERBOSITY<$qt)) && sup=b
   [ -z ${ret+isset} ] && local ret=$pcnt
   case $pcnt in
-    0)  case $q in
-          0)  "${args0[@]}"; tmp=$?;;
-          1)  "${args0[@]}" 2>/dev/null; tmp=$?;;
-          2)  "${args0[@]}" 1>/dev/null 2>&1; tmp=$?;;
+    0)  case $sup in
+          n)  "${args0[@]}"; tmp=$?;;
+          o)  "${args0[@]}" 1>/dev/null; tmp=$?;;
+          e)  "${args0[@]}" 2>/dev/null; tmp=$?;;
+          b)  "${args0[@]}" 1>/dev/null 2>&1; tmp=$?;;
         esac
         ;;
-    1)  case $q in
-          0)  "${args0[@]}" | "${args1[@]}"; tmp=${PIPESTATUS[$ret]}
+    1)  case $sup in
+          n)  "${args0[@]}" | "${args1[@]}"; tmp=${PIPESTATUS[$ret]}
               ;;
-          1)  "${args0[@]}" 2>/dev/null | "${args1[@]}" 2>/dev/null
+          o)  "${args0[@]}" | "${args1[@]}" 1>/dev/null
               tmp=${PIPESTATUS[$ret]}
               ;;
-          2)  "${args0[@]}" 2>/dev/null | "${args1[@]}" 1>/dev/null 2>&1
+          e)  "${args0[@]}" 2>/dev/null | "${args1[@]}" 2>/dev/null
+              tmp=${PIPESTATUS[$ret]}
+              ;;
+          b)  "${args0[@]}" 2>/dev/null | "${args1[@]}" 1>/dev/null 2>&1
               tmp=${PIPESTATUS[$ret]}
               ;;
         esac
         ;;
-    2)  case $q in
-          0)  "${args0[@]}" | "${args1[@]}" | "${args2[@]}"
+    2)  case $sup in
+          n)  "${args0[@]}" | "${args1[@]}" | "${args2[@]}"
               tmp=${PIPESTATUS[$ret]}
               ;;
-          1)  "${args0[@]}" 2>/dev/null | "${args1[@]}" 2>/dev/null \
+          o)  "${args0[@]}" | "${args1[@]}" | "${args2[@]}" 1>/dev/null
+              tmp=${PIPESTATUS[$ret]}
+              ;;
+          e)  "${args0[@]}" 2>/dev/null | "${args1[@]}" 2>/dev/null \
                 | "${args2[@]}" 2>/dev/null; tmp=${PIPESTATUS[$ret]}
               ;;
-          2)  "${args0[@]}" 2>/dev/null | "${args1[@]}" 2>/dev/null \
+          b)  "${args0[@]}" 2>/dev/null | "${args1[@]}" 2>/dev/null \
                 | "${args2[@]}" 1>/dev/null 2>&1; tmp=${PIPESTATUS[$ret]}
               ;;
         esac
