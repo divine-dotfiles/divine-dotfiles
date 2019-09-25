@@ -3,8 +3,8 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revnumber:    4
-#:revdate:      2019.09.23
-#:revremark:    Remove dev-time stops
+#:revdate:      2019.09.25
+#:revremark:    Improve debug output of stash
 #:created_at:   2019.05.15
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -111,7 +111,7 @@ d__stash()
   esac; done; set -- "${args[@]}"
 
   # Initialize local variables
-  local stash_filepath stash_md5_filepath
+  local stash_filepath stash_md5_filepath stash_intro='Stash'
 
   # Options for d__notify
   $quiet && quiet='-qq' || quiet='-lx'
@@ -191,10 +191,11 @@ d___stash_has()
 {
   # Fork depending on whether a value is given
   if [ -z "${dvalue+isset}" ]; then
-    d__notify -qqqt 'Stash' -- "Checking for key '$dkey'"
+    d__notify -qqqt "$stash_intro" -- "Checking for key '$dkey'"
     grep -q ^"$dkey"= -- "$stash_filepath" &>/dev/null || return 1
   else
-    d__notify -qqqt 'Stash' -- "Checking for key '$dkey' with value '$dvalue'"
+    d__notify -qqqt "$stash_intro" -- \
+      "Checking for key '$dkey' with value '$dvalue'"
     grep -Fxq "$dkey=$dvalue" -- "$stash_filepath" &>/dev/null || return 1
   fi
 }
@@ -219,7 +220,7 @@ d___stash_has()
 d___stash_set()
 {
   # Announce
-  d__notify -qqqt 'Stash' -- "Setting key '$dkey' to value '$dvalue'"
+  d__notify -qqqt "$stash_intro" -- "Setting key '$dkey' to value '$dvalue'"
 
   # Storage variables
   local temp=$(mktemp) line found=false should_replace=false
@@ -308,7 +309,7 @@ d___stash_set()
 d___stash_add()
 {
   # Announce
-  d__notify -qqqt 'Stash' -- "Adding to key '$dkey' value '$dvalue'"
+  d__notify -qqqt "$stash_intro" -- "Adding to key '$dkey' value '$dvalue'"
   
   # Append record at the end
   if ! printf '%s\n' "$dkey=$dvalue" >>"$stash_filepath"; then
@@ -340,7 +341,7 @@ d___stash_add()
 d___stash_get()
 {
   # Announce
-  d__notify -qqqt 'Stash' -- "Retrieving value for key '$dkey'"
+  d__notify -qqqt "$stash_intro" -- "Retrieving value for key '$dkey'"
   
   # Search for the $dkey
   local result="$( grep -m 1 ^"$dkey"= -- "$stash_filepath" 2>/dev/null \
@@ -372,7 +373,7 @@ d___stash_get()
 d___stash_list()
 {
   # Announce
-  d__notify -qqqt 'Stash' -- "Listing values for key '$dkey'"
+  d__notify -qqqt "$stash_intro" -- "Listing values for key '$dkey'"
   
   # Storage variables
   local found=false left right
@@ -411,7 +412,7 @@ d___stash_unset()
   if [ -z "${dvalue+isset}" ]; then
 
     # No value: copy stash file, but without lines starting with '$dkey='
-    d__notify -qqqt 'Stash' -- "Unsetting key '$dkey'"
+    d__notify -qqqt "$stash_intro" -- "Unsetting key '$dkey'"
     while read -r line; do
       [[ $line = "$dkey="* ]] || printf '%s\n' "$line"
     done <"$stash_filepath" >$temp
@@ -419,7 +420,8 @@ d___stash_unset()
   else
 
     # Value given: copy stash file, but without lines '$dkey=$dvalue'
-    d__notify -qqqt 'Stash' -- "Unsetting key '$dkey' with value '$dvalue'"
+    d__notify -qqqt "$stash_intro" -- \
+      "Unsetting key '$dkey' with value '$dvalue'"
     while read -r line; do
       [ "$line" = "$dkey=$dvalue" ] || printf '%s\n' "$line"
     done <"$stash_filepath" >$temp
@@ -454,7 +456,7 @@ d___stash_unset()
 d___stash_list_keys()
 {
   # Announce
-  d__notify -qqqt 'Stash' -- 'Listing all keys'
+  d__notify -qqqt "$stash_intro" -- 'Listing all keys'
   
   # Storage variables
   local found=false left right
@@ -483,7 +485,7 @@ d___stash_list_keys()
 d___stash_clear()
 {
   # Announce
-  d__notify -qqt 'Stash' -- 'Clearing all contents'
+  d__notify -qqt "$stash_intro" -- 'Clearing all contents'
   
   # Erase stash file
   >"$stash_filepath"
@@ -521,7 +523,7 @@ d___check_stashing_system()
     # Сheck for necessary variables
     case $stash_level in
       r)  if [ -n "$D__DIR_STASH" ]; then
-            d__notify -qq -- 'Deep-accessing root-level stash'
+            d__notify -qq -- 'Preparing root-level stash'
           else
             d__notify $quiet -- \
               'Root-level stash has been accessed with empty $D__DIR_STASH'
@@ -529,7 +531,7 @@ d___check_stashing_system()
           fi
           ;;
       g)  if [ -n "$D__DIR_GRAIL" ]; then
-            d__notify -qq -- 'Deep-accessing Grail-level stash'
+            d__notify -qq -- 'Preparing Grail-level stash'
           else
             d__notify $quiet -- \
               'Grail-level stash has been accessed with empty $D__DIR_GRAIL'
@@ -537,7 +539,7 @@ d___check_stashing_system()
           fi
           ;;
       *)  if [ -n "$D_DPL_NAME" ]; then
-            d__notify -qq -- 'Deep-accessing dpl-level stash'
+            d__notify -qq -- "Preparing stash for deployment $D_DPL_NAME"
           else
             d__notify $quiet -- \
               'Dpl-level stash has been accessed with empty $D_DPL_NAME'
@@ -558,24 +560,14 @@ d___check_stashing_system()
       return 1
     fi
 
-  else
-
-    # Fire initial debug message
-    case $stash_level in
-      r)  d__notify -qqq -- 'Quick-accessing root-level stash';;
-      g)  d__notify -qqq -- 'Quick-accessing Grail-level stash';;
-      *)  d__notify -qqq -- \
-            'Quick-accessing stash for deployment '$D_DPL_NAME'';;
-    esac
-
   fi  
 
-  # Establish stash directory
+  # Establish stash directory; set title of debug messages
   local stash_dirpath
   case $stash_level in
-    r)  stash_dirpath="$D__DIR_STASH";;
-    g)  stash_dirpath="$D__DIR_GRAIL";;
-    *)  stash_dirpath="$D__DIR_STASH/$D_DPL_NAME";;
+    r)  stash_intro='Root stash'; stash_dirpath="$D__DIR_STASH";;
+    g)  stash_intro='Grail stash'; stash_dirpath="$D__DIR_GRAIL";;
+    *)  stash_intro='Dpl stash'; stash_dirpath="$D__DIR_STASH/$D_DPL_NAME";;
   esac
 
   # Ensure directory for this stash exists
