@@ -12,6 +12,7 @@
 ** `*d__cmd*` — simple command wrapper.
 ** `*d__pipe*` — command wrapper with support for pipes.
 ** `*d__require*` — command wrapper with support for and/or chaining.
+* [`*other*`] Optimize framework initialization sequence
 * [`*other*`] Optimize code in `stash.hlp.sh`
-* [`*other*`] Demote `dmd5.utl.sh` to a small helper implemented in `dep-checks.pcd.sh`.
+* [`*other*`] Demote `dmd5.utl.sh` to a small helper implemented in `prep-1-sys.pcd.sh`.
 * [`*other*`] Delete `dtrim.utl.sh` completely; replace with ad-hoc trimming via shell tools.
