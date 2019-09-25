@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-#:title:        Divine Bash procedure: third-checks
+#:title:        Divine Bash procedure: prep-3-opt
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revnumber:    2
-#:revdate:      2019.09.23
-#:revremark:    Check for Github capability early
+#:revdate:      2019.09.25
+#:revremark:    Rename procedures from 'checks' to 'prep'
 #:created_at:   2019.07.05
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>

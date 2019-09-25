@@ -3,8 +3,8 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revnumber:    88
-#:revdate:      2019.09.23
-#:revremark:    First version of init train
+#:revdate:      2019.09.25
+#:revremark:    Rename procedures from 'checks' to 'prep'
 #:created_at:   2018.03.25
 
 ## Launches the Divine intervention
@@ -152,12 +152,12 @@ d__populate_globals()
     'util dprint' \
     'util dprompt' \
     'util workflow' \
-    'procedure checks-1-sys' \
+    'procedure prep-1-sys' \
     'util stash' \
-    'procedure checks-2-stash' \
+    'procedure prep-2-stash' \
     'procedure detect-os' \
     'util offer' \
-    'procedure checks-3-opt' \
+    'procedure prep-3-opt' \
     'util dreadlink' \
     'util dmv' \
     'util dln' \
