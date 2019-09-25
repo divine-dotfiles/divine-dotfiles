@@ -4,7 +4,7 @@
 #:email:        grayarea@protonmail.ch
 #:revnumber:    88
 #:revdate:      2019.09.25
-#:revremark:    Move minifests from helpers to utilities, pt.3
+#:revremark:    Rename INTERNAL_DEPENDENCIES to INIT_TRAIN
 #:created_at:   2018.03.25
 
 ## Launches the Divine intervention
@@ -147,7 +147,7 @@ d__populate_globals()
   readonly D__SUFFIX_DPL_QUE='.dpl.que'
 
   # Ordered list of script's internal dependencies
-  D__INTERNAL_DEPENDENCIES=( \
+  D__INIT_TRAIN=( \
     'procedure print-colors' \
     'util dprint' \
     'util dprompt' \
@@ -167,7 +167,7 @@ d__populate_globals()
     'helper multitask' \
     'util manifests' \
     'procedure dpl-repo-sync' \
-  ); readonly D__INTERNAL_DEPENDENCIES
+  ); readonly D__INIT_TRAIN
 
   # Name of Divinefile
   readonly D__CONST_NAME_DIVINEFILE='Divinefile'
@@ -509,7 +509,7 @@ d__parse_arguments()
 #. (hard dependencies).
 #
 ## Requires:
-#.  $D__INTERNAL_DEPENDENCIES   - From d__populate_globals
+#.  $D__INIT_TRAIN   - From d__populate_globals
 #
 ## Returns:
 #.  0 - All dependencies successfully sourced
@@ -525,7 +525,7 @@ d__import_dependencies()
   local dependency
 
   # Iterate over dependencies
-  for dependency in "${D__INTERNAL_DEPENDENCIES[@]}"; do
+  for dependency in "${D__INIT_TRAIN[@]}"; do
 
     # Load dependency or halt script
     d__load $dependency || exit 1
