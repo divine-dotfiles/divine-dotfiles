@@ -2,8 +2,8 @@
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
 :revnumber: 85
-:revdate: 2019.09.23
-:revremark: Modify stash to fit into workflow
+:revdate: 2019.09.25
+:revremark: Bonus round: polish help routine and README
 :doctype: article
 // Visual
 :toc:
@@ -490,7 +490,7 @@ Intervention utility's functions are:
 . <<primary-routines,*Primary routines*>> on <<deployments,deployments>> and <<divinefiles,Divinefiles>>:
 .. *Check* whether deployments are installed or not.
 .. *Install* deployments.
-.. *Uninstall* deployments.
+.. *Remove* (uninstall) deployments.
 . <<attach-routine,*Attach/detach*>> third-party bundles of deployments from Github.
 . <<plug-routine,*Plug in*>> pre-made Grail directory from a repository or local directory.
 . <<update-routine,*Update*>> framework itself, attached bundles, and Grail directory, if it is a cloned repository.
@@ -498,7 +498,7 @@ Intervention utility's functions are:
 [.note]
 [%noheader,cols="<.<a"]
 |===
-| The term '<<deployments,deployments>>' includes <<divinefiles,Divinefiles>> as the special kind of the former.
+| The term '<<deployments,deployments>>' includes <<divinefiles,Divinefiles>> as a special kind.
 |===
 
 [[primary-routines]]
@@ -529,13 +529,13 @@ The intervention utility filters the deployments according to these rules:
 * By default, deployments are retrieved from two locations (at any depth):
 ** Directory for user's deployments: `grail/dpls/`.
 ** Directory for attached bundles of deployments: `state/bundles/`.
-* Particular bundles of deployments are requested by listing them with the `--bundle`/`-b` option.
 * Particular deployments are requested by listing their names or <<deployment-groups,single-digit group names>>, in any combination.
 * <<dangerous-deployments,Dangerous>> deployments are ignored unless requested by name (not by single-digit group name), or unless `--with-!`/`-w` option is used.
 * Option `--except`/`-e` inverts filtering: all deployments are processed, _except_ those listed.
 Note, that without any arguments, this is a no-opt.
 +
 In this mode, dangerous deployments are still filtered out by default.
+* The search can be narrowed down to particular bundles of deployments by listing each with the `--bundle`/`-b` option.
 
 After filtering, deployments and packages from Divinefiles are sorted in order of ascending <<deployment-priority,priority>>.
 For uninstallation, that order is fully reversed.
