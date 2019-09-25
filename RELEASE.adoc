@@ -16,3 +16,4 @@
 * [`*other*`] Optimize code in `stash.hlp.sh`
 * [`*other*`] Demote `dmd5.utl.sh` to a small helper implemented in `prep-1-sys.pcd.sh`.
 * [`*other*`] Delete `dtrim.utl.sh` completely; replace with ad-hoc trimming via shell tools.
+* [`*other*`] Ditch revision numbers from all source files.
