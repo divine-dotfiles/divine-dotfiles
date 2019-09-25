@@ -2,9 +2,8 @@
 #:title:        Divine Bash deployment helpers: github
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    2
-#:revdate:      2019.09.16
-#:revremark:    Work on remove primary
+#:revdate:      2019.09.25
+#:revremark:    Start implementing low-level parts of GH util
 #:created_at:   2019.09.13
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
