@@ -1,9 +1,8 @@
 #:title:        Queue manifest annotated template
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    12
-#:revdate:      2019.08.19
-#:revremark:    D__QUEUE_MAIN -> D_QUEUE_MAIN
+#:revdate:      2019.09.25
+#:revremark:    No remark
 #:created_at:   2019.08.06
 
 ## This is an annotated example of a queue manifest. It is simply a list of 

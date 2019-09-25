@@ -2,9 +2,8 @@
 #:title:        Divine Bash routine: version
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    10
-#:revdate:      2019.09.01
-#:revremark:    Tweak bolding in miscellaneous locations
+#:revdate:      2019.09.25
+#:revremark:    No remark
 #:created_at:   2018.03.25
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>

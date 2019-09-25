@@ -2,9 +2,8 @@
 #:title:        Divine Bash deployment helpers: reconcile
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    21
-#:revdate:      2019.09.05
-#:revremark:    Expand check code transfer onto multitask; also transfer statuses
+#:revdate:      2019.09.25
+#:revremark:    No remark
 #:created_at:   2019.06.18
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>

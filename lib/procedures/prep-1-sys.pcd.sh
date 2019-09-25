@@ -2,9 +2,8 @@
 #:title:        Divine Bash procedure: prep-1-sys
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    2
 #:revdate:      2019.09.25
-#:revremark:    Remove forgotten github checks from prep-1
+#:revremark:    No remark
 #:created_at:   2019.07.05
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
