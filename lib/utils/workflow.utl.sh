@@ -3,8 +3,8 @@
 #:kind:         func(script)
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.09.25
-#:revremark:    Make d__cmd and siblings obey verbosity level
+#:revdate:      2019.09.26
+#:revremark:    Remove spurious read -r calls; tweak context
 #:created_at:   2019.09.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -13,7 +13,7 @@
 #. code and managing debug output.
 #
 
-#>  d__context [-lq]... [-t TITLE] [--] push|pop|notch|lop DESCRIPTION...
+#>  d__context [-lq]... [-t TITLE] [--] push|pop|notch|lop DESCRIPTION
 #
 ## Manipulates Divine workflow context stack.
 #
@@ -122,8 +122,7 @@ d__context()
           -)        args+=("$@"); break;;
           l|-loud)  qt=0;;
           q|-quiet) ((++qt));;
-          t|-title) if (($#)); then read -r ttl <<<"$1"
-                      [ -n "$ttl" ] || ttl='<empty title>'; shift
+          t|-title) if (($#)); then ttl="$1"; shift
                     else printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" 
                       "$FUNCNAME: Ignoring option lacking required argument:" \
                       " '$arg'"
@@ -132,8 +131,7 @@ d__context()
                 case $opt in
                   l)  qt=0;;
                   q)  ((++qt));;
-                  t)  if (($#)); then read -r ttl <<<"$1"
-                        [ -n "$ttl" ] || ttl='<empty title>'; shift
+                  t)  if (($#)); then ttl="$1"; shift
                       else printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" \
                           "$FUNCNAME: Ignoring option lacking required" \
                           " argument: '$opt'"
@@ -150,23 +148,19 @@ d__context()
 
   # Fork based on operation
   case ${args[0]} in
-    push)   set -- "${args[@]}"; shift
-            if ! (($#)); then printf >&2 '%s %s%s\n' "$RED$BOLD==>$NORMAL" \
-              "$FUNCNAME: Attempted to push an empty item onto the" \
-              " context stack"
+    push)   if ((${#args[@]}<2)); then printf >&2 '%s %s%s\n' \
+              "$RED$BOLD==>$NORMAL" "$FUNCNAME: Attempted to push an item" \
+              " without a description onto the context stack"
               return 2
             fi
-            local msg; read -r msg <<<"$*"
-            [ -n "$msg" ] || msg='<empty description>'; D__CONTEXT+=("$msg")
+            local msg="${args[1]}"; D__CONTEXT+=("$msg")
             [ $qt = n ] && qt=1; (($D__OPT_VERBOSITY<$qt)) && return 0
             [ -n "$ttl" ] || ttl='Start';;
-    pop)    set -- "${args[@]}"; shift; local level
-            level=$((${#D__CONTEXT[@]}-1))
+    pop)    local level=$((${#D__CONTEXT[@]}-1))
             if (($level<0)); then printf >&2 '%s %s\n' "$RED$BOLD==>$NORMAL" \
               "$FUNCNAME: Attempted to pop from the empty context stack"
               return 3; fi
-            local msg; if (($#)); then read -r msg <<<"$*"
-              [ -n "$msg" ] || msg='<empty description>'
+            local msg; if ((${#args[@]}>1)); then msg="${args[1]}"
             else msg="${D__CONTEXT[$level]}"; fi
             unset D__CONTEXT[$level]
             [ $qt = n ] && qt=2; (($D__OPT_VERBOSITY<$qt)) && return 0
@@ -313,19 +307,19 @@ d__cmd()
         q*)   ((qt+=${#tmp}));;
         l)    qt=0;;
         opt)  opt=true;;
-        alrt) if (($#)); then local d__alrt; read -r d__alrt <<<"$1"
+        alrt) if (($#)); then local d__alrt; d__alrt="$1"
                 [ -n "$d__alrt" ] || d__alrt='<empty title>'; shift
               else printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" \
                 "$FUNCNAME: Ignoring option lacking required argument:" \
                 " '--$tmp--'"
               fi;;
-        crcm) if (($#)); then local d__crcm; read -r d__crcm <<<"$1"
+        crcm) if (($#)); then local d__crcm; d__crcm="$1"
                 [ -n "$d__crcm" ] || d__crcm='<empty description>'; shift
               else printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" \
                 "$FUNCNAME: Ignoring option lacking required argument:" \
                 " '--$tmp--'"
               fi;;
-        else) if (($#)); then local d__rslt; read -r d__rslt <<<"$1"
+        else) if (($#)); then local d__rslt; d__rslt="$1"
                 [ -n "$d__rslt" ] || d__rslt='<empty description>'; shift
               else printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" \
                 "$FUNCNAME: Ignoring option lacking required argument:" \
@@ -434,19 +428,19 @@ d__require()
         q*)       ((qt+=${#tmp}));;
         l)        qt=0;;
         opt)      opt=true;;
-        alrt)     if (($#)); then local d__alrt; read -r d__alrt <<<"$1"
+        alrt)     if (($#)); then local d__alrt; d__alrt="$1"
                     [ -n "$d__alrt" ] || d__alrt='<empty title>'; shift
                   else printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" \
                     "$FUNCNAME: Ignoring option lacking required argument:" \
                     " '--$tmp--'"
                   fi;;
-        crcm)     if (($#)); then local d__crcm; read -r d__crcm <<<"$1"
+        crcm)     if (($#)); then local d__crcm; d__crcm="$1"
                     [ -n "$d__crcm" ] || d__crcm='<empty description>'; shift
                   else printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" \
                     "$FUNCNAME: Ignoring option lacking required argument:" \
                     " '--$tmp--'"
                   fi;;
-        else)     if (($#)); then local d__rslt; read -r d__rslt <<<"$1"
+        else)     if (($#)); then local d__rslt; d__rslt="$1"
                     [ -n "$d__rslt" ] || d__rslt='<empty description>'; shift
                   else printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" \
                     "$FUNCNAME: Ignoring option lacking required argument:" \
@@ -618,19 +612,19 @@ d__pipe()
         q*)         ((qt+=${#tmp}));;
         l)          qt=0;;
         opt)        opt=true;;
-        alrt)       if (($#)); then local d__alrt; read -r d__alrt <<<"$1"
+        alrt)       if (($#)); then local d__alrt; d__alrt="$1"
                       [ -n "$d__alrt" ] || d__alrt='<empty title>'; shift
                     else printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" \
                       "$FUNCNAME: Ignoring option lacking required argument:" \
                       " '--$tmp--'"
                     fi;;
-        crcm)       if (($#)); then local d__crcm; read -r d__crcm <<<"$1"
+        crcm)       if (($#)); then local d__crcm; d__crcm="$1"
                       [ -n "$d__crcm" ] || d__crcm='<empty description>'; shift
                     else printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" \
                       "$FUNCNAME: Ignoring option lacking required argument:" \
                       " '--$tmp--'"
                     fi;;
-        else)       if (($#)); then local d__rslt; read -r d__rslt <<<"$1"
+        else)       if (($#)); then local d__rslt; d__rslt="$1"
                       [ -n "$d__rslt" ] || d__rslt='<empty description>'; shift
                     else printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" \
                       "$FUNCNAME: Ignoring option lacking required argument:" \
@@ -779,7 +773,7 @@ d__fail()
   local args=() arg opt title; while (($#)); do arg="$1"; shift; case $arg in
     -*) case ${arg:1} in
           -)        args+=("$@"); break;;
-          t|-title) if (($#)); then read -r title <<<"$1"
+          t|-title) if (($#)); then title="$1"
                       [ -n "$title" ] || title='<empty title>'; shift
                     else printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" \
                       "$FUNCNAME: Ignoring option lacking required" \
@@ -787,7 +781,7 @@ d__fail()
                     fi;;
           *)  for ((i=1;i<${#arg};++i)); do opt="${arg:i:1}"
                 case $opt in
-                  t)  if (($#)); then read -r title <<<"$1"
+                  t)  if (($#)); then title="$1"
                         [ -n "$title" ] || title='<empty title>'; shift
                       else printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" \
                         "$FUNCNAME: Ignoring option lacking required" \
@@ -926,7 +920,7 @@ d__notify()
           v|-success) stl=v;;
           x|-failure) stl=x;;
           s|-skip)    stl=s;;
-          t|-title)   if (($#)); then read -r title <<<"$1"
+          t|-title)   if (($#)); then title="$1"
                         [ -n "$title" ] || title='<empty title>'; shift
                       else printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" \
                         "$FUNCNAME: Ignoring option lacking required" \
@@ -945,7 +939,7 @@ d__notify()
                   v)  stl=v;;
                   x)  stl=x;;
                   s)  stl=s;;
-                  t)  if (($#)); then read -r title <<<"$1"
+                  t)  if (($#)); then title="$1"
                         [ -n "$title" ] || title='<empty title>'; shift
                       else printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" \
                         "$FUNCNAME: Ignoring option lacking required" \
@@ -1127,18 +1121,18 @@ d__prompt()
           v|-success) stl=v;;
           x|-failure) stl=x;;
           s|-skip)    stl=s;;
-          p|-prompt)  if (($#)); then read -r prompt <<<"$1"
+          p|-prompt)  if (($#)); then prompt="$1"
                         [ -n "$prompt" ] || prompt='<empty prompt>'; shift
                       else printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" \
                         "$FUNCNAME: Ignoring option lacking required" \
                         " argument: '$arg'"
                       fi;;
-          a|-answer)  if (($#)); then read -r answer <<<"$1"; shift
+          a|-answer)  if (($#)); then answer="$1"; shift
                       else printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" \
                         "$FUNCNAME: Ignoring option lacking required" \
                         " argument: '$arg'"
                       fi;;
-          t|-title)   if (($#)); then read -r title <<<"$1"
+          t|-title)   if (($#)); then title="$1"
                         [ -n "$title" ] || title='<empty title>'
                         one_line=false; shift
                       else printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" \
@@ -1158,18 +1152,18 @@ d__prompt()
                   v)  stl=v;;
                   x)  stl=x;;
                   s)  stl=s;;
-                  p)  if (($#)); then read -r prompt <<<"$1"
+                  p)  if (($#)); then prompt="$1"
                         [ -n "$prompt" ] || prompt='<empty prompt>'; shift
                       else printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" \
                         "$FUNCNAME: Ignoring option lacking required" \
                         " argument: '$opt'"
                       fi;;
-                  a)  if (($#)); then read -r answer <<<"$1"; shift
+                  a)  if (($#)); then answer="$1"; shift
                       else printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" \
                         "$FUNCNAME: Ignoring option lacking required" \
                         " argument: '$opt'"
                       fi;;
-                  t)  if (($#)); then read -r title <<<"$1"
+                  t)  if (($#)); then title="$1"
                         [ -n "$title" ] || title='<empty title>'
                         one_line=false; shift
                       else printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" \
