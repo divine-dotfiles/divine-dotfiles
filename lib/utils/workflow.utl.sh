@@ -3,8 +3,8 @@
 #:kind:         func(script)
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.09.26
-#:revremark:    Remove spurious read -r calls; tweak context
+#:revdate:      2019.09.28
+#:revremark:    Add para-options to debug funcs; tweak them too
 #:created_at:   2019.09.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -12,8 +12,18 @@
 ## Utilities that create a Divine workflow — the preferred way of structuring 
 #. code and managing debug output.
 #
+## Summary of functions in this file:
+#>  d__context [-lnq]... [-t TITLE] [--] push|pop|notch|lop DESCRIPTION...
+#>  d__notify [-!1cdhlnqsuvx] [-t TITLE] [--] [DESCRIPTION...]
+#>  d__prompt [-!1bchknqsvxy] [-p PROMPT] [-a ANSWER] [-t TITLE] [--] \
+#>    [DESCRIPTION...]
+#>  d__fail [-n] [-t TITLE] [--] [DESCRIPTION...]
+#>  d__cmd [<options>] [----] CMD...
+#>  d__require [<options>] [----] CMD...
+#>  d__pipe [<options>] [----] CMD
+#
 
-#>  d__context [-lq]... [-t TITLE] [--] push|pop|notch|lop DESCRIPTION
+#>  d__context [-lnq]... [-t TITLE] [--] push|pop|notch|lop DESCRIPTION...
 #
 ## Manipulates Divine workflow context stack.
 #
@@ -52,44 +62,64 @@
 #
 ##  ==> <TITLE>: <DESCRIPTION>
 #
-##  * TITLE       - Short heading of the message. Defaults to:
-#.                    * 'Start'   - During 'push' routine.
-#.                    * 'End'     - During 'pop' routine.
+##  * TITLE       - Short heading of the message.
 #.  * DESCRIPTION - Text of the pushed/popped context item.
 #
-## The output is prepended with a 'fat' ASCII arrow '==>'. The line of the 
-#. output consists of a title and a message, delimited by a colon.
+## The output is prepended with a 'fat' ASCII arrow '==>'.
 #
 ## If terminal coloring is available:
 #.  * The entire output is painted cyan.
-#.  * Title is styled in bold.
+#.  * The title is styled in bold.
 #
-## If terminal coloring is available, and the --loud option is used:
-#.  * Arrow is styled in bold yellow.
-#.  * Title is styled in bold.
+## If terminal coloring is available, and any of the alternative semantic 
+#. styling options is used:
+#.  * The arrow is styled in bold color (color depends on the option).
+#.  * Other parts use the normal terminal color.
+#.  * The title is styled in bold.
 #
 ## Uses in global scope:
 #>  $D__CONTEXT         - Global storage for the Divine workflow context stack.
 #>  $D__CONTEXT_NOTCHES - Global storage for the notches made on the context 
 #.                        stack.
-#>  $D__OPT_QUIET       - Global verbosity setting.
+#>  $D__OPT_VERBOSITY   - Global verbosity setting.
 #
 ## Options:
-#.  -q, --quiet               - (repeatable) The amount of these options 
-#.                              designates the quiet level of the debug output.
-#.                              Changes to context are announced only if the 
-#.                              value in $D__OPT_VERBOSITY is equal to or 
-#.                              greater than the quiet level.
-#.                              If this option is not given at all, the default 
-#.                              quiet levels per operation are:
-#.                                * 'push'  - 1
-#.                                * 'pop'   - 2
-#.                                * 'lop'   - (tied to the level of the 
-#.                                            underlying 'pop')
-#.                              Adding and removing notches is always one level 
-#.                              above popping.
+#.  -t TITLE, --title TITLE   - Custom title for the leading line. Defaults to:
+#.                                * 'Start'   - During 'push' routine.
+#.                                * 'End'     - During 'pop' routine.
+#.  -n, --newline             - With this option, if this function produces any 
+#.                              output, an extra newline is printed before any 
+#.                              other output.
+#
+## Options for semantic styling. These modes are only relevant when the 
+#. terminal coloring is available (one active at a time, last option wins):
+#.  -d, --debug     - (default) Style the output as a debug message by painting 
+#.                    it entirely in cyan.
+#.  -!, --alert     - Style the output as an alert message by painting the 
+#.                    introductory arrow in yellow.
+#.  -v, --success   - Style the output as a success message by painting the 
+#.                    introductory arrow in green.
+#.  -x, --failure   - Style the output as a failure message by painting the 
+#.                    introductory arrow in red.
+#.  -s, --skip      - Style the output as a skip message by painting the 
+#.                    introductory arrow in white.
+#
+## Quiet options:
+#.  -q, --quiet               - (repeatable) Increments the quiet level by one.
 #.  -l, --loud                - Sets the quiet level to zero.
-#.  -t TITLE, --title TITLE   - Custom title for the leading line.
+#
+## Quiet options designate the quiet level for the current call. Changes to 
+#. context are announced only if the value in $D__OPT_VERBOSITY is equal to or 
+#. greater than the quiet level.
+#
+## Quiet options are read sequentially, left-to-right, and the quiet level 
+#. starts at zero. However, if these options are not given at all, the default 
+#. quiet levels per operation are:
+#.    * 'push'  - 1
+#.    * 'pop'   - 2
+#.    * 'notch' - 3
+#.    * 'lop'   - 3 (This includes the underlying pops! If you want to pop at a 
+#.                different quiet level, you have to pop manually)
 #
 ## Parameters:
 #.  $1  - Name of the routine to run:
@@ -99,8 +129,9 @@
 #.          * lop   - Repeatedly pop until the next notch is reached, then 
 #.                    remove that notch.
 #.  $*  - Human-readable description of the stack item. During the 'pop' 
-#.        routine it overrides the description of the popped item, which is 
-#.        printed by default.
+#.        routine it overrides the printed description of the popped item.
+#.        Together, the arguments should form no more than one sentence, and 
+#.        the full stop should be omitted.
 #
 ## Returns:
 #.  0 - Modified the stack as requested.
@@ -116,26 +147,30 @@
 d__context()
 {
   # Pluck out options, round up arguments
-  local args=() arg opt qt=n ttl i
+  local args=() arg opt qt=n nl=false stl ttl i
   while (($#)); do arg="$1"; shift; case $arg in
     -*) case ${arg:1} in
-          -)        args+=("$@"); break;;
-          l|-loud)  qt=0;;
-          q|-quiet) ((++qt));;
-          t|-title) if (($#)); then ttl="$1"; shift
-                    else printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" 
-                      "$FUNCNAME: Ignoring option lacking required argument:" \
-                      " '$arg'"
-                    fi;;
+          -)          args+=("$@"); break;;
+          q|-quiet)   ((++qt));;
+          l|-loud)    qt=0;;
+          d|-debug)   stl=d;;
+          \!|-alert)  stl=a;;
+          v|-success) stl=v;;
+          x|-failure) stl=x;;
+          s|-skip)    stl=s;;
+          t|-title)   if (($#)); then ttl="$1"; shift; fi;;
+          n|-newline) nl=true;;
           *)  for ((i=1;i<${#arg};++i)); do opt="${arg:i:1}"
                 case $opt in
-                  l)  qt=0;;
                   q)  ((++qt));;
-                  t)  if (($#)); then ttl="$1"; shift
-                      else printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" \
-                          "$FUNCNAME: Ignoring option lacking required" \
-                          " argument: '$opt'"
-                      fi;;
+                  l)  qt=0;;
+                  d)  stl=d;;
+                  \!) stl=a;;
+                  v)  stl=v;;
+                  x)  stl=x;;
+                  s)  stl=s;;
+                  t)  if (($#)); then ttl="$1"; shift; fi;;
+                  n)  nl=true;;
                   *)  printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" \
                         "$FUNCNAME: Ignoring unrecognized option: '$opt'";;
                 esac
@@ -143,63 +178,162 @@ d__context()
         esac;;
     *)  args+=("$arg");;
   esac; done
-  if ! ((${#args[@]})); then printf >&2 '%s %s\n' "$RED$BOLD==>$NORMAL" \
-    "$FUNCNAME: Refusing to work without arguments"; return 1; fi
 
   # Fork based on operation
   case ${args[0]} in
-    push)   if ((${#args[@]}<2)); then printf >&2 '%s %s%s\n' \
-              "$RED$BOLD==>$NORMAL" "$FUNCNAME: Attempted to push an item" \
-              " without a description onto the context stack"
-              return 2
-            fi
-            local msg="${args[1]}"; D__CONTEXT+=("$msg")
-            [ $qt = n ] && qt=1; (($D__OPT_VERBOSITY<$qt)) && return 0
-            [ -n "$ttl" ] || ttl='Start';;
-    pop)    local level=$((${#D__CONTEXT[@]}-1))
-            if (($level<0)); then printf >&2 '%s %s\n' "$RED$BOLD==>$NORMAL" \
-              "$FUNCNAME: Attempted to pop from the empty context stack"
-              return 3; fi
-            local msg; if ((${#args[@]}>1)); then msg="${args[1]}"
-            else msg="${D__CONTEXT[$level]}"; fi
-            unset D__CONTEXT[$level]
-            [ $qt = n ] && qt=2; (($D__OPT_VERBOSITY<$qt)) && return 0
-            [ -n "$ttl" ] || ttl='End';;
-    notch)  if ((${#D__CONTEXT_NOTCHES[@]})) \
-              && [ ${D__CONTEXT_NOTCHES[${#D__CONTEXT_NOTCHES[@]}-1]} \
-              -eq ${#D__CONTEXT[@]} ]; then
-              printf >&2 '%s %s%s\n' "$RED$BOLD==>$NORMAL" \
-                "$FUNCNAME: Attempted to make a duplicate notch" \
-                " on the context stack"; return 4
-            fi
-            D__CONTEXT_NOTCHES+=("${#D__CONTEXT[@]}")
-            [ $qt = n ] && qt=3; (($D__OPT_VERBOSITY<$qt)) && return 0
-            ttl='Notched'; local msg="At position ${#D__CONTEXT[@]}";;
-    lop)    local min num=${#D__CONTEXT_NOTCHES[@]} level qtp=false msg
-            if (($num)); then ((--num)); min=${D__CONTEXT_NOTCHES[$num]}
-            else num=; min=0; fi; [ -n "$ttl" ] || ttl='End'
-            [ $qt = n ] && qt=2; (($D__OPT_VERBOSITY<$qt)) && qtp=true
-            while ((${#D__CONTEXT[@]}>$min)); do
-              level=$((${#D__CONTEXT[@]}-1)); msg="${D__CONTEXT[$level]}"
-              unset D__CONTEXT[$level]; $qtp && continue
-              if (($qt)); then printf >&2 "%s %s: %s\n" "$CYAN==>" \
-                "$BOLD$ttl$NORMAL$CYAN" "$msg$NORMAL"
-              else printf >&2 "%s %s: %s\n" "$YELLOW$BOLD==>$NORMAL" \
-                "$BOLD$ttl$NORMAL" "$msg"; fi
-            done; [ -n "$num" ] && unset D__CONTEXT_NOTCHES[$num]
-            ((++qt)); (($D__OPT_VERBOSITY<$qt)) && return 0
-            ttl='De-notched'; msg="At position $min";;
+    push)   shift; d___context_push "${args[@]}";;
+    pop)    shift; d___context_pop "${args[@]}";;
+    notch)  shift; d___context_notch "${args[@]}";;
+    lop)    shift; d___context_lop "${args[@]}";;
     *)  printf >&2 '%s %s\n' "$RED$BOLD==>$NORMAL" \
-          "$FUNCNAME: Refusing to work with unrecognized routine: '${args[0]}'"
+          "$FUNCNAME: Refusing to work with unrecognized command: '${args[0]}'"
         return 1;;
   esac
 
-  # Print the debug output
-  if (($qt)); then
-    printf >&2 "%s %s: %s\n" "$CYAN==>" "$BOLD$ttl$NORMAL$CYAN" "$msg$NORMAL"
-  else
-    printf >&2 "%s %s: %s\n" "$YELLOW$BOLD==>$NORMAL" "$BOLD$ttl$NORMAL" "$msg"
+  # Return the last code
+  return $?
+}
+
+#>  d___context_push DESCRIPTION
+#
+## INTERNAL USE ONLY
+#
+d___context_push()
+{
+  # Ensure there is a description and push it
+  if ! (($#)); then printf >&2 '%s %s%s\n' \
+    "$RED$BOLD==>$NORMAL" "$FUNCNAME: Attempted to push an item" \
+    " without a description onto the context stack"
+    return 2
   fi
+  local msg="$*"; D__CONTEXT+=("$msg")
+
+  # Cut-off for non-printing calls
+  [ $qt = n ] && qt=1; (($D__OPT_VERBOSITY<$qt)) && return 0
+
+  # Start assembling output and settle on formatting
+  local pft= pfa=() tp="$BOLD" ts="$NORMAL"
+  $nl && pft+='\n'; pft+='%s %s: %s\n'
+  case $stl in a) pfa+=("$YELLOW$BOLD==>$NORMAL");;
+    v) pfa+=("$GREEN$BOLD==>$NORMAL");; x) pfa+=("$RED$BOLD==>$NORMAL");;
+    s) pfa+=("$WHITE$BOLD==>$NORMAL");;
+    *) tp="$CYAN$BOLD" ts="$NORMAL$CYAN" pfa+=("$CYAN==>");;
+  esac
+
+  # Add title and message, then print and return
+  [ -n "$ttl" ] || ttl='Start'; pfa+=( "$tp$ttl$ts" "$msg$NORMAL" )
+  printf "$pft" "${pfa[@]}"
+}
+
+#>  d___context_pop DESCRIPTION
+#
+## INTERNAL USE ONLY
+#
+d___context_pop()
+{
+  # Calculate the tip of the stack, check it
+  local level=$((${#D__CONTEXT[@]}-1))
+  if (($level<0)); then printf >&2 '%s %s\n' "$RED$BOLD==>$NORMAL" \
+    "$FUNCNAME: Attempted to pop from the empty context stack"
+    return 3
+  fi
+  
+  # Extract the description, then unset the tip
+  local msg; if (($#)); then msg="$*"; else msg="${D__CONTEXT[$level]}"; fi
+  unset D__CONTEXT[$level]
+
+  # Cut-off for non-printing calls
+  [ $qt = n ] && qt=2; (($D__OPT_VERBOSITY<$qt)) && return 0
+
+  # Start assembling output and settle on formatting
+  local pft= pfa=() tp="$BOLD" ts="$NORMAL"
+  $nl && pft+='\n'; pft+='%s %s: %s\n'
+  case $stl in a) pfa+=("$YELLOW$BOLD==>$NORMAL");;
+    v) pfa+=("$GREEN$BOLD==>$NORMAL");; x) pfa+=("$RED$BOLD==>$NORMAL");;
+    s) pfa+=("$WHITE$BOLD==>$NORMAL");;
+    *) tp="$CYAN$BOLD" ts="$NORMAL$CYAN" pfa+=("$CYAN==>");;
+  esac
+
+  # Add title and message, then print and return
+  [ -n "$ttl" ] || ttl='End'; pfa+=( "$tp$ttl$ts" "$msg$NORMAL" )
+  printf "$pft" "${pfa[@]}"
+}
+
+#>  d___context_notch DESCRIPTION
+#
+## INTERNAL USE ONLY
+#
+d___context_notch()
+{
+  # Check for possibly duplicate notch, then add it
+  if ((${#D__CONTEXT_NOTCHES[@]})) \
+    && [ ${D__CONTEXT_NOTCHES[${#D__CONTEXT_NOTCHES[@]}-1]} \
+    -eq ${#D__CONTEXT[@]} ]
+  then printf >&2 '%s %s%s\n' "$RED$BOLD==>$NORMAL" \
+      "$FUNCNAME: Attempted to make a duplicate notch" \
+      " on the context stack"; return 4
+  fi
+  D__CONTEXT_NOTCHES+=("${#D__CONTEXT[@]}")
+
+  # Cut-off for non-printing calls
+  [ $qt = n ] && qt=3; (($D__OPT_VERBOSITY<$qt)) && return 0
+
+  # Start assembling output and settle on formatting
+  local pft= pfa=() tp="$BOLD" ts="$NORMAL"
+  $nl && pft+='\n'; pft+='%s %s: %s\n'
+  case $stl in a) pfa+=("$YELLOW$BOLD==>$NORMAL");;
+    v) pfa+=("$GREEN$BOLD==>$NORMAL");; x) pfa+=("$RED$BOLD==>$NORMAL");;
+    s) pfa+=("$WHITE$BOLD==>$NORMAL");;
+    *) tp="$CYAN$BOLD" ts="$NORMAL$CYAN" pfa+=("$CYAN==>");;
+  esac
+
+  # Add title and message, then print and return
+  [ -n "$ttl" ] || ttl='Notched'; local msg; if (($#)); then msg="$*"
+  else msg="At position ${#D__CONTEXT[@]}"; fi
+  pfa+=( "$tp$ttl$ts" "$msg$NORMAL" )
+  printf "$pft" "${pfa[@]}"
+}
+
+#>  d___context_lop DESCRIPTION
+#
+## INTERNAL USE ONLY
+#
+d___context_lop()
+{
+  # Calculate the range of stack items to be popped
+  local min num=${#D__CONTEXT_NOTCHES[@]} level msg
+  if (($num)); then ((--num)); min=${D__CONTEXT_NOTCHES[$num]}
+  else num=; min=0; fi
+
+  # Calculate whether the pop messages are to be printed
+  [ $qt = n ] && qt=3; if (($D__OPT_VERBOSITY<$qt)); then qt=true; else
+
+    # Start assembling output and settle on formatting
+    local pft= pfa=() tp="$BOLD" ts="$NORMAL" arrow
+    $nl && pft+='\n'; qt=false
+    case $stl in a) arrow="$YELLOW$BOLD==>$NORMAL";;
+      v) arrow="$GREEN$BOLD==>$NORMAL";; x) arrow="$RED$BOLD==>$NORMAL";;
+      s) arrow="$WHITE$BOLD==>$NORMAL";;
+      *) tp="$CYAN$BOLD" ts="$NORMAL$CYAN" arrow="$CYAN==>";;
+    esac
+
+  fi
+
+  # Pop items one by one
+  for ((level=${#D__CONTEXT[@]}-1;level>=$min;--level)); do
+    msg="${D__CONTEXT[$level]}"; unset D__CONTEXT[$level]; $qt && continue
+    pft+='%s %s: %s\n' pfa+=( "$arrow" "${tp}End$ts" "$msg" )
+  done
+  
+  # Unset the notch; then cut-off for non-printing calls
+  [ -n "$num" ] && unset D__CONTEXT_NOTCHES[$num]; $qt && return 0
+
+  # Add title and message, then print and return
+  if [ -n "$num" ]; then [ -n "$ttl" ] || ttl='De-notched'
+    local msg; if (($#)); then msg="$*"; else msg="At position $min"; fi
+    pft+='%s %s: %s\n' pfa+=( "$arrow" "$tp$ttl$ts" "$msg" )
+  fi
+  [ -n "$pft" ] && printf "$pft%s" "${pfa[@]}" "$NORMAL"
 }
 
 #>  d__cmd [<options>] [----] CMD...
@@ -238,17 +372,22 @@ d__context()
 #.  --se--    - (default) Suppress stderr of the command.
 #.  --sb--    - Suppress both stdout and stderr of the command.
 #
-## Verbosity modes (one active at a time, last option wins):
-#.  --q--     - (repeatable) The amount of these options designates the quiet 
-#.              level of the command. Whatever output is not suppressed is 
-#.              printed only if the value in $D__OPT_VERBOSITY is equal to or 
-#.              greater than the quiet level.
-#.              The particular option can be repeated within the hyphens, e.g., 
-#.              '--qqq--'. Be aware, that only the first character is checked 
-#.              to be 'q', the others are simply counted.
-#.              If this option is not given at all, the default quiet level is 
-#.              zero.
+## Quiet options:
+#.  --q--     - (repeatable) Increments the quiet level by one. This particular 
+#.              option can be repeated within the hyphens, e.g., '--qqq--'. Be 
+#.              aware, that only the first character is checked to be 'q', the 
+#.              others are simply counted.
 #.  --l--     - Sets the quiet level to zero.
+#
+## Quiet options designate the quiet level for the current call. Whatever 
+#. output is produced by the underlying command is printed only if the value in 
+#. $D__OPT_VERBOSITY is equal to or greater than the quiet level.
+#
+## Quiet options are read sequentially, left-to-right, and the quiet level 
+#. starts at zero. If these options are not given at all, the default quiet 
+#. level is also zero.
+#
+## Normally, the quiet level does not affect the failure output.
 #
 ## Options below are relevant only when CMD fails (after optional negation). 
 #. All of them modify the output of d__fail.
@@ -257,6 +396,8 @@ d__context()
 #.  --opt--         - Make the command optional: if there is a failure, the 
 #.                    head of the context stacked will not be lopped and the 
 #.                    failure messages will be styled less urgently.
+#.                    When a command is marked optional, its failure output is 
+#.                    printed depending on the quiet level.
 #.  --alrt-- ALERT  - This short phrase will override the default title of 
 #.                    the output of d__fail.
 #.  --crcm-- MSG    - Provided message will be printed to the user by d__fail, 
@@ -307,24 +448,9 @@ d__cmd()
         q*)   ((qt+=${#tmp}));;
         l)    qt=0;;
         opt)  opt=true;;
-        alrt) if (($#)); then local d__alrt; d__alrt="$1"
-                [ -n "$d__alrt" ] || d__alrt='<empty title>'; shift
-              else printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" \
-                "$FUNCNAME: Ignoring option lacking required argument:" \
-                " '--$tmp--'"
-              fi;;
-        crcm) if (($#)); then local d__crcm; d__crcm="$1"
-                [ -n "$d__crcm" ] || d__crcm='<empty description>'; shift
-              else printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" \
-                "$FUNCNAME: Ignoring option lacking required argument:" \
-                " '--$tmp--'"
-              fi;;
-        else) if (($#)); then local d__rslt; d__rslt="$1"
-                [ -n "$d__rslt" ] || d__rslt='<empty description>'; shift
-              else printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" \
-                "$FUNCNAME: Ignoring option lacking required argument:" \
-                " '--$tmp--'"
-              fi;;
+        alrt) if (($#)); then local d__alrt; d__alrt="$1"; shift; fi;;
+        crcm) if (($#)); then local d__crcm; d__crcm="$1"; shift; fi;;
+        else) if (($#)); then local d__rslt; d__rslt="$1"; shift; fi;;
         \#*)  if (($#)); then tmp="${tmp:1}"
                 if [ -z ${labels[$tmp]+isset} ]; then
                   printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" \
@@ -333,16 +459,10 @@ d__cmd()
                 else
                   args+=("$1"); d__cmd+=" $BOLD${labels[$tmp]}$NORMAL"; shift
                 fi
-              else
-                printf >&2 '%s %s: %s\n' "$YELLOW$BOLD==>$NORMAL" "$FUNCNAME" \
-                  "Ignoring option lacking required argument: '--$tmp--'"
               fi;;
         *)    if (($#)); then
                 labels+=("$tmp"); hunks+=("$1")
                 args+=("$1"); d__cmd+=" $BOLD$tmp$NORMAL"; shift
-              else
-                printf >&2 '%s %s: %s\n' "$YELLOW$BOLD==>$NORMAL" "$FUNCNAME" \
-                  "Ignoring option lacking required argument: '--$tmp--'"
               fi;;
       esac;;
     *)  args+=("$tmp"); d__cmd+=" $tmp";;
@@ -410,15 +530,9 @@ d__require()
                   d__cmd[${#pcnt}]+=" $*"; break;;
         and|AND)  if ((${#pcnt}<2)); then
                     d__cmd[${#pcnt}]+=" $BOLD&&$NORMAL"; pcnt+=a; neg+=(false)
-                  else
-                    printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" \
-                      "$FUNCNAME: Ignoring surplus option: '--$tmp--'"
                   fi;;
         or|OR)    if ((${#pcnt}<2)); then
                     d__cmd[${#pcnt}]+=" $BOLD||$NORMAL"; pcnt+=o; neg+=(false)
-                  else
-                    printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" \
-                      "$FUNCNAME: Ignoring surplus option: '--$tmp--'"
                   fi;;
         neg)      neg[${#pcnt}]=true;;
         sn)       sup=n;;
@@ -428,24 +542,9 @@ d__require()
         q*)       ((qt+=${#tmp}));;
         l)        qt=0;;
         opt)      opt=true;;
-        alrt)     if (($#)); then local d__alrt; d__alrt="$1"
-                    [ -n "$d__alrt" ] || d__alrt='<empty title>'; shift
-                  else printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" \
-                    "$FUNCNAME: Ignoring option lacking required argument:" \
-                    " '--$tmp--'"
-                  fi;;
-        crcm)     if (($#)); then local d__crcm; d__crcm="$1"
-                    [ -n "$d__crcm" ] || d__crcm='<empty description>'; shift
-                  else printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" \
-                    "$FUNCNAME: Ignoring option lacking required argument:" \
-                    " '--$tmp--'"
-                  fi;;
-        else)     if (($#)); then local d__rslt; d__rslt="$1"
-                    [ -n "$d__rslt" ] || d__rslt='<empty description>'; shift
-                  else printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" \
-                    "$FUNCNAME: Ignoring option lacking required argument:" \
-                    " '--$tmp--'"
-                  fi;;
+        alrt)     if (($#)); then local d__alrt; d__alrt="$1"; shift; fi;;
+        crcm)     if (($#)); then local d__crcm; d__crcm="$1"; shift; fi;;
+        else)     if (($#)); then local d__rslt; d__rslt="$1"; shift; fi;;
         \#*)      if (($#)); then tmp="${tmp:1}"
                     if [ -z ${labels[$tmp]+isset} ]; then
                       printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" \
@@ -456,20 +555,12 @@ d__require()
                         2) args2+=("$1");; esac
                       d__cmd+=" $BOLD${labels[$tmp]}$NORMAL"; shift
                     fi
-                  else
-                    printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" \
-                      "$FUNCNAME: Ignoring option lacking required" \
-                      " argument: '--$tmp--'"
                   fi;;
         *)        if (($#)); then
                     labels+=("$tmp"); hunks+=("$1")
                     case ${#pcnt} in 0) args0+=("$1");; 1) args1+=("$1");;
                       2) args2+=("$1");; esac
                     d__cmd+=" $BOLD$tmp$NORMAL"; shift
-                  else
-                    printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" \
-                      "$FUNCNAME: Ignoring option lacking required argument:" \
-                      " '--$tmp--'"
                   fi;;
       esac;;
     *)  case ${#pcnt} in 0) args0+=("$tmp");; 1) args1+=("$tmp");;
@@ -595,9 +686,6 @@ d__pipe()
                     d__cmd+=" $*"; break;;
         P|p|pipe)   if ((pcnt<2)); then
                       ((++pcnt)); d__cmd+=" $BOLD|$NORMAL"
-                    else
-                      printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" \
-                        "$FUNCNAME: Ignoring surplus option: '--$tmp--'"
                     fi;;
         ret*)       tmp="${tmp:3}"; case $tmp in 0|1|2) local ret=$tmp;;
                       *)  printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" \
@@ -612,24 +700,9 @@ d__pipe()
         q*)         ((qt+=${#tmp}));;
         l)          qt=0;;
         opt)        opt=true;;
-        alrt)       if (($#)); then local d__alrt; d__alrt="$1"
-                      [ -n "$d__alrt" ] || d__alrt='<empty title>'; shift
-                    else printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" \
-                      "$FUNCNAME: Ignoring option lacking required argument:" \
-                      " '--$tmp--'"
-                    fi;;
-        crcm)       if (($#)); then local d__crcm; d__crcm="$1"
-                      [ -n "$d__crcm" ] || d__crcm='<empty description>'; shift
-                    else printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" \
-                      "$FUNCNAME: Ignoring option lacking required argument:" \
-                      " '--$tmp--'"
-                    fi;;
-        else)       if (($#)); then local d__rslt; d__rslt="$1"
-                      [ -n "$d__rslt" ] || d__rslt='<empty description>'; shift
-                    else printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" \
-                      "$FUNCNAME: Ignoring option lacking required argument:" \
-                      " '--$tmp--'"
-                    fi;;
+        alrt)       if (($#)); then local d__alrt; d__alrt="$1"; shift; fi;;
+        crcm)       if (($#)); then local d__crcm; d__crcm="$1"; shift; fi;;
+        else)       if (($#)); then local d__rslt; d__rslt="$1"; shift; fi;;
         \#*)        if (($#)); then tmp="${tmp:1}"
                       if [ -z ${labels[$tmp]+isset} ]; then
                         printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" \
@@ -640,20 +713,12 @@ d__pipe()
                           2) args2+=("$1");; esac
                         d__cmd+=" $BOLD${labels[$tmp]}$NORMAL"; shift
                       fi
-                    else
-                      printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" \
-                        "$FUNCNAME: Ignoring option lacking required" \
-                        " argument: '--$tmp--'"
                     fi;;
         *)          if (($#)); then
                       labels+=("$tmp"); hunks+=("$1")
                       case $pcnt in 0) args0+=("$1");; 1) args1+=("$1");;
                         2) args2+=("$1");; esac
                       d__cmd+=" $BOLD$tmp$NORMAL"; shift
-                    else
-                      printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" \
-                        "$FUNCNAME: Ignoring option lacking required" \
-                        " argument: '--$tmp--'"
                     fi;;
       esac;;
     *)  case $pcnt in 0) args0+=("$tmp");; 1) args1+=("$tmp");;
@@ -729,7 +794,7 @@ d__pipe()
   fi
 }
 
-#>  d__fail [-t TITLE] [--] [DESCRIPTION...]
+#>  d__fail [-n] [-t TITLE] [--] [DESCRIPTION...]
 #
 ## Debug printer: announces a failure of some kind. The output is printed 
 #. regardless of the global verbosity setting. Invariably lops the head of the 
@@ -740,9 +805,7 @@ d__pipe()
 ##  ==> <TITLE>[: <DESCRIPTION>]
 #.      [Context: <CONTEXT>...]
 #
-##  * TITLE       - Short heading of the failure. Defaults to:
-#.                    * 'Failure'               - If the DESCRIPTION is given.
-#.                    * 'Something went wrong'  - Otherwise.
+##  * TITLE       - Short heading of the failure.
 #.  * DESCRIPTION - Short elaboration on the failure. May be omitted.
 #.  * CONTEXT     - Head of the context stack. Omitted if empty.
 #
@@ -755,7 +818,22 @@ d__pipe()
 #.  * Titles and some parts of CMD are styled in bold.
 #
 ## Options:
-#.  -t TITLE, --title TITLE   - Custom title for the leading line.
+#.  -t TITLE, --title TITLE   - Custom title for the leading line. Defaults to:
+#.                                * 'Failure' - If the DESCRIPTION is given.
+#.                                * 'Something went wrong' - Otherwise.
+#.  -n, --newline             - With this option, if this function produces any 
+#.                              output, an extra newline is printed before any 
+#.                              other output.
+#
+## Special formatting para-options (para-options work only after the option-
+#. argument separator '--'):
+#.  -t-   - This para-option treats the next WORD in the DESCRIPTION as a 
+#.          title. That WORD is then styled as a title and is followed by a 
+#.          colon.
+#.  -n-   - This para-option inserts a newline followed by the arrow-width 
+#.          indentation (four spaces).
+#.  -i-   - This para-option is similar to the '-n-' para-option, but the 
+#.          indentation is doubled.
 #
 ## Returns:
 #.  0 - Always.
@@ -766,27 +844,17 @@ d__pipe()
 #
 d__fail()
 {
-  # Assemble template and arguments for the eventual call to printf
-  local pft='%s' pfa=( "$RED$BOLD==>$NORMAL" ) i
-
-  # Regular call: pluck out options, round up arguments
-  local args=() arg opt title; while (($#)); do arg="$1"; shift; case $arg in
+  # Pluck out options, round up arguments
+  local args=() arg opt ttl nl=false i
+  while (($#)); do arg="$1"; shift; case $arg in
     -*) case ${arg:1} in
-          -)        args+=("$@"); break;;
-          t|-title) if (($#)); then title="$1"
-                      [ -n "$title" ] || title='<empty title>'; shift
-                    else printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" \
-                      "$FUNCNAME: Ignoring option lacking required" \
-                      " argument: '$arg'"
-                    fi;;
+          -)          args+=("$@"); break;;
+          n|-newline) nl=true;;
+          t|-title)   if (($#)); then ttl="$1"; shift; fi;;
           *)  for ((i=1;i<${#arg};++i)); do opt="${arg:i:1}"
                 case $opt in
-                  t)  if (($#)); then title="$1"
-                        [ -n "$title" ] || title='<empty title>'; shift
-                      else printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" \
-                        "$FUNCNAME: Ignoring option lacking required" \
-                        " argument: '$opt'"
-                      fi;;
+                  n)  nl=true;;
+                  t)  if (($#)); then ttl="$1"; shift; fi;;
                   *)  printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" \
                         "$FUNCNAME: Ignoring unrecognized option: '$opt'";;
                 esac
@@ -795,30 +863,31 @@ d__fail()
     *)  args+=("$arg");;
   esac; done
 
+  # Assemble template and arguments for the eventual call to printf
+  local pft= pfa=( "$RED$BOLD==>$NORMAL" ); $nl && pft+='\n'; pft+='%s'
+
   # Compose the leading line depending on the options
-  pft+=' %s'
-  if ((${#args[@]})); then
-    pft+=': %s\n'
-    [ -n "$title" ] && pfa+=("$BOLD$title$NORMAL") \
-      || pfa+=("${BOLD}Failure$NORMAL")
-    [ -n "${args[0]}" ] && pfa+=("${args[0]}") || pfa+=('<empty description>')
-    for ((i=1;i<${#args[@]};++i)); do
-      pft+='    %s\n'; [ -n "${args[$i]}" ] \
-        && pfa+=("${args[$i]}") || pfa+=('<empty description>')
-    done
+  if ((${#args[@]})); then set -- "${args[@]}"
+    pft+=' %s:'; if [ -n "$ttl" ]; then pfa+=("$BOLD$ttl$NORMAL")
+    else pfa+=("${BOLD}Failure$NORMAL"); fi
+    while (($#)); do case $1 in
+      -n-)  pft+='\n   ';;
+      -i-)  pft+='\n       ';;
+      -t-)  shift; (($#)) || continue; pft+=' %s:' pfa+=("$BOLD$1$NORMAL");;
+      *)    pft+=' %s' pfa+=("$1")
+    esac; shift; done; pft+='\n'
   else
-    pft+='\n'
-    [ -n "$title" ] && pfa+=("$BOLD$title$NORMAL") \
-      || pfa+=("${BOLD}Something went wrong$NORMAL")
+    pft+=' %s\n'; if [ -n "$ttl" ]; then pfa+=("$BOLD$ttl$NORMAL")
+    else pfa+=("${BOLD}Something went wrong$NORMAL"); fi
   fi
 
   # Print the head of the stack
   local tmp=${#D__CONTEXT_NOTCHES[@]}; (($tmp)) \
     && tmp=$((${D__CONTEXT_NOTCHES[$tmp-1]})) || tmp=0
   if ((${#D__CONTEXT[@]} > $tmp)); then
-    pft+='    %s: %s\n'; pfa+=( "${BOLD}Context$NORMAL" "${D__CONTEXT[$tmp]}" )
+    pft+='    %s: %s\n' pfa+=( "${BOLD}Context$NORMAL" "${D__CONTEXT[$tmp]}" )
     for ((i=$tmp+1;i<${#D__CONTEXT[@]};++i)); do
-      pft+='             %s\n'; pfa+=("${D__CONTEXT[$i]}")
+      pft+='             %s\n' pfa+=("${D__CONTEXT[$i]}")
     done
   fi
 
@@ -829,7 +898,7 @@ d__fail()
   d__context -- lop
 }
 
-#>  d__notify [-!1cdhlqsuvx] [-t TITLE] [--] [DESCRIPTION...]
+#>  d__notify [-!1cdhlnqsuvx] [-t TITLE] [--] [DESCRIPTION...]
 #
 ## Debug printer: announces a development of any kind. Whether the output is 
 #. printed depends on the global verbosity setting.
@@ -861,17 +930,13 @@ d__fail()
 #.  * Titles are styled in bold.
 #
 ## Options:
-#.  -q, --quiet               - (repeatable) The amount of these options 
-#.                              designates the quiet level. The output is only 
-#.                              printed if the value in $D__OPT_VERBOSITY is 
-#.                              equal to or greater than the quiet level.
-#.                              If this option is not given at all, the default 
-#.                              quiet level of this function is 1.
-#.  -l, --loud                - Sets the quiet level to zero.
 #.  -u, --sudo                - Print the notification only if the caller lacks 
 #.                              the sudo privelege. Automatically makes the 
 #.                              notification `--loud`.
 #.  -t TITLE, --title TITLE   - Custom title for the leading line.
+#.  -n, --newline             - With this option, if this function produces any 
+#.                              output, an extra newline is printed before any 
+#.                              other output.
 #
 ## Options for context (one active at a time, last option wins):
 #.  -c, --context-all         - Include in the output the entire workflow 
@@ -895,6 +960,30 @@ d__fail()
 #.  -s, --skip      - Style the notification as a skip message by painting the 
 #.                    introductory arrow in white.
 #
+## Quiet options:
+#.  -q, --quiet               - (repeatable) Increments the quiet level by one.
+#.  -l, --loud                - Sets the quiet level to zero.
+#
+## Quiet options designate the quiet level for the current call. The output 
+#. is printed only if the value in $D__OPT_VERBOSITY is equal to or greater 
+#. than the quiet level.
+#
+## Quiet options are read sequentially, left-to-right, and the quiet level 
+#. starts at zero. However, if these options are not given at all, the default 
+#. quiet level is 1.
+#
+## Special formatting para-options (para-options work only after the option-
+#. argument separator '--'):
+#.  -t-   - This para-option treats the next WORD in the DESCRIPTION as a 
+#.          title. That WORD is then styled as a title and is followed by a 
+#.          colon.
+#.  -n-   - This para-option inserts a newline followed by the arrow-width 
+#.          indentation (four spaces).
+#.  -i-   - This para-option is similar to the '-n-' para-option, but the 
+#.          indentation is doubled.
+#
+## Para-options work only after the option-argument separator '--'.
+#
 ## Returns:
 #.  0 - Always.
 #
@@ -905,7 +994,7 @@ d__fail()
 d__notify()
 {
   # Regular call: pluck out options, round up arguments
-  local args=() arg opt context qt=n quiet=true sudo=false title stl i
+  local args=() arg opt context qt=n quiet=true sudo=false ttl stl nl=false i
   while (($#)); do arg="$1"; shift; case $arg in
     -*) case ${arg:1} in
           -)          args+=("$@"); break;;
@@ -915,17 +1004,12 @@ d__notify()
           l|-loud)    qt=0;;
           q|-quiet)   ((++qt));;
           u|-sudo)    sudo -n true 2>/dev/null && return 0; sudo=true;;
-          !|-alert)   stl=a;;
+          \!|-alert)  stl=a;;
           d|-debug)   stl=d;;
           v|-success) stl=v;;
           x|-failure) stl=x;;
           s|-skip)    stl=s;;
-          t|-title)   if (($#)); then title="$1"
-                        [ -n "$title" ] || title='<empty title>'; shift
-                      else printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" \
-                        "$FUNCNAME: Ignoring option lacking required" \
-                        " argument: '$arg'"
-                      fi;;
+          t|-title)   if (($#)); then ttl="$1"; shift; fi;;
           *)  for ((i=1;i<${#arg};++i)); do opt="${arg:i:1}"
                 case $opt in
                   c)  context=e;;
@@ -934,17 +1018,12 @@ d__notify()
                   l)  qt=0;;
                   q)  ((++qt));;
                   u)  sudo -n true 2>/dev/null && return 0; sudo=true;;
-                  !)  stl=a;;
+                  \!) stl=a;;
                   d)  stl=d;;
                   v)  stl=v;;
                   x)  stl=x;;
                   s)  stl=s;;
-                  t)  if (($#)); then title="$1"
-                        [ -n "$title" ] || title='<empty title>'; shift
-                      else printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" \
-                        "$FUNCNAME: Ignoring option lacking required" \
-                        " argument: '$opt'"
-                      fi;;
+                  t)  if (($#)); then ttl="$1"; shift; fi;;
                   *)  printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" \
                         "$FUNCNAME: Ignoring unrecognized option: '$opt'";;
                 esac
@@ -955,7 +1034,7 @@ d__notify()
 
   # Settle on sudo option
   if $sudo; then
-    qt=0; [ -n "$title" ] || title='Password prompt'
+    qt=0; [ -n "$ttl" ] || ttl='Password prompt'
     ((${#args[@]})) || args='The upcoming command requires sudo priveleges'
   fi
 
@@ -963,26 +1042,26 @@ d__notify()
   [ $qt = n ] && qt=1; (($D__OPT_VERBOSITY<$qt)) && return 0
 
   # Assemble template and arguments for the eventual call to printf
-  local pft='%s' pfa=() tp="$BOLD" ts="$NORMAL"
+  local pft= pfa=() tp="$BOLD" ts="$NORMAL"; $nl && pft+='\n'; pft+='%s'
 
   # Settle on formatting
   case $stl in a) pfa+=("$YELLOW$BOLD==>$NORMAL");;
     v) pfa+=("$GREEN$BOLD==>$NORMAL");; x) pfa+=("$RED$BOLD==>$NORMAL");;
     s) pfa+=("$WHITE$BOLD==>$NORMAL");;
-    *) tp="$CYAN$BOLD" ts="$NORMAL$CYAN"; pfa+=("$CYAN==>$NORMAL");;
+    *) tp="$CYAN$BOLD" ts="$NORMAL$CYAN"; pfa+=("$CYAN==>");;
   esac
 
   # Compose the leading line depending on the options
-  if ((${#args[@]})); then
-    if [ -n "$title" ]; then pft+=' %s:'; pfa+=("$tp$title$ts"); fi
-    pft+=' %s\n'; [ -n "${args[0]}" ] \
-      && pfa+=("$ts${args[0]}") || pfa+=("$ts<empty description>")
-    for ((i=1;i<${#args[@]};++i)); do
-      pft+='    %s\n'; [ -n "${args[$i]}" ] \
-        && pfa+=("${args[$i]}") || pfa+=('<empty description>')
-    done
+  if ((${#args[@]})); then set -- "${args[@]}"
+    if [ -n "$ttl" ]; then pft+=' %s:' pfa+=("$tp$ttl$ts"); fi
+    while (($#)); do case $1 in
+      -n-)  pft+='\n   ';;
+      -i-)  pft+='\n       ';;
+      -t-)  shift; (($#)) || continue; pft+=' %s:' pfa+=("$tp$1$ts");;
+      *)    pft+=' %s' pfa+=("$1")
+    esac; shift; done; pft+='\n'
   else
-    pft+=' %s\n'; if [ -n "$title" ]; then pfa+=("$tp$title$ts")
+    pft+=' %s\n'; if [ -n "$ttl" ]; then pfa+=("$tp$ttl$ts")
     else pfa+=("${tp}Generic alert$ts"); fi
   fi
 
@@ -996,9 +1075,9 @@ d__notify()
             && context=$(($context-1)) || context=0;;
     esac
     if ((${#D__CONTEXT[@]} > $context)); then
-      pft+='    %s: %s\n'; pfa+=( "${tp}Context$ts" "${D__CONTEXT[$context]}" )
+      pft+='    %s: %s\n' pfa+=( "${tp}Context$ts" "${D__CONTEXT[$context]}" )
       for ((i=$context+1;i<${#D__CONTEXT[@]};++i)); do
-        pft+='             %s\n'; pfa+=("${D__CONTEXT[$i]}")
+        pft+='             %s\n' pfa+=("${D__CONTEXT[$i]}")
       done
     fi
   fi
@@ -1007,7 +1086,7 @@ d__notify()
   printf >&2 "$pft%s" "${pfa[@]}" "$NORMAL"
 }
 
-#>  d__prompt [-!1bchkqsvxy] [-p PROMPT] [-a ANSWER] [-t TITLE] [--] \
+#>  d__prompt [-!1bchknqsvxy] [-p PROMPT] [-a ANSWER] [-t TITLE] [--] \
 #>    [DESCRIPTION...]
 #
 ## Prompting mechanism: requests a key press and returns corresponding integer:
@@ -1065,6 +1144,9 @@ d__notify()
 #.  -q, --or-quit               - In both prompting modes, provides an extra 
 #.                                option: 'quit'. The returned value for 'quit' 
 #.                                is always 2.
+#.  -n, --newline               - With this option, if this function produces 
+#.                                any output, an extra newline is printed 
+#.                                before any other output.
 #
 ## Prompting mode (one active at a time, last option wins):
 #.  -y, --yes-no    - (default) Prompt for a yes/no answer.
@@ -1092,6 +1174,18 @@ d__notify()
 #.  -b, --bare      - Do not color the prompt at all. Bolding effects are 
 #.                    retained.
 #
+## Special formatting para-options (para-options work only after the option-
+#. argument separator '--'):
+#.  -t-   - This para-option treats the next WORD in the DESCRIPTION as a 
+#.          title. That WORD is then styled as a title and is followed by a 
+#.          colon.
+#.  -n-   - This para-option inserts a newline followed by the arrow-width 
+#.          indentation (four spaces).
+#.  -i-   - This para-option is similar to the '-n-' para-option, but the 
+#.          indentation is doubled.
+#
+## Para-options work only after the option-argument separator '--'.
+#
 ## Returns:
 #.  0 - Always.
 #
@@ -1101,12 +1195,9 @@ d__notify()
 #
 d__prompt()
 {
-  # Assemble template and arguments for the eventual call to printf
-  local pft= pfa=() i tp ts clr
-
   # Regular call: pluck out options, round up arguments
-  local args=() arg opt mode=y or_quit=false context one_line=true
-  local prompt answer title stl
+  local args=() arg opt mode=y or_quit=false context one_line=true nl=false i
+  local prompt answer ttl stl
   while (($#)); do arg="$1"; shift; case $arg in
     -*) case ${arg:1} in
           -)          args+=("$@"); break;;
@@ -1117,28 +1208,14 @@ d__prompt()
           h|-context-head)  context=h; one_line=false;;
           1|-context-tip)   context=t; one_line=false;;
           b|-bare)    stl=b;;
-          !|-alert)   stl=a;;
+          \!|-alert)  stl=a;;
           v|-success) stl=v;;
           x|-failure) stl=x;;
           s|-skip)    stl=s;;
-          p|-prompt)  if (($#)); then prompt="$1"
-                        [ -n "$prompt" ] || prompt='<empty prompt>'; shift
-                      else printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" \
-                        "$FUNCNAME: Ignoring option lacking required" \
-                        " argument: '$arg'"
-                      fi;;
-          a|-answer)  if (($#)); then answer="$1"; shift
-                      else printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" \
-                        "$FUNCNAME: Ignoring option lacking required" \
-                        " argument: '$arg'"
-                      fi;;
-          t|-title)   if (($#)); then title="$1"
-                        [ -n "$title" ] || title='<empty title>'
-                        one_line=false; shift
-                      else printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" \
-                        "$FUNCNAME: Ignoring option lacking required" \
-                        " argument: '$arg'"
-                      fi;;
+          n|-newline) nl=true;;
+          p|-prompt)  if (($#)); then prompt="$1"; shift; fi;;
+          a|-answer)  if (($#)); then answer="$1"; shift; fi;;
+          t|-title)   if (($#)); then ttl="$1"; one_line=false; shift; fi;;
           *)  for ((i=1;i<${#arg};++i)); do opt="${arg:i:1}"
                 case $opt in
                   y)  mode=y;;
@@ -1148,28 +1225,14 @@ d__prompt()
                   h)  context=h; one_line=false;;
                   1)  context=t; one_line=false;;
                   b)  stl=b;;
-                  !)  stl=a;;
+                  \!) stl=a;;
                   v)  stl=v;;
                   x)  stl=x;;
                   s)  stl=s;;
-                  p)  if (($#)); then prompt="$1"
-                        [ -n "$prompt" ] || prompt='<empty prompt>'; shift
-                      else printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" \
-                        "$FUNCNAME: Ignoring option lacking required" \
-                        " argument: '$opt'"
-                      fi;;
-                  a)  if (($#)); then answer="$1"; shift
-                      else printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" \
-                        "$FUNCNAME: Ignoring option lacking required" \
-                        " argument: '$opt'"
-                      fi;;
-                  t)  if (($#)); then title="$1"
-                        [ -n "$title" ] || title='<empty title>'
-                        one_line=false; shift
-                      else printf >&2 '%s %s%s\n' "$YELLOW$BOLD==>$NORMAL" \
-                        "$FUNCNAME: Ignoring option lacking required" \
-                        " argument: '$opt'"
-                      fi;;
+                  n)  nl=true;;
+                  p)  if (($#)); then prompt="$1"; shift; fi;;
+                  a)  if (($#)); then answer="$1"; shift; fi;;
+                  t)  if (($#)); then ttl="$1"; one_line=false; shift; fi;;
                   *)  printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" \
                         "$FUNCNAME: Ignoring unrecognized option: '$opt'";;
                 esac
@@ -1194,6 +1257,9 @@ d__prompt()
             esac;;
   esac
 
+  # Assemble template and arguments for the eventual call to printf
+  local pft= pfa=() clr; $nl && pft+='\n'
+
   # Settle on coloring
   case $stl in b) :;; v) clr="$GREEN";; x) clr="$RED";; s) clr="$WHITE";;
     *) clr="$YELLOW";; esac
@@ -1205,21 +1271,20 @@ d__prompt()
   if ! $one_line; then
 
     # Print introductory arrow
-    pft+='%s '; pfa+=("$clr$BOLD==>$NORMAL")
+    pft+='%s' pfa+=("$clr$BOLD==>$NORMAL")
 
     # Compose the leading line depending on the options
-    if ((${#args[@]})); then
-      if [ -n "$title" ]; then pft+='%s: %s\n'; pfa+=("$BOLD$title$NORMAL")
-      else pft+='%s\n' ; fi
-      [ -n "${args[0]}" ] \
-        && pfa+=("${args[0]}") || pfa+=('<empty description>')
-      for ((i=1;i<${#args[@]};++i)); do
-        pft+='    %s\n'; [ -n "${args[$i]}" ] \
-          && pfa+=("${args[$i]}") || pfa+=('<empty description>')
-      done
+    if ((${#args[@]})); then set -- "${args[@]}"
+      if [ -n "$ttl" ]; then pft+=' %s:' pfa+=("$BOLD$ttl$NORMAL"); fi
+      while (($#)); do case $1 in
+        -n-)  pft+='\n   ';;
+        -i-)  pft+='\n       ';;
+        -t-)  shift; (($#)) || continue; pft+=' %s:' pfa+=("$BOLD$1$NORMAL");;
+        *)    pft+=' %s' pfa+=("$1")
+      esac; shift; done; pft+='\n'
     else
-      pft+='%s\n'; [ -n "$title" ] && pfa+=("$BOLD$title$NORMAL") \
-        || pfa+=("${BOLD}User attention required$NORMAL")
+      pft+=' %s\n'; if [ -n "$ttl" ]; then pfa+=("$BOLD$ttl$NORMAL")
+      else pfa+=("${BOLD}User attention required$NORMAL"); fi
     fi
 
     # Print whatever part of the stack is requested
@@ -1235,7 +1300,7 @@ d__prompt()
         pft+='    %s: %s\n'
         pfa+=( "${BOLD}Context$NORMAL" "${D__CONTEXT[$context]}" )
         for ((i=$context+1;i<${#D__CONTEXT[@]};++i)); do
-          pft+='             %s\n'; pfa+=("${D__CONTEXT[$i]}")
+          pft+='             %s\n' pfa+=("${D__CONTEXT[$i]}")
         done
       fi
     fi
@@ -1324,38 +1389,39 @@ d___fail_from_cmd()
   local pft='%s' pfa=() i
 
   # Settle on formatting
-  if $opt; then $D__OPT_QUIET && return 0
-    pfa+=("$CYAN==>$NORMAL"); local tp="$CYAN$BOLD" ts="$NORMAL$CYAN"
+  if $opt; then (($D__OPT_VERBOSITY<$qt)) && return 0
+    pfa+=("$YELLOW$BOLD==>$NORMAL") 
   else
-    pfa+=("$RED$BOLD==>$NORMAL"); local tp="$BOLD" ts="$NORMAL"
+    pfa+=("$RED$BOLD==>$NORMAL")
   fi
 
   # Compose the leading line
-  pft+=' %s: %s\n'; pfa+=( "$tp$d__alrt" "$NORMAL$d__cmd" )
+  pft+=' %s: %s\n' pfa+=( "$BOLD$d__alrt$NORMAL" "$d__cmd" )
   for ((i=0;i<${#labels[@]};++i)); do
-    pft+='        %s: %s\n'; pfa+=( "$tp${labels[$i]}$ts" "'${hunks[$i]}'" )
+    pft+='        %s: %s\n'
+    pfa+=( "$BOLD${labels[$i]}$NORMAL" "'${hunks[$i]}'" )
   done
 
   # Print the head of the stack
   local tmp=${#D__CONTEXT_NOTCHES[@]}
   (($tmp)) && tmp=$((${D__CONTEXT_NOTCHES[$tmp-1]})) || tmp=0
   if ((${#D__CONTEXT[@]} > $tmp)); then
-    pft+='    %s: %s\n'; pfa+=( "${tp}Context$ts" "${D__CONTEXT[$tmp]}" )
+    pft+='    %s: %s\n' pfa+=( "${BOLD}Context$NORMAL" "${D__CONTEXT[$tmp]}" )
     for ((i=$tmp+1;i<${#D__CONTEXT[@]};++i)); do
-      pft+='             %s\n'; pfa+=("${D__CONTEXT[$i]}")
+      pft+='             %s\n' pfa+=("${D__CONTEXT[$i]}")
     done
   fi
 
   # Add circumstances and consequences, if provided
   if ! [ -z ${d__crcm+isset} ]; then
-    pft+='    %s: %s\n'; pfa+=( "${tp}Circumstances$ts" "$d__crcm" )
+    pft+='    %s: %s\n' pfa+=( "${BOLD}Circumstances$NORMAL" "$d__crcm" )
   fi
   if ! [ -z ${d__rslt+isset} ]; then
-    pft+='    %s: %s\n'; pfa+=( "${tp}Result$ts" "$d__rslt" )
+    pft+='    %s: %s\n' pfa+=( "${BOLD}Result$NORMAL" "$d__rslt" )
   fi
 
   # Print the output
-  printf >&2 "$pft%s" "${pfa[@]}" "$NORMAL"
+  printf >&2 "$pft" "${pfa[@]}"
 
   # If not optional, lop the head of the context stack
   $opt || d__context -- lop
