@@ -1,8 +1,8 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revdate: 2019.09.25
-:revremark: Describe new behavior of d__cmd and siblings
+:revdate: 2019.09.28
+:revremark: Describe para-options and debug funcs improvements
 :doctype: article
 // Visual
 :toc:
@@ -1569,7 +1569,7 @@ For notes on usage within the Divine workflow, see the workflow <<divine-workflo
 
 [source,subs="verbatim,quotes,attributes"]
 ----
-*d{dus}context* [-lq] [-t *_TITLE_*] [--] *push*|*pop*|*notch*|*lop* *_DESCRIPTION_*...
+*d{dus}context* [-lnq] [-t *_TITLE_*] [--] *push*|*pop*|*notch*|*lop* *_DESCRIPTION_*...
 ----
 
 The `push` and `pop` operations add and remove context items from below, respectively.
@@ -1581,7 +1581,7 @@ Within the context stack, the latest pushed item is called the *tip*, and the it
 
 Most stack manipulations trigger a debug message that honors the <<global-verbosity-level,global verbosity level>>, as stored in <<var-opt-verbosity,`$D{dus}OPT_VERBOSITY`>>.
 If a `push` is prepended to every logical unit of code, and then a matching `pop` is appended at the end, a useful pattern of breadcrumbs arises in the debug output.
-Other Divine workflow utilities (<<func-notify,`d{dus}notify`>>, <<func-prompt,`d{dus}prompt`>>, <<func-fail,`d{dus}fail`>>, <<func-cmd,`d{dus}cmd`>>, <<func-pipe,`d{dus}pipe`>>, <<func-require,`d{dus}require`>>) include the state of the context stack in their error output.
+Other Divine workflow utilities (<<func-notify,`d{dus}notify`>>, <<func-prompt,`d{dus}prompt`>>, <<func-fail,`d{dus}fail`>>, <<func-cmd,`d{dus}cmd`>>, <<func-pipe,`d{dus}pipe`>>, <<func-require,`d{dus}require`>>) may include the state of the context stack in their output.
 
 Each item on the context stack must be given a `*_DESCRIPTION_*`.
 As a matter of good style, the `*_DESCRIPTION_*` should be worded around either a noun or a verb in its -ing form (gerund).
@@ -1602,53 +1602,91 @@ Returns:
 | `*-t* *_TITLE_*`, `*--title* *_TITLE_*`
 
 Sets custom title for the debug message.
-Default titles are (in *bold*):
+All operations have default titles; these are shown in the illustration below in *bold*:
 
-* When pushing an item:
-+
 [source,subs="verbatim,quotes,attributes"]
 ----
-==> *Start*: Description of the context item.
-----
-* When popping an item:
-+
-[source,subs="verbatim,quotes,attributes"]
-----
-==> *End*: Description of the context item.
+# Pushing an item
+==> *Start*: Description of the context item
+
+# Popping an item
+==> *End*: Description of the context item
+
+# Making a notch
+==> *Notched*: At position X
+
+# Removing a notch
+==> *De-notched*: At position X
 ----
 
-| `*-q*`, `*--quiet*`
+| `*-n*`, `*--newline*`
 
-_(repeatable, verbosity option)_
-If at least one `--quiet` option is provided, then the amount of them designates the function's *quiet level*.
-The debug output from stack manipulations is printed only if the <<global-verbosity-level,global verbosity level>> is greater than or equal to the quiet level of the output.
+With this option, if this function produces any output, an extra newline is prepended to it.
 
-If no verbosity options are given, than the default quiet levels for the commands of this function are:
+^.^h| Quiet options
+
+| *Quiet options* designate the *quiet level* for the current call.
+Changes to context are announced only if the <<global-verbosity-level,global verbosity level>> is greater than or equal to the quiet level.
+
+Quiet options are read sequentially, left-to-right, and the quiet level starts at zero.
+However, if these options are not given at all, the default quiet levels per operation are:
 
 * `*push*` — `1`
 * `*pop*` — `2`
-* `*lop*` — tied to the quiet level of the underlying ``pop``s.
-* `*notch*` and the removal of a notch during `*lop*` — always greater by one than the quiet level of `pop`.
+* `*notch*` — `3`
+* `*lop*` — `3`
++
+The default quiet level for the `lop` operation includes the underlying `pop` operations.
+For the pops to be performed at a different quiet level, they must be initiated separately.
+
+| `*-q*`, `*--quiet*`
+
+_(repeatable)_
+Increments the quiet level by one.
 
 | `*-l*`, `*--loud*`
 
-_(verbosity option)_
 Sets the quiet level to zero.
-In effect this will cause the output to be printed regardless of the <<global-verbosity-level,global verbosity level>>.
 
-Options are read left-to-right: if both verbosity options are mixed together, the total quiet level is the amount of `--quiet` options after the last `--loud` option.
+^.^h| Styling options (one active at a time, last option wins)
+
+| *Styling options* are only relevant if the terminal coloring is available.
+Otherwise, they do nothing.
+
+In all modes titles are formatted in *bold*.
+
+| `*-d*`, `*--debug*`
+
+_(default)_
+Colors the entire output in cyan.
+
+| `*-!*`, `*--alert*`
+
+Colors the introductory arrow in yellow.
+
+| `*-v*`, `*--success*`
+
+Colors the introductory arrow in green.
+
+| `*-x*`, `*--failure*`
+
+Colors the introductory arrow in red.
+
+| `*-s*`, `*--skip*`
+
+Colors the introductory arrow in white.
 
 |===
 
 [[func-notify]]
 ==== Function `d{dus}notify`
 
-The function `d{dus}notify` conveys any non-failure notifications to the user.
+The function `d{dus}notify` conveys any information to the user and does not produce any side effects.
 For notes on usage within the Divine workflow, see the workflow <<divine-workflow-guide,guidelines>>.
 
 [source,subs="verbatim,quotes,attributes"]
 ----
-*d{dus}notify* [-!1cdhlqsuvx] [-t *_TITLE_*] [--] [*_DESCRIPTION_*...]
+*d{dus}notify* [-!1cdhlnqsuvx] [-t *_TITLE_*] [--] [*_DESCRIPTION_*...]
 ----
 
 Whether the output is printed depends on the <<global-verbosity-level,global verbosity level>>, as stored in <<var-opt-verbosity,`$D{dus}OPT_VERBOSITY`>>.
@@ -1686,6 +1724,12 @@ The entire context block is omitted if the context stack is not requested or is 
 [%noheader,cols="<.<a",stripes=none]
 |===
 
+| `*-u*`, `*--sudo*`
+
+Print the notification only if the caller lacks the `sudo` privelege.
+Automatically makes the notification `--loud`.
+Also, automatically sets the `*_TITLE_*` to `Password prompt` and the `*_DESCRIPTION_*` to `The upcoming command requires sudo priveleges.`, unless these parts are already set.
+
 | `*-t* *_TITLE_*`, `*--title* *_TITLE_*`
 
 Sets custom title for the notification.
@@ -1695,27 +1739,26 @@ Without this option, the `*_TITLE_*` defaults to:
 ** Without a `*_DESCRIPTION_*` — omitted.
 ** With a `*_DESCRIPTION_*` — `Generic alert`.
 
+| `*-n*`, `*--newline*`
+
+With this option, if this function produces any output, an extra newline is prepended to it.
+
+^.^h| Quiet options
+
+| *Quiet options* designate the *quiet level* for the current call.
+The notification is printed only if the <<global-verbosity-level,global verbosity level>> is greater than or equal to the quiet level.
+
+Quiet options are read sequentially, left-to-right, and the quiet level starts at zero.
+However, if these options are not given at all, the default quiet level is `1`.
+
 | `*-q*`, `*--quiet*`
 
-_(repeatable, verbosity option)_
-If at least one `--quiet` option is provided, then the amount of them designates the function's *quiet level*.
-The notification is printed only if the <<global-verbosity-level,global verbosity level>> is greater than or equal to the notification's quiet level.
-
-If no verbosity options are given, than the default quiet level for this function is `1`.
+_(repeatable)_
+Increments the quiet level by one.
 
 | `*-l*`, `*--loud*`
 
-_(verbosity option)_
 Sets the quiet level to zero.
-In effect this will cause the output to be printed regardless of the <<global-verbosity-level,global verbosity level>>.
-
-Options are read left-to-right: if both verbosity options are mixed together, the total quiet level is the amount of `--quiet` options after the last `--loud` option.
-
-| `*-u*`, `*--sudo*`
-
-Print the notification only if the caller lacks the `sudo` privelege.
-Automatically makes the notification `--loud`.
-Also, automatically sets the `*_TITLE_*` to `Password prompt` and the `*_DESCRIPTION_*` to `The upcoming command requires sudo priveleges.`, unless these parts are already set.
 
 ^.^h| Context-related options (one active at a time, last option wins)
 
@@ -1731,32 +1774,50 @@ Includes the head of the workflow context stack (the items pushed since the last
 
 Includes the tip of the workflow context stack (the last pushed item) in the output.
 
-^.^h| Coloring options (one active at a time, last option wins)
+^.^h| Styling options (one active at a time, last option wins)
+
+| *Styling options* are only relevant if the terminal coloring is available.
+Otherwise, they do nothing.
+
+In all modes titles are formatted in *bold*.
 
 | `*-d*`, `*--debug*`
 
 _(default)_
-Colors the entire output in cyan, if the terminal coloring is available.
+Colors the entire output in cyan.
 
 | `*-!*`, `*--alert*`
 
-Colors the introductory arrow in yellow, if the terminal coloring is available.
-The rest of the output is left in normal terminal color.
+Colors the introductory arrow in yellow.
 
 | `*-v*`, `*--success*`
 
-Colors the introductory arrow in green, if the terminal coloring is available.
-The rest of the output is left in normal terminal color.
+Colors the introductory arrow in green.
 
 | `*-x*`, `*--failure*`
 
-Colors the introductory arrow in red, if the terminal coloring is available.
-The rest of the output is left in normal terminal color.
+Colors the introductory arrow in red.
 
 | `*-s*`, `*--skip*`
 
-Colors the introductory arrow in white, if the terminal coloring is available.
-The rest of the output is left in normal terminal color.
+Colors the introductory arrow in white.
+
+^.^h| Special formatting para-options (work only after the option-argument separator `--`)
+
+| Para-options are shorthand for things like linebreaks, indentation, and bold titles.
+
+| `*-t-*`
+
+This para-option treats the next `WORD` in the `*_DESCRIPTION_*` as a title.
+That `WORD` is then styled as a title and is followed by a colon.
+
+| `*-n-*`
+
+This para-option inserts a newline followed by the arrow-width indentation (four spaces).
+
+| `*-i-*`
+
+This para-option is similar to the `-n-` para-option, but the indentation is doubled.
 
 |===
 
@@ -1768,7 +1829,7 @@ For notes on usage within the Divine workflow, see the workflow <<divine-workflo
 
 [source,subs="verbatim,quotes,attributes"]
 ----
-*d{dus}prompt* [-!1bchkqsvxy] [-p *_PROMPT_*] [-a *_ANSWER_*] [-t *_TITLE_*] [--] [*_DESCRIPTION_*...]
+*d{dus}prompt* [-!1bchknqsvxy] [-p *_PROMPT_*] [-a *_ANSWER_*] [-t *_TITLE_*] [--] [*_DESCRIPTION_*...]
 ----
 
 Two prompting modes are supported:
@@ -1821,7 +1882,7 @@ Sets custom `*_TITLE_*` for the leading line.
 Without this option:
 
 * If the `*_DESCRIPTION_*` is provided, the title is omitted.
-* If the `*_DESCRIPTION_*` is not provided, the title defaults to `Generic alert`.
+* If the `*_DESCRIPTION_*` is not provided, the title defaults to `User attention required`.
 
 | `*-p* *_PROMPT_*`, `*--prompt* *_PROMPT_*`
 
@@ -1859,6 +1920,10 @@ Prompts for a yes/no decision.
 
 Prompts for any key press.
 
+| `*-n*`, `*--newline*`
+
+With this option, if this function produces any output, an extra newline is prepended to it.
+
 ^.^h| Context-related options (one active at a time, last option wins)
 
 | `*-c*`, `*--context-all*`
@@ -1873,44 +1938,64 @@ Includes the head of the workflow context stack (the items pushed since the last
 
 Includes the tip of the workflow context stack (the last pushed item) in the output.
 
-^.^h| Coloring options (one active at a time, last option wins)
+^.^h| Styling options (one active at a time, last option wins)
+
+| *Styling options* are only relevant if the terminal coloring is available.
+Otherwise, they do nothing.
+
+In all modes titles are formatted in *bold*.
 
 | `*-!*`, `*--alert*`
 
 _(default)_
-Colors the introductory arrow and the `*_PROMPT_*` in yellow, if the terminal coloring is available.
+Colors the introductory arrow and the `*_PROMPT_*` in yellow.
 
 | `*-v*`, `*--success*`
 
-Colors the introductory arrow and the `*_PROMPT_*` in green, if the terminal coloring is available.
+Colors the introductory arrow and the `*_PROMPT_*` in green.
 
 | `*-x*`, `*--failure*`
 
-Colors the introductory arrow and the `*_PROMPT_*` in red, if the terminal coloring is available.
+Colors the introductory arrow and the `*_PROMPT_*` in red.
 
 | `*-s*`, `*--skip*`
 
-Colors the introductory arrow and the `*_PROMPT_*` in white, if the terminal coloring is available.
+Colors the introductory arrow and the `*_PROMPT_*` in white.
 
 | `*-b*`, `*--bare*`
 
 Removes coloring completely.
+
+| Para-options are shorthand for things like linebreaks, indentation, and bold titles.
+
+| `*-t-*`
+
+This para-option treats the next `WORD` in the `*_DESCRIPTION_*` as a title.
+That `WORD` is then styled as a title and is followed by a colon.
+
+| `*-n-*`
+
+This para-option inserts a newline followed by the arrow-width indentation (four spaces).
+
+| `*-i-*`
+
+This para-option is similar to the `-n-` para-option, but the indentation is doubled.
 
 |===
 
 [[func-fail]]
 ==== Function `d{dus}fail`
 
-The function `d{dus}fail` announces a failure to the user and pops every item in the workflow context down to and including the latest notch (or root).
+The function `d{dus}fail` announces a failure to the user and pops every item in the workflow context down to and including the latest notch (or the root of the stack).
 For notes on usage within the Divine workflow, see the workflow <<divine-workflow-guide,guidelines>>.
 
 [source,subs="verbatim,quotes,attributes"]
 ----
-*d{dus}fail* [-t *_TITLE_*] [--] [*_DESCRIPTION_*...]
+*d{dus}fail* [-n] [-t *_TITLE_*] [--] [*_DESCRIPTION_*...]
 ----
 
 As mentioned, every call to this function includes a call to `d{dus}context lop`.
-Thus this function should not be used for non-consequential failures that do not affect the workflow context.
+Thus, this function should not be used for non-consequential failures that do not affect the workflow context.
 (For such things, `d{dus}notify --failure` works nicely.)
 
 Returns:
@@ -1942,7 +2027,7 @@ Defaults to:
 * `*_CONTEXT_*` — The head of the context stack, which is about to be lopped off.
 The entire context block is omitted if the context stack is empty.
 
-.List of `d{dus}notify` options
+.List of `d{dus}fail` options
 [%noheader,cols="<.<a",stripes=none]
 |===
 
@@ -1954,6 +2039,25 @@ Without this option, the `*_TITLE_*` defaults to:
 
 * Without a `*_DESCRIPTION_*` — `Failure`.
 * With a `*_DESCRIPTION_*` — `Something went wrong`.
+
+| `*-n*`, `*--newline*`
+
+With this option, an extra newline is prepended to all output.
+
+| Para-options are shorthand for things like linebreaks, indentation, and bold titles.
+
+| `*-t-*`
+
+This para-option treats the next `WORD` in the `*_DESCRIPTION_*` as a title.
+That `WORD` is then styled as a title and is followed by a colon.
+
+| `*-n-*`
+
+This para-option inserts a newline followed by the arrow-width indentation (four spaces).
+
+| `*-i-*`
+
+This para-option is similar to the `-n-` para-option, but the indentation is doubled.
 
 |===
 
@@ -2047,29 +2151,35 @@ Suppresses `stderr` of the `*_CMD_*`.
 
 Suppresses both `stdout` and `stderr` of the `*_CMD_*`.
 
-^.^h| Verbosity modes (one active at a time, last option wins)
+^.^h| Quiet options
+
+| *Quiet options* designate the *quiet level* for the current call.
+The non-suppressed output of the underlying command is printed only if the <<global-verbosity-level,global verbosity level>> is greater than or equal to the quiet level.
+
+Quiet options are read sequentially, left-to-right, and the quiet level starts at zero.
+If these options are not given at all, the default quiet level is also zero.
+
+Normally, the quiet level does not affect the failure output.
 
 | `*--q--*`, `*--q…--*`
 
-_(repeatable, verbosity option)_
-If at least one such option is provided, then the amount of them designates the function's *quiet level*.
-Whatever output of the `*_CMD_*` is _not_ suppressed is printed only if the <<global-verbosity-level,global verbosity level>> is greater than or equal to the function's quiet level.
+_(repeatable)_
+Increments the quiet level by one.
 
-If no verbosity options are given, than the default quiet level for this function is `0`.
+This particular option can be repeated within the hyphens, e.g., `--qqq--`.
+It should be noted, that only the first character is checked to be 'q', the others are simply counted.
 
 | `*--l--*`
 
-_(verbosity option)_
 Sets the quiet level to zero.
-In effect this will cause the non-suppressed output to be printed regardless of the <<global-verbosity-level,global verbosity level>>.
-
-Options are read left-to-right: if both verbosity options are mixed together, the total quiet level is the amount of `--q--` options after the last `--l--` option.
 
 ^.^h| Semantics of failure
 
 | `*--opt--*`
 
 Makes the `*_CMD_*` optional: if there is a failure, the head of the context stacked is not lopped off, and the failure output is styled less urgently.
+
+When a command is marked optional, its failure output is printed depending on the quiet level.
 
 | `*--alrt--* *_TITLE_*`
 
