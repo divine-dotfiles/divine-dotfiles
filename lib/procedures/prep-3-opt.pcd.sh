@@ -2,8 +2,8 @@
 #:title:        Divine Bash procedure: prep-3-opt
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.09.29
-#:revremark:    Define intro panels to supplant dprint_ode
+#:revdate:      2019.09.30
+#:revremark:    Add new intro panels
 #:created_at:   2019.07.05
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -52,8 +52,10 @@ d__declare_intros()
   readonly D__INTRO_RBOOT="    $YELLOW${BOLD}Reboot needed   $NORMAL :"
   readonly D__INTRO_ATTNT="    $YELLOW${BOLD}Atención        $NORMAL :"
   readonly D__INTRO_CRTCL="$RED$REVERSE${BOLD}x_x$NORMAL $RED${BOLD}Critical failure$NORMAL :"
+  readonly D__INTRO_HALTN="$RED$REVERSE${BOLD}___$NORMAL $RED${BOLD}Halting script  $NORMAL :"
 
-  readonly D__INTRO_CHK_S="$YELLOW$BOLD>>>$NORMAL ${BOLD}Checking        $NORMAL :"
+  readonly D__INTRO_CHK_N="$YELLOW$BOLD>>>$NORMAL ${BOLD}Checking        $NORMAL :"
+  readonly D__INTRO_CHK_F="$YELLOW$BOLD>>>$NORMAL ${BOLD}Force-checking  $NORMAL :"
   readonly D__INTRO_CHK_0="$BLUE$REVERSE$BOLD???$NORMAL ${BOLD}Unknown         $NORMAL :"
   readonly D__INTRO_CHK_1="$GREEN$REVERSE${BOLD}vvv$NORMAL ${BOLD}Installed       $NORMAL :"
   readonly D__INTRO_CHK_2="$YELLOW$REVERSE${BOLD}xxx$NORMAL ${BOLD}Not installed   $NORMAL :"
@@ -65,19 +67,22 @@ d__declare_intros()
   readonly D__INTRO_CHK_8="$MAGENTA$REVERSE${BOLD}vv$NORMAL$MAGENTA${BOLD}x$NORMAL ${BOLD}Prt. ins. by usr$NORMAL :"
   readonly D__INTRO_CHK_9="$YELLOW$REVERSE${BOLD}x??$NORMAL ${BOLD}Likely not instd$NORMAL :"
 
-  readonly D__INTRO_INS_S="$YELLOW$BOLD>>>$NORMAL ${BOLD}Installing      $NORMAL :"
+  readonly D__INTRO_INS_N="$YELLOW$BOLD>>>$NORMAL ${BOLD}Installing      $NORMAL :"
+  readonly D__INTRO_INS_F="$YELLOW$BOLD>>>$NORMAL ${BOLD}Force-installing$NORMAL :"
   readonly D__INTRO_INS_0="$GREEN$REVERSE${BOLD}vvv$NORMAL ${BOLD}Installed       $NORMAL :"
   readonly D__INTRO_INS_1="$YELLOW$REVERSE${BOLD}xxx$NORMAL ${BOLD}Failed to inst. $NORMAL :"
   readonly D__INTRO_INS_2="$WHITE$REVERSE$BOLD~~~$NORMAL ${BOLD}Refused to inst.$NORMAL :"
   readonly D__INTRO_INS_3="$GREEN$REVERSE${BOLD}vv$NORMAL$YELLOW${BOLD}x$NORMAL ${BOLD}Partly installed$NORMAL :"
 
-  readonly D__INTRO_RMV_S="$YELLOW$BOLD>>>$NORMAL ${BOLD}Removing        $NORMAL :"
+  readonly D__INTRO_RMV_N="$YELLOW$BOLD>>>$NORMAL ${BOLD}Removing        $NORMAL :"
+  readonly D__INTRO_RMV_F="$YELLOW$BOLD>>>$NORMAL ${BOLD}Force-removing  $NORMAL :"
   readonly D__INTRO_RMV_0="$GREEN$REVERSE${BOLD}vvv$NORMAL ${BOLD}Removed         $NORMAL :"
   readonly D__INTRO_RMV_1="$YELLOW$REVERSE${BOLD}xxx$NORMAL ${BOLD}Failed to remove$NORMAL :"
   readonly D__INTRO_RMV_2="$WHITE$REVERSE$BOLD~~~$NORMAL ${BOLD}Refused to rmv. $NORMAL :"
   readonly D__INTRO_RMV_3="$GREEN$REVERSE${BOLD}vv$NORMAL$YELLOW${BOLD}x$NORMAL ${BOLD}Partly removed  $NORMAL :"
 
-  readonly D__INTRO_UPD_S="$YELLOW$BOLD>>>$NORMAL ${BOLD}Updatng         $NORMAL :"
+  readonly D__INTRO_UPD_N="$YELLOW$BOLD>>>$NORMAL ${BOLD}Updatng         $NORMAL :"
+  readonly D__INTRO_UPD_F="$YELLOW$BOLD>>>$NORMAL ${BOLD}Force-updatng   $NORMAL :"
   readonly D__INTRO_UPD_0="$GREEN$REVERSE${BOLD}vvv$NORMAL ${BOLD}Updated         $NORMAL :"
   readonly D__INTRO_UPD_1="$YELLOW$REVERSE${BOLD}xxx$NORMAL ${BOLD}Failed to update$NORMAL :"
   readonly D__INTRO_UPD_2="$WHITE$REVERSE$BOLD~~~$NORMAL ${BOLD}Refused to upd. $NORMAL :"
