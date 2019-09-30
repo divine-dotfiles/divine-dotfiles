@@ -3,8 +3,8 @@
 #:kind:         global_var
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.09.25
-#:revremark:    Remove revision numbers from all src files
+#:revdate:      2019.09.29
+#:revremark:    Make file source-able outside of fmwk
 #:created_at:   2018.12.20
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -81,8 +81,10 @@ d__declare_global_colors()
 d__colorize_with_tput()
 {
   # Fire debug message
-  (($D__OPT_VERBOSITY<3)) \
-    || printf >&2 '%s\n' '==> Coloring terminal output with tput'
+  if [ -n "$D__OPT_VERBOSITY" ] && (($D__OPT_VERBOSITY>2)); then
+    printf >&2 '%s %s\n' "$(tput setaf 6)==>" \
+      "Coloring terminal output with tput$(tput sgr0)"
+  fi
 
   # Status variable
   local all_good=true
@@ -146,63 +148,65 @@ d__colorize_with_tput()
 d__colorize_with_escseq()
 {
   # Fire debug message
-  (($D__OPT_VERBOSITY<3)) \
-    || printf >&2 '%s\n' '==> Coloring terminal output with esc sequences'
+  if [ -n "$D__OPT_VERBOSITY" ] && (($D__OPT_VERBOSITY>2)); then
+    printf >&2 '\033[36m%s %s\033[0m\n' \
+      '==> Coloring terminal output with esc sequences'
+  fi
 
   # Status variable
   local all_good=true
 
     # Set foreground color variables, unless already set
     [ -z ${BLACK+isset} ] \
-      && readonly   BLACK="$( printf "\033[30m" )" || all_good=false
+      && readonly   BLACK="$( printf '\033[30m' )" || all_good=false
     [ -z ${RED+isset} ] \
-      && readonly     RED="$( printf "\033[31m" )" || all_good=false
+      && readonly     RED="$( printf '\033[31m' )" || all_good=false
     [ -z ${GREEN+isset} ] \
-      && readonly   GREEN="$( printf "\033[32m" )" || all_good=false
+      && readonly   GREEN="$( printf '\033[32m' )" || all_good=false
     [ -z ${YELLOW+isset} ] \
-      && readonly  YELLOW="$( printf "\033[33m" )" || all_good=false
+      && readonly  YELLOW="$( printf '\033[33m' )" || all_good=false
     [ -z ${BLUE+isset} ] \
-      && readonly    BLUE="$( printf "\033[34m" )" || all_good=false
+      && readonly    BLUE="$( printf '\033[34m' )" || all_good=false
     [ -z ${MAGENTA+isset} ] \
-      && readonly MAGENTA="$( printf "\033[35m" )" || all_good=false
+      && readonly MAGENTA="$( printf '\033[35m' )" || all_good=false
     [ -z ${CYAN+isset} ] \
-      && readonly    CYAN="$( printf "\033[36m" )" || all_good=false
+      && readonly    CYAN="$( printf '\033[36m' )" || all_good=false
     [ -z ${WHITE+isset} ] \
-      && readonly   WHITE="$( printf "\033[97m" )" || all_good=false
+      && readonly   WHITE="$( printf '\033[97m' )" || all_good=false
 
     # Set background color variables, unless already set
     [ -z ${BG_BLACK+isset} ] \
-      && readonly   BG_BLACK="$( printf "\033[40m" )" || all_good=false
+      && readonly   BG_BLACK="$( printf '\033[40m' )" || all_good=false
     [ -z ${BG_RED+isset} ] \
-      && readonly     BG_RED="$( printf "\033[41m" )" || all_good=false
+      && readonly     BG_RED="$( printf '\033[41m' )" || all_good=false
     [ -z ${BG_GREEN+isset} ] \
-      && readonly   BG_GREEN="$( printf "\033[42m" )" || all_good=false
+      && readonly   BG_GREEN="$( printf '\033[42m' )" || all_good=false
     [ -z ${BG_YELLOW+isset} ] \
-      && readonly  BG_YELLOW="$( printf "\033[43m" )" || all_good=false
+      && readonly  BG_YELLOW="$( printf '\033[43m' )" || all_good=false
     [ -z ${BG_BLUE+isset} ] \
-      && readonly    BG_BLUE="$( printf "\033[44m" )" || all_good=false
+      && readonly    BG_BLUE="$( printf '\033[44m' )" || all_good=false
     [ -z ${BG_MAGENTA+isset} ] \
-      && readonly BG_MAGENTA="$( printf "\033[45m" )" || all_good=false
+      && readonly BG_MAGENTA="$( printf '\033[45m' )" || all_good=false
     [ -z ${BG_CYAN+isset} ] \
-      && readonly    BG_CYAN="$( printf "\033[46m" )" || all_good=false
+      && readonly    BG_CYAN="$( printf '\033[46m' )" || all_good=false
     [ -z ${BG_WHITE+isset} ] \
-      && readonly   BG_WHITE="$( printf "\033[107m" )" || all_good=false
+      && readonly   BG_WHITE="$( printf '\033[107m' )" || all_good=false
 
     # Set effects variables, unless already set
     [ -z ${BOLD+isset} ] \
-      && readonly     BOLD="$( printf "\033[1m" )" || all_good=false
+      && readonly     BOLD="$( printf '\033[1m' )" || all_good=false
     [ -z ${DIM+isset} ] \
-      && readonly      DIM="$( printf "\033[2m" )" || all_good=false
+      && readonly      DIM="$( printf '\033[2m' )" || all_good=false
     [ -z ${ULINE+isset} ] \
-      && readonly    ULINE="$( printf "\033[4m" )" || all_good=false
+      && readonly    ULINE="$( printf '\033[4m' )" || all_good=false
     [ -z ${REVERSE+isset} ] \
-      && readonly  REVERSE="$( printf "\033[7m" )" || all_good=false
+      && readonly  REVERSE="$( printf '\033[7m' )" || all_good=false
     [ -z ${STANDOUT+isset} ] \
-      && readonly STANDOUT="$( printf "\033[5m" )" || all_good=false
+      && readonly STANDOUT="$( printf '\033[5m' )" || all_good=false
 
     # Set reset variable, unless already set
     [ -z ${NORMAL+isset} ] \
-      && readonly NORMAL="$( printf "\033[0m" )" || all_good=false
+      && readonly NORMAL="$( printf '\033[0m' )" || all_good=false
 
   # Return appropriately
   $all_good && return 0 || return 1
@@ -211,8 +215,8 @@ d__colorize_with_escseq()
 d__do_not_colorize()
 {
   # Fire debug message
-  (($D__OPT_VERBOSITY<3)) \
-    || printf >&2 '%s\n' '==> Omitting coloring of terminal output'
+  [ -n "$D__OPT_VERBOSITY" ] && (($D__OPT_VERBOSITY>2)) \
+    && printf >&2 '%s\n' '==> Omitting coloring of terminal output'
 
   # Status variable
   local all_good=true
