@@ -2,8 +2,8 @@
 #:title:        Divine Bash procedure: prep-3-opt
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.09.30
-#:revremark:    Add new intro panels
+#:revdate:      2019.10.01
+#:revremark:    Tweak intro colors and composition
 #:created_at:   2019.07.05
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -56,37 +56,55 @@ d__declare_intros()
 
   readonly D__INTRO_CHK_N="$YELLOW$BOLD>>>$NORMAL ${BOLD}Checking        $NORMAL :"
   readonly D__INTRO_CHK_F="$YELLOW$BOLD>>>$NORMAL ${BOLD}Force-checking  $NORMAL :"
+  readonly D__INTRO_CHK_S="$BOLD---$NORMAL ${BOLD}Skipped checking$NORMAL :"
   readonly D__INTRO_CHK_0="$BLUE$REVERSE$BOLD???$NORMAL ${BOLD}Unknown         $NORMAL :"
   readonly D__INTRO_CHK_1="$GREEN$REVERSE${BOLD}vvv$NORMAL ${BOLD}Installed       $NORMAL :"
-  readonly D__INTRO_CHK_2="$YELLOW$REVERSE${BOLD}xxx$NORMAL ${BOLD}Not installed   $NORMAL :"
+  readonly D__INTRO_CHK_2="$RED$REVERSE${BOLD}xxx$NORMAL ${BOLD}Not installed   $NORMAL :"
   readonly D__INTRO_CHK_3="$WHITE$REVERSE$BOLD~~~$NORMAL ${BOLD}Irrelevant      $NORMAL :"
   readonly D__INTRO_CHK_4="$GREEN$REVERSE${BOLD}vv$NORMAL$YELLOW${BOLD}x$NORMAL ${BOLD}Partly installed$NORMAL :"
   readonly D__INTRO_CHK_5="$GREEN$REVERSE${BOLD}v??$NORMAL ${BOLD}Likely installed$NORMAL :"
-  readonly D__INTRO_CHK_6="$RED$REVERSE${BOLD}x_x$NORMAL ${BOLD}Manually removed$NORMAL :"
+  readonly D__INTRO_CHK_6="$RED$REVERSE${BOLD}x_x$NORMAL $RED${BOLD}Manually removed$NORMAL :"
   readonly D__INTRO_CHK_7="$MAGENTA$REVERSE${BOLD}vvv$NORMAL ${BOLD}Installed by usr$NORMAL :"
   readonly D__INTRO_CHK_8="$MAGENTA$REVERSE${BOLD}vv$NORMAL$MAGENTA${BOLD}x$NORMAL ${BOLD}Prt. ins. by usr$NORMAL :"
-  readonly D__INTRO_CHK_9="$YELLOW$REVERSE${BOLD}x??$NORMAL ${BOLD}Likely not instd$NORMAL :"
+  readonly D__INTRO_CHK_9="$RED$REVERSE${BOLD}x??$NORMAL ${BOLD}Likely not instd$NORMAL :"
 
   readonly D__INTRO_INS_N="$YELLOW$BOLD>>>$NORMAL ${BOLD}Installing      $NORMAL :"
   readonly D__INTRO_INS_F="$YELLOW$BOLD>>>$NORMAL ${BOLD}Force-installing$NORMAL :"
+  readonly D__INTRO_INS_S="$BOLD---$NORMAL ${BOLD}Skipped inst.   $NORMAL :"
   readonly D__INTRO_INS_0="$GREEN$REVERSE${BOLD}vvv$NORMAL ${BOLD}Installed       $NORMAL :"
-  readonly D__INTRO_INS_1="$YELLOW$REVERSE${BOLD}xxx$NORMAL ${BOLD}Failed to inst. $NORMAL :"
+  readonly D__INTRO_INS_1="$RED$REVERSE${BOLD}xxx$NORMAL ${BOLD}Failed to inst. $NORMAL :"
   readonly D__INTRO_INS_2="$WHITE$REVERSE$BOLD~~~$NORMAL ${BOLD}Refused to inst.$NORMAL :"
   readonly D__INTRO_INS_3="$GREEN$REVERSE${BOLD}vv$NORMAL$YELLOW${BOLD}x$NORMAL ${BOLD}Partly installed$NORMAL :"
 
   readonly D__INTRO_RMV_N="$YELLOW$BOLD>>>$NORMAL ${BOLD}Removing        $NORMAL :"
   readonly D__INTRO_RMV_F="$YELLOW$BOLD>>>$NORMAL ${BOLD}Force-removing  $NORMAL :"
+  readonly D__INTRO_RMV_S="$BOLD---$NORMAL ${BOLD}Skipped removing$NORMAL :"
   readonly D__INTRO_RMV_0="$GREEN$REVERSE${BOLD}vvv$NORMAL ${BOLD}Removed         $NORMAL :"
-  readonly D__INTRO_RMV_1="$YELLOW$REVERSE${BOLD}xxx$NORMAL ${BOLD}Failed to remove$NORMAL :"
+  readonly D__INTRO_RMV_1="$RED$REVERSE${BOLD}xxx$NORMAL ${BOLD}Failed to remove$NORMAL :"
   readonly D__INTRO_RMV_2="$WHITE$REVERSE$BOLD~~~$NORMAL ${BOLD}Refused to rmv. $NORMAL :"
   readonly D__INTRO_RMV_3="$GREEN$REVERSE${BOLD}vv$NORMAL$YELLOW${BOLD}x$NORMAL ${BOLD}Partly removed  $NORMAL :"
 
-  readonly D__INTRO_UPD_N="$YELLOW$BOLD>>>$NORMAL ${BOLD}Updatng         $NORMAL :"
-  readonly D__INTRO_UPD_F="$YELLOW$BOLD>>>$NORMAL ${BOLD}Force-updatng   $NORMAL :"
+  readonly D__INTRO_UPD_N="$YELLOW$BOLD>>>$NORMAL ${BOLD}Updating        $NORMAL :"
+  readonly D__INTRO_UPD_F="$YELLOW$BOLD>>>$NORMAL ${BOLD}Force-updating  $NORMAL :"
+  readonly D__INTRO_UPD_S="$BOLD---$NORMAL ${BOLD}Skipped updating$NORMAL :"
   readonly D__INTRO_UPD_0="$GREEN$REVERSE${BOLD}vvv$NORMAL ${BOLD}Updated         $NORMAL :"
-  readonly D__INTRO_UPD_1="$YELLOW$REVERSE${BOLD}xxx$NORMAL ${BOLD}Failed to update$NORMAL :"
+  readonly D__INTRO_UPD_1="$RED$REVERSE${BOLD}xxx$NORMAL ${BOLD}Failed to update$NORMAL :"
   readonly D__INTRO_UPD_2="$WHITE$REVERSE$BOLD~~~$NORMAL ${BOLD}Refused to upd. $NORMAL :"
   readonly D__INTRO_UPD_3="$GREEN$REVERSE${BOLD}vv$NORMAL$YELLOW${BOLD}x$NORMAL ${BOLD}Partly updated  $NORMAL :"
+
+  printf >&2 '%s Some text\n\n' "$D__INTRO_CHK_N"
+  printf >&2 '%s Some text\n\n' "$D__INTRO_CHK_F"
+  printf >&2 '%s Some text\n\n' "$D__INTRO_CHK_S"
+  printf >&2 '%s Some text\n\n' "$D__INTRO_CHK_0"
+  printf >&2 '%s Some text\n\n' "$D__INTRO_CHK_1"
+  printf >&2 '%s Some text\n\n' "$D__INTRO_CHK_2"
+  printf >&2 '%s Some text\n\n' "$D__INTRO_CHK_3"
+  printf >&2 '%s Some text\n\n' "$D__INTRO_CHK_4"
+  printf >&2 '%s Some text\n\n' "$D__INTRO_CHK_5"
+  printf >&2 '%s Some text\n\n' "$D__INTRO_CHK_6"
+  printf >&2 '%s Some text\n\n' "$D__INTRO_CHK_7"
+  printf >&2 '%s Some text\n\n' "$D__INTRO_CHK_8"
+  printf >&2 '%s Some text\n\n' "$D__INTRO_CHK_9"
 }
 
 #>  d__check_github
