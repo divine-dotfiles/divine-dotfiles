@@ -2,114 +2,73 @@
 #:title:        Divine Bash routine: pkgs
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.09.25
-#:revremark:    Remove revision numbers from all src files
+#:revdate:      2019.10.01
+#:revremark:    Rewrite package updating for new output & intros
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
 #
 ## This file is intended to be sourced from framework's main script
 #
-## Updates currently installed packages
+## Updates currently installed system packages
 #
 
 #>  d__update_pkgs
 #
-## Shared subroutine that runs update process on detected $D__OS_PKGMGR
-#
-## Requires:
-#.  * Divine Bash utils: dOS (dps.utl.sh)
-#.  * Divine Bash utils: dprint (dprint.utl.sh)
+## Shared subroutine that runs update+upgrade process on detected $D__OS_PKGMGR
 #
 ## Returns:
 #.  0 - Always
 #
-## Prints:
-#.  stdout: Progress messages
-#.  stderr: As little as possible
-#
 d__update_pkgs()
 {
-  # Only if packages are to be touched at all
-  if $D__REQ_PACKAGES; then
-
-    # Name current task
-    local task_desc='System packages via'
-    local task_name="'${D__OS_PKGMGR}'"
-
-    # Prefix priority
-    task_desc="$( printf \
-      "(%${D__REQ_MAX_PRIORITY_LEN}d) %s\n" 0 "$task_desc" )"
-
-    # Local flag for whether to proceed
-    local proceeding=true
-
-    # Don't proceed if missing package manager
-    [ -z "$D__OS_PKGMGR" ] && {
-      task_name="$task_name (package manager not found)"
-      proceeding=false
-    }
-
-    # Don't proceed if '-n' option is given
-    [ "$D__OPT_ANSWER" = false ] && proceeding=false
-
-    # Print newline to visually separate tasks
-    printf '\n'
-
-    # Print message about the upcoming installation
-    if $proceeding; then
-      dprint_ode "${D__ODE_UPDATE[@]}" -c "$YELLOW" -- \
-        '>>>' 'Updating' ':' "$task_desc" "$task_name"
-    fi
-
-    # Unless given a '-y' option, prompt for user's approval
-    if $proceeding && [ "$D__OPT_ANSWER" != true ]; then
-      dprint_ode "${D__ODE_PROMPT[@]}" -- '' 'Confirm' ': '
-      dprompt --bare && proceeding=true || {
-        task_name="$task_name (declined by user)"
-        proceeding=false
-      }
-    fi
-
-    # Update packages
-    if $proceeding; then
-
-      # Launch OS package manager with verbosity in mind
-      if $D__OPT_QUIET; then
-
-        # Launch quietly
-        d__os_pkgmgr update &>/dev/null
-
-      else
-
-        # Launch normally, but re-paint output
-        local line
-        d__os_pkgmgr update 2>&1 | while IFS= read -r line || [ -n "$line" ]; do
-          printf "${CYAN}==> %s${NORMAL}\n" "$line"
-        done
-
-      fi
-
-      # Check return status
-      if [ "${PIPESTATUS[0]}" -eq 0 ]; then
-        dprint_ode "${D__ODE_UPDATE[@]}" -c "$GREEN" -- \
-          'vvv' 'Updated' ':' "$task_desc" "$task_name"
-      else
-        dprint_ode "${D__ODE_UPDATE[@]}" -c "$RED" -- \
-          'xxx' 'Failed to update' ':' "$task_desc" "$task_name"
-      fi
-
-    else
-
-      # Not updating packages
-      dprint_ode "${D__ODE_UPDATE[@]}" -c "$WHITE" -- \
-        '---' 'Skipped updating' ':' "$task_desc" "$task_name"
-
-    fi
-
+  # Cut-off checks
+  if ! $D__REQ_PACKAGES; then
+    d__notify -qqn -- 'Skipping updating packages (Divinefiles not requested)'
+    return 0
+  elif [ -z "$D__OS_PKGMGR" ]; then
+    d__notify -lns -- \
+      'Skipping updating packages (package manager not supported)'
+    return 0
   fi
 
-  return 0
+  # Set marker; compose name of the task
+  local proceeding=true task_name=
+  task_name+="$( printf "(%${D__REQ_MAX_PRIORITY_LEN}d)" 0 )"
+  task_name+=" System packages via '$BOLD$D__OS_PKGMGR$NORMAL'"
+
+  # Print a separating empty line, then make a decision
+  printf '\n'; if [ "$D__OPT_ANSWER" = false ]; then proceeding=false
+  else
+    printf >&2 '%s %s\n' "$D__INTRO_UPD_N" "$task_name"
+    if [ "$D__OPT_ANSWER" != true ]; then
+      printf >&2 '%s ' "$D__INTRO_CNF_N"; d__prompt -b || proceeding=false
+    fi
+  fi
+
+  # Early exit for skipped updating
+  if ! $proceeding; then
+    printf >&2 '%s %s\n' "$D__INTRO_UPD_S" "$task_name"
+    return 0
+  fi
+
+  # Launch OS package manager with verbosity in mind
+  if (($D__OPT_VERBOSITY)); then
+    local line
+    d__os_pkgmgr update 2>&1 | while IFS= read -r line || [ -n "$line" ]; do
+      printf '%s\n' "$CYAN$line$NORMAL"
+    done
+  else d__os_pkgmgr update &>/dev/null; fi
+
+  # Check return status
+  if [ "${PIPESTATUS[0]}" -eq 0 ]; then
+    printf >&2 '%s %s\n' "$D__INTRO_UPD_0" "$task_name"
+  else
+    d__notify -l! -- "System package manager '$D__OS_PKGMGR'" \
+      'returned an error code while updating packages' \
+      -n- 'This may or may not be problematic'
+    printf >&2 '%s %s\n' "$D__INTRO_UPD_1" "$task_name"
+  fi
 }
 
 d__update_pkgs
