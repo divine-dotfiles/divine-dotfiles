@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.01
-#:revremark:    Rewrite package updating for new output & intros
+#:revremark:    Tweak output of package updating
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -24,7 +24,7 @@ d__update_pkgs()
 {
   # Cut-off checks
   if ! $D__REQ_PACKAGES; then
-    d__notify -qqn -- 'Skipping updating packages (Divinefiles not requested)'
+    d__notify -qqns -- 'Skipping updating packages (Divinefiles not requested)'
     return 0
   elif [ -z "$D__OS_PKGMGR" ]; then
     d__notify -lns -- \
@@ -38,7 +38,7 @@ d__update_pkgs()
   task_name+=" System packages via '$BOLD$D__OS_PKGMGR$NORMAL'"
 
   # Print a separating empty line, then make a decision
-  printf '\n'; if [ "$D__OPT_ANSWER" = false ]; then proceeding=false
+  printf >&2 '\n'; if [ "$D__OPT_ANSWER" = false ]; then proceeding=false
   else
     printf >&2 '%s %s\n' "$D__INTRO_UPD_N" "$task_name"
     if [ "$D__OPT_ANSWER" != true ]; then
