@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.01
-#:revremark:    Tweak intro colors and composition
+#:revremark:    Remove temp code
 #:created_at:   2019.07.05
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -91,20 +91,6 @@ d__declare_intros()
   readonly D__INTRO_UPD_1="$RED$REVERSE${BOLD}xxx$NORMAL ${BOLD}Failed to update$NORMAL :"
   readonly D__INTRO_UPD_2="$WHITE$REVERSE$BOLD~~~$NORMAL ${BOLD}Refused to upd. $NORMAL :"
   readonly D__INTRO_UPD_3="$GREEN$REVERSE${BOLD}vv$NORMAL$YELLOW${BOLD}x$NORMAL ${BOLD}Partly updated  $NORMAL :"
-
-  printf >&2 '%s Some text\n\n' "$D__INTRO_CHK_N"
-  printf >&2 '%s Some text\n\n' "$D__INTRO_CHK_F"
-  printf >&2 '%s Some text\n\n' "$D__INTRO_CHK_S"
-  printf >&2 '%s Some text\n\n' "$D__INTRO_CHK_0"
-  printf >&2 '%s Some text\n\n' "$D__INTRO_CHK_1"
-  printf >&2 '%s Some text\n\n' "$D__INTRO_CHK_2"
-  printf >&2 '%s Some text\n\n' "$D__INTRO_CHK_3"
-  printf >&2 '%s Some text\n\n' "$D__INTRO_CHK_4"
-  printf >&2 '%s Some text\n\n' "$D__INTRO_CHK_5"
-  printf >&2 '%s Some text\n\n' "$D__INTRO_CHK_6"
-  printf >&2 '%s Some text\n\n' "$D__INTRO_CHK_7"
-  printf >&2 '%s Some text\n\n' "$D__INTRO_CHK_8"
-  printf >&2 '%s Some text\n\n' "$D__INTRO_CHK_9"
 }
 
 #>  d__check_github
