@@ -1,8 +1,8 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revdate: 2019.09.28
-:revremark: Describe para-options and debug funcs improvements
+:revdate: 2019.10.01
+:revremark: Increment default quiet levels of context output
 :doctype: article
 // Visual
 :toc:
@@ -602,8 +602,8 @@ Every instance of this option increments by one the *global verbosity level* of 
 The debug output in the deployments and the framework components has the *quiet level*.
 For a message to be printed, the global verbosity level must be greater than or equal to that message's quiet level.
 
-Currently, the maximum quiet level used across the framework is `3`.
-Thus, launching the <<intervention-utility,intervention>> with `-vvv` yields the most complete output.
+Currently, the maximum quiet level used across the framework is `4`.
+Thus, launching the <<intervention-utility,intervention>> with the `-vvvv` options yields the most complete output.
 
 Access within deployments: `$D__OPT_VERBOSITY` (non-negative integer).
 
@@ -1631,10 +1631,10 @@ Changes to context are announced only if the <<global-verbosity-level,global ver
 Quiet options are read sequentially, left-to-right, and the quiet level starts at zero.
 However, if these options are not given at all, the default quiet levels per operation are:
 
-* `*push*` — `1`
-* `*pop*` — `2`
-* `*notch*` — `3`
-* `*lop*` — `3`
+* `*push*` — `2`
+* `*pop*` — `3`
+* `*notch*` — `4`
+* `*lop*` — `4`
 +
 The default quiet level for the `lop` operation includes the underlying `pop` operations.
 For the pops to be performed at a different quiet level, they must be initiated separately.
