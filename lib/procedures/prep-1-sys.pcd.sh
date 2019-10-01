@@ -2,8 +2,8 @@
 #:title:        Divine Bash procedure: prep-1-sys
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.09.25
-#:revremark:    Remove revision numbers from all src files
+#:revdate:      2019.10.01
+#:revremark:    Tweak verbosity of dependency tests
 #:created_at:   2019.07.05
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -25,7 +25,7 @@
 d__check_system_dependencies()
 {
   d__context -- notch
-  d__context -qq -- push 'Checking system dependencies'
+  d__context -- push 'Checking system dependencies'
   local all_good=true var arr
   d___check_find; d___check_grep; d___check_sed; d___check_awk; d___check_md5
   if $all_good; then
@@ -45,7 +45,7 @@ d___check_find()
   done < <( find -L / -path / -name / -mindepth 0 -maxdepth 0 \
     \( -type f -or -type d \) -print0 2>/dev/null || exit $? )
   if [ $? -eq 0 -a ${#arr[@]} -eq 1 -a "${arr[0]}" = '/' ]; then
-    d__notify -qqqt "Utility 'find': Test 1" -- 'Passed'
+    d__notify -qqqqt "Utility 'find': Test 1" -- 'Passed'
   else
     d__notify -lxt "Utility 'find': Test 1" -- 'Failed'
     all_good=false
@@ -70,7 +70,7 @@ be e
 EOF
 )"
   if [ $? -eq 0 -a "$var" = 'Be Eg' ]; then
-    d__notify -qqqt "Utility 'grep': Test 1" -- 'Passed'
+    d__notify -qqqqt "Utility 'grep': Test 1" -- 'Passed'
   else
     d__notify -lxt "Utility 'grep': Test 1" -- 'Failed'
     all_good=false
@@ -83,7 +83,7 @@ maRA
 ma*a
 EOF
   if [ $? -ne 0 ]; then
-    d__notify -qqqt "Utility 'grep': Test 2" -- 'Passed'
+    d__notify -qqqqt "Utility 'grep': Test 2" -- 'Passed'
   else
     d__notify -lxt "Utility 'grep': Test 2" -- 'Failed'
     all_good=false
@@ -96,7 +96,7 @@ maRA
 ma*a
 EOF
   if [ $? -eq 0 ]; then
-    d__notify -qqqt "Utility 'grep': Test 3" -- 'Passed'
+    d__notify -qqqqt "Utility 'grep': Test 3" -- 'Passed'
   else
     d__notify -lxt "Utility 'grep': Test 3" -- 'Failed'
     all_good=false
@@ -109,7 +109,7 @@ buy the
 EOF
     )"
   if [ $? -eq 0 -a "$var" = '  by the ' ]; then
-    d__notify -qqqt "Utility 'grep': Test 4" -- 'Passed'
+    d__notify -qqqqt "Utility 'grep': Test 4" -- 'Passed'
   else
     d__notify -lxt "Utility 'grep': Test 4" -- 'Failed'
     all_good=false
@@ -128,7 +128,7 @@ d___check_sed()
       || exit $?
     )"
   if [ $? -eq 0 -a "$var" = 'may t' ]; then
-    d__notify -qqqt "Utility 'sed': Test 1" -- 'Passed'
+    d__notify -qqqqt "Utility 'sed': Test 1" -- 'Passed'
   else
     d__notify -lxt "Utility 'sed': Test 1" -- 'Failed'
     all_good=false
@@ -141,7 +141,7 @@ d___check_sed()
     var="$( sed -nEe "$arr" 2>/dev/null <<<'"battered"' || exit $? )"
   fi
   if [ $? -eq 0 -a "$var" = 'battered' ]; then
-    d__notify -qqqt "Utility 'sed': Test 2" -- 'Passed'
+    d__notify -qqqqt "Utility 'sed': Test 2" -- 'Passed'
   else
     d__notify -lxt "Utility 'sed': Test 2" -- 'Failed'
     all_good=false
@@ -154,7 +154,7 @@ d___check_sed()
     var="$( sed -Ee "$arr" 2>/dev/null <<<'  may t' || exit $? )"
   fi
   if [ $? -eq 0 -a "$var" = 't  may' ]; then
-    d__notify -qqqt "Utility 'sed': Test 3" -- 'Passed'
+    d__notify -qqqqt "Utility 'sed': Test 3" -- 'Passed'
   else
     d__notify -lxt "Utility 'sed': Test 3" -- 'Failed'
     all_good=false
@@ -166,7 +166,7 @@ d___check_awk()
   # TEST 1: this command must yield string 'halt'
   var="$( awk -F  '=' '{print $3}' 2>/dev/null <<<'go==halt=pry' || exit $? )"
   if [ $? -eq 0 -a "$var" = 'halt' ]; then
-    d__notify -qqqt "Utility 'awk': Test 1" -- 'Passed'
+    d__notify -qqqqt "Utility 'awk': Test 1" -- 'Passed'
   else
     d__notify -lxt "Utility 'awk': Test 1" -- 'Failed'
     all_good=false

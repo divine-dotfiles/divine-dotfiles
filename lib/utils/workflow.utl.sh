@@ -3,8 +3,8 @@
 #:kind:         func(script)
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.09.28
-#:revremark:    Add para-options to debug funcs; tweak them too
+#:revdate:      2019.10.01
+#:revremark:    Increment default quiet levels of context output
 #:created_at:   2019.09.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -115,10 +115,10 @@
 ## Quiet options are read sequentially, left-to-right, and the quiet level 
 #. starts at zero. However, if these options are not given at all, the default 
 #. quiet levels per operation are:
-#.    * 'push'  - 1
-#.    * 'pop'   - 2
-#.    * 'notch' - 3
-#.    * 'lop'   - 3 (This includes the underlying pops! If you want to pop at a 
+#.    * 'push'  - 2
+#.    * 'pop'   - 3
+#.    * 'notch' - 4
+#.    * 'lop'   - 4 (This includes the underlying pops! If you want to pop at a 
 #.                different quiet level, you have to pop manually)
 #
 ## Parameters:
@@ -209,7 +209,7 @@ d___context_push()
   local msg="$*"; D__CONTEXT+=("$msg")
 
   # Cut-off for non-printing calls
-  [ $qt = n ] && qt=1; (($D__OPT_VERBOSITY<$qt)) && return 0
+  [ $qt = n ] && qt=2; (($D__OPT_VERBOSITY<$qt)) && return 0
 
   # Start assembling output and settle on formatting
   local pft= pfa=() tp="$BOLD" ts="$NORMAL"
@@ -243,7 +243,7 @@ d___context_pop()
   unset D__CONTEXT[$level]
 
   # Cut-off for non-printing calls
-  [ $qt = n ] && qt=2; (($D__OPT_VERBOSITY<$qt)) && return 0
+  [ $qt = n ] && qt=3; (($D__OPT_VERBOSITY<$qt)) && return 0
 
   # Start assembling output and settle on formatting
   local pft= pfa=() tp="$BOLD" ts="$NORMAL"
@@ -276,7 +276,7 @@ d___context_notch()
   D__CONTEXT_NOTCHES+=("${#D__CONTEXT[@]}")
 
   # Cut-off for non-printing calls
-  [ $qt = n ] && qt=3; (($D__OPT_VERBOSITY<$qt)) && return 0
+  [ $qt = n ] && qt=4; (($D__OPT_VERBOSITY<$qt)) && return 0
 
   # Start assembling output and settle on formatting
   local pft= pfa=() tp="$BOLD" ts="$NORMAL"
@@ -306,7 +306,7 @@ d___context_lop()
   else num=; min=0; fi
 
   # Calculate whether the pop messages are to be printed
-  [ $qt = n ] && qt=3; if (($D__OPT_VERBOSITY<$qt)); then qt=true; else
+  [ $qt = n ] && qt=4; if (($D__OPT_VERBOSITY<$qt)); then qt=true; else
 
     # Start assembling output and settle on formatting
     local pft= pfa=() tp="$BOLD" ts="$NORMAL" arrow
