@@ -2,8 +2,8 @@
 #:title:        Divine Bash utils: stash
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.09.25
-#:revremark:    Remove revision numbers from all src files
+#:revdate:      2019.10.10
+#:revremark:    Finish implementing three special queues
 #:created_at:   2019.05.15
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -538,7 +538,7 @@ d___check_stashing_system()
           fi
           ;;
       *)  if [ -n "$D_DPL_NAME" ]; then
-            d__notify -qq -- "Preparing stash for deployment $D_DPL_NAME"
+            d__notify -qq -- "Preparing stash for deployment '$D_DPL_NAME'"
           else
             d__notify $quiet -- \
               'Dpl-level stash has been accessed with empty $D_DPL_NAME'

@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.10
-#:revremark:    Fix minor typo
+#:revremark:    Finish implementing three special queues
 #:created_at:   2018.03.25
 
 ## Launches the Divine intervention
@@ -157,15 +157,14 @@ d__populate_globals()
     'procedure detect-os' \
     'util offer' \
     'procedure prep-3-opt' \
-    'util dreadlink' \
+    'util backup' \
     'util github' \
-    'helper github' \
-    'util dmv' \
     'util dln' \
+    'helper multitask' \
     'helper queue' \
     'helper link-queue' \
     'helper copy-queue' \
-    'helper multitask' \
+    'helper gh-queue' \
     'util manifests' \
     'procedure dpl-repo-sync' \
   ); readonly D__INIT_TRAIN

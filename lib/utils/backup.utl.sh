@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.10
-#:revremark:    Fix minor typo
+#:revremark:    Finish implementing three special queues
 #:created_at:   2019.09.18
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -79,6 +79,7 @@ d__push_backup()
   d__context -- notch
 
   local orig_path="${args[0]}" orig_dirpath cmd
+  orig_dirpath="$( dirname -- "$orig_path" )"
   d__require [ -n --ORIG_PATH-- "$orig_path" ] \
     --crcm-- 'Backing up initiated with an empty path' \
     --else-- 'Cannot pop backup' \
@@ -91,16 +92,10 @@ d__push_backup()
     fi
   else
     d__notify -qq -- "Nothing to back up at: $orig_path"
-    orig_dirpath="$( dirname -- "$orig_path" )"
     if ! [ -d "$orig_dirpath" ]; then
       d__context -- push \
         "Ensuring existence of the parent directory of: $orig_path"
-      local orig_exipath="$( dirname -- "$orig_dirpath" )"
-      while [ ! -d "$orig_exipath" ]
-      do orig_exipath="$( dirname -- "$orig_exipath" )"; done
-      cmd=mkdir; if ! [ -w "$orig_exipath" ]
-      then d__notify -u -- "Sudo privelege is required to operate under:" \
-        -i- "$orig_exipath"; cmd='sudo mkdir'; fi
+      cmd=mkdir; d__require_writable "$orig_dirpath" || cmd='sudo mkdir'
       d__cmd $cmd -p -- --ORIG_DIRPATH-- "$orig_dirpath" \
         --else-- 'Desired location is inaccessible' || return 1
     fi
@@ -130,8 +125,8 @@ d__push_backup()
       --else-- 'Cannot back up' \
       || return 2
     backup_dirpath="$( dirname -- "$backup_path" )"
-    d__require [ --BACKUP_PATH-- "$backup_path" \
-      != --BACKUP_DIRPATH-- "$backup_dirpath" ] \
+    d__require --neg-- [ --BACKUP_PATH-- "$backup_path" \
+      -ef --BACKUP_DIRPATH-- "$backup_dirpath" ] \
       --crcm-- 'Backing up initiated with an illegal backup path' \
       --else-- 'Cannot back up' \
       || return 2
@@ -140,12 +135,7 @@ d__push_backup()
   d__context -- push "Backing up into: $backup_path"
   if ! [ -d "$backup_dirpath" ]; then
     d__context -- push 'Ensuring existence of the directory containing backups'
-    local backup_exipath="$( dirname -- "$backup_path" )"
-    while [ ! -d "$backup_exipath" ]
-    do backup_exipath="$( dirname -- "$backup_exipath" )"; done
-    cmd=mkdir; if ! [ -w "$backup_exipath" ]
-    then d__notify -u -- "Sudo privelege is required to operate under:" \
-      -i- "$backup_exipath"; cmd='sudo mkdir'; fi
+    cmd=mkdir; d__require_writable "$backup_path" || cmd='sudo mkdir'
     d__cmd $cmd -p -- --BACKUP_DIRPATH-- "$backup_dirpath" \
       --else-- "Unable to back up into an inaccessible directory" \
       || return 2
@@ -167,9 +157,7 @@ d__push_backup()
   fi
 
   d__context -- push 'Moving the original to the backup location'
-  cmd=mv; if ! [ -w "$backup_dirpath" ]
-  then d__notify -u -- "Sudo privelege is required to operate under:" \
-    -i- "$backup_dirpath"; cmd='sudo mv'; fi
+  cmd=mv; d__require_writable "$backup_dirpath" || cmd='sudo mv'
   d__cmd $cmd -n -- --ORIG_PATH-- "$orig_path" --BACKUP_PATH-- "$backup_path" \
     --else-- 'Failed to push backup' \
     || return 3
@@ -200,9 +188,6 @@ d__push_backup()
 ## To back up whatever pre-exists at the ORIG_PATH, the suffix '.bak' is 
 #. appended to the ORIG_PATH. If that path happens to be occupied, the same 
 #. routine of incrementing numbers is applied.
-#
-## This function always ensures the existence of the directory that is the 
-#. immediate parent the ORIG_PATH.
 #
 ## This function is intended to be used in conjunction with d__push_backup.
 #
@@ -247,26 +232,13 @@ d__pop_backup()
   d__context -- notch
 
   local orig_path="${args[0]}" orig_dirpath cmd
+  orig_dirpath="$( dirname -- "$orig_path" )"
   d__require [ -n --ORIG_PATH-- "$orig_path" ] \
     --crcm-- 'Popping of backup initiated with an empty path' \
     --else-- 'Cannot pop backup' \
     || return 1
   if ! [ -e "$orig_path" ]; then
     $evict && d__notify -qq -- "Nothing to evict at: $orig_path"; evict=false
-    orig_dirpath="$( dirname -- "$orig_path" )"
-    if ! [ -d "$orig_dirpath" ]; then
-      d__context -- push \
-        "Ensuring existence of the parent directory of: $orig_path"
-      local orig_exipath="$( dirname -- "$orig_dirpath" )"
-      while [ ! -d "$orig_exipath" ]
-      do orig_exipath="$( dirname -- "$orig_exipath" )"; done
-      cmd=mkdir; if ! [ -w "$orig_exipath" ]
-      then d__notify -u -- "Sudo privelege is required to operate under:" \
-        -i- "$orig_exipath"; cmd='sudo mkdir'; fi
-      d__cmd $cmd -p -- --ORIG_DIRPATH-- "$orig_dirpath" \
-        --else-- 'Desired location is inaccessible' || return 1
-      d__context -- pop
-    fi
   fi
 
   local backup_path i
@@ -301,6 +273,14 @@ d__pop_backup()
       d__context -- pop
     fi
     d__context -- push "Restoring backup from: $backup_path"
+    if ! [ -d "$orig_dirpath" ]; then
+      d__context -- push \
+        "Ensuring existence of the parent directory of: $orig_path"
+      cmd=mkdir; d__require_writable "$orig_dirpath" || cmd='sudo mkdir'
+      d__cmd $cmd -p -- --ORIG_DIRPATH-- "$orig_dirpath" \
+        --else-- 'Desired location is inaccessible' || return 1
+      d__context -- pop
+    fi
     evict=true; restore=true
   else
     d__notify -qq -- "No backup to restore"
@@ -312,9 +292,7 @@ d__pop_backup()
     [ -d "$orig_path" ] && orig_type=directory || orig_type=file
     if $dispose; then
       d__context -- push "Clobbering a $orig_type at: $orig_path"
-      cmd=rm; if ! [ -w "$orig_dirpath" ]
-      then d__notify -u -- "Sudo privelege is required to operate under:" \
-        -i- "$orig_dirpath"; cmd='sudo rm'; fi
+      cmd=rm; d__require_writable "$orig_dirpath" || cmd='sudo rm'
       d__cmd $cmd -rf -- --ORIG_PATH-- "$orig_path" \
         --else-- 'Failed to clobber the path' || return 3
       d__context -- pop
@@ -332,10 +310,8 @@ d__pop_backup()
         d__context -- pop
       fi
       d__context -- push "Evicting to: $orig_path_bak"
-      cmd=mv; if ! [ -w "$orig_dirpath" ]
-      then d__notify -u -- "Sudo privelege is required to operate under:" \
-        -i- "$orig_dirpath"; cmd='sudo mv'; fi
-      d__cmd mv -n -- --ORIG_PATH-- "$orig_path" \
+      cmd=mv; d__require_writable "$orig_dirpath" || cmd='sudo mv'
+      d__cmd $cmd -n -- --ORIG_PATH-- "$orig_path" \
         --EVICT_PATH-- "$orig_path_bak" \
         --else-- "Failed to evict the $orig_type" || return 3
       d__context -- pop
@@ -346,9 +322,7 @@ d__pop_backup()
   if ! $restore; then d__context lop; return 0; fi
 
   d__context -- push 'Moving the backup to its original location'
-  cmd=mv; if ! [ -w "$orig_dirpath" ]
-  then d__notify -u -- "Sudo privelege is required to operate under:" \
-    -i- "$orig_dirpath"; cmd='sudo mv'; fi
+  cmd=mv; d__require_writable "$orig_dirpath" || cmd='sudo mv'
   d__cmd $cmd -n -- --BACKUP_PATH-- "$backup_path" --ORIG_PATH-- "$orig_path" \
     --else-- 'Failed to pop backup' \
     || return 3

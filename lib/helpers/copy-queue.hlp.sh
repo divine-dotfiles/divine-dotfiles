@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.10
-#:revremark:    Fix minor typo
+#:revremark:    Finish implementing three special queues
 #:created_at:   2019.05.23
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -42,7 +42,8 @@ d__copy_queue_remove()
 d__copy_queue_pre_check()
 {
   # Switch context; prepare stash; apply adapter overrides
-  d__context -- push 'Preparing copy-queue for checking'; d__stash -- ready
+  d__context -- push 'Preparing copy-queue for checking'
+  d__stash -- ready || return 1
   d__adapter_override_dpl_targets_for_os_family
   d__adapter_override_dpl_targets_for_os_distro
 
@@ -85,7 +86,7 @@ d__copy_item_check()
 {
   # Run pre-processing
   d__context -- push "Checking copy-queue item '$D__ITEM_NAME'"
-  unset D_ADDST_ITEM_CHECK_CODE; d_queue_pre_check
+  unset D_ADDST_ITEM_CHECK_CODE; d_copy_item_pre_check
   if (($?)); then
     d__notify -l!h -- "Copy-queue item's pre-check hook forces halting"
     d__context -- pop; return 3
@@ -97,9 +98,9 @@ d__copy_item_check()
 
   # Storage varibales; switch context
   local d__cqei="$D__ITEM_NUM" d__cqrtc d__cqer=()
-  local d__cqesk="copy_$( dmd5 -s "${D_DPL_TARGET_PATHS[$d__cqei]}" )"
   local d__cqea="${D_DPL_ASSET_PATHS[$d__cqei]}"
   local d__cqet="${D_DPL_TARGET_PATHS[$d__cqei]}"
+  local d__cqesk="copy_$( dmd5 -s "$d__cqet" )"
   local d__cqeb="$D__DPL_BACKUP_DIR/$d__cqesk"
   [ -n "$d__cqea" ] || d__cqer+=( -i- '- asset path is empty' )
   [ -n "$d__cqet" ] || d__cqer+=( -i- '- target path is empty' )
@@ -124,7 +125,7 @@ d__copy_item_check()
 
   # Run post-processing
   unset D_ADDST_ITEM_CHECK_CODE; D__ITEM_CHECK_CODE="$d__cqrtc"
-  d_queue_post_check; if (($?)); then
+  d_copy_item_post_check; if (($?)); then
     d__notify -l!h -- "Copy-queue item's post-check hook forces halting"
     d__context -- pop; d__context -- pop; return 3
   elif [[ $D_ADDST_ITEM_CHECK_CODE =~ ^[0-9]+$ ]]; then
@@ -177,14 +178,14 @@ d__copy_item_install()
 {
   # Storage varibales; switch context
   local d__cqei="$D__ITEM_NUM" d__cqrtc d__cqcmd
-  local d__cqesk="copy_$( dmd5 -s "${D_DPL_TARGET_PATHS[$d__cqei]}" )"
   local d__cqea="${D_DPL_ASSET_PATHS[$d__cqei]}"
-  local d__cqet="${D_DPL_TARGET_PATHS[$d__cqei]}" d__cqetp
+  local d__cqet="${D_DPL_TARGET_PATHS[$d__cqei]}"
+  local d__cqesk="copy_$( dmd5 -s "$d__cqet" )"
   local d__cqeb="$D__DPL_BACKUP_DIR/$d__cqesk"
   d__context -- push "Installing a copy to: $d__cqet"
 
   # Run pre-processing
-  unset D_ADDST_ITEM_INSTALL_CODE; d_queue_pre_install
+  unset D_ADDST_ITEM_INSTALL_CODE; d_copy_item_pre_install
   if (($?)); then
     d__notify -l!h -- "Copy-queue item's pre-install hook forces halting"
     d__context -- pop; return 3
@@ -196,10 +197,8 @@ d__copy_item_install()
 
   # Do the actual installing; switch context
   if d__push_backup -- "$d__cqet" "$d__cqeb"; then
-    d__cqcmd=cp d__cqetp="$(dirpath -- "$d__cqet")"; if ! [ -w "$d__cqetp" ]
-    then d__notify -u -- "Sudo privelege is required to operate under:" \
-      -i- "$d__cqetp"; cmd='sudo cp'; fi
-    if d__cmd $cmd -- --ASSET_PATH-- "$d__cqea" --TARGET_PATH-- "$d__cqet"
+    d__cqcmd=cp; d__require_writable "$d__cqet" || d__cqcmd='sudo cp'
+    if d__cmd $d__cqcmd -- --ASSET_PATH-- "$d__cqea" --TARGET_PATH-- "$d__cqet"
     then d__cqrtc=0; else d__cqrtc=1; fi
   else d__cqrtc=1; fi
   if [ $d__cqrtc -eq 0 ]; then
@@ -212,7 +211,7 @@ d__copy_item_install()
 
   # Run post-processing
   unset D_ADDST_ITEM_INSTALL_CODE; D__ITEM_INSTALL_CODE="$d__cqrtc"
-  d_queue_post_install; if (($?)); then
+  d_copy_item_post_install; if (($?)); then
     d__notify -l!h -- "Copy-queue item's post-install hook forces halting"
     d__context -- pop; return 3
   elif [[ $D_ADDST_ITEM_INSTALL_CODE =~ ^[0-9]+$ ]]; then
@@ -265,13 +264,13 @@ d__copy_item_remove()
 {
   # Storage varibales; switch context
   local d__cqei="$D__ITEM_NUM" d__cqrtc
-  local d__cqesk="copy_$( dmd5 -s "${D_DPL_TARGET_PATHS[$d__cqei]}" )"
   local d__cqet="${D_DPL_TARGET_PATHS[$d__cqei]}"
+  local d__cqesk="copy_$( dmd5 -s "$d__cqet" )"
   local d__cqeb="$D__DPL_BACKUP_DIR/$d__cqesk"
   d__context -- push "Undoing copying to: $d__cqet"
 
   # Run pre-processing
-  unset D_ADDST_ITEM_REMOVE_CODE; d_queue_pre_remove
+  unset D_ADDST_ITEM_REMOVE_CODE; d_copy_item_pre_remove
   if (($?)); then
     d__notify -l!h -- "Copy-queue item's pre-remove hook forces halting"
     d__context -- pop; return 3
@@ -282,8 +281,7 @@ d__copy_item_remove()
   fi
 
   # Do the actual removing; switch context
-  if d__pop_backup -e -- "$d__cqet" "$d__cqeb"
-  then d__cqrtc=0; else d__cqrtc=1; fi
+  d__pop_backup -e -- "$d__cqet" "$d__cqeb" && d__cqrtc=0 || d__cqrtc=1
   if [ $d__cqrtc -eq 0 ]; then
     case $D__ITEM_CHECK_CODE in
       1|6)  d__stash -s -- unset $d__cqesk || d__cqrtc=1;;
@@ -294,7 +292,7 @@ d__copy_item_remove()
 
   # Run post-processing
   unset D_ADDST_ITEM_REMOVE_CODE; D__ITEM_REMOVE_CODE="$d__cqrtc"
-  d_queue_post_remove; if (($?)); then
+  d_copy_item_post_remove; if (($?)); then
     d__notify -l!h -- "Copy-queue item's post-remove hook forces halting"
     d__context -- pop; return 3
   elif [[ $D_ADDST_ITEM_REMOVE_CODE =~ ^[0-9]+$ ]]; then

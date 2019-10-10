@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.10
-#:revremark:    Fix minor typo
+#:revremark:    Finish implementing three special queues
 #:created_at:   2019.07.05
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -144,7 +144,7 @@ d__check_github()
   fi
   readonly D__GH_METHOD
   if [ -z "$D__GH_METHOD" ]; then
-    d__notify -lx -- 'Unable to clone/download Github repositories'
+    d__notify -lx -- 'Unable to work with Github repositories'
   fi
 }
 

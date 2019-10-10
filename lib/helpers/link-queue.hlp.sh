@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.10
-#:revremark:    Fix minor typo
+#:revremark:    Finish implementing three special queues
 #:created_at:   2019.04.02
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -42,7 +42,8 @@ d__link_queue_remove()
 d__link_queue_pre_check()
 {
   # Switch context; prepare stash; apply adapter overrides
-  d__context -- push 'Preparing link-queue for checking'; d__stash -- ready
+  d__context -- push 'Preparing link-queue for checking'
+  d__stash -- ready || return 1
   d__adapter_override_dpl_targets_for_os_family
   d__adapter_override_dpl_targets_for_os_distro
 
@@ -85,7 +86,7 @@ d__link_item_check()
 {
   # Run pre-processing
   d__context -- push "Checking link-queue item '$D__ITEM_NAME'"
-  unset D_ADDST_ITEM_CHECK_CODE; d_queue_pre_check
+  unset D_ADDST_ITEM_CHECK_CODE; d_link_item_pre_check
   if (($?)); then
     d__notify -l!h -- "Link-queue item's pre-check hook forces halting"
     d__context -- pop; return 3
@@ -97,9 +98,9 @@ d__link_item_check()
 
   # Storage varibales; cut-off checks; switch context
   local d__lqei="$D__ITEM_NUM" d__lqrtc d__lqer=()
-  local d__lqesk="link_$( dmd5 -s "${D_DPL_TARGET_PATHS[$d__lqei]}" )"
   local d__lqea="${D_DPL_ASSET_PATHS[$d__lqei]}"
   local d__lqet="${D_DPL_TARGET_PATHS[$d__lqei]}"
+  local d__lqesk="link_$( dmd5 -s "$d__lqet" )"
   local d__lqeb="$D__DPL_BACKUP_DIR/$d__lqesk"
   [ -n "$d__lqea" ] || d__lqer+=( -i- '- asset path is empty' )
   [ -n "$d__lqet" ] || d__lqer+=( -i- '- target path is empty' )
@@ -110,7 +111,6 @@ d__link_item_check()
   d__context -- push "Checking if linked at: $d__lqet"
 
   # Do the actual checking; check if source is readable; switch context
-  then d__fail
   if [ -L "$d__lqet" -a "$d__lqet" -ef "$d__lqea" ]
   then d__stash -s -- has $d__lqesk && d__lqrtc=1 || d__lqrtc=7
   else d__stash -s -- has $d__lqesk && d__lqrtc=6 || d__lqrtc=2; fi
@@ -125,7 +125,7 @@ d__link_item_check()
 
   # Run post-processing
   unset D_ADDST_ITEM_CHECK_CODE; D__ITEM_CHECK_CODE="$d__lqrtc"
-  d_queue_post_check; if (($?)); then
+  d_link_item_post_check; if (($?)); then
     d__notify -l!h -- "Link-queue item's post-check hook forces halting"
     d__context -- pop; d__context -- pop; return 3
   elif [[ $D_ADDST_ITEM_CHECK_CODE =~ ^[0-9]+$ ]]; then
@@ -178,14 +178,14 @@ d__link_item_install()
 {
   # Storage varibales; switch context
   local d__lqei="$D__ITEM_NUM" d__lqrtc d__lqcmd
-  local d__lqesk="link_$( dmd5 -s "${D_DPL_TARGET_PATHS[$d__lqei]}" )"
   local d__lqea="${D_DPL_ASSET_PATHS[$d__lqei]}"
-  local d__lqet="${D_DPL_TARGET_PATHS[$d__lqei]}" d__lqetp
+  local d__lqet="${D_DPL_TARGET_PATHS[$d__lqei]}"
+  local d__lqesk="link_$( dmd5 -s "$d__lqet" )"
   local d__lqeb="$D__DPL_BACKUP_DIR/$d__lqesk"
   d__context -- push "Installing a link at: $d__lqet"
 
   # Run pre-processing
-  unset D_ADDST_ITEM_INSTALL_CODE; d_queue_pre_install
+  unset D_ADDST_ITEM_INSTALL_CODE; d_link_item_pre_install
   if (($?)); then
     d__notify -l!h -- "Link-queue item's pre-install hook forces halting"
     d__context -- pop; return 3
@@ -197,10 +197,9 @@ d__link_item_install()
 
   # Do the actual installing; switch context
   if d__push_backup -- "$d__lqet" "$d__lqeb"; then
-    d__lqcmd=ln d__lqetp="$(dirpath -- "$d__lqet")"; if ! [ -w "$d__lqetp" ]
-    then d__notify -u -- "Sudo privelege is required to operate under:" \
-      -i- "$d__lqetp"; cmd='sudo ln'; fi
-    if d__cmd $cmd -s -- --ASSET_PATH-- "$d__lqea" --TARGET_PATH-- "$d__lqet"
+    d__lqcmd=ln; d__require_writable "$d__lqet" || d__lqcmd='sudo ln'
+    if d__cmd $d__lqcmd -s -- --ASSET_PATH-- "$d__lqea" \
+      --TARGET_PATH-- "$d__lqet"
     then d__lqrtc=0; else d__lqrtc=1; fi
   else d__lqrtc=1; fi
   if [ $d__lqrtc -eq 0 ]; then
@@ -213,7 +212,7 @@ d__link_item_install()
 
   # Run post-processing
   unset D_ADDST_ITEM_INSTALL_CODE; D__ITEM_INSTALL_CODE="$d__lqrtc"
-  d_queue_post_install; if (($?)); then
+  d_link_item_post_install; if (($?)); then
     d__notify -l!h -- "Link-queue item's post-install hook forces halting"
     d__context -- pop; return 3
   elif [[ $D_ADDST_ITEM_INSTALL_CODE =~ ^[0-9]+$ ]]; then
@@ -266,14 +265,14 @@ d__link_item_remove()
 {
   # Storage varibales; switch context
   local d__lqei="$D__ITEM_NUM" d__lqrtc d__lqeo
-  local d__lqesk="link_$( dmd5 -s "${D_DPL_TARGET_PATHS[$d__lqei]}" )"
   local d__lqea="${D_DPL_ASSET_PATHS[$d__lqei]}"
   local d__lqet="${D_DPL_TARGET_PATHS[$d__lqei]}"
+  local d__lqesk="link_$( dmd5 -s "$d__lqet" )"
   local d__lqeb="$D__DPL_BACKUP_DIR/$d__lqesk"
   d__context -- push "Undoing link at: $d__lqet"
 
   # Run pre-processing
-  unset D_ADDST_ITEM_REMOVE_CODE; d_queue_pre_remove
+  unset D_ADDST_ITEM_REMOVE_CODE; d_link_item_pre_remove
   if (($?)); then
     d__notify -l!h -- "Link-queue item's pre-remove hook forces halting"
     d__context -- pop; return 3
@@ -285,8 +284,7 @@ d__link_item_remove()
 
   # Do the actual removing; switch context
   d__lqeo='-e'; [ "$D__ITEM_CHECK_CODE" -eq 1 ] && d__lqeo='-ed'
-  if d__pop_backup $d__lqeo -- "$d__lqet" "$d__lqeb"
-  then d__lqrtc=0; else d__lqrtc=1; fi
+  d__pop_backup $d__lqeo -- "$d__lqet" "$d__lqeb" && d__lqrtc=0 || d__lqrtc=1
   if [ $d__lqrtc -eq 0 ]; then
     case $D__ITEM_CHECK_CODE in
       1|6)  d__stash -s -- unset $d__lqesk || d__lqrtc=1;;
@@ -297,7 +295,7 @@ d__link_item_remove()
 
   # Run post-processing
   unset D_ADDST_ITEM_REMOVE_CODE; D__ITEM_REMOVE_CODE="$d__lqrtc"
-  d_queue_post_remove; if (($?)); then
+  d_link_item_post_remove; if (($?)); then
     d__notify -l!h -- "Link-queue item's post-remove hook forces halting"
     d__context -- pop; return 3
   elif [[ $D_ADDST_ITEM_REMOVE_CODE =~ ^[0-9]+$ ]]; then

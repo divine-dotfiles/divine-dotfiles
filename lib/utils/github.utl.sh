@@ -2,8 +2,8 @@
 #:title:        Divine Bash utils: github
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.09.25
-#:revremark:    Implement building blocks of retrieving GH repos
+#:revdate:      2019.10.10
+#:revremark:    Finish implementing three special queues
 #:created_at:   2019.09.13
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -28,8 +28,7 @@ d___clone_gh_repo()
   d__context -- push "Cloning Github repository '$1'"
   d__context -- push "Cloning into: $2"
   d__cmd --qq-- git clone --depth=1 --REPO_URL-- "https://github.com/$1.git" \
-    --REPO_PATH-- "$2" \
-    --else-- 'Failed to clone' || return 1
+    --REPO_PATH-- "$2" --else-- 'Failed to clone' || return 1
   d__context -- pop
   d__context -t 'Done' -- pop "Successfully cloned Github repository '$1'"
   d__context -- lop
@@ -197,7 +196,7 @@ d___path_is_gh_clone()
   if pushd -- "$1" &>/dev/null; then
     if [ "$( git remote get-url origin 2>/dev/null )" \
       = "https://github.com/$2.git" ]
-    then popd; return 0
-    else popd; return 1; fi
+    then popd &>/dev/null; return 0
+    else popd &>/dev/null; return 1; fi
   fi; return 2
 }

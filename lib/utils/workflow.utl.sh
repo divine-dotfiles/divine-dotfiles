@@ -4,7 +4,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.10
-#:revremark:    Fix minor typo
+#:revremark:    Finish implementing three special queues
 #:created_at:   2019.09.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -1471,4 +1471,26 @@ d___fail_from_cmd()
 
   # If not optional, lop the head of the context stack
   $opt || d__context -- lop
+}
+
+#>  d__require_writable PATH
+#
+## A small helper that ensures eiher that the PATH itself is a writable 
+#. directory, or that its closest existing parent directory is writable. If 
+#. neither is the case, issues a warning to the user about the required sudo 
+#. privelege.
+#
+## Returns:
+#.  0 - The PATH or its existing parent is writable without sudo.
+#.  1 - The PATH or its existing parent is only writable with sudo.
+#.  2 - The PATH is empty.
+#
+d__require_writable()
+{
+  local path="$1"; if [ -z "$path" ]
+  then d__notify -lx -- "Unable to write into a blank path"; return 2; fi
+  while [ ! -d "$path" ]; do path="$( dirname -- "$path" )"; done
+  if [ -w "$path" ]; then return 0
+  else d__notify -u! -- "Sudo privelege is required to operate under:" \
+    -i- "$path"; return 1; fi
 }
