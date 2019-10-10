@@ -3,8 +3,8 @@
 #:kind:         func(script)
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.09.28
-#:revremark:    Add para-options to debug funcs; tweak them too
+#:revdate:      2019.10.10
+#:revremark:    Fix minor typo
 #:created_at:   2019.09.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -13,15 +13,67 @@
 #. code and managing debug output.
 #
 ## Summary of functions in this file:
+#>  d__announce [-!dsvx] [--] DESCRIPTION...
 #>  d__context [-lnq]... [-t TITLE] [--] push|pop|notch|lop DESCRIPTION...
 #>  d__notify [-!1cdhlnqsuvx] [-t TITLE] [--] [DESCRIPTION...]
 #>  d__prompt [-!1bchknqsvxy] [-p PROMPT] [-a ANSWER] [-t TITLE] [--] \
-#>    [DESCRIPTION...]
+#.    [DESCRIPTION...]
 #>  d__fail [-n] [-t TITLE] [--] [DESCRIPTION...]
 #>  d__cmd [<options>] [----] CMD...
 #>  d__require [<options>] [----] CMD...
 #>  d__pipe [<options>] [----] CMD
 #
+
+#>  d__announce [-!dsvx] [--] DESCRIPTION...
+#
+## Prints a colorful plaque that serves to announce the outset and completion 
+#. of the script execution, with textual description of the routine being run.
+#. Parts of DESCRIPTION are merely stitched together with a single space.
+#
+## Options for semantic styling. These modes are only relevant when the 
+#. terminal coloring is available (one active at a time, last option wins):
+#.  -d, --debug     - (default) Style the plaque as a debug message by painting 
+#.                    it entirely in cyan.
+#.  -!, --alert     - Style the plaque as an alert message by painting it 
+#.                    entirely in yellow.
+#.  -v, --success   - Style the plaque as a success message by painting it 
+#.                    entirely in green.
+#.  -x, --failure   - Style the plaque as a failure message by painting it 
+#.                    entirely in red.
+#.  -s, --skip      - Style the plaque as a skip message by painting it 
+#.                    entirely in white.
+#
+## Returns:
+#.  0 - Always
+#
+d__announce()
+{
+  # Pluck out options, round up arguments
+  local args=() arg opt clr="$BLACK$BG_CYAN"
+  while (($#)); do arg="$1"; shift; case $arg in
+    -*) case ${arg:1} in
+          -)          args+=("$@"); break;;
+          d|-debug)   clr="$BLACK$BG_CYAN";;
+          \!|-alert)  clr="$BLACK$BG_YELLOW";;
+          v|-success) clr="$BLACK$BG_GREEN";;
+          x|-failure) clr="$BLACK$BG_RED";;
+          s|-skip)    clr="$BLACK$BG_WHITE";;
+          *)  for ((i=1;i<${#arg};++i)); do opt="${arg:i:1}"; case $opt in
+                d)  clr="$BLACK$BG_CYAN";;
+                \!) clr="$BLACK$BG_YELLOW";;
+                v)  clr="$BLACK$BG_GREEN";;
+                x)  clr="$BLACK$BG_RED";;
+                s)  clr="$BLACK$BG_WHITE";;
+                *)  printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" \
+                      "$FUNCNAME: Ignoring unrecognized option: '$opt'";;
+              esac; done;;
+        esac;;
+    *)  args+=("$arg");;
+  esac; done
+  # Just print the damn thing
+  printf >&2 '%s %s %s\n' \
+    "$clr$BOLD D.d >$NORMAL$clr" "${args[*]}" "$BOLD> $NORMAL"
+}
 
 #>  d__context [-lnq]... [-t TITLE] [--] push|pop|notch|lop DESCRIPTION...
 #
@@ -160,31 +212,29 @@ d__context()
           s|-skip)    stl=s;;
           t|-title)   if (($#)); then ttl="$1"; shift; fi;;
           n|-newline) nl=true;;
-          *)  for ((i=1;i<${#arg};++i)); do opt="${arg:i:1}"
-                case $opt in
-                  q)  ((++qt));;
-                  l)  qt=0;;
-                  d)  stl=d;;
-                  \!) stl=a;;
-                  v)  stl=v;;
-                  x)  stl=x;;
-                  s)  stl=s;;
-                  t)  if (($#)); then ttl="$1"; shift; fi;;
-                  n)  nl=true;;
-                  *)  printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" \
-                        "$FUNCNAME: Ignoring unrecognized option: '$opt'";;
-                esac
-              done;;
+          *)  for ((i=1;i<${#arg};++i)); do opt="${arg:i:1}"; case $opt in
+                q)  ((++qt));;
+                l)  qt=0;;
+                d)  stl=d;;
+                \!) stl=a;;
+                v)  stl=v;;
+                x)  stl=x;;
+                s)  stl=s;;
+                t)  if (($#)); then ttl="$1"; shift; fi;;
+                n)  nl=true;;
+                *)  printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" \
+                      "$FUNCNAME: Ignoring unrecognized option: '$opt'";;
+              esac; done;;
         esac;;
     *)  args+=("$arg");;
   esac; done
 
   # Fork based on operation
   case ${args[0]} in
-    push)   shift; d___context_push "${args[@]}";;
-    pop)    shift; d___context_pop "${args[@]}";;
-    notch)  shift; d___context_notch "${args[@]}";;
-    lop)    shift; d___context_lop "${args[@]}";;
+    push)   d___context_push "${args[@]:1}";;
+    pop)    d___context_pop "${args[@]:1}";;
+    notch)  d___context_notch "${args[@]:1}";;
+    lop)    d___context_lop "${args[@]:1}";;
     *)  printf >&2 '%s %s\n' "$RED$BOLD==>$NORMAL" \
           "$FUNCNAME: Refusing to work with unrecognized command: '${args[0]}'"
         return 1;;
@@ -209,7 +259,7 @@ d___context_push()
   local msg="$*"; D__CONTEXT+=("$msg")
 
   # Cut-off for non-printing calls
-  [ $qt = n ] && qt=1; (($D__OPT_VERBOSITY<$qt)) && return 0
+  [ $qt = n ] && qt=2; (($D__OPT_VERBOSITY<$qt)) && return 0
 
   # Start assembling output and settle on formatting
   local pft= pfa=() tp="$BOLD" ts="$NORMAL"
@@ -243,7 +293,7 @@ d___context_pop()
   unset D__CONTEXT[$level]
 
   # Cut-off for non-printing calls
-  [ $qt = n ] && qt=2; (($D__OPT_VERBOSITY<$qt)) && return 0
+  [ $qt = n ] && qt=3; (($D__OPT_VERBOSITY<$qt)) && return 0
 
   # Start assembling output and settle on formatting
   local pft= pfa=() tp="$BOLD" ts="$NORMAL"
@@ -276,7 +326,7 @@ d___context_notch()
   D__CONTEXT_NOTCHES+=("${#D__CONTEXT[@]}")
 
   # Cut-off for non-printing calls
-  [ $qt = n ] && qt=3; (($D__OPT_VERBOSITY<$qt)) && return 0
+  [ $qt = n ] && qt=4; (($D__OPT_VERBOSITY<$qt)) && return 0
 
   # Start assembling output and settle on formatting
   local pft= pfa=() tp="$BOLD" ts="$NORMAL"
@@ -306,7 +356,7 @@ d___context_lop()
   else num=; min=0; fi
 
   # Calculate whether the pop messages are to be printed
-  [ $qt = n ] && qt=3; if (($D__OPT_VERBOSITY<$qt)); then qt=true; else
+  [ $qt = n ] && qt=4; if (($D__OPT_VERBOSITY<$qt)); then qt=true; else
 
     # Start assembling output and settle on formatting
     local pft= pfa=() tp="$BOLD" ts="$NORMAL" arrow
@@ -851,14 +901,12 @@ d__fail()
           -)          args+=("$@"); break;;
           n|-newline) nl=true;;
           t|-title)   if (($#)); then ttl="$1"; shift; fi;;
-          *)  for ((i=1;i<${#arg};++i)); do opt="${arg:i:1}"
-                case $opt in
-                  n)  nl=true;;
-                  t)  if (($#)); then ttl="$1"; shift; fi;;
-                  *)  printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" \
-                        "$FUNCNAME: Ignoring unrecognized option: '$opt'";;
-                esac
-              done;;
+          *)  for ((i=1;i<${#arg};++i)); do opt="${arg:i:1}"; case $opt in
+                n)  nl=true;;
+                t)  if (($#)); then ttl="$1"; shift; fi;;
+                *)  printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" \
+                      "$FUNCNAME: Ignoring unrecognized option: '$opt'";;
+              esac; done;;
         esac;;
     *)  args+=("$arg");;
   esac; done
@@ -1009,25 +1057,25 @@ d__notify()
           v|-success) stl=v;;
           x|-failure) stl=x;;
           s|-skip)    stl=s;;
+          n|-newline) nl=true;;
           t|-title)   if (($#)); then ttl="$1"; shift; fi;;
-          *)  for ((i=1;i<${#arg};++i)); do opt="${arg:i:1}"
-                case $opt in
-                  c)  context=e;;
-                  h)  context=h;;
-                  1)  context=t;;
-                  l)  qt=0;;
-                  q)  ((++qt));;
-                  u)  sudo -n true 2>/dev/null && return 0; sudo=true;;
-                  \!) stl=a;;
-                  d)  stl=d;;
-                  v)  stl=v;;
-                  x)  stl=x;;
-                  s)  stl=s;;
-                  t)  if (($#)); then ttl="$1"; shift; fi;;
-                  *)  printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" \
-                        "$FUNCNAME: Ignoring unrecognized option: '$opt'";;
-                esac
-              done;;
+          *)  for ((i=1;i<${#arg};++i)); do opt="${arg:i:1}"; case $opt in
+                c)  context=e;;
+                h)  context=h;;
+                1)  context=t;;
+                l)  qt=0;;
+                q)  ((++qt));;
+                u)  sudo -n true 2>/dev/null && return 0; sudo=true;;
+                \!) stl=a;;
+                d)  stl=d;;
+                v)  stl=v;;
+                x)  stl=x;;
+                s)  stl=s;;
+                n)  nl=true;;
+                t)  if (($#)); then ttl="$1"; shift; fi;;
+                *)  printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" \
+                      "$FUNCNAME: Ignoring unrecognized option: '$opt'";;
+              esac; done;;
         esac;;
     *)  args+=("$arg");;
   esac; done
@@ -1087,7 +1135,7 @@ d__notify()
 }
 
 #>  d__prompt [-!1bchknqsvxy] [-p PROMPT] [-a ANSWER] [-t TITLE] [--] \
-#>    [DESCRIPTION...]
+#.    [DESCRIPTION...]
 #
 ## Prompting mechanism: requests a key press and returns corresponding integer:
 #.  * Yes/no:       'y' or 'n' (or 'q')   returns 0 or 1 (or 2) respectively
@@ -1216,27 +1264,25 @@ d__prompt()
           p|-prompt)  if (($#)); then prompt="$1"; shift; fi;;
           a|-answer)  if (($#)); then answer="$1"; shift; fi;;
           t|-title)   if (($#)); then ttl="$1"; one_line=false; shift; fi;;
-          *)  for ((i=1;i<${#arg};++i)); do opt="${arg:i:1}"
-                case $opt in
-                  y)  mode=y;;
-                  k)  mode=k;;
-                  q)  or_quit=true;;
-                  c)  context=e; one_line=false;;
-                  h)  context=h; one_line=false;;
-                  1)  context=t; one_line=false;;
-                  b)  stl=b;;
-                  \!) stl=a;;
-                  v)  stl=v;;
-                  x)  stl=x;;
-                  s)  stl=s;;
-                  n)  nl=true;;
-                  p)  if (($#)); then prompt="$1"; shift; fi;;
-                  a)  if (($#)); then answer="$1"; shift; fi;;
-                  t)  if (($#)); then ttl="$1"; one_line=false; shift; fi;;
-                  *)  printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" \
-                        "$FUNCNAME: Ignoring unrecognized option: '$opt'";;
-                esac
-              done;;
+          *)  for ((i=1;i<${#arg};++i)); do opt="${arg:i:1}"; case $opt in
+                y)  mode=y;;
+                k)  mode=k;;
+                q)  or_quit=true;;
+                c)  context=e; one_line=false;;
+                h)  context=h; one_line=false;;
+                1)  context=t; one_line=false;;
+                b)  stl=b;;
+                \!) stl=a;;
+                v)  stl=v;;
+                x)  stl=x;;
+                s)  stl=s;;
+                n)  nl=true;;
+                p)  if (($#)); then prompt="$1"; shift; fi;;
+                a)  if (($#)); then answer="$1"; shift; fi;;
+                t)  if (($#)); then ttl="$1"; one_line=false; shift; fi;;
+                *)  printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" \
+                      "$FUNCNAME: Ignoring unrecognized option: '$opt'";;
+              esac; done;;
         esac;;
     *)  args+=("$arg");;
   esac; done

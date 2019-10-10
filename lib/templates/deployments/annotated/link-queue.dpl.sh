@@ -26,16 +26,16 @@ D_DPL_WARNING=
 #.      d_link_queue_pre_check   - Custom queue pre-processing
 #.      d_link_queue_post_check  - Custom queue post-processing
 #.  * Executed during installation:
-#.      d_link_queue_item_pre_install  - Pre-installation actions for each item
+#.      d_link_item_pre_install  - Pre-installation actions for each item
 #.  * Executed during removal:
-#.      d_link_queue_item_pre_remove   - Pre-removal actions for each item
+#.      d_link_item_pre_remove   - Pre-removal actions for each item
 #
 ## Variables to take advantage of (maintained by queue helpers):
-#.  $D__QUEUE_ITEM_NUM         - Index of current item in $D_QUEUE_MAIN
-#.  $D__QUEUE_ITEM_TITLE       - Content of $D_QUEUE_MAIN for current item
-#.  $D__QUEUE_ITEM_STASH_KEY   - Stash key for current item
-#.  $D__QUEUE_ITEM_STASH_VALUE - Stash value for current item
-#.  $D__QUEUE_ITEM_IS_FORCED   - This variable is set to 'true' if installation/
+#.  $D__ITEM_NUM         - Index of current item in $D_QUEUE_MAIN
+#.  $D__ITEM_NAME       - Content of $D_QUEUE_MAIN for current item
+#.  $D__ITEM_STASH_KEY   - Stash key for current item
+#.  $D__ITEM_STASH_VALUE - Stash value for current item
+#.  $D__ITEM_IS_FORCED   - This variable is set to 'true' if installation/
 #.                            removal is being forced, i.e., it would not have 
 #.                            been initiated if not for force option.
 #.  $asset_path             - Local variable that is populated with path to 
@@ -104,7 +104,7 @@ d_link_queue_post_check()
   :
 }
 
-#>  d_link_queue_item_pre_install
+#>  d_link_item_pre_install
 #
 ## Performs custom actions before current item is installed
 #
@@ -114,12 +114,12 @@ d_link_queue_post_check()
 #.  0 - Ready for installation
 #.  1 - Otherwise: mark this item as invalid
 #
-d_link_queue_item_pre_install()
+d_link_item_pre_install()
 {
   :
 }
 
-#>  d_link_queue_item_pre_remove
+#>  d_link_item_pre_remove
 #
 ## Performs custom actions before current item is removed
 #
@@ -129,7 +129,7 @@ d_link_queue_item_pre_install()
 #.  0 - Ready for removal
 #.  1 - Otherwise: mark this item as invalid
 #
-d_link_queue_item_pre_remove()
+d_link_item_pre_remove()
 {
   :
 }

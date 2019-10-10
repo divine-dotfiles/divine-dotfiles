@@ -2,8 +2,8 @@
 #:title:        Divine Bash deployment helpers: copy-queue
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.09.25
-#:revremark:    Remove revision numbers from all src files
+#:revdate:      2019.10.10
+#:revremark:    Fix minor typo
 #:created_at:   2019.05.23
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -15,717 +15,310 @@
 #. original set-up on removal.
 #
 
-#>  d__copy_queue_check
-#
-## Checks whether every file in $D_DPL_TARGET_PATHS[_*] (single path or array 
-#. thereof) is currently a copy of corresponding file in $D_DPL_ASSET_PATHS
-#
-## Returns appropriate status based on overall state of installation, prints 
-#. warnings when warranted. If in doubt, prefers to prompt user on how to 
-#. proceed.
-#
-## Requires:
-#.  $D_DPL_ASSET_PATHS          - (array ok) Locations of replacement files
-#.  $D_DPL_TARGET_PATHS         - (array ok) Locations of files to be replaced
-#
-## Provides into the global scope:
-#.  $D_DPL_TARGET_PATHS   - (array) Version after overrides for current OS
-#
-## Returns:
-#.  Values supported by d_dpl_check function in *.dpl.sh
-#
-## Prints:
-#.  stdout: *nothing*
-#.  stderr: Error descriptions
-#
 d__copy_queue_check()
 {
-  # Redirect pre-processing
   d_queue_pre_check() { d__copy_queue_pre_check; }
-
-  # Redirect item check
-  d_queue_item_check() { d__copy_queue_item_check; }
-
-  # Redirect post-processing
+  d_item_check() { d__copy_item_check; }
   d_queue_post_check() { d__copy_queue_post_check; }
-
-  # Delegate to built-in helper
   d__queue_check
 }
 
-#>  d__copy_queue_install
-#
-## Copies each file in $D_DPL_ASSET_PATHS to respective destination path in 
-#. $D_DPL_TARGET_PATHS, moving pre-existing files to corresponging backup 
-#. locations.
-#
-## Requires:
-#.  $D_DPL_ASSET_PATHS    - (array ok) Source filepaths
-#.  $D_DPL_TARGET_PATHS   - (array ok) Destination filepaths on current OS
-#
-## Returns:
-#.  Values supported by d_dpl_install function in *.dpl.sh
-#
-## Prints:
-#.  Status messages for user
-#
 d__copy_queue_install()
 {
-  # Redirect pre-processing
   d_queue_pre_install() { d__copy_queue_pre_install; }
-
-  # Redirect item install
-  d_queue_item_install() { d__copy_queue_item_install; }
-
-  # Redirect post-processing
+  d_item_install() { d__copy_item_install; }
   d_queue_post_install() { d__copy_queue_post_install; }
-
-  # Delegate to built-in helper
   d__queue_install
 }
 
-#>  d__copy_queue_remove
-#
-## Removes each path in $D_DPL_TARGET_PATHS that has record of previous 
-#. copying, then moves corresponding backup path to its original location
-#
-## Requires:
-#.  $D_DPL_TARGET_PATHS    - (array ok) Paths to be restored on current OS
-#.  `dln.utl.sh`
-#
-## Returns:
-#.  Values supported by d_dpl_remove function in *.dpl.sh
-#
-## Prints:
-#.  Status messages for user
-#
 d__copy_queue_remove()
 {
-  # Redirect pre-processing
   d_queue_pre_remove() { d__copy_queue_pre_remove; }
-
-  # Redirect item remove
-  d_queue_item_remove() { d__copy_queue_item_remove; }
-
-  # Redirect post-processing
+  d_item_remove() { d__copy_item_remove; }
   d_queue_post_remove() { d__copy_queue_post_remove; }
-
-  # Delegate to built-in helper
   d__queue_remove
 }
 
 d__copy_queue_pre_check()
 {
-  # Override targets for current OS family, if specific variable is non-empty
+  # Switch context; prepare stash; apply adapter overrides
+  d__context -- push 'Preparing copy-queue for checking'; d__stash -- ready
   d__adapter_override_dpl_targets_for_os_family
-
-  # Override targets for current OS distro, if specific variable is non-empty
   d__adapter_override_dpl_targets_for_os_distro
 
-  # Check if section of target paths is thus far empty
+  # Attempt to auto-asseble the section of queue
   if [ ${#D_DPL_TARGET_PATHS[@]} -eq "$D__QUEUE_SECTMIN" ]; then
-  
-    # Check if there is a target dir and enough relative paths
+    # If $D_QUEUE_MAIN has items, interpret them as relative paths
     if [ -n "$D_DPL_TARGET_DIR" ] \
       && [ ${#D_QUEUE_MAIN[@]} -ge "$D__QUEUE_SECTMAX" ]
-    then
-
-      # Interpret $D_QUEUE_MAIN as relative paths
-
-      # Storage variable
-      local i relative_path
-
-      for (( i=$D__QUEUE_SECTMIN; i<$D__QUEUE_SECTMAX; i++ )); do
-
-        # Construct path to target and add it
-        D_DPL_TARGET_PATHS+=( "$D_DPL_TARGET_DIR/${D_QUEUE_MAIN[$i]}" )
-
+    then local d__i
+      for (( d__i=$D__QUEUE_SECTMIN; d__i<$D__QUEUE_SECTMAX; ++d__i )); do
+        D_DPL_TARGET_PATHS+=( "$D_DPL_TARGET_DIR/${D_QUEUE_MAIN[$d__i]}" )
       done
-
-    else
-
-      # Still no target paths
-
-      # Report and return failure
-      local detected_os="$D__OS_FAMILY"
-      if [ -n "$D__OS_DISTRO" -a "$D__OS_DISTRO" != "$D__OS_FAMILY" ]; then
-        detected_os+=" ($D__OS_DISTRO)"
-      fi
-      dprint_debug \
-        'Empty list of target paths ($D_DPL_TARGET_PATHS) for detected OS:' \
-        "$detected_os"
+    else local d__dos="$D__OS_FAMILY"
+      if [ -n "$D__OS_DISTRO" -a "$D__OS_DISTRO" != "$D__OS_FAMILY" ]
+      then d__dos+=" ($D__OS_DISTRO)"; fi
+      d__notify -lx -- 'Empty list of target paths ($D_DPL_TARGET_PATHS)' \
+        "for detected OS: $d__dos"
       return 1
-    
     fi
-
   fi
 
-  # Check if queue pre-processing hook is implemented
-  if declare -f d_copy_queue_pre_check &>/dev/null; then
-    
-    # Storage variable
-    local return_code_hook
-
-    # Launch pre-processing hook, store return code
-    d_copy_queue_pre_check; return_code_hook=$?
-
-    # Unset the hook to prevent it from polluting other queues
-    unset -f d_copy_queue_pre_check
-
-    # If returned code is non-zero, re-return it
-    [ $return_code_hook -ne 0 ] && return $return_code_hook
-
+  # Run pre-processing, if implemented
+  local d__qhrtc; if declare -f d_copy_queue_pre_check &>/dev/null; then
+    d_copy_queue_pre_check; d__qhrtc=$?; unset -f d_copy_queue_pre_check
+    if (($d__qhrtc)); then return $d__qhrtc
+    elif [[ $D_ADDST_CHECK_CODE =~ ^[0-9]+$ ]]; then return 0; fi
   fi
 
-  # Implement generic queue item pre-check, to use particular stash key
-  d_queue_item_pre_check()
-  {
-    D__QUEUE_ITEM_STASH_KEY="copy_$( \
-      dmd5 -s "${D_DPL_TARGET_PATHS[$D__QUEUE_ITEM_NUM]}" \
-    )"
-  }
+  # If item check hooks are not implemented, implement dummies
+  if ! declare -f d_copy_item_pre_check &>/dev/null
+  then d_copy_item_pre_check() { :; }; fi
+  if ! declare -f d_copy_item_post_check &>/dev/null
+  then d_copy_item_post_check() { :; }; fi
 
-  # If queue item pre-processing hook is not implemented, implement dummy
-  if ! declare -f d_copy_queue_item_pre_check &>/dev/null; then
-    d_copy_queue_item_pre_check() { :; }
-  fi
-
-  # If queue item post-processing hook is not implemented, implement dummy
-  if ! declare -f d_copy_queue_item_post_check &>/dev/null; then
-    d_copy_queue_item_post_check() { :; }
-  fi
-
-  # Return
+  d__context -- pop
   return 0
 }
 
-d__copy_queue_item_check()
+d__copy_item_check()
 {
-  # Storage variables
-  local return_code_main return_code_hook
-
-  # Launch pre-processing hook, store return code
-  d_copy_queue_item_pre_check; return_code_hook=$?
-
-  # Check if returned code is non-zero
-  if [ $return_code_hook -ne 0 ]; then
-  
-    # Anounce and re-return the non-zero code
-    dprint_debug "Pre-check hook forces return code $return_code_hook" \
-      -n "on item '$D__QUEUE_ITEM_TITLE'"
-    return $return_code_hook
-
+  # Run pre-processing
+  d__context -- push "Checking copy-queue item '$D__ITEM_NAME'"
+  unset D_ADDST_ITEM_CHECK_CODE; d_queue_pre_check
+  if (($?)); then
+    d__notify -l!h -- "Copy-queue item's pre-check hook forces halting"
+    d__context -- pop; return 3
+  elif [[ $D_ADDST_ITEM_CHECK_CODE =~ ^[0-9]+$ ]]; then
+    d__notify -l!h -- "Copy-queue item's pre-check hook forces halting" \
+      "with code '$D_ADDST_ITEM_CHECK_CODE'"
+    d__context -- pop; return $D_ADDST_ITEM_CHECK_CODE
   fi
 
-  # Run item check and catch return code
-  d__copy_queue_item_check_subroutine; return_code_main=$?
- 
-  # Launch post-processing hook, store return code
-  D__QUEUE_ITEM_RETURN_CODE=$return_code_main
-  d_copy_queue_item_post_check; return_code_hook=$?
-  unset D__QUEUE_ITEM_RETURN_CODE
+  # Storage varibales; switch context
+  local d__cqei="$D__ITEM_NUM" d__cqrtc d__cqer=()
+  local d__cqesk="copy_$( dmd5 -s "${D_DPL_TARGET_PATHS[$d__cqei]}" )"
+  local d__cqea="${D_DPL_ASSET_PATHS[$d__cqei]}"
+  local d__cqet="${D_DPL_TARGET_PATHS[$d__cqei]}"
+  local d__cqeb="$D__DPL_BACKUP_DIR/$d__cqesk"
+  [ -n "$d__cqea" ] || d__cqer+=( -i- '- asset path is empty' )
+  [ -n "$d__cqet" ] || d__cqer+=( -i- '- target path is empty' )
+  if ((${#d__cqer[@]})); then
+    d__notify -lxh -- 'Invalid copy-queue item:' "${d__cqer[@]}"
+    d__context -- pop; return 3
+  fi
+  d__context -- push "Checking if copied to: $d__cqet"
 
-  # Check if returned code is non-zero
-  if [ $return_code_hook -ne 0 ]; then
-  
-    # Anounce and re-return the non-zero code
-    dprint_debug "Post-check hook forces return code $return_code_hook" \
-      -n "on item '$D__QUEUE_ITEM_TITLE'"
-    return $return_code_hook
+  # Do the actual checking; check if source is readable; switch context
+  if d__stash -s -- has $d__cqesk
+  then [ -e "$d__cqet" ] && d__cqrtc=1 || d__cqrtc=6
+  else [ -e "$d__cqet" ] && d__cqrtc=7 || d__cqrtc=2; fi
+  if ! [ $d__cqrtc = 1 ]; then
+    [ -e "$d__cqeb" ] && d__notify -l!h -- "Orphaned backup at: $d__cqeb"
+  fi
+  if ! [ -r "$d__cqea" ]; then
+    d__notify -lxh -- "Unreadable asset at: $d__cqea"
+    [ "$D__REQ_ROUTINE" = install ] && d__cqrtc=3
+  fi
+  d__context -- pop; d__context -- push "Check code is '$d__cqrtc'"
 
+  # Run post-processing
+  unset D_ADDST_ITEM_CHECK_CODE; D__ITEM_CHECK_CODE="$d__cqrtc"
+  d_queue_post_check; if (($?)); then
+    d__notify -l!h -- "Copy-queue item's post-check hook forces halting"
+    d__context -- pop; d__context -- pop; return 3
+  elif [[ $D_ADDST_ITEM_CHECK_CODE =~ ^[0-9]+$ ]]; then
+    d__notify -l!h -- "Copy-queue item's post-check hook forces halting" \
+      "with code '$D_ADDST_ITEM_CHECK_CODE'"
+    d__context -- pop; d__context -- pop; return $D_ADDST_ITEM_CHECK_CODE
   fi
 
-  # Return
-  return $return_code_main
-}
-
-d__copy_queue_item_check_subroutine()
-{
-  # Storage variables
-  local to_path="${D_DPL_TARGET_PATHS[$D__QUEUE_ITEM_NUM]}"
-  local from_path="${D_DPL_ASSET_PATHS[$D__QUEUE_ITEM_NUM]}"
-  local backup_path="$D__DPL_BACKUP_DIR/$D__QUEUE_ITEM_STASH_KEY"
-
-  # Check if source or destination paths is empty
-  if ! [ -n "$to_path" -a -n "$from_path" ]; then
-
-    # Compose debug output
-    local output
-    if [ -z "$from_path" ]; then
-      if [ -z "$to_path" ]; then
-        output='empty paths for source and destination'
-      else
-        output='empty source path'
-      fi
-    else
-      if [ -z "$to_path" ]; then
-        output='empty destination path'
-      else
-        :
-      fi
-    fi
-
-    # Report and store return code
-    dprint_debug "$D__QUEUE_ITEM_TITLE: $output"
-    return 3
-
-  # Check if source filepath is not readable
-  elif ! [ -r "$from_path" ]; then
-
-    # Report and store return code
-    dprint_debug "Unreadable source at: $from_path"
-    return 3
-
-  else
-
-    # Source and destination paths are both not empty
-
-    # Check if there is a copy at destination path
-    if [ -e "$to_path" ]; then
-
-      # Destination exists, so it is assumed installed
-      return 1
-    
-    else
-
-      # Destination does not exist, so it is assumed not installed
-      
-      # Check if backup path exists, which would be abnormal
-      if [ -e "$backup_path" ]; then
-
-        # Report abnormal configuration
-        dprint_debug "Orphaned backup: $backup_path" \
-          -n "of target path: $to_path"
-          -n "(force-remove to restore)"
-
-      fi
-
-      # Return appropriate status
-      return 2
-
-    fi
-
-  fi
+  d__context -- pop; d__context -- pop; return $d__cqrtc
 }
 
 d__copy_queue_post_check()
 {
-  # Unset item hooks to prevent them from polluting other queues
-  unset -f d_copy_queue_item_pre_check d_copy_queue_item_post_check
+  # Switch context; unset check hooks
+  d__context -- push 'Tidying up after checking copy-queue'
+  unset -f d_copy_item_pre_check d_copy_item_post_check
 
-  # Check if queue post-processing hook is implemented
-  if declare -f d_copy_queue_post_check &>/dev/null; then
-    
-    # Storage variable
-    local return_code_hook
-
-    # Launch post-processing hook, store return code
-    d_copy_queue_post_check; return_code_hook=$?
-
-    # Unset the hook to prevent it from polluting other queues
-    unset -f d_copy_queue_post_check
-
-    # If returned code is non-zero, re-return it
-    [ $return_code_hook -ne 0 ] && return $return_code_hook
-
+  # Run post-processing, if implemented
+  local d__qhrtc; if declare -f d_copy_queue_post_check &>/dev/null; then
+    d_copy_queue_post_check; d__qhrtc=$?; unset -f d_copy_queue_post_check
+    if (($d__qhrtc)); then return $d__qhrtc
+    elif [[ $D_ADDST_CHECK_CODE =~ ^[0-9]+$ ]]; then return 0; fi
   fi
 
-  # Otherwise, return zero
+  d__context -- pop
   return 0
 }
 
 d__copy_queue_pre_install()
 {
-  # Check if queue pre-processing hook is implemented
-  if declare -f d_copy_queue_pre_install &>/dev/null; then
-    
-    # Storage variable
-    local return_code_hook
-
-    # Launch pre-processing hook, store return code
-    d_copy_queue_pre_install; return_code_hook=$?
-
-    # Unset the hook to prevent it from polluting other queues
-    unset -f d_copy_queue_pre_install
-
-    # If returned code is non-zero, re-return it
-    [ $return_code_hook -ne 0 ] && return $return_code_hook
-
+  # Switch context; run pre-processing, if implemented
+  d__context -- push 'Preparing copy-queue for installing'
+  local d__qhrtc; if declare -f d_copy_queue_pre_install &>/dev/null; then
+    d_copy_queue_pre_install; d__qhrtc=$?; unset -f d_copy_queue_pre_install
+    if (($d__qhrtc)); then return $d__qhrtc
+    elif [[ $D_ADDST_INSTALL_CODE =~ ^[0-9]+$ ]]; then return 0; fi
   fi
 
-  # If queue item pre-processing hook is not implemented, implement dummy
-  if ! declare -f d_copy_queue_item_pre_install &>/dev/null; then
-    d_copy_queue_item_pre_install() { :; }
-  fi
+  # If item install hooks are not implemented, implement dummies
+  if ! declare -f d_copy_item_pre_install &>/dev/null
+  then d_copy_item_pre_install() { :; }; fi
+  if ! declare -f d_copy_item_post_install &>/dev/null
+  then d_copy_item_post_install() { :; }; fi
 
-  # If queue item post-processing hook is not implemented, implement dummy
-  if ! declare -f d_copy_queue_item_post_install &>/dev/null; then
-    d_copy_queue_item_post_install() { :; }
-  fi
-
-  # Return
+  d__context -- pop
   return 0
 }
 
-d__copy_queue_item_install()
+d__copy_item_install()
 {
-  # Storage variables
-  local return_code_main return_code_hook
+  # Storage varibales; switch context
+  local d__cqei="$D__ITEM_NUM" d__cqrtc d__cqcmd
+  local d__cqesk="copy_$( dmd5 -s "${D_DPL_TARGET_PATHS[$d__cqei]}" )"
+  local d__cqea="${D_DPL_ASSET_PATHS[$d__cqei]}"
+  local d__cqet="${D_DPL_TARGET_PATHS[$d__cqei]}" d__cqetp
+  local d__cqeb="$D__DPL_BACKUP_DIR/$d__cqesk"
+  d__context -- push "Installing a copy to: $d__cqet"
 
-  # Launch pre-processing hook, store return code
-  d_copy_queue_item_pre_install; return_code_hook=$?
-
-  # Check if returned code is non-zero
-  if [ $return_code_hook -ne 0 ]; then
-  
-    # Anounce and re-return the non-zero code
-    dprint_debug "Pre-install hook forces return code $return_code_hook" \
-      -n "on item '$D__QUEUE_ITEM_TITLE'"
-    return $return_code_hook
-
+  # Run pre-processing
+  unset D_ADDST_ITEM_INSTALL_CODE; d_queue_pre_install
+  if (($?)); then
+    d__notify -l!h -- "Copy-queue item's pre-install hook forces halting"
+    d__context -- pop; return 3
+  elif [[ $D_ADDST_ITEM_INSTALL_CODE =~ ^[0-9]+$ ]]; then
+    d__notify -l!h -- "Copy-queue item's pre-install hook forces halting" \
+      "with code '$D_ADDST_ITEM_INSTALL_CODE'"
+    d__context -- pop; return $D_ADDST_ITEM_INSTALL_CODE
   fi
 
-  # Run item installation and catch return code
-  d__copy_queue_item_install_subroutine; return_code_main=$?
+  # Do the actual installing; switch context
+  if d__push_backup -- "$d__cqet" "$d__cqeb"; then
+    d__cqcmd=cp d__cqetp="$(dirpath -- "$d__cqet")"; if ! [ -w "$d__cqetp" ]
+    then d__notify -u -- "Sudo privelege is required to operate under:" \
+      -i- "$d__cqetp"; cmd='sudo cp'; fi
+    if d__cmd $cmd -- --ASSET_PATH-- "$d__cqea" --TARGET_PATH-- "$d__cqet"
+    then d__cqrtc=0; else d__cqrtc=1; fi
+  else d__cqrtc=1; fi
+  if [ $d__cqrtc -eq 0 ]; then
+    case $D__ITEM_CHECK_CODE in
+      2|7)  d__stash -s -- set $d__cqesk "$d__cqet" || d__cqrtc=1;;
+    esac
+    [ -e "$d__cqeb" ] && printf '%s\n' "$d__cqet" >"$d__cqeb.path"
+  fi
+  d__context -- pop; d__context -- push "Install code is '$d__cqrtc'"
 
-  # Launch post-processing hook, store return code
-  D__QUEUE_ITEM_RETURN_CODE=$return_code_main
-  d_copy_queue_item_post_install; return_code_hook=$?
-  unset D__QUEUE_ITEM_RETURN_CODE
-
-  # Check if returned code is non-zero
-  if [ $return_code_hook -ne 0 ]; then
-  
-    # Anounce and re-return the non-zero code
-    dprint_debug "Post-install hook forces return code $return_code_hook" \
-      -n "on item '$D__QUEUE_ITEM_TITLE'"
-    return $return_code_hook
-
+  # Run post-processing
+  unset D_ADDST_ITEM_INSTALL_CODE; D__ITEM_INSTALL_CODE="$d__cqrtc"
+  d_queue_post_install; if (($?)); then
+    d__notify -l!h -- "Copy-queue item's post-install hook forces halting"
+    d__context -- pop; return 3
+  elif [[ $D_ADDST_ITEM_INSTALL_CODE =~ ^[0-9]+$ ]]; then
+    d__notify -l!h -- "Copy-queue item's post-install hook forces halting" \
+      "with code '$D_ADDST_ITEM_INSTALL_CODE'"
+    d__context -- pop; return $D_ADDST_ITEM_INSTALL_CODE
   fi
 
-  # Return
-  return $return_code_main
-}
-
-d__copy_queue_item_install_subroutine()
-{
-  # Storage variables
-  local to_path="${D_DPL_TARGET_PATHS[$D__QUEUE_ITEM_NUM]}"
-  local from_path="${D_DPL_ASSET_PATHS[$D__QUEUE_ITEM_NUM]}"
-  local backup_path="$D__DPL_BACKUP_DIR/$D__QUEUE_ITEM_STASH_KEY"
-  local to_parent_dir="$( dirname -- "$to_path" )"
-
-  # Check if something already exists at destination path
-  if [ -e "$to_path" ]; then
-
-    # Check if something exists at backup path
-    if [ -e "$backup_path" ]; then
-
-      # Backup path is occupied: erase it
-      if ! rm -rf -- "$backup_path"; then
-
-        # Failed to clobber pre-existing backup: abandon this copying
-        dprint_debug 'Error on clobbering path:' \
-          -n "$backup_path" -n "while removing old backup"
-        return 1
-      
-      fi
-
-    fi
-
-    # Move destination path to backup path and check status
-    if ! mv -n -- "$to_path" "$backup_path" &>/dev/null; then
-
-      # Failed to back up destination path: abandon this copying
-      dprint_debug 'Error on moving pre-existing target' \
-        -n "from: $to_path" -n "to: $backup_path"
-      return 1
-
-    fi
-
-  else
-
-    # Nothing exists at destination path: ensure parent directory exists
-    if ! [ -d "$to_parent_dir" ]; then
-
-      # Locate existing parent directory
-      local to_existing_parent_dir="$( dirname -- "$to_parent_dir" )"
-      while [ ! -d "$to_existing_parent_dir" ]; do
-        to_existing_parent_dir="$( dirname -- "$to_existing_parent_dir" )"
-      done
-
-      # Try to create destination directory
-      if [ -w "$to_existing_parent_dir" ]; then
-        mkdir -p -- "$to_parent_dir"
-      else
-        if ! sudo -n true 2>/dev/null; then
-          dprint_alert 'Creating directory within:' \
-            -i "$to_existing_parent_dir" -n 'requires sudo password'
-        fi
-        sudo mkdir -p -- "$to_parent_dir"
-      fi
-
-      # Check if directory has been created
-      if [ $? -ne 0 ]; then
-
-        # Failed to create destination parent dir: abandon this copying
-        dprint_debug 'Error on creating parent destination directory:' \
-          -i "$to_parent_dir"
-        return 1
-
-      fi
-
-    fi
-
-  fi
-
-  # Copy source path to destination path and check status
-  if [ -w "$to_parent_dir" ]; then
-    cp -Rn -- "$from_path" "$to_path"
-  else
-    if ! sudo -n true 2>/dev/null; then
-      dprint_alert 'Copying into:' -i "$to_parent_dir" \
-        -n 'requires sudo password'
-    fi
-    sudo cp -Rn -- "$from_path" "$to_path"
-  fi
-
-  # Check if copying is successful
-  if [ $? -eq 0 ]; then
-
-    # Stash path to the destination
-    D__QUEUE_ITEM_STASH_VALUE="$to_path"
-
-    # Return success
-    return 0
-
-  else
-
-    # Report and return failure
-    dprint_debug 'Error on copying asset' \
-      -n "from: $from_path" -n "to: $to_path"
-    return 1
-
-  fi
+  d__context -- pop; return $d__cqrtc
 }
 
 d__copy_queue_post_install()
 {
-  # Unset item hooks to prevent them from polluting other queues
-  unset -f d_copy_queue_item_pre_install d_copy_queue_item_post_install
+  # Switch context; unset install hooks
+  d__context -- push 'Tidying up after installing copy-queue'
+  unset -f d_copy_item_pre_install d_copy_item_post_install
 
-  # Check if queue post-processing hook is implemented
-  if declare -f d_copy_queue_post_install &>/dev/null; then
-    
-    # Storage variable
-    local return_code_hook
-
-    # Launch post-processing hook, store return code
-    d_copy_queue_post_install; return_code_hook=$?
-
-    # Unset the hook to prevent it from polluting other queues
-    unset -f d_copy_queue_post_install
-
-    # If returned code is non-zero, re-return it
-    [ $return_code_hook -ne 0 ] && return $return_code_hook
-
+  # Run post-processing, if implemented
+  local d__qhrtc; if declare -f d_copy_queue_post_install &>/dev/null; then
+    d_copy_queue_post_install; d__qhrtc=$?; unset -f d_copy_queue_post_install
+    if (($d__qhrtc)); then return $d__qhrtc
+    elif [[ $D_ADDST_INSTALL_CODE =~ ^[0-9]+$ ]]; then return 0; fi
   fi
 
-  # Otherwise, return zero
+  d__context -- pop
   return 0
 }
 
 d__copy_queue_pre_remove()
 {
-  # Check if queue pre-processing hook is implemented
-  if declare -f d_copy_queue_pre_remove &>/dev/null; then
-    
-    # Storage variable
-    local return_code_hook
-
-    # Launch pre-processing hook, store return code
-    d_copy_queue_pre_remove; return_code_hook=$?
-
-    # Unset the hook to prevent it from polluting other queues
-    unset -f d_copy_queue_pre_remove
-
-    # If returned code is non-zero, re-return it
-    [ $return_code_hook -ne 0 ] && return $return_code_hook
-
+  # Switch context; run pre-processing, if implemented
+  d__context -- push 'Preparing copy-queue for removing'
+  local d__qhrtc; if declare -f d_copy_queue_pre_remove &>/dev/null; then
+    d_copy_queue_pre_remove; d__qhrtc=$?; unset -f d_copy_queue_pre_remove
+    if (($d__qhrtc)); then return $d__qhrtc
+    elif [[ $D_ADDST_REMOVE_CODE =~ ^[0-9]+$ ]]; then return 0; fi
   fi
 
-  # If queue item pre-processing hook is not implemented, implement dummy
-  if ! declare -f d_copy_queue_item_pre_remove &>/dev/null; then
-    d_copy_queue_item_pre_remove() { :; }
-  fi
+  # If item remove hooks are not implemented, implement dummies
+  if ! declare -f d_copy_item_pre_remove &>/dev/null
+  then d_copy_item_pre_remove() { :; }; fi
+  if ! declare -f d_copy_item_post_remove &>/dev/null
+  then d_copy_item_post_remove() { :; }; fi
 
-  # If queue item post-processing hook is not implemented, implement dummy
-  if ! declare -f d_copy_queue_item_post_remove &>/dev/null; then
-    d_copy_queue_item_post_remove() { :; }
-  fi
-
-  # Return
+  d__context -- pop
   return 0
 }
 
-d__copy_queue_item_remove()
+d__copy_item_remove()
 {
-  # Storage variables
-  local return_code_main return_code_hook
+  # Storage varibales; switch context
+  local d__cqei="$D__ITEM_NUM" d__cqrtc
+  local d__cqesk="copy_$( dmd5 -s "${D_DPL_TARGET_PATHS[$d__cqei]}" )"
+  local d__cqet="${D_DPL_TARGET_PATHS[$d__cqei]}"
+  local d__cqeb="$D__DPL_BACKUP_DIR/$d__cqesk"
+  d__context -- push "Undoing copying to: $d__cqet"
 
-  # Launch pre-processing hook, store return code
-  d_copy_queue_item_pre_remove; return_code_hook=$?
-
-  # Check if returned code is non-zero
-  if [ $return_code_hook -ne 0 ]; then
-  
-    # Anounce and re-return the non-zero code
-    dprint_debug "Pre-remove hook forces return code $return_code_hook" \
-      -n "on item '$D__QUEUE_ITEM_TITLE'"
-    return $return_code_hook
-
+  # Run pre-processing
+  unset D_ADDST_ITEM_REMOVE_CODE; d_queue_pre_remove
+  if (($?)); then
+    d__notify -l!h -- "Copy-queue item's pre-remove hook forces halting"
+    d__context -- pop; return 3
+  elif [[ $D_ADDST_ITEM_REMOVE_CODE =~ ^[0-9]+$ ]]; then
+    d__notify -l!h -- "Copy-queue item's pre-remove hook forces halting" \
+      "with code '$D_ADDST_ITEM_REMOVE_CODE'"
+    d__context -- pop; return $D_ADDST_ITEM_REMOVE_CODE
   fi
 
-  # Run item removal and catch return code
-  d__copy_queue_item_remove_subroutine; return_code_main=$?
+  # Do the actual removing; switch context
+  if d__pop_backup -e -- "$d__cqet" "$d__cqeb"
+  then d__cqrtc=0; else d__cqrtc=1; fi
+  if [ $d__cqrtc -eq 0 ]; then
+    case $D__ITEM_CHECK_CODE in
+      1|6)  d__stash -s -- unset $d__cqesk || d__cqrtc=1;;
+    esac
+    [ -e "$d__cqeb" ] || rm -f -- "$d__cqeb.path"
+  fi
+  d__context -- pop; d__context -- push "Remove code is '$d__cqrtc'"
 
-  # Launch post-processing hook, store return code
-  D__QUEUE_ITEM_RETURN_CODE=$return_code_main
-  d_copy_queue_item_post_remove; return_code_hook=$?
-  unset D__QUEUE_ITEM_RETURN_CODE
-
-  # Check if returned code is non-zero
-  if [ $return_code_hook -ne 0 ]; then
-  
-    # Anounce and re-return the non-zero code
-    dprint_debug "Post-remove hook forces return code $return_code_hook" \
-      -n "on item '$D__QUEUE_ITEM_TITLE'"
-    return $return_code_hook
-
+  # Run post-processing
+  unset D_ADDST_ITEM_REMOVE_CODE; D__ITEM_REMOVE_CODE="$d__cqrtc"
+  d_queue_post_remove; if (($?)); then
+    d__notify -l!h -- "Copy-queue item's post-remove hook forces halting"
+    d__context -- pop; return 3
+  elif [[ $D_ADDST_ITEM_REMOVE_CODE =~ ^[0-9]+$ ]]; then
+    d__notify -l!h -- "Copy-queue item's post-remove hook forces halting" \
+      "with code '$D_ADDST_ITEM_REMOVE_CODE'"
+    d__context -- pop; return $D_ADDST_ITEM_REMOVE_CODE
   fi
 
-  # Return
-  return $return_code_main
-}
-
-d__copy_queue_item_remove_subroutine()
-{
-  # Storage variables
-  local to_path="${D_DPL_TARGET_PATHS[$D__QUEUE_ITEM_NUM]}"
-  local from_path="${D_DPL_ASSET_PATHS[$D__QUEUE_ITEM_NUM]}"
-  local backup_path="$D__DPL_BACKUP_DIR/$D__QUEUE_ITEM_STASH_KEY"
-  local to_parent_dir="$( dirname -- "$to_path" )"
-
-  # Ensure destination parent directory exists
-  if ! [ -d "$to_parent_dir" ]; then
-
-    # Locate existing parent directory
-    local to_existing_parent_dir="$( dirname -- "$to_parent_dir" )"
-    while [ ! -d "$to_existing_parent_dir" ]; do
-      to_existing_parent_dir="$( dirname -- "$to_existing_parent_dir" )"
-    done
-
-    # Try to create destination directory
-    if [ -w "$to_existing_parent_dir" ]; then
-      mkdir -p -- "$to_parent_dir"
-    else
-      if ! sudo -n true 2>/dev/null; then
-        dprint_alert 'Creating directory within:' \
-            -i "$to_existing_parent_dir" -n 'requires sudo password'
-      fi
-      sudo mkdir -p -- "$to_parent_dir"
-    fi
-
-    # Check if directory has been created
-    if [ $? -ne 0 ]; then
-
-      # Failed to create destination parent dir: abandon this copying
-      dprint_debug 'Error on creating parent destination directory:' \
-        -i "$to_parent_dir"
-      return 1
-
-    fi
-
-  fi
-
-  # Check if destination path exists
-  if [ -e "$to_path" ]; then
-
-    # Remove destination path and check status
-    if [ -w "$to_parent_dir" ]; then
-      rm -rf -- "$to_path"
-    else
-      if ! sudo -n true 2>/dev/null; then
-        dprint_alert 'Removing within:' \
-          -i "$to_parent_dir" -n 'requires sudo password'
-      fi
-      sudo rm -rf -- "$to_path"
-    fi
-
-    # Check status
-    if [ $? -ne 0 ]; then
-
-      # Report and return failure
-      dprint_debug 'Error on clobbering destination path:' \
-        -n "$to_path"
-      return 1
-
-    fi
-
-  fi
-
-  # Check if backup is present
-  if [ -e "$backup_path" ]; then
-
-    # Move backup path to its original path and check status
-    if [ -w "$to_parent_dir" ]; then
-      mv -n -- "$backup_path" "$to_path" &>/dev/null
-    else
-      if ! sudo -n true 2>/dev/null; then
-        dprint_alert 'Moving into:' \
-          -i "$to_parent_dir" -n 'requires sudo password'
-      fi
-      sudo mv -n -- "$backup_path" "$to_path" &>/dev/null
-    fi
-
-    # Check status
-    if [ $? -ne 0 ]; then
-
-      # Report and return failure
-      dprint_debug 'Error on moving backup' \
-        -n "from: $backup_path" -n "to: $to_path"
-      return 1
-    
-    fi
-
-  fi
-
-  # Otherwise, return success
-  return 0
+  d__context -- pop; return $d__cqrtc
 }
 
 d__copy_queue_post_remove()
 {
-  # Unset item hooks to prevent them from polluting other queues
-  unset -f d_copy_queue_item_pre_remove d_copy_queue_item_post_remove
+  # Switch context; unset remove hooks
+  d__context -- push 'Tidying up after removing copy-queue'
+  unset -f d_copy_item_pre_remove d_copy_item_post_remove
 
-  # Check if queue post-processing hook is implemented
-  if declare -f d_copy_queue_post_remove &>/dev/null; then
-    
-    # Storage variable
-    local return_code_hook
-
-    # Launch post-processing hook, store return code
-    d_copy_queue_post_remove; return_code_hook=$?
-
-    # Unset the hook to prevent it from polluting other queues
-    unset -f d_copy_queue_post_remove
-
-    # If returned code is non-zero, re-return it
-    [ $return_code_hook -ne 0 ] && return $return_code_hook
-
+  # Run post-processing, if implemented
+  local d__qhrtc; if declare -f d_copy_queue_post_remove &>/dev/null; then
+    d_copy_queue_post_remove; d__qhrtc=$?; unset -f d_copy_queue_post_remove
+    if (($d__qhrtc)); then return $d__qhrtc
+    elif [[ $D_ADDST_REMOVE_CODE =~ ^[0-9]+$ ]]; then return 0; fi
   fi
 
-  # Otherwise, return zero
+  d__context -- pop
   return 0
 }

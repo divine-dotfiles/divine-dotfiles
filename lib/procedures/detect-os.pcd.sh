@@ -3,8 +3,8 @@
 #:kind:         global_var,func(script)
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.09.25
-#:revremark:    Remove revision numbers from all src files
+#:revdate:      2019.10.10
+#:revremark:    Fix minor typo
 #:created_at:   2019.03.15
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -112,7 +112,7 @@ d__detect_os_family()
   done < <( find -L "$D__DIR_ADP_FAMILY" -name "*$D__SUFFIX_ADAPTER" -print0 )
 
   # Restore case sensitivity
-  eval "$restore_nocasematch"
+  $restore_nocasematch
 
   # Analyze detected OS family
   if [ -z "$d__os_family" ]; then
@@ -225,7 +225,7 @@ d__detect_os_distro_and_pkgmgr()
   done < <( find -L "$D__DIR_ADP_DISTRO" -name "*$D__SUFFIX_ADAPTER" -print0 )
 
   # Restore case sensitivity
-  eval "$restore_nocasematch"
+  $restore_nocasematch
 
   # Analyze detected OS distro
   if [ "$d__os_distro" = "$D__OS_DISTRO" ]; then

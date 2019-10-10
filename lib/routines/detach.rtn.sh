@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: detach
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.09.25
-#:revremark:    Remove revision numbers from all src files
+#:revdate:      2019.10.10
+#:revremark:    Fix minor typo
 #:created_at:   2019.06.28
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -34,11 +34,9 @@ d__perform_detach_routine()
 
   # Announce beginning
   if [ "$D__OPT_ANSWER" = false ]; then
-    dprint_plaque -pcw "$WHITE" "$D__CONST_PLAQUE_WIDTH" \
-      -- "'Detaching' deployments"
+    d__announce -s -- "'Detaching' deployments"
   else
-    dprint_plaque -pcw "$GREEN" "$D__CONST_PLAQUE_WIDTH" \
-      -- 'Detaching deployments'
+    d__announce -v -- 'Detaching deployments'
   fi
 
   # Storage & status variables
@@ -71,27 +69,22 @@ d__perform_detach_routine()
   # Announce routine completion
   printf >&2 '\n'
   if [ "$D__OPT_ANSWER" = false ]; then
-    dprint_plaque -pcw "$WHITE" "$D__CONST_PLAQUE_WIDTH" \
-      -- "Finished 'detaching' deployments"
+    d__announce -s -- "Finished 'detaching' deployments"
     return 3
   elif $detached_anything; then
     if $errors_encountered; then
-      dprint_plaque -pcw "$YELLOW" "$D__CONST_PLAQUE_WIDTH" \
-        -- 'Successfully detached some deployments'
+      d__announce -! -- 'Successfully detached some deployments'
       return 1
     else
-      dprint_plaque -pcw "$GREEN" "$D__CONST_PLAQUE_WIDTH" \
-        -- 'Successfully detached all deployments'
+      d__announce -v -- 'Successfully detached all deployments'
       return 0
     fi
   else
     if $errors_encountered; then
-      dprint_plaque -pcw "$RED" "$D__CONST_PLAQUE_WIDTH" \
-        -- 'Failed to detach deployments'
+      d__announce -x -- 'Failed to detach deployments'
       return 2
     else
-      dprint_plaque -pcw "$WHITE" "$D__CONST_PLAQUE_WIDTH" \
-        -- 'Nothing to do'
+      d__announce -s -- 'Nothing to do'
       return 3
     fi
   fi

@@ -16,7 +16,7 @@ d_dpl_remove()   { d__queue_remove;   }
 #.  1 - Installed
 #.  2 - Not installed
 #.  3 - Invalid
-d_queue_item_check()
+d_item_check()
 {
   :
 }
@@ -27,7 +27,7 @@ d_queue_item_check()
 #.  2 - Invalid item
 #.  3 - Success: stop any further installations
 #.  4 - Failure: stop any further installations
-d_queue_item_install()
+d_item_install()
 {
   :
 }
@@ -38,7 +38,7 @@ d_queue_item_install()
 #.  2 - Invalid item
 #.  3 - Success: stop any further removals
 #.  4 - Failure: stop any further removals
-d_queue_item_remove()
+d_item_remove()
 {
   :
 }

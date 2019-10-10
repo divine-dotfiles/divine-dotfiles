@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: plug
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.09.25
-#:revremark:    Remove revision numbers from all src files
+#:revdate:      2019.10.10
+#:revremark:    Fix minor typo
 #:created_at:   2019.06.26
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -29,11 +29,9 @@ d__perform_plug_routine()
 
   # Announce beginning
   if [ "$D__OPT_ANSWER" = false ]; then
-    dprint_plaque -pcw "$WHITE" "$D__CONST_PLAQUE_WIDTH" \
-      -- "'Plugging' Grail directory"
+    d__announce -s -- "'Plugging' Grail directory"
   else
-    dprint_plaque -pcw "$GREEN" "$D__CONST_PLAQUE_WIDTH" \
-      -- 'Plugging Grail directory'
+    d__announce -v -- 'Plugging Grail directory'
   fi
 
   # Initialize global status variables
@@ -104,7 +102,7 @@ d__perform_plug_routine()
   else
 
     # Script's first arg is empty
-    dprint_plaque -pcw "$WHITE" "$D__CONST_PLAQUE_WIDTH" -- 'Nothing to do'
+    d__announce -s -- 'Nothing to do'
     return 1
 
   fi
@@ -112,16 +110,13 @@ d__perform_plug_routine()
   # Announce routine completion
   printf >&2 '\n'
   if [ "$D__OPT_ANSWER" = false ]; then
-    dprint_plaque -pcw "$WHITE" "$D__CONST_PLAQUE_WIDTH" \
-      -- "'Plugged' Grail directory"
+    d__announce -s -- "'Plugged' Grail directory"
     return 1
   elif $all_good; then
-    dprint_plaque -pcw "$GREEN" "$D__CONST_PLAQUE_WIDTH" \
-      -- 'Successfully plugged Grail directory'
+    d__announce -v -- 'Successfully plugged Grail directory'
     return 0
   else
-    dprint_plaque -pcw "$RED" "$D__CONST_PLAQUE_WIDTH" \
-      -- 'Failed to plug Grail directory'
+    d__announce -x -- 'Failed to plug Grail directory'
     return 1
   fi
 }
@@ -296,10 +291,10 @@ d__plug_github_repo()
   fi
 
   # Scan main directories for deployments
-  d__scan_for_dpl_files --fmwk-dir "$D__DIR_DPLS" "$D__DIR_BUNDLES"
+  d__scan_for_dpl_files --internal "$D__DIR_DPLS" "$D__DIR_BUNDLES"
 
   # Validate deployments
-  if d__validate_detected_dpls --fmwk-dir; then
+  if d__validate_detected_dpls --internal; then
 
     # Also, prepare any of the possible assets
     d__process_all_asset_manifests_in_dpl_dirs
@@ -403,10 +398,10 @@ d__plug_local_repo()
     fi
 
     # Scan main directories for deployments
-    d__scan_for_dpl_files --fmwk-dir "$D__DIR_DPLS" "$D__DIR_BUNDLES"
+    d__scan_for_dpl_files --internal "$D__DIR_DPLS" "$D__DIR_BUNDLES"
 
     # Validate deployments
-    if d__validate_detected_dpls --fmwk-dir; then
+    if d__validate_detected_dpls --internal; then
 
       # Also, prepare any of the possible assets
       d__process_all_asset_manifests_in_dpl_dirs
@@ -504,10 +499,10 @@ d__plug_local_dir()
   fi
 
   # Scan main directories for deployments
-  d__scan_for_dpl_files --fmwk-dir "$D__DIR_DPLS" "$D__DIR_BUNDLES"
+  d__scan_for_dpl_files --internal "$D__DIR_DPLS" "$D__DIR_BUNDLES"
 
   # Validate deployments
-  if d__validate_detected_dpls --fmwk-dir; then
+  if d__validate_detected_dpls --internal; then
 
     # Also, prepare any of the possible assets
     d__process_all_asset_manifests_in_dpl_dirs
@@ -549,7 +544,7 @@ d__run_pre_plug_checks()
   local src_addr="$1"; shift
 
   # Survey deployments in external dir
-  d__scan_for_dpl_files --ext-dir "$ext_path/dpls"
+  d__scan_for_dpl_files --external "$ext_path/dpls"
 
   # Check return code
   case $? in
@@ -575,7 +570,7 @@ d__run_pre_plug_checks()
   esac
   
   # Check if external Grail directory contains valid deployments
-  if ! d__validate_detected_dpls --ext-dir "$ext_path/"; then
+  if ! d__validate_detected_dpls --internal "$ext_path/"; then
 
     # Prompt user
     if ! dprompt --bare --prompt 'Proceed?' --answer "$D__OPT_ANSWER" -- \

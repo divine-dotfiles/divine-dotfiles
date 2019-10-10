@@ -2,8 +2,8 @@
 #:title:        Divine Bash utils: manifests
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.09.25
-#:revremark:    Remove revision numbers from all src files
+#:revdate:      2019.10.10
+#:revremark:    Fix minor typo
 #:created_at:   2019.05.30
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -512,8 +512,8 @@ d__copy_asset()
 #. d__process_asset_manifest_of_current_dpl function.
 #
 ## Requires:
-#.  $D__LIST_OF_INT_DPL_NAMES - (array) Names of deployments in framework dirs
-#.  $D__LIST_OF_INT_DPL_PATHS - (array) Index of each name contains delimited 
+#.  $D__INT_DPL_NAMES - (array) Names of deployments in framework dirs
+#.  $D__INT_DPL_NAME_PATHS - (array) Index of each name contains delimited 
 #.                              list of paths to deployment files
 #
 ## Returns:
@@ -527,11 +527,11 @@ d__process_all_asset_manifests_in_dpl_dirs()
   local all_good=true
 
   # Iterate over names
-  for (( i=0; i<${#D__LIST_OF_INT_DPL_NAMES[@]}; i++ )); do
+  for (( i=0; i<${#D__INT_DPL_NAMES[@]}; i++ )); do
 
     # Extract name and path
-    name="${D__LIST_OF_INT_DPL_NAMES[$i]}"
-    path="${D__LIST_OF_INT_DPL_PATHS[$i]%"$D__CONST_DELIMITER"}"
+    name="${D__INT_DPL_NAMES[$i]}"
+    path="${D__INT_DPL_NAME_PATHS[$i]%"$D__CONST_DELIMITER"}"
 
     # Set up necessary variables
     D__DPL_MNF_PATH="${path%$D__SUFFIX_DPL_SH}$D__SUFFIX_DPL_MNF"
@@ -1039,7 +1039,7 @@ d__process_manifest()
   D__MANIFEST_TERMINAL_SPLIT="$split_before_next_entry"
 
   # Restore case sensitivity
-  eval "$restore_nocasematch"
+  $restore_nocasematch
 
   # Return success
   return 0

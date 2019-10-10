@@ -2,8 +2,8 @@
 #:title:        Divine Bash procedure: prep-3-opt
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.01
-#:revremark:    Remove temp code
+#:revdate:      2019.10.10
+#:revremark:    Fix minor typo
 #:created_at:   2019.07.05
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -26,8 +26,9 @@ d__run_sys_pkg_checks()
 {
   # Fork depending on routine
   case $D__REQ_ROUTINE in
-    attach|plug|update)
-      d__offer_git_and_friends; unset -f d__offer_git_and_friends;;
+    attach) d__offer_git_and_friends;;
+    plug)   d__offer_git_and_friends;;
+    update) d__offer_git_and_friends;;
     cecf357ed9fed1037eb906633a4299ba)
       d__uninstall_all_offered_utils;;
     *)  return 0;;
@@ -45,14 +46,15 @@ d__declare_intros()
 
   readonly D__INTRO_BLANK='                      '
   readonly D__INTRO_DESCR="    ${BOLD}Description     $NORMAL :"
-  readonly D__INTRO_WARNG="    $YELLOW${BOLD}Warning         $NORMAL :"
+  
   readonly D__INTRO_CNF_N="    ${BOLD}Confirm         $NORMAL :"
-  readonly D__INTRO_CNF_U="    $RED${BOLD}Confirm         $NORMAL :"
+  readonly D__INTRO_CNF_U="$RED$BOLD-?! Confirm         $NORMAL :"
+  readonly D__INTRO_HALTN="$RED$REVERSE${BOLD}___$NORMAL $RED${BOLD}Halting         $NORMAL :"
 
-  readonly D__INTRO_RBOOT="    $YELLOW${BOLD}Reboot needed   $NORMAL :"
-  readonly D__INTRO_ATTNT="    $YELLOW${BOLD}Atención        $NORMAL :"
-  readonly D__INTRO_CRTCL="$RED$REVERSE${BOLD}x_x$NORMAL $RED${BOLD}Critical failure$NORMAL :"
-  readonly D__INTRO_HALTN="$RED$REVERSE${BOLD}___$NORMAL $RED${BOLD}Halting script  $NORMAL :"
+  readonly D__INTRO_ATTNT="$YELLOW$BOLD-!- Atención        $NORMAL :"
+  readonly D__INTRO_RBOOT="$MAGENTA$BOLD<-> Reboot needed   $NORMAL :"
+  readonly D__INTRO_WARNG="$RED$BOLD!!! Warning         $NORMAL :"
+  readonly D__INTRO_CRTCL="$RED$REVERSE${BOLD}x_x$NORMAL $RED${BOLD}Critical        $NORMAL :"
 
   readonly D__INTRO_CHK_N="$YELLOW$BOLD>>>$NORMAL ${BOLD}Checking        $NORMAL :"
   readonly D__INTRO_CHK_F="$YELLOW$BOLD>>>$NORMAL ${BOLD}Force-checking  $NORMAL :"
@@ -71,6 +73,7 @@ d__declare_intros()
   readonly D__INTRO_INS_N="$YELLOW$BOLD>>>$NORMAL ${BOLD}Installing      $NORMAL :"
   readonly D__INTRO_INS_F="$YELLOW$BOLD>>>$NORMAL ${BOLD}Force-installing$NORMAL :"
   readonly D__INTRO_INS_S="$BOLD---$NORMAL ${BOLD}Skipped inst.   $NORMAL :"
+  readonly D__INTRO_INS_A="$BOLD---$NORMAL ${BOLD}Already inst.   $NORMAL :"
   readonly D__INTRO_INS_0="$GREEN$REVERSE${BOLD}vvv$NORMAL ${BOLD}Installed       $NORMAL :"
   readonly D__INTRO_INS_1="$RED$REVERSE${BOLD}xxx$NORMAL ${BOLD}Failed to inst. $NORMAL :"
   readonly D__INTRO_INS_2="$WHITE$REVERSE$BOLD~~~$NORMAL ${BOLD}Refused to inst.$NORMAL :"
@@ -79,6 +82,7 @@ d__declare_intros()
   readonly D__INTRO_RMV_N="$YELLOW$BOLD>>>$NORMAL ${BOLD}Removing        $NORMAL :"
   readonly D__INTRO_RMV_F="$YELLOW$BOLD>>>$NORMAL ${BOLD}Force-removing  $NORMAL :"
   readonly D__INTRO_RMV_S="$BOLD---$NORMAL ${BOLD}Skipped removing$NORMAL :"
+  readonly D__INTRO_RMV_A="$BOLD---$NORMAL ${BOLD}Already removed $NORMAL :"
   readonly D__INTRO_RMV_0="$GREEN$REVERSE${BOLD}vvv$NORMAL ${BOLD}Removed         $NORMAL :"
   readonly D__INTRO_RMV_1="$RED$REVERSE${BOLD}xxx$NORMAL ${BOLD}Failed to remove$NORMAL :"
   readonly D__INTRO_RMV_2="$WHITE$REVERSE$BOLD~~~$NORMAL ${BOLD}Refused to rmv. $NORMAL :"
@@ -91,6 +95,38 @@ d__declare_intros()
   readonly D__INTRO_UPD_1="$RED$REVERSE${BOLD}xxx$NORMAL ${BOLD}Failed to update$NORMAL :"
   readonly D__INTRO_UPD_2="$WHITE$REVERSE$BOLD~~~$NORMAL ${BOLD}Refused to upd. $NORMAL :"
   readonly D__INTRO_UPD_3="$GREEN$REVERSE${BOLD}vv$NORMAL$YELLOW${BOLD}x$NORMAL ${BOLD}Partly updated  $NORMAL :"
+
+  readonly D__INTRO_QCH_N="$CYAN$BOLD>>> Checking        $NORMAL $CYAN:"
+  readonly D__INTRO_QCH_F="$CYAN$BOLD>>> Force-checking  $NORMAL $CYAN:"
+  readonly D__INTRO_QCH_S="$CYAN$BOLD--- Skipped checking$NORMAL $CYAN:"
+  readonly D__INTRO_QCH_0="$CYAN$REVERSE$BOLD???$NORMAL $CYAN${BOLD}Unknown         $NORMAL $CYAN:"
+  readonly D__INTRO_QCH_1="$CYAN$REVERSE${BOLD}vvv$NORMAL $CYAN${BOLD}Installed       $NORMAL $CYAN:"
+  readonly D__INTRO_QCH_2="$CYAN$REVERSE${BOLD}xxx$NORMAL $CYAN${BOLD}Not installed   $NORMAL $CYAN:"
+  readonly D__INTRO_QCH_3="$CYAN$REVERSE$BOLD~~~$NORMAL $CYAN${BOLD}Irrelevant      $NORMAL $CYAN:"
+  readonly D__INTRO_QCH_4="$CYAN$REVERSE${BOLD}vv$NORMAL$CYAN${BOLD}x Partly installed$NORMAL $CYAN:"
+  readonly D__INTRO_QCH_5="$CYAN$REVERSE${BOLD}v??$NORMAL $CYAN${BOLD}Likely installed$NORMAL $CYAN:"
+  readonly D__INTRO_QCH_6="$CYAN$REVERSE${BOLD}x_x$NORMAL $CYAN${BOLD}Manually removed$NORMAL $CYAN:"
+  readonly D__INTRO_QCH_7="$CYAN$REVERSE${BOLD}vvv$NORMAL $CYAN${BOLD}Installed by usr$NORMAL $CYAN:"
+  readonly D__INTRO_QCH_8="$CYAN$REVERSE${BOLD}vv$NORMAL$CYAN${BOLD}x Prt. ins. by usr$NORMAL $CYAN:"
+  readonly D__INTRO_QCH_9="$CYAN$REVERSE${BOLD}x??$NORMAL $CYAN${BOLD}Likely not instd$NORMAL $CYAN:"
+
+  readonly D__INTRO_QIN_N="$CYAN$BOLD>>> Installing      $NORMAL $CYAN:"
+  readonly D__INTRO_QIN_F="$CYAN$BOLD>>> Force-installing$NORMAL $CYAN:"
+  readonly D__INTRO_QIN_S="$CYAN$BOLD--- Skipped inst.   $NORMAL $CYAN:"
+  readonly D__INTRO_QIN_A="$CYAN$BOLD--- Already inst.   $NORMAL $CYAN:"
+  readonly D__INTRO_QIN_0="$CYAN$REVERSE${BOLD}vvv$NORMAL $CYAN${BOLD}Installed       $NORMAL $CYAN:"
+  readonly D__INTRO_QIN_1="$CYAN$REVERSE${BOLD}xxx$NORMAL $CYAN${BOLD}Failed to inst. $NORMAL $CYAN:"
+  readonly D__INTRO_QIN_2="$CYAN$REVERSE$BOLD~~~$NORMAL $CYAN${BOLD}Refused to inst.$NORMAL $CYAN:"
+  readonly D__INTRO_QIN_3="$CYAN$REVERSE${BOLD}vv$NORMAL$CYAN${BOLD}x Partly installed$NORMAL $CYAN:"
+
+  readonly D__INTRO_QRM_N="$CYAN$BOLD>>> Removing        $NORMAL $CYAN:"
+  readonly D__INTRO_QRM_F="$CYAN$BOLD>>> Force-removing  $NORMAL $CYAN:"
+  readonly D__INTRO_QRM_S="$CYAN$BOLD--- Skipped removing$NORMAL $CYAN:"
+  readonly D__INTRO_QRM_A="$CYAN$BOLD--- Already removed $NORMAL $CYAN:"
+  readonly D__INTRO_QRM_0="$CYAN$REVERSE${BOLD}vvv$NORMAL $CYAN${BOLD}Removed         $NORMAL $CYAN:"
+  readonly D__INTRO_QRM_1="$CYAN$REVERSE${BOLD}xxx$NORMAL $CYAN${BOLD}Failed to remove$NORMAL $CYAN:"
+  readonly D__INTRO_QRM_2="$CYAN$REVERSE$BOLD~~~$NORMAL $CYAN${BOLD}Refused to rmv. $NORMAL $CYAN:"
+  readonly D__INTRO_QRM_3="$CYAN$REVERSE${BOLD}vv$NORMAL$CYAN${BOLD}x Partly removed  $NORMAL $CYAN:"
 }
 
 #>  d__check_github
@@ -250,10 +286,10 @@ d__uninstall_all_offered_utils()
     else
 
       # Launch normally, but re-paint output
-      local line
+      local d__ol
       d__os_pkgmgr remove "$installed_util" 2>&1 \
-        | while IFS= read -r line || [ -n "$line" ]; do
-        printf "${CYAN}==> %s${NORMAL}\n" "$line"
+        | while IFS= read -r d__ol || [ -n "$d__ol" ]; do
+        printf "${CYAN}==> %s${NORMAL}\n" "$d__ol"
       done
 
     fi
@@ -326,10 +362,10 @@ d__uninstall_homebrew()
       else
 
         # Run script normally, but re-paint output
-        local line
+        local d__ol
         $tmpdir/uninstall --force 2>&1 \
-          | while IFS= read -r line || [ -n "$line" ]; do
-            printf "${CYAN}==> %s${NORMAL}\n" "$line"
+          | while IFS= read -r d__ol || [ -n "$d__ol" ]; do
+            printf "${CYAN}==> %s${NORMAL}\n" "$d__ol"
           done
 
       fi

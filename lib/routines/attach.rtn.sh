@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: attach
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.09.25
-#:revremark:    Remove revision numbers from all src files
+#:revdate:      2019.10.10
+#:revremark:    Fix minor typo
 #:created_at:   2019.05.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -33,11 +33,9 @@ d__perform_attach_routine()
   
   # Announce beginning
   if [ "$D__OPT_ANSWER" = false ]; then
-    dprint_plaque -pcw "$WHITE" "$D__CONST_PLAQUE_WIDTH" \
-      -- "'Attaching' deployments"
+    d__announce -s -- "'Attaching' deployments"
   else
-    dprint_plaque -pcw "$GREEN" "$D__CONST_PLAQUE_WIDTH" \
-      -- 'Attaching deployments'
+    d__announce -v -- 'Attaching deployments'
   fi
 
   # Global status variable
@@ -83,27 +81,22 @@ d__perform_attach_routine()
   # Announce routine completion
   printf >&2 '\n'
   if [ "$D__OPT_ANSWER" = false ]; then
-    dprint_plaque -pcw "$WHITE" "$D__CONST_PLAQUE_WIDTH" \
-      -- "Finished 'attaching' deployments"
+    d__announce -s -- "Finished 'attaching' deployments"
     return 2
   elif $attached_anything; then
     if $errors_encountered; then
-      dprint_plaque -pcw "$YELLOW" "$D__CONST_PLAQUE_WIDTH" \
-        -- 'Successfully attached some deployments'
+      d__announce -! -- 'Successfully attached some deployments'
       return 0
     else
-      dprint_plaque -pcw "$GREEN" "$D__CONST_PLAQUE_WIDTH" \
-        -- 'Successfully attached all deployments'
+      d__announce -v -- 'Successfully attached all deployments'
       return 0
     fi
   else
     if $errors_encountered; then
-      dprint_plaque -pcw "$RED" "$D__CONST_PLAQUE_WIDTH" \
-        -- 'Failed to attach deployments'
+      d__announce -x -- 'Failed to attach deployments'
       return 1
     else
-      dprint_plaque -pcw "$WHITE" "$D__CONST_PLAQUE_WIDTH" \
-        -- 'Nothing to do'
+      d__announce -s -- 'Nothing to do'
       return 2
     fi
   fi
@@ -315,7 +308,7 @@ d__run_pre_attach_checks()
   local src_addr="$1"; shift
 
   # Survey deployments in external dir
-  d__scan_for_dpl_files --ext-dir "$ext_path"
+  d__scan_for_dpl_files --external "$ext_path"
 
   # Check return code
   case $? in
@@ -340,7 +333,7 @@ d__run_pre_attach_checks()
   esac
   
   # Immediately validate deployments being attached
-  d__validate_detected_dpls --ext-dir "$ext_path/" || return 1
+  d__validate_detected_dpls --external "$ext_path/" || return 1
 
   # Check if clobber path exists
   if [ -e "$clobber_path" ]; then
@@ -386,7 +379,7 @@ d__run_pre_attach_checks()
     fi
 
     # After clobbering in dpls dir, re-scan them for deployments
-    d__scan_for_dpl_files --fmwk-dir "$D__DIR_DPLS" "$D__DIR_BUNDLES"
+    d__scan_for_dpl_files --internal "$D__DIR_DPLS" "$D__DIR_BUNDLES"
     
     # Check return code
     case $? in
@@ -432,7 +425,7 @@ d__run_pre_attach_checks()
   fi
 
   # Check if deployments being attached are merge-able
-  d__cross_validate_dpls_before_merging "$ext_path/" || return 1
+  d__cross_validate_dpls "$ext_path/" || return 1
 
   # Finally, if made it here, return success
   return 0

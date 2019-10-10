@@ -2,8 +2,8 @@
 #:title:        Divine.dotfiles macOS adapter
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.09.25
-#:revremark:    Remove revision numbers from all src files
+#:revdate:      2019.10.10
+#:revremark:    Fix minor typo
 #:created_at:   2019.06.04
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -108,13 +108,13 @@ d__adapter_offer_to_install_brew()
     else
 
       # Launch normally, but re-paint output
-      local line
+      local d__ol
       /usr/bin/ruby -e \
         "$( curl -fsSL \
         https://raw.githubusercontent.com/Homebrew/install/master/install \
         )" </dev/null 2>&1 \
-        | while IFS= read -r line || [ -n "$line" ]; do
-          printf "${CYAN}==> %s${NORMAL}\n" "$line"
+        | while IFS= read -r d__ol || [ -n "$d__ol" ]; do
+          printf "${CYAN}==> %s${NORMAL}\n" "$d__ol"
         done
 
     fi

@@ -2,8 +2,8 @@
 #:title:        Divine Bash deployment helpers: reconcile
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.09.25
-#:revremark:    Remove revision numbers from all src files
+#:revdate:      2019.10.10
+#:revremark:    Fix minor typo
 #:created_at:   2019.06.18
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -11,742 +11,578 @@
 ## Helper functions for deployments that contain multiple sub-deployments
 #
 
-d__multitask_check()
+d__mltsk_check()
 {
-  # Check whether at least one task name has been provided
-  if [ -z "${D_MULTITASK_NAMES+isset}" -o ${#D_MULTITASK_NAMES[@]} -eq 0 ]
-  then
+  d__context -- notch
+  d__context -- push "Checking multitask deployment"
 
-    # No tasks: return default code
-    return 0
-
+  # Cut-off checks for number of tasks and continuity; storage variables
+  if ! ((${#D_MLTSK_MAIN[@]})); then
+    d__fail -t 'Multitask failed' -- 'Zero task names provided'; return 3
   fi
+  local d__i; for ((d__i=0;d__i<${#D_MLTSK_MAIN[@]};++d__i)); do
+    [ -z ${D_MLTSK_MAIN[$d__i]+isset} ] || continue
+    d__fail -t 'Multitask failed' -- \
+      'Array $D_MLTSK_MAIN is not continuous'
+    return 3
+  done
+  local d__mti d__mtn d__mtf d__mas d__mss d__mtplq d__mrtc
+  local d__mas_a=() d__mas_r=() d__mas_w=() d__mas_c=()
+  local d__mas_h=false d__mas_p=false
 
-  # Storage variables
-  local task_name func_name return_code
+  # Initialize/reset status variables
+  d__mas=( true true true true true true true true true true )
+  d__mss=( false false false false false false false false false false )
+  unset D__TASK_CHECK_CODES D__MLTSK_CAP_NUM D__TASKS_ARE_QUEUES
 
-  # Global status variables
-  D__MULTITASK_CHECK_CODES=()
-  D__MULTITASK_ANOTHER_WARNINGS=()
-  D__MULTITASK_TASKS_ARE_QUEUES=()
+  # Iterate over numbers of task names
+  for ((d__mti=0;d__mti<${#D_MLTSK_MAIN[@]};++d__mti)); do
 
-  # Iterate over task names
-  for task_name in "${D_MULTITASK_NAMES[@]}"; do
+    # Extract number, name; switch context
+    d__mtn="${D_MLTSK_MAIN[$d__mti]}" d__mtf="d_${d__mtn}_check"
+    d__context -- push \
+      "Checking task '$d__mtn' (#$((d__mti+1)) of ${#D_MLTSK_MAIN[@]})"
 
-    # Figure out current task ordinal number
-    [ -z ${D__MULTITASK_TASKNUM+isset} ] \
-      && D__MULTITASK_TASKNUM=0 \
-      || (( ++D__MULTITASK_TASKNUM ))
+    # Initialize marker var; clear add-statuses
+    unset D__TASK_IS_QUEUE D_ADDST_MLTSK_HALT
+    unset D_ADDST_HALT D_ADDST_PROMPT
+    unset D_ADDST_ATTENTION D_ADDST_REBOOT D_ADDST_WARNING D_ADDST_CRITICAL
 
-    # Set marker var for whether current task is a queue
-    D__MULTITASK_TASK_IS_QUEUE=
+    # Expose additional variables to the task
+    D__TASK_NUM="$d__mti" D__TASK_NAME="$d__mtn"
 
-    # Clear marker variables
-    D_DPL_INSTALLED_BY_USER_OR_OS=
-    D_DPL_NEEDS_ANOTHER_PROMPT=
-    D_DPL_NEEDS_ANOTHER_WARNING=
+    # Get return code of d_dpl_check, or fall back to zero
+    if declare -f "$d__mtf" &>/dev/null; then "$d__mtf"; else true; fi
+    d__mrtc=$?; D__TASK_CHECK_CODES[$d__mti]=$d__mrtc
 
-    # Compose d_dpl_check function name for that task
-    func_name="d_${task_name}_check"
+    # Catch add-statuses
+    if ((${#D_ADDST_ATTENTION[@]}))
+    then for d__i in "${D_ADDST_ATTENTION[@]}"; do d__mas_a+="$d__i"; done; fi
+    if ((${#D_ADDST_REBOOT[@]}))
+    then for d__i in "${D_ADDST_REBOOT[@]}"; do d__mas_r+="$d__i"; done; fi
+    if ((${#D_ADDST_WARNING[@]}))
+    then for d__i in "${D_ADDST_WARNING[@]}"; do d__mas_w+="$d__i"; done; fi
+    if ((${#D_ADDST_CRITICAL[@]}))
+    then for d__i in "${D_ADDST_CRITICAL[@]}"; do d__mas_c+="$d__i"; done; fi
+    if [ "$D_ADDST_HALT" = true ]; then d__mas_h=true; fi
+    if [ "$D_ADDST_PROMPT" = true ]; then d__mas_p=true; fi
 
-    # If d_dpl_check function is implemented, run it
-    if declare -f -- "$func_name" &>/dev/null; then
-
-      # Run the function, store its return code
-      "$func_name"; return_code=$?
-
-    else
-
-      # Assume default return code
-      return_code=0
-
-    fi
+    # Inspect return code; set statuses accordingly
+    case $d__mrtc in
+      1)  for d__i in 0 2 3 4 5 6 7 8 9; do d__mas[$d__i]=false; done
+          d__mss[1]=true;;
+      2)  for d__i in 0 1 3 4 5 6 7 8 9; do d__mas[$d__i]=false; done
+          d__mss[2]=true;;
+      3)  for d__i in 0 1 2 4 5 6 7 8 9; do d__mas[$d__i]=false; done
+          d__mss[3]=true;;
+      4)  for d__i in 0 1 2 3 5 6 7 8 9; do d__mas[$d__i]=false; done
+          d__mss[4]=true;;
+      5)  for d__i in 0 1 2 3 4 6 7 8 9; do d__mas[$d__i]=false; done
+          d__mss[5]=true;;
+      6)  for d__i in 0 1 2 3 4 5 7 8 9; do d__mas[$d__i]=false; done
+          d__mss[6]=true;;
+      7)  for d__i in 0 1 2 3 4 5 6 8 9; do d__mas[$d__i]=false; done
+          d__mss[7]=true;;
+      8)  for d__i in 0 1 2 3 4 5 6 7 9; do d__mas[$d__i]=false; done
+          d__mss[8]=true;;
+      9)  for d__i in 0 1 2 3 4 5 6 7 8; do d__mas[$d__i]=false; done
+          d__mss[9]=true;;
+      *)  for d__i in 1 2 3 4 5 6 7 8 9; do d__mas[$d__i]=false; done
+          d__mss[0]=true;;
+    esac
 
     # Store marker of whether current task is a queue
-    if [ -n "$D__MULTITASK_TASK_IS_QUEUE" ]; then
-      D__MULTITASK_TASKS_ARE_QUEUES[$D__MULTITASK_TASKNUM]=true
+    if [ -z ${D__TASK_IS_QUEUE+isset} ]
+    then D__TASKS_ARE_QUEUES[$d__mti]=false
     else
-      D__MULTITASK_TASKS_ARE_QUEUES[$D__MULTITASK_TASKNUM]=false
+      d__notify -qqqq -- "Task '$d__mtn' is marked as a queue"
+      D__TASKS_ARE_QUEUES[$d__mti]=true
     fi
 
-    # Catch returned code
-    d__multitask_catch_check_code $return_code
+    # If in check routine and being verbose, print status
+    if [ "$D__REQ_ROUTINE" = check -a "$D__OPT_VERBOSITY" -gt 0 ]; then
+      d__mtplq="Task '$d__mtn' (#$((d__mti+1)) of ${#D_MLTSK_MAIN[@]})"
+      d__mtplq+="$NORMAL"; case $d__mrtc in
+        1)  printf >&2 '%s %s\n' "$D__INTRO_QCH_1" "$d__mtplq";;
+        2)  printf >&2 '%s %s\n' "$D__INTRO_QCH_2" "$d__mtplq";;
+        3)  printf >&2 '%s %s\n' "$D__INTRO_QCH_3" "$d__mtplq";;
+        4)  printf >&2 '%s %s\n' "$D__INTRO_QCH_4" "$d__mtplq";;
+        5)  printf >&2 '%s %s\n' "$D__INTRO_QCH_5" "$d__mtplq";;
+        6)  printf >&2 '%s %s\n' "$D__INTRO_QCH_6" "$d__mtplq";;
+        7)  printf >&2 '%s %s\n' "$D__INTRO_QCH_7" "$d__mtplq";;
+        8)  printf >&2 '%s %s\n' "$D__INTRO_QCH_8" "$d__mtplq";;
+        9)  printf >&2 '%s %s\n' "$D__INTRO_QCH_9" "$d__mtplq";;
+        *)  printf >&2 '%s %s\n' "$D__INTRO_QCH_0" "$d__mtplq";;
+      esac
+    fi
 
-  # Done iterating over task names
+    # Process potential multitask halting
+    if [ "$D_ADDST_MLTSK_HALT" = true ]; then
+      D__MLTSK_CAP_NUM=$((d__mti+1))
+      d__notify -!h -- \
+        "Task '$d__mtn' has requested to not check further tasks"
+      d__context -- pop; break
+    fi
+
+    d__context -- pop
+
+  # Done iterating over numbers of task names
   done
 
-  # As the last command, combine all previously caught d_dpl_check codes
-  d__multitask_reconcile_check_codes
+  # Switch context
+  d__context -- push 'Reconciling check status of tasks'
+
+  # Pass on add-statuses
+  unset D_ADDST_ATTENTION D_ADDST_REBOOT D_ADDST_WARNING D_ADDST_CRITICAL
+  ((${#d__mas_a[@]})) && D_ADDST_ATTENTION=("${d__mas_a[@]}")
+  ((${#d__mas_r[@]})) && D_ADDST_REBOOT=("${d__mas_r[@]}")
+  ((${#d__mas_w[@]})) && D_ADDST_WARNING=("${d__mas_w[@]}")
+  ((${#d__mas_c[@]})) && D_ADDST_CRITICAL=("${d__mas_c[@]}")
+  unset D_ADDST_HALT; $d__mas_h && D_ADDST_HALT=true
+  unset D_ADDST_PROMPT; $d__mas_p && D_ADDST_PROMPT=true
+
+  # Combine check codes
+  d___reconcile_task_check_codes; d__mrtc=$?
+  d__context -- pop "Settled on multitask check code '$d__mrtc'"
+  d__context -- lop; return $d__mrtc
 }
 
-d__multitask_install()
+d__mltsk_install()
 {
-  # Check whether at least one task name has been provided
-  if [ -z "${D_MULTITASK_NAMES+isset}" -o ${#D_MULTITASK_NAMES[@]} -eq 0 ]
-  then
-
-    # No tasks: return default code
-    return 0
-
-  fi
+  d__context -- notch
+  d__context -- push "Installing multitask deployment"
 
   # Storage variables
-  local task_name func_name return_code
+  local d__mti d__mtcap d__mtn d__mtf d__mrtc d__mas d__mss d__msscnt=0 d__i
+  local d__mas_a=() d__mas_r=() d__mas_w=() d__mas_c=() d__mas_h=false
+  local d__mtplq d__mtdfac d__mtfrcd d__mtcc d__mtok d__mtocc d__mtof
+  unset D__TASK_INSTALL_CODES
 
-  # Iterate over task names
-  for task_name in "${D_MULTITASK_NAMES[@]}"; do
+  # Initialize/reset status variables
+  d__mas=( true true true true ) d__mss=( false false false false )
+  if [ -z ${D__MLTSK_CAP_NUM+isset} ]; then d__mtcap=${#D_MLTSK_MAIN[@]}
+  else d__mtcap="$D__MLTSK_CAP_NUM"; fi
 
-    # Figure out current task ordinal number
-    [ -z ${D__MULTITASK_TASKNUM+isset} ] \
-      && D__MULTITASK_TASKNUM=0 \
-      || (( ++D__MULTITASK_TASKNUM ))
+  # Iterate over numbers of task names
+  for ((d__mti=0;d__mti<$d__mtcap;++d__mti)); do
 
-    # Compose d_dpl_install function name for that task
-    func_name="d_${task_name}_install"
+    # Extract number, name, and check code; compose task name; switch context
+    d__mtn="${D_MLTSK_MAIN[$d__mti]}" d__mtf="d_${d__mtn}_install"
+    d__mtcc="${D__TASK_CHECK_CODES[$d__mti]}"
+    d__mtplq="'$d__mtn' (#$((d__mti+1)) of ${#D_MLTSK_MAIN[@]})"
+    d__context -- push "Installing task $d__mtplq"
+    d__mtplq="Task $d__mtplq$NORMAL"
 
-    # Check if task is installable
-    if d__multitask_task_is_installable; then
+    # Pre-set statuses; conditionally print intro; inspect check code
+    d__mtdfac=false d__mtfrcd=false d__mtok=true
+    case $d__mtcc in
+      1)  # Fully installed
+          if $D__OPT_FORCE; then d__mtfrcd=true
+            printf >&2 '%s %s\n' "$D__INTRO_QIN_N" "$d__mtplq"
+            d__notify -l! -- \
+              "Task '$d__mtn' appears to be already installed"
+          else d__mtok=false
+            (($D__OPT_VERBOSITY)) \
+              && printf >&2 '%s %s\n' "$D__INTRO_QIN_A" "$d__mtplq"
+          fi;;
+      2)  # Fully not installed
+          :;;
+      3)  # Irrelevant or invalid
+          (($D__OPT_VERBOSITY)) \
+            && printf >&2 '%s %s\n' "$D__INTRO_QCH_3" "$d__mtplq"
+          d__mtok=false;;
+      4)  # Partly installed
+          printf >&2 '%s %s\n' "$D__INTRO_QIN_N" "$d__mtplq"
+          d__notify -l! -- "Task '$d__mtn' appears to be partly installed"
+          d__mtdfac=true; if $D__OPT_FORCE; then d__mtfrcd=true; fi;;
+      5)  # Likely installed (unknown)
+          printf >&2 '%s %s\n' "$D__INTRO_QIN_N" "$d__mtplq"
+          d__notify -l! -- \
+            "Task '$d__mtn' is recorded as previously installed" \
+            -n- 'but there is no way to confirm that it is indeed installed'
+          if $D__OPT_FORCE; then d__mtfrcd=true
+          else d__mtok=false
+            d__notify -l! -- 'Re-try with --force to overcome'
+            printf >&2 '%s %s\n' "$D__INTRO_QCH_5" "$d__mtplq"
+          fi;;
+      6)  # Manually removed (tinkered with)
+          printf >&2 '%s %s\n' "$D__INTRO_QIN_N" "$d__mtplq"
+          d__notify -lx -- \
+            "Task '$d__mtn' is recorded as previously installed" \
+            -n- "but does $BOLDnot$NORMAL appear to be installed right now" \
+            -n- '(which may be due to manual tinkering)'
+          if $D__OPT_FORCE; then d__mtfrcd=true
+          else d__mtok=false
+            d__notify -l! -- 'Re-try with --force to overcome'
+            printf >&2 '%s %s\n' "$D__INTRO_QIN_S" "$d__mtplq"
+          fi;;
+      7)  # Fully installed by user or OS
+          printf >&2 '%s %s\n' "$D__INTRO_QIN_N" "$d__mtplq"
+          d__notify -l! -- "Task '$d__mtn' appears to be fully installed" \
+            "by means other than installing this deployment"
+          if $D__OPT_FORCE; then d__mtfrcd=true
+          else d__mtok=false
+            d__notify -l! -- 'Re-try with --force to overcome'
+            printf >&2 '%s %s\n' "$D__INTRO_QCH_7" "$d__mtplq"
+          fi;;
+      8)  # Partly installed by user or OS
+          printf >&2 '%s %s\n' "$D__INTRO_QIN_N" "$d__mtplq"
+          d__notify -l! -- "Task '$d__mtn' appears to be partly installed" \
+            "by means other than installing this deployment"
+          d__mtdfac=true; if $D__OPT_FORCE; then d__mtfrcd=true; fi;;
+      9)  # Likely not installed (unknown)
+          printf >&2 '%s %s\n' "$D__INTRO_QIN_N" "$d__mtplq"
+          d__notify -l! -- "Task '$d__mtn' is $BOLDnot$NORMAL recorded" \
+            'as previously installed' -n- 'but there is no way to confirm' \
+            "that it is indeed $BOLDnot$NORMAL installed"
+          if $D__OPT_FORCE; then d__mtfrcd=true
+          else d__mtok=false
+            d__notify -l! -- 'Re-try with --force to overcome'
+            printf >&2 '%s %s\n' "$D__INTRO_QCH_9" "$d__mtplq"
+          fi;;
+      *)  # Truly unknown
+          :;;
+    esac
 
-      # If d_dpl_install function is implemented, run it
-      if declare -f -- "$func_name" &>/dev/null; then
+    # If forcing, print a forceful intro
+    $d__mtok && $d__mtfrcd \
+      && printf >&2 '%s %s\n' "$D__INTRO_QIN_F" "$d__mtplq"
 
-        # Expose check code and other check statuses to the primary
-        D__DPL_CHECK_CODE="${D__MULTITASK_CHECK_CODES[$D__MULTITASK_TASKNUM]}"
-        if d__multitask_task_status is_user_or_os; then
-          D_DPL_INSTALLED_BY_USER_OR_OS=true
-        else
-          D_DPL_INSTALLED_BY_USER_OR_OS=false
-        fi
-        if d__multitask_task_status needs_prompt; then
-          D_DPL_NEEDS_ANOTHER_PROMPT=true
-        else
-          D_DPL_NEEDS_ANOTHER_PROMPT=false
-        fi
-        D_DPL_NEEDS_ANOTHER_WARNING="${D__MULTITASK_ANOTHER_WARNINGS[$D__MULTITASK_TASKNUM]}"
-
-        # Run the function and store its return code
-        "$func_name"; return_code=$?
-
-      else
-
-        # Assume default code
-        return_code=0
-
+    # Re-prompt if action differs depending on force or if forcing
+    if $d__mtok && ( $d__mtdfac || $d__mtfrcd ); then
+      if $d__mtdfac; then printf >&2 '%s %s\n' "$D__INTRO_ATTNT" \
+        'In this status, installation may differ with and without --force'; fi
+      if $d__mtfrcd; then printf >&2 '%s ' "$D__INTRO_CNF_U"
+      else printf >&2 '%s ' "$D__INTRO_CNF_N"; fi
+      if ! d__prompt -b; then
+        printf >&2 '%s %s\n' "$D__INTRO_QIN_S" "$d__mtplq"; d__mtok=false
       fi
-
-    else
-
-      # Assume the failure code
-      return_code=$?
-
-      # Check if skipped task was in fact a queue
-      if [ "${D__MULTITASK_TASKS_ARE_QUEUES[$D__MULTITASK_TASKNUM]}" = true ]
-      then
-
-        # Initialize or increment queue section number
-        if [ -z ${D__QUEUE_SECTNUM[1]+isset} ]; then
-          D__QUEUE_SECTNUM[1]=0
-        else
-          (( ++D__QUEUE_SECTNUM[1] ))
-        fi
-
-      fi
-
     fi
 
-    # Catch returned code, or return immediately (emergency exit)
-    d__multitask_catch_install_code $return_code || return $?
+    # Shared cut-off for skipping current task
+    if ! $d__mtok; then
+      # If skipping a queue, initialize or increment queue section number
+      if [ "${D__TASKS_ARE_QUEUES[$d__mti]}" = true ]; then
+        if [ -z ${D__QUEUE_SECTNUM[1]+isset} ]; then D__QUEUE_SECTNUM[1]=0
+        else ((++D__QUEUE_SECTNUM[1])); fi
+      fi
+      continue
+    fi
 
-  # Done iterating over task names
+    # Initialize marker var; clear add-statuses
+    unset D_ADDST_MLTSK_HALT D_ADDST_HALT
+    unset D_ADDST_ATTENTION D_ADDST_REBOOT D_ADDST_WARNING D_ADDST_CRITICAL
+
+    # Expose additional variables to the task
+    D__TASK_NUM="$d__mti" D__TASK_NAME="$d__mtn"
+    D__TASK_CHECK_CODE="$d__mtcc" D__TASK_IS_FORCED="$d__mtfrcd"
+    d__mtocc="$D__DPL_CHECK_CODE" d__mtof="$D__DPL_IS_FORCED"
+    D__DPL_CHECK_CODE="$d__mtcc" D__DPL_IS_FORCED="$d__mtfrcd"
+
+    # Get return code of d_dpl_install, or fall back to zero
+    if declare -f "$d__mtf" &>/dev/null; then "$d__mtf"; else true; fi
+    d__mrtc=$?; D__TASK_INSTALL_CODES[$d__mti]=$d__mrtc
+
+    # Restore overwritten deployment-level variables
+    D__DPL_CHECK_CODE="$d__mtocc" D__DPL_IS_FORCED="$d__mtof"
+
+    # Catch add-statuses
+    if ((${#D_ADDST_ATTENTION[@]}))
+    then for d__i in "${D_ADDST_ATTENTION[@]}"; do d__mas_a+="$d__i"; done; fi
+    if ((${#D_ADDST_REBOOT[@]}))
+    then for d__i in "${D_ADDST_REBOOT[@]}"; do d__mas_r+="$d__i"; done; fi
+    if ((${#D_ADDST_WARNING[@]}))
+    then for d__i in "${D_ADDST_WARNING[@]}"; do d__mas_w+="$d__i"; done; fi
+    if ((${#D_ADDST_CRITICAL[@]}))
+    then for d__i in "${D_ADDST_CRITICAL[@]}"; do d__mas_c+="$d__i"; done; fi
+    if [ "$D_ADDST_HALT" = true ]; then d__mas_h=true; fi
+
+    # Inspect return code; set statuses accordingly
+    case $d__mrtc in
+      1)  for d__i in 0 2 3; do d__mas[$d__i]=false; done; d__mss[1]=true;;
+      2)  for d__i in 0 1 3; do d__mas[$d__i]=false; done; d__mss[2]=true;;
+      3)  for d__i in 0 1 2; do d__mas[$d__i]=false; done; d__mss[3]=true;;
+      *)  for d__i in 1 2 3; do d__mas[$d__i]=false; done; d__mss[0]=true;;
+    esac
+
+    # If in there has been some output, print status
+    if (($D__OPT_VERBOSITY)) || $d__mtfrcd || $d__mtdfac; then
+      case $d__mrtc in
+        1)  printf >&2 '%s %s\n' "$D__INTRO_QIN_1" "$d__mtplq";;
+        2)  printf >&2 '%s %s\n' "$D__INTRO_QIN_2" "$d__mtplq";;
+        3)  printf >&2 '%s %s\n' "$D__INTRO_QIN_3" "$d__mtplq";;
+        *)  printf >&2 '%s %s\n' "$D__INTRO_QIN_0" "$d__mtplq";;
+      esac
+    fi
+
+    # Process potential multitask halting
+    if [ "$D_ADDST_MLTSK_HALT" = true ]; then
+      d__notify -!h -- \
+        "Task '$d__mtn' has requested to not install further tasks"
+      d__context -- pop; break
+    fi
+
+    d__context -- pop
+
+  # Done iterating over numbers of task names
   done
 
-  # As the last command, combine all previously caught d_dpl_install codes
-  d__multitask_reconcile_install_codes
+  # Switch context
+  d__context -- push 'Reconciling install status of tasks'
+
+  # Pass on add-statuses
+  unset D_ADDST_ATTENTION D_ADDST_REBOOT D_ADDST_WARNING D_ADDST_CRITICAL
+  ((${#d__mas_a[@]})) && D_ADDST_ATTENTION=("${d__mas_a[@]}")
+  ((${#d__mas_r[@]})) && D_ADDST_REBOOT=("${d__mas_r[@]}")
+  ((${#d__mas_w[@]})) && D_ADDST_WARNING=("${d__mas_w[@]}")
+  ((${#d__mas_c[@]})) && D_ADDST_CRITICAL=("${d__mas_c[@]}")
+  unset D_ADDST_HALT; $d__mas_h && D_ADDST_HALT=true
+
+  # Combine status codes
+  d___reconcile_task_insrmv_codes; d__mrtc=$?
+  d__context -- pop "Settled on multitask install code '$d__mrtc'"
+  d__context -- lop; return $d__mrtc
 }
 
-d__multitask_remove()
+d__mltsk_remove()
 {
-  # Check whether at least one task name has been provided
-  if [ -z "${D_MULTITASK_NAMES+isset}" -o ${#D_MULTITASK_NAMES[@]} -eq 0 ]
-  then
-
-    # No tasks: return default code
-    return 0
-
-  fi
+  d__context -- notch
+  d__context -- push "Removing multitask deployment"
 
   # Storage variables
-  local task_name func_name i
+  local d__mti d__mtcap d__mtn d__mtf d__mrtc d__mas d__mss d__msscnt=0 d__i
+  local d__mas_a=() d__mas_r=() d__mas_w=() d__mas_c=() d__mas_h=false
+  local d__mtplq d__mtabn d__mtfrcd d__mtcc d__mtok d__mtocc d__mtof
+  unset D__TASK_REMOVE_CODES
 
-  # Iterate over task names in reverse order
-  for (( i=$D__MULTITASK_MAX_NUM; i>=0; i-- )); do
+  # Initialize/reset status variables
+  d__mas=( true true true true ) d__mss=( false false false false )
+  if [ -z ${D__MLTSK_CAP_NUM+isset} ]; then d__mtcap=${#D_MLTSK_MAIN[@]}
+  else d__mtcap="$D__MLTSK_CAP_NUM"; fi
 
-    # Figure out current task ordinal number
-    if [ -z ${D__MULTITASK_TASKNUM+isset} ]; then
-      D__MULTITASK_TASKNUM="$D__MULTITASK_MAX_NUM"
-    else
-      (( --D__MULTITASK_TASKNUM ))
+  # Iterate over numbers of task names
+  for ((d__mti=$d__mtcap-1;d__mti>=0;--d__mti)); do
+
+    # Extract number, name, and check code; compose task name; switch context
+    d__mtn="${D_MLTSK_MAIN[$d__mti]}" d__mtf="d_${d__mtn}_remove"
+    d__mtcc="${D__TASK_CHECK_CODES[$d__mti]}"
+    d__mtplq="'$d__mtn' (#$((d__mti+1)) of ${#D_MLTSK_MAIN[@]})"
+    d__context -- push "Removing task $d__mtplq"
+    d__mtplq="Task $d__mtplq$NORMAL"
+
+    # Pre-set statuses; conditionally print intro; inspect check code
+    d__mtabn=false d__mtfrcd=false d__mtok=true
+    case $d__mtcc in
+      1)  # Fully installed
+          :;;
+      2)  # Fully not installed
+          if $D__OPT_FORCE; then d__mtfrcd=true
+            printf >&2 '%s %s\n' "$D__INTRO_QRM_N" "$d__mtplq"
+            d__notify -l! -- \
+              "Task '$d__mtn' appears to be already not installed"
+          else d__mtok=false
+            (($D__OPT_VERBOSITY)) \
+              && printf >&2 '%s %s\n' "$D__INTRO_QRM_A" "$d__mtplq"
+          fi;;
+      3)  # Irrelevant or invalid
+          (($D__OPT_VERBOSITY)) \
+            && printf >&2 '%s %s\n' "$D__INTRO_QCH_3" "$d__mtplq"
+          d__mtok=false;;
+      4)  # Partly installed
+          printf >&2 '%s %s\n' "$D__INTRO_QRM_N" "$d__mtplq"
+          d__notify -l! -- \
+            "Task '$d__mtn' appears to be only partly installed"
+          d__mtabn=true;;
+      5)  # Likely installed (unknown)
+          printf >&2 '%s %s\n' "$D__INTRO_QRM_N" "$d__mtplq"
+          d__notify -l! -- \
+            "Task '$d__mtn' is recorded as previously installed" \
+            -n- 'but there is no way to confirm that it is indeed installed'
+          if $D__OPT_FORCE; then d__mtfrcd=true
+          else d__mtok=false
+            d__notify -l! -- 'Re-try with --force to overcome'
+            printf >&2 '%s %s\n' "$D__INTRO_QCH_5" "$d__mtplq"
+          fi;;
+      6)  # Manually removed (tinkered with)
+          printf >&2 '%s %s\n' "$D__INTRO_QRM_N" "$d__mtplq"
+          d__notify -lx -- \
+            "Task '$d__mtn' is recorded as previously installed" \
+            -n- "but does $BOLDnot$NORMAL appear to be installed right now" \
+            -n- '(which may be due to manual tinkering)'
+          if $D__OPT_FORCE; then d__mtfrcd=true
+          else d__mtok=false
+            d__notify -l! -- 'Re-try with --force to overcome'
+            printf >&2 '%s %s\n' "$D__INTRO_QRM_S" "$d__mtplq"
+          fi;;
+      7)  # Fully installed by user or OS
+          printf >&2 '%s %s\n' "$D__INTRO_QRM_N" "$d__mtplq"
+          d__notify -l! -- "Task '$d__mtn' appears to be fully installed" \
+            "by means other than installing this deployment"
+          if $D__OPT_FORCE; then d__mtfrcd=true
+          else d__mtok=false
+            d__notify -l! -- 'Re-try with --force to overcome'
+            printf >&2 '%s %s\n' "$D__INTRO_QCH_7" "$d__mtplq"
+          fi;;
+      8)  # Partly installed by user or OS
+          printf >&2 '%s %s\n' "$D__INTRO_QRM_N" "$d__mtplq"
+          d__notify -l! -- "Task '$d__mtn' appears to be partly installed" \
+            "by means other than installing this deployment"
+          if $D__OPT_FORCE; then d__mtfrcd=true
+          else d__mtok=false
+            d__notify -l! -- 'Re-try with --force to overcome'
+            printf >&2 '%s %s\n' "$D__INTRO_QCH_8" "$d__mtplq"
+          fi;;
+      9)  # Likely not installed (unknown)
+          printf >&2 '%s %s\n' "$D__INTRO_QRM_N" "$d__mtplq"
+          d__notify -l! -- "Task '$d__mtn' is $BOLDnot$NORMAL recorded" \
+            'as previously installed' -n- 'but there is no way to confirm' \
+            "that it is indeed $BOLDnot$NORMAL installed"
+          if $D__OPT_FORCE; then d__mtfrcd=true
+          else d__mtok=false
+            d__notify -l! -- 'Re-try with --force to overcome'
+            printf >&2 '%s %s\n' "$D__INTRO_QCH_9" "$d__mtplq"
+          fi;;
+      *)  # Truly unknown
+          :;;
+    esac
+
+    # If forcing, print a forceful intro and re-prompt
+    if $d__mtok && $d__mtfrcd; then
+      printf >&2 '%s %s\n' "$D__INTRO_QRM_F" "$d__mtplq"
+      printf >&2 '%s ' "$D__INTRO_CNF_U"
+      if ! d__prompt -b; then
+        printf >&2 '%s %s\n' "$D__INTRO_QRM_S" "$d__mtplq"; d__mtok=false
+      fi
     fi
 
-    # Extract task name
-    task_name="${D_MULTITASK_NAMES[$i]}"
-
-    # Compose d_dpl_remove function name for that task
-    func_name="d_${task_name}_remove"
-
-    # Check if task is removable
-    if d__multitask_task_is_removable; then
-
-      # If d_dpl_remove function is implemented, run it
-      if declare -f -- "$func_name" &>/dev/null; then
-
-        # Expose check code and other check statuses to the primary
-        D__DPL_CHECK_CODE="${D__MULTITASK_CHECK_CODES[$D__MULTITASK_TASKNUM]}"
-        if d__multitask_task_status is_user_or_os; then
-          D_DPL_INSTALLED_BY_USER_OR_OS=true
-        else
-          D_DPL_INSTALLED_BY_USER_OR_OS=false
-        fi
-        if d__multitask_task_status needs_prompt; then
-          D_DPL_NEEDS_ANOTHER_PROMPT=true
-        else
-          D_DPL_NEEDS_ANOTHER_PROMPT=false
-        fi
-        D_DPL_NEEDS_ANOTHER_WARNING="${D__MULTITASK_ANOTHER_WARNINGS[$D__MULTITASK_TASKNUM]}"
-
-        # Run the function and store its return code
-        "$func_name"; return_code=$?
-
-      else
-
-        # Assume default code
-        return_code=0
-
+    # Shared cut-off for skipping current task
+    if ! $d__mtok; then
+      # If skipping a queue, initialize or increment queue section number
+      if [ "${D__TASKS_ARE_QUEUES[$d__mti]}" = true ]; then
+        if [ -z ${D__QUEUE_SECTNUM[1]+isset} ]; then D__QUEUE_SECTNUM[1]=0
+        else ((++D__QUEUE_SECTNUM[1])); fi
       fi
-
-    else
-
-      # Assume the failure code
-      return_code=$?
-
-      # Check if skipped task was in fact a queue
-      if [ "${D__MULTITASK_TASKS_ARE_QUEUES[$D__MULTITASK_TASKNUM]}" = true ]
-      then
-
-        # Initialize or decrement queue section number (reverse order)
-        if [ -z ${D__QUEUE_SECTNUM[1]+isset} ]; then
-          D__QUEUE_SECTNUM[1]="${#D__QUEUE_SPLIT_POINTS[@]}"
-        else
-          (( --D__QUEUE_SECTNUM[1] ))
-        fi
-        
-      fi
-
+      continue
     fi
 
-    # Catch returned code, or return immediately (emergency exit)
-    d__multitask_catch_remove_code $return_code || return $?
+    # Initialize marker var; clear add-statuses
+    unset D_ADDST_MLTSK_HALT D_ADDST_HALT
+    unset D_ADDST_ATTENTION D_ADDST_REBOOT D_ADDST_WARNING D_ADDST_CRITICAL
 
-  # Done iterating over task names in reverse order
+    # Expose additional variables to the task
+    D__TASK_NUM="$d__mti" D__TASK_NAME="$d__mtn"
+    D__TASK_CHECK_CODE="$d__mtcc" D__TASK_IS_FORCED="$d__mtfrcd"
+    d__mtocc="$D__DPL_CHECK_CODE" d__mtof="$D__DPL_IS_FORCED"
+    D__DPL_CHECK_CODE="$d__mtcc" D__DPL_IS_FORCED="$d__mtfrcd"
+
+    # Get return code of d_dpl_remove, or fall back to zero
+    if declare -f "$d__mtf" &>/dev/null; then "$d__mtf"; else true; fi
+    d__mrtc=$?; D__TASK_REMOVE_CODES[$d__mti]=$d__mrtc
+
+    # Restore overwritten deployment-level variables
+    D__DPL_CHECK_CODE="$d__mtocc" D__DPL_IS_FORCED="$d__mtof"
+
+    # Catch add-statuses
+    if ((${#D_ADDST_ATTENTION[@]}))
+    then for d__i in "${D_ADDST_ATTENTION[@]}"; do d__mas_a+="$d__i"; done; fi
+    if ((${#D_ADDST_REBOOT[@]}))
+    then for d__i in "${D_ADDST_REBOOT[@]}"; do d__mas_r+="$d__i"; done; fi
+    if ((${#D_ADDST_WARNING[@]}))
+    then for d__i in "${D_ADDST_WARNING[@]}"; do d__mas_w+="$d__i"; done; fi
+    if ((${#D_ADDST_CRITICAL[@]}))
+    then for d__i in "${D_ADDST_CRITICAL[@]}"; do d__mas_c+="$d__i"; done; fi
+    if [ "$D_ADDST_HALT" = true ]; then d__mas_h=true; fi
+
+    # Inspect return code; set statuses accordingly
+    case $d__mrtc in
+      1)  for d__i in 0 2 3; do d__mas[$d__i]=false; done; d__mss[1]=true;;
+      2)  for d__i in 0 1 3; do d__mas[$d__i]=false; done; d__mss[2]=true;;
+      3)  for d__i in 0 1 2; do d__mas[$d__i]=false; done; d__mss[3]=true;;
+      *)  for d__i in 1 2 3; do d__mas[$d__i]=false; done; d__mss[0]=true;;
+    esac
+
+    # If in there has been some output, print status
+    if (($D__OPT_VERBOSITY)) || $d__mtfrcd || $d__mtabn; then
+      case $d__mrtc in
+        1)  printf >&2 '%s %s\n' "$D__INTRO_QRM_1" "$d__mtplq";;
+        2)  printf >&2 '%s %s\n' "$D__INTRO_QRM_2" "$d__mtplq";;
+        3)  printf >&2 '%s %s\n' "$D__INTRO_QRM_3" "$d__mtplq";;
+        *)  printf >&2 '%s %s\n' "$D__INTRO_QRM_0" "$d__mtplq";;
+      esac
+    fi
+
+    # Process potential multitask halting
+    if [ "$D_ADDST_MLTSK_HALT" = true ]; then
+      d__notify -!h -- \
+        "Task '$d__mtn' has requested to not remove further tasks"
+      d__context -- pop; break
+    fi
+
+    d__context -- pop
+
+  # Done iterating over numbers of task names
   done
 
-  # As the last command, combine all previously caught d_dpl_remove codes
-  d__multitask_reconcile_remove_codes
+  # Switch context
+  d__context -- push 'Reconciling remove status of tasks'
+
+  # Pass on add-statuses
+  unset D_ADDST_ATTENTION D_ADDST_REBOOT D_ADDST_WARNING D_ADDST_CRITICAL
+  ((${#d__mas_a[@]})) && D_ADDST_ATTENTION=("${d__mas_a[@]}")
+  ((${#d__mas_r[@]})) && D_ADDST_REBOOT=("${d__mas_r[@]}")
+  ((${#d__mas_w[@]})) && D_ADDST_WARNING=("${d__mas_w[@]}")
+  ((${#d__mas_c[@]})) && D_ADDST_CRITICAL=("${d__mas_c[@]}")
+  unset D_ADDST_HALT; $d__mas_h && D_ADDST_HALT=true
+
+  # Combine status codes
+  d___reconcile_task_insrmv_codes; d__mrtc=$?
+  d__context -- pop "Settled on multitask remove code '$d__mrtc'"
+  d__context -- lop; return $d__mrtc
 }
 
-#>  d__multitask_catch_check_code CODE
+#>  d___reconcile_task_check_codes
 #
-## Intercepts d_dpl_check return CODE and stores in global array for future 
-#. reference during installation/removal.
+## INTERNAL USE ONLY
 #
-## Returns:
-#.  The same return code it received (caught)
+## Tool that analyzes multiple check codes and combines them into one.
 #
-d__multitask_catch_check_code()
-{
-  # Extract last returned code ASAP
-  local last_code="$1"; shift
-
-  ## If not already, set up status array of booleans:
-  #.  $D__MULTITASK_STATUS_SUMMARY[0] - true if all tasks are unknown
-  #.  $D__MULTITASK_STATUS_SUMMARY[1] - true if all tasks are installed
-  #.  $D__MULTITASK_STATUS_SUMMARY[2] - true if all tasks are not installed
-  #.  $D__MULTITASK_STATUS_SUMMARY[3] - true if all tasks are irrelevant
-  #.  $D__MULTITASK_STATUS_SUMMARY[4] - true if all tasks are partly installed
-  #.  $D__MULTITASK_STATUS_SUMMARY[5] - true if al least one task requested 
-  #.                                    another prompt; false otherwise
-  #.  $D__MULTITASK_STATUS_SUMMARY[6] - true if all installed by user or OS
-  #.                                  false if some installed by fmwk
-  #.                                  unset if no installed parts encountered
-  #
-  [ -z ${D__MULTITASK_STATUS_SUMMARY+isset} ] \
-    && D__MULTITASK_STATUS_SUMMARY=( true true true true true false )
-
-  # Store current check code
-  D__MULTITASK_CHECK_CODES[$D__MULTITASK_TASKNUM]=$last_code
-
-  # Check if user-or-os marker is currently set
-  if [ "$D_DPL_INSTALLED_BY_USER_OR_OS" = true ]; then
-    d__multitask_task_status set is_user_or_os
-  fi
-
-  # Check if another prompt marker is currently set
-  if [ "$D_DPL_NEEDS_ANOTHER_PROMPT" = true ]; then
-    d__multitask_task_status set needs_prompt
-    D__MULTITASK_STATUS_SUMMARY[5]=true
-  fi
-
-  # Check if another warning marker is currently set
-  if [ -n "$D_DPL_NEEDS_ANOTHER_WARNING" ]; then
-    D__MULTITASK_ANOTHER_WARNINGS[$D__MULTITASK_TASKNUM]="$D_DPL_NEEDS_ANOTHER_WARNING"
-  fi
-
-  # Small storage variable
-  local j
-
-  # Check exit code
-  case $last_code in
-    1)  # Installed: flip flags
-        for j in 0 2 3 4; do D__MULTITASK_STATUS_SUMMARY[$j]=false; done
-
-        # Check if user-or-os flag is currently set
-        if [ "$D_DPL_INSTALLED_BY_USER_OR_OS" = true ]; then
-
-          # Installed by user or OS: no actions allowed
-
-          # Unless some fmwk installations already detected, mark as user or OS
-          [ "${D__MULTITASK_STATUS_SUMMARY[6]}" = false ] \
-            || D__MULTITASK_STATUS_SUMMARY[6]=true
-
-        else
-
-          # Installed by framework: allow removal
-          d__multitask_task_status set can_be_removed
-
-          # Definitely not user or OS
-          D__MULTITASK_STATUS_SUMMARY[6]=false
-
-        fi
-        ;;
-    2)  # Not installed: flip flags
-        for j in 0 1 3 4; do D__MULTITASK_STATUS_SUMMARY[$j]=false; done
-
-        # Allow installation
-        d__multitask_task_status set can_be_installed
-        ;;
-    3)  # Irrelevant: don't flip flags (task becomes not a part of deployment)
-        # for j in 0 1 2 4; do D__MULTITASK_STATUS_SUMMARY[$j]=false; done
-
-        # Should not be touched
-        d__multitask_task_status set is_irrelevant
-        ;;
-    4)  # Partly installed: flip flags
-        for j in 0 1 2 3; do D__MULTITASK_STATUS_SUMMARY[$j]=false; done
-
-        # Check if user-or-os flag is currently set
-        if [ "$D_DPL_INSTALLED_BY_USER_OR_OS" = true ]; then
-
-          # Partly installed by user or OS: allow installation
-          d__multitask_task_status set can_be_installed
-
-          # Unless some fmwk installations already detected, mark as user or OS
-          [ "${D__MULTITASK_STATUS_SUMMARY[6]}" = false ] \
-            || D__MULTITASK_STATUS_SUMMARY[6]=true
-
-        else
-
-          # Partly installed by framework: allow installation and removal
-          d__multitask_task_status set can_be_installed
-          d__multitask_task_status set can_be_removed
-
-          # Definitely not user or OS
-          D__MULTITASK_STATUS_SUMMARY[6]=false
-
-        fi
-        ;;
-    *)  # Unknown status: flip flags
-        for j in 1 2 3 4; do D__MULTITASK_STATUS_SUMMARY[$j]=false; done
-
-        # Allow installation and removal
-        d__multitask_task_status set can_be_installed
-        d__multitask_task_status set can_be_removed
-
-        # With an unknown, we can't say it's all user or OS
-        D__MULTITASK_STATUS_SUMMARY[6]=false
-        ;;
-  esac
-
-  # Re-return last code so that it can be picked up
-  return $last_code
-}
-
-#>  d__multitask_reconcile_check_codes
-#
-## Analyzes previously stored return codes of d_dpl_check-like functions and 
-#. combines them into a single return code.
+## Local variables that need to be set in the calling context:
+#>  $d__mas     - Array of all-statuses.
+#>  $d__mss     - Array of some-statuses.
 #
 ## Returns:
-#.  0 - Unknown
-#.  1 - Installed
-#.  2 - Not installed
-#.  3 - Irrelevant
-#.  4 - Partly installed
+#.  The resulting combined code.
 #
-d__multitask_reconcile_check_codes()
+d___reconcile_task_check_codes()
 {
-  # Remember total number of tasks
-  D__MULTITASK_MAX_NUM=$(( $D__MULTITASK_TASKNUM ))
-
-  # Reset task number counter (for following installations/removals)
-  unset D__MULTITASK_TASKNUM
-
-  # Settle user-or-os status
-  if [ "${D__MULTITASK_STATUS_SUMMARY[6]}" = true ]; then
-    D_DPL_INSTALLED_BY_USER_OR_OS=true
-  else
-    D_DPL_INSTALLED_BY_USER_OR_OS=false
+  local i c=0; for ((i=0;i<10;++i)); do ${d__mas[$i]} && return $i; done
+  for ((i=0;i<10;++i)); do ${d__mss[$i]} && ((++c)); done
+  if ((c=2)); then
+    if ${d__mss[3]}; then for i in 0 1 2 4 5 6 7 8 9
+    do ${d__mss[$i]} && return $i; done; fi
+    ${d__mss[1]} && ${d__mss[5]} && return 5
+    ${d__mss[2]} && ${d__mss[9]} && return 9
   fi
-
-  # Settle on prompt
-  if [ "${D__MULTITASK_STATUS_SUMMARY[5]}" = true ]; then
-    D_DPL_NEEDS_ANOTHER_PROMPT=true
-  else
-    D_DPL_NEEDS_ANOTHER_PROMPT=false
-  fi
-
-  # Settle on warnings
-  D_DPL_NEEDS_ANOTHER_WARNING=
-  local warning
-  for warning in "${D__MULTITASK_ANOTHER_WARNINGS[@]}"; do
-    D_DPL_NEEDS_ANOTHER_WARNING+="$warning; "
-  done
-  D_DPL_NEEDS_ANOTHER_WARNING="${D_DPL_NEEDS_ANOTHER_WARNING%; }"
-
-  # Storage variable for return code
-  local return_code
-
-  # Sequentially check if at least one all-code survived (start with irrelev.)
-  if [ "${D__MULTITASK_STATUS_SUMMARY[3]}" = true ]; then return_code=3
-  elif [ "${D__MULTITASK_STATUS_SUMMARY[0]}" = true ]; then return_code=0
-  elif [ "${D__MULTITASK_STATUS_SUMMARY[1]}" = true ]; then return_code=1
-  elif [ "${D__MULTITASK_STATUS_SUMMARY[2]}" = true ]; then return_code=2
-  elif [ "${D__MULTITASK_STATUS_SUMMARY[4]}" = true ]; then return_code=4
-  else
-
-    ## Its a mix, but definitely not a mix of 'irrelevant' + something else.
-    #. Thus it is an arbitrary mix of 'unknown', 'installed', 'not installed', 
-    #. and 'partly installed'.
-
-    # Some installations: call this partially installed
-    return_code=4
-
-  fi
-
-  # Reset flag storage (for following installations/removals)
-  unset D__MULTITASK_STATUS_SUMMARY
-
-  # Return agreed code
-  return $return_code
-}
-
-#>  d__multitask_task_is_installable
-#
-## Signals if current task has been previously detected as installable
-#
-## Provides into the global scope:
-#.  $D__MULTITASK_IS_FORCED - Sets this to 'true' if installation is being 
-#.                          forced, i.e., it would not have been initiated if 
-#.                          not for force option.
-#
-## Returns:
-#.  0 - Task may be installed
-#.  1 - Otherwise
-#
-d__multitask_task_is_installable()
-{
-  # Make sure $D__MULTITASK_IS_FORCED is not inherited from previous tasks
-  unset D__MULTITASK_IS_FORCED
-
-  # If task is irrelevant, return immediately
-  if d__multitask_task_status is_irrelevant; then return 1; fi
-
-  # Check pre-recorded status
-  if d__multitask_task_status can_be_installed; then
-    # Go for it
-    return 0
-  else
-    # Not suitable for installation: only go in forced mode
-    if $D__OPT_FORCE; then D__MULTITASK_IS_FORCED=true; return 0
-    else
-      # This task will be skipped: set flag and return
-      d__multitask_task_status set is_skipped
-      return 1
-    fi
-  fi
-}
-
-#>  d__multitask_catch_install_code
-#
-## Intercepts d_dpl_check return CODE and stores it in global array for future 
-#. reference during reconciliation of installation codes.
-#
-## Returns:
-#.  0   - Task is either installed, failed, or skipped (non-emergency)
-#.  100 - Emergency: reboot needed
-#.  101 - Emergency: user attention needed
-#.  102 - Emergency: critical failure
-#
-d__multitask_catch_install_code()
-{
-  # Extract last returned code ASAP
-  local last_code="$1"; shift
-
-  # If task was irrelevant, don't bother with anything
-  if d__multitask_task_status is_irrelevant; then return 0; fi
-
-  ## If not already, set up status array of booleans:
-  #.  $D__MULTITASK_STATUS_SUMMARY[0] - true if all tasks were installed
-  #.  $D__MULTITASK_STATUS_SUMMARY[1] - true if all tasks failed to install
-  #.  $D__MULTITASK_STATUS_SUMMARY[2] - true if all tasks were skipped
-  #.  $D__MULTITASK_STATUS_SUMMARY[3] - true if at least one failure occurred
-  #.                                  false if no failures occurred
-  #
-  [ -z ${D__MULTITASK_STATUS_SUMMARY+isset} ] \
-    && D__MULTITASK_STATUS_SUMMARY=( true true true false )
-
-  # Small storage variable
-  local j
-
-  # If task was skipped, flip flags and return
-  if d__multitask_task_status is_skipped; then
-    for j in 0 1; do D__MULTITASK_STATUS_SUMMARY[$j]=false; done
-    return 0
-  fi
-
-  # Check exit code
-  case $last_code in
-    1)    # Failed to install: flip flags
-          for j in 0 2; do D__MULTITASK_STATUS_SUMMARY[$j]=false; done
-          # Also, mark occurrence of failure
-          D__MULTITASK_STATUS_SUMMARY[3]=true
-          ;;
-    2)    # Skipped: flip flags
-          for j in 0 1; do D__MULTITASK_STATUS_SUMMARY[$j]=false; done
-          ;;
-    100)  # Emergency: reboot needed
-          return 100
-          ;;
-    101)  # Emergency: user attention needed
-          return 101
-          ;;
-    102)  # Emergency: critical failure
-          return 102
-          ;;
-    *)    # Installed: flip flags
-          for j in 1 2; do D__MULTITASK_STATUS_SUMMARY[$j]=false; done
-          ;;
-  esac
-
-  # For non-emergencies, always return a-okay
+  ((c=3)) && ${d__mss[3]} && ${d__mss[7]} && ${d__mss[8]} && return 8
+  if ${d__mss[1]} || ${d__mss[4]}; then return 4; fi
   return 0
 }
 
-#>  d__multitask_reconcile_install_codes
+#>  d___reconcile_task_insrmv_codes
 #
-## Analyzes previously stored return codes of d_dpl_install-like functions and 
-#. combines them into a single return code.
+## INTERNAL USE ONLY
 #
-## Returns:
-#.  0   - Successfully installed
-#.  1   - Failed to install
-#.  2   - Skipped completely
-#.  100 - Reboot needed
-#.  101 - User attention needed
-#.  102 - Critical failure
+## Tool that analyzes multiple install/remove codes and combines them into one.
 #
-d__multitask_reconcile_install_codes()
-{
-  # Sequentially check if at least one all-code survived
-  if [ "${D__MULTITASK_STATUS_SUMMARY[0]}" = true ]; then return 0
-  elif [ "${D__MULTITASK_STATUS_SUMMARY[1]}" = true ]; then return 1
-  elif [ "${D__MULTITASK_STATUS_SUMMARY[2]}" = true ]; then return 2
-  else
-    # Nothing conclusive: check if failure was encountered
-    if [ "${D__MULTITASK_STATUS_SUMMARY[3]}" = true ]; then
-      # Some failed: call this failure
-      return 1
-    else
-      # Mix of installed and skipped: call this installed
-      return 0
-    fi
-  fi
-}
-
-#>  d__multitask_task_is_removable
-#
-## Signals if current task has been previously detected as removable
-#
-## Provides into the global scope:
-#.  $D__MULTITASK_IS_FORCED - Sets this to 'true' if removal is being forced, 
-#.                          i.e., it would not have been initiated if not for 
-#.                          force option.
+## Local variables that need to be set in the calling context:
+#>  $d__mas     - Array of all-statuses.
+#>  $d__mss     - Array of some-statuses.
 #
 ## Returns:
-#.  0 - Task may be removed
-#.  1 - Otherwise
+#.  The resulting combined code.
 #
-d__multitask_task_is_removable()
+d___reconcile_task_insrmv_codes()
 {
-  # Make sure $D__MULTITASK_IS_FORCED is not inherited from previous tasks
-  unset D__MULTITASK_IS_FORCED
-
-  # If task is irrelevant, return immediately
-  if d__multitask_task_status is_irrelevant; then return 1; fi
-
-  # Check pre-recorded status
-  if d__multitask_task_status can_be_removed; then
-    # Go for it
-    return 0
-  else
-    # Not suitable for removal: only go in forced mode
-    if $D__OPT_FORCE; then D__MULTITASK_IS_FORCED=true; return 0
-    else
-      # This task will be skipped: set flag and return
-      d__multitask_task_status set is_skipped
-      return 1
-    fi
-  fi
-}
-
-#>  d__multitask_catch_remove_code
-#
-## Intercepts d_dpl_check return CODE and stores it in global array for future 
-#. reference during reconciliation of removal codes.
-#
-## Returns:
-#.  0   - Task is either removed, failed, or skipped (non-emergency)
-#.  100 - Emergency: reboot needed
-#.  101 - Emergency: user attention needed
-#.  102 - Emergency: critical failure
-#
-d__multitask_catch_remove_code()
-{
-  # Extract last returned code ASAP
-  local last_code="$1"; shift
-
-  # If task was irrelevant, don't bother with anything
-  if d__multitask_task_status is_irrelevant; then return 0; fi
-
-  ## If not already, set up status array of booleans:
-  #.  $D__MULTITASK_STATUS_SUMMARY[0] - true if all tasks were removed
-  #.  $D__MULTITASK_STATUS_SUMMARY[1] - true if all tasks failed to remove
-  #.  $D__MULTITASK_STATUS_SUMMARY[2] - true if all tasks were skipped
-  #.  $D__MULTITASK_STATUS_SUMMARY[3] - true if at least one failure occurred
-  #.                                  false if no failures occurred
-  #
-  [ -z ${D__MULTITASK_STATUS_SUMMARY+isset} ] \
-    && D__MULTITASK_STATUS_SUMMARY=( true true true false )
-
-  # Small storage variable
-  local j
-
-  # If task was skipped, flip flags and return
-  if d__multitask_task_status is_skipped; then
-    for j in 0 1; do D__MULTITASK_STATUS_SUMMARY[$j]=false; done
-    return 0
-  fi
-
-  # Check exit code
-  case $last_code in
-    1)    # Failed to install: flip flags
-          for j in 0 2; do D__MULTITASK_STATUS_SUMMARY[$j]=false; done
-          # Also, mark occurrence of failure
-          D__MULTITASK_STATUS_SUMMARY[3]=true
-          ;;
-    2)    # Skipped: flip flags
-          for j in 0 1; do D__MULTITASK_STATUS_SUMMARY[$j]=false; done
-          ;;
-    100)  # Emergency: reboot needed
-          return 100
-          ;;
-    101)  # Emergency: user attention needed
-          return 101
-          ;;
-    102)  # Emergency: critical failure
-          return 102
-          ;;
-    *)    # Installed: flip flags
-          for j in 1 2; do D__MULTITASK_STATUS_SUMMARY[$j]=false; done
-          ;;
-  esac
-
-  # For non-emergencies, always return a-okay
-  return 0
-}
-
-#>  d__multitask_reconcile_remove_codes
-#
-## Analyzes previously stored return codes of d_dpl_remove-like functions and 
-#. combines them into a single return code.
-#
-## Returns:
-#.  0   - Successfully removed
-#.  1   - Failed to remove
-#.  2   - Skipped completely
-#.  100 - Reboot needed
-#.  101 - User attention needed
-#.  102 - Critical failure
-#
-d__multitask_reconcile_remove_codes()
-{
-  # Sequentially check if at least one all-code survived
-  if [ "${D__MULTITASK_STATUS_SUMMARY[0]}" = true ]; then return 0
-  elif [ "${D__MULTITASK_STATUS_SUMMARY[1]}" = true ]; then return 1
-  elif [ "${D__MULTITASK_STATUS_SUMMARY[2]}" = true ]; then return 2
-  else
-    # Nothing conclusive: check if failure was encountered
-    if [ "${D__MULTITASK_STATUS_SUMMARY[3]}" = true ]; then
-      # Some failed: call this failure
-      return 1
-    else
-      # Mix of removed and skipped: call this removed
-      return 0
-    fi
-  fi
-}
-
-#>  d__multitask_task_status [ set FLAG ] | FLAG
-#
-## Convenience wrapper for storing pre-defined boolean flags in global array
-#
-d__multitask_task_status()
-{
-  # Check if first argument is the word 'set'
-  if [ "$1" = set ]; then
-
-    # Setting flag: ditch first arg and add necessary flag
-    shift; case $1 in
-      is_irrelevant)    D__MULTITASK_FLAGS[$D__MULTITASK_TASKNUM]+='x';;
-      can_be_installed) D__MULTITASK_FLAGS[$D__MULTITASK_TASKNUM]+='i';;
-      can_be_removed)   D__MULTITASK_FLAGS[$D__MULTITASK_TASKNUM]+='r';;
-      is_skipped)       D__MULTITASK_FLAGS[$D__MULTITASK_TASKNUM]+='s';;
-      is_user_or_os)    D__MULTITASK_FLAGS[$D__MULTITASK_TASKNUM]+='u';;
-      needs_prompt)     D__MULTITASK_FLAGS[$D__MULTITASK_TASKNUM]+='p';;
-      *)                return 1;;
-    esac
-
-  else
-
-    # Checking flag: return 0/1 based on presence of requested flag
-    case $1 in
-      is_irrelevant)    [[ ${D__MULTITASK_FLAGS[$D__MULTITASK_TASKNUM]} == *x* ]];;
-      can_be_installed) [[ ${D__MULTITASK_FLAGS[$D__MULTITASK_TASKNUM]} == *i* ]];;
-      can_be_removed)   [[ ${D__MULTITASK_FLAGS[$D__MULTITASK_TASKNUM]} == *r* ]];;
-      is_skipped)       [[ ${D__MULTITASK_FLAGS[$D__MULTITASK_TASKNUM]} == *s* ]];;
-      is_user_or_os)    [[ ${D__MULTITASK_FLAGS[$D__MULTITASK_TASKNUM]} == *u* ]];;
-      needs_prompt)     [[ ${D__MULTITASK_FLAGS[$D__MULTITASK_TASKNUM]} == *p* ]];;
-      *)                return 1;;
-    esac
-
-  fi
+  local i; for ((i=0;i<4;++i)); do ${d__mas[$i]} && return $i; done
+  ${d__mss[1]} && return 1 || return 3
 }

@@ -2,8 +2,8 @@
 #:title:        Divine Bash script: intervene
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.09.25
-#:revremark:    Remove revision numbers from all src files
+#:revdate:      2019.10.10
+#:revremark:    Fix minor typo
 #:created_at:   2018.03.25
 
 ## Launches the Divine intervention
@@ -353,13 +353,14 @@ d__populate_d_dir_fmwk()
 d__parse_arguments()
 {
   # Global indicators of current request's attributes
-  D__REQ_ROUTINE=            # Routine to perform
-  D__REQ_GROUPS=()           # Array of groups listed
-  D__REQ_ARGS=()             # Array of non-option arguments
-  D__REQ_BUNDLES=()          # Array of bundles to process
-  D__REQ_FILTER=false        # Flag for whether particular tasks are requested
-  D__REQ_PACKAGES=true       # Flag for whether Divinefile is to be processed
-  D__REQ_MAX_PRIORITY_LEN=0  # Number of digits in largest priority
+  D__REQ_ROUTINE=           # Routine to perform
+  D__REQ_GROUPS=()          # Array of groups listed
+  D__REQ_ARGS=()            # Array of non-option arguments
+  D__REQ_BUNDLES=()         # Array of bundles to process
+  D__REQ_FILTER=false       # Flag for whether particular tasks are requested
+  D__REQ_PKGS=true          # Flag for whether Divinefiles are requested
+  D__REQ_DPLS=true          # Flag for whether deployments are requested
+  D__REQ_MAX_PRIORITY_LEN=1 # Number of digits in largest priority
   
   # Global flags for optionscommand line options
   D__OPT_INVERSE=false       # Flag for whether filtering is inverted
@@ -370,86 +371,46 @@ d__parse_arguments()
   D__OPT_ANSWER=             # Blanket answer to all prompts
   D__OPT_PLUG_LINK=false     # Flag for whether copy or symlink Grail dir
 
-  # Parse the first argument
-  case "$1" in
-    i|in|install) D__REQ_ROUTINE=install;;
-    r|re|remove|un|uninstall)
-                  D__REQ_ROUTINE=remove;;
-    c|ch|check)   D__REQ_ROUTINE=check;;
-    a|at|attach|ad|add)  
-                  D__REQ_ROUTINE=attach;;
-    d|de|detach|delete)
-                  D__REQ_ROUTINE=detach;;
-    p|pl|plug)    D__REQ_ROUTINE=plug;;
-    u|up|update)  D__REQ_ROUTINE=update;;
-    cecf357ed9fed1037eb906633a4299ba)
-                  D__REQ_ROUTINE=cecf357ed9fed1037eb906633a4299ba;;
-    -h|--help)    d__load routine help;;
-    --version)    d__load routine version;;
-    '')           d__load routine usage;;
-    *)            printf >&2 "%s: Illegal routine -- '%s'\n\n" \
-                    "$D__FMWK_NAME" "$1"          
-                  d__load routine usage
-                  ;;
-  esac
-  shift
-
-  # Freeze some variables
-  readonly D__REQ_ROUTINE
-  
-  # Storage variables
-  local delim=false i opt opts no_more_args restore_nocasematch arg
-
-  # Parse remaining args for supported options
-  while [ $# -gt 0 ]; do
-    # If delimiter encountered, add arg and continue
-    $delim && { [ -n "$1" ] && D__REQ_ARGS+=("$1"); shift; continue; }
-    # Otherwise, parse options
-    case "$1" in
-      --)                 delim=true;;
-      -h|--help)          d__load routine help;;
-      --version)          d__load routine version;;
-      -y|--yes)           D__OPT_ANSWER=true;;
-      -n|--no)            D__OPT_ANSWER=false;;
-      -b|--bundle)        shift; (($#)) && D__REQ_BUNDLES+=("$1") || break;;
-      -f|--force)         D__OPT_FORCE=true;;
-      -e|--except)        D__OPT_INVERSE=true;;
-      -w|--with-!)        D__OPT_EXCLAM=true;;
-      -q|--quiet)         D__OPT_QUIET=true; D__OPT_VERBOSITY=0;;
-      -v|--verbose)       D__OPT_QUIET=false; ((++D__OPT_VERBOSITY));;
-      -l|--link)          D__OPT_PLUG_LINK=true;;
-      -*)                 opts="$1"; no_more_args=false
-                          for i in $( seq 2 ${#opts} ); do
-                            opt="${opts:i-1:1}"
-                            case $opt in
-                              h)  d__load routine help;;
-                              y)  D__OPT_ANSWER=true;;
-                              n)  D__OPT_ANSWER=false;;
-                              b)  if $no_more_args; then continue
-                                  else
-                                    shift; (($#)) \
-                                      && D__REQ_BUNDLES+=("$1") \
-                                      || no_more_args=true
-                                  fi
-                                  ;;
-                              f)  D__OPT_FORCE=true;;
-                              e)  D__OPT_INVERSE=true;;
-                              w)  D__OPT_EXCLAM=true;;
-                              q)  D__OPT_QUIET=true; D__OPT_VERBOSITY=0;;
-                              v)  D__OPT_QUIET=false; ((++D__OPT_VERBOSITY));;
-                              l)  D__OPT_PLUG_LINK=true;;
-                              *)  printf >&2 "%s: Illegal option -- '%s'\n\n" \
-                                    "$D__FMWK_NAME" \
-                                    "$opt"
-                                  d__load routine usage;;
-                            esac
-                          done
-                          $no_more_args && break
-                          ;;
-      [0-9]|!)            D__REQ_GROUPS+=("$1");;
-      *)                  [ -n "$1" ] && D__REQ_ARGS+=("$1");;
-    esac; shift
-  done
+  # Parse options
+  local args=() arg opt i
+  while (($#)); do arg="$1"; shift; case $arg in
+    -*) case ${arg:1} in
+          -)  args+=("$@"); break;;
+          y|-yes)       D__OPT_ANSWER=true;;
+          n|-no)        D__OPT_ANSWER=false;;
+          b|-bundle)    if (($#)); then shift; D__REQ_BUNDLES+=("$1")
+                        else printf >&2 "%s: Ignoring option '%s' %s\n" \
+                          "$D__FMWK_NAME" "$arg" 'without required argument'
+                        fi;;
+          f|-force)     D__OPT_FORCE=true;;
+          e|-except)    D__OPT_INVERSE=true;;
+          w|-with-!)    D__OPT_EXCLAM=true;;
+          q|-quiet)     D__OPT_QUIET=true; D__OPT_VERBOSITY=0;;
+          v|-verbose)   D__OPT_QUIET=false; ((++D__OPT_VERBOSITY));;
+          l|-link)      D__OPT_PLUG_LINK=true;;
+          h|-help)      d__load routine help;;
+          -version)     d__load routine version;;
+          *)  for ((i=1;i<${#arg};++i)); do opt="${arg:i:1}"; case $opt in
+                y)  D__OPT_ANSWER=true;;
+                n)  D__OPT_ANSWER=false;;
+                b)  if (($#)); then shift; D__REQ_BUNDLES+=("$1")
+                    else printf >&2 "%s: Ignoring option '%s' %s\n" \
+                      "$D__FMWK_NAME" "$opt" 'without required argument'
+                    fi;;
+                f)  D__OPT_FORCE=true;;
+                e)  D__OPT_INVERSE=true;;
+                w)  D__OPT_EXCLAM=true;;
+                q)  D__OPT_QUIET=true; D__OPT_VERBOSITY=0;;
+                v)  D__OPT_QUIET=false; ((++D__OPT_VERBOSITY));;
+                l)  D__OPT_PLUG_LINK=true;;
+                h)  d__load routine help;;
+                *)  printf >&2 "%s: Ignoring unrecognized option '%s'\n" \
+                      "$D__FMWK_NAME" "$opt"
+                    d__load routine usage;;
+              esac; done
+        esac;;
+    *)  [ -n "$arg" ] && args+=("$arg");;
+  esac; done
 
   # Freeze some variables
   readonly D__REQ_BUNDLES
@@ -458,47 +419,72 @@ d__parse_arguments()
   readonly D__OPT_ANSWER
   readonly D__OPT_FORCE
   readonly D__OPT_INVERSE
-  readonly D__OPT_EXCLAM
   readonly D__OPT_PLUG_LINK
-  readonly D__REQ_GROUPS
-  readonly D__REQ_ARGS
 
-  # Early return for some routines
+  # Parse arguments
+  for arg in "${args[@]}"; do case $arg in
+    [0-9])  D__REQ_GROUPS+=("$arg");;
+    \!)     D__OPT_EXCLAM=true; D__REQ_GROUPS+=("$arg");;
+    *)      D__REQ_ARGS+=("$arg");;
+  esac; done
+
+  # Freeze some variables
+  readonly D__REQ_GROUPS
+  readonly D__OPT_EXCLAM
+
+  # Parse the first argument
+  case ${D__REQ_ARGS[0]} in
+    i|in|ins|install)                   D__REQ_ROUTINE=install;;
+    r|re|rem|remove|un|uni|uninstall)   D__REQ_ROUTINE=remove;;
+    c|ch|che|check)                     D__REQ_ROUTINE=check;;
+    a|at|att|attach|ad|add)             D__REQ_ROUTINE=attach;;
+    d|de|det|detach|del|delete)         D__REQ_ROUTINE=detach;;
+    p|pl|plu|plug)                      D__REQ_ROUTINE=plug;;
+    u|up|upd|update)                    D__REQ_ROUTINE=update;;
+    cecf357ed9fed1037eb906633a4299ba)   D__REQ_ROUTINE="${D__REQ_ARGS[0]}";;
+    *)  printf >&2 "%s: Ignoring unrecognized routine '%s'\n" \
+          "$D__FMWK_NAME" "${D__REQ_ARGS[0]}"
+        d__load routine usage;;
+  esac; shift
+
+  # Freeze some variables
+  readonly D__REQ_ARGS=("${D__REQ_ARGS[@]:1}")
+  readonly D__REQ_ROUTINE
+  
+  # Early return from this function for some routines
   case $D__REQ_ROUTINE in
     attach|detach|plug|update)          return 0;;
     cecf357ed9fed1037eb906633a4299ba)   return 0;;
   esac
 
-  # Check if there are workable arguments
+  # Check if there are normal arguments
   if [ ${#D__REQ_ARGS[@]} -gt 0 -o ${#D__REQ_GROUPS[@]} -gt 0 ]; then
   
-    # There will be some form of filtering
+    # Set marker; store case sensitivity opt; turn it off
     D__REQ_FILTER=true
+    local restore_nocasematch="$( shopt -p nocasematch )"; shopt -s nocasematch
 
-    # In regular filtering, packages are not processed unless asked to
-    # In inverse filtering, packages are processed unless asked not to
-    $D__OPT_INVERSE || D__REQ_PACKAGES=false
-
-    # Store current case sensitivity setting, then turn it off
-    restore_nocasematch="$( shopt -p nocasematch )"
-    shopt -s nocasematch
-
-    # Iterate over arguments
-    for arg in "${D__REQ_ARGS[@]}"; do
-      # If Divinefile is asked for, flip the relevant flag
-      [[ $arg =~ ^(Divinefile|dfile|df)$ ]] && {
-        $D__OPT_INVERSE && D__REQ_PACKAGES=false || D__REQ_PACKAGES=true
-      }
-    done
+    # Weed out obvious exclusions
+    if $D__OPT_INVERSE; then
+      for arg in "${D__REQ_ARGS[@]}"; do case $arg in
+        Divinefile|dfile|df) D__REQ_PKGS=false;;
+      esac; done
+    else
+      D__REQ_PKGS=false D__REQ_DPLS=false
+      for arg in "${D__REQ_ARGS[@]}"; do case $arg in '') continue;;
+        Divinefile|dfile|df) D__REQ_PKGS=true;; *) D__REQ_DPLS=true;;
+      esac; done
+    fi
 
     # Restore case sensitivity
-    eval "$restore_nocasematch"
+    $restore_nocasematch
 
   fi
 
   # Freeze some variables
   readonly D__REQ_FILTER
-  readonly D__REQ_PACKAGES
+  readonly D__REQ_PKGS
+  readonly D__REQ_DPLS
 }
 
 #>  d__import_dependencies
@@ -540,72 +526,50 @@ d__perform_routine()
 {
   # Fork based on routine
   case $D__REQ_ROUTINE in
-    install)
-      d__load routine assemble
-      d__load routine install;;
-    remove)
-      d__load routine assemble
-      d__load routine remove;;
-    check)
-      d__load routine assemble
-      d__load routine check;;
-    attach)
-      d__load routine assemble
-      d__load routine attach;;
-    detach)
-      d__load routine detach;;
-    plug)
-      d__load routine assemble
-      d__load routine plug;;
-    update)
-      d__load routine update;;
-    *)
-      return 1;;
+    install)  d__load routine assemble; d__load routine install;;
+    remove)   d__load routine assemble; d__load routine remove;;
+    check)    d__load routine assemble; d__load routine check;;
+    attach)   d__load routine assemble; d__load routine attach;;
+    detach)   d__load routine detach;;
+    plug)     d__load routine assemble; d__load routine plug;;
+    update)   d__load routine update;;
+    *)        return 1;;
   esac
 }
 
 #>  d__load TYPE NAME
 #
-## Sources sub-script by name, deducing location by provided type. It is 
-#. expected that necessary function call is present in sourced file.
+## Sources sub-script by name, deducing location by provided type.
 #
 ## Arguments:
 #.  $1  - Type of script:
 #.          * 'routine'
+#.          * 'procedure'
 #.          * 'util'
 #.          * 'helper'
-#.  $2  - Name of script file, without path or suffix
+#.  $2  - Name of script file, without path or suffix.
 #
 ## Returns:
-#.  1 - Failed to source script
-#.  Otherwise, last return code (last command in sourced file)
-#.  1 - (script exit) Unrecognized type
+#.  0 - Script loaded successfully.
+#.  1 - (script exit) Otherwise.
 #
 d__load()
 {
-  # Check type and compose filepath accordingly
-  local type="$1"; shift; local name="$1" filepath; case $type in
-    routine)    filepath="${D__DIR_ROUTINES}/${name}${D__SUFFIX_ROUTINE}";;
-    procedure)  filepath="${D__DIR_PROCEDURES}/${name}${D__SUFFIX_PROCEDURE}";;
-    util)       filepath="${D__DIR_UTILS}/${name}${D__SUFFIX_UTIL}";;
-    helper)     filepath="${D__DIR_HELPERS}/${name}${D__SUFFIX_HELPER}";;
+  # Inspect type and compose filepath accordingly
+  local d__stp d__snm d__sfp; d__stp="$1" d__snm="$2"; case $d__stp in
+    routine)    d__sfp="${D__DIR_ROUTINES}/${d__snm}${D__SUFFIX_ROUTINE}";;
+    procedure)  d__sfp="${D__DIR_PROCEDURES}/${d__snm}${D__SUFFIX_PROCEDURE}";;
+    util)       d__sfp="${D__DIR_UTILS}/${d__snm}${D__SUFFIX_UTIL}";;
+    helper)     d__sfp="${D__DIR_HELPERS}/${d__snm}${D__SUFFIX_HELPER}";;
     *)          printf >&2 '%s: %s\n' "${FUNCNAME[0]}" \
-                  "Called with illegal type argument: '$type'"; exit 1;;
-  esac; shift
+                  "Called with illegal type argument: '$d__stp'"; exit 1;;
+  esac
 
-  # Check if file exists and source it
-  if [ -r "$filepath" -a -f "$filepath" ]; then
-    # Source script
-    source "$filepath"
-    # Return last command's status
-    return 0
-  else
-    # Report failed sourcing and return
-    printf >&2 '%s: %s\n' "${FUNCNAME[0]}" \
-      "Required script file is not a readable file:"
-    printf >&2 '  %s\n' "$filepath"
-    return 1
-  fi
+  # If file exists, source it; otherwise report and return
+  if [ -r "$d__sfp" -a -f "$d__sfp" ]; then source "$d__sfp"; return 0; fi
+  printf >&2 '%s: %s\n  %s\n' "${FUNCNAME[0]}" \
+    'Required script file is not a readable file:' "$d__sfp"
+  exit 1
 }
 
 d__main "$@"

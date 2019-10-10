@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: update
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.09.25
-#:revremark:    Remove revision numbers from all src files
+#:revdate:      2019.10.10
+#:revremark:    Fix minor typo
 #:created_at:   2019.05.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -35,11 +35,9 @@ d__perform_update_routine()
 
   # Announce beginning
   if [ "$D__OPT_ANSWER" = false ]; then
-    dprint_plaque -pcw "$WHITE" "$D__CONST_PLAQUE_WIDTH" \
-      -- "'Updating' Divine.dotfiles framework"
+    d__announce -s -- "'Updating' Divine.dotfiles framework"
   else
-    dprint_plaque -pcw "$GREEN" "$D__CONST_PLAQUE_WIDTH" \
-      -- 'Updating Divine.dotfiles framework'
+    d__announce -v -- 'Updating Divine.dotfiles framework'
   fi
 
   # Status variables
@@ -76,28 +74,22 @@ d__perform_update_routine()
 
   # Report result
   if [ "$D__OPT_ANSWER" = false ]; then
-    dprint_plaque -pcw "$WHITE" "$D__CONST_PLAQUE_WIDTH" \
-      -- "Finished 'updating' Divine.dotfiles framework"
+    d__announce -s -- "Finished 'updating' Divine.dotfiles framework"
     return 2
   elif $all_skipped; then
-    dprint_plaque -pcw "$WHITE" "$D__CONST_PLAQUE_WIDTH" \
-      -- 'Skipped updating Divine.dotfiles framework'
+    d__announce -s -- 'Skipped updating Divine.dotfiles framework'
     return 2
   elif $all_updated; then
-    dprint_plaque -pcw "$GREEN" "$D__CONST_PLAQUE_WIDTH" \
-      -- 'Finished updating Divine.dotfiles framework'
+    d__announce -v -- 'Finished updating Divine.dotfiles framework'
     return 0
   elif $all_failed; then
-    dprint_plaque -pcw "$RED" "$D__CONST_PLAQUE_WIDTH" \
-      -- 'Failed to update Divine.dotfiles framework'
+    d__announce -x -- 'Failed to update Divine.dotfiles framework'
     return 1
   elif $some_failed; then
-    dprint_plaque -pcw "$YELLOW" "$D__CONST_PLAQUE_WIDTH" \
-      -- 'Partly updated Divine.dotfiles framework'
+    d__announce -! -- 'Partly updated Divine.dotfiles framework'
     return 1
   else
-    dprint_plaque -pcw "$GREEN" "$D__CONST_PLAQUE_WIDTH" \
-      -- 'Finished updating Divine.dotfiles framework'
+    d__announce -v -- 'Finished updating Divine.dotfiles framework'
     return 0
   fi
 }
@@ -590,10 +582,10 @@ d__update_fmwk_via_git()
   else
 
     # Pull and rebase normally, but re-paint output
-    local line
+    local d__ol
     git pull --rebase --stat origin master 2>&1 \
-      | while IFS= read -r line || [ -n "$line" ]; do
-      printf "${CYAN}==> %s${NORMAL}\n" "$line"
+      | while IFS= read -r d__ol || [ -n "$d__ol" ]; do
+      printf "${CYAN}==> %s${NORMAL}\n" "$d__ol"
     done
 
     # Check return status
@@ -635,10 +627,10 @@ d__update_grail_via_git()
   else
 
     # Pull and rebase normally, but re-paint output
-    local line
+    local d__ol
     git pull --rebase --stat origin master 2>&1 \
-      | while IFS= read -r line || [ -n "$line" ]; do
-      printf "${CYAN}==> %s${NORMAL}\n" "$line"
+      | while IFS= read -r d__ol || [ -n "$d__ol" ]; do
+      printf "${CYAN}==> %s${NORMAL}\n" "$d__ol"
     done
 
     # Check return status
@@ -915,10 +907,10 @@ d__update_dpl_repo_via_git()
   else
 
     # Pull and rebase normally, but re-paint output
-    local line
+    local d__ol
     git pull --rebase --stat origin master 2>&1 \
-      | while IFS= read -r line || [ -n "$line" ]; do
-      printf "${CYAN}==> %s${NORMAL}\n" "$line"
+      | while IFS= read -r d__ol || [ -n "$d__ol" ]; do
+      printf "${CYAN}==> %s${NORMAL}\n" "$d__ol"
     done
 
     # Check return status
