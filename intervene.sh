@@ -158,6 +158,8 @@ d__populate_globals()
     'util offer' \
     'procedure prep-3-opt' \
     'util dreadlink' \
+    'util github' \
+    'helper github' \
     'util dmv' \
     'util dln' \
     'helper queue' \
