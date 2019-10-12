@@ -2,8 +2,8 @@
 #:title:        Divine Bash deployment helpers: copy-queue
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.10
-#:revremark:    Finish implementing three special queues
+#:revdate:      2019.10.12
+#:revremark:    Fix minor typo, pt. 2
 #:created_at:   2019.05.23
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -44,8 +44,8 @@ d__copy_queue_pre_check()
   # Switch context; prepare stash; apply adapter overrides
   d__context -- push 'Preparing copy-queue for checking'
   d__stash -- ready || return 1
-  d__adapter_override_dpl_targets_for_os_family
-  d__adapter_override_dpl_targets_for_os_distro
+  d__override_dpl_targets_for_os_family
+  d__override_dpl_targets_for_os_distro
 
   # Attempt to auto-asseble the section of queue
   if [ ${#D_DPL_TARGET_PATHS[@]} -eq "$D__QUEUE_SECTMIN" ]; then
@@ -198,8 +198,8 @@ d__copy_item_install()
   # Do the actual installing; switch context
   if d__push_backup -- "$d__cqet" "$d__cqeb"; then
     d__cqcmd=cp; d__require_writable "$d__cqet" || d__cqcmd='sudo cp'
-    if d__cmd $d__cqcmd -- --ASSET_PATH-- "$d__cqea" --TARGET_PATH-- "$d__cqet"
-    then d__cqrtc=0; else d__cqrtc=1; fi
+    $d__cqcmd -Rn &>/dev/null -- "$d__cqea" "$d__cqet" \
+      && d__cqrtc=0 || d__cqrtc=1
   else d__cqrtc=1; fi
   if [ $d__cqrtc -eq 0 ]; then
     case $D__ITEM_CHECK_CODE in

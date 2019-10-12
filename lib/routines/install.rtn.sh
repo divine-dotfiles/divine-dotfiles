@@ -2,13 +2,13 @@
 #:title:        Divine Bash routine: install
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.10
-#:revremark:    Fix minor typo
+#:revdate:      2019.10.12
+#:revremark:    Fix minor typo, pt. 2
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
 #
-## This file is intended to be sourced from framework's main script
+## This file is intended to be sourced from framework's main script.
 #
 ## Installs packages and deployments as requested
 #
@@ -203,7 +203,7 @@ d___install_pkgs()
       if (($D__OPT_VERBOSITY)); then local d__ol
         d__os_pkgmgr install $d__pkg_n 2>&1 \
           | while IFS= read -r d__ol || [ -n "$d__ol" ]
-            do printf '%s\n' "$CYAN$d__ol$NORMAL"; done
+            do printf >&2 '%s\n' "$CYAN$d__ol$NORMAL"; done
       else d__os_pkgmgr install $d__pkg_n &>/dev/null; fi
       if ((${PIPESTATUS[0]})); then
         d__notify -lx -- 'Package manager returned an error code' \

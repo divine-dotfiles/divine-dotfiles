@@ -2,13 +2,13 @@
 #:title:        Divine Bash routine: detach
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.10
-#:revremark:    Fix minor typo
+#:revdate:      2019.10.12
+#:revremark:    Fix minor typo, pt. 2
 #:created_at:   2019.06.28
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
 #
-## This file is intended to be sourced from framework's main script
+## This file is intended to be sourced from framework's main script.
 #
 ## Detaches cloned deployment repositories by removing their directories and 
 #. clearing their installation record
@@ -176,7 +176,7 @@ d__detach_dpl_repo()
   fi
 
   # Repository erased, now remove record from Grail stash
-  if d__stash -g -s unset dpl_repos "$user_repo"; then
+  if d__stash -gs -- unset attached_bundles "$user_repo"; then
     dprint_debug \
       "Cleared record of attached repository "$user_repo" in Grail stash"
   else

@@ -2,8 +2,8 @@
 #:title:        Divine Bash deployment helpers: link-queue
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.10
-#:revremark:    Finish implementing three special queues
+#:revdate:      2019.10.12
+#:revremark:    Fix minor typo, pt. 2
 #:created_at:   2019.04.02
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -44,8 +44,8 @@ d__link_queue_pre_check()
   # Switch context; prepare stash; apply adapter overrides
   d__context -- push 'Preparing link-queue for checking'
   d__stash -- ready || return 1
-  d__adapter_override_dpl_targets_for_os_family
-  d__adapter_override_dpl_targets_for_os_distro
+  d__override_dpl_targets_for_os_family
+  d__override_dpl_targets_for_os_distro
 
   # Attempt to auto-asseble the section of queue
   if [ ${#D_DPL_TARGET_PATHS[@]} -eq "$D__QUEUE_SECTMIN" ]; then
@@ -198,9 +198,8 @@ d__link_item_install()
   # Do the actual installing; switch context
   if d__push_backup -- "$d__lqet" "$d__lqeb"; then
     d__lqcmd=ln; d__require_writable "$d__lqet" || d__lqcmd='sudo ln'
-    if d__cmd $d__lqcmd -s -- --ASSET_PATH-- "$d__lqea" \
-      --TARGET_PATH-- "$d__lqet"
-    then d__lqrtc=0; else d__lqrtc=1; fi
+    $d__lqcmd -s &>/dev/null -- "$d__lqea" "$d__lqet" \
+      && d__lqrtc=0 || d__lqrtc=1
   else d__lqrtc=1; fi
   if [ $d__lqrtc -eq 0 ]; then
     case $D__ITEM_CHECK_CODE in

@@ -2,13 +2,13 @@
 #:title:        Divine Bash routine: check
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.10
-#:revremark:    Fix minor typo
+#:revdate:      2019.10.12
+#:revremark:    Fix minor typo, pt. 2
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
 #
-## This file is intended to be sourced from framework's main script
+## This file is intended to be sourced from framework's main script.
 #
 ## Checks packages and deployments as requested
 #

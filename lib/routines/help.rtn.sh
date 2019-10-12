@@ -2,13 +2,13 @@
 #:title:        Divine Bash routine: help
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.09.25
-#:revremark:    Remove revision numbers from all src files
+#:revdate:      2019.10.12
+#:revremark:    Fix minor typo, pt. 2
 #:created_at:   2018.03.25
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
 #
-## This file is intended to be sourced from framework's main script
+## This file is intended to be sourced from framework's main script.
 #
 ## Shows help and exits the script
 #
@@ -30,28 +30,23 @@
 #
 d__show_help_and_exit()
 {
-  # Add bolding if available
-  local bold normal
-  if type -P tput &>/dev/null && tput sgr0 &>/dev/null \
-    && [ -n "$(tput colors)" ] && [ "$(tput colors)" -ge 8 ]
-  then bold=$(tput bold); normal=$(tput sgr0)
-  else bold="$(printf "\033[1m")"; NORMAL="$(printf "\033[0m")"; fi
+  # Add coloring
+  d__load procedure print-colors
 
   # Store help summary in a variable
-  local help
-  read -r -d '' help << EOF
+  local help; read -r -d '' help << EOF
 NAME
-    ${bold}${D__EXEC_NAME}${normal} - launch Divine intervention
+    ${BOLD}${D__EXEC_NAME}${NORMAL} - launch Divine intervention
 
 SYNOPSIS
-    $D__EXEC_NAME ${bold}c${normal}[heck]     [-ynqvew]  [-b BUNDLE]... [--] [TASK]...
-    $D__EXEC_NAME ${bold}i${normal}[nstall]   [-ynqvewf] [-b BUNDLE]... [--] [TASK]...
-    $D__EXEC_NAME ${bold}r${normal}[emove]    [-ynqvewf] [-b BUNDLE]... [--] [TASK]...
+    $D__EXEC_NAME ${BOLD}c${NORMAL}[heck]     [-ynqvew]  [-b BUNDLE]... [--] [TASK]...
+    $D__EXEC_NAME ${BOLD}i${NORMAL}[nstall]   [-ynqvewf] [-b BUNDLE]... [--] [TASK]...
+    $D__EXEC_NAME ${BOLD}r${NORMAL}[emove]    [-ynqvewf] [-b BUNDLE]... [--] [TASK]...
 
-    $D__EXEC_NAME ${bold}a${normal}[ttach]    [-yn]                     [--] REPO...
-    $D__EXEC_NAME ${bold}d${normal}[etach]    [-yn]                     [--] REPO...
-    $D__EXEC_NAME ${bold}p${normal}[lug]      [-ynl]                    [--] REPO/DIR
-    $D__EXEC_NAME ${bold}u${normal}[pdate]    [-yn]                     [--] [TASK]...
+    $D__EXEC_NAME ${BOLD}a${NORMAL}[ttach]    [-yn]                     [--] REPO...
+    $D__EXEC_NAME ${BOLD}d${NORMAL}[etach]    [-yn]                     [--] REPO...
+    $D__EXEC_NAME ${BOLD}p${NORMAL}[lug]      [-ynl]                    [--] REPO/DIR
+    $D__EXEC_NAME ${BOLD}u${NORMAL}[pdate]    [-yn]                     [--] [TASK]...
 
     $D__EXEC_NAME --version
     $D__EXEC_NAME -h|--help
@@ -67,16 +62,16 @@ DESCRIPTION
     This Divine intervention utility is the command line interface to the 
     Divine.dotfiles framework. The intervention utility does:
 
-    - ${bold}Primary routines${normal} on deployments and Divinefiles:
-      - ${bold}Check${normal} whether deployments are installed or not.
-      - ${bold}Install${normal} deployments.
-      - ${bold}Remove${normal} (uninstall) deployments.
-    - ${bold}Attach/detach${normal} third-party bundles of deployments from Github.
-    - ${bold}Plug in${normal} pre-made Grail directory from a repository or local directory.
-    - ${bold}Update${normal} framework itself, attached bundles, and Grail directory, if it 
+    - ${BOLD}Primary routines${NORMAL} on deployments and Divinefiles:
+      - ${BOLD}Check${NORMAL} whether deployments are installed or not.
+      - ${BOLD}Install${NORMAL} deployments.
+      - ${BOLD}Remove${NORMAL} (uninstall) deployments.
+    - ${BOLD}Attach/detach${NORMAL} third-party bundles of deployments from Github.
+    - ${BOLD}Plug in${NORMAL} pre-made Grail directory from a repository or local directory.
+    - ${BOLD}Update${NORMAL} framework itself, attached bundles, and Grail directory, if it 
       is a cloned repository.
 
-    ${bold}Primary routines${normal}
+    ${BOLD}Primary routines${NORMAL}
 
     Primary routines - the core of the framework - launch respective functions 
     on deployments. Accepted values of TASK are (case-insensitive):
@@ -96,7 +91,7 @@ DESCRIPTION
       by name (not by single-digit group name), or unless '--with-!'/'-w' 
       option is used.
     - Option '--except'/'-e' inverts filtering: all deployments are processed, 
-      ${bold}except${normal} those listed. Note, that without any arguments, 
+      ${BOLD}except${NORMAL} those listed. Note, that without any arguments, 
       this is a no-opt. In this mode, dangerous deployments are still filtered 
       out by default.
     - The search can be narrowed down to particular bundles of deployments by 
@@ -106,22 +101,22 @@ DESCRIPTION
     order of ascending priority. For uninstallation, that order is fully 
     reversed.
     
-    ${bold}'Check' routine${normal} - checks status of tasks
+    ${BOLD}'Check' routine${NORMAL} - checks status of tasks
 
     Sequentially checks packages and deployments, reporting whether each 
     appears installed or not.
 
-    ${bold}'Install' routine${normal} - installs tasks
+    ${BOLD}'Install' routine${NORMAL} - installs tasks
 
     Sequentially installs packages and deployments. Before starting, launches 
     the update routine on the system's package manager.
 
-    ${bold}'Remove' routine${normal} - removes tasks
+    ${BOLD}'Remove' routine${NORMAL} - removes tasks
 
     Sequentially uninstalls packages and deployments. Before starting, launches 
     the update routine on the system's package manager.
 
-    ${bold}'Attach' routine${normal} - attaches deployments from Github
+    ${BOLD}'Attach' routine${NORMAL} - attaches deployments from Github
 
     - Accepts bundles of deployments in any of two forms:
       - Divine deployment package in the form 'NAME' (which translates to 
@@ -134,7 +129,7 @@ DESCRIPTION
       future replication/updating
     - Prompts before overwriting
 
-    ${bold}'Detach' routine${normal} - removes previously attached Github deployments
+    ${BOLD}'Detach' routine${NORMAL} - removes previously attached Github deployments
 
     - Accepts bundles of deployments in any of two forms:
       - Divine deployment package in the form 'NAME' (which translates to 
@@ -144,7 +139,7 @@ DESCRIPTION
     - If such a repository is currently attached, removes it
     - Clears record of this repository from Grail directory
 
-    ${bold}'Plug' routine${normal} - replaces Grail directory
+    ${BOLD}'Plug' routine${NORMAL} - replaces Grail directory
 
     - Allows to quickly plug-in pre-made (and possibly version controlled) 
       version of the Grail directory, containing user's assets and deployments
@@ -157,7 +152,7 @@ DESCRIPTION
       symlink
     - Prompts before overwriting
 
-    ${bold}'Update' routine${normal} - updates framework, deployment repos, and Grail
+    ${BOLD}'Update' routine${NORMAL} - updates framework, deployment repos, and Grail
 
     - Accepts following tasks (as arguments):
       - 'f'/'fmwk'/'framework'    : framework itself
@@ -222,9 +217,9 @@ OPTIONS
     -h, --help      Show this help summary
 
 AUTHOR
-    ${bold}Grove Pyree${normal} <grayarea@protonmail.ch>
+    ${BOLD}Grove Pyree${NORMAL} <grayarea@protonmail.ch>
 
-    Part of ${bold}Divine.dotfiles${normal} <https://github.com/no-simpler/divine-dotfiles>
+    Part of ${BOLD}Divine.dotfiles${NORMAL} <https://github.com/no-simpler/divine-dotfiles>
 
     This is free software: you are free to change and redistribute it.
     There is NO WARRANTY, to the extent permitted by law.
@@ -234,7 +229,7 @@ EOF
   if less --version &>/dev/null; then
     less -R <<<"$help"
   else
-    printf '%s\n' "$help"
+    printf >&2 '%s\n' "$help"
   fi
   exit 0
 }

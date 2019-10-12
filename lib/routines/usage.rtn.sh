@@ -2,13 +2,13 @@
 #:title:        Divine Bash routine: usage
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.09.25
-#:revremark:    Remove revision numbers from all src files
+#:revdate:      2019.10.12
+#:revremark:    Fix minor typo, pt. 2
 #:created_at:   2018.03.25
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
 #
-## This file is intended to be sourced from framework's main script
+## This file is intended to be sourced from framework's main script.
 #
 ## Shows usage note and exits the script
 #
@@ -22,10 +22,6 @@
 #
 ## Returns:
 #.  1 - (script exit) Always
-#
-## Prints:
-#.  stdout: *nothing*
-#.  stderr: Usage tip
 #
 d__show_usage_and_exit()
 {

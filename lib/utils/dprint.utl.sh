@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
 #:title:        Divine Bash utils: dprint
-#:kind:         func(script)
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.09.25
-#:revremark:    Remove revision numbers from all src files
+#:revdate:      2019.10.12
+#:revremark:    Fix minor typo, pt. 2
 #:created_at:   2018.12.20
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>

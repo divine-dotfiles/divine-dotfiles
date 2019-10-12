@@ -2,43 +2,28 @@
 #:title:        Divine Bash procedure: prep-2-stash
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.09.25
-#:revremark:    Remove revision numbers from all src files
+#:revdate:      2019.10.12
+#:revremark:    Fix minor typo, pt. 2
 #:created_at:   2019.07.05
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
 #
-## This file is intended to be sourced from framework's main script
+## This file is intended to be sourced from framework's main script.
 #
-## Prepares global stashing system
+## Ensures that both Grail-level and root-level stash are ready-to-go, or exits 
+#. the script.
 #
 
-#>  d__run_stash_checks
-#
-## Driver function
-#
-## Returns:
-#.  0 - Framework is ready to run
-#.  1 - (script exit) Otherwise
-#
+# Driver function
 d__run_stash_checks()
 {
-  # Ensure Grail stash is available
-  d__stash --grail ready || {
-    dprint_failure \
-      'Failed to prepare Divine stashing system in Grail directory at:' \
-      -i "$D__DIR_GRAIL"
+  local erra=()
+  d__stash -g -- ready || erra+=( -i- "- Grail stash at: $D__DIR_GRAIL" )
+  d__stash -r -- ready || erra+=( -i- "- root stash at: $D__DIR_STASH" )
+  if ((${#erra[@]})); then
+    d__notify -lx -- 'Failed to prepare stashing systems:' "${erra[@]}"
     exit 1
-  }
-
-  # Ensure root stash is available
-  d__stash --root ready || {
-    dprint_failure \
-      'Failed to prepare Divine stashing system in state directory at:' \
-      -i "$D__DIR_STASH"
-    exit 1
-  }
+  fi
 }
 
 d__run_stash_checks
-unset -f d__run_stash_checks

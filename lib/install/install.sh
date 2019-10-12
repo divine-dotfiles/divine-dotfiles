@@ -2,8 +2,8 @@
 #:title:        Divine.dotfiles fmwk install script
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.09.25
-#:revremark:    Remove revision numbers from all src files
+#:revdate:      2019.10.12
+#:revremark:    Fix minor typo, pt. 2
 #:created_at:   2019.07.22
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -481,7 +481,7 @@ d__install_shortcut()
 
       # Print prompt and read answer
       printf >&2 "Try another name ('q' to skip): "
-      read -r new_cmd_name && printf '\n'
+      read -r new_cmd_name && printf >&2 '\n'
 
       # Check if user don't want another name
       [ "$new_cmd_name" = q ] && {

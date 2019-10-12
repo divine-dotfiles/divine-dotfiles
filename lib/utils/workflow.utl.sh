@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
 #:title:        Divine Bash utils: workflow
-#:kind:         func(script)
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.10
-#:revremark:    Finish implementing three special queues
+#:revdate:      2019.10.12
+#:revremark:    Fix minor typo, pt. 2
 #:created_at:   2019.09.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -22,6 +21,8 @@
 #>  d__cmd [<options>] [----] CMD...
 #>  d__require [<options>] [----] CMD...
 #>  d__pipe [<options>] [----] CMD
+#>  d__require_writable PATH
+#>  d__require_sudo UTIL_NAME
 #
 
 #>  d__announce [-!dsvx] [--] DESCRIPTION...
@@ -272,7 +273,7 @@ d___context_push()
 
   # Add title and message, then print and return
   [ -n "$ttl" ] || ttl='Start'; pfa+=( "$tp$ttl$ts" "$msg$NORMAL" )
-  printf "$pft" "${pfa[@]}"
+  printf >&2 "$pft" "${pfa[@]}"
 }
 
 #>  d___context_pop DESCRIPTION
@@ -306,7 +307,7 @@ d___context_pop()
 
   # Add title and message, then print and return
   [ -n "$ttl" ] || ttl='End'; pfa+=( "$tp$ttl$ts" "$msg$NORMAL" )
-  printf "$pft" "${pfa[@]}"
+  printf >&2 "$pft" "${pfa[@]}"
 }
 
 #>  d___context_notch DESCRIPTION
@@ -341,7 +342,7 @@ d___context_notch()
   [ -n "$ttl" ] || ttl='Notched'; local msg; if (($#)); then msg="$*"
   else msg="At position ${#D__CONTEXT[@]}"; fi
   pfa+=( "$tp$ttl$ts" "$msg$NORMAL" )
-  printf "$pft" "${pfa[@]}"
+  printf >&2 "$pft" "${pfa[@]}"
 }
 
 #>  d___context_lop DESCRIPTION
@@ -383,7 +384,7 @@ d___context_lop()
     local msg; if (($#)); then msg="$*"; else msg="At position $min"; fi
     pft+='%s %s: %s\n' pfa+=( "$arrow" "$tp$ttl$ts" "$msg" )
   fi
-  [ -n "$pft" ] && printf "$pft%s" "${pfa[@]}" "$NORMAL"
+  [ -n "$pft" ] && printf >&2 "$pft%s" "${pfa[@]}" "$NORMAL"
 }
 
 #>  d__cmd [<options>] [----] CMD...
@@ -930,8 +931,8 @@ d__fail()
   fi
 
   # Print the head of the stack
-  local tmp=${#D__CONTEXT_NOTCHES[@]}; (($tmp)) \
-    && tmp=$((${D__CONTEXT_NOTCHES[$tmp-1]})) || tmp=0
+  local tmp=${#D__CONTEXT_NOTCHES[@]}
+  (($tmp)) && tmp=$((${D__CONTEXT_NOTCHES[$tmp-1]})) || tmp=0
   if ((${#D__CONTEXT[@]} > $tmp)); then
     pft+='    %s: %s\n' pfa+=( "${BOLD}Context$NORMAL" "${D__CONTEXT[$tmp]}" )
     for ((i=$tmp+1;i<${#D__CONTEXT[@]};++i)); do
@@ -1488,9 +1489,21 @@ d___fail_from_cmd()
 d__require_writable()
 {
   local path="$1"; if [ -z "$path" ]
-  then d__notify -lx -- "Unable to write into a blank path"; return 2; fi
+  then d__notify -lx -- 'Unable to write into a blank path'; return 2; fi
   while [ ! -d "$path" ]; do path="$( dirname -- "$path" )"; done
   if [ -w "$path" ]; then return 0
-  else d__notify -u! -- "Sudo privelege is required to operate under:" \
+  else d__notify -u! -- 'Sudo privelege is required to operate under:' \
     -i- "$path"; return 1; fi
+}
+
+#>  d__require_sudo UTIL_NAME
+#
+## The tiniest wrapper around 'd__notify -u', composes the message.
+#
+## Returns:
+#.  0 - Always.
+#
+d__require_sudo()
+{
+  d__notify -u! -- "Sudo privelege is required to work with '$1'"; return 1
 }

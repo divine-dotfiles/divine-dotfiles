@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: update
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.10
-#:revremark:    Fix minor typo
+#:revdate:      2019.10.12
+#:revremark:    Fix minor typo, pt. 2
 #:created_at:   2019.05.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -278,7 +278,7 @@ d__update_dpls()
     if d__stash -g -s has dpl_repos; then
       while read -r dpl_repo; do
         dpl_repos+=( "$dpl_repo" )
-      done < <( d__stash -g -s list dpl_repos )
+      done < <( d__stash -gs -- list attached_bundles )
     fi
 
     # Check if list is empty
@@ -585,7 +585,7 @@ d__update_fmwk_via_git()
     local d__ol
     git pull --rebase --stat origin master 2>&1 \
       | while IFS= read -r d__ol || [ -n "$d__ol" ]; do
-      printf "${CYAN}==> %s${NORMAL}\n" "$d__ol"
+      printf >&2 "${CYAN}==> %s${NORMAL}\n" "$d__ol"
     done
 
     # Check return status
@@ -630,7 +630,7 @@ d__update_grail_via_git()
     local d__ol
     git pull --rebase --stat origin master 2>&1 \
       | while IFS= read -r d__ol || [ -n "$d__ol" ]; do
-      printf "${CYAN}==> %s${NORMAL}\n" "$d__ol"
+      printf >&2 "${CYAN}==> %s${NORMAL}\n" "$d__ol"
     done
 
     # Check return status
@@ -910,7 +910,7 @@ d__update_dpl_repo_via_git()
     local d__ol
     git pull --rebase --stat origin master 2>&1 \
       | while IFS= read -r d__ol || [ -n "$d__ol" ]; do
-      printf "${CYAN}==> %s${NORMAL}\n" "$d__ol"
+      printf >&2 "${CYAN}==> %s${NORMAL}\n" "$d__ol"
     done
 
     # Check return status

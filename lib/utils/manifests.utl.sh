@@ -2,8 +2,8 @@
 #:title:        Divine Bash utils: manifests
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.10
-#:revremark:    Fix minor typo
+#:revdate:      2019.10.12
+#:revremark:    Fix minor typo, pt. 2
 #:created_at:   2019.05.30
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -620,9 +620,7 @@ d__process_manifest()
   ongoing_priority="$D__CONST_DEF_PRIORITY"
   split_before_next_entry=false
 
-  # Store current case sensitivity setting, then turn it off
-  local restore_nocasematch="$( shopt -p nocasematch )"
-  shopt -s nocasematch
+  $D__DISABLE_CASE_SENSITIVITY
 
   # Iterate over lines in manifest file (strip whitespace on both ends)
   while read -r line_from_file || [ -n "$line_from_file" ]; do
@@ -1038,8 +1036,7 @@ d__process_manifest()
   # Populate terminal split marker with the relevant value
   D__MANIFEST_TERMINAL_SPLIT="$split_before_next_entry"
 
-  # Restore case sensitivity
-  $restore_nocasematch
+  $D__RESTORE_CASE_SENSITIVITY
 
   # Return success
   return 0

@@ -2,32 +2,25 @@
 #:title:        Divine Bash procedure: prep-1-sys
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.09.25
-#:revremark:    Remove revision numbers from all src files
+#:revdate:      2019.10.12
+#:revremark:    Fix minor typo, pt. 2
 #:created_at:   2019.07.05
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
 #
-## This file is intended to be sourced from framework's main script
+## This file is intended to be sourced from framework's main script.
 #
-## Ensures all system dependencies are available and functional
+## Ensures current system has all expected utilities available, or exits the 
+#. script.
 #
 
-#>  d__check_system_dependencies
-#
-## Ensures current system has all expected utilities installed, or exits the 
-#. script
-#
-## Returns:
-#.  0 - All system dependencies are present and accessible
-#.  1 - (script exit) Otherwise
-#
-d__check_system_dependencies()
+# Driver function
+d__run_sys_checks()
 {
   d__context -- notch
   d__context -qq -- push 'Checking system dependencies'
   local all_good=true var arr
-  d___check_find; d___check_grep; d___check_sed; d___check_awk; d___check_md5
+  d___check_find; d___check_grep; d___check_awk; d___check_md5
   if $all_good; then
     d__context -t 'Done' -- pop 'System dependencies are in order'
     d__context -- lop
@@ -45,7 +38,7 @@ d___check_find()
   done < <( find -L / -path / -name / -mindepth 0 -maxdepth 0 \
     \( -type f -or -type d \) -print0 2>/dev/null || exit $? )
   if [ $? -eq 0 -a ${#arr[@]} -eq 1 -a "${arr[0]}" = '/' ]; then
-    d__notify -qqqt "Utility 'find': Test 1" -- 'Passed'
+    d__notify -qqqqt "Utility 'find': Test 1" -- 'Passed'
   else
     d__notify -lxt "Utility 'find': Test 1" -- 'Failed'
     all_good=false
@@ -70,7 +63,7 @@ be e
 EOF
 )"
   if [ $? -eq 0 -a "$var" = 'Be Eg' ]; then
-    d__notify -qqqt "Utility 'grep': Test 1" -- 'Passed'
+    d__notify -qqqqt "Utility 'grep': Test 1" -- 'Passed'
   else
     d__notify -lxt "Utility 'grep': Test 1" -- 'Failed'
     all_good=false
@@ -83,7 +76,7 @@ maRA
 ma*a
 EOF
   if [ $? -ne 0 ]; then
-    d__notify -qqqt "Utility 'grep': Test 2" -- 'Passed'
+    d__notify -qqqqt "Utility 'grep': Test 2" -- 'Passed'
   else
     d__notify -lxt "Utility 'grep': Test 2" -- 'Failed'
     all_good=false
@@ -96,7 +89,7 @@ maRA
 ma*a
 EOF
   if [ $? -eq 0 ]; then
-    d__notify -qqqt "Utility 'grep': Test 3" -- 'Passed'
+    d__notify -qqqqt "Utility 'grep': Test 3" -- 'Passed'
   else
     d__notify -lxt "Utility 'grep': Test 3" -- 'Failed'
     all_good=false
@@ -109,54 +102,9 @@ buy the
 EOF
     )"
   if [ $? -eq 0 -a "$var" = '  by the ' ]; then
-    d__notify -qqqt "Utility 'grep': Test 4" -- 'Passed'
+    d__notify -qqqqt "Utility 'grep': Test 4" -- 'Passed'
   else
     d__notify -lxt "Utility 'grep': Test 4" -- 'Failed'
-    all_good=false
-  fi
-}
-
-d___check_sed()
-{
-  # TEST 1: this command must yield string 'may t'
-  var="$(\
-    sed <<<'  may t  // brittle # maro' 2>/dev/null \
-      -e 's/[#].*$//' \
-      -e 's|//.*$||' \
-      -e 's/^[[:space:]]*//' \
-      -e 's/[[:space:]]*$//' \
-      || exit $?
-    )"
-  if [ $? -eq 0 -a "$var" = 'may t' ]; then
-    d__notify -qqqt "Utility 'sed': Test 1" -- 'Passed'
-  else
-    d__notify -lxt "Utility 'sed': Test 1" -- 'Failed'
-    all_good=false
-  fi
-  # TEST 2: this command must yield string 'battered' without quotes around it
-  arr='s/^"(.*)"$/\1/p'
-  if sed -r <<<'' &>/dev/null; then
-    var="$( sed -nre "$arr" 2>/dev/null <<<'"battered"' || exit $? )"
-  else
-    var="$( sed -nEe "$arr" 2>/dev/null <<<'"battered"' || exit $? )"
-  fi
-  if [ $? -eq 0 -a "$var" = 'battered' ]; then
-    d__notify -qqqt "Utility 'sed': Test 2" -- 'Passed'
-  else
-    d__notify -lxt "Utility 'sed': Test 2" -- 'Failed'
-    all_good=false
-  fi
-  # TEST 3: this command must yield string 't  may'
-  arr='s/^([[:space:]]*)(may) (t)$/\3\1\2/'
-  if sed -r <<<'' &>/dev/null; then
-    var="$( sed -re "$arr" 2>/dev/null <<<'  may t' || exit $? )"
-  else
-    var="$( sed -Ee "$arr" 2>/dev/null <<<'  may t' || exit $? )"
-  fi
-  if [ $? -eq 0 -a "$var" = 't  may' ]; then
-    d__notify -qqqt "Utility 'sed': Test 3" -- 'Passed'
-  else
-    d__notify -lxt "Utility 'sed': Test 3" -- 'Failed'
     all_good=false
   fi
 }
@@ -166,7 +114,7 @@ d___check_awk()
   # TEST 1: this command must yield string 'halt'
   var="$( awk -F  '=' '{print $3}' 2>/dev/null <<<'go==halt=pry' || exit $? )"
   if [ $? -eq 0 -a "$var" = 'halt' ]; then
-    d__notify -qqqt "Utility 'awk': Test 1" -- 'Passed'
+    d__notify -qqqqt "Utility 'awk': Test 1" -- 'Passed'
   else
     d__notify -lxt "Utility 'awk': Test 1" -- 'Failed'
     all_good=false
@@ -218,10 +166,4 @@ d___check_md5()
   fi
 }
 
-d__check_system_dependencies
-unset -f d__check_system_dependencies
-unset -f d___check_find
-unset -f d___check_grep
-unset -f d___check_sed
-unset -f d___check_awk
-unset -f d___check_md5
+d__run_sys_checks

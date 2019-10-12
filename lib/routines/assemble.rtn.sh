@@ -2,13 +2,13 @@
 #:title:        Divine Bash routine: assemble
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.10
-#:revremark:    Fix minor typo
+#:revdate:      2019.10.12
+#:revremark:    Fix minor typo, pt. 2
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
 #
-## This file is intended to be sourced from framework's main script
+## This file is intended to be sourced from framework's main script.
 #
 ## Assembles packages and deployments for further processing
 #
@@ -167,10 +167,6 @@ d__init_assembly_vars()
 #.  0 - (script exit) Nothing to do (with announcement)
 #.  1 - (script exit) Unrecoverable error during assembly
 #
-## Prints:
-#.  stdout: *nothing*
-#.  stderr: Error descriptions
-#
 d__assemble_tasks()
 {
   # Switch context
@@ -222,11 +218,10 @@ d__assemble_tasks()
   fi
 
   # Parse Divinefiles and *.dpl.sh files in all directories
-  local algd=true
+  local algd=false
   d__scan_for_divinefiles --internal --enqueue "${dirs_to_scan[@]}" \
-    || algd=false
-  d__scan_for_dpl_files --internal --enqueue "${dirs_to_scan[@]}" \
-    || algd=false
+    && d__scan_for_dpl_files --internal --enqueue "${dirs_to_scan[@]}" \
+    && algd=true
   if $algd; then
     d__context -- pop 'Assembled all tasks in given deployment directories'
   else
@@ -316,15 +311,12 @@ d__scan_for_divinefiles()
   esac; shift; done
 
   # Cut-off checks for queueing mode (internal mode only)
-  if $int_d && $enqn; then
-    local d__rsn=()
-    if ! $D__REQ_PKGS
-    then d__rsn+=( -i- '- Divinefiles not requested' ); fi
-    if [ -z "$D__OS_PKGMGR" ]
-    then d__rsn+=( -i- '- package manager not supported' ); fi
+  if $int_d && $enqn; then local d__rsn=()
+    $D__REQ_PKGS || d__rsn+=( -i- '- Divinefiles not requested' )
+    [ -z "$D__OS_PKGMGR" ] && d__rsn+=( -i- '- package manager not supported' )
     if ((${#d__rsn[@]})); then
       d__notify -qq -- 'Skipping assembling packages:' "${d__rsn[@]}"
-      return 1
+      return 0
     fi
   fi
 
@@ -335,9 +327,7 @@ d__scan_for_divinefiles()
   local pkg_prty d__pkg_b d__pkg_f pkg_list pkg_mgr alt_list
   local df_count=0 df_pkg_count pkg_count=0
 
-  # Store current case sensitivity setting, then turn it off
-  local restore_nocasematch="$( shopt -p nocasematch )"
-  shopt -s nocasematch
+  $D__DISABLE_CASE_SENSITIVITY
 
   # Iterate over given directories
   for scan_dir in "${args[@]}"; do
@@ -421,8 +411,7 @@ d__scan_for_divinefiles()
   # Done iterating over given directories
   done
 
-  # Restore case sensitivity
-  $restore_nocasematch
+  $D__RESTORE_CASE_SENSITIVITY
 
   # Increment global package count
   if $int_d; then
@@ -501,7 +490,7 @@ d__scan_for_dpl_files()
   # Cut-off checks for queueing mode
   if $int_d && $enqn && ! $D__REQ_DPLS; then
     d__notify -qq -- 'Skipping assembling deployments (not requested)'
-    return 1
+    return 0
   fi
 
   d__context -- push 'Scanning for deployments'
@@ -512,8 +501,7 @@ d__scan_for_dpl_files()
   local dpl_name_taken dpl_names=() dpl_name_paths=() dpl_bad_names=()
   local dpl_name_counts=() dpl_name_dupls=() dpl_bad dpl_count=0
 
-  # Store current case sensitivity setting, then turn it off
-  local restore_nocasematch="$( shopt -p nocasematch )"; shopt -s nocasematch
+  $D__DISABLE_CASE_SENSITIVITY
 
   # Iterate over given directories
   for scan_dir in "${args[@]}"; do
@@ -634,8 +622,7 @@ d__scan_for_dpl_files()
   # Done iterating over given directories
   done
 
-  # Restore case sensitivity
-  $restore_nocasematch
+  $D__RESTORE_CASE_SENSITIVITY
 
   # Report errors, if any
   if ((${#dpl_bad_names[@]})); then for i in ${dpl_bad_names[@]}; do
@@ -792,8 +779,7 @@ d__cross_validate_dpls()
 {
   # Switch context; prepare storage vars; disable case sensitivity
   d__context -- push 'Cross-validating external deployments'
-  local i j algd=true err_msg idap idp edap edp
-  local restore_nocasematch="$( shopt -p nocasematch )"; shopt -s nocasematch
+  local i j algd=true err_msg idap idp edap edp; $D__DISABLE_CASE_SENSITIVITY
 
   # Iterate over names of deployments detected in external dirs
   for ((j=0;j<${#D__EXT_DPL_NAMES[@]};++j)); do
@@ -815,12 +801,102 @@ d__cross_validate_dpls()
   # Done iterating over names of deployments detected in external dirs
   done
 
-  # Restore case sensitivity
-  $restore_nocasematch
+  $D__RESTORE_CASE_SENSITIVITY
 
   # Return based on whether matches encountered
   d__context -- pop 'Cross-validation complete'
   $algd && return 0 || return 1
+}
+
+#>  d__sync_dpl_repos
+#
+## Ensures that records of attached bundles of deployments are consistent with 
+#. the actual content of the bundles directory.
+#
+## Clones/downloads missing bundles; deletes extra bundles.
+#
+## Returns:
+#.  0 - The bundles directory is made consistent with the records.
+#.  1 - Otherwise (error).
+#
+d__sync_dpl_repos()
+{
+  # Switch context
+  d__context -- notch
+  d__context -- push 'Synchronizing bundles directory with Grail stash records'
+
+  # Storage variables
+  local i j recba=() recb recc actba=() actb actc erra=()
+
+  # Compile list of recorded bundles
+  if d__stash -gs -- has attached_bundles; then
+    while read -r recb; do recba+=("$recb")
+    done < <( d__stash -gs -- list attached_bundles )
+  fi; recc=${#recba[@]}
+
+  # Compile list of actual bundle directories
+  if [ -e "$D__DIR_BUNDLES" -a ! -d "$D__DIR_BUNDLES" ]; then
+    d__fail -- "Path to bundles directory is occupied: '$D__DIR_BUNDLES'"
+    return 1
+  elif [ -r "$D__DIR_BUNDLES" -a -d "$D__DIR_BUNDLES" ]; then
+    while IFS= read -r -d $'\0' actb; do actba+=( "$actb" )
+    done < <( find "$D__DIR_BUNDLES" -mindepth 2 -maxdepth 2 -type d -print0 )
+  fi; actc=${#actba[@]}
+
+  # Cross-reference directories to records
+  for ((j=0;j<$actc;++j)); do
+    for ((i=0;i<$recc;++i)); do
+      if [ "${actba[$j]}" = "$D__DIR_BUNDLES/${recba[$i]}" ]
+      then unset recba[$i] actba[$j]; continue 2; fi
+    done
+    actba[$j]="${actba[$j]#"$D__DIR_BUNDLES/"}"
+  done
+
+  # Report inconsistencies if they are present
+  for recb in "${recba[@]}"
+  do erra+=( -i- "- missing bundle '$recb'" ); done
+  for actb in "${actba[@]}"
+  do erra+=( -i- "- unrecorded bundle '$actb'" ); done
+  if [ ${#erra[@]} -eq 0 ]; then d__context -- lop; return 0; fi
+  d__notify -l! -- 'Bundles directory is inconsistent' \
+    'with Grail stash records:' "${erra[@]}"
+  if ((${#recba[@]})) && [ -z "$D__GH_METHOD" ]; then
+    d__fail -- 'There is no way to retrieve missing bundles from Github'
+    return 1
+  fi
+
+  # Synchronize
+  erra=()
+  for recb in "${recba[@]}"; do
+    if [ -e "$D__BUNDLES_DIR/$recb" ]; then
+      erra+=( -i- "- path to directory of bundle '$recb' is occupied" )
+      continue
+    fi
+    if ! d___gh_repo_exists "$recb"
+    then erra+=( -i- "- invalid Github repo handle '$recb'" ); continue; fi
+    case $D__GH_METHOD in
+      g)  d___clone_gh_repo "$recb" "$D__BUNDLES_DIR/$recb";;
+      c)  mkdir -p &>/dev/null -- "$D__BUNDLES_DIR/$recb" \
+            && d___curl_gh_repo "$recb" "$D__BUNDLES_DIR/$recb";;
+      w)  mkdir -p &>/dev/null -- "$D__BUNDLES_DIR/$recb" \
+            && d___wget_gh_repo "$recb" "$D__BUNDLES_DIR/$recb";;
+    esac
+    if (($?))
+    then d__notify -l -- 'Retrieved missing bundle '$recb''
+    else erra+=( -i- "- failed to retrieve missing bundle '$recb'" ); fi
+  done
+  for actb in "${actba[@]}"; do
+    if rm -rf -- "$actb"
+    then d__notify -l -- 'Deleted unrecorded bundle '$actb''
+    else erra+=( -i- "- failed to delete unrecorded bundle '$actb'" ); fi
+  done
+
+  # Report results and return
+  if ((${#erra[@]})); then
+    d__fail -- 'Unable to fully synchronize bundles directory' \
+      'with Grail stash records:' "${erra[@]}"
+    return 1
+  else d__context -- lop; return 0; fi
 }
 
 d__dispatch_assembly_job

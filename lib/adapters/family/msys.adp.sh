@@ -2,8 +2,8 @@
 #:title:        Divine.dotfiles msys adapter
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.09.25
-#:revremark:    Remove revision numbers from all src files
+#:revdate:      2019.10.12
+#:revremark:    Fix minor typo, pt. 2
 #:created_at:   2019.06.04
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -14,29 +14,11 @@
 ## For reference, see lib/templates/adapters/family.adp.sh
 #
 
-# Implement detection mechanism
-d__adapter_detect_os_family()
-{
-  case $D__OSTYPE in msys*|mingw*) d__os_family=msys;; esac
-}
-
 # Implement overriding mechanism for $D_DPL_TARGET_PATHS and $D_DPL_TARGET_DIR
-d__adapter_override_dpl_targets_for_os_family()
+d__override_dpl_targets_for_os_family()
 {
-  # Check if $D_DPL_TARGET_PATHS_MSYS contains at least one string
-  if [ ${#D_DPL_TARGET_PATHS_MSYS[@]} -gt 1 \
-    -o -n "$D_DPL_TARGET_PATHS_MSYS" ]; then
-
-    # $D_DPL_TARGET_PATHS_MSYS is set: use it instead
-    D_DPL_TARGET_PATHS=( "${D_DPL_TARGET_PATHS_MSYS[@]}" )
-    
-  fi
-
-  # Check if $D_DPL_TARGET_DIR_MSYS is not empty
-  if [ -n "$D_DPL_TARGET_DIR_MSYS" ]; then
-
-    # $D_DPL_TARGET_DIR_MSYS is set: use it instead
-    D_DPL_TARGET_DIR="$D_DPL_TARGET_DIR_MSYS"
-    
-  fi
+  if [ ${#D_DPL_TARGET_PATHS_MSYS[@]} -gt 1 -o -n "$D_DPL_TARGET_PATHS_MSYS" ]
+  then D_DPL_TARGET_PATHS=( "${D_DPL_TARGET_PATHS_MSYS[@]}" ); fi
+  if [ -n "$D_DPL_TARGET_DIR_MSYS" ]
+  then D_DPL_TARGET_DIR="$D_DPL_TARGET_DIR_MSYS"; fi
 }

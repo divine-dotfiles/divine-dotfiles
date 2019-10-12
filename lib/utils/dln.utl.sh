@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
 #:title:        Divine Bash utils: dln
-#:kind:         func(script,interactive)
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.09.25
-#:revremark:    Remove revision numbers from all src files
+#:revdate:      2019.10.12
+#:revremark:    Fix minor typo, pt. 2
 #:created_at:   2018.03.15
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>

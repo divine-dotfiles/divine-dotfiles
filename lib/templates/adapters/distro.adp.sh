@@ -2,192 +2,137 @@
 #:title:        Divine.dotfiles template OS distro adapter
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.09.25
-#:revremark:    Remove revision numbers from all src files
+#:revdate:      2019.10.12
+#:revremark:    Fix minor typo, pt. 2
 #:created_at:   2019.06.04
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
 #
 ## An adapter is a set of functions that, when implemented, allow framework to 
-#. support a particular OS distribution
+#. support a particular OS distribution and its system package manager.
 #
-## For adapter file to be sourced and used, it must be named 'DISTRO.adp.sh' 
-#. and placed in lib/adapters/distro directory, where 'DISTRO' must be 
-#. descriptive of OS distribution being adapted to.
+## For a particular OS distribution to be supported, detection code must be 
+#. added to lib/procedures/detect-os.pcd.sh.
+#
+## For the adapter file to be recognized, it must be named 'DISTRO.adp.sh', and 
+#. placed in the lib/adapters/distro directory, where 'DISTRO' must be the same 
+#. as the handle assigned to the $D__OS_DISTRO variable during OS detection.
 #
 
-#>  d__adapter_detect_os_distro
+#>  d__detect_os_pkgmgr
 #
-## This function will be called with $D__OS_FAMILY already populated, and must 
-#. use said variable and other means to judge whether current OS is the OS 
-#. distribution being adapted to. Guidelines below must be followed.
+## This function, naturally, is called only if the distribution matched. The 
+#. code in this function should detect whether a supported system package 
+#. manager is available and, if so, implement a wrapper around it. Guidelines 
+#. below must be followed.
 #
-## Expect 'nocasematch' Bash option to be enabled by caller of this function
+## The calling context of this function is guaranteed to have the 'nocasematch' 
+#. Bash option enabled.
 #
 ## Global variables made available to this function (all read-only):
-#.  $D__OSTYPE    - Current content of $OSTYPE system variable or, if it is 
-#.                  empty, captured output of $( uname -s 2>/dev/null )
-#.  $D__OS_FAMILY - One-word description of current OS family
+#.  $D__OS_FAMILY   - The one-word handle of the current OS family.
+#.  $D__OS_DISTRO   - The one-word handle of the current OS distribution.
 #
-## Local variables that must be set in case of successful match (no need to 
-#. declare these as local, they will be declared as such by parent scope):
-#.  $d__os_distro - One-word description of current OS distro. This word will 
-#.                  be assigned to read-only global variable $D__OS_DISTRO, 
-#.                  which in turn is then used throughout this framework and 
-#.                  its deployments.
-#.                  For clarity, this one word must match the name of adapter 
-#.                  file, sans suffix.
-#.                  If this variable is set to a non-empty value, it is taken 
-#.                  as indication of positive OS distro match.
+## Local variables that must be assigned to within this function to signal to 
+#. the calling context that the package manager has been successfully detected:
+#.  $d__os_pkgmgr   - The one-word handle of the detected system package 
+#.                    manager. This word will be assigned to read-only global 
+#.                    variable $D__OS_PKGMGR, which in turn is then used 
+#.                    throughout this framework and its deployments.
+#.                    For clarity, the word must match the widely recognized 
+#.                    name of the package manager's executable command (e.g., 
+#.                    'apt-get').
+#.                    This variable is initialized locally to an empty string 
+#.                    by the calling context. After this function is called, 
+#.                    any non-empty value in this variable is taken as an 
+#.                    indication of the positive match on the package manager.
+#
+## Functions that must be implemented within this function in case the package 
+#. manager has been successfully detected:
+#.  d__os_pkgmgr    - See the description of this wrapper function below.
 #
 ## Returns:
 #.  Return code is ignored
 #
-d__adapter_detect_os_distro()
+## Below is example implementation for the 'apt-get' package manager.
+#
+d__detect_os_pkgmgr()
 {
-  # Below is example implementation for Debian distribution
-
-  case $D__OS_FAMILY in
-    linux|wsl)
-      grep -Fqi debian <( lsb_release -a 2>/dev/null ) /etc/os-release \
-        && d__os_distro=debian
-      ;;
-    *) return 1;;
-  esac
-}
-
-#>  d__adapter_detect_os_pkgmgr
-#
-## This function will be called if and only if current distribution matched. 
-#. This function must detect, whether a supported package manager is available 
-#. on this system and, if so, implement a wrapper around it. Guidelines below 
-#. must be followed.
-#
-## Expect 'nocasematch' Bash option to be enabled by caller of this function
-#
-## Global variables made available to this function (all read-only):
-#.  $D__OS_FAMILY - One-word description of current OS family
-#.  $D__OS_DISTRO - One-word description of current OS distribution
-#
-## Local variables that must be set in case of successful match (no need to 
-#. declare these as local, they will be declared as such by parent scope):
-#.  $d__os_pkgmgr - One-word description of current system's package manager. 
-#.                  This word will be assigned to read-only global variable 
-#.                  $D__OS_PKGMGR, which in turn is then used throughout this 
-#.                  framework and its deployments.
-#.                  For clarity, this one word must match the widely recognized 
-#.                  name of the package manager's executable command.
-#.                  If this variable is set to a non-empty value, it is taken 
-#.                  as indication of positive OS distro match.
-#
-## Returns:
-#.  Return code is ignored
-#
-d__adapter_detect_os_pkgmgr()
-{
-  # Below is example implementation for apt-get distribution
-
   # Check if apt-get is available
-  if apt-get --version &>/dev/null; then
+  apt-get --version &>/dev/null || return 1
 
-    # Set the expected variable
-    d__os_pkgmgr='apt-get'
+  # Set marker variable
+  d__os_pkgmgr='apt-get'
 
-    # Implement the wrapper function
+  # Implement wrapper function
 
-    #>  d__os_pkgmgr update|check|install|remove [ARG]...
-    #
-    ## Thin wrapper around system's package manager. Launches one of the four 
-    #. routines, which are expected of any package manager out there.
-    #
-    ## Second argument must be relayed to package manager verbatim. User 
-    #. prompts (except sudo password) should be avoided. A call to dprint_sudo 
-    #. should be included immediately prior to sudo command.
-    #
-    ## Arguments:
-    #.  $1  - One of four routines to launch:
-    #.          * 'update'  - updates all installed packages (other args are 
-    #.                        ignored)
-    #.          * 'check'   - checks whether provided package is installed
-    #.          * 'install' - installs provided package
-    #.          * 'remove'  - uninstalls provided package
-    #.  $2  - Name of a package to work on
-    #
-    ## Returns:
-    #.  1 - Unrecognized routine
-    #.  2 - Wrapper is not implemented at all
-    #.  `update`, `install`, `remove`:  Underlying return code
-    #.  `check`:  0         - Package is currently installed
-    #.            non-zero  - Package is currently not installed
-    #
-    ## Prints:
-    #.  Whatever underlying package manager prints
-    #
-    d__os_pkgmgr()
-    {
-      # Below is example implementation for apt-get
-
-      # Perform action depending on first argument
-      case "$1" in
-        update)
-          dprint_sudo 'Working with apt-get requires sudo password'
-          sudo apt-get update -y
-          sudo apt-get upgrade -y
-          ;;
-        check)
-          grep -qFx 'install ok installed' \
-            <( dpkg-query -W -f='${Status}\n' "$2" 2>/dev/null )
-          ;;
-        install)
-          dprint_sudo 'Working with apt-get requires sudo password'
-          sudo apt-get install -y "$2"
-          ;;
-        remove)
-          dprint_sudo 'Working with apt-get requires sudo password'
-          sudo apt-get remove -y "$2"
-          ;;
-        *)  return 1;;
-      esac
-    }
-
-  # Done with definitions for apt-get
-  fi
+  #>  d__os_pkgmgr update|check|install|remove [ARG]...
+  #
+  ## Thin wrapper around the system package manager. Launches one of the four 
+  #. basic commands, which are expected of any package manager out there.
+  #
+  ## The second argument (package name) must be relayed to the package manager 
+  #. verbatim. User prompts should be avoided; the sole exception to this is 
+  #. the warning about an upcoming prompt for sudo password: a call to 
+  #. 'd__require_sudo PKGMGR_NAME' should be included immediately prior to the 
+  #. sudo command.
+  #
+  ## Arguments:
+  #.  $1  - One of four routines to launch:
+  #.          * 'update'  - Updates all installed packages. Other arguments 
+  #.                        should be ignored.
+  #.          * 'check'   - Checks whether the single provided package is 
+  #.                        installed. Must return zero if it is, and non-zero 
+  #.                        otherwise. Also, this call to the package manager 
+  #.                        must be completely silent (&>/dev/null).
+  #.          * 'install' - Installs the single provided package. Must return 
+  #.                        zero if the installation is successful and non-zero 
+  #.                        otherwise.
+  #.          * 'remove'  - Uninstalls the single provided package. Must return 
+  #.                        zero if the uninstallation is successful and 
+  #.                        non-zero otherwise.
+  #.  $2  - Name of the package to check/install/remove.
+  #
+  ## Additional return codes:
+  #.  1 - Unrecognized routine
+  #.  2 - Wrapper is not implemented at all
+  #
+  ## Prints:
+  #.  Whatever the underlying package manager prints
+  #
+  d__os_pkgmgr()
+  {
+    case "$1" in
+      update)   d__require_sudo apt-get; sudo apt-get update -y; sudo apt-get upgrade -y;;
+      check)    grep -qFx 'install ok installed' <( dpkg-query -W -f='${Status}\n' "$2" 2>/dev/null );;
+      install)  d__require_sudo apt-get; sudo apt-get install -y "$2";;
+      remove)   d__require_sudo apt-get; sudo apt-get remove -y "$2";;
+      *)        return 1;;
+    esac
+  }
 }
 
-#>  d__adapter_override_dpl_targets_for_os_distro
+#>  d__override_dpl_targets_for_os_distro
 #
 ## Overriding mechanism for $D_DPL_TARGET_PATHS and $D_DPL_TARGET_DIR.
 #
-## Provides a way for deployments to override target paths used by link queue 
-#. and copy queue.
+## Provides a way for deployments to override target paths used by the 
+#. framework's queue helpers.
 #
-## Basically, this function must check if an override variable for current 
-#. distribution is populated in the calling context, and if so, override the 
-#. current content of $D_DPL_TARGET_PATHS or $D_DPL_TARGET_DIR.
+## This function must check whether a specially named distro-specific variable 
+#. is populated and, if so, override the main variable.
 #
-## An overriding variables must follow a naming pattern:
+## The overriding naming pattern is as such:
 #.  D_DPL_TARGET_PATHS    is overridden by    D_DPL_TARGET_PATHS_***
 #.  D_DPL_TARGET_DIR      is overridden by    D_DPL_TARGET_DIR_***
-#. where `***` is content of $D__OS_DISTRO in all capitals.
+#. where '***' stands fot the value of the $D__OS_DISTRO variable in all caps.
 #
-d__adapter_override_dpl_targets_for_os_distro()
+# Below is an example implementation for the Ubuntu distribution.
+#
+d__override_dpl_targets_for_os_distro()
 {
-  # Below is example implementation for Ubuntu distribution
-
-  # Check if $D_DPL_TARGET_PATHS_UBUNTU contains at least one string
-  if [ ${#D_DPL_TARGET_PATHS_UBUNTU[@]} -gt 1 \
-    -o -n "$D_DPL_TARGET_PATHS_UBUNTU" ]; then
-
-    # $D_DPL_TARGET_PATHS_UBUNTU is set: use it instead
-    D_DPL_TARGET_PATHS=( "${D_DPL_TARGET_PATHS_UBUNTU[@]}" )
-    
-  fi
-
-  # Check if $D_DPL_TARGET_DIR_UBUNTU is not empty
-  if [ -n "$D_DPL_TARGET_DIR_UBUNTU" ]; then
-
-    # $D_DPL_TARGET_DIR_UBUNTU is set: use it instead
-    D_DPL_TARGET_DIR=( "${D_DPL_TARGET_DIR_UBUNTU[@]}" )
-    
-  fi
+  if [ ${#D_DPL_TARGET_PATHS_UBUNTU[@]} -gt 1 -o -n "$D_DPL_TARGET_PATHS_UBUNTU" ]
+  then D_DPL_TARGET_PATHS=( "${D_DPL_TARGET_PATHS_UBUNTU[@]}" ); fi
+  if [ -n "$D_DPL_TARGET_DIR_UBUNTU" ]
+  then D_DPL_TARGET_DIR="$D_DPL_TARGET_DIR_UBUNTU"; fi
 }

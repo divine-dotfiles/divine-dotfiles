@@ -2,13 +2,13 @@
 #:title:        Divine Bash routine: attach
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.10
-#:revremark:    Fix minor typo
+#:revdate:      2019.10.12
+#:revremark:    Fix minor typo, pt. 2
 #:created_at:   2019.05.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
 #
-## This file is intended to be sourced from framework's main script
+## This file is intended to be sourced from framework's main script.
 #
 ## Attaches deployments by either cloning or downloading provided Github 
 #. repositories
@@ -260,7 +260,7 @@ d__attach_dpl_repo()
   }
 
   # Record this to Grail stash
-  if d__stash -g -s add dpl_repos "$user_repo"; then
+  if d__stash -gs -- add attached_bundles "$user_repo"; then
     dprint_debug "Recorded attached repository '$user_repo' in Grail stash"
   else
     dprint_debug \

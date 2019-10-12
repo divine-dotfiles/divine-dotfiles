@@ -2,8 +2,8 @@
 #:title:        Divine Bash deployment helpers: gh-queue
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.10
-#:revremark:    Finish implementing three special queues
+#:revdate:      2019.10.12
+#:revremark:    Fix minor typo, pt. 2
 #:created_at:   2019.10.10
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -45,8 +45,8 @@ d__gh_queue_pre_check()
   d__stash -- ready || return 1
   if [ -z "$D__GH_METHOD" ]
   then d__notify -lx -- 'Unable to wotk with Github repositories'; return 1; fi
-  d__adapter_override_dpl_targets_for_os_family
-  d__adapter_override_dpl_targets_for_os_distro
+  d__override_dpl_targets_for_os_family
+  d__override_dpl_targets_for_os_distro
 
   # Attempt to auto-asseble the section of queue
   if [ ${#D_DPL_TARGET_PATHS[@]} -eq "$D__QUEUE_SECTMIN" ]; then
@@ -202,9 +202,9 @@ d__gh_item_install()
   if d__push_backup -- "$d__gqet" "$d__gqeb"; then
     case $D__GH_METHOD in
       g)  d___clone_gh_repo "$d__gqen" "$d__gqet";;
-      c)  d__cmd mkdir -- --REPO_PATH-- "$d__gqet" \
+      c)  mkdir -p &>/dev/null -- "$d__gqet" \
             && d___curl_gh_repo "$d__gqen" "$d__gqet";;
-      w)  d__cmd mkdir -- --REPO_PATH-- "$d__gqet" \
+      w)  mkdir -p &>/dev/null -- "$d__gqet" \
             && d___wget_gh_repo "$d__gqen" "$d__gqet";;
     esac; (($?)) && d__gqrtc=1 || d__gqrtc=0
   else d__gqrtc=1; fi
