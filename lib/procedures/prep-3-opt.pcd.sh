@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.12
-#:revremark:    Fix minor typo, pt. 2
+#:revremark:    Fix syntax error in prep-3-opt
 #:created_at:   2019.07.05
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -58,6 +58,7 @@ d__offer_gh_access()
         "Github repositories${NORMAL}"
       d__offer_pkg --or-quit curl
       case $? in 0) hcurl=true;; 1) return 1;; 2) exit 1;; esac
+    fi
     if ! $hcurl && ! $hwget; then
       d__notify -l!t 'No wget' -- 'Failed to detect wget on current system' \
         -n- "${YELLOW}Having wget installed allows to download" \
