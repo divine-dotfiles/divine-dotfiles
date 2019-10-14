@@ -2,8 +2,8 @@
 #:title:        Divine Bash deployment helpers: link-queue
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.12
-#:revremark:    Fix minor typo, pt. 2
+#:revdate:      2019.10.14
+#:revremark:    Fix minor typo, pt. 3
 #:created_at:   2019.04.02
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -53,7 +53,7 @@ d__link_queue_pre_check()
     if [ -n "$D_DPL_TARGET_DIR" ] \
       && [ ${#D_QUEUE_MAIN[@]} -ge "$D__QUEUE_SECTMAX" ]
     then local d__i
-      for (( d__i=$D__QUEUE_SECTMIN; d__i<$D__QUEUE_SECTMAX; ++d__i )); do
+      for ((d__i=$D__QUEUE_SECTMIN;d__i<$D__QUEUE_SECTMAX;++d__i)); do
         D_DPL_TARGET_PATHS+=( "$D_DPL_TARGET_DIR/${D_QUEUE_MAIN[$d__i]}" )
       done
     else local d__dos="$D__OS_FAMILY"

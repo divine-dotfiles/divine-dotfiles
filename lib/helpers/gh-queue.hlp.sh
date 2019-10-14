@@ -2,8 +2,8 @@
 #:title:        Divine Bash deployment helpers: gh-queue
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.12
-#:revremark:    Fix minor typo, pt. 2
+#:revdate:      2019.10.14
+#:revremark:    Fix minor typo, pt. 3
 #:created_at:   2019.10.10
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -54,7 +54,7 @@ d__gh_queue_pre_check()
     if [ -n "$D_DPL_TARGET_DIR" ] \
       && [ ${#D_QUEUE_MAIN[@]} -ge "$D__QUEUE_SECTMAX" ]
     then local d__i
-      for (( d__i=$D__QUEUE_SECTMIN; d__i<$D__QUEUE_SECTMAX; ++d__i )); do
+      for ((d__i=$D__QUEUE_SECTMIN;d__i<$D__QUEUE_SECTMAX;++d__i)); do
         D_DPL_TARGET_PATHS+=( "$D_DPL_TARGET_DIR/${D_QUEUE_MAIN[$d__i]}" )
       done
     else local d__dos="$D__OS_FAMILY"
@@ -103,7 +103,7 @@ d__gh_item_check()
   local d__gqeb="$D__DPL_BACKUP_DIR/$d__gqesk"
   local d__gqesk="gh_$( dmd5 -s "$d__gqet" )"
   d___gh_repo_exists "$d__gqen" \
-    || d__gqer+=( -i- "- invalid Github repo handle '$d__gqen'" )
+    || d__gqer+=( -i- "- Github repo '$d__gqen' does not appear to exist" )
   [ -n "$d__gqet" ] || d__gqer+=( -i- '- target path is empty' )
   if ((${#d__gqer[@]})); then
     d__notify -lxh -- 'Invalid Github-queue item:' "${d__gqer[@]}"

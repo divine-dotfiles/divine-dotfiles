@@ -2,8 +2,8 @@
 #:title:        Divine Bash procedure: print-colors
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.12
-#:revremark:    Fix minor typo, pt. 2
+#:revdate:      2019.10.14
+#:revremark:    Fix minor typo, pt. 3
 #:created_at:   2018.12.20
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -241,6 +241,27 @@ d__define_intros()
   readonly D__INTRO_QRM_1="$CYAN$REVERSE${BOLD}xxx$NORMAL $CYAN${BOLD}Failed to remove$NORMAL $CYAN:"
   readonly D__INTRO_QRM_2="$CYAN$REVERSE$BOLD~~~$NORMAL $CYAN${BOLD}Refused to rmv. $NORMAL $CYAN:"
   readonly D__INTRO_QRM_3="$CYAN$REVERSE${BOLD}vv$NORMAL$CYAN${BOLD}x Partly removed  $NORMAL $CYAN:"
+
+  readonly D__INTRO_ATC_N="$YELLOW$BOLD>>>$NORMAL ${BOLD}Attaching       $NORMAL :"
+  readonly D__INTRO_ATC_F="$YELLOW$BOLD>>>$NORMAL ${BOLD}Force-attaching $NORMAL :"
+  readonly D__INTRO_ATC_S="$BOLD---$NORMAL ${BOLD}Skipped attching$NORMAL :"
+  readonly D__INTRO_ATC_0="$GREEN$REVERSE${BOLD}vvv$NORMAL ${BOLD}Attached        $NORMAL :"
+  readonly D__INTRO_ATC_1="$RED$REVERSE${BOLD}xxx$NORMAL ${BOLD}Failed to attach$NORMAL :"
+  readonly D__INTRO_ATC_2="$WHITE$REVERSE$BOLD~~~$NORMAL ${BOLD}Refused to attch$NORMAL :"
+
+  readonly D__INTRO_DTC_N="$YELLOW$BOLD>>>$NORMAL ${BOLD}Detaching       $NORMAL :"
+  readonly D__INTRO_DTC_F="$YELLOW$BOLD>>>$NORMAL ${BOLD}Force-detaching $NORMAL :"
+  readonly D__INTRO_DTC_S="$BOLD---$NORMAL ${BOLD}Skipped detching$NORMAL :"
+  readonly D__INTRO_DTC_0="$GREEN$REVERSE${BOLD}vvv$NORMAL ${BOLD}Detached        $NORMAL :"
+  readonly D__INTRO_DTC_1="$RED$REVERSE${BOLD}xxx$NORMAL ${BOLD}Failed to detach$NORMAL :"
+  readonly D__INTRO_DTC_2="$WHITE$REVERSE$BOLD~~~$NORMAL ${BOLD}Refused to detch$NORMAL :"
+
+  readonly D__INTRO_PLG_N="$YELLOW$BOLD>>>$NORMAL ${BOLD}Plugging        $NORMAL :"
+  readonly D__INTRO_PLG_F="$YELLOW$BOLD>>>$NORMAL ${BOLD}Force-plugging  $NORMAL :"
+  readonly D__INTRO_PLG_S="$BOLD---$NORMAL ${BOLD}Skipped plugging$NORMAL :"
+  readonly D__INTRO_PLG_0="$GREEN$REVERSE${BOLD}vvv$NORMAL ${BOLD}Plugged         $NORMAL :"
+  readonly D__INTRO_PLG_1="$RED$REVERSE${BOLD}xxx$NORMAL ${BOLD}Failed to plug  $NORMAL :"
+  readonly D__INTRO_PLG_2="$WHITE$REVERSE$BOLD~~~$NORMAL ${BOLD}Refused to plug $NORMAL :"
 }
 
 d__declare_global_colors

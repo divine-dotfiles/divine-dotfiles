@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-#:title:        Divine Bash procedure: prep-3-opt
+#:title:        Divine Bash procedure: prep-3-gh
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.12
-#:revremark:    Fix syntax error in prep-3-opt
+#:revdate:      2019.10.14
+#:revremark:    Fix minor typo, pt. 3
 #:created_at:   2019.07.05
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>

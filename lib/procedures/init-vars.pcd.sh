@@ -2,8 +2,8 @@
 #:title:        Divine Bash procedure: init-vars
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.12
-#:revremark:    Fix minor typo, pt. 2
+#:revdate:      2019.10.14
+#:revremark:    Fix minor typo, pt. 3
 #:created_at:   2019.10.11
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -40,7 +40,8 @@ d__require_var_names()
   local d__vars=( \
     # Core globals
     D__FMWK_NAME D__FMWK_VERSION D__DIR_GRAIL D__DIR_STATE \
-    D__DIR_ASSETS D__DIR_DPLS D__DIR_BACKUPS D__DIR_STASH D__DIR_BUNDLES \
+    D__DIR_ASSETS D__DIR_DPLS \
+    D__DIR_BACKUPS D__DIR_STASH D__DIR_BUNDLES D__DIR_BUNDLE_BACKUPS \
     D__SUFFIX_DPL_SH D__SUFFIX_DPL_MNF D__SUFFIX_DPL_QUE \
     D__INIT_TRAIN \
     D__CONST_NAME_DIVINEFILE D__CONST_NAME_STASHFILE D__CONST_DEF_PRIORITY \
@@ -56,6 +57,9 @@ d__require_var_names()
     BOLD DIM ULINE REVERSE STANDOUT NORMAL \
     # OS detection
     D__OS_FAMILY D__OSTYPE D__OS_DISTRO D__OS_PKGMGR \
+    # Manifest parsing
+    D__MANIFEST_LINES D__MANIFEST_LINE_FLAGS D__MANIFEST_LINE_PRFXS \
+    D__MANIFEST_LINE_PRTYS D__MANIFEST_SPLITS D__MANIFEST_ENDSPLIT \
     # Assembly
     D__WKLD D__WKLD_PKGS D__WKLD_DPLS \
     D__WKLD_PKG_BITS D__WKLD_PKG_FLAGS \
@@ -87,6 +91,12 @@ d__require_var_names()
     D__INTRO_QIN_0 D__INTRO_QIN_1 D__INTRO_QIN_2 D__INTRO_QIN_3 \
     D__INTRO_QRM_N D__INTRO_QRM_F D__INTRO_QRM_S D__INTRO_QRM_A \
     D__INTRO_QRM_0 D__INTRO_QRM_1 D__INTRO_QRM_2 D__INTRO_QRM_3 \
+    D__INTRO_ATC_N D__INTRO_ATC_F D__INTRO_ATC_S \
+    D__INTRO_ATC_0 D__INTRO_ATC_1 D__INTRO_ATC_2 \
+    D__INTRO_DTC_N D__INTRO_DTC_F D__INTRO_DTC_S \
+    D__INTRO_DTC_0 D__INTRO_DTC_1 D__INTRO_DTC_2 \
+    D__INTRO_PLG_N D__INTRO_PLG_F D__INTRO_PLG_S \
+    D__INTRO_PLG_0 D__INTRO_PLG_1 D__INTRO_PLG_2 \
     # Method of accessing Github
     D__GH_METHOD \
     # Regular deployments
@@ -159,6 +169,7 @@ d__populate_globals()
   readonly D__DIR_BACKUPS="$D__DIR_STATE/backups"
   readonly D__DIR_STASH="$D__DIR_STATE/stash"
   readonly D__DIR_BUNDLES="$D__DIR_STATE/bundles"
+  readonly D__DIR_BUNDLE_BACKUPS="$D__DIR_STATE/bundle-backups"
 
   # Filename suffix for deployment files
   readonly D__SUFFIX_DPL_SH='.dpl.sh'
@@ -169,27 +180,14 @@ d__populate_globals()
   # Filename suffix for main queue manifest files
   readonly D__SUFFIX_DPL_QUE='.dpl.que'
 
-  # Ordered list of script's internal dependencies
+  # Ordered list of frameworks shared internal dependencies
   D__INIT_TRAIN=( \
     'procedure print-colors' \
-    'util dprint' \
-    'util dprompt' \
     'util workflow' \
     'procedure prep-1-sys' \
     'util stash' \
     'procedure prep-2-stash' \
     'procedure detect-os' \
-    'util offer' \
-    'procedure prep-3-opt' \
-    'util backup' \
-    'util github' \
-    'util dln' \
-    'helper multitask' \
-    'helper queue' \
-    'helper link-queue' \
-    'helper copy-queue' \
-    'helper gh-queue' \
-    'util manifests' \
   ); readonly D__INIT_TRAIN
 
   # Name of Divinefile

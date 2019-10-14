@@ -2,8 +2,8 @@
 #:title:        Divine Bash script: intervene
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.12
-#:revremark:    Fix minor typo, pt. 2
+#:revdate:      2019.10.14
+#:revremark:    Fix minor typo, pt. 3
 #:created_at:   2018.03.25
 
 ## Launches the Divine intervention
@@ -48,8 +48,9 @@ d__parse_arguments()
           y|-yes)       D__OPT_ANSWER=true;;
           n|-no)        D__OPT_ANSWER=false;;
           b|-bundle)    if (($#)); then shift; D__REQ_BUNDLES+=("$1")
-                        else printf >&2 "%s: Ignoring option '%s' %s\n" \
-                          "$D__FMWK_NAME" "$arg" 'without required argument'
+                        else printf >&2 "%s: Option '%s' %s\n" \
+                          "$D__FMWK_NAME" "$arg" 'requires argument'
+                          d__load routine usage
                         fi;;
           f|-force)     D__OPT_FORCE=true;;
           e|-except)    D__OPT_INVERSE=true;;
@@ -63,8 +64,9 @@ d__parse_arguments()
                 y)  D__OPT_ANSWER=true;;
                 n)  D__OPT_ANSWER=false;;
                 b)  if (($#)); then shift; D__REQ_BUNDLES+=("$1")
-                    else printf >&2 "%s: Ignoring option '%s' %s\n" \
-                      "$D__FMWK_NAME" "$opt" 'without required argument'
+                    else printf >&2 "%s: Option '%s' %s\n" \
+                      "$D__FMWK_NAME" "$opt" 'requires argument'
+                      d__load routine usage
                     fi;;
                 f)  D__OPT_FORCE=true;;
                 e)  D__OPT_INVERSE=true;;
@@ -73,7 +75,7 @@ d__parse_arguments()
                 v)  D__OPT_QUIET=false; ((++D__OPT_VERBOSITY));;
                 l)  D__OPT_PLUG_LINK=true;;
                 h)  d__load routine help;;
-                *)  printf >&2 "%s: Ignoring unrecognized option '%s'\n" \
+                *)  printf >&2 "%s: Unrecognized option '%s'\n" \
                       "$D__FMWK_NAME" "$opt"
                     d__load routine usage;;
               esac; done
@@ -103,9 +105,9 @@ d__parse_arguments()
 
   # Parse the first argument
   case ${D__REQ_ARGS[0]} in
+    c|ch|che|check)                     D__REQ_ROUTINE=check;;
     i|in|ins|install)                   D__REQ_ROUTINE=install;;
     r|re|rem|remove|un|uni|uninstall)   D__REQ_ROUTINE=remove;;
-    c|ch|che|check)                     D__REQ_ROUTINE=check;;
     a|at|att|attach|ad|add)             D__REQ_ROUTINE=attach;;
     d|de|det|detach|del|delete)         D__REQ_ROUTINE=detach;;
     p|pl|plu|plug)                      D__REQ_ROUTINE=plug;;
@@ -164,8 +166,8 @@ d__parse_arguments()
 #.  $D__INIT_TRAIN
 #
 ## Returns:
-#.  0 - All dependencies successfully sourced
-#.  1 - (script exit) Failed to source a dependency
+#.  0 - All dependencies successfully sourced.
+#.  1 - (script exit) Failed to source a dependency.
 #
 d__initialize_fmwk()
 {
@@ -182,12 +184,12 @@ d__perform_routine()
 {
   # Fork based on routine
   case $D__REQ_ROUTINE in
-    install)  d__load routine assemble; d__load routine install;;
-    remove)   d__load routine assemble; d__load routine remove;;
-    check)    d__load routine assemble; d__load routine check;;
-    attach)   d__load routine assemble; d__load routine attach;;
+    install)  d__load routine install;;
+    remove)   d__load routine remove;;
+    check)    d__load routine check;;
+    attach)   d__load routine attach;;
     detach)   d__load routine detach;;
-    plug)     d__load routine assemble; d__load routine plug;;
+    plug)     d__load routine plug;;
     update)   d__load routine update;;
     *)        return 1;;
   esac
@@ -289,8 +291,8 @@ d__load()
                         "Called with illegal type argument: '$1'"; exit 1;;
   esac
 
-  # If file exists, source it; otherwise report and return
-  if [ -r "$path" -a -f "$path" ]; then source "$path"; return 0; fi
+  # If file exists, source it, return code of last command; otherwise error
+  if [ -r "$path" -a -f "$path" ]; then source "$path"; return $?; fi
   printf >&2 "==> Divine dependency is not a readable file: '%s'\n" "$path"
   exit 1
 }

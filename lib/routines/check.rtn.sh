@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: check
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.12
-#:revremark:    Fix minor typo, pt. 2
+#:revdate:      2019.10.14
+#:revremark:    Fix minor typo, pt. 3
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -27,6 +27,30 @@
 #
 d__perform_check_routine()
 {
+  # Load routine-specific utilities and helpers
+  d__load util offer
+  d__load util github
+  d__load util backup
+  d__load util manifests
+  d__load util assets
+  d__load util items
+  d__load util scan
+
+  # Perform initialization procedures
+  d__load procedure prep-3-gh
+  d__load procedure sync-bundles
+  d__load procedure assemble
+  # d__load procedure process-all-assets
+
+  # Load all types of deployment helpers (unless in dry-run)
+  if ! [ "$D__OPT_ANSWER" = false ]; then
+    d__load helper multitask
+    d__load helper queue
+    d__load helper link-queue
+    d__load helper copy-queue
+    d__load helper gh-queue
+  fi
+
   # Print a separating empty line, switch context
   printf >&2 '\n'
   d__context -- notch
@@ -39,10 +63,8 @@ d__perform_check_routine()
     d__announce -v -- 'Checking Divine intervention'
   fi
 
-  # Storage variable
+  # Init storage vars; iterate over taken priorities
   local d__prty d__prtys
-
-  # Iterate over taken priorities
   for d__prty in ${!D__WKLD[@]}; do
 
     # Switch context and compose priority string

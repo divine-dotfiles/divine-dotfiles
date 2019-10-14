@@ -2,16 +2,16 @@
 #:title:        Divine Bash utils: backup
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.10
-#:revremark:    Finish implementing three special queues
+#:revdate:      2019.10.14
+#:revremark:    Fix minor typo, pt. 3
 #:created_at:   2019.09.18
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
 #
-## Utilities that help assist in backing up and restoring files. These 
-#. functions are intended to be re-used in deployments and framework components 
-#. alike, and are integrated with the Divine workflow system. Before properly 
-#. returning, all backup utils restore the context stack to the pre-call state.
+## Utilities that assist in backing up and restoring files. These functions are 
+#. intended to be re-used in deployments and framework components alike, and 
+#. are integrated with the Divine workflow system. Before properly returning, 
+#. all backup utils restore the context stack to the pre-call state.
 #
 ## Optionless versions of the functions in this file strive for zero data loss: 
 #. nothing is erased, everything is backed up.
@@ -161,6 +161,7 @@ d__push_backup()
   d__cmd $cmd -n -- --ORIG_PATH-- "$orig_path" --BACKUP_PATH-- "$backup_path" \
     --else-- 'Failed to push backup' \
     || return 3
+  if ! [ -z ${d__bckp+isset} ]; then d__bckp="$backup_path"; fi
   d__context -- lop
   return 0
 }
@@ -326,6 +327,7 @@ d__pop_backup()
   d__cmd $cmd -n -- --BACKUP_PATH-- "$backup_path" --ORIG_PATH-- "$orig_path" \
     --else-- 'Failed to pop backup' \
     || return 3
+  if ! [ -z ${d__bckp+isset} ]; then d__bckp="$backup_path"; fi
   d__context -- lop
   return 0
 }

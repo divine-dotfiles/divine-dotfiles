@@ -1,21 +1,22 @@
 #!/usr/bin/env bash
-#:title:        Divine Bash routine: pkgs
+#:title:        Divine Bash procedure: update-pkgs
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.12
-#:revremark:    Fix minor typo, pt. 2
+#:revdate:      2019.10.14
+#:revremark:    Fix minor typo, pt. 3
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
 #
 ## This file is intended to be sourced from framework's main script.
 #
-## Updates currently installed system packages
+## Updates currently installed system packages.
 #
 
 #>  d__update_pkgs
 #
-## Shared subroutine that runs update+upgrade process on detected $D__OS_PKGMGR
+## Shared subroutine that runs update+upgrade process on the detected system 
+#. package manager.
 #
 ## Returns:
 #.  0 - Always

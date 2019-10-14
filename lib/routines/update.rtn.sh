@@ -2,1091 +2,572 @@
 #:title:        Divine Bash routine: update
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.12
-#:revremark:    Fix minor typo, pt. 2
+#:revdate:      2019.10.14
+#:revremark:    Fix minor typo, pt. 3
 #:created_at:   2019.05.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
 #
-## Updates Divine.dotfiles framework, attached deployment repositories, and 
-#. Grail directory itself if it is a cloned repository
+## Updates Divine.dotfiles framework, attached bundles, and Grail directory 
+#. itself if the latter is a cloned repository.
 #
 
 #>  d__perform_update_routine
 #
-## Performs updating routine
-#
-## If framework directory is a cloned repository, pulls from remote and 
-#. rebases. Otherwise, re-downloads from Github to temp dir and overwrites 
-#. files one by one.
+## Performs update routine.
 #
 ## Returns:
-#.  0 - Successfully updated tasks
-#.  1 - Failed to update some of the tasks
-#.  2 - Skipped routine entirely
+#.  0 - Success.
+#.  1 - Otherwise.
+#.  1 - (script exit) Missing necessary tools.
 #
 d__perform_update_routine()
 {
-  # Synchronize dpl repos
-  d__sync_dpl_repos || exit 1
-  
-  # Print empty line for visual separation
+  # Load routine-specific utilities and helpers
+  d__load util offer
+  d__load util github
+  if ! [ "$D__OPT_ANSWER" = false ]; then
+    d__load util backup
+    d__load util manifests
+    d__load util assets
+    # d__load util items
+    d__load util scan
+  fi
+
+  # Perform initialization procedures
+  d__load procedure prep-3-gh
+  d__load procedure sync-bundles
+  # d__load procedure assemble
+
+  # Ensure that there is a method for updating
+  if [ -z "$D__GH_METHOD" ]; then
+    d__notify -lxt 'Unable to update' -- 'Current system does not have' \
+      'the tools to interact with Git/Github repositories'
+    exit 1
+  fi
+
+  # Print a separating empty line, switch context
   printf >&2 '\n'
+  d__context -- notch
+  d__context -- push "Performing 'update' routine"
 
   # Announce beginning
   if [ "$D__OPT_ANSWER" = false ]; then
-    d__announce -s -- "'Updating' Divine.dotfiles framework"
+    d__announce -s -- "'Updating' Divine.dotfiles"
   else
-    d__announce -v -- 'Updating Divine.dotfiles framework'
+    d__announce -v -- 'Updating Divine.dotfiles'
   fi
 
-  # Status variables
-  local all_updated=true all_failed=true all_skipped=true some_failed=false
+  # Storage & status variables
+  local uarg udst uplq utmp ufmk=false ugrl=false ubdl=false ubdla=()
+  local uanys=false uanyf=false uanyd=false uanyn=false usc=0
 
-  # Analyze environment and populate global status variables
-  d__detect_updating_options
+  # Parse update arguments
+  d___parse_update_args
 
-  # Update framework and analyze return status
-  d__update_fmwk; case $? in
-    0)  all_failed=false; all_skipped=false;;
-    1)  all_updated=false; all_skipped=false; some_failed=true;;
-    2)  all_updated=false; all_failed=false;;
-  esac
+  # Perform updates in order
+  for uarg in fmk grl; do
+    d___update_$uarg
+    case $? in
+      0)  uanys=true;; # Success
+      1)  uanyf=true;; # Failure
+      2)  uanyd=true;; # Declined
+      3)  uanyn=true;; # Not chosen
+    esac
+  done
+  d___update_bdls
 
-  # Update Grail directory and analyze return status
-  d__update_grail; case $? in
-    0)  all_failed=false; all_skipped=false;;
-    1)  all_updated=false; all_skipped=false; some_failed=true;;
-    2)  all_updated=false; all_failed=false;;
-  esac
+  # Count statuses
+  $uanys && ((++usc)); $uanyf && ((++usc))
+  $uanyd && ((++usc)); $uanyn && ((++usc))
 
-  # Update attached deployment repositories and analyze return status
-  d__update_dpls; case $? in
-    0)  all_failed=false; all_skipped=false;;
-    1)  all_updated=false; all_skipped=false
-        all_failed=false; some_failed=true;;
-    2)  all_updated=false; all_skipped=false; some_failed=true;;
-    3)  all_updated=false; all_failed=false;;
-  esac
+  # If any updates succeeded, process asset manifests
+  if $uanys; then d__load procedure process-all-assets; fi
 
-  # Print newline to visually separate terminal plaque
+  # Announce routine completion
   printf >&2 '\n'
-
-  # Report result
   if [ "$D__OPT_ANSWER" = false ]; then
-    d__announce -s -- "Finished 'updating' Divine.dotfiles framework"
-    return 2
-  elif $all_skipped; then
-    d__announce -s -- 'Skipped updating Divine.dotfiles framework'
-    return 2
-  elif $all_updated; then
-    d__announce -v -- 'Finished updating Divine.dotfiles framework'
-    return 0
-  elif $all_failed; then
-    d__announce -x -- 'Failed to update Divine.dotfiles framework'
-    return 1
-  elif $some_failed; then
-    d__announce -! -- 'Partly updated Divine.dotfiles framework'
-    return 1
+    d__announce -s -- "Finished 'updating' Divine.dotfiles"; return 0
+  elif [ $usc -eq 1 ] || ( [ $usc -eq 2 ] && $uanyn ); then
+    if $uanys
+    then d__announce -v -- 'Successfully updated Divine.dotfiles'; return 0
+    elif $uanyf
+    then d__announce -x -- 'Failed to update Divine.dotfiles'; return 1
+    elif $uanyd
+    then d__announce -s -- 'Declined updating Divine.dotfiles'; return 0
+    elif $uanyn
+    then d__announce -s -- 'Skipped updating Divine.dotfiles'; return 0; fi
+  elif [ $usc -eq 2 ]; then
+    if $uanys && $uanyf
+    then d__announce -! -- 'Partly updated Divine.dotfiles'; return 1
+    elif $uanys && $uanyd
+    then d__announce -v -- 'Partly updated Divine.dotfiles'; return 0
+    elif $uanyf && $uanyd
+    then d__announce -x -- 'Failed to update Divine.dotfiles'; return 1; fi
+  elif [ $usc -eq 3 ]; then
+    if ! $uanys
+    then d__announce -x -- 'Failed to update Divine.dotfiles'; return 1
+    elif ! $uanyf
+    then d__announce -v -- 'Partly updated Divine.dotfiles'; return 0
+    elif ! $uanyd
+    then d__announce -! -- 'Partly updated Divine.dotfiles'; return 1
+    elif ! $uanyn
+    then d__announce -! -- 'Partly updated Divine.dotfiles'; return 1; fi
   else
-    d__announce -v -- 'Finished updating Divine.dotfiles framework'
-    return 0
+    d__announce -! -- 'Partly updated Divine.dotfiles'; return 1
   fi
 }
 
-#>  d__update_fmwk
-#
-## Attempts to update framework by means available
-#
-## Returns:
-#.  0 - Updated successfully
-#.  1 - Failed to update
-#.  2 - Skipped completely, e.g., not requested
-#
-d__update_fmwk()
+d___parse_update_args()
 {
-  # Print newline to visually separate updates
-  printf >&2 '\n'
+  # Cut-off for dry-runs
+  [ "$D__OPT_ANSWER" = false ] && return 0
 
-  # Check if updating at all
-  if $UPDATING_FMWK; then
+  # If given a list of bundles, update just them by default
+  if ((${#D__REQ_BUNDLES[@]}))
+  then ubdl=true ubdla=("${D__REQ_BUNDLES[@]}"); fi
 
-    # Print announcement
-    if [ "$D__OPT_QUIET" = false -o -z "$D__OPT_ANSWER" ]; then
-      dprint_ode "${D__ODE_NORMAL[@]}" -c "$YELLOW" -- \
-        '>>>' 'Updating' ':' "${BOLD}Divine.dotfiles framework${NORMAL}"
-    fi
+  # Parse update arguments
+  if [ ${#D__REQ_ARGS[@]} -eq 0 ]; then
+    if ! $ubdl; then ufmk=true ugrl=true ubdl=true; fi
+  else for uarg in "${D__REQ_ARGS[@]}"; do case $uarg in
+    a|al|all)       ufmk=true ugrl=true ubdl=true;;
+    f|fr|fm|fmwk)   ufmk=true;;
+    framework)      ufmk=true;;
+    g|gr|grail)     ugrl=true;;
+    b|bu|bundles)   ubdl=true;;
+    d|dp|dpl|dpls)  ubdl=true;;
+    deployment)     ubdl=true;;
+    deployments)    ubdl=true;;
+    *)              :;;
+  esac; done; fi
 
-    # Prompt user
-    if [ "$D__OPT_ANSWER" = true ]; then UPDATING_FMWK=true
-    elif [ "$D__OPT_ANSWER" = false ]; then UPDATING_FMWK=false
-    else
-      # Prompt
-      dprint_ode "${D__ODE_PROMPT[@]}" -- '' 'Confirm' ': '
-      dprompt --bare && UPDATING_FMWK=true || UPDATING_FMWK=false
-    fi
-
-  fi
-
-  # Check if still updating at this point
-  if ! $UPDATING_FMWK; then
-    # Announce skiping and return
-    dprint_ode "${D__ODE_NORMAL[@]}" -c "$WHITE" -- \
-      '---' 'Skipped updating' ':' "${BOLD}Divine.dotfiles framework${NORMAL}"
-    return 2
-  fi
-
-  # Status variable
-  local updated_successfully=false
-
-  # If github is not available, no updating
-  if ! $GITHUB_AVAILABLE; then
-    dprint_debug 'Unable to update: missing necessary tools'
-  elif ! [ -d "$D__DIR_FMWK" -a -r "$D__DIR_FMWK" ]; then
-    dprint_debug "Not a readable directory: $D__DIR_FMWK"
-  else
-    # Do update proper, one way or another
-    if d__update_fmwk_via_git || d__update_fmwk_via_tar
-    then
-      updated_successfully=true
-    fi
-  fi
-
-  # Report result
-  if $updated_successfully; then
-    dprint_ode "${D__ODE_NORMAL[@]}" -c "$GREEN" -- \
-      'vvv' 'Updated' ':' "${BOLD}Divine.dotfiles framework${NORMAL}"
-    return 0
-  else
-    dprint_ode "${D__ODE_NORMAL[@]}" -c "$RED" -- \
-      'xxx' 'Failed to update' ':' "${BOLD}Divine.dotfiles framework${NORMAL}"
-    return 1
-  fi
-}
-
-#>  d__update_grail
-#
-## Attempts to update Grail directory by means available
-#
-## Returns:
-#.  0 - Updated successfully
-#.  1 - Failed to update
-#.  2 - Skipped completely, e.g., not requested
-#
-d__update_grail()
-{
-  # Print newline to visually separate updates
-  printf >&2 '\n'
-
-  # Check if git is available (its the only means of Grail dir update)
-  $GIT_AVAILABLE || UPDATING_GRAIL=false
-
-  if $UPDATING_GRAIL; then
-
-    # Check if Grail directory is a repository at all
-    if git ls-remote "$D__DIR_GRAIL" -q &>/dev/null; then
-
-      # Change into $D__DIR_GRAIL
-      cd -- "$D__DIR_GRAIL" || {
-        dprint_debug "Unable to cd into $D__DIR_GRAIL"
-        return 1
-      }
-
-      # Check if Grail repository has 'origin' remote
-      if ! git remote | grep -Fxq origin &>/dev/null; then
-
-        # Repository without remote: no way to update
-        dprint_debug 'Grail repository does not have a remote to pull from:' \
-          -i "$D__DIR_GRAIL"
-        UPDATING_GRAIL=false
-
-      fi
-
-    else
-
-      # Not a repository: no way to update
-      dprint_debug 'Grail directory is not a git repository:' \
-        -i "$D__DIR_GRAIL"
-      UPDATING_GRAIL=false
-
-    fi
-
-  fi
-
-  if $UPDATING_GRAIL; then
-
-    # Print announcement
-    if [ "$D__OPT_QUIET" = false -o -z "$D__OPT_ANSWER" ]; then
-      dprint_ode "${D__ODE_NORMAL[@]}" -c "$YELLOW" -- \
-        '>>>' 'Updating' ':' "${BOLD}Grail directory${NORMAL}"
-    fi
-
-    # Prompt user
-    if [ "$D__OPT_ANSWER" = true ]; then UPDATING_GRAIL=true
-    elif [ "$D__OPT_ANSWER" = false ]; then UPDATING_GRAIL=false
-    else
-      # Prompt
-      dprint_ode "${D__ODE_PROMPT[@]}" -- '' 'Confirm' ': '
-      dprompt --bare && UPDATING_GRAIL=true || UPDATING_GRAIL=false
-    fi
-
-  fi
-
-  # Check if still updating at this point
-  if ! $UPDATING_GRAIL; then
-    # Announce skiping and return
-    dprint_ode "${D__ODE_NORMAL[@]}" -c "$WHITE" -- \
-      '---' 'Skipped updating' ':' "${BOLD}Grail directory${NORMAL}"
-    return 2
-  fi
-
-  # Do update proper and check result
-  if d__update_grail_via_git; then
-    dprint_ode "${D__ODE_NORMAL[@]}" -c "$GREEN" -- \
-      'vvv' 'Updated' ':' "${BOLD}Grail directory${NORMAL}"
-    return 0
-  else
-    dprint_ode "${D__ODE_NORMAL[@]}" -c "$RED" -- \
-      'xxx' 'Failed to update' ':' "${BOLD}Grail directory${NORMAL}"
-    return 1
-  fi
-}
-
-#>  d__update_dpls
-#
-## Attempts to update attached deployment repositories by means available
-#
-## Returns:
-#.  0 - Successfully updated all recorded repositories
-#.  1 - Failed to update at least one repository
-#.  2 - Failed to update all repositories
-#.  3 - Skipped completely, e.g., not requested or nothing to do
-#
-d__update_dpls()
-{
-  # Storage and status variables
-  local all_updated=true all_failed=true all_skipped=true some_failed=false
-  local dpl_repo_dir dpl_repo dpl_repos=() proceeding nl_printed=false
-
-  # Print newline to visually separate updates
-  printf >&2 '\n' && nl_printed=true
-
-  # Check if proceeding
-  if $UPDATING_DPLS; then
-
-    # Populate list of repos
-    if d__stash -g -s has dpl_repos; then
-      while read -r dpl_repo; do
-        dpl_repos+=( "$dpl_repo" )
+  # If updating bundles, but not having a list yet, pull from stash
+  if $ubdl && [ ${#ubdla[@]} -eq 0 ]; then
+    if d__stash -gs -- has attached_bundles; then
+      while read -r uarg; do ubdla+=("$uarg")
       done < <( d__stash -gs -- list attached_bundles )
     fi
-
-    # Check if list is empty
-    [ ${#dpl_repos[@]} -eq 0 ] && {
-      dprint_debug 'No deployment repositories recorded in Grail stash'
-      UPDATING_DPLS=false
-    }
-
   fi
+}
 
-  # Check if proceeding
-  if ! $UPDATING_DPLS; then
-    # Announce skiping and return
-    dprint_ode "${D__ODE_NORMAL[@]}" -c "$WHITE" -- \
-      '---' 'Skipped updating' ':' 'Attached deployments'
+d___update_fmk()
+{
+  # Print a separating empty line; compose task name
+  printf >&2 '\n'; uplq="$BOLD$D__FMWK_NAME$NORMAL framework"
+
+  # Cut-off
+  if ! $ufmk; then
+    printf >&2 '%s %s\n' "$D__INTRO_UPD_S" "(not selected) $uplq"
     return 3
   fi
 
-  # Iterate over list of cloned deployment repositories from Grail stash
-  for dpl_repo in "${dpl_repos[@]}"; do
+  # Print intro
+  printf >&2 '%s %s\n' "$D__INTRO_UPD_N" "$uplq"
 
-    # Print newline to visually separate updates
-    $nl_printed || printf >&2 '\n'
-    nl_printed=false
+  # Store remote address; ensure that the remote repository exists
+  uarg='no-simpler/divine-dotfiles'
+  if ! d___gh_repo_exists "$uarg"; then
+    d__notify -ls -- "Github repository '$uarg' does not appear to exist"
+    printf >&2 '%s %s\n' "$D__INTRO_UPD_1" "$uplq"; return 1
+  fi
 
-    # Print announcement
-    if [ "$D__OPT_QUIET" = false -o -z "$D__OPT_ANSWER" ]; then
-      dprint_ode "${D__ODE_NORMAL[@]}" -c "$YELLOW" -- \
-        '>>>' 'Updating' ':' "Dpls repo '$dpl_repo'"
-    fi
+  # Compose destination path; print location
+  udst="$D__DIR_FMWK"
+  d__notify -q -- "Repo URL: https://github.com/$uarg"
+  d__notify -q -- "Location: $udst"
 
-    # Prompt user
-    if [ "$D__OPT_ANSWER" = true ]; then proceeding=true
-    elif [ "$D__OPT_ANSWER" = false ]; then proceeding=false
+  # Check if framework directory is a cloned Github repository
+  if d___path_is_gh_clone "$udst" "$uarg"; then
+    if [ "$D__GH_METHOD" = g ]
+    then d___update_fmk_via_pull; return $?
     else
-      # Prompt
-      dprint_ode "${D__ODE_PROMPT[@]}" -- '' 'Confirm' ': '
-      dprompt --bare && proceeding=true || proceeding=false
+      d__notify -lxt 'Unable to update' -- 'Framework is a clone' \
+        'of Github remote, but Git is currently not available on the system'
+      printf >&2 '%s %s\n' "$D__INTRO_UPD_2" "$uplq"
+      return 1
     fi
+  else
+    if [ "$D__GH_METHOD" = g ]
+    then d___upgrade_fmk_to_git; return $?
+    else d___crude_update_fmk; return $?; fi
+  fi
+}
 
-    # Check if still updating at this point
-    if ! $proceeding; then
-      # Announce and skip
-      dprint_ode "${D__ODE_NORMAL[@]}" -c "$WHITE" -- \
-        '---' 'Skipped updating' ':' "Dpls repo '$dpl_repo'"
-      all_updated=false
-      all_failed=false
-      continue
+d___update_fmk_via_pull()
+{
+  # Notify and perform excellently
+  d__notify -- 'Updating by pulling from Github remote'
+  if ! d___pull_updates_from_gh "$uarg" "$udst"; then
+    d__notify -lx -- "Failed to pull updates from Github remote"
+    printf >&2 '%s %s\n' "$D__INTRO_UPD_1" "$uplq"; return 1
+  fi
+  printf >&2 '%s %s\n' "$D__INTRO_UPD_0" "$uplq"; return 0
+}
+
+d___upgrade_fmk_to_git()
+{
+  # Announce; compose destination path; print location
+  d__notify -l! -- 'Replacing current framework copy with Github clone' \
+    -i- -t- 'Repo URL' "https://github.com/$uarg" \
+    -n- 'Current framework directory will be kept'
+
+  # Conditionally prompt for user's approval
+  if [ "$D__OPT_ANSWER" != true ]; then
+    printf >&2 '%s ' "$D__INTRO_CNF_N"
+    if ! d__prompt -b
+    then printf >&2 '%s %s\n' "$D__INTRO_UPD_S" "$uplq"; return 2; fi
+  fi
+
+  # Pull the repository into the temporary directory
+  utmp="$(mktemp -d)"; d___clone_gh_repo "$uarg" "$utmp"
+  if (($?)); then
+    printf >&2 '%s %s\n' "$D__INTRO_UPD_1" "$uplq"
+    rm -rf -- "$utmp"; return 1
+  fi
+
+  # Back up previous framework directory (and capture backup path)
+  local d__bckp=; if ! d__push_backup -- "$udst" "$udst.bak"; then
+    d__notify -lx -- 'Failed to back up old framework directory'
+    printf >&2 '%s %s\n' "$D__INTRO_UPD_1" "$uplq"
+    rm -rf -- "$utmp"; return 1
+  fi
+
+  # Move the retrieved framework clone into place
+  if ! mv -n -- "$utmp" "$udst"; then
+    d__notify -lx -- 'Failed to move framework clone into place'
+    printf >&2 '%s %s\n' "$D__INTRO_UPD_1" "$uplq"
+    rm -rf -- "$utmp"; return 1
+  fi
+
+  # Return Grail and state directories
+  local erra=() src="$d__bckp/grail" dst="$udst/grail"
+  if ! mv -n -- "$src" "$dst"
+  then erra+=( -i- "- Grail directory" ); fi
+  src="$d__bckp/state" dst="$udst/state"
+  if ! mv -n -- "$src" "$dst"
+  then erra+=( -i- "- state directory" ); fi
+  if ((${#erra[@]})); then
+    d__notify -lx -- 'Failed to restore directories after upgrading' \
+      'framework to Github clone:' "${erra[@]}"
+    d__notify l! -- 'Please, move the directories manually from:' \
+      -i- "$d__bckp" -n- 'to:' -i- "$udst"
+    printf >&2 '%s %s\n' "$D__INTRO_UPD_1" "$uplq"
+    return 0
+  fi
+
+  # Report success
+  printf >&2 '%s %s\n' "$D__INTRO_UPD_0" "$uplq"
+  return 0
+}
+
+d___crude_update_fmk()
+{
+  # Only proceed in force mode
+  if $D__OPT_FORCE; then
+    printf >&2 '%s %s\n' "$D__INTRO_UPD_F" "$uplq"
+  else
+    d__notify -l! -- 'The only avenue of updating framework seems to be' \
+      'to re-download a new copy from Github'
+    d__notify -l! -- "Re-try with --force to perform such 'crude' update"
+    printf >&2 '%s %s\n' "$D__INTRO_UPD_2" "$uplq"
+    return 1
+  fi
+
+  # Announce; compose destination path; print location
+  d__notify -l! -- 'Downloading a new copy of the framework from Github' \
+    -i- -t- 'Repo URL' "https://github.com/$uarg" \
+    -n- 'Current framework directory will be kept'
+
+  # Conditionally prompt for user's approval
+  printf >&2 '%s ' "$D__INTRO_CNF_U"
+  if ! d__prompt -b
+  then printf >&2 '%s %s\n' "$D__INTRO_UPD_S" "$uplq"; return 2; fi
+
+  # Pull the repository into the temporary directory
+  utmp="$(mktemp -d)"; case $D__GH_METHOD in
+    c)  d___curl_gh_repo "$uarg" "$utmp";;
+    w)  d___wget_gh_repo "$uarg" "$utmp";;
+  esac
+  if (($?)); then
+    printf >&2 '%s %s\n' "$D__INTRO_UPD_1" "$uplq"
+    rm -rf -- "$utmp"; return 1
+  fi
+
+  # Back up previous framework directory (and capture backup path)
+  local d__bckp=; if ! d__push_backup -- "$udst" "$udst.bak"; then
+    d__notify -lx -- 'Failed to back up old framework directory'
+    printf >&2 '%s %s\n' "$D__INTRO_UPD_1" "$uplq"
+    rm -rf -- "$utmp"; return 1
+  fi
+
+  # Move the retrieved framework copy into place
+  if ! mv -n -- "$utmp" "$udst"; then
+    d__notify -lx -- 'Failed to move new framework copy into place'
+    printf >&2 '%s %s\n' "$D__INTRO_UPD_1" "$uplq"
+    rm -rf -- "$utmp"; return 1
+  fi
+
+  # Return Grail and state directories
+  local erra=() src="$d__bckp/grail" dst="$udst/grail"
+  if ! mv -n -- "$src" "$dst"
+  then erra+=( -i- "- Grail directory" ); fi
+  src="$d__bckp/state" dst="$udst/state"
+  if ! mv -n -- "$src" "$dst"
+  then erra+=( -i- "- state directory" ); fi
+  if ((${#erra[@]})); then
+    d__notify -lx -- "Failed to restore directories after 'crudely' updating" \
+      'framework:' "${erra[@]}"
+    d__notify l! -- 'Please, move the directories manually from:' \
+      -i- "$d__bckp" -n- 'to:' -i- "$udst"
+    printf >&2 '%s %s\n' "$D__INTRO_UPD_1" "$uplq"
+    return 0
+  fi
+
+  # Report success
+  printf >&2 '%s %s\n' "$D__INTRO_UPD_0" "$uplq"
+  return 0
+}
+
+d___update_grl()
+{
+  # Print a separating empty line; compose task name
+  printf >&2 '\n'; uplq="The ${BOLD}Grail$NORMAL directory"
+
+  # Cut-off checks
+  if ! $ugrl; then
+    printf >&2 '%s %s\n' "$D__INTRO_UPD_S" "(not selected) $uplq"
+    return 3
+  fi
+  if ! [ "$D__GH_METHOD" = g ]; then
+    d__notify -lx -- 'Unable to check status of Grail directory' \
+      'because current system does not have Git'
+    return 1
+  fi
+
+  # Print intro
+  printf >&2 '%s %s\n' "$D__INTRO_UPD_N" "$uplq"
+
+  # Check if framework directory is a git repository
+  if ! git ls-remote "$D__DIR_GRAIL" -q &>/dev/null; then
+    d__notify -ls -- 'Grail directory is not a Git repository'
+    printf >&2 '%s %s\n' "$D__INTRO_UPD_S" "$uplq"
+    return 3
+  fi
+
+  # Check if Grail directory is accessible
+  if ! pushd -- "$D__DIR_GRAIL" &>/dev/null; then
+    d__notify -lx -- 'Grail directory is inaccessible'
+    printf >&2 '%s %s\n' "$D__INTRO_UPD_1" "$uplq"
+    return 1
+  fi
+
+  # Check if Grail repository has 'origin' remote
+  if ! git remote 2>/dev/null | grep -Fxq origin &>/dev/null; then
+    d__notify -lx -- 'Grail repository does not have a remote to pull from'
+    printf >&2 '%s %s\n' "$D__INTRO_UPD_S" "$uplq"
+    popd &>/dev/null; return 3
+  fi
+
+  # Conditionally prompt for user's approval
+  if [ "$D__OPT_ANSWER" != true ]; then
+    printf >&2 '%s ' "$D__INTRO_CNF_N"
+    if ! d__prompt -b
+    then
+      printf >&2 '%s %s\n' "$D__INTRO_UPD_S" "$uplq"
+      popd &>/dev/null; return 2
     fi
+  fi
 
-    # If github is not available, no updating
-    if ! $GITHUB_AVAILABLE; then
-      dprint_debug 'Unable to update: missing necessary tools'
-    else
-      # Do update proper
-      if d__update_dpl_repo_via_git "$dpl_repo" \
-        || d__update_dpl_repo_via_tar "$dpl_repo"
-      then
-        dprint_ode "${D__ODE_NORMAL[@]}" -c "$GREEN" -- \
-          'vvv' 'Updated' ':' "Dpls repo '$dpl_repo'"
-        all_failed=false
-        all_skipped=false
-        continue
-      fi
-    fi
+  # Pull and rebase with verbosity in mind
+  d__notify -- 'Updating by pulling from Git remote'
+  if (($D__OPT_VERBOSITY)); then local d__ol
+    git pull --rebase --stat origin master 2>&1 \
+      | while IFS= read -r d__ol || [ -n "$d__ol" ]
+        do printf >&2 '%s\n' "${CYAN}$d__ol${NORMAL}"; done
+  else git pull --rebase --stat origin master &>/dev/null; fi
 
-    # If gotten here: not updated
-    dprint_ode "${D__ODE_NORMAL[@]}" -c "$RED" -- \
-      'xxx' 'Failed to update' ':' "Dpls repo '$dpl_repo'"
-    all_updated=false
-    all_skipped=false
-    some_failed=true
-    
+  # Check status
+  if ((${PIPESTATUS[0]})); then
+    d__notify -lx -- 'Git returned error code while pulling from remote into' \
+      'Grail repository'
+    printf >&2 '%s %s\n' "$D__INTRO_UPD_1" "$uplq"
+    popd &>/dev/null; return 1
+  fi
+
+  # Report success
+  printf >&2 '%s %s\n' "$D__INTRO_UPD_0" "$uplq"
+  popd &>/dev/null; return 0
+}
+
+d___update_bdls()
+{
+  # If not updating bundles, skip gracefully
+  if ! $ubdl; then
+    printf >&2 '\n%s %s\n' "$D__INTRO_UPD_S" \
+      "(not selected) Attached ${BOLD}bundles$NORMAL"
+    uanyn=true; return 0
+  fi
+
+  # If list of bundles is empty, then there are certainly no attached bundles
+  if [ ${#ubdla[@]} -eq 0 ]; then
+    printf >&2 '\n%s %s\n' "$D__INTRO_UPD_S" \
+      "There are no attached ${BOLD}bundles$NORMAL"
+    uanyn=true; return 0
+  fi
+
+  # Update bundles sequentially
+  for uarg in "${ubdla[@]}"; do
+    d___update_bdl
+    case $? in 0) uanys=true;; 1) uanyf=true;; 2) uanyd=true;; esac
   done
-
-  # Report
-  if $all_updated; then return 0
-  elif $all_skipped; then return 3
-  elif $all_failed; then return 2
-  elif $some_failed; then 1
-  else return 0; fi
 }
 
-#>  d__detect_updating_options
-#
-## Analyzes current system environment and fills relevant global variables
-#
-## Returns:
-#.  0 - Always
-#
-d__detect_updating_options()
+d___update_bdl()
 {
-  # Initialize global status variables
-  UPDATING_FMWK=false
-  UPDATING_DPLS=false
-  UPDATING_GRAIL=false
-  GIT_AVAILABLE=true
-  GITHUB_AVAILABLE=true
+  # Print a separating empty line; compose task name
+  printf >&2 '\n'; uplq="Bundle '$BOLD$uarg$NORMAL'"
 
-  # Check if there are any arguments provided to the script
-  if [ "$D__OPT_ANSWER" = false ]; then
+  # Print intro
+  printf >&2 '%s %s\n' "$D__INTRO_UPD_N" "$uplq"
 
-    # Updating nothing
-    UPDATING_FMWK=false
-    UPDATING_DPLS=false
-    UPDATING_GRAIL=false
-
-  elif [ ${#D__REQ_ARGS[@]} -eq 0 ]; then
-    
-    # No arguments: update everything
-    UPDATING_FMWK=true
-    UPDATING_DPLS=true
-    UPDATING_GRAIL=true
-
+  # Accept one of two patterns: 'builtin_repo_name' and 'username/repo'
+  if [[ $uarg =~ ^[0-9A-Za-z_.-]+$ ]]
+  then uarg="no-simpler/divine-bundle-$uarg"
+  elif [[ $uarg =~ ^[0-9A-Za-z_.-]+/[0-9A-Za-z_.-]+$ ]]; then :
   else
-
-    # Iterate over arguments to figure out what to update
-    local arg
-    for arg in "${D__REQ_ARGS[@]}"; do
-      case $arg in
-        a|all)                    UPDATING_FMWK=true
-                                  UPDATING_DPLS=true
-                                  UPDATING_GRAIL=true;;
-        f|fmwk|framework)         UPDATING_FMWK=true;;
-        d|dpl|dpls|deployments)   UPDATING_DPLS=true;;
-        g|grail)                  UPDATING_GRAIL=true;;
-        *)                        :;;
-      esac
-    done
-
+    d__notify -lx -- "Invalid bundle identifier '$uarg'"
+    printf >&2 '%s %s\n' "$D__INTRO_UPD_2" "$uplq"; return 1
   fi
 
-  # Check if necessary tools are available and offer to install them
-  if ! git --version &>/dev/null; then
-
-    # Inform of the issue
-    dprint_debug 'Failed to detect git' \
-        -n 'Updates via git pull will not be available'
-    GIT_AVAILABLE=false
-    
+  # Ensure that the remote repository exists
+  if ! d___gh_repo_exists "$uarg"; then
+    d__notify -lx -- "Github repository '$uarg' does not appear to exist"
+    printf >&2 '%s %s\n' "$D__INTRO_UPD_2" "$uplq"; return 1
   fi
 
+  # Compose destination path; print location
+  udst="$D__DIR_BUNDLES/$uarg"
+  d__notify -q -- "Repo URL: https://github.com/$uarg"
+  d__notify -q -- "Location: $udst"
+
+  # Check if bundle directory is a cloned Github repository
+  if d___path_is_gh_clone "$udst" "$uarg"; then
+    if [ "$D__GH_METHOD" = g ]
+    then d___update_bdl_via_pull; return $?
+    else
+      d__notify -lxt 'Unable to update' -- 'Bundle is a clone' \
+        'of Github remote, but Git is currently not available on the system'
+      printf >&2 '%s %s\n' "$D__INTRO_UPD_2" "$uplq"
+      return 1
+    fi
+  else
+    if [ "$D__GH_METHOD" = g ]
+    then d___upgrade_bdl_to_git; return $?
+    else d___crude_update_bdl; return $?; fi
+  fi
+}
+
+d___update_bdl_via_pull()
+{
+  # Notify and perform excellently
+  d__notify -- 'Updating by pulling from Github remote'
+  if ! d___pull_updates_from_gh "$uarg" "$udst"; then
+    d__notify -lx -- "Failed to pull updates from Github remote"
+    printf >&2 '%s %s\n' "$D__INTRO_UPD_1" "$uplq"; return 1
+  fi
+  printf >&2 '%s %s\n' "$D__INTRO_UPD_0" "$uplq"; return 0
+}
+
+d___upgrade_bdl_to_git()
+{
+  # Announce; compose destination path; print location
+  d__notify -l! -- 'Replacing current bundle copy with Github clone' \
+    -i- -t- 'Repo URL' "https://github.com/$uarg" \
+    -n- "Current bundle directory will be kept"
+
+  # Conditionally prompt for user's approval
+  if [ "$D__OPT_ANSWER" != true ]; then
+    printf >&2 '%s ' "$D__INTRO_CNF_N"
+    if ! d__prompt -b
+    then printf >&2 '%s %s\n' "$D__INTRO_UPD_S" "$uplq"; return 2; fi
+  fi
+
+  # Pull the repository into the temporary directory
+  utmp="$(mktemp -d)"; d___clone_gh_repo "$uarg" "$utmp"
+  if (($?)); then
+    printf >&2 '%s %s\n' "$D__INTRO_UPD_1" "$uplq"
+    rm -rf -- "$utmp"; return 1
+  fi
+
+  # Back up previous bundle directory
+  if ! d__push_backup -- "$udst" "$D__DIR_BUNDLE_BACKUPS/$uarg.bak"; then
+    d__notify -lx -- 'Failed to back up old bundle directory'
+    printf >&2 '%s %s\n' "$D__INTRO_UPD_1" "$uplq"
+    rm -rf -- "$utmp"; return 1
+  fi
+
+  # Move the retrieved bundle clone into place
+  if ! mv -n -- "$utmp" "$udst"; then
+    d__notify -lx -- 'Failed to move bundle clone into place'
+    printf >&2 '%s %s\n' "$D__INTRO_UPD_1" "$uplq"
+    rm -rf -- "$utmp"; return 1
+  fi
+
+  # Report success
+  printf >&2 '%s %s\n' "$D__INTRO_UPD_0" "$uplq"
   return 0
 }
 
-#>  d__update_fmwk_via_git
-#
-## Tries to pull & rebase from remote Github repo
-#
-## Returns:
-#.  0 - Successfully updated
-#.  1 - Otherwise
-#
-d__update_fmwk_via_git()
+d___crude_update_bdl()
 {
-  # Check if git has been previously detected as unavailable
-  $GIT_AVAILABLE || {
-    dprint_debug 'Unable to update via git'
-    return 1
-  }
-
-  # Check if $D__DIR_FMWK is a git repo
-  if ! git ls-remote "$D__DIR_FMWK" -q &>/dev/null; then
-
-    # Announce
-    dprint_debug 'Not a git repository:' -i "$D__DIR_FMWK" -n \
-      'Attempting to clobber existing directory and clone repository instead'
-
-    # Store location of Divine.dotfiles repository
-    local user_repo="no-simpler/divine-dotfiles"
-
-    # Check if Divine.dotfiles repository is accessible
-    if ! git ls-remote "https://github.com/${user_repo}.git" -q &>/dev/null
-    then
-
-      # Announce and return failure
-      dprint_debug 'Github repo is inaccessible at:' \
-        -i "https://github.com/${user_repo}"
-      return 1
-    
-    fi
-
-    # Make temporary destination for grail and state dirs
-    local temp_dir="$( mktemp -d )" moved_successfully=true
-
-    # Move Grail dir to temp location
-    if [ -d "$D__DIR_GRAIL" ]; then
-      if ! mv -n -- "$D__DIR_GRAIL" "$temp_dir/grail" &>/dev/null; then
-        moved_successfully=false
-      fi
-    fi
-    
-    # Move state dir to temp location
-    if [ -d "$D__DIR_STATE" ]; then
-      if ! mv -n -- "$D__DIR_STATE" "$temp_dir/state" &>/dev/null; then
-        moved_successfully=false
-      fi
-    fi
-
-    # Check if moved successfully
-    if ! $moved_successfully; then
-
-      # Announce and return failure
-      dprint_failure \
-        'Failed to move Grail and/or state directories to temp location at:' \
-        -i "$temp_dir" -n 'Please, see to them manually'
-      exit 1
-
-    fi
-    
-    # Remove framework directory entirely
-    if ! rm -rf -- "$D__DIR_FMWK"; then
-
-      # Announce and return failure
-      dprint_debug \
-        'Failed to clobber current non-git framework directory at:' \
-        -i "$D__DIR_FMWK"
-      return 1
-
-    fi
-
-    # Create empty directory instead
-    if ! mkdir -p -- "$D__DIR_FMWK"; then
-
-      # Announce and return total loss (shouldn't happen really)
-      dprint_failure \
-        'Failed to create empty directory for git-controlled framework:' \
-        -i "$D__DIR_FMWK" \
-        -n 'Divine.dotfiles installation is fatally damaged!'
-      return 1
-  
-    fi
-
-    # Make shallow clone of repository
-    if git clone --depth=1 "https://github.com/${user_repo}.git" \
-      "$D__DIR_FMWK" &>/dev/null
-    then
-
-      # Move Grail dir back from temp location
-      if [ -d "$temp_dir/grail" ]; then
-        if ! mv -n -- "$temp_dir/grail" "$D__DIR_GRAIL" &>/dev/null; then
-          moved_successfully=false
-        fi
-      fi
-      
-      # Move state dir back from temp location
-      if [ -d "$temp_dir/state" ]; then
-        if ! mv -n -- "$temp_dir/state" "$D__DIR_STATE" &>/dev/null; then
-          moved_successfully=false
-        fi
-      fi
-
-      # Check if moved successfully
-      if $moved_successfully; then
-
-        # Remove temp dir for good measure
-        rm -rf -- "$temp_dir"
-
-      else
-
-        # Announce failure but continue normally
-        dprint_failure \
-          'Failed to restore Grail and/or state directories' \
-          'from temp location at:' \
-          -i "$temp_dir" -n 'Please, see to them manually'
-
-      fi
-
-      # Announce success
-      dprint_debug 'Successfully cloned Github repo at:' \
-        -i "https://github.com/${user_repo}" \
-        -n "to: $D__DIR_FMWK"
-      return 0
-
-    else
-
-      # Announce and return total loss (shouldn't happen really)
-      dprint_failure \
-        'Failed to clone Github repo at:' \
-        -i "https://github.com/${user_repo}" \
-        -n "to: $D__DIR_FMWK" \
-        -n 'Divine.dotfiles installation is fatally damaged!'
-      return 1
-
-    fi
-
-  fi
-
-  # Change into $D__DIR_FMWK
-  cd -- "$D__DIR_FMWK" || {
-    dprint_debug "Unable to cd into $D__DIR_FMWK"
-    return 1
-  }
-
-  # Pull and rebase and check for errors (control verbosity)
-  if $D__OPT_QUIET; then
-
-    # Pull and rebase quietly
-    git pull --rebase --stat origin master &>/dev/null && return 0 || return 1
-
+  # Only proceed in force mode
+  if $D__OPT_FORCE; then
+    printf >&2 '%s %s\n' "$D__INTRO_UPD_F" "$uplq"
   else
-
-    # Pull and rebase normally, but re-paint output
-    local d__ol
-    git pull --rebase --stat origin master 2>&1 \
-      | while IFS= read -r d__ol || [ -n "$d__ol" ]; do
-      printf >&2 "${CYAN}==> %s${NORMAL}\n" "$d__ol"
-    done
-
-    # Check return status
-    if [ "${PIPESTATUS[0]}" -eq 0 ]; then
-      dprint_debug 'Successfully pulled from Github repo to:' \
-        -i "$D__DIR_FMWK"
-      return 0
-    else
-      dprint_debug 'There was an error while pulling from Github repo to:' \
-        -i "$D__DIR_FMWK"
-      return 1
-    fi
-
-  fi
-}
-
-#>  d__update_grail_via_git
-#
-## Tries to pull & rebase from remote git repo
-#
-## Returns:
-#.  0 - Successfully updated
-#.  1 - Otherwise
-#
-d__update_grail_via_git()
-{
-  # Change into $D__DIR_GRAIL
-  cd -- "$D__DIR_GRAIL" || {
-    dprint_debug "Unable to cd into $D__DIR_GRAIL"
-    return 1
-  }
-
-  # Pull and rebase and check for errors (control verbosity)
-  if $D__OPT_QUIET; then
-
-    # Pull and rebase quietly
-    git pull --rebase --stat origin master &>/dev/null && return 0 || return 1
-
-  else
-
-    # Pull and rebase normally, but re-paint output
-    local d__ol
-    git pull --rebase --stat origin master 2>&1 \
-      | while IFS= read -r d__ol || [ -n "$d__ol" ]; do
-      printf >&2 "${CYAN}==> %s${NORMAL}\n" "$d__ol"
-    done
-
-    # Check return status
-    if [ "${PIPESTATUS[0]}" -eq 0 ]; then
-      dprint_debug 'Successfully pulled from remote to:' \
-        -i "$D__DIR_GRAIL"
-      return 0
-    else
-      dprint_debug 'There was an error while pulling from remote to:' \
-        -i "$D__DIR_GRAIL"
-      return 1
-    fi
-
-  fi
-}
-
-#>  d__update_fmwk_via_tar
-#
-## Prompts, then tries to download Github tarball and extract it over existing 
-#. files
-#
-## Returns:
-#.  0 - Successfully updated
-#.  1 - Otherwise
-#
-d__update_fmwk_via_tar()
-{
-  # Only attempt 'crude' update with --force option
-  if ! $D__OPT_FORCE; then
-    dprint_debug \
-      "'Crude' update (downloading repo) is only available with --force option"
+    d__notify -l! -- "The only avenue of updating bundle '$uarg' seems to be" \
+      'to re-download a new copy from Github'
+    d__notify -l! -- "Re-try with --force to perform such 'crude' update"
+    printf >&2 '%s %s\n' "$D__INTRO_UPD_2" "$uplq"
     return 1
   fi
 
-  # Set user/repository to download from
-  local user_repo='no-simpler/divine-dotfiles'
+  # Announce; compose destination path; print location
+  d__notify -l! -- 'Downloading a new copy of the bundle from Github' \
+    -i- -t- 'Repo URL' "https://github.com/$uarg" \
+    -n- "Current bundle directory will be kept"
 
-  # Compose temporary destination directory
-  local temp_dest="$( mktemp -d )"
+  # Conditionally prompt for user's approval
+  printf >&2 '%s ' "$D__INTRO_CNF_U"
+  if ! d__prompt -b
+  then printf >&2 '%s %s\n' "$D__INTRO_UPD_S" "$uplq"; return 2; fi
 
-  # Prompt user
-  if ! dprompt --bare -p 'Attempt to download?' -a "$D__OPT_ANSWER" -- \
-    'It is possible to download a fresh copy of Divine.dotfiles from:' \
-    -i "https://github.com/${user_repo}" \
-    -n 'and overwrite files in your framework directory at:' -i "$D__DIR_FMWK" \
-    -n "thus performing a 'crude' update"
-  then
-    dprint_debug "Refused to perform 'crude' update"
-    return 1
+  # Pull the repository into the temporary directory
+  utmp="$(mktemp -d)"; case $D__GH_METHOD in
+    c)  d___curl_gh_repo "$uarg" "$utmp";;
+    w)  d___wget_gh_repo "$uarg" "$utmp";;
+  esac
+  if (($?)); then
+    printf >&2 '%s %s\n' "$D__INTRO_UPD_1" "$uplq"
+    rm -rf -- "$utmp"; return 1
   fi
 
-  # Attempt curl and Github API
-  if grep -q 200 < <( curl -I "https://api.github.com/repos/${user_repo}" \
-    2>/dev/null | head -1 ); then
-
-    # Both curl and remote repo are available
-
-    # Download and untar in one fell swoop
-    curl -sL "https://api.github.com/repos/${user_repo}/tarball" \
-      | tar --strip-components=1 -C "$temp_dest" -xzf -
-    
-    # Check status
-    [ $? -eq 0 ] || {
-      # Announce failure to download
-      dprint_debug \
-        'Failed to download (curl) or extract tarball repository at:' \
-        -i "https://api.github.com/repos/${user_repo}/tarball" \
-        -n 'to temporary directory at:' -i "$temp_dest"
-      # Try to clean up
-      rm -rf -- "$temp_dest"
-      # Return
-      return 1
-    }
-  
-  # Attempt wget and Github API
-  elif grep -q 200 < <( wget -q --spider --server-response \
-    "https://api.github.com/repos/${user_repo}" 2>&1 | head -1 ); then
-
-    # Both wget and remote repo are available
-
-    # Download and untar in one fell swoop
-    wget -qO - "https://api.github.com/repos/${user_repo}/tarball" \
-      | tar --strip-components=1 -C "$temp_dest" -xzf -
-    
-    # Check status
-    [ $? -eq 0 ] || {
-      # Announce failure to download
-      dprint_debug \
-        'Failed to download (wget) or extract tarball repository at:' \
-        -i "https://api.github.com/repos/${user_repo}/tarball" \
-        -n 'to temporary directory at:' -i "$temp_dest"
-      # Try to clean up
-      rm -rf -- "$temp_dest"
-      # Return
-      return 1
-    }
-    
-  else
-
-    # Repository is inaccessible
-    dprint_debug 'Unable to access repository at:' \
-      -i "https://github.com/${user_repo}"
-    return 1
-
+  # Back up previous bundle directory
+  if ! d__push_backup -- "$udst" "$D__DIR_BUNDLE_BACKUPS/$uarg.bak"; then
+    d__notify -lx -- 'Failed to back up old bundle directory'
+    printf >&2 '%s %s\n' "$D__INTRO_UPD_1" "$uplq"
+    rm -rf -- "$utmp"; return 1
   fi
 
-  # Prompt user for possible clobbering, and clobber if required
-  if ! dprompt --bare -p 'Overwrite files?' -a "$D__OPT_ANSWER" -- \
-    'Fresh copy of Divine.dotfiles has been downloaded to temp dir at:' \
-    -i "$temp_dest" \
-    -n 'and is ready to be copied over existing files in:' -i "$D__DIR_FMWK"
-  then
-    # Try to clean up
-    rm -rf -- "$temp_dest"
-    # Report and return
-    dprint_debug "Refused to perform 'crude' update"
-    return 1
+  # Move the retrieved bundle copy into place
+  if ! mv -n -- "$utmp" "$udst"; then
+    d__notify -lx -- 'Failed to move new bundle copy into place'
+    printf >&2 '%s %s\n' "$D__INTRO_UPD_1" "$uplq"
+    rm -rf -- "$utmp"; return 1
   fi
 
-  # Make sure directory exists
-  mkdir -p -- "$D__DIR_FMWK" || {
-    # Try to clean up
-    rm -rf -- "$temp_dest"
-    # Report and return
-    dprint_debug "Failed to create destination directory at:" \
-      -i "$D__DIR_FMWK"
-    return 1
-  }
-  
-  # Storage variables
-  local src_path rel_path tgt_path
-
-  # Copy files and directories at root level
-  while IFS= read -r -d $'\0' src_path; do
-
-    # Extract relative path
-    rel_path="${src_path#"$temp_dest/"}"
-
-    # Construct target path
-    tgt_path="$D__DIR_FMWK/$rel_path"
-
-    # Pre-erase existing file
-    if [ -e "$tgt_path" ]; then
-      rm -rf -- "$tgt_path" || {
-        # Try to clean up
-        rm -rf -- "$temp_dest"
-        # Report and return
-        dprint_debug "Failed to overwrite existing file '$rel_path' at:" \
-          -i "$tgt_path"
-        return 1
-      }
-    fi
-
-    # Move new file
-    mv -n -- "$src_path" "$tgt_path" &>/dev/null || {
-      # Try to clean up
-      rm -rf -- "$temp_dest"
-      # Report and return
-      dprint_debug "Failed to move file '$rel_path' from:" \
-          -i "$src_path" -n 'to:' -i "$tgt_path"
-      return 1
-    }
-
-  done < <( find "$temp_dest" -mindepth 1 -maxdepth 1 \
-    \( -type f -or -type d \) -print0 )
-
-  # Clean up
-  rm -rf -- "$temp_dest"
-
-  # All done: announce and return
-  dprint_debug \
-    'Successfully overwritten all Divine.dotfiles components at:' \
-    -i "$D__DIR_FMWK"
-  return 0
-}
-
-#>  d__update_dpl_repo_via_git USER_REPO
-#
-## Tries to pull & rebase from remote Github repo
-#
-## Returns:
-#.  0 - Successfully updated
-#.  1 - Otherwise
-#
-d__update_dpl_repo_via_git()
-{
-  # Check if git has been previously detected as unavailable
-  $GIT_AVAILABLE || {
-    dprint_debug 'Unable to update via git'
-    return 1
-  }
-
-  # Extract path to repository being updated
-  local user_repo="$1"; shift
-  local repo_path="$D__DIR_BUNDLES/$user_repo"
-
-  # Check if dpls directory is a git repo
-  if ! git ls-remote "$repo_path" -q &>/dev/null; then
-
-    # Announce
-    dprint_debug 'Not a git repository:' -i "$repo_path" -n \
-      'Attempting to clobber existing directory and clone repository instead'
-
-    # Check if remote repository is accessible
-    if ! git ls-remote "https://github.com/${user_repo}.git" -q &>/dev/null
-    then
-
-      # Announce and return failure
-      dprint_debug 'Github repo is inaccessible at:' \
-        -i "https://github.com/${user_repo}"
-      return 1
-    
-    fi
-    
-    # Remove deployments directory entirely
-    if ! rm -rf -- "$repo_path"; then
-
-      # Announce and return failure
-      dprint_debug \
-        'Failed to clobber current non-git deployments directory at:' \
-        -i "$repo_path"
-      return 1
-
-    fi
-
-    # Create empty directory instead
-    if ! mkdir -p -- "$repo_path"; then
-
-      # Announce and return total loss (shouldn't happen really)
-      dprint_failure \
-        'Failed to create empty directory for git-controlled deployments:' \
-        -i "$repo_path" \
-        -n 'Directory of attached deployments is fatally damaged!'
-      return 1
-  
-    fi
-
-    # Make shallow clone of repository
-    if git clone --depth=1 "https://github.com/${user_repo}.git" \
-      "$repo_path" &>/dev/null
-    then
-
-      dprint_debug 'Successfully cloned Github repo at:' \
-        -i "https://github.com/${user_repo}" \
-        -n "to: $repo_path"
-      return 0
-
-    else
-
-      # Announce and return total loss (shouldn't happen really)
-      dprint_failure \
-        'Failed to clone Github repo at:' \
-        -i "https://github.com/${user_repo}" \
-        -n "to: $repo_path" \
-        -n 'Directory of attached deployments is fatally damaged!'
-      return 1
-
-    fi
-
-  fi
-
-  # Change into $repo_path
-  cd -- "$repo_path" || {
-    dprint_debug "Unable to cd into $repo_path"
-    return 1
-  }
-
-  # Pull and rebase and check for errors (control verbosity)
-  if $D__OPT_QUIET; then
-    
-    # Pull and rebase quietly
-    git pull --rebase --stat origin master &>/dev/null && return 0 || return 1
-
-  else
-
-    # Pull and rebase normally, but re-paint output
-    local d__ol
-    git pull --rebase --stat origin master 2>&1 \
-      | while IFS= read -r d__ol || [ -n "$d__ol" ]; do
-      printf >&2 "${CYAN}==> %s${NORMAL}\n" "$d__ol"
-    done
-
-    # Check return status
-    if [ "${PIPESTATUS[0]}" -eq 0 ]; then
-      dprint_debug 'Successfully pulled from remote repo to:' \
-        -i "$repo_path"
-      return 0
-    else
-      dprint_debug 'There was an error while pulling from remote repo to:' \
-        -i "$repo_path"
-      return 1
-    fi
-    
-  fi
-}
-
-#>  d__update_dpl_repo_via_tar USER_REPO
-#
-## Prompts, then tries to download Github tarball and extract it over existing 
-#. files
-#
-## Returns:
-#.  0 - Successfully updated
-#.  1 - Otherwise
-#
-d__update_dpl_repo_via_tar()
-{
-  # Only attempt 'crude' update with --force option
-  if ! $D__OPT_FORCE; then
-    dprint_debug \
-      "'Crude' update (downloading repo) is only available with --force option"
-    return 1
-  fi
-
-  # Set user/repository to download from
-  local user_repo="$1"; shift
-
-  # Compose temporary destination directory
-  local temp_dest="$( mktemp -d )"
-
-  # Compose permanent destination directory
-  local perm_dest="$D__DIR_BUNDLES/$user_repo"
-
-  # Prompt user
-  if ! dprompt --bare -p 'Attempt to download?' -a "$D__OPT_ANSWER" -- \
-    'It is possible to download a fresh copy of deployments from:' \
-    -i "https://github.com/${user_repo}" \
-    -n 'and overwrite files in your directory at:' -i "$perm_dest" \
-    -n "thus performing a 'crude' update"
-  then
-    dprint_debug "Refused to perform 'crude' update"
-    return 1
-  fi
-
-  # Attempt curl and Github API
-  if grep -q 200 < <( curl -I "https://api.github.com/repos/${user_repo}" \
-    2>/dev/null | head -1 ); then
-
-    # Both curl and remote repo are available
-
-    # Download and untar in one fell swoop
-    curl -sL "https://api.github.com/repos/${user_repo}/tarball" \
-      | tar --strip-components=1 -C "$temp_dest" -xzf -
-    
-    # Check status
-    [ $? -eq 0 ] || {
-      # Announce failure to download
-      dprint_debug \
-        'Failed to download (curl) or extract tarball repository at:' \
-        -i "https://api.github.com/repos/${user_repo}/tarball" \
-        -n 'to temporary directory at:' -i "$temp_dest"
-      # Try to clean up
-      rm -rf -- "$temp_dest"
-      # Return
-      return 1
-    }
-  
-  # Attempt wget and Github API
-  elif grep -q 200 < <( wget -q --spider --server-response \
-    "https://api.github.com/repos/${user_repo}" 2>&1 | head -1 ); then
-
-    # Both wget and remote repo are available
-
-    # Download and untar in one fell swoop
-    wget -qO - "https://api.github.com/repos/${user_repo}/tarball" \
-      | tar --strip-components=1 -C "$temp_dest" -xzf -
-    
-    # Check status
-    [ $? -eq 0 ] || {
-      # Announce failure to download
-      dprint_debug \
-        'Failed to download (wget) or extract tarball repository at:' \
-        -i "https://api.github.com/repos/${user_repo}/tarball" \
-        -n 'to temporary directory at:' -i "$temp_dest"
-      # Try to clean up
-      rm -rf -- "$temp_dest"
-      # Return
-      return 1
-    }
-    
-  else
-
-    # Repository is inaccessible
-    dprint_debug 'Unable to access repository at:' \
-      -i "https://github.com/${user_repo}"
-    return 1
-
-  fi
-
-  # Prompt user for possible clobbering, and clobber if required
-  if ! dprompt --bare -p 'Overwrite files?' -a "$D__OPT_ANSWER" -- \
-    'Fresh copy of repository has been downloaded to temp dir at:' \
-    -i "$temp_dest" \
-    -n 'and is ready to be copied over existing files in:' -i "$perm_dest"
-  then
-    # Try to clean up
-    rm -rf -- "$temp_dest"
-    # Report and return
-    dprint_debug "Refused to perform 'crude' update"
-    return 1
-  fi
-
-  # Make sure directory exists
-  mkdir -p -- "$D__DIR_BUNDLES/$user_repo" || {
-    # Try to clean up
-    rm -rf -- "$temp_dest"
-    # Report and return
-    dprint_debug "Failed to create destination directory at:" \
-      -i "$D__DIR_BUNDLES/$user_repo"
-    return 1
-  }
-
-  # Storage variables
-  local src_path rel_path tgt_path
-
-  # Copy files and directories at root level
-  while IFS= read -r -d $'\0' src_path; do
-
-    # Extract relative path
-    rel_path="${src_path#"$temp_dest/"}"
-
-    # Construct target path
-    tgt_path="$D__DIR_BUNDLES/$user_repo/$rel_path"
-
-    # Pre-erase existing file
-    if [ -e "$tgt_path" ]; then
-      rm -rf -- "$tgt_path" || {
-        # Try to clean up
-        rm -rf -- "$temp_dest"
-        # Report and return
-        dprint_debug "Failed to overwrite existing file '$rel_path' at:" \
-          -i "$tgt_path"
-        return 1
-      }
-    fi
-
-    # Move new file
-    mv -n -- "$src_path" "$tgt_path" &>/dev/null || {
-      # Try to clean up
-      rm -rf -- "$temp_dest"
-      # Report and return
-      dprint_debug "Failed to move file '$rel_path' from:" \
-          -i "$src_path" -n 'to:' -i "$tgt_path"
-      return 1
-    }
-
-  done < <( find "$temp_dest" -mindepth 1 -maxdepth 1 \
-    \( -type f -or -type d \) -print0 )
-
-  # Clean up
-  rm -rf -- "$temp_dest"
-
-  # All done: announce and return
-  dprint_debug \
-    'Successfully overwritten all deployment files at:' \
-    -i "$D__DIR_BUNDLES/$user_repo"
+  # Report success
+  printf >&2 '%s %s\n' "$D__INTRO_UPD_0" "$uplq"
   return 0
 }
 
