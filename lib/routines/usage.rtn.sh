@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: usage
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.12
-#:revremark:    Load print-colors for usage tip
+#:revdate:      2019.10.14
+#:revremark:    Implement robust dependency loading system
 #:created_at:   2018.03.25
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -13,7 +13,11 @@
 ## Shows usage note and exits the script
 #
 
-#>  d__show_usage_and_exit
+# Marker and dependencies
+readonly D__RTN_USAGE=loaded
+d__load procedure print-colors
+
+#>  d__rtn_usage
 #
 ## Shows usage tip end exits with code 1
 #
@@ -23,11 +27,8 @@
 ## Returns:
 #.  1 - (script exit) Always
 #
-d__show_usage_and_exit()
+d__rtn_usage()
 {
-  # Add coloring
-  d__load procedure print-colors
-
   local usage_tip; read -r -d '' usage_tip << EOF
 ${BOLD}${D__FMWK_NAME}${NORMAL} usage:
 
@@ -49,4 +50,4 @@ EOF
   exit 1
 }
 
-d__show_usage_and_exit
+d__rtn_usage

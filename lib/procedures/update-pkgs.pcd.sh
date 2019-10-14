@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.14
-#:revremark:    Fix minor typo, pt. 3
+#:revremark:    Implement robust dependency loading system
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -13,7 +13,12 @@
 ## Updates currently installed system packages.
 #
 
-#>  d__update_pkgs
+# Marker and dependencies
+readonly D__PCD_UPDATE_PKGS=loaded
+d__load util workflow
+d__load procedure detect-os
+
+#>  d__pcd_update_pkgs
 #
 ## Shared subroutine that runs update+upgrade process on the detected system 
 #. package manager.
@@ -21,7 +26,7 @@
 ## Returns:
 #.  0 - Always
 #
-d__update_pkgs()
+d__pcd_update_pkgs()
 {
   # Cut-off checks
   local d__rsn=()
@@ -76,4 +81,4 @@ d__update_pkgs()
   fi
 }
 
-d__update_pkgs
+d__pcd_update_pkgs

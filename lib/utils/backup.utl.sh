@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.14
-#:revremark:    Fix minor typo, pt. 3
+#:revremark:    Implement robust dependency loading system
 #:created_at:   2019.09.18
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -16,14 +16,15 @@
 ## Optionless versions of the functions in this file strive for zero data loss: 
 #. nothing is erased, everything is backed up.
 #
-## This file depends on:
-#.  * workflow.utl.sh
-#.  * dep-checks.pcd.sh: for the dmd5 function
-#
 ## Summary of functions in this file:
 #>  d__push_backup [--] ORIG_PATH [BACKUP_PATH]
 #>  d__pop_backup [-de]... [--] ORIG_PATH [BACKUP_PATH]
 #
+
+# Marker and dependencies
+readonly D__UTL_BACKUP=loaded
+d__load util workflow
+d__load procedure prep-md5
 
 #>  d__push_backup [--] ORIG_PATH [BACKUP_PATH]
 #

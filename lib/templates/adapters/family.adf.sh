@@ -2,8 +2,8 @@
 #:title:        Divine.dotfiles template OS family adapter
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.12
-#:revremark:    Fix minor typo, pt. 2
+#:revdate:      2019.10.14
+#:revremark:    Implement robust dependency loading system
 #:created_at:   2019.06.04
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -14,7 +14,7 @@
 ## For a particular OS family to be supported, detection code must be added to 
 #. lib/procedures/detect-os.pcd.sh.
 #
-## For the adapter file to be recognized, it must be named 'FAMILY.adp.sh', and 
+## For the adapter file to be recognized, it must be named 'FAMILY.add.sh', and 
 #. placed in the lib/adapters/family directory, where 'FAMILY' must be the same 
 #. as the handle assigned to the $D__OS_FAMILY variable during OS detection.
 #

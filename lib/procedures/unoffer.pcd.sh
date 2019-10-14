@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.14
-#:revremark:    Fix minor typo, pt. 3
+#:revremark:    Implement robust dependency loading system
 #:created_at:   2019.10.13
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -14,7 +14,12 @@
 #. This is understood to be a part of the framework uninstallation process.
 #
 
-#>  d__uninstall_all_offered_utils
+# Marker and dependencies
+readonly D__PCD_UNOFFER=loaded
+d__load util workflow
+d__load procedure detect-os
+
+#>  d__pcd_unoffer
 #
 ## Removes previously offered (and thus installed) optional dependencies using 
 #. the system package manager.
@@ -24,7 +29,7 @@
 #.      where there are no records of optional installations.
 #.  1 - Otherwise.
 #
-d__uninstall_all_offered_utils()
+d__pcd_unoffer()
 {
   # Switch context; init storage variable
   d__context -- notch
@@ -72,7 +77,7 @@ d__uninstall_all_offered_utils()
 ## INTERNAL USE ONLY
 #
 ## Uninstalls previously offered (and thus installed) Homebrew. Assumes the 
-#. calling context is the d__uninstall_all_offered_utils function.
+#. calling context is the d__pcd_unoffer function.
 #
 d___uninstall_homebrew()
 {
@@ -117,7 +122,7 @@ d___uninstall_homebrew()
 ## INTERNAL USE ONLY
 #
 ## Uninstalls previously offered (and thus installed) utility using the package 
-#. manager. Assumes the calling context is the d__uninstall_all_offered_utils 
+#. manager. Assumes the calling context is the d__pcd_unoffer 
 #. function.
 #
 d___uninstall_util()
@@ -149,4 +154,4 @@ d___uninstall_util()
   fi
 }
 
-d__uninstall_all_offered_utils
+d__pcd_unoffer

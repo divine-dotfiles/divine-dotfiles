@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.14
-#:revremark:    Fix minor typo, pt. 3
+#:revremark:    Implement robust dependency loading system
 #:created_at:   2019.05.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -12,7 +12,15 @@
 #. itself if the latter is a cloned repository.
 #
 
-#>  d__perform_update_routine
+# Marker and dependencies
+readonly D__RTN_UPDATE=loaded
+d__load util github
+d__load util backup
+d__load procedure prep-sys
+d__load procedure prep-gh
+d__load procedure sync-bundles
+
+#>  d__rtn_update
 #
 ## Performs update routine.
 #
@@ -21,24 +29,8 @@
 #.  1 - Otherwise.
 #.  1 - (script exit) Missing necessary tools.
 #
-d__perform_update_routine()
+d__rtn_update()
 {
-  # Load routine-specific utilities and helpers
-  d__load util offer
-  d__load util github
-  if ! [ "$D__OPT_ANSWER" = false ]; then
-    d__load util backup
-    d__load util manifests
-    d__load util assets
-    # d__load util items
-    d__load util scan
-  fi
-
-  # Perform initialization procedures
-  d__load procedure prep-3-gh
-  d__load procedure sync-bundles
-  # d__load procedure assemble
-
   # Ensure that there is a method for updating
   if [ -z "$D__GH_METHOD" ]; then
     d__notify -lxt 'Unable to update' -- 'Current system does not have' \
@@ -571,4 +563,4 @@ d___crude_update_bdl()
   return 0
 }
 
-d__perform_update_routine
+d__rtn_update

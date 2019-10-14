@@ -2,8 +2,8 @@
 #:title:        Divine Bash procedure: pre-flight
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.12
-#:revremark:    Fix minor typo, pt. 2
+#:revdate:      2019.10.14
+#:revremark:    Implement robust dependency loading system
 #:created_at:   2019.10.11
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -11,7 +11,10 @@
 ## Fundamental checks and fixes.
 #
 
-#>  d__pre_flight_checks
+# Marker and dependencies
+readonly D__PCD_PRE_FLIGHT=loaded
+
+#>  d__pcd_pre_flight
 #
 ## Checks major version of Bash; applies fixes as necessary; halts the script 
 #. if something smells fishy.
@@ -20,7 +23,7 @@
 #.  0 - All systems green.
 #.  1 - (script exit) Unable to work in the current environment.
 #
-d__pre_flight_checks()
+d__pcd_pre_flight()
 {
   # Set sane umask
   umask g-w,o-w
@@ -41,9 +44,9 @@ d__pre_flight_checks()
       exit 1
       ;;
   esac
-  
+
   # Return zero if gotten to here
   return 0
 }
 
-d__pre_flight_checks
+d__pcd_pre_flight

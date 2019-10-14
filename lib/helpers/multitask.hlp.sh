@@ -2,14 +2,18 @@
 #:title:        Divine Bash deployment helpers: reconcile
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.10
-#:revremark:    Fix minor typo
+#:revdate:      2019.10.14
+#:revremark:    Implement robust dependency loading system
 #:created_at:   2019.06.18
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
 #
 ## Helper functions for deployments that contain multiple sub-deployments
 #
+
+# Marker and dependencies
+readonly D__HLP_MULTITASK=loaded
+d__load util workflow
 
 d__mltsk_check()
 {

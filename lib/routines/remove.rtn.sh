@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.14
-#:revremark:    Fix minor typo, pt. 3
+#:revremark:    Implement robust dependency loading system
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -13,7 +13,26 @@
 ## Removes packages and deployments as requested
 #
 
-#>  d__perform_remove_routine
+# Marker and dependencies
+readonly D__RTN_REMOVE=loaded
+d__load util workflow
+d__load util stash
+d__load util offer
+d__load util github
+d__load util backup
+d__load util assets
+d__load util items
+d__load helper multitask
+d__load helper queue
+d__load helper link-queue
+d__load helper copy-queue
+d__load helper gh-queue
+d__load procedure prep-stash
+d__load procedure prep-gh
+d__load procedure sync-bundles
+d__load procedure assemble
+
+#>  d__rtn_remove
 #
 ## Performs removal routine, in reverse installation order
 #
@@ -25,32 +44,8 @@
 #.  0 - Routine performed
 #.  1 - Routine terminated prematurely
 #
-d__perform_remove_routine()
+d__rtn_remove()
 {
-  # Load routine-specific utilities and helpers
-  d__load util offer
-  d__load util github
-  d__load util backup
-  d__load util manifests
-  d__load util assets
-  d__load util items
-  d__load util scan
-
-  # Perform initialization procedures
-  d__load procedure prep-3-gh
-  d__load procedure sync-bundles
-  d__load procedure assemble
-  # d__load procedure process-all-assets
-
-  # Load all types of deployment helpers (unless in dry-run)
-  if ! [ "$D__OPT_ANSWER" = false ]; then
-    d__load helper multitask
-    d__load helper queue
-    d__load helper link-queue
-    d__load helper copy-queue
-    d__load helper gh-queue
-  fi
-
   # Print a separating empty line, switch context
   printf >&2 '\n'
   d__context -- notch
@@ -561,4 +556,4 @@ d___remove_dpls()
   return 0
 }
 
-d__perform_remove_routine
+d__rtn_remove

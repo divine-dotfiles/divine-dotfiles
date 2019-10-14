@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.14
-#:revremark:    Fix minor typo, pt. 3
+#:revremark:    Implement robust dependency loading system
 #:created_at:   2018.03.25
 
 ## Launches the Divine intervention
@@ -26,9 +26,6 @@ d__main()
 
   # Process received arguments
   d__parse_arguments "$@"
-
-  # Import internal dependencies
-  d__initialize_fmwk
 
   # Perform requested routine
   d__perform_routine
@@ -157,25 +154,6 @@ d__parse_arguments()
   readonly D__REQ_DPLS
 }
 
-#>  d__initialize_fmwk
-#
-## Straight-forward helper that sources internal dependencies, in order. 
-#. Terminates the script on first failing to source.
-#
-## Requires:
-#.  $D__INIT_TRAIN
-#
-## Returns:
-#.  0 - All dependencies successfully sourced.
-#.  1 - (script exit) Failed to source a dependency.
-#
-d__initialize_fmwk()
-{
-  local d__dep
-  for d__dep in "${D__INIT_TRAIN[@]}"
-  do d__load $d__dep || exit 1; done
-}
-
 #>  d__perform_routine
 #
 ## Sub-driver function
@@ -263,38 +241,56 @@ d__whereami()
 
 #>  d__load TYPE NAME
 #
-## Sources sub-script by name, deducing location by provided type.
+## Sources sub-script by type and name. Implements protection against repeated 
+#. loading. For particular types (procedures and routines), on repeated loading 
+#. simply re-launches the driver function.
 #
 ## Arguments:
 #.  $1  - Type of script:
-#.          * 'routine'
-#.          * 'procedure'
-#.          * 'util'
+#.          * 'distro-adapter'
+#.          * 'family-adapter'
 #.          * 'helper'
+#.          * 'procedure'
+#.          * 'routine'
+#.          * 'util'
 #.  $2  - Name of script file, without path or suffix.
 #
 ## Returns:
-#.  0 - Script loaded successfully.
+#.  0 - Success: script loaded/driver function called.
 #.  1 - (script exit) Otherwise.
 #
 d__load()
 {
-  # Inspect type and compose path to the script accordingly
-  local path; case $1 in
-    distro-adapter)   path="${D__DIR_LIB}/adapters/distro/${2}.adp.sh";;
-    family-adapter)   path="${D__DIR_LIB}/adapters/family/${2}.adp.sh";;
-    helper)           path="${D__DIR_LIB}/helpers/${2}.hlp.sh";;
-    procedure)        path="${D__DIR_LIB}/procedures/${2}.pcd.sh";;
-    routine)          path="${D__DIR_LIB}/routines/${2}.rtn.sh";;
-    util)             path="${D__DIR_LIB}/utils/${2}.utl.sh";;
-    *)                printf >&2 '%s: %s\n' "${FUNCNAME[0]}" \
-                        "Called with illegal type argument: '$1'"; exit 1;;
+  # Init vars; transform subject name
+  local path fn vr="$( printf '%s\n' "$2" | tr a-z- A-Z_ )"
+
+  # Perform different
+  case $1 in
+    distro-adapter)
+      vr="D__ADD_$vr" path="${D__DIR_LIB}/adapters/distro/${2}.add.sh";;
+    family-adapter)
+      vr="D__ADF_$vr" path="${D__DIR_LIB}/adapters/family/${2}.adf.sh";;
+    helper)
+      vr="D__HLP_$vr" path="${D__DIR_LIB}/helpers/${2}.hlp.sh";;
+    procedure)
+      vr="D__PCD_$vr" path="${D__DIR_LIB}/procedures/${2}.pcd.sh";;
+    routine)
+      vr="D__RTN_$vr" path="${D__DIR_LIB}/routines/${2}.rtn.sh";;
+    util)
+      vr="D__UTL_$vr" path="${D__DIR_LIB}/utils/${2}.utl.sh";;
+    *)  printf >&2 '%s: %s\n' "${FUNCNAME[0]}" \
+          "Called with illegal type argument: '$1'"; exit 1;;
   esac
 
-  # If file exists, source it, return code of last command; otherwise error
-  if [ -r "$path" -a -f "$path" ]; then source "$path"; return $?; fi
-  printf >&2 "==> Divine dependency is not a readable file: '%s'\n" "$path"
-  exit 1
+  # Cut-off for repeated loading
+  ( unset "$vr" &>/dev/null ) || return 0
+
+  # First-time loading: check if readable and source
+  if ! [ -r "$path" -a -f "$path" ]; then
+    printf >&2 "==> Divine dependency is not a readable file: '%s'\n" "$path"
+    exit 1
+  fi
+  source "$path"; return $?
 }
 
 d__main "$@"

@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.14
-#:revremark:    Fix minor typo, pt. 3
+#:revremark:    Implement robust dependency loading system
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -14,7 +14,14 @@
 #. the actual content of the bundles directory.
 #
 
-#>  d__sync_bundles
+# Marker and dependencies
+readonly D__PCD_SYNC_BUNDLES=loaded
+d__load procedure prep-sys
+d__load util workflow
+d__load procedure prep-gh
+d__load util github
+
+#>  d__pcd_sync_bundles
 #
 ## Clones/downloads missing bundles; deletes extra bundles.
 #
@@ -22,7 +29,7 @@
 #.  0 - The bundles directory is made consistent with the records.
 #.  1 - (script exit) Otherwise.
 #
-d__sync_bundles()
+d__pcd_sync_bundles()
 {
   # Switch context
   d__context -- notch
@@ -112,4 +119,4 @@ d__sync_bundles()
   else d__context -- lop; return 0; fi
 }
 
-d__sync_bundles
+d__pcd_sync_bundles

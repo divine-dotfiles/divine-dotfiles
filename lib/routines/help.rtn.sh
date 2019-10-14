@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: help
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.12
-#:revremark:    Fix minor typo, pt. 2
+#:revdate:      2019.10.14
+#:revremark:    Implement robust dependency loading system
 #:created_at:   2018.03.25
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -13,7 +13,11 @@
 ## Shows help and exits the script
 #
 
-#>  d__show_help_and_exit
+# Marker and dependencies
+readonly D__RTN_HELP=loaded
+d__load util workflow
+
+#>  d__rtn_help
 #
 ## This function is meant to be called whenever help is explicitly requested. 
 #. Prints out a summary of usage scenarios and valid options.
@@ -28,11 +32,8 @@
 #.  stdout: Help summary
 #.  stderr: As little as possible
 #
-d__show_help_and_exit()
+d__rtn_help()
 {
-  # Add coloring
-  d__load procedure print-colors
-
   # Store help summary in a variable
   local help; read -r -d '' help << EOF
 NAME
@@ -226,12 +227,10 @@ AUTHOR
 EOF
 
   # Print help summary
-  if less --version &>/dev/null; then
-    less -R <<<"$help"
-  else
-    printf >&2 '%s\n' "$help"
-  fi
+  if less --version &>/dev/null
+  then less -R <<<"$help"
+  else printf >&2 '%s\n' "$help"; fi
   exit 0
 }
 
-d__show_help_and_exit
+d__rtn_help

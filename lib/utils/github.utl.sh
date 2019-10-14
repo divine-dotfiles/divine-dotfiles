@@ -2,14 +2,20 @@
 #:title:        Divine Bash utils: github
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.10
-#:revremark:    Finish implementing three special queues
+#:revdate:      2019.10.14
+#:revremark:    Implement robust dependency loading system
 #:created_at:   2019.09.13
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
 #
 ## A set of utilities designed to clone Github repositories.
 #
+
+# Marker and dependencies
+readonly D__UTL_GITHUB=loaded
+d__load procedure prep-sys
+d__load util workflow
+d__load procedure prep-gh
 
 #>  d___clone_gh_repo REPO_HANDLE REPO_PATH
 #

@@ -2,14 +2,23 @@
 #:title:        Divine Bash procedure: detect-os
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.12
-#:revremark:    Fix minor typo, pt. 2
+#:revdate:      2019.10.14
+#:revremark:    Implement robust dependency loading system
 #:created_at:   2019.03.15
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
 #
 ## Search for <<CONTRIBUTE HERE>> to find the two portions of code that are 
 #. meant for extension, to support additional OS distributions.
+#
+
+# Marker and dependencies
+readonly D__PCD_DETECT_OS=loaded
+d__load procedure prep-sys
+d__load util workflow
+d__load util stash
+
+#>  d__pcd_detect_os
 #
 ## This script provides into the global scope three read-only variables:
 #.  $D__OS_FAMILY   - (read-only) Broad description of the current OS type.
@@ -30,9 +39,7 @@
 #.                  sudo password). Returns whatever the package manager 
 #.                  returns, or 2 when the package manager is not supported.
 #
-
-# Driver function
-d__detect_os()
+d__pcd_detect_os()
 {
   d__context -n -- notch
   d__context -- push 'Detecting current operating system environment'
@@ -75,13 +82,13 @@ d__detect_os_family()
   ## The block of code below, until the next comment, must populate the local 
   #. variable d__os_family with the one-word handle for the current OS family. 
   #. This handle is then used to locate and source the OS family adapter at 
-  #. lib/adapters/family/<OS_FAMILY>.adp.sh.
+  #. lib/adapters/family/<OS_FAMILY>.adf.sh.
   #
   ## If extending the framework with support for additional OS families, one 
   #. should both modify the code block below and create the corresponding 
   #. adapter.
   #
-  ## For reference on adapters see lib/templates/adapters/family.adp.sh.
+  ## For reference on adapters see lib/templates/adapters/family.adf.sh.
   #
 
   # <<CONTRIBUTE HERE>>
@@ -161,13 +168,13 @@ d__detect_os_distro_and_pkgmgr()
   ## The block of code below, until the next comment, must populate the local 
   #. variable d__os_distro with the one-word handle for the current OS distro. 
   #. This handle is then used to locate and source the OS distro adapter at 
-  #. lib/adapters/distro/<OS_DISTRO>.adp.sh.
+  #. lib/adapters/distro/<OS_DISTRO>.add.sh.
   #
   ## If extending the framework with support for additional OS distros, one 
   #. should both modify the code block below and create the corresponding 
   #. adapter.
   #
-  ## For reference on adapters see lib/templates/adapters/distro.adp.sh.
+  ## For reference on adapters see lib/templates/adapters/distro.add.sh.
   #
 
   # <<CONTRIBUTE HERE>>
@@ -220,4 +227,4 @@ d__detect_os_distro_and_pkgmgr()
   return 0
 }
 
-d__detect_os
+d__pcd_detect_os

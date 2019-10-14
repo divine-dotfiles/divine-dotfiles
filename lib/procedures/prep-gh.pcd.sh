@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-#:title:        Divine Bash procedure: prep-3-gh
+#:title:        Divine Bash procedure: prep-gh
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.14
-#:revremark:    Fix minor typo, pt. 3
+#:revremark:    Implement robust dependency loading system
 #:created_at:   2019.07.05
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -14,8 +14,14 @@
 #. at all possible.
 #
 
+# Marker and dependencies
+readonly D__PCD_PREP_GH=loaded
+d__load util workflow
+d__load util stash
+d__load util offer
+
 # Driver function
-d__run_opt_checks()
+d__pcd_prep_gh()
 {
   d__offer_gh_access
   d__check_gh_access
@@ -106,4 +112,4 @@ d__check_gh_access()
   return 0
 }
 
-d__run_opt_checks
+d__pcd_prep_gh

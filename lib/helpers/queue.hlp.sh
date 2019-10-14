@@ -2,14 +2,18 @@
 #:title:        Divine Bash deployment helpers: queue
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.10
-#:revremark:    Fix minor typo
+#:revdate:      2019.10.14
+#:revremark:    Implement robust dependency loading system
 #:created_at:   2019.06.10
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
 #
 ## Helper functions for deployments based on template 'queue.dpl.sh'
 #
+
+# Marker and dependencies
+readonly D__HLP_QUEUE=loaded
+d__load util workflow
 
 d__queue_check()
 {

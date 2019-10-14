@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.14
-#:revremark:    Fix minor typo, pt. 3
+#:revremark:    Implement robust dependency loading system
 #:created_at:   2019.06.26
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -14,33 +14,25 @@
 #. one copied from provided directory path.
 #
 
-#>  d__perform_plug_routine
+# Marker and dependencies
+readonly D__RTN_PLUG=loaded
+d__load util workflow
+d__load util github
+d__load util backup
+d__load util scan
+d__load procedure prep-gh
+
+#>  d__rtn_plug
 #
 ## Performs plugging routine.
 #
-d__perform_plug_routine()
+d__rtn_plug()
 {
   # Check if any tasks were found
   if [ ${#D__REQ_ARGS[@]} -eq 0 ]; then
     d__notify -lst 'Nothing to do' -- 'Replacement Grail not provided'
     exit 0
   fi
-
-  # Load routine-specific utilities and helpers
-  d__load util offer
-  d__load util github
-  if ! [ "$D__OPT_ANSWER" = false ]; then
-    d__load util backup
-    d__load util manifests
-    d__load util assets
-    # d__load util items
-    d__load util scan
-  fi
-
-  # Perform initialization procedures
-  d__load procedure prep-3-gh
-  # d__load procedure sync-bundles
-  # d__load procedure assemble
 
   # Print a separating empty line, switch context
   printf >&2 '\n'
@@ -325,4 +317,4 @@ d___clone_git_repo()
   return 0
 }
 
-d__perform_plug_routine
+d__rtn_plug

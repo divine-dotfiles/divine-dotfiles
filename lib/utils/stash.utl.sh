@@ -2,8 +2,8 @@
 #:title:        Divine Bash utils: stash
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.10
-#:revremark:    Finish implementing three special queues
+#:revdate:      2019.10.14
+#:revremark:    Implement robust dependency loading system
 #:created_at:   2019.05.15
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -15,6 +15,12 @@
 #. persist between invocations of deployment scripts. Each deployment gets its 
 #. own stash. Stash files are named '.stash.cfg'.
 #
+
+# Marker and dependencies
+readonly D__UTL_STASH=loaded
+d__load procedure prep-sys
+d__load util workflow
+d__load procedure prep-md5
 
 #>  d__stash [-drgsq] [--] [ CMD [ KEY [VALUE] ] ]
 #

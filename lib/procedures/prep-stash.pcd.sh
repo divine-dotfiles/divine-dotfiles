@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-#:title:        Divine Bash procedure: prep-2-stash
+#:title:        Divine Bash procedure: prep-stash
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.12
-#:revremark:    Fix minor typo, pt. 2
+#:revdate:      2019.10.14
+#:revremark:    Implement robust dependency loading system
 #:created_at:   2019.07.05
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -14,8 +14,13 @@
 #. the script.
 #
 
+# Marker and dependencies
+readonly D__PCD_PREP_STASH=loaded
+d__load util workflow
+d__load util stash
+
 # Driver function
-d__run_stash_checks()
+d__pcd_prep_stash()
 {
   local erra=()
   d__stash -g -- ready || erra+=( -i- "- Grail stash at: $D__DIR_GRAIL" )
@@ -26,4 +31,4 @@ d__run_stash_checks()
   fi
 }
 
-d__run_stash_checks
+d__pcd_prep_stash

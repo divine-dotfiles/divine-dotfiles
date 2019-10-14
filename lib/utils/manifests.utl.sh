@@ -3,13 +3,18 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.14
-#:revremark:    Fix minor typo, pt. 3
+#:revremark:    Implement robust dependency loading system
 #:created_at:   2019.05.30
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
 #
 ## Utility that parses the Divine manifests.
 #
+
+# Marker and dependencies
+readonly D__UTL_MANIFESTS=loaded
+d__load util workflow
+d__load procedure detect-os
 
 #>  d__process_manifest PATH
 #

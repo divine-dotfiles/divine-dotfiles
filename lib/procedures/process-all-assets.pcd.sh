@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.14
-#:revremark:    Fix minor typo, pt. 3
+#:revremark:    Implement robust dependency loading system
 #:created_at:   2019.10.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -12,6 +12,11 @@
 #. necessary, copies provided versions of assets to their respective asset 
 #. directories.
 #
+
+# Marker and dependencies
+readonly D__PCD_PROCESS_ALL_ASSETS=loaded
+d__load util workflow
+d__load util assets
 
 #>  d__pcd_process_all_assets
 #

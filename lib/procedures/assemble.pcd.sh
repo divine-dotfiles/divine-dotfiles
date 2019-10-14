@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.14
-#:revremark:    Fix minor typo, pt. 3
+#:revremark:    Implement robust dependency loading system
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -13,7 +13,12 @@
 ## Assembles packages and deployments for further processing.
 #
 
-#>  d__assemble_dfs_and_dpls
+# Marker and dependencies
+readonly D__PCD_ASSEMBLE=loaded
+d__load util workflow
+d__load util scan
+
+#>  d__pcd_assemble
 #
 ## Collects tasks to be performed:
 #.  * Package names from Divinefiles
@@ -43,7 +48,7 @@
 #.  0 - (script exit) Nothing to do (with announcement)
 #.  1 - (script exit) Unrecoverable error during assembly
 #
-d__assemble_dfs_and_dpls()
+d__pcd_assemble()
 {
   # Switch context
   d__context -- notch
@@ -306,4 +311,4 @@ d___run_dpl_through_filters()
   return 1
 }
 
-d__assemble_dfs_and_dpls
+d__pcd_assemble

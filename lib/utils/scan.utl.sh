@@ -3,16 +3,13 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.14
-#:revremark:    Fix minor typo, pt. 3
+#:revremark:    Implement robust dependency loading system
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
 #
 ## Utilities that scan directories for deployment files (and, by extension, 
 #. Divinefiles).
-#
-## This file depends on:
-#.  * workflow.utl.sh
 #
 ## Summary of functions in this file:
 #>  d__scan_for_divinefiles [--internal|--external] [--enqueue] \
@@ -21,6 +18,12 @@
 #>    [--except EXC_DIR]... DIR...
 #>  d__cross_validate_dpls
 #
+
+# Marker and dependencies
+readonly D__UTL_SCAN=loaded
+d__load procedure prep-sys
+d__load util workflow
+d__load procedure detect-os
 
 #>  d__scan_for_divinefiles [--internal|--external] [--enqueue] \
 #>    [--except EXC_DIR]... DIR...

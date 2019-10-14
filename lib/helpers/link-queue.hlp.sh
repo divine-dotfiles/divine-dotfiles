@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.14
-#:revremark:    Fix minor typo, pt. 3
+#:revremark:    Implement robust dependency loading system
 #:created_at:   2019.04.02
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -14,6 +14,13 @@
 #. replacements. Creates backup of each replaced file. Restores original set-up 
 #. on removal.
 #
+
+# Marker and dependencies
+readonly D__HLP_LINK_QUEUE=loaded
+d__load util workflow
+d__load procedure detect-os
+d__load procedure prep-md5
+d__load util stash
 
 d__link_queue_check()
 {

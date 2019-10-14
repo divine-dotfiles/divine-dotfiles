@@ -3,13 +3,18 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.14
-#:revremark:    Fix minor typo, pt. 3
+#:revremark:    Implement robust dependency loading system
 #:created_at:   2019.07.06
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
 #
 ## Helper utils that install and remove optional packages.
 #
+
+# Marker and dependencies
+readonly D__UTL_OFFER=loaded
+d__load util workflow
+d__load procedure detect-os
 
 #>  d__offer_pkg [--or-quit] UTIL_NAME
 #

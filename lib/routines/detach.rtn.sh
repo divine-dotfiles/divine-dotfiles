@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.14
-#:revremark:    Fix minor typo, pt. 3
+#:revremark:    Implement robust dependency loading system
 #:created_at:   2019.06.28
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -14,7 +14,16 @@
 #. their installation record.
 #
 
-#>  d__perform_detach_routine
+# Marker and dependencies
+readonly D__RTN_DETACH=loaded
+d__load util workflow
+d__load util stash
+d__load util scan
+d__load procedure prep-stash
+d__load procedure prep-gh
+d__load procedure sync-bundles
+
+#>  d__rtn_detach
 #
 ## Performs detach routine
 #
@@ -23,29 +32,13 @@
 #.  0 - (script exit) Zero bundle names given.
 #.  1 - At least one given bundle was not detached.
 #
-d__perform_detach_routine()
+d__rtn_detach()
 {
   # Check if any tasks were found
   if [ ${#D__REQ_ARGS[@]} -eq 0 ]; then
     d__notify -lst 'Nothing to do' -- 'Not a single bundle name given'
     exit 0
   fi
-
-  # Load routine-specific utilities and helpers
-  d__load util offer
-  d__load util github
-  if ! [ "$D__OPT_ANSWER" = false ]; then
-    # d__load util backup
-    # d__load util manifests
-    # d__load util assets
-    # d__load util items
-    d__load util scan
-  fi
-
-  # Perform initialization procedures
-  d__load procedure prep-3-gh
-  d__load procedure sync-bundles
-  # d__load procedure assemble
 
   # Print a separating empty line, switch context
   printf >&2 '\n'
@@ -111,7 +104,14 @@ d___detach_bundle()
   bdst="$D__DIR_BUNDLES/$barg"
   d__notify -q -- "Location: $bdst"
 
+  # Check if such bundle directory exists
   if [ -e "$bdst" ]; then
+    if ! [ -d "$bdst" ]; then
+      d__notify -ls -- "Local path to bundle '$barg' is occupied" \
+        'by a non-directory:' -i- "$bdst"
+      printf >&2 '%s %s\n' "$D__INTRO_DTC_1" "$bplq"; return 1
+    fi
+  else
     d__notify -ls -- "Bundle '$barg' appears to be already" \
       "${BOLD}not$NORMAL attached"
     printf >&2 '%s %s\n' "$D__INTRO_DTC_S" "$bplq"; return 1
@@ -152,4 +152,4 @@ d___detach_bundle()
   return 0
 }
 
-d__perform_detach_routine
+d__rtn_detach

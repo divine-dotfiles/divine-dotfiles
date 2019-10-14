@@ -2,8 +2,8 @@
 #:title:        Divine.dotfiles template OS distro adapter
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.12
-#:revremark:    Fix minor typo, pt. 2
+#:revdate:      2019.10.14
+#:revremark:    Implement robust dependency loading system
 #:created_at:   2019.06.04
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -14,7 +14,7 @@
 ## For a particular OS distribution to be supported, detection code must be 
 #. added to lib/procedures/detect-os.pcd.sh.
 #
-## For the adapter file to be recognized, it must be named 'DISTRO.adp.sh', and 
+## For the adapter file to be recognized, it must be named 'DISTRO.add.sh', and 
 #. placed in the lib/adapters/distro directory, where 'DISTRO' must be the same 
 #. as the handle assigned to the $D__OS_DISTRO variable during OS detection.
 #

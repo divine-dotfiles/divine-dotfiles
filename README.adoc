@@ -1,8 +1,8 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revdate: 2019.10.10
-:revremark: Fix minor typo
+:revdate: 2019.10.14
+:revremark: Implement robust dependency loading system
 :doctype: article
 // Visual
 :toc:
@@ -3782,7 +3782,7 @@ In _Divine.dotfiles_, the code that supports particular operating systems is iso
 An OS distribution adapter allows the framework to interact with that OS and with its built-in package manager.
 
 * An adapter is a Bash script with special functions implemented.
-* Adapter template and guidelines are located in `lib/templates/adapters/distro.adp.sh`.
+* Adapter template and guidelines are located in `lib/templates/adapters/distro.add.sh`.
 * Active adapters are put into `lib/adapters/distro/`.
 
 Adapters for all OS distributions out there will be welcomed with open arms.

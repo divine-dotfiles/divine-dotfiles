@@ -2,8 +2,8 @@
 #:title:        Divine.dotfiles FreeBSD adapter
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.12
-#:revremark:    Fix minor typo, pt. 2
+#:revdate:      2019.10.14
+#:revremark:    Implement robust dependency loading system
 #:created_at:   2019.08.08
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -11,8 +11,12 @@
 ## An adapter is a set of functions that, when implemented, allow framework to 
 #. support FreeBSD OS distribution
 #
-## For reference, see lib/templates/adapters/distro.adp.sh
+## For reference, see lib/templates/adapters/distro.add.sh
 #
+
+# Marker and dependencies
+readonly D__ADD_FREEBSD=loaded
+d__load util workflow
 
 # Implement detection mechanism for package manager
 d__detect_os_pkgmgr()

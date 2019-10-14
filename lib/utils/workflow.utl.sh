@@ -2,8 +2,8 @@
 #:title:        Divine Bash utils: workflow
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.12
-#:revremark:    Fix minor typo, pt. 2
+#:revdate:      2019.10.14
+#:revremark:    Implement robust dependency loading system
 #:created_at:   2019.09.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -24,6 +24,10 @@
 #>  d__require_writable PATH
 #>  d__require_sudo UTIL_NAME
 #
+
+# Marker and dependencies
+readonly D__UTL_WORKFLOW=loaded
+d__load procedure print-colors
 
 #>  d__announce [-!dsvx] [--] DESCRIPTION...
 #

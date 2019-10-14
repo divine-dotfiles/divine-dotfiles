@@ -3,19 +3,22 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.14
-#:revremark:    Fix minor typo, pt. 3
+#:revremark:    Implement robust dependency loading system
 #:created_at:   2019.10.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
 #
 ## Utility that processes manifested queue items for a particular deployment.
 #
-## This file depends on:
-#.  * workflow.utl.sh
-#
 ## Summary of functions in this file:
 #>  d__process_queue_manifest_of_current_dpl
 #
+
+# Marker and dependencies
+readonly D__UTL_ITEMS=loaded
+d__load util workflow
+d__load util manifests
+d__load helper queue
 
 #>  d__process_queue_manifest_of_current_dpl
 #

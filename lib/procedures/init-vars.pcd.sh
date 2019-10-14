@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.14
-#:revremark:    Fix minor typo, pt. 3
+#:revremark:    Implement robust dependency loading system
 #:created_at:   2019.10.11
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -11,11 +11,14 @@
 ## Groups initialization of global variables used by the framework
 #
 
+# Marker and dependencies
+readonly D__PCD_INIT_VARS=loaded
+
 # Driver function
-d__init_vars()
+d__pcd_init_vars()
 {
   # Ensure variable names are writable
-  d__require_var_names
+  # d__require_var_names
 
   # Populate global variables
   d__populate_globals
@@ -38,12 +41,31 @@ d__require_var_names()
   #. script: $D__DIR, $D__DIR_FMWK, $D__DIR_LIB, $D__EXEC_NAME.
   #
   local d__vars=( \
+    # Ultra-core
+    # D__DIR D__DIR_FMWK D__DIR_LIB D__EXEC_NAME \
+    # Dependency load markers: adapters
+    D__ADD_DEBIAN D__ADD_FEDORA D__ADD_FREEBSD D__ADD_MACOS D__ADD_UBUNTU \
+    D__ADF_BSD D__ADF_CYGWIN D__ADF_LINUX D__ADF_MACOS D__ADF_MSYS \
+    D__ADF_SOLARIS D__ADF_WSL \
+    # Dependency load markers: helpers
+    D__HLP_COPY_QUEUE D__HLP_GH_QUEUE D__HLP_LINK_QUEUE \
+    D__HLP_MULTITASK D__HLP_QUEUE \
+    # Dependency load markers: procedures
+    D__PCD_ASSEMBLE D__PCD_DETECT_OS D__PCD_INIT_VARS D__PCD_PRE_FLIGHT \
+    D__PCD_PREP_SYS D__PCD_PREP_MD5 D__PCD_PREP_STASH D__PCD_PREP_GH \
+    D__PCD_PRINT_COLORS D__PCD_PROCESS_ALL_ASSETS D__PCD_SYNC_BUNDLES \
+    D__PCD_UNOFFER D__PCD_UPDATE_PKGS \
+    # Dependency load markers: routines
+    D__RTN_ATTACH D__RTN_CHECK D__RTN_DETACH D__RTN_HELP D__RTN_INSTALL \
+    D__RTN_PLUG D__RTN_REMOVE D__RTN_UPDATE D__RTN_USAGE D__RTN_VERSION \
+    # Dependency load markers: utils
+    D__UTL_ASSETS D__UTL_BACKUP D__UTL_GITHUB D__UTL_ITEMS D__UTL_MANIFESTS \
+    D__UTL_OFFER D__UTL_SCAN D__UTL_STASH D__UTL_WORKFLOW \
     # Core globals
     D__FMWK_NAME D__FMWK_VERSION D__DIR_GRAIL D__DIR_STATE \
     D__DIR_ASSETS D__DIR_DPLS \
     D__DIR_BACKUPS D__DIR_STASH D__DIR_BUNDLES D__DIR_BUNDLE_BACKUPS \
     D__SUFFIX_DPL_SH D__SUFFIX_DPL_MNF D__SUFFIX_DPL_QUE \
-    D__INIT_TRAIN \
     D__CONST_NAME_DIVINEFILE D__CONST_NAME_STASHFILE D__CONST_DEF_PRIORITY \
     D__DISABLE_CASE_SENSITIVITY D__RESTORE_CASE_SENSITIVITY \
     # Arguments and options
@@ -180,16 +202,6 @@ d__populate_globals()
   # Filename suffix for main queue manifest files
   readonly D__SUFFIX_DPL_QUE='.dpl.que'
 
-  # Ordered list of frameworks shared internal dependencies
-  D__INIT_TRAIN=( \
-    'procedure print-colors' \
-    'util workflow' \
-    'procedure prep-1-sys' \
-    'util stash' \
-    'procedure prep-2-stash' \
-    'procedure detect-os' \
-  ); readonly D__INIT_TRAIN
-
   # Name of Divinefile
   readonly D__CONST_NAME_DIVINEFILE='Divinefile'
   
@@ -198,56 +210,6 @@ d__populate_globals()
 
   # Default task priority
   readonly D__CONST_DEF_PRIORITY=4096
-
-  # Textual delimiter for internal use
-  readonly D__CONST_DELIMITER=';;;'
-
-  # dprint_ode base options (total width with single space delimiters: 80)
-  D__ODE_BASE=( \
-    --width-1 3 \
-    --width-2 16 \
-    --width-3 1 \
-    --width-4 57 \
-  ); readonly D__ODE_BASE
-
-  # dprint_ode options for normal messages
-  D__ODE_NORMAL=( \
-    "${D__ODE_BASE[@]}" \
-    --effects-1 bci \
-    --effects-2 b \
-    --effects-3 n \
-    --effects-4 n \
-  ); readonly D__ODE_NORMAL
-
-  # dprint_ode options for user prompts
-  D__ODE_PROMPT=( \
-    -n \
-    "${D__ODE_NORMAL[@]}" \
-    --width-3 2 \
-    --effects-1 n \
-  ); readonly D__ODE_PROMPT
-
-  # dprint_ode options for user prompts with danger
-  D__ODE_DANGER=( \
-    -n \
-    "${D__ODE_NORMAL[@]}" \
-    --width-3 2 \
-    --effects-1 bci \
-    --effects-2 bc \
-  ); readonly D__ODE_DANGER
-
-  # dprint_ode options for descriptions
-  D__ODE_DESC=( \
-    "${D__ODE_NORMAL[@]}" \
-    --effects-1 n \
-  ); readonly D__ODE_DESC
-
-  # dprint_ode options for warnings
-  D__ODE_WARN=( \
-    "${D__ODE_NORMAL[@]}" \
-    --effects-1 n \
-    --effects-2 bc \
-  ); readonly D__ODE_WARN
 
   # Commands to play with 'nocasematch' (case sensitivity) Bash option
   readonly D__DISABLE_CASE_SENSITIVITY='shopt -s nocasematch'
@@ -275,4 +237,4 @@ d__populate_globals()
   return 0
 }
 
-d__init_vars
+d__pcd_init_vars

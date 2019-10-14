@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.14
-#:revremark:    Fix minor typo, pt. 3
+#:revremark:    Implement robust dependency loading system
 #:created_at:   2018.12.20
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -12,7 +12,10 @@
 #. can be used to colorize and add effects to terminal output.
 #
 
-#>  d__declare_global_colors
+# Marker and dependencies
+readonly D__PCD_PRINT_COLORS=loaded
+
+#>  d__pcd_print_colors
 #
 ## This function populates read-only global variables with invisible special 
 #. values, each of which changes visual formatting of the terminal output. 
@@ -35,7 +38,7 @@
 #.  0 - Color variables set.
 #.  1 - Colorization omitted.
 #
-d__declare_global_colors()
+d__pcd_print_colors()
 {
   # Colorize terminal if possible; define intros
   local clr=false
@@ -264,4 +267,4 @@ d__define_intros()
   readonly D__INTRO_PLG_2="$WHITE$REVERSE$BOLD~~~$NORMAL ${BOLD}Refused to plug $NORMAL :"
 }
 
-d__declare_global_colors
+d__pcd_print_colors

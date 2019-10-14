@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: version
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.12
-#:revremark:    Fix minor typo, pt. 2
+#:revdate:      2019.10.14
+#:revremark:    Implement robust dependency loading system
 #:created_at:   2018.03.25
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -13,7 +13,11 @@
 ## Shows version note and exits the script
 #
 
-#>  d__show_version_and_exit
+# Marker and dependencies
+readonly D__RTN_VERSION=loaded
+d__load procedure print-colors
+
+#>  d__rtn_version
 #
 ## Shows framework version and exits with code 0
 #
@@ -27,11 +31,8 @@
 #.  stdout: Version message
 #.  stderr: As little as possible
 #
-d__show_version_and_exit()
+d__rtn_version()
 {
-  # Add coloring
-  d__load procedure print-colors
-
   # Try to extract current git commit
   local commit_sha
   if pushd -- "$D__DIR_FMWK" &>/dev/null; then
@@ -53,4 +54,4 @@ EOF
   exit 0
 }
 
-d__show_version_and_exit
+d__rtn_version
