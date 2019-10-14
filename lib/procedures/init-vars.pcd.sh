@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.14
-#:revremark:    Implement robust dependency loading system
+#:revremark:    Output list of loaded deps before exiting
 #:created_at:   2019.10.11
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -42,7 +42,7 @@ d__require_var_names()
   #
   local d__vars=( \
     # Ultra-core
-    # D__DIR D__DIR_FMWK D__DIR_LIB D__EXEC_NAME \
+    # D__DIR D__DIR_FMWK D__DIR_LIB D__EXEC_NAME D__DEP_STACK \
     # Dependency load markers: adapters
     D__ADD_DEBIAN D__ADD_FEDORA D__ADD_FREEBSD D__ADD_MACOS D__ADD_UBUNTU \
     D__ADF_BSD D__ADF_CYGWIN D__ADF_LINUX D__ADF_MACOS D__ADF_MSYS \

@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.14
-#:revremark:    Implement robust dependency loading system
+#:revremark:    Output list of loaded deps before exiting
 #:created_at:   2018.03.25
 
 ## Launches the Divine intervention
@@ -161,7 +161,7 @@ d__parse_arguments()
 d__perform_routine()
 {
   # Fork based on routine
-  case $D__REQ_ROUTINE in
+  local rc; case $D__REQ_ROUTINE in
     install)  d__load routine install;;
     remove)   d__load routine remove;;
     check)    d__load routine check;;
@@ -169,8 +169,12 @@ d__perform_routine()
     detach)   d__load routine detach;;
     plug)     d__load routine plug;;
     update)   d__load routine update;;
-    *)        return 1;;
-  esac
+  esac; rc=$?
+
+  # Output dependency stack; return
+  d__load util workflow
+  d__notify -qqqq -- 'Dependencies loaded:' "${D__DEP_STACK[@]}"
+  exit $rc
 }
 
 #>  d__whereami
@@ -201,8 +205,8 @@ d__perform_routine()
 #
 d__whereami()
 {
-  # Check that required variable names are writable
-  local varname err=false
+  # Check that required variable names are writable; init dep stack for debug
+  local varname err=false; D__DEP_STACK=()
   for varname in D__DIR D__DIR_FMWK D__DIR_LIB D__EXEC_NAME; do
     if ! ( unset $varname &>/dev/null ); then err=true
       printf >&2 '==> %s\n' "Required variable name '$varname' is not writable"
@@ -290,7 +294,7 @@ d__load()
     printf >&2 "==> Divine dependency is not a readable file: '%s'\n" "$path"
     exit 1
   fi
-  source "$path"; return $?
+  D__DEP_STACK+=( -i- "- $1 $2" ); source "$path"; return $?
 }
 
 d__main "$@"
