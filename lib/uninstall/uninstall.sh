@@ -2,1061 +2,191 @@
 #:title:        Divine.dotfiles fmwk uninstall script
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.09.25
-#:revremark:    Remove revision numbers from all src files
+#:revdate:      2019.10.15
+#:revremark:    Temporarily switch to dev branch for fmwk (un)installation
 #:created_at:   2019.07.22
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
 #
-## This script uninstalls the framework and optional components
+## This script uninstalls the framework and optional components.
 #
 
 # Driver function
 d__main()
 {
-  # Colorize output
-  d__declare_global_colors
+  # Fundamental checks and fixes
+  d__load procedure pre-flight
 
-  # Parse arguments
+  # Prepare global variables
+  d__init_vars
+
+  # Process received arguments
   d__parse_arguments "$@"
 
-  # Main removal
-  if d__pre_flight_checks \
-    && d__confirm_uninstallation \
-    && d__uninstall_utils \
-    && d__make_backup \
-    && d__erase_d_dir
-  then
-
-    # Optional: uninstall shortcut command
-    d__uninstall_shortcut
-
-  fi
-
-  # Report summary and return
-  d__report_summary && return 0 || return 1
+  # Perform framework uninstallation routine
+  d__load routine fmwk-uninstall
 }
 
-d__declare_global_colors()
+#>  d__load TYPE NAME
+#
+## Sources sub-script by type and name. Implements protection against repeated 
+#. loading.
+#
+## Arguments:
+#.  $1  - Type of script:
+#.          * 'distro-adapter'
+#.          * 'family-adapter'
+#.          * 'helper'
+#.          * 'procedure'
+#.          * 'routine'
+#.          * 'util'
+#.  $2  - Name of script file, without path or suffix.
+#
+## Returns:
+#.  0 - Success: script loaded.
+#.  1 - (script exit) Otherwise.
+#
+d__load()
 {
-  # Colorize output (based on similar code in oh-my-zsh installation script)
-  if [ -t 1 ]; then
-    if type -P tput &>/dev/null \
-      && tput sgr0 &>/dev/null \
-      && [ -n "$( tput colors )" ] \
-      && [ "$( tput colors )" -ge 8 ]
-    then
-      RED="$( tput setaf 1 )"
-      GREEN="$( tput setaf 2 )"
-      YELLOW="$( tput setaf 3 )"
-      CYAN="$( tput setaf 6 )"
-      WHITE="$( tput setaf 7 )"
-      BOLD="$( tput bold )"
-      REVERSE="$( tput rev )"
-      NORMAL="$( tput sgr0 )"
-    else
-      RED="$( printf "\033[31m" )"
-      GREEN="$( printf "\033[32m" )"
-      YELLOW="$( printf "\033[33m" )"
-      CYAN="$( printf "\033[36m" )"
-      WHITE="$( printf "\033[97m" )"
-      BOLD="$( printf "\033[1m" )"
-      REVERSE="$( printf "\033[7m" )"
-      NORMAL="$( printf "\033[0m" )"
-    fi
-  else
-    RED=''
-    GREEN=''
-    YELLOW=''
-    CYAN=''
-    WHITE=''
-    BOLD=''
-    REVERSE=''
-    NORMAL=''
-  fi
-}
+  # Init vars; transform subject name
+  local vr="$( printf '%s\n' "$2" | tr a-z- A-Z_ )" tmp rc
+  local url='https://raw.github.com/no-simpler/divine-dotfiles/dev/lib'
 
-d__parse_arguments()
-{
-  # Define global storage for option values
-  D_OPT_QUIET=true        # Be quiet by default
-  D_REMOVE_FMWK=          # Whether to perform removal of framework
-  D_REMOVE_UTILS=         # Whether to perform removal of utils
-  D_MAKE_BACKUP=true      # Whether to leave backup of non-fmwk files
-
-  # Extract arguments passed to this script (they start at $0)
-  local args=( "$0" "$@" ) arg
-
-  # Parse arguments
-  for arg in "${args[@]}"; do
-    case "$arg" in
-      --quiet)            D_OPT_QUIET=true;;
-      --verbose)          D_OPT_QUIET=false;;
-      --framework-yes)    D_REMOVE_FMWK=true;;
-      --framework-no)     D_REMOVE_FMWK=false;;
-      --utils-yes)        D_REMOVE_UTILS=true;;
-      --utils-no)         D_REMOVE_UTILS=false;;
-      --backup-yes)       D_MAKE_BACKUP=true;;
-      --backup-no)        D_MAKE_BACKUP=false;;
-      --yes)              D_REMOVE_FMWK=true
-                          D_REMOVE_UTILS=true
-                          D_MAKE_BACKUP=true
-                          ;;
-      --no)               D_REMOVE_FMWK=false
-                          D_REMOVE_UTILS=false
-                          D_MAKE_BACKUP=false
-                          ;;
-      *)                  :;;
-    esac
-  done
-}
-
-d__pre_flight_checks()
-{
-  # Global variables for installation status
-  D_STATUS_FRAMEWORK=
-  D_STATUS_UTILS=
-  D_STATUS_BACKUP=
-  D_BACKUP_LOCATION=
-  D_STATUS_SHORTCUT=
-
-  # Return early if framework is not to be uninstalled
-  [ "$D_REMOVE_FMWK" = false ] && return 1
-
-  # Status variable
-  local newline_printed=false
-
-  # Print empty line for visual separation
-  $D_OPT_QUIET || { printf >&2 '\n'; newline_printed=true; }
-
-  # Check if framework directory is overridden
-  if [ -n "$D_FMWK_DIR" ]; then
-
-    # Use user-provided framework directory
-    $newline_printed || { printf >&2 '\n'; newline_printed=true; }
-    dprint_alert "Overridden framework directory: $D_FMWK_DIR"
-    D_STATUS_FRAMEWORK=false
-
-  else
-  
-    # Use default framework directory
-    D_FMWK_DIR="$HOME/.divine"
-    dprint_debug "Framework directory: $D_FMWK_DIR"
-    D_STATUS_FRAMEWORK=false
-  
-  fi
-
-  # Check if stash has record of shortcut installation
-  if d__stash_root has di_shortcut; then
-
-    # Extract stashed record into global variable
-    D_SHORTCUT_FILEPATH="$( d__stash_root -s get di_shortcut )"
-
-    # Check if it is the same as user-provided location
-    if [ -n "$D_SHORTCUT_FILEPATH" ]; then
-
-      # Announce the find
-      dprint_debug \
-        "Recorded location of shortcut: $D_SHORTCUT_FILEPATH"
-      D_STATUS_SHORTCUT=false
-
-    else
-
-      # Announce the lack of find
-      $newline_printed || { printf >&2 '\n'; newline_printed=true; }
-      dprint_failure 'Record of previously installed shortcut is empty'
-      D_STATUS_SHORTCUT=empty
-
-    fi
-
-  else
-
-    # Announce lack of record
-    $newline_printed || { printf >&2 '\n'; newline_printed=true; }
-    dprint_failure 'Failed to find record of previously installed shortcut'
-    D_STATUS_SHORTCUT=empty
-
-  fi
-
-  # Collect names of optionally installed utils
-  D_INSTALLED_UTIL_NAMES=()
-
-  # Check if there is record of Homebrew installation
-  if d__stash_root -s has installed_homebrew; then
-
-    # Set preliminary status, add to global list, report
-    D_STATUS_UTILS=false
-    D_INSTALLED_UTIL_NAMES+=( brew )
-    dprint_debug 'Detected Homebrew installation'
-
-  fi
-
-  # Check if there is record of system utility installations
-  if d__stash_root -s has installed_util; then
-
-    # Collect util names into global list
-    local util_name
-    while read -r util_name; do D_INSTALLED_UTIL_NAMES+=( "$util_name" )
-    done < <( d__stash_root -s list installed_util )
-
-    # Set preliminary status, report
-    D_STATUS_UTILS=false
-    dprint_debug 'Detected optional system utility installations'
-
-  fi
-
-  # Status variable for assembled globals
-  all_good=true
-  
-  # Verify eligibility of installation directory
-  if [ ! -e "$D_FMWK_DIR" ]; then
-
-    # Framework path does not exist: announce and set failure flag
-    $newline_printed || { printf >&2 '\n'; newline_printed=true; }
-    dprint_failure 'Framework path does not exist:' \
-      "    $D_FMWK_DIR" \
-      'Nothing to uninstall'
-    all_good=false
-    D_STATUS_FRAMEWORK=empty
-
-  elif ! [ -d "$D_FMWK_DIR" -a -w "$D_FMWK_DIR" ]; then
-
-    # Framework path is not a directory: announce and set failure flag
-    $newline_printed || { printf >&2 '\n'; newline_printed=true; }
-    dprint_failure 'Framework path is not a removable directory:' \
-      "    $D_FMWK_DIR" \
-      'Refusing to uninstall'
-    all_good=false
-    D_STATUS_FRAMEWORK=empty
-
-  elif [ ! -e "$D_FMWK_DIR/intervene.sh" ]; then
-
-    # Framework path lacks main script: announce and set failure flag
-    $newline_printed || { printf >&2 '\n'; newline_printed=true; }
-    dprint_failure 'Framework directory does not contain main script:' \
-      "    $D_FMWK_DIR/intervene.sh" \
-      'Refusing to uninstall'
-    all_good=false
-    D_STATUS_FRAMEWORK=empty
-
-  else
-
-    # Check if making backup is not disabled
-    if [ "$D_MAKE_BACKUP" != false ]; then
-
-      # Compose default backup location
-      D_BACKUP_LOCATION="$D_FMWK_DIR-backup"
-
-      # Check if that backup location is occupied
-      if [ -e "$D_BACKUP_LOCATION" ]; then
-
-        # Location occupied: try alternatives
-        local i=1
-        while ((i<=1000)); do
-          if [ -e "${D_BACKUP_LOCATION}${i}" ]; then
-            ((++i))
-          else
-            D_BACKUP_LOCATION="${D_BACKUP_LOCATION}${i}"
-            break
-          fi
-        done
-
-      fi
-
-      # Check if settled on unoccupied location
-      if [ -e "$D_BACKUP_LOCATION" ]; then
-
-        # Could not find unoccupied location: erase var and announce
-        D_BACKUP_LOCATION=
-        D_STATUS_BACKUP=error
-        $newline_printed || { printf >&2 '\n'; newline_printed=true; }
-        dprint_failure 'Unable to find location for backup at:' \
-          "    $D_FMWK_DIR-backup*" \
-          '(all potential locations are occupied)'
-        if [ "$D_MAKE_BACKUP" = true ]; then
-          all_good=false
-        else
-          D_MAKE_BACKUP=false
-        fi
-
-      else
-
-        # Settled on backup location
-        D_STATUS_BACKUP=false
-        dprint_debug "Location of potential backup: $D_BACKUP_LOCATION"
-
-      fi
-
-    fi
-
-  fi
-
-  # Check if stash record of shortcut installation was extracted
-  if [ "$D_STATUS_SHORTCUT" = false ]; then
-
-    # Ensure the shortcut path exists and is a symlink
-    if ! [ -L "$D_SHORTCUT_FILEPATH" ]; then
-
-      # Announce and skip
-      $newline_printed || { printf >&2 '\n'; newline_printed=true; }
-      dprint_failure 'Recorded shortcut path is illegal; skipping:' \
-        "    $D_SHORTCUT_FILEPATH" \
-        '(not a symlink)'
-      D_STATUS_SHORTCUT=illegal
-
-    fi
-
-    # Ensure the link points to 'intervene.sh' (if readlink is available)
-    if type -P readlink &>/dev/null \
-      && ! [ "$( readlink -- "$D_SHORTCUT_FILEPATH" )" \
-      = "$D_FMWK_DIR/intervene.sh" ]
-    then
-
-      # Announce and skip
-      $newline_printed || { printf >&2 '\n'; newline_printed=true; }
-      dprint_failure 'Recorded shortcut path is illegal; skipping:' \
-        "    $D_SHORTCUT_FILEPATH" \
-        '(not pointing to intervene.sh)'
-      D_STATUS_SHORTCUT=illegal
-
-    fi
-
-  fi
-
-  # Return appropriately
-  $all_good && return 0 || return 1
-}
-
-d__confirm_uninstallation()
-{
-  # Exit early, or print empty line for visual separation
-  case $D_REMOVE_FMWK in
-    true)   return 0;;
-    false)  return 1;;
-    *)      printf >&2 '\n';;
+  # Perform different
+  case $1 in
+    distro-adapter)   vr="D__ADD_$vr" url+="/adapters/distro/${2}.add.sh";;
+    family-adapter)   vr="D__ADF_$vr" url+="/adapters/family/${2}.adf.sh";;
+    helper)           vr="D__HLP_$vr" url+="/helpers/${2}.hlp.sh";;
+    procedure)        vr="D__PCD_$vr" url+="/procedures/${2}.pcd.sh";;
+    routine)          vr="D__RTN_$vr" url+="/routines/${2}.rtn.sh";;
+    util)             vr="D__UTL_$vr" url+="/utils/${2}.utl.sh";;
+    *)                printf >&2 '%s: %s\n' "${FUNCNAME[0]}" \
+                        "Called with illegal type argument: '$1'"; exit 1;;
   esac
 
-  # Storage variable
-  local report_lines=()
-  
-  # Print general intro
-  report_lines+=( \
-    "This will remove ${BOLD}Divine.dotfiles${NORMAL} located at:" \
-    "    $BOLD$D_FMWK_DIR$NORMAL" \
-  )
+  # Cut-off for repeated loading
+  ( unset "$vr" &>/dev/null ) || return 0
 
-  # Print shortcut-related info
-  case $D_STATUS_SHORTCUT in
-    false)
-      report_lines+=( \
-        'and its shortcut shell command at:' \
-        "    $BOLD$D_SHORTCUT_FILEPATH$NORMAL" \
-      )
-      ;;
-    empty)
-      report_lines+=( \
-        'without touching shortcut shell command, which appears absent' \
-      )
-      ;;
-    illegal)
-      report_lines+=( \
-        'without touching illegal shortcut shell command at:' \
-        "    $BOLD$D_SHORTCUT_FILEPATH$NORMAL" \
-      )
-      ;;
-    *)
-      report_lines+=( \
-        'without touching shortcut shell command' \
-      )
-      ;;
-  esac
-
-  # Print backup-related intro
-  case $D_MAKE_BACKUP in
-    true)
-      report_lines+=( \
-        'Potentially valuable files will be backed up to:' \
-        "    $BOLD$D_BACKUP_LOCATION$NORMAL" \
-      )
-      ;;
-    false)
-      report_lines+=( \
-        "$RED$REVERSE$BOLD All files will be removed without backup! $NORMAL" \
-      )
-      ;;
-    *)
-      report_lines+=( \
-        'You will be prompted to back up potentially valuable files to:' \
-        "    $BOLD$D_BACKUP_LOCATION$NORMAL" \
-      )
-      ;;
-  esac
-
-  # Print utils-related intro
-  if [ "$D_STATUS_UTILS" = false ]; then
-
-    # Compose human-readable list of utilities
-    local list_of_util_names="$D_INSTALLED_UTIL_NAMES" i
-    for (( i=1; i<${#D_INSTALLED_UTIL_NAMES[@]}; i++ )); do
-      list_of_util_names+=", ${D_INSTALLED_UTIL_NAMES[$i]}"
-    done
-    case $D_REMOVE_UTILS in
-      true)
-        report_lines+=( \
-          'System utilities installed by the framework will be uninstalled:' \
-          "    $BOLD$list_of_util_names$NORMAL" \
-        )
-        ;;
-      false)
-        report_lines+=( \
-          'System utilities installed by the framework will remain:' \
-          "    $BOLD$list_of_util_names$NORMAL" \
-        )
-        ;;
-      *)
-        local long_line='You will be prompted to uninstall'
-        long_line+=' system utilities installed by the framework:'
-        report_lines+=( \
-          "$long_line" \
-          "    $BOLD$list_of_util_names$NORMAL" \
-        )
-        ;;
-    esac
+  ## First-time loading: make temp dest, announce intention, download into 
+  #. temp, source temp, delete temp, return last code from sourced script
+  #
+  tmp="$(mktemp)"
+  if declare -f d__notify &>/dev/null; then d__notify -- "Loading $1 '$2'"
+  else printf >&2 "==> Loading %s '%s'\n" "$1" "$2"; fi
+  if curl --version &>/dev/null; then curl -fsSL $url >$tmp
+  elif wget --version &>/dev/null; then wget -qO $tmp $url; fi
+  if (($?)); then
+    printf >&2 '==> Failed to download Divine dependency from:\n        %s' \
+      "$url"; rm -f $tmp; exit 1
   fi
-
-  # Print uninstallation suggestion
-  if [ "$D_MAKE_BACKUP" != true ] \
-    || [ -z "$D_REMOVE_FMWK" -o -z "$D_MAKE_BACKUP" ]
-  then
-
-    # Compose uninstall command
-    local cmd
-    if [ "$D_STATUS_SHORTCUT" = false ]; then
-      cmd="$( basename -- "$D_SHORTCUT_FILEPATH" )"
-    else
-      cmd="$D_FMWK_DIR/intervene.sh"
-    fi
-    cmd+=' remove'
-
-    # Suggest uninstalling deployments first
-    report_lines+=( \
-      'Please, consider first uninstalling current deployments using:' \
-      "    $ $BOLD$cmd$NORMAL" \
-    )
-
-  fi
-
-  # Prompt user
-  if dprompt "$D_REMOVE_FMWK" 'Uninstall Divine.dotfiles?' \
-    "${report_lines[@]}"
-  then
-    dprint_debug "Proceeding to uninstall ${BOLD}Divine.dotfiles${NORMAL}"
-    return 0
-  else
-    dprint_skip "Refused to uninstall ${BOLD}Divine.dotfiles${NORMAL}"
-    return 1
-  fi
+  D__DEP_STACK+=( -i- "- $1 $2" ); source $tmp; rc=$?; rm -f $tmp; return $?
 }
 
-d__uninstall_utils()
+#>  d__init_vars
+#
+## This function groups all constant paths, filenames, and other keywords used 
+#. by the framework.
+#
+## Provides into the global scope:
+#.  [ too many to list, read on ]
+#
+## Returns:
+#.  0 - Always.
+#
+d__init_vars()
 {
-  # Check if utils are staged for uninstallation
-  if ! [ "$D_STATUS_UTILS" = false ]; then
-    # No record of utility installations: silently return a-ok
-    return 0
-  fi
+  # Framework's displayed name
+  readonly D__FMWK_NAME='Divine.dotfiles'
 
-  # Print empty line for visual separation
-  printf >&2 '\n'
+  # Framework's displayed version
+  readonly D__FMWK_VERSION='1.0.0'
 
-  # Offer to uninstall utilities
-  if dprompt "$D_REMOVE_UTILS" 'Uninstall?' \
-    '[optional] Would you like to uninstall system utilities' \
-    'installed by the framework?'
-  then
-    dprint_alert 'Uninstalling system utilities installed by the framework'
+  # Framework installation directory
+  if [ -z ${D_DIR+isset} ]; then
+    readonly D__DIR_FMWK="$HOME/.divine"
   else
-    dprint_skip \
-      'Refused to uninstall system utilities installed by the framework'
-    return 0
+    printf >&2 "==> Divine directory overridden: '%s'\n" "$D_DIR"
+    readonly D__DIR_FMWK="$D_DIR"
   fi
 
-  # Run removal
-  if $D_OPT_QUIET; then
-    if [ "$D_REMOVE_UTILS" = true ]; then
-      "$D_FMWK_DIR"/intervene.sh cecf357ed9fed1037eb906633a4299ba --yes
-    else
-      "$D_FMWK_DIR"/intervene.sh cecf357ed9fed1037eb906633a4299ba
-    fi
-  else
-    if [ "$D_REMOVE_UTILS" = true ]; then
-      "$D_FMWK_DIR"/intervene.sh cecf357ed9fed1037eb906633a4299ba \
-        --yes --verbose
-    else
-      "$D_FMWK_DIR"/intervene.sh cecf357ed9fed1037eb906633a4299ba \
-        --verbose
-    fi
-  fi
+  # Paths to directories within $D__DIR_FMWK
+  readonly D__DIR_GRAIL="$D__DIR_FMWK/grail"
+  readonly D__DIR_STATE="$D__DIR_FMWK/state"
+
+  # Paths to directories within $D__DIR_GRAIL
+  readonly D__DIR_ASSETS="$D__DIR_GRAIL/assets"
+  readonly D__DIR_DPLS="$D__DIR_GRAIL/dpls"
+
+  # Paths to directories within $D__DIR_STATE
+  readonly D__DIR_BACKUPS="$D__DIR_STATE/backups"
+  readonly D__DIR_STASH="$D__DIR_STATE/stash"
+  readonly D__DIR_BUNDLES="$D__DIR_STATE/bundles"
+  readonly D__DIR_BUNDLE_BACKUPS="$D__DIR_STATE/bundle-backups"
+
+  # Global indicators of current request's attributes
+  D__REQ_ARGS=()            # Array of non-option arguments
+
+  # Global flags for command line options
+  D__OPT_FORCE=false        # Flag for forceful mode
+  D__OPT_VERBOSITY=0        # New verbosity setting
+  D__OPT_ANSWER=            # Blanket answer to all prompts
+  D__OPT_ANSWER_F=          # Blanket answer to framework prompts
+  D__OPT_ANSWER_U=          # Blanket answer to util prompts
 
-  # Report status
-  case $? in
-    0)
-      D_UNINSTALLED_UTIL_NAMES=( "${D_INSTALLED_UTIL_NAMES[@]}" )
-      D_INSTALLED_UTIL_NAMES=()
-      dprint_success \
-        'Successfully uninstalled system utilities installed by the framework'
-      D_STATUS_UTILS=true
-      return 0
-      ;;
-    1)
-      # Storage variables
-      local tmp="${D_INSTALLED_UTIL_NAMES[@]}" i j
-
-      # Collect names of currently still available utilities
-      D_INSTALLED_UTIL_NAMES=()
-
-      # Check if there is still a record of Homebrew installation
-      if d__stash_root -s has installed_homebrew; then
-        D_INSTALLED_UTIL_NAMES+=( brew )
-      fi
-
-      # Check if there are still records of system utility installations
-      if d__stash_root -s has installed_util; then
-
-        # Collect util names into global list
-        local util_name
-        while read -r util_name; do D_INSTALLED_UTIL_NAMES+=( "$util_name" )
-        done < <( d__stash_root -s list installed_util )
-
-      fi
-
-      # Make list of uninstalled ones
-      D_UNINSTALLED_UTIL_NAMES=()
-      for i in "${tmp[@]}"; do
-        for j in "${D_INSTALLED_UTIL_NAMES[@]}"; do
-          [[ $i = $j ]] && continue 2
-        done
-        D_UNINSTALLED_UTIL_NAMES+=( "$i" )
-      done
-
-      # Report and return
-      dprint_failure \
-        'Failed to uninstall some system utilities installed by the framework'
-      D_STATUS_UTILS=error
-      return 1
-      ;;
-    *)
-      dprint_failure \
-        'Failed to uninstall system utilities installed by the framework'
-      D_STATUS_UTILS=error
-      return 1
-      ;;
-  esac
-}
-
-d__make_backup()
-{
-  # Check if backup location is staged
-  if [ -z "$D_BACKUP_LOCATION" ]; then
-    # No backup location prepared, silently return
-    return 0
-  fi
-
-  # Print empty line for visual separation
-  printf >&2 '\n'
-
-  # Offer to make backup
-  if dprompt "$D_MAKE_BACKUP" 'Make backup?' \
-    '[optional] Would you like to retain backup of potentially valuable files?'
-  then
-    dprint_alert 'Backing up potentially valuable files'
-  else
-    dprint_skip 'Refused to back up potentially valuable files'
-    return 0
-  fi
-
-  # Make temporary location
-  local tmpdir="$( mktemp -d )"
-
-  # Status variable
-  local something_backed_up=false all_good=true
-
-  # Check if Grail dir exists
-  if [ -d "$D_FMWK_DIR/grail" ]; then
-
-    # Move grail directory to temp location
-    if mv -n -- "$D_FMWK_DIR/grail" "$tmpdir/grail" &>/dev/null; then
-
-      # Successfully moved: leave record
-      dprint_debug "Backed up: $D_FMWK_DIR/grail"
-      something_backed_up=true
-
-    else
-
-      # Failed to move to backup location
-      dprint_failure 'Failed to move Grail directory from:' \
-        "    $D_FMWK_DIR/grail" \
-        'to temporary location at:' \
-        "    $tmpdir/grail"
-      all_good=false
-
-    fi
-
-  fi
-  
-  # Check if state dir exists
-  if [ -d "$D_FMWK_DIR/state" ]; then
-
-    # Move state directory to temp location
-    if mv -n -- "$D_FMWK_DIR/state" "$tmpdir/state" &>/dev/null; then
-
-      # Successfully moved: leave record
-      dprint_debug "Backed up: $D_FMWK_DIR/state"
-      something_backed_up=true
-
-    else
-
-      # Failed to move to backup location
-      dprint_failure 'Failed to move state directory from:' \
-        "    $D_FMWK_DIR/state" \
-        'to temporary location at:' \
-        "    $tmpdir/state"
-      all_good=false
-
-    fi
-
-  fi
-
-  # Check if everything went good
-  if $all_good; then
-
-    # Check if anything has been backed up
-    if $something_backed_up; then
-
-      # Move temporary directory into place
-      if mv -n -- "$tmpdir" "$D_BACKUP_LOCATION" &>/dev/null; then
-
-        # Success: announce and return
-        dprint_success \
-          'Successfully backed up potentially valuable files to:' \
-          "    $D_BACKUP_LOCATION"
-        rm -rf -- "$tmpdir"
-        D_STATUS_BACKUP=true
-        return 0
-
-      else
-
-        # Failure: announce, clear backup location, return
-        dprint_failure 'Failed to move potentially valuable files' \
-          'from temporary directory at:' "    $tmpdir" \
-          'to backup location at:' "    $D_BACKUP_LOCATION"
-        D_STATUS_BACKUP=error
-        return 1
-
-      fi
-
-    else
-
-      # There was nothing to back up: announce skip, return success
-      dprint_skip 'There were no potentially valuable files to back up'
-      rm -rf -- "$tmpdir"
-      return 0
-
-    fi
-  
-  else
-
-    # Failed to back up at least one directory: announce, clear path, return
-    dprint_failure 'Failed to back up potentially valuable files'
-    D_STATUS_BACKUP=error
-    return 1
-
-  fi
-}
-
-d__erase_d_dir()
-{
-  # Print empty line for visual separation
-  printf >&2 '\n'
-
-  # Announce start
-  dprint_alert 'Removing framework directory'
-
-  # Remove framework directory
-  if rm -rf -- "$D_FMWK_DIR"; then
-
-    # Announce success, mark status, return
-    dprint_success "Successfully removed framework directory at:" \
-      "    $D_FMWK_DIR"
-    D_STATUS_FRAMEWORK=true
-    return 0
-
-  else
-
-    # Announce and return failure
-    dprint_failure "Failed to remove framework directory at:" \
-      "    $D_FMWK_DIR"
-    D_STATUS_FRAMEWORK=error
-    return 1
-
-  fi
-}
-
-d__uninstall_shortcut()
-{
-  # Check if shortcut filepath is staged for removal
-  if ! [ "$D_STATUS_SHORTCUT" = false ]; then
-    # Nothing to remove: silently return
-    return 0
-  fi
-
-  # Print empty line for visual separation
-  printf >&2 '\n'
-
-  # Announce start
-  dprint_alert 'Removing shortcut shell command'
-
-  # Storage variables
-  local shortcut_dirpath
-
-  # Extract dirpath
-  shortcut_dirpath="$( dirname -- "$D_SHORTCUT_FILEPATH" )"
-
-  # Check if user has writing permissions of directory containing shortcut
-  if [ -w "$shortcut_dirpath" ]; then
-
-    # Just remove the shortcut
-    rm -f -- "$D_SHORTCUT_FILEPATH"
-
-  else
-
-    # Check if password is going to be required
-    if ! sudo -n true 2>/dev/null; then
-      dprint_alert 'Sudo password is required to remove shortcut shell command'
-    fi
-
-    # Remove shortcut with sudo
-    sudo rm -f -- "$D_SHORTCUT_FILEPATH"
-
-  fi
-
-  # Check if removal went fine
-  if [ $? -eq 0 ]; then
-
-    # Announce success, set status, return
-    dprint_success 'Successfully removed shortcut shell command at:' \
-      "    $D_SHORTCUT_FILEPATH"
-    D_STATUS_SHORTCUT=true
-    return 0
-
-  else
-  
-    # Announce and return failure
-    dprint_failure 'Failed to remove shortcut shell command at:' \
-      "    $D_SHORTCUT_FILEPATH"
-    D_STATUS_SHORTCUT=error
-    return 1
-
-  fi
-}
-
-d__report_summary()
-{
-  # Print empty line for visual separation
-  printf >&2 '\n'
-
-  # Storage variables 
-  local report_lines=() anything_removed=false
-  local v="${REVERSE}${GREEN}${BOLD}v${NORMAL}"
-  local x="${REVERSE}${RED}${BOLD}x${NORMAL}"
-  local s="${REVERSE}${BOLD}-${NORMAL}"
-
-  # Check status of framework
-  case $D_STATUS_FRAMEWORK in
-    true)
-      report_lines+=( \
-        "$v Framework erased at: $BOLD$D_FMWK_DIR$NORMAL" \
-      )
-      anything_removed=true
-      ;;
-    error)
-      report_lines+=( \
-        "$x Failed to erase framework at: $BOLD$D_FMWK_DIR$NORMAL" \
-      )
-      ;;
-    *)
-      report_lines+=( \
-        "$s Framework untouched at: $BOLD$D_FMWK_DIR$NORMAL" \
-      )
-      ;;
-  esac
-
-  # Compose list of uninstalled utils
-  local list_of_uninstalled_utils="$D_UNINSTALLED_UTIL_NAMES" i
-  for (( i=1; i<${#D_UNINSTALLED_UTIL_NAMES[@]}; i++ )); do
-    list_of_uninstalled_utils+=", ${D_UNINSTALLED_UTIL_NAMES[$i]}"
-  done
-  [ -n "$list_of_uninstalled_utils" ] || list_of_uninstalled_utils='[none]'
-  list_of_uninstalled_utils="$BOLD$list_of_uninstalled_utils$NORMAL"
-
-  # Compose list of utils that failed to uninstall
-  local list_of_installed_utils="$D_INSTALLED_UTIL_NAMES"
-  for (( i=1; i<${#D_INSTALLED_UTIL_NAMES[@]}; i++ )); do
-    list_of_installed_utils+=", ${D_INSTALLED_UTIL_NAMES[$i]}"
-  done
-  [ -n "$list_of_installed_utils" ] || list_of_installed_utils='[none]'
-  list_of_installed_utils="$BOLD$list_of_installed_utils$NORMAL"
-
-  # Check status of uninstalling system utils
-  case $D_STATUS_UTILS in
-    true)
-      report_lines+=( \
-        "$v Successfully uninstalled: $list_of_uninstalled_utils" \
-      )
-      anything_removed=true
-      ;;
-    false)
-      report_lines+=( \
-        "$s Remain installed: $list_of_installed_utils" \
-      )
-      ;;
-    error)
-      if [ ${#D_UNINSTALLED_UTIL_NAMES[@]} -eq 0 ]; then
-        report_lines+=( \
-          "$s Successfully uninstalled: $list_of_uninstalled_utils" \
-        )
-      else
-        report_lines+=( \
-          "$v Successfully uninstalled: $list_of_uninstalled_utils" \
-        )
-        anything_removed=true
-      fi
-      report_lines+=( \
-        "$x Failed to uninstall: $list_of_installed_utils" \
-      )
-      ;;
-    *)
-      :
-      ;;
-  esac
-
-  # Check status of backup
-  case $D_STATUS_BACKUP in
-    true)
-      report_lines+=( \
-        "$v Backup created at: $BOLD$D_BACKUP_LOCATION$NORMAL" \
-      )
-      anything_removed=true
-      ;;
-    false)
-      report_lines+=( \
-        "$s Nothing to back up" \
-      )
-      ;;
-    error)
-      if [ -n "$D_BACKUP_LOCATION" ]; then
-        report_lines+=( \
-          "$x Failed to back up to: $BOLD$D_BACKUP_LOCATION$NORMAL" \
-        )
-        anything_removed=true
-      else
-        report_lines+=( \
-          "$x Failed to generate backup path" \
-        )
-      fi
-      ;;
-    *)
-      report_lines+=( \
-        "$s No backup created" \
-      )
-      ;;
-  esac
-
-  # Chack status of shortcut
-  case $D_STATUS_SHORTCUT in
-    true)
-      report_lines+=( \
-        "$v Shortcut removed at: $BOLD$D_SHORTCUT_FILEPATH$NORMAL" \
-      )
-      anything_removed=true
-      ;;
-    empty)
-      report_lines+=( \
-        "$s No shortcut recorded" \
-      )
-      ;;
-    illegal)
-      report_lines+=( \
-        "$x Invalid shortcut record: $BOLD$D_SHORTCUT_FILEPATH$NORMAL" \
-      )
-      ;;
-    error)
-      report_lines+=( \
-        "$x Failed to remove shortcut at: $BOLD$D_SHORTCUT_FILEPATH$NORMAL" \
-      )
-      ;;
-    *)
-      :
-      ;;
-  esac
-
-  # Check if anything was removed
-  if $anything_removed; then
-
-    # Report and return based on whether the main task is done
-    if [ "$D_STATUS_FRAMEWORK" = true ]; then
-
-      # Print plaque
-      cat <<EOF
-${REVERSE}- ${BOLD}D i v i n e . d o t f i l e s${NORMAL}${REVERSE} -${NORMAL}
-   ${GREEN}${REVERSE}${BOLD} u n i n s t a l l e d ${NORMAL}
-             ${GREEN}${REVERSE}x_x${NORMAL}
-
-EOF
-
-      # Framework is removed: report and return as success
-      dprint_success "${report_lines[@]}" ''
-      dprint_success 'We hate to see you leave, but we love watching you go.' \
-        ''
-      return 0
-
-    else
-
-      # Framework is NOT removed: report and return as failure
-      dprint_failure "${report_lines[@]}"
-      return 1
-
-    fi
-
-  else
-
-    # Essentially nothing was done
-    dprint_failure 'Nothing was removed'
-    return 1
-
-  fi
-}
-
-dprint_debug()
-{
-  $D_OPT_QUIET && return 0
-  printf >&2 "${CYAN}==> %s${NORMAL}\n" "$1"; shift
-  while (($#)); do printf >&2 "    ${CYAN}%s${NORMAL}\n" "$1"; shift; done
   return 0
 }
 
-dprint_alert()
+## d__parse_arguments [ARG]...
+#
+## Parses arguments that were passed to this script.
+#
+d__parse_arguments()
 {
-  printf >&2 "${BOLD}${YELLOW}==>${NORMAL} %s\n" "$1"; shift
-  while (($#)); do printf >&2 '    %s\n' "$1"; shift; done; return 0
-}
+  # Parse options
+  local arg opt i
+  while (($#)); do arg="$1"; shift; case $arg in
+    -*) case ${arg:1} in
+          -)            D__REQ_ARGS+=("$@"); break;;
+          y|-yes)       D__OPT_ANSWER=true
+                        D__OPT_ANSWER_F=true
+                        D__OPT_ANSWER_U=true;;
+          n|-no)        D__OPT_ANSWER=false
+                        D__OPT_ANSWER_F=false
+                        D__OPT_ANSWER_U=false;;
+          d|-fmwk-yes)  D__OPT_ANSWER_F=true;;
+          D|-fmwk-no)   D__OPT_ANSWER_F=false;;
+          u|-util-yes)  D__OPT_ANSWER_U=true;;
+          U|-util-no)   D__OPT_ANSWER_U=false;;
+          f|-force)     D__OPT_FORCE=true;;
+          q|-quiet)     D__OPT_VERBOSITY=0;;
+          v|-verbose)   ((++D__OPT_VERBOSITY));;
+          *)  for ((i=1;i<${#arg};++i)); do opt="${arg:i:1}"; case $opt in
+                y)  D__OPT_ANSWER=true
+                    D__OPT_ANSWER_F=true
+                    D__OPT_ANSWER_U=true;;
+                n)  D__OPT_ANSWER=false
+                    D__OPT_ANSWER_F=false
+                    D__OPT_ANSWER_U=false;;
+                d)  D__OPT_ANSWER_F=true;;
+                D)  D__OPT_ANSWER_F=false;;
+                u)  D__OPT_ANSWER_U=true;;
+                U)  D__OPT_ANSWER_U=false;;
+                f)  D__OPT_FORCE=true;;
+                q)  D__OPT_VERBOSITY=0;;
+                v)  ((++D__OPT_VERBOSITY));;
+                *)  printf >&2 "%s: Unrecognized option '%s'\n" \
+                      "$D__FMWK_NAME" "$opt"; exit 1;;
+              esac; done
+        esac;;
+    *)  [ -n "$arg" ] && D__REQ_ARGS+=("$arg");;
+  esac; done
 
-dprint_skip()
-{
-  printf >&2 "${BOLD}${WHITE}==>${NORMAL} %s\n" "$1"; shift
-  while (($#)); do printf >&2 '    %s\n' "$1"; shift; done; return 0
-}
-
-dprint_success()
-{
-  printf >&2 "${BOLD}${GREEN}==>${NORMAL} %s\n" "$1"; shift
-  while (($#)); do printf >&2 '    %s\n' "$1"; shift; done; return 0
-}
-
-dprint_failure()
-{
-  printf >&2 "${BOLD}${RED}==>${NORMAL} %s\n" "$1"; shift
-  while (($#)); do printf >&2 '    %s\n' "$1"; shift; done; return 0
-}
-
-dprompt()
-{
-  # Extract predefined answer
-  local predefined_answer="$1"; shift
-
-  # Check predefined answer
-  if [ "$predefined_answer" = true ]; then return 0
-  elif [ "$predefined_answer" = false ]; then return 1
-  fi
-
-  # Extract prompt text
-  local prompt_text="$1"; shift
-
-  # Status variable
-  local yes=false
-
-  # Print announcement and prompt
-  printf >&2 '%s %s\n' "${BOLD}${YELLOW}${REVERSE}==>${NORMAL}" "$1"; shift
-  while (($#)); do printf >&2 '    %s\n' "$1"; shift; done
-  printf >&2 '%s [y/n] ' "${BOLD}${YELLOW}${REVERSE} ${prompt_text} ${NORMAL}"
-
-  # Await answer
-  while true; do
-    read -rsn1 input
-    [[ $input =~ ^(y|Y)$ ]] && { printf >&2 'y'; yes=true;  break; }
-    [[ $input =~ ^(n|N)$ ]] && { printf >&2 'n'; yes=false; break; }
-  done
-  printf >&2 '\n'
-
-  # Check answer
-  if $yes; then return 0; else return 1; fi
-}
-
-d__stash_root()
-{
-  # Key variables
-  local stash_dirpath="$D_FMWK_DIR/state/stash"
-  local stash_filepath="$stash_dirpath/.stash.cfg"
-  local stash_md5_filepath="$stash_filepath.md5"
-
-  # If stash file does not exist, return immediately
-  if [ ! -e "$stash_filepath" ]; then return 1; fi
-
-  # Check that stash file has valid checksum
-  if [ "$1" = -s ]; then shift; else
-    if ! [ "$( dmd5 "$stash_filepath" )" \
-      = "$( head -1 -- "$stash_md5_filepath" 2>/dev/null )" ]
-    then
-      dprint_failure 'Checksum mismatch on root stash file at:' \
-        "    $stash_filepath"
-      return 1
-    fi
-  fi
-
-  # Pick action based on first argument
-  case $1 in
-    has)
-      grep -q ^"$2"= -- "$stash_filepath" &>/dev/null \
-        && return 0 || return 1
-      ;;
-    get)
-      local value
-      value="$( grep ^"$2"= -- "$stash_filepath" 2>/dev/null \
-        | head -1 2>/dev/null )"
-      value="${value#$2=}"
-      printf '%s\n' "$value"
-      ;;
-    list)
-      local value
-      while read -r value; do
-        value="${value#$2=}"
-        printf '%s\n' "$value"
-      done < <( grep ^"$2"= -- "$stash_filepath" 2>/dev/null )
-      ;;
-    *)    return 1;;
-  esac
-}
-
-dmd5()
-{
-  local md5
-  md5="$( md5sum -- "$1" 2>/dev/null | awk '{print $1}' )"
-  if [ ${#md5} -eq 32 ]; then printf '%s\n' "$md5"; return 0; fi
-  md5="$( md5 -r -- "$1" 2>/dev/null | awk '{print $1}' )"
-  if [ ${#md5} -eq 32 ]; then printf '%s\n' "$md5"; return 0; fi
-  md5="$( openssl md5 -- "$1" 2>/dev/null | awk '{print $1}' )"
-  if [ ${#md5} -eq 32 ]; then printf '%s\n' "$md5"; return 0; fi
-  return 1
+  # Freeze variables
+  readonly D__REQ_ARGS
+  readonly D__OPT_VERBOSITY
+  readonly D__OPT_ANSWER
+  readonly D__OPT_ANSWER_F
+  readonly D__OPT_ANSWER_U
 }
 
 d__main "$@"

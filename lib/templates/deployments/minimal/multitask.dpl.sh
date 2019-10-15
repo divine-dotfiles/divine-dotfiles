@@ -6,14 +6,14 @@ D_DPL_WARNING=
 
 d_dpl_check()
 {
-  D_MULTITASK_NAMES+=( task1 )
-  D_MULTITASK_NAMES+=( task2 )
-  D_MULTITASK_NAMES+=( task3 )
-  d__multitask_check
+  D_MLTSK_MAIN+=( task1 )
+  D_MLTSK_MAIN+=( task2 )
+  D_MLTSK_MAIN+=( task3 )
+  d__mltsk_check
 }
 
-d_dpl_install()  {  d__multitask_install; }
-d_dpl_remove()   {  d__multitask_remove;  }
+d_dpl_install()  {  d__mltsk_install; }
+d_dpl_remove()   {  d__mltsk_remove;  }
 
 d_task1_check()    { :; }
 d_task1_install()  { :; }

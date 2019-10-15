@@ -2,633 +2,558 @@
 #:title:        Divine Bash routine: remove
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.09.25
-#:revremark:    Remove revision numbers from all src files
+#:revdate:      2019.10.14
+#:revremark:    Implement robust dependency loading system
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
 #
-## This file is intended to be sourced from framework's main script
+## This file is intended to be sourced from framework's main script.
 #
 ## Removes packages and deployments as requested
 #
 
-#>  d__perform_remove_routine
+# Marker and dependencies
+readonly D__RTN_REMOVE=loaded
+d__load util workflow
+d__load util stash
+d__load util offer
+d__load util github
+d__load util backup
+d__load util assets
+d__load util items
+d__load helper multitask
+d__load helper queue
+d__load helper link-queue
+d__load helper copy-queue
+d__load helper gh-queue
+d__load procedure prep-stash
+d__load procedure prep-gh
+d__load procedure sync-bundles
+d__load procedure assemble
+
+#>  d__rtn_remove
 #
 ## Performs removal routine, in reverse installation order
 #
 # For each priority level, from largest to smallest, separately:
 #.  * Removes deployments in reverse installation order
-#.  * Removes packages in reverse order they appear in Divinefile
+#.  * Removes packages in reversed order of appearance in Divinefile
 #
 ## Returns:
 #.  0 - Routine performed
+#.  1 - Routine terminated prematurely
 #
-d__perform_remove_routine()
+d__rtn_remove()
 {
-  # Print empty line for visual separation
+  # Print a separating empty line, switch context
   printf >&2 '\n'
+  d__context -- notch
+  d__context -- push "Performing 'remove' routine"
 
   # Announce beginning
-  if [ "$BLANKET_ANSWER" = n ]; then
-    dprint_plaque -pcw "$WHITE" "$D__CONST_PLAQUE_WIDTH" \
-      -- "'Undoing' Divine intervention"
+  if [ "$D__OPT_ANSWER" = false ]; then
+    d__announce -s -- "'Undoing' Divine intervention"
   else
-    dprint_plaque -pcw "$GREEN" "$D__CONST_PLAQUE_WIDTH" \
-      -- 'Undoing Divine intervention'
+    d__announce -v -- 'Undoing Divine intervention'
   fi
 
   # Update packages if touching them at all
   # (This is normally required even for removal)
-  d__load routine pkgs
+  d__load procedure update-pkgs
 
-  # Storage variables
-  local priority array_of_priorities i
+  # Storage variable
+  local d__prtya=(${!D__WKLD[@]}) d__prty d__prtys d__i
 
-  # Extract priorities into array
-  array_of_priorities=( "${!D__WORKLOAD[@]}" )
+  # Iterate over taken priorities
+  for ((d__i=${#d__prtya[@]}-1;d__i>=0;--d__i)); do
 
-  # Iterate over array of priorities in reverse order
-  for (( i=${#array_of_priorities[@]}-1; i>=0; i-- )); do
+    # Extract priority; switch context and compose priority string
+    d__prty="${d__prtya[$d__i]}"
+    d__context -n -- push "Removing at priority '$d__prty'"
+    d__prtys="$( printf "(%${D__REQ_MAX_PRIORITY_LEN}d)" "$d__prty" )"
 
-    # Extract priority
-    priority="${array_of_priorities[$i]}"
+    # Remove deployments, if asked to; check if returned special status 
+    d___remove_dpls; if [ $? -eq 1 ]; then
+      printf >&2 '\n'
+      d__announce -! -- 'Halting Divine intervention'
+      d__context -- lop
+      return 1
+    fi
 
-    # Remove deployments if asked to
-    d__remove_dpls "$priority"
+    # Remove packages, if asked to
+    d___remove_pkgs
 
-    # Check if d__remove_dpls returned special status
-    case $? in
-      100)
-        printf '\n'
-        dprint_ode "${D__ODE_NORMAL[@]}" -c "$YELLOW" -- \
-          ')))' 'Reboot required' ':' \
-          'Last deployment asked for machine reboot'
-        printf '\n'
-        dprint_plaque -pcw "$YELLOW" "$D__CONST_PLAQUE_WIDTH" \
-          -- 'Pausing Divine intervention'
-        return 1;;
-      101)
-        printf '\n'
-        dprint_ode "${D__ODE_NORMAL[@]}" -c "$YELLOW" -- \
-          'ooo' 'Attention' ':' \
-          "Last deployment asked for user's attention"
-        printf '\n'
-        dprint_plaque -pcw "$YELLOW" "$D__CONST_PLAQUE_WIDTH" \
-          -- 'Pausing Divine intervention'
-        return 1;;
-      102)
-        printf '\n'
-        dprint_ode "${D__ODE_NORMAL[@]}" -c "$YELLOW" -- \
-          'x_x' 'Critical failure' ':' \
-          'Last deployment reported catastrophic error'
-        printf '\n'
-        dprint_plaque -pcw "$RED" "$D__CONST_PLAQUE_WIDTH" \
-          -- 'Aborting Divine intervention'
-        return 1;;
-      *)  :;;
-    esac    
-
-    # Remove packages if asked to
-    d__remove_pkgs "$priority"
+    # Pop the priority
+    d__context -n -- pop
 
   done
 
   # Announce completion
-  printf '\n'
-  if [ "$BLANKET_ANSWER" = n ]; then
-    dprint_plaque -pcw "$WHITE" "$D__CONST_PLAQUE_WIDTH" \
-      -- "Successfully 'undid' Divine intervention"
+  printf >&2 '\n'
+  if [ "$D__OPT_ANSWER" = false ]; then
+    d__announce -s -- "Successfully 'undid' Divine intervention"
   else
-    dprint_plaque -pcw "$GREEN" "$D__CONST_PLAQUE_WIDTH" \
-      -- 'Successfully undid Divine intervention'
+    d__announce -v -- 'Successfully undid Divine intervention'
   fi
+  d__context -- lop
   return 0
 }
 
-#>  d__remove_pkgs PRIORITY_LEVEL
+#>  d___remove_pkgs
+#
+## INTERNAL USE ONLY
 #
 ## For the given priority level, removes packages, one by one, using their 
-#. names, which have been previously assembled in $D__WORKLOAD_PKGS array. Operates 
-#. in reverse order.
+#. names, which have been previously assembled in $D__WKLD_PKGS array. 
+#. Operates in reversed installation order.
 #
-## Requires:
-#.  * Divine Bash utils: dOS (dps.utl.sh)
-#.  * Divine Bash utils: dprint (dprint.utl.sh)
+## Local variables that need to be set in the calling context:
+#.  $d__prty    - The priority at which to conduct processing.
+#.  $d__prtys   - The priority as a fixed-width string composed for printing, 
+#.                e.g. '( 300)'.
 #
 ## Returns:
-#.  0 - Packages removed
-#.  1 - No attempt to remove has been made
+#.  0 - Always
 #
-## Prints:
-#.  stdout: Progress messages
-#.  stderr: As little as possible
-#
-d__remove_pkgs()
+d___remove_pkgs()
 {
-  # Check whether packages are asked for
-  $D__REQ_PACKAGES || return 1
-
-  # Check whether package manager has been detected
-  [ -n "$D__OS_PKGMGR" ] || return 1
-
-  # Extract priority
-  local priority
-  priority="$1"; shift
-
-  # Check if priority has been passed
-  [ -n "$priority" ] || return 1
+  # Return if empty list of packages at the given priority
+  [ -z ${D__WKLD_PKGS[$d__prty]+isset} ] && return 0
 
   # Storage variables
-  local task_desc task_name proceeding
-  local pkg_str chunks=() i pkgname mode aa_mode
+  local d__plq d__pkga_n d__pkga_b d__pkga_f d__pkg_n d__pkg_b d__pkg_f d__i
+  local d__aamd d__frcd d__shr d__shs
 
-  # Split package names on $D__CONST_DELIMITER
-  pkg_str="${D__WORKLOAD_PKGS[$priority]}"
-  while [[ $pkg_str ]]; do
-    chunks+=( "${pkg_str%%"$D__CONST_DELIMITER"*}" )
-    pkg_str="${pkg_str#*"$D__CONST_DELIMITER"}"
-  done
+  # Split package names on newline
+  IFS=$'\n' read -r -d '' -a d__pkga_n <<<"${D__WKLD_PKGS[$d__prty]}"
+  if [ "$D__OPT_ANSWER" != false ]; then
+    IFS=$'\n' read -r -d '' -a d__pkga_b <<<"${D__WKLD_PKG_BITS[$d__prty]}"
+    IFS=$'\n' read -r -d '' -a d__pkga_f <<<"${D__WKLD_PKG_FLAGS[$d__prty]}"
+  fi
 
   # Iterate over package names in reverse order
-  for (( i=${#chunks[@]}-1; i>=0; i-- )); do
+  for ((d__i=${#d__pkga_n[@]}-1;d__i>=0;--d__i)); do
 
-    # Get package name
-    pkgname="${chunks[$i]}"
+    # Print a separating empty line; extract pkg name; compose task name
+    printf >&2 '\n'; d__pkg_n="${d__pkga_n[$d__i]}"
+    d__plq="$d__prtys Package '$BOLD$d__pkg_n$NORMAL'"
 
-    # Empty name - continue
-    [ -n "$pkgname" ] || continue
-
-    # Extract mode if it is present
-    read -r mode pkgname <<<"$pkgname"
-    aa_mode=false
-    [[ $mode = *a* ]] && aa_mode=true
-    [[ $mode = *r* ]] && aa_mode=true
-
-    # Name current task
-    task_desc='Package'
-    task_name="'$pkgname'"
-
-    # Prefix priority
-    task_desc="$( printf \
-      "(%${D__REQ_MAX_PRIORITY_LEN}d) %s\n" \
-      "$priority" "$task_desc" )"
-
-    # Local flag for whether to proceed
-    proceeding=true
-
-    # Don't proceed if '-n' option is given
-    [ "$D__OPT_ANSWER" = false ] && proceeding=false
-
-    # Don't proceed if already removed (except when forcing)
-    if $proceeding; then
-      if d__os_pkgmgr check "$pkgname"; then
-        if d__stash --root --skip-checks has "pkg_$( dmd5 -s "$pkgname" )"; then
-          # Installed by this framework: remove
-          :
-        else
-          # Installed by user or OS: do not touch
-          task_name="$task_name (installed by user or OS)"
-          proceeding=false
-        fi
-      else
-        # Not installed: skip unless forcing
-        task_name="$task_name (already removed)"
-        $D__OPT_FORCE || proceeding=false
-      fi
+    # Early exit for dry runs
+    if [ "$D__OPT_ANSWER" = false ]; then
+      printf >&2 '%s %s\n' "$D__INTRO_RMV_S" "$d__plq"; continue
     fi
 
-    # Print newline to visually separate tasks
-    printf '\n'
+    # Extract the rest of the data
+    d__pkg_b="${d__pkga_b[$d__i]}"
+    d__pkg_f=; [ "$d__pkg_b" = 1 ] && d__pkg_f="${d__pkga_f[$d__i]}"
 
-    # Print introduction and prompt user as necessary
-    if $proceeding; then
+    # Pre-set default statuses
+    d__frcd=false d__shr=false d__shs=false
 
-      # Print message about the upcoming removal
-      dprint_ode "${D__ODE_NAME[@]}" -c "$YELLOW" -- \
-        '>>>' 'Removing' ':' "$task_desc" "$task_name"
-
-      ## Unless given a '-y' option (or unless aa_mode is enabled), prompt for 
-      #. user's approval
-      if [ "$aa_mode" = true -o "$D__OPT_ANSWER" != true ]; then
-
-
-        # Prompt slightly differs depending on whether 'always ask' is enabled
-        if $aa_mode; then
-          dprint_ode "${D__ODE_DANGER[@]}" -c "$RED" -- '!!!' 'Danger' ': '
+    # Perform check prior to processing
+    if d__os_pkgmgr check $d__pkg_n; then
+      if d__stash -rs -- has "pkg_$( dmd5 -s $d__pkg_n )"; then
+        # Installed with stash record
+        d__shr=true d__shs=true
+      else
+        # Installed without stash record
+        d__notify -l! -- "Package '$d__pkg_n' appears to be installed" \
+          "via '$D__OS_PKGMGR' manually"
+        if $D__OPT_FORCE; then d__frcd=true d__shr=true
         else
-          dprint_ode "${D__ODE_PROMPT[@]}" -- '' 'Confirm' ': '
+          d__notify -l! -- 'Re-try with --force to overcome'
+          printf >&2 '%s %s\n' "$D__INTRO_RMV_2" "$d__plq"; continue
         fi
-
-        # Prompt user
-        dprompt --bare && proceeding=true || {
-          task_name="$task_name (declined by user)"
-          proceeding=false
-        }
-
       fi
-
-    fi
-
-    # Remove package
-    if $proceeding; then
-
-      # Launch OS package manager with verbosity in mind
-      if $D__OPT_QUIET; then
-
-        # Launch quietly
-        d__os_pkgmgr remove "$pkgname" &>/dev/null
-
+    elif type -P -- $d__pkg_n; then
+      if d__stash -rs -- has "pkg_$( dmd5 -s $d__pkg_n )"; then
+        # Installed without package manager, somehow there is a stash record
+        d__notify -lx -- "Package '$d__pkg_n' is recorded" \
+          "as previously installed via '$D__OS_PKGMGR'" \
+          -n- 'but it now appears to be installed by other means'
+        if $D__OPT_FORCE; then d__frcd=true d__shs=true
+        else
+          d__notify -l! -- 'Re-try with --force to overcome'
+          printf >&2 '%s %s\n' "$D__INTRO_CHK_6" "$d__plq"; continue
+        fi
       else
-
-        # Launch normally, but re-paint output
-        local line
-        d__os_pkgmgr remove "$pkgname" 2>&1 \
-          | while IFS= read -r line || [ -n "$line" ]; do
-          printf "${CYAN}==> %s${NORMAL}\n" "$line"
-        done
-
+        # Installed without package manager, no stash record
+        if $D__OPT_FORCE; then
+          d__notify -lx -- "Package '$d__pkg_n' appears to be installed" \
+            "by means other than '$D__OS_PKGMGR'" -n- 'Unable to remove'
+        else
+          d__notify -l! -- "Package '$d__pkg_n' appears to be installed" \
+            "by means other than '$D__OS_PKGMGR'"
+        fi
+        printf >&2 '%s %s\n' "$D__INTRO_RMV_2" "$d__plq"; continue
       fi
-
-      # Check return status
-      if [ "${PIPESTATUS[0]}" -eq 0 ]; then
-        d__stash --root --skip-checks unset "pkg_$( dmd5 -s "$pkgname" )"
-        dprint_ode "${D__ODE_NAME[@]}" -c "$GREEN" -- \
-          'vvv' 'Removed' ':' "$task_desc" "$task_name"
-      else
-        dprint_ode "${D__ODE_NAME[@]}" -c "$RED" -- \
-          'xxx' 'Failed' ':' "$task_desc" "$task_name"
-      fi
-
     else
-
-      # Not removing
-      dprint_ode "${D__ODE_NAME[@]}" -c "$WHITE" -- \
-        '---' 'Skipped' ':' "$task_desc" "$task_name"
-
+      if d__stash -rs -- has "pkg_$( dmd5 -s $d__pkg_n )"; then
+        # Not installed, but stash record exists
+        d__notify -lx -- \
+          "Package '$d__pkg_n' is recorded as previously installed" \
+          -n- "but does $BOLDnot$NORMAL appear to be installed right now" \
+          -n- '(which may be due to manual tinkering)'
+        if $D__OPT_FORCE; then d__frcd=true d__shs=true
+        else
+          d__notify -l! -- 'Re-try with --force to overcome'
+          printf >&2 '%s %s\n' "$D__INTRO_CHK_6" "$d__plq"; continue
+        fi
+      else
+        # Not installed, no stash record
+        printf >&2 '%s %s\n' "$D__INTRO_RMV_A" "$d__plq"
+      fi
     fi
 
+    # Settle on always-ask mode; conditionally print intro
+    d__aamd=false; case $d__pkg_f in *[ar]*) d__aamd=true;; esac
+    if $d__aamd || [ "$D__OPT_ANSWER" != true ] || (($D__OPT_VERBOSITY)); then
+      if $d__frcd; then printf >&2 '%s %s\n' "$D__INTRO_RMV_F" "$d__plq"
+      else printf >&2 '%s %s\n' "$D__INTRO_RMV_N" "$d__plq"; fi
+    fi
+
+    # Conditionally prompt for user's approval
+    if $d__aamd || $d__frcd || [ "$D__OPT_ANSWER" != true ]; then
+      if $d__aamd || $d__frcd; then printf >&2 '%s ' "$D__INTRO_CNF_U"
+      else printf >&2 '%s ' "$D__INTRO_CNF_N"; fi
+      if ! d__prompt -b; then
+        printf >&2 '%s %s\n' "$D__INTRO_RMV_S" "$d__plq"; continue
+      fi
+    fi
+
+    # Launch OS package manager with verbosity in mind
+    if $d__shr; then
+      if (($D__OPT_VERBOSITY)); then local d__ol
+        d__os_pkgmgr remove $d__pkg_n 2>&1 \
+          | while IFS= read -r d__ol || [ -n "$d__ol" ]
+            do printf >&2 '%s\n' "$CYAN$d__ol$NORMAL"; done
+      else d__os_pkgmgr remove $d__pkg_n &>/dev/null; fi
+      if ((${PIPESTATUS[0]})); then
+        d__notify -lx -- 'Package manager returned an error code' \
+          "while removing package '$d__pkg_n'"
+        printf >&2 '%s %s\n' "$D__INTRO_RMV_1" "$d__plq"; continue
+      fi
+    fi
+
+    # Unset stash record
+    if $d__shs; then
+      d__stash -rs -- unset "pkg_$( dmd5 -s $d__pkg_n )"
+      if (($?)); then
+        d__notify -lx -- "Failed to unset stash record for package '$d__pkg_n'"
+        printf >&2 '%s %s\n' "$D__INTRO_RMV_1" "$d__plq"; continue
+      fi
+    fi
+
+    # Report
+    printf >&2 '%s %s\n' "$D__INTRO_RMV_0" "$d__plq"
+
+  # Done iterating over package names in reverse order
   done
 
+  # Always return zero
   return 0
 }
 
-#>  d__remove_dpls PRIORITY_LEVEL
+#>  d___remove_dpls
+#
+## INTERNAL USE ONLY
 #
 ## For the given priority level, removes deployments, one by one, using their 
 #. *.dpl.sh files, paths to which have been previously assembled in 
-#. $D__WORKLOAD_DPLS array. Operates in reverse order.
+#. $D__WKLD_DPLS array. Operates in reversed installation order.
 #
-## Requires:
-#.  * Divine Bash utils: dOS (dps.utl.sh)
-#.  * Divine Bash utils: dprint (dprint.utl.sh)
+## Local variables that need to be set in the calling context:
+#.  $d__prty    - The priority at which to conduct processing.
+#.  $d__prtys   - The priority as a fixed-width string composed for printing, 
+#.                e.g. '( 300)'.
 #
 ## Returns:
-#.  0 - Deployments removed
-#.  1 - No attempt to remove has been made
-#.  100 - Reboot needed
-#.  101 - User attention needed
-#.  102 - Critical failure
+#.  0 - Deployments processed (incl. zero deployments)
+#.  1 - Routine aborted: last deployment requested halting of the script
 #
-## Prints:
-#.  stdout: Progress messages
-#.  stderr: As little as possible
-#
-d__remove_dpls()
+d___remove_dpls()
 {
-  # Extract priority
-  local priority
-  priority="$1"; shift
-
-  # Check if priority has been passed
-  [ -n "$priority" ] || return 1
+  # Return if empty list of *.dpl.sh files at the given priority
+  [ -z ${D__WKLD_DPLS[$d__prty]+isset} ] && return 0
 
   # Storage variables
-  local task_desc task_name proceeding
-  local dpl_str chunks=() i divinedpl_filepath
-  local name desc warning mode
-  local aa_mode dpl_status
-  local intro_printed
+  local d__dpla_p=() d__dpl_p d__plq d__rtc d__aamd d__frcd d__adsti d__i
+  local d__dpla_b d__dpla_n d__dpla_d d__dpla_f d__dpla_w
+  local d__dpl_b d__dpl_n d__dpl_d d__dpl_f d__dpl_w
 
-  # Split *.dpl.sh filepaths on $D__CONST_DELIMITER
-  dpl_str="${D__WORKLOAD_DPLS[$priority]}"
-  while [[ $dpl_str ]]; do
-    chunks+=( "${dpl_str%%"$D__CONST_DELIMITER"*}" )
-    dpl_str="${dpl_str#*"$D__CONST_DELIMITER"}"
-  done
+  # Extract data by splitting on newline
+  IFS=$'\n' read -r -d '' -a d__dpla_n <<<"${D__WKLD_DPL_NAMES[$d__prty]}"
+  if [ "$D__OPT_ANSWER" != false ]; then
+    IFS=$'\n' read -r -d '' -a d__dpla_p <<<"${D__WKLD_DPLS[$d__prty]}"
+    IFS=$'\n' read -r -d '' -a d__dpla_b <<<"${D__WKLD_DPL_BITS[$d__prty]}"
+    IFS=$'\n' read -r -d '' -a d__dpla_d <<<"${D__WKLD_DPL_DESCS[$d__prty]}"
+    IFS=$'\n' read -r -d '' -a d__dpla_f <<<"${D__WKLD_DPL_FLAGS[$d__prty]}"
+    IFS=$'\n' read -r -d '' -a d__dpla_w <<<"${D__WKLD_DPL_WARNS[$d__prty]}"
+  fi
 
-  # Iterate over *.dpl.sh filepaths
-  for (( i=${#chunks[@]}-1; i>=0; i-- )); do
+  # Iterate over *.dpl.sh filepaths in reverse order
+  for ((d__i=${#d__dpla_n[@]}-1;d__i>=0;--d__i)); do
 
-    # Extract *.dpl.sh filepath
-    divinedpl_filepath="${chunks[$i]}"
+    # Print a separating empty line; extract dpl name; compose task name
+    printf >&2 '\n'; d__dpl_n="${d__dpla_n[$d__i]}"
+    d__plq="$d__prtys Deployment '$BOLD$d__dpl_n$NORMAL'"
 
-    # Check if *.dpl.sh is a readable file
-    [ -r "$divinedpl_filepath" -a -f "$divinedpl_filepath" ] || continue
-
-    # Empty out storage variables
-    name=
-    desc=
-    mode=
-    # Undefine global functions
-    unset -f d_dpl_check
-    unset -f d_dpl_install
-    unset -f d_dpl_remove
-
-    # Extract name assignment from *.dpl.sh file (first one wins)
-    read -r name < <( sed -n "s/$D__REGEX_DPL_NAME/\1/p" \
-      <"$divinedpl_filepath" )
-    # Process name
-    # Remove quotes, trim to 64 chars, trim whitespace
-    [[ $name = \'*\' || $name = \"*\" ]] && name="${name:1:${#name}-2}"
-    read -r name <<<"${name::64}"
-    # Detect whether name is not empty
-    [ -n "$name" ] || {
-      # Fall back to name precefing *.dpl.sh suffix
-      name="$( basename -- "$divinedpl_filepath" )"
-      name=${name%$D__SUFFIX_DPL_SH}
-    }
-
-    # Extract description assignment from *.dpl.sh file (first one wins)
-    read -r desc < <( sed -n "s/$D__REGEX_DPL_DESC/\1/p" \
-      <"$divinedpl_filepath" )
-    # Process description
-    # Trim description, removing quotes if any
-    [[ $desc = \'*\' || $desc = \"*\" ]] && desc="${desc:1:${#desc}-2}"
-    read -r desc <<<"$desc"
-
-    # Extract warning assignment from *.dpl.sh file (first one wins)
-    read -r warning < <( sed -n "s/$D__REGEX_DPL_WARNING/\1/p" \
-      <"$divinedpl_filepath" )
-    # Process warning
-    # Trim warning, removing quotes if any
-    [[ $warning = \'*\' || $warning = \"*\" ]] \
-      && warning="${warning:1:${#warning}-2}"
-    read -r warning <<<"$warning"
-
-    # Extract mode assignment from *.dpl.sh file (first one wins)
-    read -r mode < <( sed -n "s/$D__REGEX_DPL_FLAGS/\1/p" \
-      <"$divinedpl_filepath" )
-    # Process mode
-    # Trim mode, removing quotes if any
-    [[ $mode = \'*\' || $mode = \"*\" ]] && mode="${mode:1:${#mode}-2}"
-    read -r mode <<<"$mode"
-
-    # Process $D_DPL_FLAGS
-    aa_mode=false
-    [[ $mode = *a* ]] && aa_mode=true
-    [[ $mode = *r* ]] && aa_mode=true
-
-    # Name current task
-    task_desc='Deployment'
-    task_name="'$name'"
-
-    # Prefix priority
-    task_desc="$( printf \
-      "(%${D__REQ_MAX_PRIORITY_LEN}d) %s\n" \
-      "$priority" "$task_desc" )"
-
-    # Local flag for whether to proceed
-    proceeding=true
-
-    # Flag about whether descriptive introduction has been printed
-    intro_printed=false
-
-    # Don't proceed if '-n' option is given
-    [ "$D__OPT_ANSWER" = false ] && proceeding=false
-
-    # Print newline to visually separate tasks
-    printf '\n'
-
-    # Conditionally print intro
-    if $proceeding && [ "$aa_mode" = true -o "$D__OPT_ANSWER" != true \
-      -o "$D__OPT_QUIET" = false ]
-    then
-
-      # Print message about the upcoming removal
-      dprint_ode "${D__ODE_NAME[@]}" -c "$YELLOW" -- \
-        '>>>' 'Removing' ':' "$task_desc" "$task_name" \
-        && intro_printed=true
-      # If description is available, show it
-      [ -n "$desc" ] && dprint_ode "${D__ODE_DESC[@]}" -- \
-        '' 'Description' ':' "$desc"
-        
+    # Early exit for dry runs
+    if [ "$D__OPT_ANSWER" = false ]; then
+      printf >&2 '%s %s\n' "$D__INTRO_RMV_S" "$d__plq"; continue
     fi
 
-    ## Unless given a '-y' option (or unless aa_mode is enabled), prompt for 
-    #. user's approval
-    if $proceeding && [ "$aa_mode" = true -o "$D__OPT_ANSWER" != true ]
+    # Extract the rest of the data; settle on always-ask mode
+    d__dpl_p="${d__dpla_p[$d__i]}"; d__dpl_b="${d__dpla_b[$d__i]}"
+    d__dpl_d=; [ "${d__dpl_b:0:1}" = 1 ] && d__dpl_d="${d__dpla_d[$d__i]}"
+    d__dpl_f=; [ "${d__dpl_b:1:1}" = 1 ] && d__dpl_f="${d__dpla_f[$d__i]}"
+    d__dpl_w=; [ "${d__dpl_b:2:1}" = 1 ] && d__dpl_w="${d__dpla_w[$d__i]}"
+    d__aamd=false; case $d__dpl_f in *[ar]*) d__aamd=true;; esac
+
+    # Print intro; conditionally add optional description; print location
+    printf >&2 '%s %s\n' "$D__INTRO_RMV_N" "$d__plq"
+    if [ -n "$d__dpl_d" ] \
+      && ( $d__aamd || [ "$D__OPT_ANSWER" != true ] || (($D__OPT_VERBOSITY)) )
     then
+      printf >&2 '%s %s\n' "$D__INTRO_DESCR" "$d__dpl_d"
+    fi
+    d__notify -q -- "Location: $d__dpl_p"
 
-      # In verbose mode, print location of script to be sourced
-      dprint_debug "Location: $divinedpl_filepath"
-      # If warning is relevant, show it
-      [ -n "$warning" -a "$aa_mode" = true ] \
-        && dprint_ode "${D__ODE_WARN[@]}" -c "$RED" -- \
-          '' 'Warning' ':' "$warning"
-
-      # Prompt slightly differs depending on whether 'always ask' is enabled
-      if $aa_mode; then
-        dprint_ode "${D__ODE_DANGER[@]}" -c "$RED" -- '!!!' 'Danger' ': '
-      else
-        dprint_ode "${D__ODE_PROMPT[@]}" -- '' 'Confirm' ': '
+    # Conditionally prompt for user's approval
+    if $d__aamd || [ "$D__OPT_ANSWER" != true ]; then
+      if $d__aamd; then
+        [ -n "$d__dpl_w" ] \
+          && printf >&2 '%s %s\n' "$D__INTRO_WARNG" "$d__dpl_w"
+        printf >&2 '%s ' "$D__INTRO_CNF_U"
+      else printf >&2 '%s ' "$D__INTRO_CNF_N"; fi
+      if ! d__prompt -b; then
+        printf >&2 '%s %s\n' "$D__INTRO_RMV_S" "$d__plq"; continue
       fi
-
-      # Prompt user
-      dprompt --bare && proceeding=true || {
-        task_name="$task_name (declined by user)"
-        proceeding=false
-      }
-
     fi
 
-    # If still proceeding, enter the final stage
-    if $proceeding; then
-
-      # Open subshell to isolate deployment code
-      (
-
-        # Announce
-        dprint_debug 'Entered sub-shell'
-
-        # Expose variables to deployment
-        D_DPL_NAME="$name"
-        D_DPL_PRIORITY="$priority"
-        readonly D__DPL_SH_PATH="$divinedpl_filepath"
-        D__DPL_MNF_PATH="${divinedpl_filepath%$D__SUFFIX_DPL_SH}"
-        D_DPL_QUE_PATH="${D__DPL_MNF_PATH}$D__SUFFIX_DPL_QUE"
-        readonly D__DPL_MNF_PATH+="$D__SUFFIX_DPL_MNF"
-        readonly D__DPL_DIR="$( dirname -- "$divinedpl_filepath" )"
-        readonly D__DPL_ASSET_DIR="$D__DIR_ASSETS/$D_DPL_NAME"
-        readonly D__DPL_BACKUP_DIR="$D__DIR_BACKUPS/$D_DPL_NAME"
-
-        # Process the asset manifest, if it exists
-        d__process_asset_manifest_of_current_dpl || exit 2
-
-        # Print debug message
-        dprint_debug "Sourcing: $divinedpl_filepath"
-
-        # Hold your breath...
-        source "$divinedpl_filepath"
-
-        # Process queue manifest (after sourcing, to allow path customization)
-        d__process_queue_manifest_of_current_dpl
-
-        # Get return code of d_dpl_check, or fall back to zero
-        if declare -f d_dpl_check &>/dev/null; then
-          d_dpl_check; dpl_status=$?
-        else
-          dpl_status=0
-        fi
-
-        # Don't proceed if already removed (except when forcing)
-        case $dpl_status in
-          1)  if [ "$D_DPL_INSTALLED_BY_USER_OR_OS" = true ]; then
-                task_name="$task_name (installed by user or OS)"
-                $D__OPT_FORCE || exit 3
-              fi
-              ;;
-          2)  task_name="$task_name (already removed)"
-              $D__OPT_FORCE || exit 4
-              ;;
-          3)  exit 5;;
-          4)  if [ "$D_DPL_INSTALLED_BY_USER_OR_OS" = true ]; then
-                task_name="$task_name (partly installed by user or OS)"
-                $D__OPT_FORCE || exit 6
-              else
-                task_name="$task_name (partly installed)"
-              fi
-              ;;
-          *)  :;;
-        esac
-
-        # Check if dpl requested another prompt
-        if [ "$D_DPL_NEEDS_ANOTHER_PROMPT" = true ]; then
-
-          # Print descriptive introduction, if haven't already
-          if ! $intro_printed; then
-            dprint_ode "${D__ODE_NAME[@]}" -c "$YELLOW" -- \
-              '>>>' 'Installing' ':' "$task_desc" "$task_name"
-            [ -n "$desc" ] && dprint_ode "${D__ODE_DESC[@]}" -- \
-              '' 'Description' ':' "$desc"
-          fi
-
-          # If there was a warning provided, print it
-          if [ -n "$D_DPL_NEEDS_ANOTHER_WARNING" ]; then
-            dprint_ode "${D__ODE_WARN[@]}" -c "$RED" -- \
-              '' 'Warning' ':' "$D_DPL_NEEDS_ANOTHER_WARNING"
-          fi
-
-          # Prompt user
-          dprint_ode "${D__ODE_DANGER[@]}" -c "$RED" -- '!!!' 'Danger' ': '
-          dprompt --bare || exit 7
-
-        fi
-
-        # Print descriptive introduction if haven't already
-        $intro_printed || dprint_ode "${D__ODE_NAME[@]}" -c "$YELLOW" -- \
-            '>>>' 'Removing' ':' "$task_desc" "$task_name"
-
-        # Expose check code to deployment
-        D__DPL_CHECK_CODE="$dpl_status"
-
-        # Get return code of d_dpl_remove, or fall back to zero
-        if declare -f d_dpl_remove &>/dev/null; then
-          d_dpl_remove; dpl_status=$?
-        else
-          dpl_status=0
-        fi
-
-        # Analyze exit code
-        case $dpl_status in
-          0|100|101)
-            dprint_ode "${D__ODE_NAME[@]}" -c "$GREEN" -- \
-              'vvv' 'Removed' ':' "$task_desc" "$task_name";;
-          2)
-            dprint_ode "${D__ODE_NAME[@]}" -c "$WHITE" -- \
-              '---' 'Skipped' ':' "$task_desc" "$task_name";;
-          1|102|*)
-            dprint_ode "${D__ODE_NAME[@]}" -c "$RED" -- \
-              'xxx' 'Failed' ':' "$task_desc" "$task_name";;
-        esac
-
-        # Catch special exit codes
-        case $dpl_status in
-          100)  exit 8;;
-          101)  exit 9;;
-          102)  exit 10;;
-          *)    :;;
-        esac
-
-        # Exit subshell properly
-        exit 0
-
-      )
-
-      # Store subshell exit status
-      dpl_status=$?
+    # Open subshell for a laughable illusion of 'security'
+    (
 
       # Announce
-      dprint_debug 'Exited sub-shell'
+      d__notify -qqq -- 'Entered sub-shell'
 
-      # Tentatively set failure flag
-      proceeding=false
+      # Expose variables to deployment
+      D_DPL_NAME="$d__dpl_n"
+      D_DPL_PRIORITY="$d__prty"
+      readonly D__DPL_SH_PATH="$d__dpl_p"
+      D__DPL_MNF_PATH="${d__dpl_p%$D__SUFFIX_DPL_SH}"
+      D_DPL_QUE_PATH="${D__DPL_MNF_PATH}$D__SUFFIX_DPL_QUE"
+      readonly D__DPL_MNF_PATH+="$D__SUFFIX_DPL_MNF"
+      readonly D__DPL_DIR="$( dirname -- "$d__dpl_p" )"
+      readonly D__DPL_ASSET_DIR="$D__DIR_ASSETS/$D_DPL_NAME"
+      readonly D__DPL_BACKUP_DIR="$D__DIR_BACKUPS/$D_DPL_NAME"
 
-      # Check exit status of subshell
-      case $dpl_status in
-        0)  # Subshell ran successfully: restore flag
-            proceeding=true
-            ;;
-        1)  # General failure: return critical failure
-            dprint_failure \
-              'Something went spectacularly wrong within the subshell'
-            dprint_ode "${D__ODE_NAME[@]}" -c "$RED" -- \
-              'xxx' 'Failed' ':' "$task_desc" "$task_name"
-            return 102
-            ;;
-        2)  # Asset assembly failed: retain failure flag
-            dprint_failure 'Failed to process deployment assets'
-            ;;
-        3)  # Installed by user or OS
-            task_name="$task_name (installed by user or OS)"
-            ;;
-        4)  # Already not installed
-            task_name="$task_name (already removed)"
-            ;;
-        5)  # Irrelevant deployment
-            task_name="$task_name (irrelevant)"
-            ;;
-        6)  # Partly installed by user or OS
-            task_name="$task_name (partly installed by user or OS)"
-            ;;
-        7)  # User declined prompt
-            task_name="$task_name (declined by user)"
-            ;;
-        8)  # Removal returned special code 100
-            return 100
-            ;;
-        9)  # Removal returned special code 101
-            return 101
-            ;;
-        10) # Removal returned special code 102
-            return 102
-            ;;
-        *)  # Unsupported: retain failure flag
-            :
-            ;;
+      # Process the asset manifest, if it exists
+      if ! d__process_asset_manifest_of_current_dpl; then
+        d__notify -lx -- 'Failed to process deployment assets'
+        printf >&2 '%s %s\n' "$D__INTRO_RMV_S" "$d__plq"
+        d__notify -qqq -- 'Exiting sub-shell'
+        continue
+      fi
+
+      # Print debug message
+      d__notify -qq -- "Sourcing: $d__dpl_p"
+
+      # Hold your breath...
+      source "$d__dpl_p"
+
+      # Process queue manifest (after sourcing, to allow path customization)
+      d__process_queue_manifest_of_current_dpl
+
+      # Clear add-statuses
+      unset D_ADDST_PROMPT D_ADDST_HALT
+      unset D_ADDST_ATTENTION D_ADDST_REBOOT D_ADDST_WARNING D_ADDST_CRITICAL
+
+      # Get return code of d_dpl_check, or fall back to zero
+      if declare -f d_dpl_check &>/dev/null; then d_dpl_check; d__rtc=$?
+      else d__rtc=0; fi
+
+      # Process return code; pre-set default force status
+      d__frcd=false
+      case $d__rtc in
+        1)  # Fully installed
+            :;;
+        2)  # Fully not installed
+            if $D__OPT_FORCE; then d__frcd=true
+              d__notify -l! -- \
+                "Deployment '$d__dpl_n' appears to be already not installed"
+            else
+              printf >&2 '%s %s\n' "$D__INTRO_RMV_A" "$d__plq"
+              d__notify -qqq -- 'Exiting sub-shell'; continue
+            fi;;
+        3)  # Irrelevant or invalid
+            printf >&2 '%s %s\n' "$D__INTRO_CHK_3" "$d__plq"
+            d__notify -qqq -- 'Exiting sub-shell'; continue;;
+        4)  # Partly installed
+            d__notify -l! -- \
+              "Deployment '$d__dpl_n' appears to be only partly installed";;
+        5)  # Likely installed (unknown)
+            d__notify -l! -- \
+              "Deployment '$d__dpl_n' is recorded as previously installed" \
+              -n- 'but there is no way to confirm that it is indeed installed'
+            if $D__OPT_FORCE; then d__frcd=true
+            else
+              d__notify -l! -- 'Re-try with --force to overcome'
+              printf >&2 '%s %s\n' "$D__INTRO_CHK_5" "$d__plq"
+              d__notify -qqq -- 'Exiting sub-shell'; continue
+            fi;;
+        6)  # Manually removed (tinkered with)
+            d__notify -lx -- \
+              "Deployment '$d__dpl_n' is recorded as previously installed" \
+              -n- "but does $BOLDnot$NORMAL appear to be installed right now" \
+              -n- '(which may be due to manual tinkering)'
+            if $D__OPT_FORCE; then d__frcd=true
+            else
+              d__notify -l! -- 'Re-try with --force to overcome'
+              printf >&2 '%s %s\n' "$D__INTRO_RMV_S" "$d__plq"
+              d__notify -qqq -- 'Exiting sub-shell'; continue
+            fi;;
+        7)  # Fully installed by user or OS
+            d__notify -l! -- \
+              "Deployment '$d__dpl_n' appears to be fully installed" \
+              "by means other than installing this deployment"
+            if $D__OPT_FORCE; then d__frcd=true
+            else
+              d__notify -l! -- 'Re-try with --force to overcome'
+              printf >&2 '%s %s\n' "$D__INTRO_CHK_7" "$d__plq"
+              d__notify -qqq -- 'Exiting sub-shell'; continue
+            fi;;
+        8)  # Partly installed by user or OS
+            d__notify -l! -- \
+              "Deployment '$d__dpl_n' appears to be partly installed" \
+              "by means other than installing this deployment"
+            if $D__OPT_FORCE; then d__frcd=true
+            else
+              d__notify -l! -- 'Re-try with --force to overcome'
+              printf >&2 '%s %s\n' "$D__INTRO_CHK_8" "$d__plq"
+              d__notify -qqq -- 'Exiting sub-shell'; continue
+            fi;;
+        9)  # Likely not installed (unknown)
+            d__notify -l! -- \
+              "Deployment '$d__dpl_n' is $BOLDnot$NORMAL recorded" \
+              'as previously installed' -n- 'but there is no way to confirm' \
+              "that it is indeed $BOLDnot$NORMAL installed"
+            if $D__OPT_FORCE; then d__frcd=true
+            else
+              d__notify -l! -- 'Re-try with --force to overcome'
+              printf >&2 '%s %s\n' "$D__INTRO_CHK_9" "$d__plq"
+              d__notify -qqq -- 'Exiting sub-shell'; continue
+            fi;;
+        *)  # Truly unknown
+            :;;
       esac
 
-    fi
+      # Catch add-statuses
+      if ((${#D_ADDST_ATTENTION[@]})); then
+        for d__adsti in "${D_ADDST_ATTENTION[@]}"; do
+          printf >&2 '%s %s\n' "$D__INTRO_ATTNT" "$d__adsti"
+        done
+      fi
+      if ((${#D_ADDST_REBOOT[@]})); then
+        for d__adsti in "${D_ADDST_REBOOT[@]}"; do
+          printf >&2 '%s %s\n' "$D__INTRO_RBOOT" "$d__adsti"
+        done
+      fi
+      if ((${#D_ADDST_WARNING[@]})); then
+        for d__adsti in "${D_ADDST_WARNING[@]}"; do
+          printf >&2 '%s %s\n' "$D__INTRO_WARNG" "$d__adsti"
+        done
+      fi
+      if ((${#D_ADDST_CRITICAL[@]})); then
+        for d__adsti in "${D_ADDST_CRITICAL[@]}"; do
+          printf >&2 '%s %s\n' "$D__INTRO_CRTCL" "$d__adsti"
+        done
+      fi
 
-    # Make a final check for whether arrived here without bailing
-    if ! $proceeding; then
-      dprint_ode "${D__ODE_NAME[@]}" -c "$WHITE" -- \
-        '---' 'Skipped' ':' "$task_desc" "$task_name"
-    fi
+      # Catch the halting add-status
+      if [ "$D_ADDST_HALT" = true ]; then
+        printf >&2 '%s %s\n' "$D__INTRO_HALTN" \
+          "Deployment '$d__dpl_n' has requested to halt the routine"
+        d__notify -qqq -- 'Exiting sub-shell'
+        return 1
+      fi
 
+      # If forcing, print a forceful intro
+      $d__frcd && printf >&2 '%s %s\n' "$D__INTRO_RMV_F" "$d__plq"
+
+      # Re-prompt if forcing or if caught a prompt add-status
+      if $d__frcd || [ "$D_ADDST_PROMPT" = true ]; then
+        printf >&2 '%s ' "$D__INTRO_CNF_U"
+        if ! d__prompt -b; then
+          printf >&2 '%s %s\n' "$D__INTRO_RMV_S" "$d__plq"
+          d__notify -qqq -- 'Exiting sub-shell'; continue
+        fi
+      fi
+
+      # Clear add-statuses again
+      unset D_ADDST_HALT
+      unset D_ADDST_ATTENTION D_ADDST_REBOOT D_ADDST_WARNING D_ADDST_CRITICAL
+
+      ## Expose additional variables to the deployment. These are not readonly 
+      #. because they might be further changed by the underlying helpers, e.g., 
+      #. multitask or queue.
+      D__DPL_CHECK_CODE="$d__rtc"
+      D__DPL_IS_FORCED="$d__frcd"
+
+      # Get return code of d_dpl_remove, or fall back to zero
+      if declare -f d_dpl_remove &>/dev/null; then d_dpl_remove; d__rtc=$?
+      else d__rtc=0; fi
+
+      # Process return code
+      case $d__rtc in
+        1)  printf >&2 '%s %s\n' "$D__INTRO_RMV_1" "$d__plq";;
+        2)  printf >&2 '%s %s\n' "$D__INTRO_RMV_2" "$d__plq";;
+        3)  printf >&2 '%s %s\n' "$D__INTRO_RMV_3" "$d__plq";;
+        *)  printf >&2 '%s %s\n' "$D__INTRO_RMV_0" "$d__plq";;
+      esac
+
+      # Catch add-statuses
+      if ((${#D_ADDST_ATTENTION[@]})); then
+        for d__adsti in "${D_ADDST_ATTENTION[@]}"; do
+          printf >&2 '%s %s\n' "$D__INTRO_ATTNT" "$d__adsti"
+        done
+      fi
+      if ((${#D_ADDST_REBOOT[@]})); then
+        for d__adsti in "${D_ADDST_REBOOT[@]}"; do
+          printf >&2 '%s %s\n' "$D__INTRO_RBOOT" "$d__adsti"
+        done
+      fi
+      if ((${#D_ADDST_WARNING[@]})); then
+        for d__adsti in "${D_ADDST_WARNING[@]}"; do
+          printf >&2 '%s %s\n' "$D__INTRO_WARNG" "$d__adsti"
+        done
+      fi
+      if ((${#D_ADDST_CRITICAL[@]})); then
+        for d__adsti in "${D_ADDST_CRITICAL[@]}"; do
+          printf >&2 '%s %s\n' "$D__INTRO_CRTCL" "$d__adsti"
+        done
+      fi
+
+      # Catch the halting add-status
+      if [ "$D_ADDST_HALT" = true ]; then
+        printf >&2 '%s %s\n' "$D__INTRO_HALTN" \
+          "Deployment '$d__dpl_n' has requested to halt the routine"
+        d__notify -qqq -- 'Exiting sub-shell'
+        return 1
+      fi
+
+      # Announce
+      d__notify -qqq -- 'Exiting sub-shell'
+
+    # Close subshell
+    )
+
+  # Done iterating over *.dpl.sh filepaths in reverse order
   done
-  
+
+  # Always return zero
   return 0
 }
 
-d__perform_remove_routine
+d__rtn_remove

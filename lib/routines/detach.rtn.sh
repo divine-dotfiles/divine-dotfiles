@@ -2,201 +2,154 @@
 #:title:        Divine Bash routine: detach
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.09.25
-#:revremark:    Remove revision numbers from all src files
+#:revdate:      2019.10.14
+#:revremark:    Implement robust dependency loading system
 #:created_at:   2019.06.28
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
 #
-## This file is intended to be sourced from framework's main script
+## This file is intended to be sourced from framework's main script.
 #
-## Detaches cloned deployment repositories by removing their directories and 
-#. clearing their installation record
+## Detaches bundles of deployments by removing their directories and clearing 
+#. their installation record.
 #
 
-#>  d__perform_detach_routine
+# Marker and dependencies
+readonly D__RTN_DETACH=loaded
+d__load util workflow
+d__load util stash
+d__load util scan
+d__load procedure prep-stash
+d__load procedure prep-gh
+d__load procedure sync-bundles
+
+#>  d__rtn_detach
 #
 ## Performs detach routine
 #
 ## Returns:
-#.  0 - Routine performed, all arguments detached successfully
-#.  1 - Routine performed, only some arguments detached successfully
-#.  2 - Routine performed, none of the arguments detached
-#.  3 - Routine terminated with nothing to do
+#.  0 - All bundles detached.
+#.  0 - (script exit) Zero bundle names given.
+#.  1 - At least one given bundle was not detached.
 #
-d__perform_detach_routine()
+d__rtn_detach()
 {
-  # Synchronize dpl repos
-  d__sync_dpl_repos || exit 1
-  
-  # Print empty line for visual separation
+  # Check if any tasks were found
+  if [ ${#D__REQ_ARGS[@]} -eq 0 ]; then
+    d__notify -lst 'Nothing to do' -- 'Not a single bundle name given'
+    exit 0
+  fi
+
+  # Print a separating empty line, switch context
   printf >&2 '\n'
+  d__context -- notch
+  d__context -- push "Performing 'detach' routine"
 
   # Announce beginning
   if [ "$D__OPT_ANSWER" = false ]; then
-    dprint_plaque -pcw "$WHITE" "$D__CONST_PLAQUE_WIDTH" \
-      -- "'Detaching' deployments"
+    d__announce -s -- "'Detaching' bundles"
   else
-    dprint_plaque -pcw "$GREEN" "$D__CONST_PLAQUE_WIDTH" \
-      -- 'Detaching deployments'
+    d__announce -v -- 'Detaching bundles'
   fi
 
   # Storage & status variables
-  local dpl_arg
-  local detached_anything=false errors_encountered=false
+  local barg bdst bplq bany=false ball=true bpcs bdcs
 
   # Iterate over script arguments
-  for dpl_arg in "${D__REQ_ARGS[@]}"; do
-
-    # Print newline to visually separate attachments
-    printf >&2 '\n'
-
-    # Announce start
-    dprint_ode "${D__ODE_NORMAL[@]}" -c "$YELLOW" -- \
-      '>>>' 'Detaching' ':' "$dpl_arg"
-
-    # Try to attach deployments
-    if d__detach_dpl_repo "$dpl_arg"; then
-      detached_anything=true
-      dprint_ode "${D__ODE_NORMAL[@]}" -c "$GREEN" -- \
-        'vvv' 'Detached' ':' "$dpl_arg"
-    else
-      errors_encountered=true
-      dprint_ode "${D__ODE_NORMAL[@]}" -c "$RED" -- \
-        'xxx' 'Failed to detach' ':' "$dpl_arg"
-    fi
-
-  done
+  for barg in "${D__REQ_ARGS[@]}"
+  do d___detach_bundle && bany=true || ball=false; done
 
   # Announce routine completion
   printf >&2 '\n'
-  if [ "$D__OPT_ANSWER" = false ]; then
-    dprint_plaque -pcw "$WHITE" "$D__CONST_PLAQUE_WIDTH" \
-      -- "Finished 'detaching' deployments"
-    return 3
-  elif $detached_anything; then
-    if $errors_encountered; then
-      dprint_plaque -pcw "$YELLOW" "$D__CONST_PLAQUE_WIDTH" \
-        -- 'Successfully detached some deployments'
-      return 1
+  if [ "$D__OPT_ANSWER" = false ]
+  then d__announce -s -- "Finished 'detaching' bundles"; return 0
+  elif $bany; then
+    if $ball; then
+      d__announce -v -- 'Successfully detached bundles'; return 0
     else
-      dprint_plaque -pcw "$GREEN" "$D__CONST_PLAQUE_WIDTH" \
-        -- 'Successfully detached all deployments'
-      return 0
+      d__announce -! -- 'Partly detached bundles'; return 1
     fi
   else
-    if $errors_encountered; then
-      dprint_plaque -pcw "$RED" "$D__CONST_PLAQUE_WIDTH" \
-        -- 'Failed to detach deployments'
-      return 2
-    else
-      dprint_plaque -pcw "$WHITE" "$D__CONST_PLAQUE_WIDTH" \
-        -- 'Nothing to do'
-      return 3
-    fi
+    d__announce -x -- 'Failed to detach bundles'; return 1
   fi
 }
 
-#>  d__detach_dpl_repo
+#>  d___detach_bundle
 #
-## Attempts to interpret single argument as name of Github repository and 
-#. detach it. Accepts either full 'user/repo' form or short 'built_in_repo' 
-#. form for deployments distributed by author of Divine.dotfiles.
+## INTERNAL USE ONLY
 #
-## Returns:
-#.  0 - Successfully detached deployment repository
-#.  1 - Otherwise
-#
-d__detach_dpl_repo()
+d___detach_bundle()
 {
-  # Extract argument
-  local repo_arg="$1"
+  # Print a separating empty line; compose task name
+  printf >&2 '\n'; bplq="Bundle '$BOLD$barg$NORMAL'"
 
-  # Storage variables
-  local user_repo
+  # Early exit for dry runs
+  if [ "$D__OPT_ANSWER" = false ]; then
+    printf >&2 '%s %s\n' "$D__INTRO_DTC_S" "$bplq"; return 1
+  fi
+
+  # Print intro
+  printf >&2 '%s %s\n' "$D__INTRO_DTC_N" "$bplq"
 
   # Accept one of two patterns: 'builtin_repo_name' and 'username/repo'
-  if [[ $repo_arg =~ ^[0-9A-Za-z_.-]+$ ]]; then
-    user_repo="no-simpler/divine-bundle-$repo_arg"
-  elif [[ $repo_arg =~ ^[0-9A-Za-z_.-]+/[0-9A-Za-z_.-]+$ ]]; then
-    user_repo="$repo_arg"
+  if [[ $barg =~ ^[0-9A-Za-z_.-]+$ ]]
+  then barg="no-simpler/divine-bundle-$barg"
+  elif [[ $barg =~ ^[0-9A-Za-z_.-]+/[0-9A-Za-z_.-]+$ ]]; then :
   else
-    # Other patterns are not checked against Github
-    dprint_debug "Invalid Github repository handle: $repo_arg"
+    d__notify -lx -- "Invalid bundle identifier '$barg'"
+    printf >&2 '%s %s\n' "$D__INTRO_DTC_2" "$bplq"; return 1
+  fi
+
+  # Compose destination path; print location
+  bdst="$D__DIR_BUNDLES/$barg"
+  d__notify -q -- "Location: $bdst"
+
+  # Check if such bundle directory exists
+  if [ -e "$bdst" ]; then
+    if ! [ -d "$bdst" ]; then
+      d__notify -ls -- "Local path to bundle '$barg' is occupied" \
+        'by a non-directory:' -i- "$bdst"
+      printf >&2 '%s %s\n' "$D__INTRO_DTC_1" "$bplq"; return 1
+    fi
+  else
+    d__notify -ls -- "Bundle '$barg' appears to be already" \
+      "${BOLD}not$NORMAL attached"
+    printf >&2 '%s %s\n' "$D__INTRO_DTC_S" "$bplq"; return 1
+  fi
+
+  # Conditionally prompt for user's approval
+  if [ "$D__OPT_ANSWER" != true ]; then
+    printf >&2 '%s ' "$D__INTRO_CNF_N"
+    if ! d__prompt -b
+    then printf >&2 '%s %s\n' "$D__INTRO_DTC_S" "$bplq"; return 1; fi
+  fi
+
+  # Calculate number of deployments within the bundle
+  D__EXT_DF_COUNT=0 D__EXT_DPL_COUNT=0
+  d__scan_for_divinefiles --external "$bdst" &>/dev/null
+  d__scan_for_dpl_files --external "$bdst" &>/dev/null
+
+  # Remove bundle directory
+  if ! rm -rf -- "$bdst"; then
+    d__notify -lx -- "Failed to remove directory of bundle '$barg'"
+    printf >&2 '%s %s\n' "$D__INTRO_DTC_1" "$bplq"
     return 1
   fi
 
-  # Construct permanent destination
-  local perm_dest="$D__DIR_BUNDLES/$user_repo"
+  # Compose success string; report success
+  bpcs="$D__EXT_DF_COUNT Divinefile"; [ $D__EXT_DF_COUNT -eq 1 ] || bpcs+='s'
+  bdcs="$D__EXT_DPL_COUNT deployment"; [ $D__EXT_DPL_COUNT -eq 1 ] || bdcs+='s'
+  d__notify -lv -- "Detached $bpcs and $bdcs"
 
-  # Check if that path exists
-  if [ -e "$perm_dest" ]; then
-
-    # Check if it is a directory
-    if [ -d "$perm_dest" ]; then
-
-      # Prompt user
-      if dprompt --bare --prompt 'Detach?' --answer "$D__OPT_ANSWER" -- \
-        'About to remove attached deployments at:' \
-        -i "$perm_dest" \
-        '(Please, make sure deployments are removed from the system.)'
-      then
-
-        # Attempt to remove it
-        if rm -rf -- "$perm_dest"; then
-
-          dprint_debug 'Removed attached deployments at:' \
-            -i "$perm_dest"
-
-        else
-
-          # Failed to remove: report and return error
-          dprint_debug 'Failed to remove attached deployments at:' \
-            -i "$perm_dest"
-          return 1
-
-        fi
-
-      else
-
-        # Refused to remove directory
-        dprint_debug 'Refused to remove directory of cloned repository at:' \
-          -i "$perm_dest"
-        return 1
-
-      fi
-
-    else
-
-      # Path exists, but is not a directory
-      dprint_debug 'Path to cloned repository is not a directory:' \
-        -i "$perm_dest"
-      return 1
-
-    fi
-
+  # Unset stash record
+  if  d__stash -gs -- unset attached_bundles "$barg"; then
+    d__notify -- "Removed record of bundle '$barg' from Grail stash"
   else
-
-    # Path does not exist
-    dprint_debug 'Path to cloned repository does not exist:' -i "$perm_dest"
-
+    d__notify -lx -- "Failed to remove record of bundle '$utl'" \
+      'from Grail stash'
   fi
-
-  # Repository erased, now remove record from Grail stash
-  if d__stash -g -s unset dpl_repos "$user_repo"; then
-    dprint_debug \
-      "Cleared record of attached repository "$user_repo" in Grail stash"
-  else
-    dprint_debug \
-      "Failed to clear record of attached repository '$user_repo'" \
-      'in Grail stash' -n 'Update routine will fail to update this repository'
-  fi
-
-  # All done: announce and return
-  dprint_debug 'Successfully detached Github-hosted deployments from:' \
-    -i "https://github.com/${user_repo}" \
-    -n 'at their location:' -i "$perm_dest"
+  printf >&2 '%s %s\n' "$D__INTRO_DTC_0" "$bplq"
   return 0
 }
 
-d__perform_detach_routine
+d__rtn_detach
