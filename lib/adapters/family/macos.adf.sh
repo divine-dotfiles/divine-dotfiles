@@ -2,8 +2,8 @@
 #:title:        Divine.dotfiles macOS adapter
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.09.25
-#:revremark:    Remove revision numbers from all src files
+#:revdate:      2019.10.14
+#:revremark:    Implement robust dependency loading system
 #:created_at:   2019.06.04
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -11,18 +11,15 @@
 ## An adapter is a set of functions that, when implemented, allow framework to 
 #. support 'macOS' family of operating systems
 #
-## For reference, see lib/templates/adapters/family.adp.sh
+## For reference, see lib/templates/adapters/family.adf.sh
 #
 
-# Implement detection mechanism
-d__adapter_detect_os_family()
-{
-  [[ $D__OSTYPE = darwin* ]] && d__os_family=macos
-}
+# Marker and dependencies
+readonly D__ADF_MACOS=loaded
 
 # Implement overriding mechanism for $D_DPL_TARGET_PATHS and $D_DPL_TARGET_DIR
-d__adapter_override_dpl_targets_for_os_family()
+d__override_dpl_targets_for_os_family()
 {
-  # On macOS targets are overridden by d__adapter_override_dpl_targets_for_os_distro
+  # On macOS targets are overridden by d__override_dpl_targets_for_os_distro
   :
 }

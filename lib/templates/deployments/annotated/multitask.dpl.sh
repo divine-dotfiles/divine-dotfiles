@@ -19,26 +19,26 @@ D_DPL_WARNING=
 #.  d_dpl_remove-like      - Function that behaves as d_dpl_remove in its return codes
 #
 ## Variables maintained (avoid touching these!):
-#.  $D__MULTITASK_TASKNUM         - Index of current task
-#.  $D__MULTITASK_STATUS_SUMMARY  - Container for status summary
-#.  $D__MULTITASK_FLAGS           - Container for installed/not installed flags
+#.  $D__TASK_NUM         - Index of current task
+#.  $D__MLTSK_STATUS_SUMMARY  - Container for status summary
+#.  $D__MLTSK_FLAGS           - Container for installed/not installed flags
 #
 
 ## Below is overall usage pattern for d_dpl_check
 d_dpl_check()
 {
   # Assemble ordered list of prefixes to user-implemented task functions
-  D_MULTITASK_NAMES+=( task1 )
-  D_MULTITASK_NAMES+=( task2 )
-  D_MULTITASK_NAMES+=( task3 )
+  D_MLTSK_MAIN+=( task1 )
+  D_MLTSK_MAIN+=( task2 )
+  D_MLTSK_MAIN+=( task3 )
 
   # Delegate to built-in helper
-  d__multitask_check
+  d__mltsk_check
 }
 
 # d_dpl_install and d_dpl_remove are fully delegated to built-in helpers
-d_dpl_install()  {   d__multitask_install;  }
-d_dpl_remove()   {   d__multitask_remove;   }
+d_dpl_install()  {   d__mltsk_install;  }
+d_dpl_remove()   {   d__mltsk_remove;   }
 
 ## Individual primary functions should be named following a pattern:
 #.  * d_{TASK_NAME}_check:     task1 -> d_task1_check

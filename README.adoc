@@ -1,8 +1,8 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revdate: 2019.10.01
-:revremark: Increment default quiet levels of context output
+:revdate: 2019.10.15
+:revremark: Temporarily switch to dev branch for fmwk (un)installation
 :doctype: article
 // Visual
 :toc:
@@ -177,7 +177,7 @@ To install _Divine.dotfiles_ framework, run the following single command in Term
 
 [source,bash]
 ----
-bash -c 'TMP=$(mktemp); URL=https://raw.github.com/no-simpler/divine-dotfiles/master/lib/install/install.sh; if curl --version &>/dev/null; then curl -fsSL $URL >$TMP; elif wget --version &>/dev/null; then wget -qO $TMP $URL; else printf >&2 "\n==> Error: failed to detect neither curl nor wget\n"; rm -f $TMP; exit 1; fi || { printf >&2 "\n==> Error: failed to download installation script\n"; rm -f $TMP; exit 2; }; chmod +x $TMP && $TMP "$@"; RC=$?; rm -f $TMP; ((RC)) && exit 3 || exit 0' bash
+bash -c 'TMP=$(mktemp); URL=https://raw.github.com/no-simpler/divine-dotfiles/dev/lib/install/install.sh; if curl --version &>/dev/null; then curl -fsSL $URL >$TMP; elif wget --version &>/dev/null; then wget -qO $TMP $URL; else printf >&2 "\n==> Error: failed to detect neither curl nor wget\n"; rm -f $TMP; exit 1; fi || { printf >&2 "\n==> Error: failed to download installation script\n"; rm -f $TMP; exit 2; }; chmod +x $TMP && $TMP "$@"; RC=$?; rm -f $TMP; ((RC)) && exit 3 || exit 0' bash
 ----
 
 [.note]
@@ -256,7 +256,7 @@ To uninstall _Divine.dotfiles_ framework, run the following single command in Te
 
 [source,bash]
 ----
-bash -c 'TMP=$(mktemp); URL=https://raw.github.com/no-simpler/divine-dotfiles/master/lib/uninstall/uninstall.sh; if curl --version &>/dev/null; then curl -fsSL $URL >$TMP; elif wget --version &>/dev/null; then wget -qO $TMP $URL; else printf >&2 "\n==> Error: failed to detect neither curl nor wget\n"; rm -f $TMP; exit 1; fi || { printf >&2 "\n==> Error: failed to download uninstallation script\n"; rm -f $TMP; exit 2; }; chmod +x $TMP && $TMP "$@"; RC=$?; rm -f $TMP; ((RC)) && exit 3 || exit 0' bash
+bash -c 'TMP=$(mktemp); URL=https://raw.github.com/no-simpler/divine-dotfiles/dev/lib/uninstall/uninstall.sh; if curl --version &>/dev/null; then curl -fsSL $URL >$TMP; elif wget --version &>/dev/null; then wget -qO $TMP $URL; else printf >&2 "\n==> Error: failed to detect neither curl nor wget\n"; rm -f $TMP; exit 1; fi || { printf >&2 "\n==> Error: failed to download uninstallation script\n"; rm -f $TMP; exit 2; }; chmod +x $TMP && $TMP "$@"; RC=$?; rm -f $TMP; ((RC)) && exit 3 || exit 0' bash
 ----
 
 Uninstallation removes optional dependencies that might have been installed, and then erases framework directory.
@@ -333,7 +333,7 @@ Here’s a safe and fully removable way to acquaint yourself with the framework:
 
 [source,bash]
 ----
-bash -c 'TMP=$(mktemp); URL=https://raw.github.com/no-simpler/divine-dotfiles/master/lib/install/install.sh; if curl --version &>/dev/null; then curl -fsSL $URL >$TMP; elif wget --version &>/dev/null; then wget -qO $TMP $URL; else printf >&2 "\n==> Error: failed to detect neither curl nor wget\n"; rm -f $TMP; exit 1; fi || { printf >&2 "\n==> Error: failed to download installation script\n"; rm -f $TMP; exit 2; }; chmod +x $TMP && $TMP "$@"; RC=$?; rm -f $TMP; ((RC)) && exit 3 || exit 0' bash --yes \
+bash -c 'TMP=$(mktemp); URL=https://raw.github.com/no-simpler/divine-dotfiles/dev/lib/install/install.sh; if curl --version &>/dev/null; then curl -fsSL $URL >$TMP; elif wget --version &>/dev/null; then wget -qO $TMP $URL; else printf >&2 "\n==> Error: failed to detect neither curl nor wget\n"; rm -f $TMP; exit 1; fi || { printf >&2 "\n==> Error: failed to download installation script\n"; rm -f $TMP; exit 2; }; chmod +x $TMP && $TMP "$@"; RC=$?; rm -f $TMP; ((RC)) && exit 3 || exit 0' bash --yes \
 && ~/.divine/intervene.sh attach essentials --yes \
 && ~/.divine/intervene.sh install --yes
 ----
@@ -414,7 +414,7 @@ Below are the separate 'undo' steps, in order:
 ~/.divine/intervene.sh detach essentials --yes
 
 # Erase the framework without keeping backups:
-bash -c 'TMP=$(mktemp); URL=https://raw.github.com/no-simpler/divine-dotfiles/master/lib/uninstall/uninstall.sh; if curl --version &>/dev/null; then curl -fsSL $URL >$TMP; elif wget --version &>/dev/null; then wget -qO $TMP $URL; else printf >&2 "\n==> Error: failed to detect neither curl nor wget\n"; rm -f $TMP; exit 1; fi || { printf >&2 "\n==> Error: failed to download uninstallation script\n"; rm -f $TMP; exit 2; }; chmod +x $TMP && $TMP "$@"; RC=$?; rm -f $TMP; ((RC)) && exit 3 || exit 0' bash --yes --backup-no
+bash -c 'TMP=$(mktemp); URL=https://raw.github.com/no-simpler/divine-dotfiles/dev/lib/uninstall/uninstall.sh; if curl --version &>/dev/null; then curl -fsSL $URL >$TMP; elif wget --version &>/dev/null; then wget -qO $TMP $URL; else printf >&2 "\n==> Error: failed to detect neither curl nor wget\n"; rm -f $TMP; exit 1; fi || { printf >&2 "\n==> Error: failed to download uninstallation script\n"; rm -f $TMP; exit 2; }; chmod +x $TMP && $TMP "$@"; RC=$?; rm -f $TMP; ((RC)) && exit 3 || exit 0' bash --yes --backup-no
 ----
 
 After the three 'undo' steps have successfully run, there is no trace of _Divine.dotfiles_ on your system.
@@ -1139,7 +1139,28 @@ Packages are intertwined with regular deployments in a shared workflow.
 Divinefiles follow the general <<manifest-syntax,manifest syntax>>.
 
 Every entry is a *list* of whitespace-separated names of packages.
-Keys `flags` and `priority` set the respective attributes for the packages, and work identically to <<deployment-flags,flags>> and <<deployment-priority,priority>> in regular deployments.
+Keys `flags` and `priority` set the respective attributes for the packages.
+The priority works identically for packages in the same way as it does for <<deployment-priority,deployments>>.
+
+The following flags are supported for packages.
+
+.List of supported package flags
+[%noheader,cols="<.<a",stripes=none]
+|===
+
+| [#urgent-prompt]#`*[ir]*`# _(any of the two lowercase letters)_
+
+Intervention utility has the `--yes`/`-y` option that effectively skips all normal prompts and confirmations.
+It is possible to force the appearance of an *urgent prompt* before the package is installed/removed regardless of said option.
+To do so, use any of these flags:
+
+* `*i*` — always prompt during `**i**nstall` routine.
+* `*r*` — always prompt during `**r**emove` routine.
+
+When a prompt is forced by a flag, it remains urgent even without `--yes` option.
+Urgent prompts are styled to stand out a bit more in terminal.
+
+|===
 
 Within a line, each vertical bar `|` starts an *alt-list*, which fully overrides the original list for a particular package manager.
 Within an alt-list, everything to the left of first colon `:` is read as package manager name; everything to the right — as the alt-list itself.
@@ -1524,17 +1545,6 @@ Whether `-f` / `--force` option is provided:
 
 * `true`
 * `false`
-
-| [#var-opt-quiet]#`*D__OPT_QUIET*`#
-
-_(deprecated)_
-Which of verbosity options (`--verbose` or `--quiet`) is provided last:
-
-* `true` — quiet mode (or no verbosity options)
-* `false` — verbose mode
-
-This Boolean variable is being gradually supplanted by the new, more granular <<global-verbosity-level,verbosity system>>, as stored in <<var-opt-verbosity,`D{dus}OPT_VERBOSITY`>>.
-It is not recommended to use this variable.
 
 | [#var-opt-verbosity]#`*D__OPT_VERBOSITY*`#
 
@@ -2919,9 +2929,9 @@ d_dpl_remove()   {                  d__queue_remove;   }
 populate_queue() { D_QUEUE_MAIN=( alpha bravo charlie ); }
 
 # Implement mini-primaries for a single queue item
-d_queue_item_check()    { :; }
-d_queue_item_install()  { :; }
-d_queue_item_remove()   { :; }
+d_item_check()    { :; }
+d_item_install()  { :; }
+d_item_remove()   { :; }
 ----
 
 ==== Generic queue set-up
@@ -2956,7 +2966,7 @@ The framework unsets every queue hook as soon as it is used up.
 
 ^.^h| Mini-primaries
 
-| [#func-queue-item-check]#`*d_queue_item_check*`#
+| [#func-queue-item-check]#`*d_item_check*`#
 
 This function is called once for every queue item.
 It is similar to its <<func-dpl-check,deployment-level cousin>>, `d_dpl_check`.
@@ -2968,7 +2978,7 @@ Supported return codes:
 * `*2*` — *'Not installed'*: as it stands, intended goal of installing this queue item is entirely not achieved.
 * `*3*` — *'Invalid'*: input for this queue item prevents it from being processed correctly.
 
-| [#func-queue-item-install]#`*d_queue_item_install*`#
+| [#func-queue-item-install]#`*d_item_install*`#
 
 This function is called no more than once for every queue item.
 It is similar to its <<func-dpl-install,deployment-level cousin>>, `d_dpl_install`.
@@ -2981,7 +2991,7 @@ Supported return codes:
 * `*3*` — *'Installed successfully'* and also abort further queue installation.
 * `*4*` — *'Failed to install'* and also abort further queue installation.
 
-| [#func-queue-item-remove]#`*d_queue_item_remove*`#
+| [#func-queue-item-remove]#`*d_item_remove*`#
 
 This function is called no more than once for every queue item.
 It is similar to its <<func-dpl-remove,deployment-level cousin>>, `d_dpl_remove`.
@@ -3057,16 +3067,16 @@ Following built-in variables are available/recognized during processing of each 
 [%noheader,cols="<.<a",stripes=none]
 |===
 
-| `*D{dus}QUEUE_ITEM_NUM*`
+| `*D{dus}ITEM_NUM*`
 
 Index of current item in `*D_QUEUE_MAIN*`.
 This index is helpful if you keep multiple arrays of related queue data.
 
-| `*D{dus}QUEUE_ITEM_TITLE*`
+| `*D{dus}ITEM_TITLE*`
 
 Content of `*D_QUEUE_MAIN*` for current item.
 
-| `*D{dus}QUEUE_ITEM_IS_FORCED*`
+| `*D{dus}ITEM_IS_FORCED*`
 
 By default, the framework does *not*:
 
@@ -3079,11 +3089,11 @@ The `--force` option of the intervention utility overrules such considerations.
 This variable is set to `true` if installation/removal is being forced, i.e., it would not have been initiated if not for the `--force` option.
 You are left to decide on whether to treat such cases specially.
 
-| `*D{dus}QUEUE_ITEM_STASH_KEY*`
+| `*D{dus}ITEM_STASH_KEY*`
 
-`*D{dus}QUEUE_ITEM_STASH_VALUE*`
+`*D{dus}ITEM_STASH_VALUE*`
 
-`*D{dus}QUEUE_ITEM_STASH_FLAG*`
+`*D{dus}ITEM_STASH_FLAG*`
 
 Stash key and stash value for current item.
 The third variable is `true` if stash record exists, `false` if stash record does not exist, and not set if stash is not used for this item.
@@ -3100,7 +3110,7 @@ Ideally, there is no reason for you to know this or use these variables.
 Within queue post-processing hooks, this variable is populated with the code that is set to be returned by the corresponding <<primary-functions,primary>>.
 Changing this variable has no effect — use the hook's return code instead.
 
-| `*D{dus}QUEUE_ITEM_RETURN_CODE*`
+| `*D{dus}ITEM_RETURN_CODE*`
 
 This variable is only relevant for <<link-queue,link>> and <<copy-queue,copy>> queue variations.
 Within queue _item_ post-processing hooks, this variable is populated with the code that is set to be returned by the corresponding mini-primary.
@@ -3209,7 +3219,7 @@ The framework unsets every link queue hook as soon as it is used up.
 
 ^.^h| Mini-primary hooks
 
-| `*d_link_queue_item_pre_check*`
+| `*d_link_item_pre_check*`
 
 This function is called once, before the symlink is <<func-queue-item-check,checked>>.
 Supported return codes:
@@ -3217,16 +3227,16 @@ Supported return codes:
 * `*0*` — *'Proceed as normal'*
 * `*_other_*` — *'Return this item check code without checking'*
 
-| `*d_link_queue_item_post_check*`
+| `*d_link_item_post_check*`
 
 This function is called once, after the symlink is <<func-queue-item-check,checked>>.
-Expect `$D{dus}QUEUE_ITEM_RETURN_CODE` variable to be populated with the code that is currently set to be returned by the check mini-primary.
+Expect `$D{dus}ITEM_RETURN_CODE` variable to be populated with the code that is currently set to be returned by the check mini-primary.
 Supported return codes:
 
 * `*0*` — *'Proceed as normal'*
 * *_other_* — *'Return this item check code instead'* _(check code of the link queue item is ignored)_
 
-| `*d_link_queue_item_pre_install*`
+| `*d_link_item_pre_install*`
 
 This function is called once, before the symlink is <<func-queue-item-install,installed>>.
 Supported return codes:
@@ -3234,16 +3244,16 @@ Supported return codes:
 * `*0*` — *'Proceed as normal'*
 * `*_other_*` — *'Return this item install code without installing'*
 
-| `*d_link_queue_item_post_install*`
+| `*d_link_item_post_install*`
 
 This function is called once, after the symlink is <<func-queue-item-install,installed>>.
-Expect `$D{dus}QUEUE_ITEM_RETURN_CODE` variable to be populated with the code that is currently set to be returned by the install mini-primary.
+Expect `$D{dus}ITEM_RETURN_CODE` variable to be populated with the code that is currently set to be returned by the install mini-primary.
 Supported return codes:
 
 * `*0*` — *'Proceed as normal'*
 * *_other_* — *'Return this item install code instead'* _(install code of the link queue item is ignored)_
 
-| `*d_link_queue_item_pre_remove*`
+| `*d_link_item_pre_remove*`
 
 This function is called once, before the symlink is <<func-queue-item-remove,uninstalled>>.
 Supported return codes:
@@ -3251,10 +3261,10 @@ Supported return codes:
 * `*0*` — *'Proceed as normal'*
 * `*_other_*` — *'Return this item remove code without removing'*
 
-| `*d_link_queue_item_post_remove*`
+| `*d_link_item_post_remove*`
 
 This function is called once, after the symlink is <<func-queue-item-remove,uninstalled>>.
-Expect `$D{dus}QUEUE_ITEM_RETURN_CODE` variable to be populated with the code that is currently set to be returned by the remove mini-primary.
+Expect `$D{dus}ITEM_RETURN_CODE` variable to be populated with the code that is currently set to be returned by the remove mini-primary.
 Supported return codes:
 
 * `*0*` — *'Proceed as normal'*
@@ -3442,7 +3452,7 @@ The framework unsets every copy queue hook as soon as it is used up.
 
 ^.^h| Mini-primary hooks
 
-| `*d_copy_queue_item_pre_check*`
+| `*d_copy_item_pre_check*`
 
 This function is called once, before the copy is <<func-queue-item-check,checked>>.
 Supported return codes:
@@ -3450,16 +3460,16 @@ Supported return codes:
 * `*0*` — *'Proceed as normal'*
 * `*_other_*` — *'Return this item check code without checking'*
 
-| `*d_copy_queue_item_post_check*`
+| `*d_copy_item_post_check*`
 
 This function is called once, after the copy is <<func-queue-item-check,checked>>.
-Expect `$D{dus}QUEUE_ITEM_RETURN_CODE` variable to be populated with the code that is currently set to be returned by the check mini-primary.
+Expect `$D{dus}ITEM_RETURN_CODE` variable to be populated with the code that is currently set to be returned by the check mini-primary.
 Supported return codes:
 
 * `*0*` — *'Proceed as normal'*
 * *_other_* — *'Return this check code instead'* _(check code of the copy queue item is ignored)_
 
-| `*d_copy_queue_item_pre_install*`
+| `*d_copy_item_pre_install*`
 
 This function is called once, before the copy is <<func-queue-item-install,installed>>.
 Supported return codes:
@@ -3467,16 +3477,16 @@ Supported return codes:
 * `*0*` — *'Proceed as normal'*
 * `*_other_*` — *'Return this item install code without installing'*
 
-| `*d_copy_queue_item_post_install*`
+| `*d_copy_item_post_install*`
 
 This function is called once, after the copy is <<func-queue-item-install,installed>>.
-Expect `$D{dus}QUEUE_ITEM_RETURN_CODE` variable to be populated with the code that is currently set to be returned by the install mini-primary.
+Expect `$D{dus}ITEM_RETURN_CODE` variable to be populated with the code that is currently set to be returned by the install mini-primary.
 Supported return codes:
 
 * `*0*` — *'Proceed as normal'*
 * *_other_* — *'Return this install code instead'* _(install code of the copy queue item is ignored)_
 
-| `*d_copy_queue_item_pre_remove*`
+| `*d_copy_item_pre_remove*`
 
 This function is called once, before the copy is <<func-queue-item-remove,uninstalled>>.
 Supported return codes:
@@ -3484,10 +3494,10 @@ Supported return codes:
 * `*0*` — *'Proceed as normal'*
 * `*_other_*` — *'Return this item remove code without removing'*
 
-| `*d_copy_queue_item_post_remove*`
+| `*d_copy_item_post_remove*`
 
 This function is called once, after the copy is <<func-queue-item-remove,uninstalled>>.
-Expect `$D{dus}QUEUE_ITEM_RETURN_CODE` variable to be populated with the code that is currently set to be returned by the remove mini-primary.
+Expect `$D{dus}ITEM_RETURN_CODE` variable to be populated with the code that is currently set to be returned by the remove mini-primary.
 Supported return codes:
 
 * `*0*` — *'Proceed as normal'*
@@ -3610,12 +3620,12 @@ This kind of deployment is best demonstrated with an example:
 [source,bash]
 ----
 # Delegate primaries to multitask helpers. Make sure helper is called last.
-d_dpl_check()    { assemble_tasks;  d__multitask_check;   }
-d_dpl_install()  {                  d__multitask_install; }
-d_dpl_remove()   {                  d__multitask_remove;  }
+d_dpl_check()    { assemble_tasks;  d__mltsk_check;   }
+d_dpl_install()  {                  d__mltsk_install; }
+d_dpl_remove()   {                  d__mltsk_remove;  }
 
 # This function is not built-in, but is the recommended way of organizing logic
-assemble_tasks() {  D_MULTITASK_NAMES=( eat pray love );  }
+assemble_tasks() {  D_MLTSK_MAIN=( eat pray love );  }
 
 # Implement sub-primaries for each task, following guidelines for primaries
 
@@ -3640,7 +3650,7 @@ Following Bash arrays should be populated before any of the built-in helpers are
 [%noheader,cols="<.<a",stripes=none]
 |===
 
-| [#var-multitask-names]#`*D_MULTITASK_NAMES*`#
+| [#var-multitask-names]#`*D_MLTSK_MAIN*`#
 
 Each member of this array defines a task.
 
@@ -3699,12 +3709,12 @@ This is best illustrated with an example:
 [source,bash,subs="verbatim,quotes,attributes"]
 ----
 # Delegate primaries to multitask helpers. Make sure helper is called last.
-d_dpl_check()    { assemble_tasks;  d{dus}multitask_check;   }
-d_dpl_install()  {                  d{dus}multitask_install; }
-d_dpl_remove()   {                  d{dus}multitask_remove;  }
+d_dpl_check()    { assemble_tasks;  d{dus}mltsk_check;   }
+d_dpl_install()  {                  d{dus}mltsk_install; }
+d_dpl_remove()   {                  d{dus}mltsk_remove;  }
 
 # This function is not built-in, but is the recommended way of organizing logic
-assemble_tasks() {  D_MULTITASK_NAMES=( queue1 queue2 queue3 ); }
+assemble_tasks() {  D_MLTSK_MAIN=( queue1 queue2 queue3 ); }
 
 # In this case all three tasks contain a queue
 
@@ -3761,7 +3771,7 @@ In _Divine.dotfiles_, the code that supports particular operating systems is iso
 An OS distribution adapter allows the framework to interact with that OS and with its built-in package manager.
 
 * An adapter is a Bash script with special functions implemented.
-* Adapter template and guidelines are located in `lib/templates/adapters/distro.adp.sh`.
+* Adapter template and guidelines are located in `lib/templates/adapters/distro.add.sh`.
 * Active adapters are put into `lib/adapters/distro/`.
 
 Adapters for all OS distributions out there will be welcomed with open arms.

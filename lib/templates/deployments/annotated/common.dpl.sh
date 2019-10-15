@@ -2,8 +2,8 @@
 #:title:        Divine deployment annotated template
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.09.25
-#:revremark:    Remove revision numbers from all src files
+#:revdate:      2019.10.10
+#:revremark:    Fix minor typo
 #:created_at:   2018.03.25
 
 ## This is a valid deployment script for Divine.dotfiles framework
@@ -53,8 +53,8 @@
 #
 ## Name of this deployment
 #
-## Trimmed on both sides, truncated to 64 chars. If empty, name of deployment 
-#. file, sans '.dpl.sh' suffix, is used.
+## Whitespace is trimmed on both sides. If the variable is not assigned, 
+#. defaults to the name of deployment file, sans '.dpl.sh' suffix.
 #
 ## NOTE: Keep this assignment on its own line! The value is not read by Bash 
 #. interpreter, but is rather extracted using a regular expression. Quotes are 

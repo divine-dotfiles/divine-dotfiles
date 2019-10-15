@@ -2,24 +2,29 @@
 #:title:        Divine Bash utils: backup
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.09.25
-#:revremark:    Remove revision numbers from all src files
+#:revdate:      2019.10.14
+#:revremark:    Implement robust dependency loading system
 #:created_at:   2019.09.18
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
 #
-## Utilities that help assist in backing up and restoring files. These 
-#. functions are intended to be re-used in deployments and framework components 
-#. alike, and are integrated with the Divine workflow system. Before properly 
-#. returning, all backup utils restore the context stack to the pre-call state.
+## Utilities that assist in backing up and restoring files. These functions are 
+#. intended to be re-used in deployments and framework components alike, and 
+#. are integrated with the Divine workflow system. Before properly returning, 
+#. all backup utils restore the context stack to the pre-call state.
 #
 ## Optionless versions of the functions in this file strive for zero data loss: 
 #. nothing is erased, everything is backed up.
 #
-## This file depends on:
-#.  * workflow.utl.sh
-#.  * dep-checks.pcd.sh: for the dmd5 function
+## Summary of functions in this file:
+#>  d__push_backup [--] ORIG_PATH [BACKUP_PATH]
+#>  d__pop_backup [-de]... [--] ORIG_PATH [BACKUP_PATH]
 #
+
+# Marker and dependencies
+readonly D__UTL_BACKUP=loaded
+d__load util workflow
+d__load procedure prep-md5
 
 #>  d__push_backup [--] ORIG_PATH [BACKUP_PATH]
 #
@@ -74,7 +79,8 @@ d__push_backup()
 
   d__context -- notch
 
-  local orig_path="${args[0]}" orig_dirpath
+  local orig_path="${args[0]}" orig_dirpath cmd
+  orig_dirpath="$( dirname -- "$orig_path" )"
   d__require [ -n --ORIG_PATH-- "$orig_path" ] \
     --crcm-- 'Backing up initiated with an empty path' \
     --else-- 'Cannot pop backup' \
@@ -87,13 +93,12 @@ d__push_backup()
     fi
   else
     d__notify -qq -- "Nothing to back up at: $orig_path"
-    orig_dirpath="$( dirname -- "$orig_path" )"
     if ! [ -d "$orig_dirpath" ]; then
       d__context -- push \
         "Ensuring existence of the parent directory of: $orig_path"
-      d__cmd mkdir -p -- "$orig_dirpath" \
-        --else-- 'Desired location is inaccessible' \
-        || return 1
+      cmd=mkdir; d__require_writable "$orig_dirpath" || cmd='sudo mkdir'
+      d__cmd $cmd -p -- --ORIG_DIRPATH-- "$orig_dirpath" \
+        --else-- 'Desired location is inaccessible' || return 1
     fi
     d__context -- lop
     return 0
@@ -121,8 +126,8 @@ d__push_backup()
       --else-- 'Cannot back up' \
       || return 2
     backup_dirpath="$( dirname -- "$backup_path" )"
-    d__require [ --BACKUP_PATH-- "$backup_path" \
-      != --BACKUP_DIRPATH-- "$backup_dirpath" ] \
+    d__require --neg-- [ --BACKUP_PATH-- "$backup_path" \
+      -ef --BACKUP_DIRPATH-- "$backup_dirpath" ] \
       --crcm-- 'Backing up initiated with an illegal backup path' \
       --else-- 'Cannot back up' \
       || return 2
@@ -131,7 +136,8 @@ d__push_backup()
   d__context -- push "Backing up into: $backup_path"
   if ! [ -d "$backup_dirpath" ]; then
     d__context -- push 'Ensuring existence of the directory containing backups'
-    d__cmd mkdir -p -- --BACKUP_DIR-- "$backup_dirpath" \
+    cmd=mkdir; d__require_writable "$backup_path" || cmd='sudo mkdir'
+    d__cmd $cmd -p -- --BACKUP_DIRPATH-- "$backup_dirpath" \
       --else-- "Unable to back up into an inaccessible directory" \
       || return 2
     d__context -- pop
@@ -152,9 +158,11 @@ d__push_backup()
   fi
 
   d__context -- push 'Moving the original to the backup location'
-  d__cmd mv -n -- --ORIG_PATH-- "$orig_path" --BACKUP_PATH-- "$backup_path" \
+  cmd=mv; d__require_writable "$backup_dirpath" || cmd='sudo mv'
+  d__cmd $cmd -n -- --ORIG_PATH-- "$orig_path" --BACKUP_PATH-- "$backup_path" \
     --else-- 'Failed to push backup' \
     || return 3
+  if ! [ -z ${d__bckp+isset} ]; then d__bckp="$backup_path"; fi
   d__context -- lop
   return 0
 }
@@ -182,9 +190,6 @@ d__push_backup()
 ## To back up whatever pre-exists at the ORIG_PATH, the suffix '.bak' is 
 #. appended to the ORIG_PATH. If that path happens to be occupied, the same 
 #. routine of incrementing numbers is applied.
-#
-## This function always ensures the existence of the directory that is the 
-#. immediate parent the ORIG_PATH.
 #
 ## This function is intended to be used in conjunction with d__push_backup.
 #
@@ -228,22 +233,14 @@ d__pop_backup()
   
   d__context -- notch
 
-  local orig_path="${args[0]}" orig_dirpath
+  local orig_path="${args[0]}" orig_dirpath cmd
+  orig_dirpath="$( dirname -- "$orig_path" )"
   d__require [ -n --ORIG_PATH-- "$orig_path" ] \
     --crcm-- 'Popping of backup initiated with an empty path' \
     --else-- 'Cannot pop backup' \
     || return 1
   if ! [ -e "$orig_path" ]; then
     $evict && d__notify -qq -- "Nothing to evict at: $orig_path"; evict=false
-    orig_dirpath="$( dirname -- "$orig_path" )"
-    if ! [ -d "$orig_dirpath" ]; then
-      d__context -- push \
-        "Ensuring existence of the parent directory of: $orig_path"
-      d__cmd mkdir -p -- "$orig_dirpath" \
-        --else-- 'Desired location is inaccessible' \
-        || return 1
-      d__context -- pop
-    fi
   fi
 
   local backup_path i
@@ -278,6 +275,14 @@ d__pop_backup()
       d__context -- pop
     fi
     d__context -- push "Restoring backup from: $backup_path"
+    if ! [ -d "$orig_dirpath" ]; then
+      d__context -- push \
+        "Ensuring existence of the parent directory of: $orig_path"
+      cmd=mkdir; d__require_writable "$orig_dirpath" || cmd='sudo mkdir'
+      d__cmd $cmd -p -- --ORIG_DIRPATH-- "$orig_dirpath" \
+        --else-- 'Desired location is inaccessible' || return 1
+      d__context -- pop
+    fi
     evict=true; restore=true
   else
     d__notify -qq -- "No backup to restore"
@@ -289,9 +294,9 @@ d__pop_backup()
     [ -d "$orig_path" ] && orig_type=directory || orig_type=file
     if $dispose; then
       d__context -- push "Clobbering a $orig_type at: $orig_path"
-      d__cmd rm -rf -- --ORIG_PATH-- "$orig_path" \
-        --else-- 'Failed to clobber the path' \
-        || return 3
+      cmd=rm; d__require_writable "$orig_dirpath" || cmd='sudo rm'
+      d__cmd $cmd -rf -- --ORIG_PATH-- "$orig_path" \
+        --else-- 'Failed to clobber the path' || return 3
       d__context -- pop
     else
       d__context -- push "Evicting a $orig_type at: $orig_path"
@@ -307,10 +312,10 @@ d__pop_backup()
         d__context -- pop
       fi
       d__context -- push "Evicting to: $orig_path_bak"
-      d__cmd mv -n -- --ORIG_PATH-- "$orig_path" \
+      cmd=mv; d__require_writable "$orig_dirpath" || cmd='sudo mv'
+      d__cmd $cmd -n -- --ORIG_PATH-- "$orig_path" \
         --EVICT_PATH-- "$orig_path_bak" \
-        --else-- "Failed to evict the $orig_type" \
-        || return 3
+        --else-- "Failed to evict the $orig_type" || return 3
       d__context -- pop
       d__context -- pop
     fi
@@ -319,9 +324,11 @@ d__pop_backup()
   if ! $restore; then d__context lop; return 0; fi
 
   d__context -- push 'Moving the backup to its original location'
-  d__cmd mv -n -- --BACKUP_PATH-- "$backup_path" --ORIG_PATH-- "$orig_path" \
+  cmd=mv; d__require_writable "$orig_dirpath" || cmd='sudo mv'
+  d__cmd $cmd -n -- --BACKUP_PATH-- "$backup_path" --ORIG_PATH-- "$orig_path" \
     --else-- 'Failed to pop backup' \
     || return 3
+  if ! [ -z ${d__bckp+isset} ]; then d__bckp="$backup_path"; fi
   d__context -- lop
   return 0
 }
