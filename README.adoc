@@ -2,7 +2,7 @@
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
 :revdate: 2019.10.15
-:revremark: Finish rewriting entire framework
+:revremark: Temporarily switch to dev branch for fmwk (un)installation
 :doctype: article
 // Visual
 :toc:
@@ -177,7 +177,7 @@ To install _Divine.dotfiles_ framework, run the following single command in Term
 
 [source,bash]
 ----
-bash -c 'TMP=$(mktemp); URL=https://raw.github.com/no-simpler/divine-dotfiles/master/lib/install/install.sh; if curl --version &>/dev/null; then curl -fsSL $URL >$TMP; elif wget --version &>/dev/null; then wget -qO $TMP $URL; else printf >&2 "\n==> Error: failed to detect neither curl nor wget\n"; rm -f $TMP; exit 1; fi || { printf >&2 "\n==> Error: failed to download installation script\n"; rm -f $TMP; exit 2; }; chmod +x $TMP && $TMP "$@"; RC=$?; rm -f $TMP; ((RC)) && exit 3 || exit 0' bash
+bash -c 'TMP=$(mktemp); URL=https://raw.github.com/no-simpler/divine-dotfiles/dev/lib/install/install.sh; if curl --version &>/dev/null; then curl -fsSL $URL >$TMP; elif wget --version &>/dev/null; then wget -qO $TMP $URL; else printf >&2 "\n==> Error: failed to detect neither curl nor wget\n"; rm -f $TMP; exit 1; fi || { printf >&2 "\n==> Error: failed to download installation script\n"; rm -f $TMP; exit 2; }; chmod +x $TMP && $TMP "$@"; RC=$?; rm -f $TMP; ((RC)) && exit 3 || exit 0' bash
 ----
 
 [.note]
@@ -256,7 +256,7 @@ To uninstall _Divine.dotfiles_ framework, run the following single command in Te
 
 [source,bash]
 ----
-bash -c 'TMP=$(mktemp); URL=https://raw.github.com/no-simpler/divine-dotfiles/master/lib/uninstall/uninstall.sh; if curl --version &>/dev/null; then curl -fsSL $URL >$TMP; elif wget --version &>/dev/null; then wget -qO $TMP $URL; else printf >&2 "\n==> Error: failed to detect neither curl nor wget\n"; rm -f $TMP; exit 1; fi || { printf >&2 "\n==> Error: failed to download uninstallation script\n"; rm -f $TMP; exit 2; }; chmod +x $TMP && $TMP "$@"; RC=$?; rm -f $TMP; ((RC)) && exit 3 || exit 0' bash
+bash -c 'TMP=$(mktemp); URL=https://raw.github.com/no-simpler/divine-dotfiles/dev/lib/uninstall/uninstall.sh; if curl --version &>/dev/null; then curl -fsSL $URL >$TMP; elif wget --version &>/dev/null; then wget -qO $TMP $URL; else printf >&2 "\n==> Error: failed to detect neither curl nor wget\n"; rm -f $TMP; exit 1; fi || { printf >&2 "\n==> Error: failed to download uninstallation script\n"; rm -f $TMP; exit 2; }; chmod +x $TMP && $TMP "$@"; RC=$?; rm -f $TMP; ((RC)) && exit 3 || exit 0' bash
 ----
 
 Uninstallation removes optional dependencies that might have been installed, and then erases framework directory.
@@ -333,7 +333,7 @@ Here’s a safe and fully removable way to acquaint yourself with the framework:
 
 [source,bash]
 ----
-bash -c 'TMP=$(mktemp); URL=https://raw.github.com/no-simpler/divine-dotfiles/master/lib/install/install.sh; if curl --version &>/dev/null; then curl -fsSL $URL >$TMP; elif wget --version &>/dev/null; then wget -qO $TMP $URL; else printf >&2 "\n==> Error: failed to detect neither curl nor wget\n"; rm -f $TMP; exit 1; fi || { printf >&2 "\n==> Error: failed to download installation script\n"; rm -f $TMP; exit 2; }; chmod +x $TMP && $TMP "$@"; RC=$?; rm -f $TMP; ((RC)) && exit 3 || exit 0' bash --yes \
+bash -c 'TMP=$(mktemp); URL=https://raw.github.com/no-simpler/divine-dotfiles/dev/lib/install/install.sh; if curl --version &>/dev/null; then curl -fsSL $URL >$TMP; elif wget --version &>/dev/null; then wget -qO $TMP $URL; else printf >&2 "\n==> Error: failed to detect neither curl nor wget\n"; rm -f $TMP; exit 1; fi || { printf >&2 "\n==> Error: failed to download installation script\n"; rm -f $TMP; exit 2; }; chmod +x $TMP && $TMP "$@"; RC=$?; rm -f $TMP; ((RC)) && exit 3 || exit 0' bash --yes \
 && ~/.divine/intervene.sh attach essentials --yes \
 && ~/.divine/intervene.sh install --yes
 ----
@@ -414,7 +414,7 @@ Below are the separate 'undo' steps, in order:
 ~/.divine/intervene.sh detach essentials --yes
 
 # Erase the framework without keeping backups:
-bash -c 'TMP=$(mktemp); URL=https://raw.github.com/no-simpler/divine-dotfiles/master/lib/uninstall/uninstall.sh; if curl --version &>/dev/null; then curl -fsSL $URL >$TMP; elif wget --version &>/dev/null; then wget -qO $TMP $URL; else printf >&2 "\n==> Error: failed to detect neither curl nor wget\n"; rm -f $TMP; exit 1; fi || { printf >&2 "\n==> Error: failed to download uninstallation script\n"; rm -f $TMP; exit 2; }; chmod +x $TMP && $TMP "$@"; RC=$?; rm -f $TMP; ((RC)) && exit 3 || exit 0' bash --yes --backup-no
+bash -c 'TMP=$(mktemp); URL=https://raw.github.com/no-simpler/divine-dotfiles/dev/lib/uninstall/uninstall.sh; if curl --version &>/dev/null; then curl -fsSL $URL >$TMP; elif wget --version &>/dev/null; then wget -qO $TMP $URL; else printf >&2 "\n==> Error: failed to detect neither curl nor wget\n"; rm -f $TMP; exit 1; fi || { printf >&2 "\n==> Error: failed to download uninstallation script\n"; rm -f $TMP; exit 2; }; chmod +x $TMP && $TMP "$@"; RC=$?; rm -f $TMP; ((RC)) && exit 3 || exit 0' bash --yes --backup-no
 ----
 
 After the three 'undo' steps have successfully run, there is no trace of _Divine.dotfiles_ on your system.
