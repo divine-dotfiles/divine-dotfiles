@@ -2,8 +2,8 @@
 #:title:        Divine Bash procedure: detect-os
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.14
-#:revremark:    Implement robust dependency loading system
+#:revdate:      2019.10.15
+#:revremark:    Finish rewriting entire framework
 #:created_at:   2019.03.15
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -17,6 +17,7 @@ readonly D__PCD_DETECT_OS=loaded
 d__load procedure prep-sys
 d__load util workflow
 d__load util stash
+d__load procedure prep-stash
 
 #>  d__pcd_detect_os
 #

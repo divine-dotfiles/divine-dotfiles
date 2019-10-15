@@ -1,8 +1,8 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revdate: 2019.10.14
-:revremark: Implement robust dependency loading system
+:revdate: 2019.10.15
+:revremark: Finish rewriting entire framework
 :doctype: article
 // Visual
 :toc:
@@ -1545,17 +1545,6 @@ Whether `-f` / `--force` option is provided:
 
 * `true`
 * `false`
-
-| [#var-opt-quiet]#`*D__OPT_QUIET*`#
-
-_(deprecated)_
-Which of verbosity options (`--verbose` or `--quiet`) is provided last:
-
-* `true` — quiet mode (or no verbosity options)
-* `false` — verbose mode
-
-This Boolean variable is being gradually supplanted by the new, more granular <<global-verbosity-level,verbosity system>>, as stored in <<var-opt-verbosity,`D{dus}OPT_VERBOSITY`>>.
-It is not recommended to use this variable.
 
 | [#var-opt-verbosity]#`*D__OPT_VERBOSITY*`#
 

@@ -2,8 +2,8 @@
 #:title:        Divine Bash procedure: print-colors
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.14
-#:revremark:    Implement robust dependency loading system
+#:revdate:      2019.10.15
+#:revremark:    Finish rewriting entire framework
 #:created_at:   2018.12.20
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -172,6 +172,8 @@ d__define_intros()
   readonly D__INTRO_RBOOT="$MAGENTA$BOLD<-> Reboot needed   $NORMAL :"
   readonly D__INTRO_WARNG="$RED$BOLD!!! Warning         $NORMAL :"
   readonly D__INTRO_CRTCL="$RED$REVERSE${BOLD}x_x$NORMAL $RED${BOLD}Critical        $NORMAL :"
+  readonly D__INTRO_SUCCS="$GREEN$REVERSE${BOLD}vvv$NORMAL ${BOLD}Success         $NORMAL :"
+  readonly D__INTRO_FAILR="$RED$REVERSE${BOLD}xxx$NORMAL ${BOLD}Failure         $NORMAL :"
 
   readonly D__INTRO_CHK_N="$YELLOW$BOLD>>>$NORMAL ${BOLD}Checking        $NORMAL :"
   readonly D__INTRO_CHK_F="$YELLOW$BOLD>>>$NORMAL ${BOLD}Force-checking  $NORMAL :"

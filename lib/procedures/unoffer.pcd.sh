@@ -2,8 +2,8 @@
 #:title:        Divine Bash procedure: unoffer
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.14
-#:revremark:    Implement robust dependency loading system
+#:revdate:      2019.10.15
+#:revremark:    Finish rewriting entire framework
 #:created_at:   2019.10.13
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -17,7 +17,9 @@
 # Marker and dependencies
 readonly D__PCD_UNOFFER=loaded
 d__load util workflow
+d__load util stash
 d__load procedure detect-os
+d__load procedure prep-stash
 
 #>  d__pcd_unoffer
 #
@@ -38,11 +40,11 @@ d__pcd_unoffer()
   local utla=() utl brw=false erra=() utlc=0
 
   # Compile the list of previously installed optional dependencies
-  if d__stash -gs -- has installed_homebrew
+  if d__stash -rs -- has installed_homebrew
   then brw=true erra+=( -i- '- Homebrew' ); ((++utlc)); fi
-  if d__stash -gs -- has installed_utils; then
+  if d__stash -rs -- has installed_utils; then
     while read -r utl; do utla+=("$utl") erra+=( -i- "- $utl" ); ((++utlc))
-    done < <( d__stash -gs -- list installed_utils )
+    done < <( d__stash -rs -- list installed_utils )
   fi
 
   # Check if the list is empty

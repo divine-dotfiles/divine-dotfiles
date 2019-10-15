@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: update
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.14
-#:revremark:    Implement robust dependency loading system
+#:revdate:      2019.10.15
+#:revremark:    Finish rewriting entire framework
 #:created_at:   2019.05.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -14,8 +14,11 @@
 
 # Marker and dependencies
 readonly D__RTN_UPDATE=loaded
+d__load util workflow
+d__load util stash
 d__load util github
 d__load util backup
+d__load procedure prep-stash
 d__load procedure prep-sys
 d__load procedure prep-gh
 d__load procedure sync-bundles
@@ -86,7 +89,7 @@ d__rtn_update()
     elif $uanyf
     then d__announce -x -- 'Failed to update Divine.dotfiles'; return 1
     elif $uanyd
-    then d__announce -s -- 'Declined updating Divine.dotfiles'; return 0
+    then d__announce -s -- 'Declined to update Divine.dotfiles'; return 0
     elif $uanyn
     then d__announce -s -- 'Skipped updating Divine.dotfiles'; return 0; fi
   elif [ $usc -eq 2 ]; then
@@ -112,9 +115,6 @@ d__rtn_update()
 
 d___parse_update_args()
 {
-  # Cut-off for dry-runs
-  [ "$D__OPT_ANSWER" = false ] && return 0
-
   # If given a list of bundles, update just them by default
   if ((${#D__REQ_BUNDLES[@]}))
   then ubdl=true ubdla=("${D__REQ_BUNDLES[@]}"); fi
@@ -153,6 +153,8 @@ d___update_fmk()
     printf >&2 '%s %s\n' "$D__INTRO_UPD_S" "(not selected) $uplq"
     return 3
   fi
+  if [ "$D__OPT_ANSWER" = false ]
+  then printf >&2 '%s %s\n' "$D__INTRO_UPD_S" "$uplq"; return 3; fi
 
   # Print intro
   printf >&2 '%s %s\n' "$D__INTRO_UPD_N" "$uplq"
@@ -331,6 +333,10 @@ d___update_grl()
     printf >&2 '%s %s\n' "$D__INTRO_UPD_S" "(not selected) $uplq"
     return 3
   fi
+  if [ "$D__OPT_ANSWER" = false ]
+  then printf >&2 '%s %s\n' "$D__INTRO_UPD_S" "$uplq"; return 3; fi
+
+  # Cut-off check against git
   if ! [ "$D__GH_METHOD" = g ]; then
     d__notify -lx -- 'Unable to check status of Grail directory' \
       'because current system does not have Git'
@@ -394,10 +400,14 @@ d___update_grl()
 
 d___update_bdls()
 {
-  # If not updating bundles, skip gracefully
+  # Compose task name; if not updating bundles, skip gracefully
+  uplq="Attached ${BOLD}bundles$NORMAL"
   if ! $ubdl; then
-    printf >&2 '\n%s %s\n' "$D__INTRO_UPD_S" \
-      "(not selected) Attached ${BOLD}bundles$NORMAL"
+    printf >&2 '\n%s %s\n' "$D__INTRO_UPD_S" "(not selected) $uplq"
+    uanyn=true; return 0
+  fi
+  if [ "$D__OPT_ANSWER" = false ]; then
+    printf >&2 '\n%s %s\n' "$D__INTRO_UPD_S" "$uplq"
     uanyn=true; return 0
   fi
 

@@ -2,761 +2,213 @@
 #:title:        Divine.dotfiles fmwk install script
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.12
-#:revremark:    Fix minor typo, pt. 2
+#:revdate:      2019.10.15
+#:revremark:    Finish rewriting entire framework
 #:created_at:   2019.07.22
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
 #
-## This script installs the framework and optional components
+## This script installs the framework and optional components.
 #
 
 # Driver function
 d__main()
 {
-  # Colorize output
-  d__declare_global_colors
+  # Fundamental checks and fixes
+  d__load procedure pre-flight
 
-  # Parse arguments
+  # Prepare global variables
+  d__init_vars
+
+  # Process received arguments
   d__parse_arguments "$@"
 
-  # Main installation
-  if d__pre_flight_checks && d__pull_github_repo; then
-
-    # Optional: install shortcut command ('di' by default)
-    d__install_shortcut
-
-  fi
-
-  # Report summary and return
-  d__report_summary && return 0 || return 1
+  # Perform framework installation routine
+  d__load routine fmwk-install
 }
 
-d__declare_global_colors()
+#>  d__load TYPE NAME
+#
+## Sources sub-script by type and name. Implements protection against repeated 
+#. loading.
+#
+## Arguments:
+#.  $1  - Type of script:
+#.          * 'distro-adapter'
+#.          * 'family-adapter'
+#.          * 'helper'
+#.          * 'procedure'
+#.          * 'routine'
+#.          * 'util'
+#.  $2  - Name of script file, without path or suffix.
+#
+## Returns:
+#.  0 - Success: script loaded.
+#.  1 - (script exit) Otherwise.
+#
+d__load()
 {
-  # Colorize output (based on similar code in oh-my-zsh installation script)
-  if [ -t 1 ]; then
-    if type -P tput &>/dev/null \
-      && tput sgr0 &>/dev/null \
-      && [ -n "$( tput colors )" ] \
-      && [ "$( tput colors )" -ge 8 ]
-    then
-      RED="$( tput setaf 1 )"
-      GREEN="$( tput setaf 2 )"
-      YELLOW="$( tput setaf 3 )"
-      CYAN="$( tput setaf 6 )"
-      WHITE="$( tput setaf 7 )"
-      BOLD="$( tput bold )"
-      REVERSE="$( tput rev )"
-      NORMAL="$( tput sgr0 )"
-    else
-      RED="$( printf "\033[31m" )"
-      GREEN="$( printf "\033[32m" )"
-      YELLOW="$( printf "\033[33m" )"
-      CYAN="$( printf "\033[36m" )"
-      WHITE="$( printf "\033[97m" )"
-      BOLD="$( printf "\033[1m" )"
-      REVERSE="$( printf "\033[7m" )"
-      NORMAL="$( printf "\033[0m" )"
-    fi
-  else
-    RED=''
-    GREEN=''
-    YELLOW=''
-    CYAN=''
-    WHITE=''
-    BOLD=''
-    REVERSE=''
-    NORMAL=''
+  # Init vars; transform subject name
+  local vr="$( printf '%s\n' "$2" | tr a-z- A-Z_ )" tmp rc
+  local url='https://raw.github.com/no-simpler/divine-dotfiles/master/lib'
+
+  # Perform different
+  case $1 in
+    distro-adapter)   vr="D__ADD_$vr" url+="/adapters/distro/${2}.add.sh";;
+    family-adapter)   vr="D__ADF_$vr" url+="/adapters/family/${2}.adf.sh";;
+    helper)           vr="D__HLP_$vr" url+="/helpers/${2}.hlp.sh";;
+    procedure)        vr="D__PCD_$vr" url+="/procedures/${2}.pcd.sh";;
+    routine)          vr="D__RTN_$vr" url+="/routines/${2}.rtn.sh";;
+    util)             vr="D__UTL_$vr" url+="/utils/${2}.utl.sh";;
+    *)                printf >&2 '%s: %s\n' "${FUNCNAME[0]}" \
+                        "Called with illegal type argument: '$1'"; exit 1;;
+  esac
+
+  # Cut-off for repeated loading
+  ( unset "$vr" &>/dev/null ) || return 0
+
+  ## First-time loading: make temp dest, announce intention, download into 
+  #. temp, source temp, delete temp, return last code from sourced script
+  #
+  tmp="$(mktemp)"
+  if declare -f d__notify &>/dev/null; then d__notify -- "Loading $1 '$2'"
+  else printf >&2 "==> Loading %s '%s'\n" "$1" "$2"; fi
+  if curl --version &>/dev/null; then curl -fsSL $url >$tmp
+  elif wget --version &>/dev/null; then wget -qO $tmp $url; fi
+  if (($?)); then
+    printf >&2 '==> Failed to download Divine dependency from:\n        %s' \
+      "$url"; rm -f $tmp; exit 1
   fi
+  D__DEP_STACK+=( -i- "- $1 $2" ); source $tmp; rc=$?; rm -f $tmp; return $?
 }
 
+#>  d__init_vars
+#
+## This function groups all constant paths, filenames, and other keywords used 
+#. by the framework.
+#
+## Provides into the global scope:
+#.  [ too many to list, read on ]
+#
+## Returns:
+#.  0 - Always.
+#
+d__init_vars()
+{
+  # Framework's displayed name
+  readonly D__FMWK_NAME='Divine.dotfiles'
+
+  # Framework's displayed version
+  readonly D__FMWK_VERSION='1.0.0'
+
+  # Framework installation directory
+  if [ -z ${D_DIR+isset} ]; then
+    readonly D__DIR_FMWK="$HOME/.divine"
+  else
+    printf >&2 "==> Divine directory overridden: '%s'\n" "$D_DIR"
+    readonly D__DIR_FMWK="$D_DIR"
+  fi
+
+  # Shortcut installation directory
+  if [ -z ${D_SHCT_DIR+isset} ]; then
+    D__SHORTCUT_DIR_CANDIDATES=( \
+      "$HOME/bin" \
+      "$HOME/.bin" \
+      '/usr/local/bin' \
+      '/usr/bin' \
+      '/bin' \
+    )
+  else
+    printf >&2 "==> Divine shortcut directory overridden: '%s'\n" "$D_SHCT_DIR"
+    D__SHORTCUT_DIR_CANDIDATES=("$D_SHCT_DIR")
+  fi; readonly D__SHORTCUT_DIR_CANDIDATES
+
+  # Shortcut executable name
+  if [ -z ${D_SHCT_NAME+isset} ]; then
+    readonly D__SHORTCUT_NAME='di'
+  else
+    printf >&2 "==> Divine shortcut name overridden: '%s'\n" "$D_SHCT_NAME"
+    readonly D__SHORTCUT_NAME="$D_SHCT_NAME"
+  fi
+
+  # Paths to directories within $D__DIR_FMWK
+  readonly D__DIR_GRAIL="$D__DIR_FMWK/grail"
+  readonly D__DIR_STATE="$D__DIR_FMWK/state"
+
+  # Paths to directories within $D__DIR_GRAIL
+  readonly D__DIR_ASSETS="$D__DIR_GRAIL/assets"
+  readonly D__DIR_DPLS="$D__DIR_GRAIL/dpls"
+
+  # Paths to directories within $D__DIR_STATE
+  readonly D__DIR_BACKUPS="$D__DIR_STATE/backups"
+  readonly D__DIR_STASH="$D__DIR_STATE/stash"
+  readonly D__DIR_BUNDLES="$D__DIR_STATE/bundles"
+  readonly D__DIR_BUNDLE_BACKUPS="$D__DIR_STATE/bundle-backups"
+
+  # Global indicators of current request's attributes
+  D__REQ_ARGS=()            # Array of non-option arguments
+
+  # Global flags for command line options
+  D__OPT_FORCE=false        # Flag for forceful mode
+  D__OPT_VERBOSITY=0        # New verbosity setting
+  D__OPT_ANSWER=            # Blanket answer to all prompts
+  D__OPT_ANSWER_F=          # Blanket answer to framework prompts
+  D__OPT_ANSWER_S=          # Blanket answer to shortcut prompts
+
+  return 0
+}
+
+## d__parse_arguments [ARG]...
+#
+## Parses arguments that were passed to this script.
+#
 d__parse_arguments()
 {
-  # Global storage variables for option values
-  D_OPT_QUIET=true          # Be quiet by default
-  D_INSTALL_FRAMEWORK=      # Whether to install framework itself
-  D_INSTALL_SHORTCUT=       # Whether to install shortcut symlink
-
-  # Parse arguments
-  local arg
-  for arg do
-    case "$arg" in
-      --quiet)              D_OPT_QUIET=true;;
-      --verbose)            D_OPT_QUIET=false;;
-      --framework-yes)      D_INSTALL_FRAMEWORK=true;;
-      --framework-no)       D_INSTALL_FRAMEWORK=false;;
-      --shortcut-yes)       D_INSTALL_SHORTCUT=true;;
-      --shortcut-no)        D_INSTALL_SHORTCUT=false;;
-      --yes)                D_INSTALL_FRAMEWORK=true
-                            D_INSTALL_SHORTCUT=true
-                            ;;
-      --no)                 D_INSTALL_FRAMEWORK=false
-                            D_INSTALL_SHORTCUT=false
-                            ;;
-      *)                    :;;
-    esac
-  done
-}
-
-d__pre_flight_checks()
-{
-  # Global variables for installation status
-  D_STATUS_FRAMEWORK=false
-  D_STATUS_SHORTCUT=false
-
-  # Return early if framework is not to be installed
-  [ "$D_INSTALL_FRAMEWORK" = false ] && return 1
-
-  # Status variable
-  local newline_printed=false
-
-  # Print empty line for visual separation
-  $D_OPT_QUIET || { printf >&2 '\n'; newline_printed=true; }
-    
-  # Check if installation directory is overridden
-  if [ -n "$D_FMWK_DIR" ]; then
-
-    # Use user-provided installation directory
-    $newline_printed || { printf >&2 '\n'; newline_printed=true; }
-    dprint_alert "Overridden installation directory: $D_FMWK_DIR"
-
-  else
-  
-    # Use default installation directory
-    D_FMWK_DIR="$HOME/.divine"
-    dprint_debug "Installation directory: $D_FMWK_DIR"
-  
-  fi
-
-  # Check if shortcut installation is not cancelled
-  if [ "$D_INSTALL_SHORTCUT" != false ]; then
-
-    # Settle on shortcut executable name
-    if [ -n "$D_SHORTCUT_NAME" ]; then
-    
-      # Announce override
-      $newline_printed || { printf >&2 '\n'; newline_printed=true; }
-      dprint_alert "Overridden shortcut executable name: '$D_SHORTCUT_NAME'"
-
-    else
-
-      # Use default shortcut name
-      D_SHORTCUT_NAME='di'
-      dprint_debug "Shortcut executable name: '$D_SHORTCUT_NAME'"
-
-    fi
-
-    # Check if user provided their installation directory for shortcut
-    if [ -n "$D_SHORTCUT_DIR" ]; then
-
-      # Announce override
-      $newline_printed || { printf >&2 '\n'; newline_printed=true; }
-      dprint_alert "Overridden shortcut installation dir: '$D_SHORTCUT_DIR'"
-
-      # Make user-provided installation directory the only candidate
-      D_SHORTCUT_DIR_CANDIDATES=( "$D_SHORTCUT_DIR" )
-
-    else
-
-      # Assemble possible locations for the shortcut command
-      D_SHORTCUT_DIR_CANDIDATES=( \
-        "$HOME/bin" \
-        "$HOME/.bin" \
-        '/usr/local/bin' \
-        '/usr/bin' \
-        '/bin' \
-      )
-
-    fi
-  
-  fi
-
-  # Status variable for assembled globals
-  all_good=true
-
-  # Verify eligibility of installation directory
-  if [ -d "$D_FMWK_DIR" ]; then
-
-    # Directory exists: announce and set failure flag
-    $newline_printed || { printf >&2 '\n'; newline_printed=true; }
-    dprint_failure 'Installation directory already exists:' \
-      "    $D_FMWK_DIR" \
-      'Refusing to overwrite'
-    all_good=false
-
-  elif [ -e "$D_FMWK_DIR" ]; then
-
-    # Path is occupied: announce and set failure flag
-    $newline_printed || { printf >&2 '\n'; newline_printed=true; }
-    dprint_failure 'Installation path already exists:' \
-      "    $D_FMWK_DIR" \
-      'Refusing to overwrite'
-    all_good=false
-
-  fi
-
-  # Check if shortcut installation is not cancelled
-  if [ "$D_INSTALL_SHORTCUT" != false ]; then
-
-    # Verify eligibility of shortcut name
-    if ! [[ $D_SHORTCUT_NAME =~ ^[a-z0-9]+$ ]]; then
-
-      # Announce illegal shortcut name; set failure flag
-      $newline_printed || { printf >&2 '\n'; newline_printed=true; }
-      dprint_failure \
-        "Shortcut executable name '$D_SHORTCUT_NAME' is illegal" \
-        '(only lowercase alphanumerical characters are allowed)'
-      all_good=false
-
-    fi
-
-    # Verify eligibility of user-provided shortcut installation path
-    if [ -n "$D_SHORTCUT_DIR" ]; then
-
-      # Check if it is a directory on $PATH
-      if ! [[ -d "$D_SHORTCUT_DIR" && ":$PATH:" == *":$D_SHORTCUT_DIR:"* ]]
-      then
-
-        # Directory exists: announce and set failure flag
-        $newline_printed || { printf >&2 '\n'; newline_printed=true; }
-        dprint_failure 'Shortcut installation directory is illegal:' \
-          "    $D_SHORTCUT_DIR" \
-          '(not a directory or not in $PATH)'
-        all_good=false
-
-      fi
-
-    fi
-
-  fi
-
-  # Return appropriately
-  $all_good && return 0 || return 1
-}
-
-d__pull_github_repo()
-{
-  # Print empty line for visual separation
-  printf >&2 '\n'
-  
-  # Store location of Divine.dotfiles repository
-  local user_repo="no-simpler/divine-dotfiles"
-
-  # Offer to install framework
-  if dprompt "$D_INSTALL_FRAMEWORK" 'Install?' \
-    "${BOLD}Divine.dotfiles${NORMAL} Bash framework from:" \
-    "https://github.com/${user_repo}"
-  then
-    dprint_alert "Installing ${BOLD}Divine.dotfiles${NORMAL}"
-  else
-    dprint_skip "Refused to install ${BOLD}Divine.dotfiles${NORMAL}"
-    return 1
-  fi
-
-  # Sane umask
-  umask g-w,o-w
-
-  # Create installation directory
-  if mkdir -p -- "$D_FMWK_DIR" &>/dev/null; then
-    dprint_debug 'Created installation directory:' \
-      "    $D_FMWK_DIR"
-  else
-    dprint_failure 'Failed to create installation directory:' \
-      "    $D_FMWK_DIR"
-    return 1
-  fi
-
-  # First, attempt to check existense of repository using git
-  if git --version &>/dev/null; then
-
-    if git ls-remote "https://github.com/${user_repo}.git" -q &>/dev/null; then
-
-      # Both git and remote repo are available
-
-      # Make shallow clone of repository
-      if git clone --depth=1 "https://github.com/${user_repo}.git" \
-        "$D_FMWK_DIR" &>/dev/null
-      then
-
-        # Announce success
-        dprint_debug 'Cloned Github repository at:' \
-          "https://github.com/${user_repo}"
-
-      else
-
-        # Announce and return failure
-        dprint_failure 'Failed to clone Github repository at:' \
-          "https://github.com/${user_repo}"
-        rm -rf -- "$D_FMWK_DIR"
-        return 1
-
-      fi
-      
-    else
-
-      # Likely unable to connect to repository
-      dprint_failure 'Failed to connect to Github repository at:' \
-        "https://github.com/${user_repo}"
-      rm -rf -- "$D_FMWK_DIR"
-      return 1
-    
-    fi
-
-  else
-
-    # Git unavailable: download instead
-
-    # Check if tar is available
-    tar --version &>/dev/null || {
-      dprint_failure 'Failed to detect neither git nor tar' \
-        '(at least one is required to install framework)'
-      rm -rf -- "$D_FMWK_DIR"
-      return 1
-    }
-
-    # Attempt curl and Github API
-    if grep -q 200 < <( curl -I "https://api.github.com/repos/${user_repo}" \
-      2>/dev/null | head -1 )
-    then
-
-      # Both curl and remote repo are available
-
-      # Download and untar in one fell swoop
-      curl -sL "https://api.github.com/repos/${user_repo}/tarball" \
-        | tar --strip-components=1 -C "$D_FMWK_DIR" -xzf -
-
-      # Check status
-      if [ $? -eq 0 ]; then
-
-        # Announce success
-        dprint_debug \
-          'Downloaded (curl) and extracted tarball repository from:' \
-          "https://api.github.com/repos/${user_repo}/tarball"
-      
-      else
-
-        # Announce and return failure
-        dprint_failure \
-          'Failed to download (curl) or extract tarball repository from:' \
-          "https://api.github.com/repos/${user_repo}/tarball"
-        rm -rf -- "$D_FMWK_DIR"
-        return 1
-
-      fi
-
-    # Attempt wget and Github API
-    elif grep -q 200 < <( wget -q --spider --server-response \
-      "https://api.github.com/repos/${user_repo}" 2>&1 | head -1 ); then
-
-      # Both wget and remote repo are available
-
-      # Download and untar in one fell swoop
-      wget -qO - "https://api.github.com/repos/${user_repo}/tarball" \
-        | tar --strip-components=1 -C "$D_FMWK_DIR" -xzf -
-
-      # Check status
-      if [ $? -eq 0 ]; then
-
-        # Announce success
-        dprint_debug \
-          'Downloaded (wget) or extracted tarball repository from:' \
-          "https://api.github.com/repos/${user_repo}/tarball"
-
-      else
-
-        # Announce and return failure
-        dprint_failure \
-          'Failed to download (wget) or extract tarball repository from:' \
-          "https://api.github.com/repos/${user_repo}/tarball"
-        rm -rf -- "$D_FMWK_DIR"
-        return 1
-
-      fi
-
-    else
-
-      # Either none of the tools were available, or repo does not exist
-      dprint_failure 'Failed to clone or download repository from:' \
-        "https://github.com/${user_repo}"
-      rm -rf -- "$D_FMWK_DIR"
-      return 1
-
-    fi
-  
-  fi
-
-  # Make sure primary script is executable
-  if chmod +x "$D_FMWK_DIR/intervene.sh"; then
-
-    # Announce success
-    dprint_debug 'Successfully set executable flag for:' \
-      "    $D_FMWK_DIR/intervene.sh"
-
-  else
-
-    # Announce failure
-    dprint_failure 'Failed to set executable flag for:' \
-      "    $D_FMWK_DIR/intervene.sh" 'Please, see to it yourself'
-
-  fi
-
-  # Storage variables
-  local dirs_to_create dir_to_create all_good=true
-
-  # Assemble list of directories
-  dirs_to_create=( \
-    "$D_FMWK_DIR/grail/assets" \
-    "$D_FMWK_DIR/grail/dpls" \
-    "$D_FMWK_DIR/state/backups" \
-    "$D_FMWK_DIR/state/stash" \
-    "$D_FMWK_DIR/state/bundles" \
-  )
-
-  # Create each directory for future use
-  for dir_to_create in "${dirs_to_create[@]}"; do
-
-    # Create directory, or announce failure
-    if mkdir -p -- "$dir_to_create"; then
-      dprint_debug   "Created directory          : $dir_to_create"
-    else
-      dprint_failure "Failed to create directory : $dir_to_create"
-      all_good=false
-    fi
-
-  done
-
-  # Check status of directories
-  if $all_good; then
-    dprint_debug 'Successfully created internal directories'
-  else
-    dprint_failure 'Failed to create internal directories'
-  fi
-
-  # If gotten here, all is good
-  D_STATUS_FRAMEWORK=true
-  dprint_success \
-    "Successfully installed ${BOLD}Divine.dotfiles${NORMAL} to:" \
-    "    $D_FMWK_DIR"
-  return 0
-}
-
-d__install_shortcut()
-{
-  # Print empty line for visual separation
-  printf >&2 '\n'
-  
-  # Store long-ass reference in digestible variable
-  local cmd="${BOLD}${D_SHORTCUT_NAME}${NORMAL}"
-
-  # Offer to install shortcut
-  if dprompt "$D_INSTALL_SHORTCUT" 'Install?' \
-    "[optional] Would you like to install shortcut shell command '$cmd'"
-  then
-    dprint_alert "Installing shortcut shell command '$cmd'"
-  else
-    dprint_skip "Refused to install shortcut shell command '$cmd'"
-    return 1
-  fi
-
-  # Storage variable
-  local new_cmd_name
-
-  # Check if command by that name already exists (including aliases and so on)
-  while command -v "$D_SHORTCUT_NAME" &>/dev/null; do
-
-    # If predefined answer is given, no re-tries
-    if [ "$D_INSTALL_SHORTCUT" = true ]; then
-      dprint_skip \
-        "Skipped installing shortcut shell command '$cmd'" \
-        'because command by that name already exists'
-      return 1
-    fi
-
-    # Inform user
-    dprint_alert \
-      "Command '${BOLD}${D_SHORTCUT_NAME}${NORMAL}' already exists"
-
-    while true; do
-
-      # Print prompt and read answer
-      printf >&2 "Try another name ('q' to skip): "
-      read -r new_cmd_name && printf >&2 '\n'
-
-      # Check if user don't want another name
-      [ "$new_cmd_name" = q ] && {
-        dprint_skip 'Skipped installing shortcut shell command'
-        return 1
-      }
-
-      # Check if name is valid
-      if ! [[ $new_cmd_name =~ ^[a-z0-9]+$ ]]; then
-
-        # Announce and go for re-try
-        printf >&2 '(only lowercase alphanumerical characters are allowed)\n'
-        continue
-
-      fi
-
-      # Accept new name and try it on next iteration of the outer loop
-      D_SHORTCUT_NAME="$new_cmd_name"
-      break
-    
-    done
-
-  done
-  
-  # Storage variables
-  local shortcut_path shortcut_filepath shortcut_installed=false
-
-  for shortcut_path in "${D_SHORTCUT_DIR_CANDIDATES[@]}"; do
-
-    # Check if shortcut directory exists and is on $PATH
-    [[ -d "$shortcut_path" && ":$PATH:" == *":$shortcut_path:"* ]] \
-      || {
-        dprint_debug "Refusing to install shortcut to: $shortcut_path" \
-          '(not a directory or not in $PATH)'
-        continue
-      }
-
-    # Construct full path
-    shortcut_filepath="$shortcut_path/$D_SHORTCUT_NAME"
-
-    # Announce attempt
-    dprint_debug "Attempting to install shortcut to: $shortcut_filepath"
-
-    # If file path is occupied, it is likely some namesake directory: skip
-    [ -e "$shortcut_filepath" ] && {
-      dprint_debug "Refusing to install shortcut to: $shortcut_filepath" \
-        '(path is occupied)'
-      continue
-    }
-    
-    # Create symlink, or move to next candidate on failure
-    if [ -w "$shortcut_path" ]; then
-
-      # Writing permission for directory is granted
-      if ln -s -- "$D_FMWK_DIR/intervene.sh" "$shortcut_filepath" \
-        &>/dev/null
-      then
-        shortcut_installed=true; break
-      else
-        dprint_failure 'Failed to create symlink:' \
-          "$shortcut_filepath -> $D_FMWK_DIR/intervene.sh"
-      fi
-
-    else
-
-      # No write permission: try sudo
-
-      # Check if password is going to be required
-      if ! sudo -n true 2>/dev/null; then
-        dprint_alert 'Sudo password is required to install shortcut at:' \
-          "    $shortcut_filepath"
-      fi
-
-      # Do the deed
-      if sudo ln -s -- "$D_FMWK_DIR/intervene.sh" \
-        "$shortcut_filepath" &>/dev/null
-      then
-        shortcut_installed=true; break
-      else
-        dprint_failure 'Failed to create symlink (with sudo):' \
-          "$shortcut_filepath -> $D_FMWK_DIR/intervene.sh"
-      fi
-
-    fi
-
-  done
-
-  # Re-compose command name (in case it changed)
-  cmd="${BOLD}${D_SHORTCUT_NAME}${NORMAL}"
-
-  # Report status
-  if $shortcut_installed; then
-
-    # Keep record of installation location
-    if d__stash_root_add di_shortcut "$shortcut_filepath"; then
-      dprint_debug 'Stored shortcut location in root stash'
-    else
-      dprint_failure 'Failed to store shortcut location in root stash' \
-        'Uninstallation script will be unable to remove shortcut'
-    fi
-
-    # Report and return success
-    D_STATUS_SHORTCUT=true
-    dprint_success \
-      "Successfully installed shortcut shell command '$cmd' to:" \
-      "    $shortcut_filepath"
-    return 0
-
-  else
-
-    # Report and return failure
-    dprint_failure "Failed to install shortcut shell command '$cmd'" \
-      '(none of the candidate locations would take it)'
-    return 1
-
-  fi
-}
-
-d__report_summary()
-{
-  # Print empty line for visual separation
-  printf >&2 '\n'
-
-  # Check if framework itself was installed
-  if ! $D_STATUS_FRAMEWORK; then
-
-    # Not installed: announce and return failure
-    dprint_failure 'Nothing was installed'
-    return 1
-
-  fi
-
-  # Compose main command
-  local main_cmd
-  if $D_STATUS_SHORTCUT; then
-    main_cmd="$D_SHORTCUT_NAME"
-  else
-    main_cmd="$D_FMWK_DIR/intervene.sh"
-  fi
-
-  # Print plaque
-  cat <<EOF
-${REVERSE}- ${BOLD}D i v i n e . d o t f i l e s${NORMAL}${REVERSE} -${NORMAL}
-     ${GREEN}${REVERSE}${BOLD} i n s t a l l e d ${NORMAL}
-             ${GREEN}${REVERSE}-_-${NORMAL}
-
-EOF
-
-  # Announce success
-  dprint_success 'Have you heard the good news?' \
-    "You can now access ${BOLD}Divine.dotfiles${NORMAL} in shell using:" \
-    "    $ $BOLD$main_cmd$NORMAL" \
-    '' \
-    'For help, try:' \
-    "    ${BOLD}https://github.com/no-simpler/divine-dotfiles${NORMAL}" \
-    "    ...or $BOLD$D_FMWK_DIR/README.adoc$NORMAL" \
-    "    ...or $ $BOLD$main_cmd --help$NORMAL" \
-    '' \
-    "Your personal deployments and assets go into Grail directory at:" \
-    "    $BOLD$D_FMWK_DIR/grail$NORMAL" \
-    '(It is a good idea to take your Grail under version control)' \
-    '' \
-    "For a joy ride, try our bundled Divine deployments using:" \
-    "    $ $BOLD$main_cmd attach essentials$NORMAL && $BOLD$main_cmd install$NORMAL" \
-    '(More info on these at: https://github.com/no-simpler/divine-bundle-essentials)' \
-    ''
-  dprint_success 'Thank you, and have a safe and productive day.'
-
-  # Return success
-  return 0
-}
-
-dprint_debug()
-{
-  $D_OPT_QUIET && return 0
-  printf >&2 "${CYAN}==> %s${NORMAL}\n" "$1"; shift
-  while (($#)); do printf >&2 "    ${CYAN}%s${NORMAL}\n" "$1"; shift; done
-  return 0
-}
-
-dprint_alert()
-{
-  printf >&2 "${BOLD}${YELLOW}==>${NORMAL} %s\n" "$1"; shift
-  while (($#)); do printf >&2 '    %s\n' "$1"; shift; done; return 0
-}
-
-dprint_skip()
-{
-  printf >&2 "${BOLD}${WHITE}==>${NORMAL} %s\n" "$1"; shift
-  while (($#)); do printf >&2 '    %s\n' "$1"; shift; done; return 0
-}
-
-dprint_success()
-{
-  printf >&2 "${BOLD}${GREEN}==>${NORMAL} %s\n" "$1"; shift
-  while (($#)); do printf >&2 '    %s\n' "$1"; shift; done; return 0
-}
-
-dprint_failure()
-{
-  printf >&2 "${BOLD}${RED}==>${NORMAL} %s\n" "$1"; shift
-  while (($#)); do printf >&2 '    %s\n' "$1"; shift; done; return 0
-}
-
-dprompt()
-{
-  # Extract predefined answer
-  local predefined_answer="$1"; shift
-
-  # Check predefined answer
-  if [ "$predefined_answer" = true ]; then return 0
-  elif [ "$predefined_answer" = false ]; then return 1
-  fi
-
-  # Extract prompt text
-  local prompt_text="$1"; shift
-
-  # Status variable
-  local yes=false
-
-  # Print announcement and prompt
-  printf >&2 '%s %s\n' "${BOLD}${YELLOW}${REVERSE}==>${NORMAL}" "$1"; shift
-  while (($#)); do printf >&2 '    %s\n' "$1"; shift; done
-  printf >&2 '%s [y/n] ' "${BOLD}${YELLOW}${REVERSE} ${prompt_text} ${NORMAL}"
-
-  # Await answer
-  while true; do
-    read -rsn1 input
-    [[ $input =~ ^(y|Y)$ ]] && { printf >&2 'y'; yes=true;  break; }
-    [[ $input =~ ^(n|N)$ ]] && { printf >&2 'n'; yes=false; break; }
-  done
-  printf >&2 '\n'
-
-  # Check answer
-  if $yes; then return 0; else return 1; fi
-}
-
-d__stash_root_add()
-{
-  # Key variables
-  local stash_dirpath="$D_FMWK_DIR/state/stash"
-  local stash_filepath="$stash_dirpath/.stash.cfg"
-  local stash_md5_filepath="$stash_filepath.md5"
-
-  # Check if root stash file exists
-  if [ -e "$stash_filepath" ]; then
-    # Stash file exists: check that proper checksum is stored for it
-    if ! [ "$( dmd5 "$stash_filepath" )" \
-      = "$( head -1 -- "$stash_md5_filepath" 2>/dev/null )" ]
-    then
-      dprint_failure 'Checksum mismatch on root stash file at:' \
-        "    $stash_filepath"
-      return 1
-    fi
-  else
-    # No stash file: create fresh one and store its checksum
-    touch -- "$stash_filepath"
-    dmd5 "$stash_filepath" >"$stash_md5_filepath"
-  fi
-
-  # Append record at the end, update stored checksum
-  printf '%s\n' "$1=$2" >>"$stash_filepath"
-  dmd5 "$stash_filepath" >"$stash_md5_filepath"
-}
-
-dmd5()
-{
-  local md5
-  md5="$( md5sum -- "$1" 2>/dev/null | awk '{print $1}' )"
-  if [ ${#md5} -eq 32 ]; then printf '%s\n' "$md5"; return 0; fi
-  md5="$( md5 -r -- "$1" 2>/dev/null | awk '{print $1}' )"
-  if [ ${#md5} -eq 32 ]; then printf '%s\n' "$md5"; return 0; fi
-  md5="$( openssl md5 -- "$1" 2>/dev/null | awk '{print $1}' )"
-  if [ ${#md5} -eq 32 ]; then printf '%s\n' "$md5"; return 0; fi
-  return 1
+  # Parse options
+  local arg opt i
+  while (($#)); do arg="$1"; shift; case $arg in
+    -*) case ${arg:1} in
+          -)            D__REQ_ARGS+=("$@"); break;;
+          y|-yes)       D__OPT_ANSWER=true
+                        D__OPT_ANSWER_F=true
+                        D__OPT_ANSWER_S=true;;
+          n|-no)        D__OPT_ANSWER=false
+                        D__OPT_ANSWER_F=false
+                        D__OPT_ANSWER_S=false;;
+          d|-fmwk-yes)  D__OPT_ANSWER_F=true;;
+          D|-fmwk-no)   D__OPT_ANSWER_F=false;;
+          s|-shct-yes)  D__OPT_ANSWER_S=true;;
+          S|-shct-no)   D__OPT_ANSWER_S=false;;
+          f|-force)     D__OPT_FORCE=true;;
+          q|-quiet)     D__OPT_VERBOSITY=0;;
+          v|-verbose)   ((++D__OPT_VERBOSITY));;
+          *)  for ((i=1;i<${#arg};++i)); do opt="${arg:i:1}"; case $opt in
+                y)  D__OPT_ANSWER=true
+                    D__OPT_ANSWER_F=true
+                    D__OPT_ANSWER_S=true;;
+                n)  D__OPT_ANSWER=false
+                    D__OPT_ANSWER_F=false
+                    D__OPT_ANSWER_S=false;;
+                d)  D__OPT_ANSWER_F=true;;
+                D)  D__OPT_ANSWER_F=false;;
+                s)  D__OPT_ANSWER_S=true;;
+                S)  D__OPT_ANSWER_S=false;;
+                f)  D__OPT_FORCE=true;;
+                q)  D__OPT_VERBOSITY=0;;
+                v)  ((++D__OPT_VERBOSITY));;
+                *)  printf >&2 "%s: Unrecognized option '%s'\n" \
+                      "$D__FMWK_NAME" "$opt"; exit 1;;
+              esac; done
+        esac;;
+    *)  [ -n "$arg" ] && D__REQ_ARGS+=("$arg");;
+  esac; done
+
+  # Freeze variables
+  readonly D__REQ_ARGS
+  readonly D__OPT_VERBOSITY
+  readonly D__OPT_ANSWER
+  readonly D__OPT_ANSWER_F
+  readonly D__OPT_ANSWER_S
 }
 
 d__main "$@"

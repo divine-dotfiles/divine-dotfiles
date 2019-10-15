@@ -2,8 +2,8 @@
 #:title:        Divine Bash procedure: init-vars
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.14
-#:revremark:    Output list of loaded deps before exiting
+#:revdate:      2019.10.15
+#:revremark:    Finish rewriting entire framework
 #:created_at:   2019.10.11
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -71,7 +71,7 @@ d__require_var_names()
     # Arguments and options
     D__REQ_ROUTINE D__REQ_GROUPS D__REQ_ARGS D__REQ_BUNDLES D__REQ_FILTER \
     D__REQ_PKGS D__REQ_DPLS D__REQ_MAX_PRIORITY_LEN \
-    D__OPT_INVERSE D__OPT_FORCE D__OPT_EXCLAM D__OPT_QUIET \
+    D__OPT_INVERSE D__OPT_FORCE D__OPT_EXCLAM \
     D__OPT_VERBOSITY D__OPT_ANSWER D__OPT_PLUG_LINK \
     # Colors
     BLACK RED GREEN YELLOW BLUE MAGENTA CYAN WHITE \
@@ -166,7 +166,7 @@ d__require_var_names()
 #. by the framework.
 #
 ## Provides into the global scope:
-#.  [ too many to list ]
+#.  [ too many to list, read on ]
 #
 ## Returns:
 #.  0 - Always.
@@ -229,7 +229,6 @@ d__populate_globals()
   D__OPT_INVERSE=false      # Flag for whether filtering is inverted
   D__OPT_FORCE=false        # Flag for forceful mode
   D__OPT_EXCLAM=false       # Flag for whether include '!'-dpls by default
-  D__OPT_QUIET=true         # Verbosity setting (being deprecated)
   D__OPT_VERBOSITY=0        # New verbosity setting
   D__OPT_ANSWER=            # Blanket answer to all prompts
   D__OPT_PLUG_LINK=false    # Flag for whether copy or symlink Grail dir

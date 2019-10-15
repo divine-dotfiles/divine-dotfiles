@@ -2,8 +2,8 @@
 #:title:        Divine Bash procedure: prep-gh
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.14
-#:revremark:    Implement robust dependency loading system
+#:revdate:      2019.10.15
+#:revremark:    Finish rewriting entire framework
 #:created_at:   2019.07.05
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -17,7 +17,6 @@
 # Marker and dependencies
 readonly D__PCD_PREP_GH=loaded
 d__load util workflow
-d__load util stash
 d__load util offer
 
 # Driver function
