@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.16
-#:revremark:    Unify structure of three main scripts
+#:revremark:    Inaugurate 2.0.0-alpha1
 #:created_at:   2019.10.11
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -180,7 +180,7 @@ d__populate_globals()
   readonly D__FMWK_NAME='Divine.dotfiles'
 
   # Framework's displayed version
-  readonly D__FMWK_VERSION='1.0.0'
+  readonly D__FMWK_VERSION='2.0.0-alpha1'
 
   # Paths to directories within $D__DIR
   readonly D__DIR_GRAIL="$D__DIR/grail"
