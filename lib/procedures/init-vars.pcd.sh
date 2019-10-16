@@ -2,8 +2,8 @@
 #:title:        Divine Bash procedure: init-vars
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.15
-#:revremark:    Finish rewriting entire framework
+#:revdate:      2019.10.16
+#:revremark:    Unify structure of three main scripts
 #:created_at:   2019.10.11
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -26,9 +26,10 @@ d__pcd_init_vars()
 
 #>  d__require_var_names
 #
-## Ensures that all of the variable names that are used by the framework are 
-#. currently not read-only, which would prevent their re-assignment and mess up 
-#. the routines.
+## DEPRECATED; NOT USED
+#
+## Currently, this function serves as a registry of ALL global variables used 
+#. by all various parts of this framework.
 #
 ## Returns:
 #.  0 - All good.
@@ -36,9 +37,9 @@ d__pcd_init_vars()
 #
 d__require_var_names()
 {
-  ## The grand array of all global variable names used by the framework. In 
-  #. addition to these, there are actually four variables set by the main 
-  #. script: $D__DIR, $D__DIR_FMWK, $D__DIR_LIB, $D__EXEC_NAME.
+  ## The grand array of all global variable names used by the framework. Four 
+  #. of these variables (commented out) are set by the main script, before this 
+  #. function is called: $D__DIR, $D__DIR_FMWK, $D__DIR_LIB, $D__EXEC_NAME.
   #
   local d__vars=( \
     # Ultra-core
@@ -73,6 +74,7 @@ d__require_var_names()
     D__REQ_PKGS D__REQ_DPLS D__REQ_MAX_PRIORITY_LEN \
     D__OPT_INVERSE D__OPT_FORCE D__OPT_EXCLAM \
     D__OPT_VERBOSITY D__OPT_ANSWER D__OPT_PLUG_LINK \
+    D__OPT_ANSWER_F D__OPT_ANSWER_S D__OPT_ANSWER_U \
     # Colors
     BLACK RED GREEN YELLOW BLUE MAGENTA CYAN WHITE \
     BG_BLACK BG_RED BG_GREEN BG_YELLOW BG_BLUE BG_MAGENTA BG_CYAN BG_WHITE \
@@ -95,6 +97,7 @@ d__require_var_names()
     D__INTRO_SKIPD D__INTRO_BLANK D__INTRO_DESCR \
     D__INTRO_CNF_N D__INTRO_CNF_U D__INTRO_HALTN \
     D__INTRO_ATTNT D__INTRO_RBOOT D__INTRO_WARNG D__INTRO_CRTCL \
+    D__INTRO_SUCCS D__INTRO_FAILR \
     D__INTRO_CHK_N D__INTRO_CHK_F D__INTRO_CHK_S D__INTRO_CHK_0 \
     D__INTRO_CHK_1 D__INTRO_CHK_2 D__INTRO_CHK_3 D__INTRO_CHK_4 \
     D__INTRO_CHK_5 D__INTRO_CHK_6 D__INTRO_CHK_7 D__INTRO_CHK_8 \
@@ -232,6 +235,11 @@ d__populate_globals()
   D__OPT_VERBOSITY=0        # New verbosity setting
   D__OPT_ANSWER=            # Blanket answer to all prompts
   D__OPT_PLUG_LINK=false    # Flag for whether copy or symlink Grail dir
+
+  # Global flags for command line options during fmwk (un)installation
+  D__OPT_ANSWER_F=          # Blanket answer to framework prompts
+  D__OPT_ANSWER_S=          # Blanket answer to shortcut prompts
+  D__OPT_ANSWER_U=          # Blanket answer to util prompts
 
   return 0
 }

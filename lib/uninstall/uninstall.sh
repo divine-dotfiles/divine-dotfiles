@@ -2,8 +2,8 @@
 #:title:        Divine.dotfiles fmwk uninstall script
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.15
-#:revremark:    Temporarily switch to dev branch for fmwk (un)installation
+#:revdate:      2019.10.16
+#:revremark:    Unify structure of three main scripts
 #:created_at:   2019.07.22
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -14,17 +14,57 @@
 # Driver function
 d__main()
 {
+  # Settle on key globals
+  d__wherefrom
+
   # Fundamental checks and fixes
   d__load procedure pre-flight
 
   # Prepare global variables
-  d__init_vars
+  d__load procedure init-vars
 
   # Process received arguments
   d__parse_arguments "$@"
 
   # Perform framework uninstallation routine
   d__load routine fmwk-uninstall
+}
+
+#>  d__wherefrom
+#
+## Prepares installation path of framework to uninstall from; accepts override.
+#
+## Provides into the global scope:
+#.  $D__DIR_FMWK  - (read-only) Absolute path to the directory where the 
+#.                  framework is to be uninstalled from.
+#.  $D__DIR_LIB   - (read-only) Merely $D__DIR_FMWK with '/lib' appended.
+#.  $D__EXEC_NAME - (read-only) Not used in this routine, included for 
+#.                  compatibility. Set meaninglessly to 'di'.
+#.  $D__DIR       - (read-only) Not directly used in this routine, included for 
+#.                  compatibility. Set to the value of $D__DIR_FMWK.
+#
+## Reads from the global scope (note the single underscores):
+#.  $D_DIR        - User-provided override for $D__DIR_FMWK.
+#
+## Returns:
+#.  0 - Always.
+#
+d__wherefrom()
+{
+  # Framework installation directory
+  if [ -z ${D_DIR+isset} ]; then
+    readonly D__DIR_FMWK="$HOME/.divine"
+  else
+    printf >&2 "==> Divine directory overridden: '%s'\n" "$D_DIR"
+    readonly D__DIR_FMWK="$D_DIR"
+  fi
+
+  # Compatibility variables
+  readonly D__DIR_LIB="$D__DIR_FMWK/lib"
+  readonly D__EXEC_NAME='di'
+  readonly D__DIR="$D__DIR_FMWK"
+
+  return 0
 }
 
 #>  d__load TYPE NAME
@@ -80,60 +120,6 @@ d__load()
       "$url"; rm -f $tmp; exit 1
   fi
   D__DEP_STACK+=( -i- "- $1 $2" ); source $tmp; rc=$?; rm -f $tmp; return $?
-}
-
-#>  d__init_vars
-#
-## This function groups all constant paths, filenames, and other keywords used 
-#. by the framework.
-#
-## Provides into the global scope:
-#.  [ too many to list, read on ]
-#
-## Returns:
-#.  0 - Always.
-#
-d__init_vars()
-{
-  # Framework's displayed name
-  readonly D__FMWK_NAME='Divine.dotfiles'
-
-  # Framework's displayed version
-  readonly D__FMWK_VERSION='1.0.0'
-
-  # Framework installation directory
-  if [ -z ${D_DIR+isset} ]; then
-    readonly D__DIR_FMWK="$HOME/.divine"
-  else
-    printf >&2 "==> Divine directory overridden: '%s'\n" "$D_DIR"
-    readonly D__DIR_FMWK="$D_DIR"
-  fi
-
-  # Paths to directories within $D__DIR_FMWK
-  readonly D__DIR_GRAIL="$D__DIR_FMWK/grail"
-  readonly D__DIR_STATE="$D__DIR_FMWK/state"
-
-  # Paths to directories within $D__DIR_GRAIL
-  readonly D__DIR_ASSETS="$D__DIR_GRAIL/assets"
-  readonly D__DIR_DPLS="$D__DIR_GRAIL/dpls"
-
-  # Paths to directories within $D__DIR_STATE
-  readonly D__DIR_BACKUPS="$D__DIR_STATE/backups"
-  readonly D__DIR_STASH="$D__DIR_STATE/stash"
-  readonly D__DIR_BUNDLES="$D__DIR_STATE/bundles"
-  readonly D__DIR_BUNDLE_BACKUPS="$D__DIR_STATE/bundle-backups"
-
-  # Global indicators of current request's attributes
-  D__REQ_ARGS=()            # Array of non-option arguments
-
-  # Global flags for command line options
-  D__OPT_FORCE=false        # Flag for forceful mode
-  D__OPT_VERBOSITY=0        # New verbosity setting
-  D__OPT_ANSWER=            # Blanket answer to all prompts
-  D__OPT_ANSWER_F=          # Blanket answer to framework prompts
-  D__OPT_ANSWER_U=          # Blanket answer to util prompts
-
-  return 0
 }
 
 ## d__parse_arguments [ARG]...

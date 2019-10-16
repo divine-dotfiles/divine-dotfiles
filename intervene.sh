@@ -2,8 +2,8 @@
 #:title:        Divine Bash script: intervene
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.15
-#:revremark:    Finish rewriting entire framework
+#:revdate:      2019.10.16
+#:revremark:    Unify structure of three main scripts
 #:created_at:   2018.03.25
 
 ## Launches the Divine intervention
@@ -21,7 +21,7 @@ d__main()
   # Fundamental checks and fixes
   d__load procedure pre-flight
 
-  # Prepare global variables used by the framework
+  # Prepare global variables
   d__load procedure init-vars
 
   # Process received arguments
@@ -48,9 +48,8 @@ d__main()
 #.                  variable is used to locate and source the files in the 
 #.                  Grail and state directories.
 #
-## Reads from the global scope:
-#.  $D_DIR        - User-provided override for $D__DIR. Note the single 
-#.                  underscore.
+## Reads from the global scope (note the single underscore):
+#.  $D_DIR        - User-provided override for $D__DIR.
 #
 ## Returns:
 #.  0 - All assignments successful.
