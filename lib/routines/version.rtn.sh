@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: version
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.14
-#:revremark:    Implement robust dependency loading system
+#:revdate:      2019.10.16
+#:revremark:    Prioritize arg parsing in main scripts
 #:created_at:   2018.03.25
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -50,7 +50,7 @@ There is NO WARRANTY, to the extent permitted by law
 Written by ${BOLD}Grove Pyree${NORMAL} <grayarea@protonmail.ch>
 EOF
   # Print version message
-  printf >&2 '%s\n' "$version_msg"
+  printf >&2 '\n%s\n' "$version_msg"
   exit 0
 }
 

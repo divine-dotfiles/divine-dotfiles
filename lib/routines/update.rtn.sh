@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: update
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.15
-#:revremark:    Finish rewriting entire framework
+#:revdate:      2019.10.16
+#:revremark:    Prioritize arg parsing in main scripts
 #:created_at:   2019.05.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -128,6 +128,7 @@ d___parse_update_args()
     framework)      ufmk=true;;
     g|gr|grail)     ugrl=true;;
     b|bu|bundles)   ubdl=true;;
+    bd|bdl|bdls)    ubdl=true;;
     d|dp|dpl|dpls)  ubdl=true;;
     deployment)     ubdl=true;;
     deployments)    ubdl=true;;

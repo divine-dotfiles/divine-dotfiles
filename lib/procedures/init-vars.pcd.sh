@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.16
-#:revremark:    Contain max prty len to assembly
+#:revremark:    Prioritize arg parsing in main scripts
 #:created_at:   2019.10.11
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -218,27 +218,27 @@ d__populate_globals()
   readonly D__DISABLE_CASE_SENSITIVITY='shopt -s nocasematch'
   readonly D__RESTORE_CASE_SENSITIVITY="$( shopt -p nocasematch )"
 
-  # Global indicators of current request's attributes
-  D__REQ_ROUTINE=           # Routine to perform
-  D__REQ_GROUPS=()          # Array of groups listed
-  D__REQ_ARGS=()            # Array of non-option arguments
-  D__REQ_BUNDLES=()         # Array of bundles to process
-  D__REQ_FILTER=false       # Flag for whether particular tasks are requested
-  D__REQ_PKGS=true          # Flag for whether Divinefiles are requested
-  D__REQ_DPLS=true          # Flag for whether deployments are requested
+  # # Global indicators of current request's attributes
+  # D__REQ_ROUTINE=           # Routine to perform
+  # D__REQ_GROUPS=()          # Array of groups listed
+  # D__REQ_ARGS=()            # Array of non-option arguments
+  # D__REQ_BUNDLES=()         # Array of bundles to process
+  # D__REQ_FILTER=false       # Flag for whether particular tasks are requested
+  # D__REQ_PKGS=true          # Flag for whether Divinefiles are requested
+  # D__REQ_DPLS=true          # Flag for whether deployments are requested
 
-  # Global flags for command line options
-  D__OPT_INVERSE=false      # Flag for whether filtering is inverted
-  D__OPT_FORCE=false        # Flag for forceful mode
-  D__OPT_EXCLAM=false       # Flag for whether include '!'-dpls by default
-  D__OPT_VERBOSITY=0        # New verbosity setting
-  D__OPT_ANSWER=            # Blanket answer to all prompts
-  D__OPT_PLUG_LINK=false    # Flag for whether copy or symlink Grail dir
+  # # Global flags for command line options
+  # D__OPT_INVERSE=false      # Flag for whether filtering is inverted
+  # D__OPT_FORCE=false        # Flag for forceful mode
+  # D__OPT_EXCLAM=false       # Flag for whether include '!'-dpls by default
+  # D__OPT_VERBOSITY=0        # Verbosity setting
+  # D__OPT_ANSWER=            # Blanket answer to all prompts
+  # D__OPT_PLUG_LINK=false    # Flag for whether copy or symlink Grail dir
 
-  # Global flags for command line options during fmwk (un)installation
-  D__OPT_ANSWER_F=          # Blanket answer to framework prompts
-  D__OPT_ANSWER_S=          # Blanket answer to shortcut prompts
-  D__OPT_ANSWER_U=          # Blanket answer to util prompts
+  # # Global flags for command line options during fmwk (un)installation
+  # D__OPT_ANSWER_F=          # Blanket answer to framework prompts
+  # D__OPT_ANSWER_S=          # Blanket answer to shortcut prompts
+  # D__OPT_ANSWER_U=          # Blanket answer to util prompts
 
   return 0
 }

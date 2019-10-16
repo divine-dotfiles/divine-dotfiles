@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.16
-#:revremark:    Contain max prty len to assembly
+#:revremark:    Prioritize arg parsing in main scripts
 #:created_at:   2019.07.22
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -14,20 +14,84 @@
 # Driver function
 d__main()
 {
-  # Settle on key globals
-  d__whereto
-
-  # Fundamental checks and fixes
-  d__load procedure pre-flight
-
-  # Prepare global variables
-  d__load procedure init-vars
-
   # Process received arguments
   d__parse_arguments "$@"
 
+  # Settle on key globals
+  d__whereto
+
+  # Load fundamental dependencies: checks and fixes; globals; workflow utils
+  d__load procedure pre-flight
+  d__load procedure init-vars
+  d__load util workflow
+
   # Perform framework installation routine
-  d__load routine fmwk-install
+  d__perform_routine
+}
+
+## d__parse_arguments [ARG]...
+#
+## Parses arguments that were passed to this script.
+#
+d__parse_arguments()
+{
+  # Global indicators of current request's attributes
+  D__REQ_ARGS=()            # Array of non-option arguments
+  D__REQ_ERRORS=()          # Errors to print instead of launching any routine
+
+  # Global flags for command line options
+  D__OPT_FORCE=false        # Flag for forceful mode
+  D__OPT_VERBOSITY=0        # Verbosity setting
+  D__OPT_ANSWER=            # Blanket answer to all prompts
+  D__OPT_ANSWER_F=          # Blanket answer to framework prompts
+  D__OPT_ANSWER_S=          # Blanket answer to shortcut prompts
+
+  # Parse options
+  local arg opt i
+  while (($#)); do arg="$1"; shift; case $arg in
+    -*) case ${arg:1} in
+          -)            D__REQ_ARGS+=("$@"); break;;
+          y|-yes)       D__OPT_ANSWER=true
+                        D__OPT_ANSWER_F=true
+                        D__OPT_ANSWER_S=true;;
+          n|-no)        D__OPT_ANSWER=false
+                        D__OPT_ANSWER_F=false
+                        D__OPT_ANSWER_S=false;;
+          d|-fmwk-yes)  D__OPT_ANSWER_F=true;;
+          D|-fmwk-no)   D__OPT_ANSWER_F=false;;
+          s|-shct-yes)  D__OPT_ANSWER_S=true;;
+          S|-shct-no)   D__OPT_ANSWER_S=false;;
+          f|-force)     D__OPT_FORCE=true;;
+          q|-quiet)     D__OPT_VERBOSITY=0;;
+          v|-verbose)   ((++D__OPT_VERBOSITY));;
+          '') D__REQ_ERRORS+=( -i- "- unrecognized option '-'" );;
+          -*) D__REQ_ERRORS+=( -i- "- unrecognized option '$arg'" );;
+          *)  for ((i=1;i<${#arg};++i)); do opt="${arg:i:1}"; case $opt in
+                y)  D__OPT_ANSWER=true
+                    D__OPT_ANSWER_F=true
+                    D__OPT_ANSWER_S=true;;
+                n)  D__OPT_ANSWER=false
+                    D__OPT_ANSWER_F=false
+                    D__OPT_ANSWER_S=false;;
+                d)  D__OPT_ANSWER_F=true;;
+                D)  D__OPT_ANSWER_F=false;;
+                s)  D__OPT_ANSWER_S=true;;
+                S)  D__OPT_ANSWER_S=false;;
+                f)  D__OPT_FORCE=true;;
+                q)  D__OPT_VERBOSITY=0;;
+                v)  ((++D__OPT_VERBOSITY));;
+                *)  D__REQ_ERRORS+=( -i- "- unrecognized option '$opt'" );;
+              esac; done
+        esac;;
+    *)  [ -n "$arg" ] && D__REQ_ARGS+=("$arg");;
+  esac; done
+
+  # Freeze variables
+  readonly D__REQ_ARGS
+  readonly D__OPT_VERBOSITY
+  readonly D__OPT_ANSWER
+  readonly D__OPT_ANSWER_F
+  readonly D__OPT_ANSWER_S
 }
 
 #>  d__whereto
@@ -42,6 +106,7 @@ d__main()
 #.                  compatibility. Set meaninglessly to 'di'.
 #.  $D__DIR       - (read-only) Not directly used in this routine, included for 
 #.                  compatibility. Set to the value of $D__DIR_FMWK.
+#.  $D__DEP_STACK - (array) Dependency stack for debugging.
 #.  $D__SHORTCUT_DIR_CANDIDATES
 #.                - (read-only) (array) List of directories to try to install 
 #.                  shortcut commend into. First writable directory on $PATH 
@@ -60,11 +125,15 @@ d__main()
 #
 d__whereto()
 {
+  # Initialize dependency stack for debug
+  D__DEP_STACK=()
+
   # Framework installation directory
   if [ -z ${D_DIR+isset} ]; then
     readonly D__DIR_FMWK="$HOME/.divine"
   else
-    printf >&2 "==> Divine directory overridden: '%s'\n" "$D_DIR"
+    printf >&2 '\033[36m%s\033[0m\n' \
+      "==> Divine directory overridden: '$D_DIR'"
     readonly D__DIR_FMWK="$D_DIR"
   fi
 
@@ -83,7 +152,8 @@ d__whereto()
       '/bin' \
     )
   else
-    printf >&2 "==> Divine shortcut directory overridden: '%s'\n" "$D_SHCT_DIR"
+    printf >&2 '\033[36m%s\033[0m\n' \
+      "==> Divine shortcut directory overridden: '$D_SHCT_DIR'"
     D__SHORTCUT_DIR_CANDIDATES=("$D_SHCT_DIR")
   fi; readonly D__SHORTCUT_DIR_CANDIDATES
 
@@ -91,7 +161,8 @@ d__whereto()
   if [ -z ${D_SHCT_NAME+isset} ]; then
     readonly D__SHORTCUT_NAME='di'
   else
-    printf >&2 "==> Divine shortcut name overridden: '%s'\n" "$D_SHCT_NAME"
+    printf >&2 '\033[36m%s\033[0m\n' \
+      "==> Divine shortcut name overridden: '$D_SHCT_NAME'"
     readonly D__SHORTCUT_NAME="$D_SHCT_NAME"
   fi
 
@@ -142,68 +213,30 @@ d__load()
   #. temp, source temp, delete temp, return last code from sourced script
   #
   tmp="$(mktemp)"
-  if declare -f d__notify &>/dev/null; then d__notify -- "Loading $1 '$2'"
+  if declare -f d__notify &>/dev/null; then d__notify -l -- "Loading $1 '$2'"
   else printf >&2 '\033[36m%s\033[0m\n' "==> Loading $1 '$2'"; fi
   if curl --version &>/dev/null; then curl -fsSL $url >$tmp
   elif wget --version &>/dev/null; then wget -qO $tmp $url; fi
   if (($?)); then
-    printf >&2 '==> Failed to download Divine dependency from:\n        %s' \
-      "$url"; rm -f $tmp; exit 1
+    printf >&2 '%s: %s\n' "${FUNCNAME[0]}" \
+      "Dependency is not a readable file: '$path'"
+    exit 1
   fi
   D__DEP_STACK+=( -i- "- $1 $2" ); source $tmp; rc=$?; rm -f $tmp; return $?
 }
 
-## d__parse_arguments [ARG]...
+#>  d__perform_routine
 #
-## Parses arguments that were passed to this script.
+## Dispatches framework installation routine.
 #
-d__parse_arguments()
+d__perform_routine()
 {
-  # Parse options
-  local arg opt i
-  while (($#)); do arg="$1"; shift; case $arg in
-    -*) case ${arg:1} in
-          -)            D__REQ_ARGS+=("$@"); break;;
-          y|-yes)       D__OPT_ANSWER=true
-                        D__OPT_ANSWER_F=true
-                        D__OPT_ANSWER_S=true;;
-          n|-no)        D__OPT_ANSWER=false
-                        D__OPT_ANSWER_F=false
-                        D__OPT_ANSWER_S=false;;
-          d|-fmwk-yes)  D__OPT_ANSWER_F=true;;
-          D|-fmwk-no)   D__OPT_ANSWER_F=false;;
-          s|-shct-yes)  D__OPT_ANSWER_S=true;;
-          S|-shct-no)   D__OPT_ANSWER_S=false;;
-          f|-force)     D__OPT_FORCE=true;;
-          q|-quiet)     D__OPT_VERBOSITY=0;;
-          v|-verbose)   ((++D__OPT_VERBOSITY));;
-          *)  for ((i=1;i<${#arg};++i)); do opt="${arg:i:1}"; case $opt in
-                y)  D__OPT_ANSWER=true
-                    D__OPT_ANSWER_F=true
-                    D__OPT_ANSWER_S=true;;
-                n)  D__OPT_ANSWER=false
-                    D__OPT_ANSWER_F=false
-                    D__OPT_ANSWER_S=false;;
-                d)  D__OPT_ANSWER_F=true;;
-                D)  D__OPT_ANSWER_F=false;;
-                s)  D__OPT_ANSWER_S=true;;
-                S)  D__OPT_ANSWER_S=false;;
-                f)  D__OPT_FORCE=true;;
-                q)  D__OPT_VERBOSITY=0;;
-                v)  ((++D__OPT_VERBOSITY));;
-                *)  printf >&2 "%s: Unrecognized option '%s'\n" \
-                      "$D__FMWK_NAME" "$opt"; exit 1;;
-              esac; done
-        esac;;
-    *)  [ -n "$arg" ] && D__REQ_ARGS+=("$arg");;
-  esac; done
+  # Print request errors, if any
+  if ((${#D__REQ_ERRORS[@]}))
+  then d__notify -nlx -- 'Request errors:' "${D__REQ_ERRORS[@]}"; exit 1; fi
 
-  # Freeze variables
-  readonly D__REQ_ARGS
-  readonly D__OPT_VERBOSITY
-  readonly D__OPT_ANSWER
-  readonly D__OPT_ANSWER_F
-  readonly D__OPT_ANSWER_S
+  # Load routine
+  d__load routine fmwk-install; exit $?
 }
 
 d__main "$@"

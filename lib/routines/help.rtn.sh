@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: help
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.14
-#:revremark:    Implement robust dependency loading system
+#:revdate:      2019.10.16
+#:revremark:    Prioritize arg parsing in main scripts
 #:created_at:   2018.03.25
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -47,7 +47,7 @@ SYNOPSIS
     $D__EXEC_NAME ${BOLD}a${NORMAL}[ttach]    [-yn]                     [--] REPO...
     $D__EXEC_NAME ${BOLD}d${NORMAL}[etach]    [-yn]                     [--] REPO...
     $D__EXEC_NAME ${BOLD}p${NORMAL}[lug]      [-ynl]                    [--] REPO/DIR
-    $D__EXEC_NAME ${BOLD}u${NORMAL}[pdate]    [-yn]                     [--] [TASK]...
+    $D__EXEC_NAME ${BOLD}u${NORMAL}[pdate]    [-yn]      [-b BUNDLE]... [--] [TASK]...
 
     $D__EXEC_NAME --version
     $D__EXEC_NAME -h|--help
@@ -121,47 +121,47 @@ DESCRIPTION
 
     - Accepts bundles of deployments in any of two forms:
       - Divine deployment package in the form 'NAME' (which translates to 
-        Github repository 'no-simpler/divine-bundle-NAME')
+        Github repository 'no-simpler/divine-bundle-NAME').
       - Third-party deployment package (Github repository) in the form 
-        'username/repository'
+        'username/repository'.
     - Makes shallow clones of repositories (or downloads them) into internal 
-      directory
+      directory.
     - Records source of successfull clone/download in the Grail directory for 
-      future replication/updating
-    - Prompts before overwriting
+      future replication/updating.
+    - Prompts before overwriting.
 
     ${BOLD}'Detach' routine${NORMAL} - removes previously attached Github deployments
 
     - Accepts bundles of deployments in any of two forms:
       - Divine deployment package in the form 'NAME' (which translates to 
-        Github repository 'no-simpler/divine-bundle-NAME')
+        Github repository 'no-simpler/divine-bundle-NAME').
       - Third-party deployment package (Github repository) in the form 
-        'username/repository'
-    - If such a repository is currently attached, removes it
-    - Clears record of this repository from Grail directory
+        'username/repository'.
+    - If such a repository is currently attached, removes it.
+    - Clears record of this repository from Grail directory.
 
     ${BOLD}'Plug' routine${NORMAL} - replaces Grail directory
 
     - Allows to quickly plug-in pre-made (and possibly version controlled) 
-      version of the Grail directory, containing user's assets and deployments
+      version of the Grail directory, containing user's assets and deployments.
     - Accepts Grail directory in any of three forms:
-      - Github repository in the form 'username/repository'
-      - Address of a git repository
-      - Path to a directory
+      - Github repository in the form 'username/repository'.
+      - Address of a git repository.
+      - Path to a directory.
     - Makes shallow clones of repositories or downloads them into a built-in 
       directory; in case of plain directories - makes a copy or, optionally, a 
-      symlink
-    - Prompts before overwriting
+      symlink.
+    - Prompts before overwriting.
 
     ${BOLD}'Update' routine${NORMAL} - updates framework, deployment repos, and Grail
 
     - Accepts following tasks (as arguments):
-      - 'f'/'fmwk'/'framework'    : framework itself
-      - 'g'/'grail'               : Grail directory (if it is cloned)
-      - 'd'/'dpls'/'deployments'  : all attached deployments
-      - 'a'/'all'                 : (same as empty task list) all of the above
+      - 'f'/'fmwk'/'framework'    : Framework itself.
+      - 'g'/'grail'               : Grail directory (if it is cloned).
+      - 'b'/'bdls'/'bundles'      : Attached bundles.
+      - 'a'/'all'                 : (same as empty task list) All of the above.
     - Updates each task by either pulling from repository or re-downloading and 
-      overwriting files one by one (where possible)
+      overwriting files one by one (where possible).
 
 OPTIONS
     -y, --yes       Assume affirmative answer to every prompt. Deployments may 
@@ -177,7 +177,8 @@ OPTIONS
                     search for deployments will be limited to the given 
                     attached bundles of deployments. Accepted values of BUNDLE 
                     are the same as the accepted values of REPO during 
-                    attaching of bundles.
+                    attaching of bundles. This option also works during update 
+                    routine, where it specifies bundles to update.
 
     -f, --force     By default, framework tries NOT to:
                       * re-install something that appears already installed;
@@ -229,7 +230,7 @@ EOF
   # Print help summary
   if less --version &>/dev/null
   then less -R <<<"$help"
-  else printf >&2 '%s\n' "$help"; fi
+  else printf >&2 '\n%s\n' "$help"; fi
   exit 0
 }
 
