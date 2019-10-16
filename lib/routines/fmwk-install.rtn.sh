@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.16
-#:revremark:    Delay shortcut name check in fmwk installation
+#:revremark:    Rearrange shortcut checks
 #:created_at:   2019.10.15
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -130,6 +130,24 @@ d___pfc_shct()
     return 1
   fi
 
+  # Perform further checks only if all good up until here
+  $iaok || return 1
+
+  # If shortcut name is occupied on $PATH, re-prompt until found good one
+  if type -P -- "$D__SHORTCUT_NAME" &>/dev/null; then iaok=false
+    d__notify -l! -- "Chosen shortcut name '$D__SHORTCUT_NAME'" \
+      'already exists on \$PATH'
+    [ "$D__OPT_ANSWER_S" = true ] && return 1
+    while true; do read -r -p "Try another? ('q' to quit) " scnm
+      [ "$scnm" = q ] && return 1
+      if ! [[ $scnm =~ ^[A-Za-z0-9]+$ ]]
+      then printf >&2 '%s\n' 'Alphanumerical characters only'; continue; fi
+      if type -P -- "$scnm" &>/dev/null
+      then printf >&2 '%s\n' 'Already exists on $PATH'; continue; fi
+      snm="$scnm"; break
+    done
+  else snm="$D__SHORTCUT_NAME"; fi
+
   # Settle on installation directory for the shortcut
   d__notify 'Choosing shortcut installation directory'
   for sdir in "${D__SHORTCUT_DIR_CANDIDATES[@]}"; do
@@ -155,24 +173,6 @@ d___pfc_shct()
     d__notify -lx -- 'Unable to find a writable shortcut installation' \
       'directory among candidates'
   fi
-
-  # Perform further checks only if all good up until here
-  $iaok || return 1
-
-  # If shortcut name is occupied on $PATH, re-prompt until found good one
-  if type -P -- "$D__SHORTCUT_NAME" &>/dev/null; then iaok=false
-    d__notify -l! -- "Chosen shortcut name '$D__SHORTCUT_NAME'" \
-      'already exists on \$PATH'
-    [ "$D__OPT_ANSWER_S" = true ] && return 1
-    while true; do read -r -p "Try another? ('q' to quit) " scnm
-      [ "$scnm" = q ] && return 1
-      if ! [[ $scnm =~ ^[A-Za-z0-9]+$ ]]
-      then printf >&2 '%s\n' 'Alphanumerical characters only'; continue; fi
-      if type -P -- "$scnm" &>/dev/null
-      then printf >&2 '%s\n' 'Already exists on $PATH'; continue; fi
-      snm="$scnm"; break
-    done
-  else snm="$D__SHORTCUT_NAME"; fi
 }
 
 d___install_fmwk()
