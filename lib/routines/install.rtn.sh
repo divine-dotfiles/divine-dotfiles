@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: install
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.14
-#:revremark:    Implement robust dependency loading system
+#:revdate:      2019.10.16
+#:revremark:    Contain max prty len to assembly
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -69,7 +69,7 @@ d__rtn_install()
 
     # Switch context and compose priority string
     d__context -n -- push "Installing at priority '$d__prty'"
-    d__prtys="$( printf "(%${D__REQ_MAX_PRIORITY_LEN}d)" "$d__prty" )"
+    d__prtys="$( printf "(%${D__WKLD_MAX_PRTY_LEN}d)" "$d__prty" )"
 
     # Install packages and deployments, if asked to
     d___install_pkgs; d___install_dpls

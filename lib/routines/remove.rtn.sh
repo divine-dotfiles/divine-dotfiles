@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: remove
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.14
-#:revremark:    Implement robust dependency loading system
+#:revdate:      2019.10.16
+#:revremark:    Contain max prty len to assembly
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -71,7 +71,7 @@ d__rtn_remove()
     # Extract priority; switch context and compose priority string
     d__prty="${d__prtya[$d__i]}"
     d__context -n -- push "Removing at priority '$d__prty'"
-    d__prtys="$( printf "(%${D__REQ_MAX_PRIORITY_LEN}d)" "$d__prty" )"
+    d__prtys="$( printf "(%${D__WKLD_MAX_PRTY_LEN}d)" "$d__prty" )"
 
     # Remove deployments, if asked to; check if returned special status 
     d___remove_dpls; if [ $? -eq 1 ]; then

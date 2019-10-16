@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.16
-#:revremark:    Unify structure of three main scripts
+#:revremark:    Contain max prty len to assembly
 #:created_at:   2018.03.25
 
 ## Launches the Divine intervention
@@ -15,6 +15,9 @@
 # Driver function
 d__main()
 {
+  # Process received arguments
+  d__parse_arguments "$@"
+
   # Locate yourself
   d__whereami
 
@@ -24,123 +27,8 @@ d__main()
   # Prepare global variables
   d__load procedure init-vars
 
-  # Process received arguments
-  d__parse_arguments "$@"
-
   # Perform requested routine
   d__perform_routine
-}
-
-#>  d__whereami
-#
-## Resolves the absolute path to the directory containing this script, allows 
-#. the user to override the location of the Grail and state directories.
-#
-## Provides into the global scope:
-#.  $D__DIR_FMWK  - (read-only) Absolute path to the directory containing this 
-#.                  script, the fully canonicalized value of ${BASH_SOURCE[0]}. 
-#.                  This variable is used to locate and source the framework 
-#.                  components in the lib/ directory.
-#.  $D__DIR_LIB   - (read-only) Merely $D__DIR_FMWK with '/lib' appended.
-#.  $D__EXEC_NAME - (read-only) The name of the executable used to launch this 
-#.                  script.
-#.  $D__DIR       - (read-only) By default, the same as D__DIR_FMWK. This 
-#.                  variable is used to locate and source the files in the 
-#.                  Grail and state directories.
-#
-## Reads from the global scope (note the single underscore):
-#.  $D_DIR        - User-provided override for $D__DIR.
-#
-## Returns:
-#.  0 - All assignments successful.
-#.  1 - (script exit) Variable name is not writable.
-#.  2 - (script exit) Invalid override for $D__DIR.
-#
-d__whereami()
-{
-  # Check that required variable names are writable; init dep stack for debug
-  local varname err=false; D__DEP_STACK=()
-  for varname in D__DIR D__DIR_FMWK D__DIR_LIB D__EXEC_NAME; do
-    if ! ( unset $varname &>/dev/null ); then err=true
-      printf >&2 '==> %s\n' "Required variable name '$varname' is not writable"
-    fi
-  done; $err && exit 1
-  
-  # $D__EXEC_NAME; $D__DIR_FMWK & $D__DIR_LIB: canonicalize and set globally
-  local filepath="${BASH_SOURCE[0]}" dirpath
-  readonly D__EXEC_NAME="$( basename -- "$filepath" )"
-  while [ -L "$filepath" ]; do
-    dirpath="$( cd -P "$( dirname -- "$filepath" )" &>/dev/null && pwd )"
-    filepath="$( readlink -- "$filepath" )"
-    [[ $filepath != /* ]] && filepath="$dirpath/$filepath"
-  done
-  filepath="$( cd -P "$( dirname -- "$filepath" )" &>/dev/null && pwd )"
-  readonly D__DIR_FMWK="$filepath"
-  readonly D__DIR_LIB="$D__DIR_FMWK/lib"
-
-  # $D__DIR: check for override and set globally
-  if [ -z ${D_DIR+isset} ]; then readonly D__DIR="$D__DIR_FMWK"
-  else
-    printf >&2 "==> Divine directory overridden: '%s'\n" "$D_DIR"
-    readonly D__DIR="$D_DIR"
-  fi
-
-  # Ensure Divine directory exists and is writable
-  if [ -e "$D__DIR" -a ! -d "$D__DIR" ]; then
-    printf >&2 "==> Path to Divine directory is occupied: '%s'\n" "$D__DIR"
-    exit 2
-  fi
-  if ! mkdir -p -- "$D__DIR" &>/dev/null || ! [ -w "$D__DIR" ]; then
-    printf >&2 "==> Divine directory is not writable: '%s'\n" "$D__DIR"
-    exit 2
-  fi
-}
-
-#>  d__load TYPE NAME
-#
-## Sources sub-script by type and name. Implements protection against repeated 
-#. loading.
-#
-## Arguments:
-#.  $1  - Type of script:
-#.          * 'distro-adapter'
-#.          * 'family-adapter'
-#.          * 'helper'
-#.          * 'procedure'
-#.          * 'routine'
-#.          * 'util'
-#.  $2  - Name of script file, without path or suffix.
-#
-## Returns:
-#.  0 - Success: script loaded.
-#.  1 - (script exit) Otherwise.
-#
-d__load()
-{
-  # Init vars; transform subject name
-  local path="${D__DIR_LIB}" vr="$( printf '%s\n' "$2" | tr a-z- A-Z_ )"
-
-  # Perform different
-  case $1 in
-    distro-adapter)   vr="D__ADD_$vr" path+="/adapters/distro/${2}.add.sh";;
-    family-adapter)   vr="D__ADF_$vr" path+="/adapters/family/${2}.adf.sh";;
-    helper)           vr="D__HLP_$vr" path+="/helpers/${2}.hlp.sh";;
-    procedure)        vr="D__PCD_$vr" path+="/procedures/${2}.pcd.sh";;
-    routine)          vr="D__RTN_$vr" path+="/routines/${2}.rtn.sh";;
-    util)             vr="D__UTL_$vr" path+="/utils/${2}.utl.sh";;
-    *)                printf >&2 '%s: %s\n' "${FUNCNAME[0]}" \
-                        "Called with illegal type argument: '$1'"; exit 1;;
-  esac
-
-  # Cut-off for repeated loading
-  ( unset "$vr" &>/dev/null ) || return 0
-
-  # First-time loading: check if readable and source
-  if ! [ -r "$path" -a -f "$path" ]; then
-    printf >&2 "==> Divine dependency is not a readable file: '%s'\n" "$path"
-    exit 1
-  fi
-  D__DEP_STACK+=( -i- "- $1 $2" ); source "$path"; return $?
 }
 
 ## d__parse_arguments [ARG]...
@@ -263,6 +151,118 @@ d__parse_arguments()
   readonly D__REQ_FILTER
   readonly D__REQ_PKGS
   readonly D__REQ_DPLS
+}
+
+#>  d__whereami
+#
+## Resolves the absolute path to the directory containing this script, allows 
+#. the user to override the location of the Grail and state directories.
+#
+## Provides into the global scope:
+#.  $D__DIR_FMWK  - (read-only) Absolute path to the directory containing this 
+#.                  script, the fully canonicalized value of ${BASH_SOURCE[0]}. 
+#.                  This variable is used to locate and source the framework 
+#.                  components in the lib/ directory.
+#.  $D__DIR_LIB   - (read-only) Merely $D__DIR_FMWK with '/lib' appended.
+#.  $D__EXEC_NAME - (read-only) The name of the executable used to launch this 
+#.                  script.
+#.  $D__DIR       - (read-only) By default, the same as D__DIR_FMWK. This 
+#.                  variable is used to locate and source the files in the 
+#.                  Grail and state directories.
+#
+## Reads from the global scope (note the single underscore):
+#.  $D_DIR        - User-provided override for $D__DIR.
+#
+## Returns:
+#.  0 - All assignments successful.
+#.  1 - (script exit) Variable name is not writable.
+#.  2 - (script exit) Invalid override for $D__DIR.
+#
+d__whereami()
+{
+  # Check that required variable names are writable; init dep stack for debug
+  local varname err=false; D__DEP_STACK=()
+  for varname in D__DIR D__DIR_FMWK D__DIR_LIB D__EXEC_NAME; do
+    if ! ( unset $varname &>/dev/null ); then err=true
+      printf >&2 '==> %s\n' "Required variable name '$varname' is not writable"
+    fi
+  done; $err && exit 1
+  
+  # $D__EXEC_NAME; $D__DIR_FMWK & $D__DIR_LIB: canonicalize and set globally
+  local filepath="${BASH_SOURCE[0]}" dirpath
+  readonly D__EXEC_NAME="$( basename -- "$filepath" )"
+  while [ -L "$filepath" ]; do
+    dirpath="$( cd -P "$( dirname -- "$filepath" )" &>/dev/null && pwd )"
+    filepath="$( readlink -- "$filepath" )"
+    [[ $filepath != /* ]] && filepath="$dirpath/$filepath"
+  done
+  filepath="$( cd -P "$( dirname -- "$filepath" )" &>/dev/null && pwd )"
+  readonly D__DIR_FMWK="$filepath"
+  readonly D__DIR_LIB="$D__DIR_FMWK/lib"
+
+  # $D__DIR: check for override and set globally
+  if [ -z ${D_DIR+isset} ]; then readonly D__DIR="$D__DIR_FMWK"
+  else
+    printf >&2 "==> Divine directory overridden: '%s'\n" "$D_DIR"
+    readonly D__DIR="$D_DIR"
+  fi
+
+  # Ensure Divine directory exists and is writable
+  if [ -e "$D__DIR" -a ! -d "$D__DIR" ]; then
+    printf >&2 "==> Path to Divine directory is occupied: '%s'\n" "$D__DIR"
+    exit 2
+  fi
+  if ! mkdir -p -- "$D__DIR" &>/dev/null || ! [ -w "$D__DIR" ]; then
+    printf >&2 "==> Divine directory is not writable: '%s'\n" "$D__DIR"
+    exit 2
+  fi
+}
+
+#>  d__load TYPE NAME
+#
+## Sources sub-script by type and name. Implements protection against repeated 
+#. loading.
+#
+## Arguments:
+#.  $1  - Type of script:
+#.          * 'distro-adapter'
+#.          * 'family-adapter'
+#.          * 'helper'
+#.          * 'procedure'
+#.          * 'routine'
+#.          * 'util'
+#.  $2  - Name of script file, without path or suffix.
+#
+## Returns:
+#.  0 - Success: script loaded.
+#.  1 - (script exit) Otherwise.
+#
+d__load()
+{
+  # Init vars; transform subject name
+  local path="${D__DIR_LIB}" vr="$( printf '%s\n' "$2" | tr a-z- A-Z_ )"
+
+  # Perform different
+  case $1 in
+    distro-adapter)   vr="D__ADD_$vr" path+="/adapters/distro/${2}.add.sh";;
+    family-adapter)   vr="D__ADF_$vr" path+="/adapters/family/${2}.adf.sh";;
+    helper)           vr="D__HLP_$vr" path+="/helpers/${2}.hlp.sh";;
+    procedure)        vr="D__PCD_$vr" path+="/procedures/${2}.pcd.sh";;
+    routine)          vr="D__RTN_$vr" path+="/routines/${2}.rtn.sh";;
+    util)             vr="D__UTL_$vr" path+="/utils/${2}.utl.sh";;
+    *)                printf >&2 '%s: %s\n' "${FUNCNAME[0]}" \
+                        "Called with illegal type argument: '$1'"; exit 1;;
+  esac
+
+  # Cut-off for repeated loading
+  ( unset "$vr" &>/dev/null ) || return 0
+
+  # First-time loading: check if readable and source
+  if ! [ -r "$path" -a -f "$path" ]; then
+    printf >&2 "==> Divine dependency is not a readable file: '%s'\n" "$path"
+    exit 1
+  fi
+  D__DEP_STACK+=( -i- "- $1 $2" ); source "$path"; return $?
 }
 
 #>  d__perform_routine

@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.16
-#:revremark:    Inaugurate 2.0.0-alpha1
+#:revremark:    Contain max prty len to assembly
 #:created_at:   2019.10.11
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -71,7 +71,7 @@ d__require_var_names()
     D__DISABLE_CASE_SENSITIVITY D__RESTORE_CASE_SENSITIVITY \
     # Arguments and options
     D__REQ_ROUTINE D__REQ_GROUPS D__REQ_ARGS D__REQ_BUNDLES D__REQ_FILTER \
-    D__REQ_PKGS D__REQ_DPLS D__REQ_MAX_PRIORITY_LEN \
+    D__REQ_PKGS D__REQ_DPLS \
     D__OPT_INVERSE D__OPT_FORCE D__OPT_EXCLAM \
     D__OPT_VERBOSITY D__OPT_ANSWER D__OPT_PLUG_LINK \
     D__OPT_ANSWER_F D__OPT_ANSWER_S D__OPT_ANSWER_U \
@@ -85,7 +85,7 @@ d__require_var_names()
     D__MANIFEST_LINES D__MANIFEST_LINE_FLAGS D__MANIFEST_LINE_PRFXS \
     D__MANIFEST_LINE_PRTYS D__MANIFEST_SPLITS D__MANIFEST_ENDSPLIT \
     # Assembly
-    D__WKLD D__WKLD_PKGS D__WKLD_DPLS \
+    D__WKLD D__WKLD_PKGS D__WKLD_DPLS D__WKLD_MAX_PRTY_LEN \
     D__WKLD_PKG_BITS D__WKLD_PKG_FLAGS \
     D__WKLD_DPL_BITS D__WKLD_DPL_NAMES D__WKLD_DPL_DESCS \
     D__WKLD_DPL_FLAGS D__WKLD_DPL_WARNS \
@@ -226,7 +226,6 @@ d__populate_globals()
   D__REQ_FILTER=false       # Flag for whether particular tasks are requested
   D__REQ_PKGS=true          # Flag for whether Divinefiles are requested
   D__REQ_DPLS=true          # Flag for whether deployments are requested
-  D__REQ_MAX_PRIORITY_LEN=1 # Number of digits in largest priority
 
   # Global flags for command line options
   D__OPT_INVERSE=false      # Flag for whether filtering is inverted

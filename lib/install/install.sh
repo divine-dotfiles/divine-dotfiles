@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.16
-#:revremark:    Unify structure of three main scripts
+#:revremark:    Contain max prty len to assembly
 #:created_at:   2019.07.22
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -143,7 +143,7 @@ d__load()
   #
   tmp="$(mktemp)"
   if declare -f d__notify &>/dev/null; then d__notify -- "Loading $1 '$2'"
-  else printf >&2 "==> Loading %s '%s'\n" "$1" "$2"; fi
+  else printf >&2 '\033[36m%s\033[0m\n' "==> Loading $1 '$2'"; fi
   if curl --version &>/dev/null; then curl -fsSL $url >$tmp
   elif wget --version &>/dev/null; then wget -qO $tmp $url; fi
   if (($?)); then

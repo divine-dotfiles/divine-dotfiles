@@ -2,8 +2,8 @@
 #:title:        Divine Bash procedure: assemble
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.14
-#:revremark:    Implement robust dependency loading system
+#:revdate:      2019.10.16
+#:revremark:    Contain max prty len to assembly
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -35,6 +35,7 @@ d__load util scan
 #.  $D__WKLD
 #.  $D__WKLD_PKGS
 #.  $D__WKLD_DPLS
+#.  $D__WKLD_MAX_PRTY_LEN
 #.  $D__WKLD_PKG_BITS
 #.  $D__WKLD_PKG_FLAGS
 #.  $D__WKLD_DPL_BITS
@@ -118,7 +119,7 @@ d__pcd_assemble()
   # Detect largest priority and number of digits in it
   local largest_priority
   for largest_priority in ${!D__WKLD[@]}; do :; done
-  readonly D__REQ_MAX_PRIORITY_LEN=${#largest_priority}
+  readonly D__WKLD_MAX_PRTY_LEN=${#largest_priority}
   d__notify -qqqq -- "Largest priority detected: $largest_priority"
 
   # Mark assembled containers read-only
@@ -145,54 +146,52 @@ d__pcd_assemble()
 #
 ## Workload main containers (data for primary routines):
 #.  $D__WKLD        - (array) Integer indices of this array correspond to 
-#.                        numerical priorities. If any value is set at a 
-#.                        particular index of this array, then that index/
-#.                        priority is understood to contain at least one 
-#.                        package or deployment.
-#.  $D__WKLD_PKGS   - (array of newline-delimited 'arrays') In this array, 
-#.                        each index/priority that is taken by at least one 
-#.                        package contains a delimited list of those package 
-#.                        names.
-#.  $D__WKLD_DPLS   - (array of newline-delimited 'arrays') In this array, 
-#.                        each index/priority that is taken by at least one 
-#.                        deployment contains a delimited list of paths to 
-#.                        those deployments.
+#.                    numerical priorities. If any value is set at a particular 
+#.                    index of this array, then that index/priority is 
+#.                    understood to contain at least one package or deployment.
+#.  $D__WKLD_PKGS   - (array of newline-delimited 'arrays') In this array, each 
+#.                    index/priority that is taken by at least one package 
+#.                    contains a delimited list of those package names.
+#.  $D__WKLD_DPLS   - (array of newline-delimited 'arrays') In this array, each 
+#.                    index/priority that is taken by at least one deployment 
+#.                    contains a delimited list of paths to those deployments.
+#.  $D__WKLD_MAX_PRTY_LEN
+#.                  - (integer) Number of digits in the largest priority.
 #
 ## Workload extra containers (pkg-related data for primary routines):
-#.  $D__WKLD_PKG_BITS   - (array of newline-delimited 'arrays') In this 
-#.                            array, each index/priority that is taken by at 
-#.                            least one package contains a delimited set of 
-#.                            bit strings for each of those packages. The 
-#.                            single bit indicates whether the package has 
-#.                            flags.
-#.  $D__WKLD_PKG_FLAGS  - (array of newline-delimited 'arrays') In this 
-#.                            array, each index/priority that is taken by at 
-#.                            least one package contains a delimited set of 
-#.                            flags for each of those packages.
+#.  $D__WKLD_PKG_BITS   - (array of newline-delimited 'arrays') In this array, 
+#.                        each index/priority that is taken by at least one 
+#.                        package contains a delimited set of bit strings for 
+#.                        each of those packages. The single bit indicates 
+#.                        whether the package has flags.
+#.  $D__WKLD_PKG_FLAGS  - (array of newline-delimited 'arrays') In this array, 
+#.                        each index/priority that is taken by at least one 
+#.                        package contains a delimited set of flags for each of 
+#.                        those packages.
 #
 ## Workload extra containers (dpl-related data for primary routines):
-#.  $D__WKLD_DPL_BITS   - (array of newline-delimited 'arrays') In this 
-#.                            array, each index/priority that is taken by at 
-#.                            least one deployment contains a delimited set of 
-#.                            bit strings for each of those deployments. The 
-#.                            bits indicates whether the deployment has 
-#.                            description, flags, and warning, respectively.
-#.  $D__WKLD_DPL_NAMES  - (array of newline-delimited 'arrays') In this 
-#.                            array, each index/priority that is taken by at 
-#.                            least one deployment contains a delimited set of 
-#.                            names for each of those deployments.
-#.  $D__WKLD_DPL_DESCS  - (array of newline-delimited 'arrays') In this 
-#.                            array, each index/priority that is taken by at 
-#.                            least one deployment contains a delimited set of 
-#.                            descriptions for each of those deployments.
-#.  $D__WKLD_DPL_FLAGS  - (array of newline-delimited 'arrays') In this 
-#.                            array, each index/priority that is taken by at 
-#.                            least one deployment contains a delimited set of 
-#.                            flags for each of those deployments.
-#.  $D__WKLD_DPL_WARNS  - (array of newline-delimited 'arrays') In this 
-#.                            array, each index/priority that is taken by at 
-#.                            least one deployment contains a delimited set of 
-#.                            warnings for each of those deployments.
+#.  $D__WKLD_DPL_BITS   - (array of newline-delimited 'arrays') In this array, 
+#.                        each index/priority that is taken by at least one 
+#.                        deployment contains a delimited set of bit strings 
+#.                        for each of those deployments. The bits indicates 
+#.                        whether the deployment has description, flags, and 
+#.                        warning, respectively.
+#.  $D__WKLD_DPL_NAMES  - (array of newline-delimited 'arrays') In this array, 
+#.                        each index/priority that is taken by at least one 
+#.                        deployment contains a delimited set of names for each 
+#.                        of those deployments.
+#.  $D__WKLD_DPL_DESCS  - (array of newline-delimited 'arrays') In this array, 
+#.                        each index/priority that is taken by at least one 
+#.                        deployment contains a delimited set of descriptions 
+#.                        for each of those deployments.
+#.  $D__WKLD_DPL_FLAGS  - (array of newline-delimited 'arrays') In this array, 
+#.                        each index/priority that is taken by at least one 
+#.                        deployment contains a delimited set of flags for each 
+#.                        of those deployments.
+#.  $D__WKLD_DPL_WARNS  - (array of newline-delimited 'arrays') In this array, 
+#.                        each index/priority that is taken by at least one 
+#.                        deployment contains a delimited set of warnings for 
+#.                        each of those deployments.
 #
 ## Internal main containers (data on deployments in framework directories):
 #.  $D__INT_DPL_NAMES       - (array) Array of unique deployment names detected 
@@ -227,7 +226,7 @@ d__pcd_assemble()
 d__init_assembly_vars()
 {
   # Workload containers
-  D__WKLD=() D__WKLD_PKGS=() D__WKLD_DPLS=()
+  D__WKLD=() D__WKLD_PKGS=() D__WKLD_DPLS=() D__WKLD_MAX_PRTY_LEN=1
   # Package-related data
   D__WKLD_PKG_BITS=() D__WKLD_PKG_FLAGS=()
   # Deployment-related data

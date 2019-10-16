@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: check
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.14
-#:revremark:    Implement robust dependency loading system
+#:revdate:      2019.10.16
+#:revremark:    Contain max prty len to assembly
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -64,7 +64,7 @@ d__rtn_check()
 
     # Switch context and compose priority string
     d__context -n -- push "Checking at priority '$d__prty'"
-    d__prtys="$( printf "(%${D__REQ_MAX_PRIORITY_LEN}d)" "$d__prty" )"
+    d__prtys="$( printf "(%${D__WKLD_MAX_PRTY_LEN}d)" "$d__prty" )"
 
     # Check packages and deployments, if asked to
     d___check_pkgs; d___check_dpls

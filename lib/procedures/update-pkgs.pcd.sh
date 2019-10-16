@@ -2,8 +2,8 @@
 #:title:        Divine Bash procedure: update-pkgs
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.14
-#:revremark:    Implement robust dependency loading system
+#:revdate:      2019.10.16
+#:revremark:    Contain max prty len to assembly
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -43,7 +43,7 @@ d__pcd_update_pkgs()
 
   # Print a separating empty line; compose name of the task
   printf >&2 '\n'
-  local d__plq="$( printf "(%${D__REQ_MAX_PRIORITY_LEN}d)" 0 )"
+  local d__plq="$( printf "(%${D__WKLD_MAX_PRTY_LEN}d)" 0 )"
   d__plq+=" System packages via '$BOLD$D__OS_PKGMGR$NORMAL'"
 
   # Early exit for dry runs
