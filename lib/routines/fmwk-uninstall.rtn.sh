@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: fmwk-uninstall
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.15
-#:revremark:    Finish rewriting entire framework
+#:revdate:      2019.10.16
+#:revremark:    Make fmwk (un)installation available offline
 #:created_at:   2019.10.15
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -84,7 +84,7 @@ d___pfc_fmwk()
   if [ "$D__OPT_ANSWER_F" = false ]; then return 1; fi
 
   # Compose destination path
-  udst="$D__DIR_FMWK"
+  udst="$D__DIR"
 
   # Ensure directory exists
   if ! [ -e "$udst" ]; then

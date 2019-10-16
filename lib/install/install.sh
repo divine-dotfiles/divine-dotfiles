@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.16
-#:revremark:    Prioritize arg parsing in main scripts
+#:revremark:    Make fmwk (un)installation available offline
 #:created_at:   2019.07.22
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -99,13 +99,13 @@ d__parse_arguments()
 ## Prepares installation paths for framework and shortcut; accepts overrides.
 #
 ## Provides into the global scope:
-#.  $D__DIR_FMWK  - (read-only) Absolute path to the directory where the 
+#.  $D__DIR       - (read-only) Absolute path to the directory where the 
 #.                  framework is to be installed.
+#.  $D__DIR_FMWK  - (read-only) Not directly used in this routine, included for 
+#.                  compatibility. Set to the value of $D__DIR.
 #.  $D__DIR_LIB   - (read-only) Merely $D__DIR_FMWK with '/lib' appended.
 #.  $D__EXEC_NAME - (read-only) Not used in this routine, included for 
 #.                  compatibility. Set meaninglessly to 'di'.
-#.  $D__DIR       - (read-only) Not directly used in this routine, included for 
-#.                  compatibility. Set to the value of $D__DIR_FMWK.
 #.  $D__DEP_STACK - (array) Dependency stack for debugging.
 #.  $D__SHORTCUT_DIR_CANDIDATES
 #.                - (read-only) (array) List of directories to try to install 
@@ -116,7 +116,7 @@ d__parse_arguments()
 #.                  access it in the command line. Defaults to 'di'.
 #
 ## Reads from the global scope (note the single underscores):
-#.  $D_DIR        - User-provided override for $D__DIR_FMWK.
+#.  $D_DIR        - User-provided override for $D__DIR.
 #.  $D_SHCT_DIR   - User-provided override for all $D__SHORTCUT_DIR_CANDIDATES.
 #.  $D_SHCT_NAME  - User-provided override for $D__SHORTCUT_NAME.
 #
@@ -129,28 +129,22 @@ d__whereto()
   D__DEP_STACK=()
 
   # Framework installation directory
-  if [ -z ${D_DIR+isset} ]; then
-    readonly D__DIR_FMWK="$HOME/.divine"
+  if [ -z ${D_DIR+isset} ]; then readonly D__DIR="$HOME/.divine"
   else
     printf >&2 '\033[36m%s\033[0m\n' \
       "==> Divine directory overridden: '$D_DIR'"
-    readonly D__DIR_FMWK="$D_DIR"
+    readonly D__DIR="$D_DIR"
   fi
 
   # Compatibility variables
+  readonly D__DIR_FMWK="$D__DIR"
   readonly D__DIR_LIB="$D__DIR_FMWK/lib"
   readonly D__EXEC_NAME='di'
-  readonly D__DIR="$D__DIR_FMWK"
 
   # Shortcut installation directory
   if [ -z ${D_SHCT_DIR+isset} ]; then
-    D__SHORTCUT_DIR_CANDIDATES=( \
-      "$HOME/bin" \
-      "$HOME/.bin" \
-      '/usr/local/bin' \
-      '/usr/bin' \
-      '/bin' \
-    )
+    D__SHORTCUT_DIR_CANDIDATES=( "$HOME/bin" "$HOME/.bin" '/usr/local/bin' \
+      '/usr/bin' '/bin' )
   else
     printf >&2 '\033[36m%s\033[0m\n' \
       "==> Divine shortcut directory overridden: '$D_SHCT_DIR'"
@@ -158,8 +152,7 @@ d__whereto()
   fi; readonly D__SHORTCUT_DIR_CANDIDATES
 
   # Shortcut executable name
-  if [ -z ${D_SHCT_NAME+isset} ]; then
-    readonly D__SHORTCUT_NAME='di'
+  if [ -z ${D_SHCT_NAME+isset} ]; then readonly D__SHORTCUT_NAME='di'
   else
     printf >&2 '\033[36m%s\033[0m\n' \
       "==> Divine shortcut name overridden: '$D_SHCT_NAME'"

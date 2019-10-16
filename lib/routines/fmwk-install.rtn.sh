@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.16
-#:revremark:    Rearrange shortcut checks
+#:revremark:    Make fmwk (un)installation available offline
 #:created_at:   2019.10.15
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -94,7 +94,7 @@ d___pfc_fmwk()
   fi
 
   # Compose destination path
-  idst="$D__DIR_FMWK"
+  idst="$D__DIR"
 
   # Check if destination already exists, and if so, what is it
   if [ -e "$idst" ]; then
@@ -261,7 +261,7 @@ d___install_shortcut()
   fi
 
   # Compose target; print intro; print locations
-  sdst="$D__DIR_FMWK/intervene.sh"
+  sdst="$D__DIR/intervene.sh"
   printf >&2 '%s %s\n' "$D__INTRO_INS_N" "$iplq"
   d__notify -q -- "Location: $sdst"
   d__notify -q -- "Target  : $stgt"
@@ -290,7 +290,7 @@ d___send_pictures()
   # Print empty line for visual separation; compose main command for output
   printf >&2 '\n'; local mcmd
   if $sgd; then mcmd="$snm"
-  else mcmd="$D__DIR_FMWK/intervene.sh"; fi
+  else mcmd="$D__DIR/intervene.sh"; fi
 
   # Print plaque
   cat <<EOF
@@ -304,11 +304,11 @@ You can now access ${BOLD}Divine.dotfiles${NORMAL} in shell using:
 
 For help, try:
     ${BOLD}https://github.com/no-simpler/divine-dotfiles${NORMAL}
-    ...or $BOLD$D__DIR_FMWK/README.adoc$NORMAL
+    ...or $BOLD$D__DIR/README.adoc$NORMAL
     ...or $ $BOLD$mcmd --help$NORMAL
 
 Your personal deployments and assets go into Grail directory at:
-    $BOLD$D__DIR_FMWK/grail$NORMAL
+    $BOLD$D__DIR/grail$NORMAL
 (It is a good idea to take your Grail under version control)
 
 For a joy ride, try our bundled Divine deployments using:

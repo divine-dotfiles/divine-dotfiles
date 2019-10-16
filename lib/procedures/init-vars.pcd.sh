@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.16
-#:revremark:    Prioritize arg parsing in main scripts
+#:revremark:    Make fmwk (un)installation available offline
 #:created_at:   2019.10.11
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -37,9 +37,9 @@ d__pcd_init_vars()
 #
 d__require_var_names()
 {
-  ## The grand array of all global variable names used by the framework. Four 
-  #. of these variables (commented out) are set by the main script, before this 
-  #. function is called: $D__DIR, $D__DIR_FMWK, $D__DIR_LIB, $D__EXEC_NAME.
+  ## The grand array of all global variable names used by the framework. 
+  #. Commented out variables are set by the main script, before this function 
+  #. is ever called.
   #
   local d__vars=( \
     # Ultra-core
@@ -70,11 +70,11 @@ d__require_var_names()
     D__CONST_NAME_DIVINEFILE D__CONST_NAME_STASHFILE D__CONST_DEF_PRIORITY \
     D__DISABLE_CASE_SENSITIVITY D__RESTORE_CASE_SENSITIVITY \
     # Arguments and options
-    D__REQ_ROUTINE D__REQ_GROUPS D__REQ_ARGS D__REQ_BUNDLES D__REQ_FILTER \
-    D__REQ_PKGS D__REQ_DPLS \
-    D__OPT_INVERSE D__OPT_FORCE D__OPT_EXCLAM \
-    D__OPT_VERBOSITY D__OPT_ANSWER D__OPT_PLUG_LINK \
-    D__OPT_ANSWER_F D__OPT_ANSWER_S D__OPT_ANSWER_U \
+    # D__REQ_ROUTINE D__REQ_GROUPS D__REQ_ARGS D__REQ_BUNDLES D__REQ_FILTER \
+    # D__REQ_PKGS D__REQ_DPLS \
+    # D__OPT_INVERSE D__OPT_FORCE D__OPT_EXCLAM \
+    # D__OPT_VERBOSITY D__OPT_ANSWER D__OPT_PLUG_LINK \
+    # D__OPT_ANSWER_F D__OPT_ANSWER_S D__OPT_ANSWER_U \
     # Colors
     BLACK RED GREEN YELLOW BLUE MAGENTA CYAN WHITE \
     BG_BLACK BG_RED BG_GREEN BG_YELLOW BG_BLUE BG_MAGENTA BG_CYAN BG_WHITE \
@@ -217,28 +217,6 @@ d__populate_globals()
   # Commands to play with 'nocasematch' (case sensitivity) Bash option
   readonly D__DISABLE_CASE_SENSITIVITY='shopt -s nocasematch'
   readonly D__RESTORE_CASE_SENSITIVITY="$( shopt -p nocasematch )"
-
-  # # Global indicators of current request's attributes
-  # D__REQ_ROUTINE=           # Routine to perform
-  # D__REQ_GROUPS=()          # Array of groups listed
-  # D__REQ_ARGS=()            # Array of non-option arguments
-  # D__REQ_BUNDLES=()         # Array of bundles to process
-  # D__REQ_FILTER=false       # Flag for whether particular tasks are requested
-  # D__REQ_PKGS=true          # Flag for whether Divinefiles are requested
-  # D__REQ_DPLS=true          # Flag for whether deployments are requested
-
-  # # Global flags for command line options
-  # D__OPT_INVERSE=false      # Flag for whether filtering is inverted
-  # D__OPT_FORCE=false        # Flag for forceful mode
-  # D__OPT_EXCLAM=false       # Flag for whether include '!'-dpls by default
-  # D__OPT_VERBOSITY=0        # Verbosity setting
-  # D__OPT_ANSWER=            # Blanket answer to all prompts
-  # D__OPT_PLUG_LINK=false    # Flag for whether copy or symlink Grail dir
-
-  # # Global flags for command line options during fmwk (un)installation
-  # D__OPT_ANSWER_F=          # Blanket answer to framework prompts
-  # D__OPT_ANSWER_S=          # Blanket answer to shortcut prompts
-  # D__OPT_ANSWER_U=          # Blanket answer to util prompts
 
   return 0
 }

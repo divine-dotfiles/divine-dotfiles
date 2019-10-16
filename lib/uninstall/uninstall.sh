@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.16
-#:revremark:    Prioritize arg parsing in main scripts
+#:revremark:    Make fmwk (un)installation available offline
 #:created_at:   2019.07.22
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -99,17 +99,17 @@ d__parse_arguments()
 ## Prepares installation path of framework to uninstall from; accepts override.
 #
 ## Provides into the global scope:
-#.  $D__DIR_FMWK  - (read-only) Absolute path to the directory where the 
+#.  $D__DIR       - (read-only) Absolute path to the directory where the 
 #.                  framework is to be uninstalled from.
+#.  $D__DIR_FMWK  - (read-only) Not directly used in this routine, included for 
+#.                  compatibility. Set to the value of $D__DIR.
 #.  $D__DIR_LIB   - (read-only) Merely $D__DIR_FMWK with '/lib' appended.
 #.  $D__EXEC_NAME - (read-only) Not used in this routine, included for 
 #.                  compatibility. Set meaninglessly to 'di'.
-#.  $D__DIR       - (read-only) Not directly used in this routine, included for 
-#.                  compatibility. Set to the value of $D__DIR_FMWK.
 #.  $D__DEP_STACK - (array) Dependency stack for debugging.
 #
 ## Reads from the global scope (note the single underscores):
-#.  $D_DIR        - User-provided override for $D__DIR_FMWK.
+#.  $D_DIR        - User-provided override for $D__DIR.
 #
 ## Returns:
 #.  0 - Always.
@@ -120,18 +120,17 @@ d__wherefrom()
   D__DEP_STACK=()
 
   # Framework installation directory
-  if [ -z ${D_DIR+isset} ]; then
-    readonly D__DIR_FMWK="$HOME/.divine"
+  if [ -z ${D_DIR+isset} ]; then readonly D__DIR="$HOME/.divine"
   else
     printf >&2 '\033[36m%s\033[0m\n' \
       "==> Divine directory overridden: '$D_DIR'"
-    readonly D__DIR_FMWK="$D_DIR"
+    readonly D__DIR="$D_DIR"
   fi
 
   # Compatibility variables
+  readonly D__DIR_FMWK="$D__DIR"
   readonly D__DIR_LIB="$D__DIR_FMWK/lib"
   readonly D__EXEC_NAME='di'
-  readonly D__DIR="$D__DIR_FMWK"
 
   return 0
 }
