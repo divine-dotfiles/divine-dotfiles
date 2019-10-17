@@ -2,8 +2,8 @@
 #:title:        Divine Bash deployment helpers: gh-queue
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.14
-#:revremark:    Implement robust dependency loading system
+#:revdate:      2019.10.17
+#:revremark:    Split prep-gh in two
 #:created_at:   2019.10.10
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -19,7 +19,7 @@ readonly D__HLP_GH_QUEUE=loaded
 d__load util workflow
 d__load procedure detect-os
 d__load procedure prep-md5
-d__load procedure prep-gh
+d__load procedure check-gh
 d__load util stash
 d__load util github
 

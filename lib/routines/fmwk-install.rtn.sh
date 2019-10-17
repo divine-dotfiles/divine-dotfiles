@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.17
-#:revremark:    Improve existing dir handling during fmwk installation
+#:revremark:    Split prep-gh in two
 #:created_at:   2019.10.15
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -135,10 +135,11 @@ d___get_ready()
 
   fi
 
-  # At this point, make Github checks which will create stash files
-  d__load procedure prep-gh
+  # At this point, offer Github tools, which will create stash files
+  d__load procedure offer-gh
 
   # Check if Github interaction method exists
+  d__load procedure check-gh
   if [ -z "$D__GH_METHOD" ]; then iaok=false
     d__notify -lx -- 'No way to retrieve framework from Github'
   fi

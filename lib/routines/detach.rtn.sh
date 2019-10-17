@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: detach
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.14
-#:revremark:    Implement robust dependency loading system
+#:revdate:      2019.10.17
+#:revremark:    Split prep-gh in two
 #:created_at:   2019.06.28
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -20,7 +20,8 @@ d__load util workflow
 d__load util stash
 d__load util scan
 d__load procedure prep-stash
-d__load procedure prep-gh
+d__load procedure offer-gh
+d__load procedure check-gh
 d__load procedure sync-bundles
 
 #>  d__rtn_detach

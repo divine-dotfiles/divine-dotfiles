@@ -2,8 +2,8 @@
 #:title:        Divine Bash procedure: sync-bundles
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.15
-#:revremark:    Finish rewriting entire framework
+#:revdate:      2019.10.17
+#:revremark:    Split prep-gh in two
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -21,7 +21,7 @@ d__load util stash
 d__load util github
 d__load procedure prep-sys
 d__load procedure prep-stash
-d__load procedure prep-gh
+d__load procedure check-gh
 
 #>  d__pcd_sync_bundles
 #
