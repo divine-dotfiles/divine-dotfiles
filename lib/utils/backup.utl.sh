@@ -2,8 +2,8 @@
 #:title:        Divine Bash utils: backup
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.14
-#:revremark:    Implement robust dependency loading system
+#:revdate:      2019.10.17
+#:revremark:    Add --precise option to popping backup
 #:created_at:   2019.09.18
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -65,12 +65,10 @@ d__push_backup()
   while (($#)); do arg="$1"; shift; case $arg in
     -*) case ${arg:1} in
           -)  args+=("$@"); break;;
-          *)  for ((i=1;i<${#arg};++i)); do opt="${arg:i:1}"
-                case $opt in
-                  *)  printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" \
-                        "$FUNCNAME: Ignoring unrecognized option: '$opt'";;
-                esac
-              done;;
+          *)  for ((i=1;i<${#arg};++i)); do opt="${arg:i:1}"; case $opt in
+                *)  printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" \
+                      "$FUNCNAME: Ignoring unrecognized option: '$opt'";;
+              esac; done;;
         esac;;
     *)  args+=("$arg");;
   esac; done
@@ -167,7 +165,7 @@ d__push_backup()
   return 0
 }
 
-#>  d__pop_backup [-de]... [--] ORIG_PATH [BACKUP_PATH]
+#>  d__pop_backup [-dep]... [--] ORIG_PATH [BACKUP_PATH]
 #
 ## This function ensures that the latest backup is moved back to the ORIG_PATH, 
 #. and if anything exists there currently, it is, itself, backed up. Thus, if 
@@ -201,6 +199,9 @@ d__push_backup()
 #.                    still gets freed up.
 #.  -d, --dispose   - Treat whatever pre-exists at the ORIG_PATH as disposable. 
 #.                    In this mode, no backups of the ORIG_PATH are made.
+#.  -p, --precise   - Do not go through the motions of looking up the latest 
+#.                    backup version: use the backup location precisely or not 
+#.                    at all.
 #
 ## Returns:
 #.  0 - The backup has been popped successfully, according to the options.
@@ -211,20 +212,20 @@ d__push_backup()
 d__pop_backup()
 {
   # Pluck out options, round up arguments
-  local args=() arg opt evict=false dispose=false
+  local args=() arg opt evict=false dispose=false precise=false
   while (($#)); do arg="$1"; shift; case $arg in
     -*) case ${arg:1} in
           -)          args+=("$@"); break;;
           e|-evict)   evict=true;;
           d|-dispose) dispose=true;;
-          *)  for ((i=1;i<${#arg};++i)); do opt="${arg:i:1}"
-                case $opt in
-                  e)  evict=true;;
-                  d)  dispose=true;;
-                  *)  printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" \
-                        "$FUNCNAME: Ignoring unrecognized option: '$opt'";;
-                esac
-              done;;
+          p|-precise) precise=true;;
+          *)  for ((i=1;i<${#arg};++i)); do opt="${arg:i:1}"; case $opt in
+                e)  evict=true;;
+                d)  dispose=true;;
+                p)  precise=true;;
+                *)  printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" \
+                      "$FUNCNAME: Ignoring unrecognized option: '$opt'";;
+              esac; done;;
         esac;;
     *)  args+=("$arg");;
   esac; done
@@ -269,10 +270,15 @@ d__pop_backup()
   if [ -e "$backup_path" ]; then
     d__notify -qqq -- "Backup exists"
     if [ -e "$backup_path-1" ]; then
-      d__context -- push 'Scanning for the latest backup'
-      for ((i=2;i<=1000;++i)); do [ -e "$backup_path-$i" ] || break; done
-      ((--i)); backup_path+="-$i"
-      d__context -- pop
+      if $precise; then
+        d__notify -l! -- 'Versions of backup exist, but using backup path' \
+          'precisely' -n- 'This will break backup versioning'
+      else
+        d__context -- push 'Scanning for the latest backup'
+        for ((i=2;i<=1000;++i)); do [ -e "$backup_path-$i" ] || break; done
+        ((--i)); backup_path+="-$i"
+        d__context -- pop
+      fi
     fi
     d__context -- push "Restoring backup from: $backup_path"
     if ! [ -d "$orig_dirpath" ]; then
