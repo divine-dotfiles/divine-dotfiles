@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.17
-#:revremark:    Spread dependency loading during fmwk installation
+#:revremark:    Fmwk installation: move GH repo check past util loading
 #:created_at:   2019.10.15
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -71,11 +71,8 @@ d___get_ready()
     printf >&2 '%s %s\n' "$D__INTRO_CHK_S" "$iplq"; return 0
   fi
 
-  # Store remote address; ensure that the remote repository exists
+  # Store remote address
   iarg='no-simpler/divine-dotfiles'
-  if ! d___gh_repo_exists "$iarg"; then iaok=false
-    d__notify -lx -- "Github repository '$iarg' does not appear to exist"
-  fi
 
   # Compose destination path
   idst="$D__DIR"
@@ -143,6 +140,11 @@ d___get_ready()
   d__load procedure check-gh
   if [ -z "$D__GH_METHOD" ]; then iaok=false
     d__notify -lx -- 'No way to retrieve framework from Github'
+  fi
+
+  # Ensure that the remote repository exists
+  if ! d___gh_repo_exists "$iarg"; then iaok=false
+    d__notify -lx -- "Github repository '$iarg' does not appear to exist"
   fi
 
   # Get on with shortcut-related checks
