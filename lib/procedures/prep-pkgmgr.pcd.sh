@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.17
-#:revremark:    Improve existing dir handling during fmwk installation
+#:revremark:    Fix erroneous dependency load cmd
 #:created_at:   2019.10.17
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -16,7 +16,7 @@
 # Marker and dependencies
 readonly D__PCD_PREP_PKGMGR=loaded
 d__load util workflow
-d__load util detect-os
+d__load procedure detect-os
 
 # Driver function
 d__pcd_prep_pkgmgr()
