@@ -2,8 +2,8 @@
 #:title:        Divine Bash procedure: init-vars
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.16
-#:revremark:    Make fmwk (un)installation available offline
+#:revdate:      2019.10.17
+#:revremark:    Improve existing dir handling during fmwk installation
 #:created_at:   2019.10.11
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -55,7 +55,7 @@ d__require_var_names()
     D__PCD_ASSEMBLE D__PCD_DETECT_OS D__PCD_INIT_VARS D__PCD_PRE_FLIGHT \
     D__PCD_PREP_SYS D__PCD_PREP_MD5 D__PCD_PREP_STASH D__PCD_PREP_GH \
     D__PCD_PRINT_COLORS D__PCD_PROCESS_ALL_ASSETS D__PCD_SYNC_BUNDLES \
-    D__PCD_UNOFFER D__PCD_UPDATE_PKGS \
+    D__PCD_UNOFFER D__PCD_UPDATE_PKGS D__PCD_PREP_PKGMGR \
     # Dependency load markers: routines
     D__RTN_ATTACH D__RTN_CHECK D__RTN_DETACH D__RTN_HELP D__RTN_INSTALL \
     D__RTN_PLUG D__RTN_REMOVE D__RTN_UPDATE D__RTN_USAGE D__RTN_VERSION \

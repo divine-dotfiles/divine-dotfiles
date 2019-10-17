@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: fmwk-install
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.16
-#:revremark:    Make fmwk (un)installation available offline
+#:revdate:      2019.10.17
+#:revremark:    Improve existing dir handling during fmwk installation
 #:created_at:   2019.10.15
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -17,7 +17,6 @@ d__load util workflow
 d__load util stash
 d__load util github
 d__load util backup
-d__load procedure prep-gh
 
 #>  d__rtn_fmwk_install
 #
@@ -42,8 +41,8 @@ d__rtn_fmwk_install()
   fi
 
   # Storage & status variables
-  local irc=2 iplq iarg idst ifrc=false iocc=false iemp=false itmp iaok=true
-  local idir iadir snm scnm sdir sdst stgt sgd=false erra
+  local irc=2 iplq iarg idst itmp iaok=true d__bckp ioccbckp
+  local idir iadir snm scnm sdir sdst stgt sgd=false erra idrs src dst
 
   # Perform structured installation
   if d___get_ready; then
@@ -58,7 +57,9 @@ d__rtn_fmwk_install()
   else case $irc in
     0)  d__announce -v -- 'Successfully installed Divine.dotfiles'
         d___send_pictures; return 0;;
-    1)  d__announce -x -- 'Failed to install Divine.dotfiles'; return 1;;
+    1)  if [ "$idrs" = o -a -n "$ioccbckp" ]
+        then d__pop_backup -dep -- "$idst" "$ioccbckp"; fi
+        d__announce -x -- 'Failed to install Divine.dotfiles'; return 1;;
     2)  d__announce -s -- 'Declined to install Divine.dotfiles'; return 2;;
   esac; fi
 }
@@ -69,23 +70,9 @@ d___get_ready()
   iplq='Pre-flight checks'; printf >&2 '\n%s %s\n' "$D__INTRO_CHK_N" "$iplq"
 
   # Early exit for dry runs
-  if [ "$D__OPT_ANSWER" = false ]; then
+  if [ "$D__OPT_ANSWER" = false -o "$D__OPT_ANSWER_F" = false ]; then
     printf >&2 '%s %s\n' "$D__INTRO_CHK_S" "$iplq"; return 0
   fi
-
-  # Run checks on framework and shortcut
-  d___pfc_fmwk
-  d___pfc_shct
-
-  # Report
-  if $iaok; then printf >&2 '%s %s\n' "$D__INTRO_SUCCS" "$iplq"; return 0
-  else printf >&2 '%s %s\n' "$D__INTRO_FAILR" "$iplq"; return 1; fi
-}
-
-d___pfc_fmwk()
-{
-  # Early exit for dry runs
-  if [ "$D__OPT_ANSWER_F" = false ]; then return 0; fi
 
   # Store remote address; ensure that the remote repository exists
   iarg='no-simpler/divine-dotfiles'
@@ -97,31 +84,79 @@ d___pfc_fmwk()
   idst="$D__DIR"
 
   # Check if destination already exists, and if so, what is it
-  if [ -e "$idst" ]; then
-    if ! [ -d "$idst" ]; then iocc=true
+  if [ -e "$idst" ]; then idrs=o
+    if ! [ -d "$idst" ]; then
       d__notify -l! -- 'Framework installation path is occupied by a file:' \
         -i- "$idst"
-    elif [ -n "$( ls -Aq -- "$idst" 2>/dev/null )" ]; then iocc=true
-      d__notify -l! -- 'Framework installation directory already exists:' \
-        -i- "$idst"
-    else iemp=true
-      d__notify -- 'Empty directory exists at framework installation path:' \
-        -i- "$idst"
+    else local ilsc
+      read -r ilsc <<<"$( ls -Aq1 -- "$idst" 2>/dev/null | wc -l )"
+      case $ilsc in
+        2)  if [ -d "$idst/grail" -a -d "$idst/state" ]; then idrs=t
+              d__notify -l -- 'Framework template with Grail and state' \
+                'directories exists at installation path:' -i- "$idst"
+            fi;;
+        1)  if [ -d "$idst/grail" ]; then idrs=t
+              d__notify -l -- 'Framework template with Grail directory' \
+                'exists at installation path:' -i- "$idst"
+            elif [ -d "$idst/state" ]; then idrs=t
+              d__notify -l -- 'Framework template with state directory' \
+                'exists at installation path:' -i- "$idst"
+            fi;;
+        0)  idrs=e; d__notify -l -- 'Empty directory exists at framework' \
+              'installation path:' -i- "$idst";;
+      esac
+      if [ "$idrs" = o ]; then
+        d__notify -l! -- 'Non-empty directory exists at framework' \
+          'installation path:' -i- "$idst"
+      fi
     fi
   fi
 
-  # Cut-off check for occupied installation path
-  if $iocc; then
-    if $D__OPT_FORCE; then ifrc=true
-    else iaok=false; d__notify -l! -- 'Re-try with --force to overcome'; fi
+  # Special processing for occupied paths
+  if [ "$idrs" = o ]; then
+
+    # Either early exit or forced install
+    if $D__OPT_FORCE; then
+      printf >&2 '%s ' "$D__INTRO_CNF_U"
+      if ! d__prompt -bp 'Back up & install over?'
+      then printf >&2 '%s %s\n' "$D__INTRO_FAILR" "$iplq"; return 1; fi
+    else
+      d__notify -l! -- 'Re-try with --force to back up & install over'
+      printf >&2 '%s %s\n' "$D__INTRO_FAILR" "$iplq"; return 1
+    fi
+
+    # Push backup of occupied path
+    d__bckp=
+    if d__push_backup -- "$idst" "$idst.bak"; then ioccbckp="$d__bckp"
+    else
+      d__notify -lx -- 'Failed to back up pre-existing installation path'
+      printf >&2 '%s %s\n' "$D__INTRO_FAILR" "$iplq"; return 1
+    fi
+
+  fi
+
+  # At this point, make Github checks which will create stash files
+  d__load procedure prep-gh
+
+  # Check if Github interaction method exists
+  if [ -z "$D__GH_METHOD" ]; then iaok=false
+    d__notify -lx -- 'No way to retrieve framework from Github'
+  fi
+
+  # Get on with shortcut-related checks
+  d___pfc_shortcut
+
+  # Report
+  if $iaok; then printf >&2 '%s %s\n' "$D__INTRO_SUCCS" "$iplq"; return 0
+  else
+    printf >&2 '%s %s\n' "$D__INTRO_FAILR" "$iplq"; return 1
   fi
 }
 
-d___pfc_shct()
+d___pfc_shortcut()
 {
   # Early exit for dry runs
-  if [ "$D__OPT_ANSWER_F" = false -o "$D__OPT_ANSWER_S" = false ]
-  then return 0; fi
+  if [ "$D__OPT_ANSWER_S" = false ]; then return 0; fi
 
   # Check that shortcut name is legal
   if ! [[ $D__SHORTCUT_NAME =~ ^[A-Za-z0-9]+$ ]]; then iaok=false
@@ -137,9 +172,9 @@ d___pfc_shct()
   if type -P -- "$D__SHORTCUT_NAME" &>/dev/null; then iaok=false
     d__notify -l! -- "Chosen shortcut name '$D__SHORTCUT_NAME'" \
       'already exists on \$PATH'
-    [ "$D__OPT_ANSWER_S" = true ] && return 1
+    if [ "$D__OPT_ANSWER_S" = true ]; then iaok=false; return 1; fi
     while true; do read -r -p "Try another? ('q' to quit) " scnm
-      [ "$scnm" = q ] && return 1
+      if [ "$scnm" = q ]; then iaok=false; return 1; fi
       if ! [[ $scnm =~ ^[A-Za-z0-9]+$ ]]
       then printf >&2 '%s\n' 'Alphanumerical characters only'; continue; fi
       if type -P -- "$scnm" &>/dev/null
@@ -191,11 +226,7 @@ d___install_fmwk()
   d__notify -q -- "Location: $idst"
 
   # Conditionally prompt for user's approval
-  if $ifrc; then
-    printf >&2 '%s ' "$D__INTRO_CNF_U"
-    if ! d__prompt -bp 'Back up & install anew?'
-    then printf >&2 '%s %s\n' "$D__INTRO_INS_S" "$iplq"; return 1; fi
-  elif [ "$D__OPT_ANSWER_F" != true ]; then
+  if [ "$D__OPT_ANSWER_F" != true ]; then
     printf >&2 '%s ' "$D__INTRO_CNF_N"
     if ! d__prompt -bp 'Install?'
     then printf >&2 '%s %s\n' "$D__INTRO_INS_S" "$iplq"; return 1; fi
@@ -212,15 +243,9 @@ d___install_fmwk()
     rm -rf -- "$itmp"; return 1
   fi
 
-  # Pre-erase empty directory at installation path
-  if $iemp && ! rm -rf -- "$idst" &>/dev/null; then
-    d__notify -lx -- 'Failed to erase empty directory at:' -i- "$idst"
-    rm -rf -- "$itmp"; return 1
-  fi
-
-  # Back up previous framework directory
-  if ! d__push_backup -- "$idst" "$idst.bak"; then
-    d__notify -lx -- 'Failed to back up old framework directory'
+  # Move template directory out of the way
+  d__bckp=; if ! d__push_backup -- "$idst" "$idst.tmp"; then
+    d__notify -lx -- 'Failed to back up template framework directory'
     printf >&2 '%s %s\n' "$D__INTRO_INS_1" "$iplq"
     rm -rf -- "$itmp"; return 1
   fi
@@ -232,8 +257,20 @@ d___install_fmwk()
     rm -rf -- "$itmp"; return 1
   fi
 
+  # Restore grail and state directories; delete template
+  erra=() src="$d__bckp/grail" dst="$idst/grail"
+  if ! mv -n -- "$src" "$dst"; then erra+=( -i- "- Grail directory" ); fi
+  src="$d__bckp/state" dst="$idst/state"
+  if ! mv -n -- "$src" "$dst"; then erra+=( -i- "- state directory" ); fi
+  if ((${#erra[@]})); then
+    d__notify -lx -- 'Failed to restore template directories' \
+      'after installing framework:' "${erra[@]}"
+    d__notify l! -- 'Please, move the directories manually from:' \
+      -i- "$d__bckp" -n- 'to:' -i- "$idst"
+  fi
+
   # Compile list of directories to create; create them, or report error
-  iadir=( \
+  erra=() iadir=( \
     "$D__DIR_ASSETS" "$D__DIR_DPLS" "$D__DIR_BACKUPS" \
     "$D__DIR_STASH" "$D__DIR_BUNDLES" "$D__DIR_BUNDLE_BACKUPS" \
   )

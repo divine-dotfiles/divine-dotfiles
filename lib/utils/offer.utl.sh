@@ -2,8 +2,8 @@
 #:title:        Divine Bash utils: offer
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.15
-#:revremark:    Finish rewriting entire framework
+#:revdate:      2019.10.17
+#:revremark:    Improve existing dir handling during fmwk installation
 #:created_at:   2019.07.06
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -65,9 +65,10 @@ d__offer_pkg()
   # Prompt user and check response
   d__prompt -!ap "$D__OPT_ANSWER" "Install '$utl'?" $or_q
   case $? in
-    0)  # Switch context
+    0)  # Switch context; load package updating
         d__context -l! -- push "Installing optional dependency '$utl'" \
           "using '$D__OS_PKGMGR'"
+        d__load procedure prep-pkgmgr
 
         # Launch installation with verbosity in mind
         if (($D__OPT_VERBOSITY)); then local d__ol
