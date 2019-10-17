@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: fmwk-uninstall
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.16
-#:revremark:    Make fmwk (un)installation available offline
+#:revdate:      2019.10.17
+#:revremark:    Spread dependency loading during fmwk uninstallation
 #:created_at:   2019.10.15
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -14,8 +14,6 @@
 # Marker and dependencies
 readonly D__RTN_FMWK_UNINSTALL=loaded
 d__load util workflow
-d__load util stash
-d__load util backup
 
 #>  d__rtn_fmwk_uninstall
 #
@@ -70,8 +68,8 @@ d___get_ready()
     printf >&2 '%s %s\n' "$D__INTRO_CHK_S" "$uplq"; return 0
   fi
 
-  # Run checks on framework and utils
-  if d___pfc_fmwk && d___pfc_utils; then
+  # Run checks on framework and utils; of ok finish loading dependencies
+  if d___pfc_fmwk && d___pfc_utils; then d__load util backup
     printf >&2 '%s %s\n' "$D__INTRO_SUCCS" "$uplq"; return 0
   else
     printf >&2 '%s %s\n' "$D__INTRO_FAILR" "$uplq"; return 1
@@ -104,6 +102,9 @@ d___pfc_fmwk()
       'like Divine.dotfiles:' -i- "$udst"
     return 1
   fi
+
+  # Continue loading dependencies
+  d__load util stash
 
   # Ensure stash is available
   if ! d__stash -r -- ready; then
