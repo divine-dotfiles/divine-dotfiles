@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.17
-#:revremark:    Split prep-gh in two
+#:revremark:    Spread dependency loading during fmwk installation
 #:created_at:   2019.10.15
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -14,9 +14,6 @@
 # Marker and dependencies
 readonly D__RTN_FMWK_INSTALL=loaded
 d__load util workflow
-d__load util stash
-d__load util github
-d__load util backup
 
 #>  d__rtn_fmwk_install
 #
@@ -112,6 +109,9 @@ d___get_ready()
     fi
   fi
 
+  # Continue loading dependencies
+  d__load util backup
+
   # Special processing for occupied paths
   if [ "$idrs" = o ]; then
 
@@ -135,7 +135,8 @@ d___get_ready()
 
   fi
 
-  # At this point, offer Github tools, which will create stash files
+  # Continue loading dependencies
+  d__load util github
   d__load procedure offer-gh
 
   # Check if Github interaction method exists
@@ -147,8 +148,9 @@ d___get_ready()
   # Get on with shortcut-related checks
   d___pfc_shortcut
 
-  # Report
-  if $iaok; then printf >&2 '%s %s\n' "$D__INTRO_SUCCS" "$iplq"; return 0
+  # If all good, finish loading dependencies and return; otherwise just return
+  if $iaok; then d__load util stash
+    printf >&2 '%s %s\n' "$D__INTRO_SUCCS" "$iplq"; return 0
   else
     printf >&2 '%s %s\n' "$D__INTRO_FAILR" "$iplq"; return 1
   fi
