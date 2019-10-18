@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.18
-#:revremark:    Permit sudo inst shortcut, but still avoid sudo pwd
+#:revremark:    Add a small wait before finishing fmwk (un)inst
 #:created_at:   2019.10.15
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -331,6 +331,9 @@ d___install_shortcut()
 
 d___send_pictures()
 {
+  # Wait a bit
+  sleep 2
+
   # Print empty line for visual separation; compose main command for output
   printf >&2 '\n'; local mcmd
   if $sgd; then mcmd="$snm"
