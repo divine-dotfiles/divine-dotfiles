@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.18
-#:revremark:    Make fmwk (un)inst less verbose by default
+#:revremark:    Tweak intro to fmwk (un)inst
 #:created_at:   2019.07.22
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -21,7 +21,8 @@ d__main()
   d__wherefrom
 
   # Announce
-  printf >&2 '\033[36m%s\033[0m\n' 'Loading uninstallation logic from Github'
+  printf >&2 '\033[36m%s\033[0m\n' \
+    '==> Retrieving uninstallation logic from Github'
 
   # Load fundamental dependencies: checks and fixes; globals; workflow utils
   d__load procedure pre-flight
