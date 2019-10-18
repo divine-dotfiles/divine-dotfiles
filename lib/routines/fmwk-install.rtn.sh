@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.18
-#:revremark:    Add a small wait before finishing fmwk (un)inst
+#:revremark:    Remove template on success during fmwk inst
 #:created_at:   2019.10.15
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -264,15 +264,17 @@ d___install_fmwk()
 
   # Restore grail and state directories; delete template
   erra=() src="$d__bckp/grail" dst="$idst/grail"
-  if ! mv -n -- "$src" "$dst"; then erra+=( -i- "- Grail directory" ); fi
+  if [ -e "$src" ] && ! mv -n -- "$src" "$dst"
+  then erra+=( -i- "- Grail directory" ); fi
   src="$d__bckp/state" dst="$idst/state"
-  if ! mv -n -- "$src" "$dst"; then erra+=( -i- "- state directory" ); fi
+  if  [ -e "$src" ] && ! mv -n -- "$src" "$dst"
+  then erra+=( -i- "- state directory" ); fi
   if ((${#erra[@]})); then
     d__notify -lx -- 'Failed to restore template directories' \
       'after installing framework:' "${erra[@]}"
     d__notify l! -- 'Please, move the directories manually from:' \
       -i- "$d__bckp" -n- 'to:' -i- "$idst"
-  fi
+  else rm -rf -- "$d__bckp"; fi
 
   # Compile list of directories to create; create them, or report error
   erra=() iadir=( \
