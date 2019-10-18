@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.18
-#:revremark:    Remove repainting & silencing of external calls
+#:revremark:    Fix incorrect stash key for offers
 #:created_at:   2019.07.06
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -79,7 +79,7 @@ d__offer_pkg()
           return 1
         else
           d__notify -lv -- "Successfully installed '$utl'"
-          if d__stash -rs -- set installed_util "$utl"; then
+          if d__stash -rs -- set installed_utils "$utl"; then
             d__notify -- "Recorded installation of '$utl' to root stash"
           else
             d__fail -- "Failed to record installation of '$utl'" \
