@@ -2,8 +2,8 @@
 #:title:        Divine Bash utils: offer
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.17
-#:revremark:    Improve existing dir handling during fmwk installation
+#:revdate:      2019.10.18
+#:revremark:    Remove repainting & silencing of external calls
 #:created_at:   2019.07.06
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -70,15 +70,11 @@ d__offer_pkg()
           "using '$D__OS_PKGMGR'"
         d__load procedure prep-pkgmgr
 
-        # Launch installation with verbosity in mind
-        if (($D__OPT_VERBOSITY)); then local d__ol
-          d__os_pkgmgr install "$utl" 2>&1 \
-            | while IFS= read -r d__ol || [ -n "$d__ol" ]
-              do printf >&2 '%s\n' "$CYAN$d__ol$NORMAL"; done
-        else d__os_pkgmgr install "$utl" &>/dev/null; fi
+        # Launch installation
+        d__os_pkgmgr install "$utl" &>/dev/null
 
         # Check return code
-        if ((${PIPESTATUS[0]})); then
+        if (($?)); then
           d__fail -- 'Package manager returned an error code'
           return 1
         else

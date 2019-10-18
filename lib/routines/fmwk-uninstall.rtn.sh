@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: fmwk-uninstall
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.17
-#:revremark:    Spread dependency loading during fmwk uninstallation
+#:revdate:      2019.10.18
+#:revremark:    Remove repainting & silencing of external calls
 #:created_at:   2019.10.15
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -265,14 +265,11 @@ d___uninstall_homebrew()
     rm -f -- "$brw_us"; return 1
   fi
 
-  # Launch uninstallation with verbosity in mind
-  if (($D__OPT_VERBOSITY)); then local d__ol
-    $brw_us --force 2>&1 | while IFS= read -r d__ol || [ -n "$d__ol" ]
-      do printf >&2 '%s\n' "$CYAN$d__ol$NORMAL"; done
-  else $brw_us --force &>/dev/null; fi
+  # Launch uninstallation
+  $brw_us --force
 
   # Check return code
-  if ((${PIPESTATUS[0]})); then
+  if (($?)); then
     d__notify -lx -- 'Homebrew uninstall script returned an error code'
     rm -f -- "$brw_us"; return 1
   else
@@ -307,15 +304,11 @@ d___uninstall_util()
     esac
   fi
 
-  # Launch uninstallation with verbosity in mind
-  if (($D__OPT_VERBOSITY)); then local d__ol
-    d__os_pkgmgr remove "$utl" 2>&1 \
-      | while IFS= read -r d__ol || [ -n "$d__ol" ]
-        do printf >&2 '%s\n' "$CYAN$d__ol$NORMAL"; done
-  else d__os_pkgmgr remove "$utl" &>/dev/null; fi
+  # Launch uninstallation
+  d__os_pkgmgr remove "$utl"
 
   # Check return code
-  if ((${PIPESTATUS[0]})); then
+  if (($?)); then
     d__notify -lx -- 'Package manager returned an error code'
     return 1
   else

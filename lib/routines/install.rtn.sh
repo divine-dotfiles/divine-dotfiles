@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: install
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.17
-#:revremark:    Split prep-gh in two
+#:revdate:      2019.10.18
+#:revremark:    Remove repainting & silencing of external calls
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -218,14 +218,10 @@ d___install_pkgs()
       fi
     fi
 
-    # Launch OS package manager with verbosity in mind
+    # Launch OS package manager
     if $d__shi; then
-      if (($D__OPT_VERBOSITY)); then local d__ol
-        d__os_pkgmgr install $d__pkg_n 2>&1 \
-          | while IFS= read -r d__ol || [ -n "$d__ol" ]
-            do printf >&2 '%s\n' "$CYAN$d__ol$NORMAL"; done
-      else d__os_pkgmgr install $d__pkg_n &>/dev/null; fi
-      if ((${PIPESTATUS[0]})); then
+      d__os_pkgmgr install $d__pkg_n
+      if (($?)); then
         d__notify -lx -- 'Package manager returned an error code' \
           "while installing package '$d__pkg_n'"
         printf >&2 '%s %s\n' "$D__INTRO_INS_1" "$d__plq"; continue

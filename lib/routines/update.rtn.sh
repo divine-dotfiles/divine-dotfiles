@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: update
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.17
-#:revremark:    Split prep-gh in two
+#:revdate:      2019.10.18
+#:revremark:    Remove repainting & silencing of external calls
 #:created_at:   2019.05.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -379,16 +379,12 @@ d___update_grl()
     fi
   fi
 
-  # Pull and rebase with verbosity in mind
+  # Pull and rebase
   d__notify -- 'Updating by pulling from Git remote'
-  if (($D__OPT_VERBOSITY)); then local d__ol
-    git pull --rebase --stat origin master 2>&1 \
-      | while IFS= read -r d__ol || [ -n "$d__ol" ]
-        do printf >&2 '%s\n' "${CYAN}$d__ol${NORMAL}"; done
-  else git pull --rebase --stat origin master &>/dev/null; fi
+  git pull --rebase --stat origin master
 
   # Check status
-  if ((${PIPESTATUS[0]})); then
+  if (($?)); then
     d__notify -lx -- 'Git returned error code while pulling from remote into' \
       'Grail repository'
     printf >&2 '%s %s\n' "$D__INTRO_UPD_1" "$uplq"

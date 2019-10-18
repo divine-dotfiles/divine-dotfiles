@@ -2,8 +2,8 @@
 #:title:        Divine Bash procedure: prep-pkgmgr
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.17
-#:revremark:    Fix erroneous dependency load cmd
+#:revdate:      2019.10.18
+#:revremark:    Remove repainting & silencing of external calls
 #:created_at:   2019.10.17
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -31,15 +31,11 @@ d__pcd_prep_pkgmgr()
   # Announce
   d__notify -l! -- "Updating system packages via '$D__OS_PKGMGR'"
 
-  # Launch OS package manager with verbosity in mind
-  if (($D__OPT_VERBOSITY)); then local d__ol
-    d__os_pkgmgr update 2>&1 \
-      | while IFS= read -r d__ol || [ -n "$d__ol" ]
-        do printf >&2 '%s\n' "$CYAN$d__ol$NORMAL"; done
-  else d__os_pkgmgr update &>/dev/null; fi
+  # Launch OS package manager
+  d__os_pkgmgr update
 
   # Check return status
-  if [ "${PIPESTATUS[0]}" -eq 0 ]; then
+  if [ $? -eq 0 ]; then
     d__notify -lv -- "Updated system packages via '$D__OS_PKGMGR'"
     return 0
   else

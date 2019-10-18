@@ -2,8 +2,8 @@
 #:title:        Divine.dotfiles macOS adapter
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.14
-#:revremark:    Implement robust dependency loading system
+#:revdate:      2019.10.18
+#:revremark:    Remove repainting & silencing of external calls
 #:created_at:   2019.06.04
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -72,16 +72,12 @@ d__adapter_offer_to_install_brew()
   d__context -- notch
   d__context -l! -- push 'Installing Homebrew'
 
-  # Launch installation with verbosity in mind
+  # Launch installation
   local d__url='https://raw.githubusercontent.com/Homebrew/install/master/install'
-  if (($D__OPT_VERBOSITY)); then local d__ol
-    /usr/bin/ruby -e "$( curl -fsSL $d__url )" </dev/null 2>&1 \
-      | while IFS= read -r d__ol || [ -n "$d__ol" ]
-        do printf >&2 '%s\n' "$CYAN$d__ol$NORMAL"; done
-  else /usr/bin/ruby -e "$( curl -fsSL $d__url )" </dev/null &>/dev/null; fi
+  /usr/bin/ruby -e "$( curl -fsSL $d__url )" </dev/null
 
   # Check return code
-  if ((${PIPESTATUS[0]})); then
+  if (($?)); then
     d__fail -- 'Homebrew installation returned an error code'; return 1
   else
     d__notify -lv -- 'Successfully installed Homebrew'
