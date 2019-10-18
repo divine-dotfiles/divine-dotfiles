@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.18
-#:revremark:    Fix $PATH check in fmwk inst
+#:revremark:    Permit sudo inst shortcut, but still avoid sudo pwd
 #:created_at:   2019.10.15
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -197,7 +197,7 @@ d___pfc_shortcut()
     if ! [ -d "$sdir" ]; then
       d__notify -- "Skipping candidate '$sdir' (not a directory)"; continue
     fi
-    if ! [ -w "$sdir" ]; then
+    if ! [ -w "$sdir" ] && ! sudo -n true 2>/dev/null; then
       d__notify -- "Skipping candidate '$sdir' (not writable)"; continue
     fi
     if [ -e "$sdir/$snm" ]; then
@@ -303,13 +303,15 @@ d___install_shortcut()
   fi
 
   # Compose target; print intro; print locations
-  sdst="$D__DIR/intervene.sh"
+  stgt="$D__DIR/intervene.sh"
   printf >&2 '%s %s\n' "$D__INTRO_INS_N" "$iplq"
   d__notify -q -- "Location: $sdst"
   d__notify -q -- "Target  : $stgt"
 
   # Install shortcut
-  if ! ln -s -- "$stgt" "$sdst" &>/dev/null; then
+  if [ -w "$sdir" ]; then ln -s -- "$stgt" "$sdst" &>/dev/null
+  else sudo -n ln -s -- "$stgt" "$sdst" &>/dev/null; fi
+  if (($?)); then
     d__notify -lx -- "Failed to create symlink at: '$sdst'"
     printf >&2 '%s %s\n' "$D__INTRO_INS_1" "$iplq"
     return 1
