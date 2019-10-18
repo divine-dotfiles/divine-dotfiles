@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: fmwk-install
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.17
-#:revremark:    Fmwk installation: move GH repo check past util loading
+#:revdate:      2019.10.18
+#:revremark:    Fix $PATH check in fmwk inst
 #:created_at:   2019.10.15
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -191,7 +191,7 @@ d___pfc_shortcut()
   # Settle on installation directory for the shortcut
   d__notify 'Choosing shortcut installation directory'
   for sdir in "${D__SHORTCUT_DIR_CANDIDATES[@]}"; do
-    if ! [[ *:$sdir:* = :$PATH: ]]; then
+    if ! [[ :$PATH: = *:$sdir:* ]]; then
       d__notify -- "Skipping candidate '$sdir' (not on \$PATH)"; continue
     fi
     if ! [ -d "$sdir" ]; then
