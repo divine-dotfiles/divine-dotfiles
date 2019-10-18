@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.18
-#:revremark:    Remove template on success during fmwk inst
+#:revremark:    Delay github util loading during fmwk inst
 #:created_at:   2019.10.15
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -133,7 +133,6 @@ d___get_ready()
   fi
 
   # Continue loading dependencies
-  d__load util github
   d__load procedure offer-gh
 
   # Check if Github interaction method exists
@@ -143,6 +142,7 @@ d___get_ready()
   fi
 
   # Ensure that the remote repository exists
+  d__load util github
   if ! d___gh_repo_exists "$iarg"; then iaok=false
     d__notify -lx -- "Github repository '$iarg' does not appear to exist"
   fi
