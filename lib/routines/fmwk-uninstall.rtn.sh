@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.18
-#:revremark:    Fix brew status during fmwk uninst
+#:revremark:    Allow sudo rm shortcut, while still avoiding sudo pwd
 #:created_at:   2019.10.15
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -140,6 +140,13 @@ d___pfc_fmwk()
     d__notify -l! -- 'Shortcut symlink at:' -i- "$sdst" \
       "does not point to framework's main executable at:" \
       -i- "$udst/intervene.sh" -n- 'Ignoring it'
+    sdst=; return 0
+  fi
+
+  # Ensure there are writing permissions for shortcut directory
+  if ! [ -w "$( dirname -- "$sdst" )" ] && ! sudo -n true &>/dev/null; then
+    d__notify -l! -- 'Shortcut symlink lives in a non-writable directory:' \
+      -i- "$sdst" -n- 'It will have to be removed manually'
     sdst=; return 0
   fi
 
@@ -346,8 +353,12 @@ d___uninstall_fmwk()
   fi
 
   # Remove shortcut command, if exists
-  if [ -n "$sdst" ] && ! rm -f -- "$sdst"; then
-    d__notify -lx -- 'Failed to remove shortcut command at:' -i- "$sdst"
+  if [ -n "$sdst" ]; then
+    if [ -w "$( dirname -- "$sdst" )" ]; then rm -f -- "$sdst" &>/dev/null
+    else sudo -n rm -f -- "$sdst" &>/dev/null; fi
+    if (($?)); then
+      d__notify -lx -- 'Failed to remove shortcut command at:' -i- "$sdst"
+    fi
   fi
 
   # Remove shortcut command, if exists
