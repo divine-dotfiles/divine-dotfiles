@@ -2,8 +2,8 @@
 #:title:        Divine Bash utils: stash
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.14
-#:revremark:    Implement robust dependency loading system
+#:revdate:      2019.10.18
+#:revremark:    Fix formatting of md5 prompts in stash util
 #:created_at:   2019.05.15
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -700,8 +700,8 @@ d___stash_check_md5()
     d__notify -lx -- "Mismatched checksum on stash file: $stash_filepath"
     d__prompt -xhap "$D__OPT_ANSWER" 'Ignore incorrect checksum?' -- \
       "Current checksum of stash file: $stash_filepath" \
-      "does not match stored checksum in: $stash_md5_filepath" \
-      'This suggests manual tinkering with framework directories'
+      -n- "does not match stored checksum in: $stash_md5_filepath" \
+      -n- 'This suggests manual tinkering with framework directories'
 
   else
 
@@ -711,7 +711,7 @@ d___stash_check_md5()
     d__notify -lx -- "Missing checksum on stash file: $stash_filepath"
     d__prompt -xhap "$D__OPT_ANSWER" 'Ignore incorrect checksum?' -- \
       "There is no stored checksum for stash file at: $stash_filepath" \
-      'This suggests manual tinkering with framework directories'
+      -n- 'This suggests manual tinkering with framework directories'
 
   fi
 
