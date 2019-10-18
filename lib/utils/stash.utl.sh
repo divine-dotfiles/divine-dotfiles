@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.18
-#:revremark:    Fix formatting of md5 prompts in stash util
+#:revremark:    Tweak wording of missing md5 prompt in stash util
 #:created_at:   2019.05.15
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -709,7 +709,7 @@ d___stash_check_md5()
 
     # Report error, prompt user
     d__notify -lx -- "Missing checksum on stash file: $stash_filepath"
-    d__prompt -xhap "$D__OPT_ANSWER" 'Ignore incorrect checksum?' -- \
+    d__prompt -xhap "$D__OPT_ANSWER" 'Ignore missing checksum?' -- \
       "There is no stored checksum for stash file at: $stash_filepath" \
       -n- 'This suggests manual tinkering with framework directories'
 
