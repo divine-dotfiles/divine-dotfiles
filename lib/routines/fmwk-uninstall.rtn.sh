@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.18
-#:revremark:    Add a small wait before finishing fmwk (un)inst
+#:revremark:    Fix brew status during fmwk uninst
 #:created_at:   2019.10.15
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -38,7 +38,7 @@ d__rtn_fmwk_uninstall()
   fi
 
   # Storage & status variables
-  local urc=2 uplq udst sdst erra ubrw utlc=0 utl utla
+  local urc=2 uplq udst sdst erra ubrw=false utlc=0 utl utla
 
   # Perform structured installation
   if d___get_ready; then
