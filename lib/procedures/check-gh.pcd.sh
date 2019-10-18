@@ -2,8 +2,8 @@
 #:title:        Divine Bash procedure: check-gh
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.17
-#:revremark:    Split prep-gh in two
+#:revdate:      2019.10.18
+#:revremark:    Improve debug output of utility choices
 #:created_at:   2019.07.05
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -46,10 +46,17 @@ d__pcd_check_gh()
 d__check_gh_access()
 {
   D__GH_METHOD=
-  if git --version &>/dev/null; then D__GH_METHOD=g
+  if git --version &>/dev/null; then
+    D__GH_METHOD=g
+    d__notify -qqq -- "Using Git to retrieve Github repositories"
   elif tar --version &>/dev/null; then
-    if curl --version &>/dev/null; then D__GH_METHOD=c
-    elif wget --version &>/dev/null; then D__GH_METHOD=w; fi
+    if curl --version &>/dev/null; then
+      D__GH_METHOD=c
+      d__notify -qqq -- "Using 'curl' utility to retrieve Github repositories"
+    elif wget --version &>/dev/null; then
+      D__GH_METHOD=w
+      d__notify -qqq -- "Using 'wget' utility to retrieve Github repositories"
+    fi
   fi
   readonly D__GH_METHOD
   if [ -z "$D__GH_METHOD" ]
