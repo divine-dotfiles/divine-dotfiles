@@ -2,8 +2,8 @@
 #:title:        Divine Bash utils: scan
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.14
-#:revremark:    Implement robust dependency loading system
+#:revdate:      2019.10.20
+#:revremark:    Extend dpl metadata scan 5->20 non-empty lines
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -294,8 +294,8 @@ d__scan_for_dpl_files()
         d__context -- pop; algd=false; continue
       fi
 
-      # Look for metadata in the first five non-empty lines of the file
-      unset mtdt; ii=5; while (($ii)); do read -r dpl_line
+      # Look for metadata in the first few non-empty lines of the file
+      unset mtdt; ii=20; while (($ii)); do read -r dpl_line
         [ -z "$dpl_line" ] && continue; ((--ii))
         [[ $dpl_line = D_DPL_* ]] || continue
         case ${dpl_line:6} in NAME=*) jj=0;; DESC=*) jj=1;; PRIORITY=*) jj=2;;
