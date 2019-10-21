@@ -2,8 +2,8 @@
 #:title:        Divine Bash deployment helpers: reconcile
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.14
-#:revremark:    Implement robust dependency loading system
+#:revdate:      2019.10.21
+#:revremark:    Streamline multitask hooks
 #:created_at:   2019.06.18
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -20,7 +20,7 @@ d__mltsk_check()
   d__context -- notch
   d__context -- push "Checking multitask deployment"
 
-  # Cut-off checks for number of tasks and continuity; storage variables
+  # Cut-off checks for number of tasks and continuity
   if ! ((${#D_MLTSK_MAIN[@]})); then
     d__fail -t 'Multitask failed' -- 'Zero task names provided'; return 3
   fi
@@ -30,9 +30,22 @@ d__mltsk_check()
       'Array $D_MLTSK_MAIN is not continuous'
     return 3
   done
-  local d__mti d__mtn d__mtf d__mas d__mss d__mtplq d__mrtc
+
+  # Run multitask pre-processing, if implemented
+  if declare -f d_mltsk_pre_check &>/dev/null; then
+    unset D_ADDST_MLTSK_CHECK_CODE
+    d_mltsk_pre_check; unset -f d_mltsk_pre_check
+    if [[ $D_ADDST_MLTSK_CHECK_CODE =~ ^[0-9]+$ ]]; then
+      d__notify -l!h -- "Multitask's pre-check hook forces" \
+        "check code '$D_ADDST_MLTSK_CHECK_CODE'"
+      d__context -- lop; return $D_ADDST_MLTSK_CHECK_CODE
+    fi
+  fi
+
+  # Storage variables
+  local d__mti d__mtn d__mtf d__mas d__mss d__mtplq d__mrtc d__mth
   local d__mas_a=() d__mas_r=() d__mas_w=() d__mas_c=()
-  local d__mas_h=false d__mas_p=false
+  local d__mas_h=false d__mas_p=false d__mtbf d__mtaf
 
   # Initialize/reset status variables
   d__mas=( true true true true true true true true true true )
@@ -44,20 +57,56 @@ d__mltsk_check()
 
     # Extract number, name; switch context
     d__mtn="${D_MLTSK_MAIN[$d__mti]}" d__mtf="d_${d__mtn}_check"
+    d__mtbf="d_${d__mtn}_pre_check" d__mtaf="d_${d__mtn}_post_check"
     d__context -- push \
       "Checking task '$d__mtn' (#$((d__mti+1)) of ${#D_MLTSK_MAIN[@]})"
 
     # Initialize marker var; clear add-statuses
-    unset D__TASK_IS_QUEUE D_ADDST_MLTSK_HALT
+    unset D__TASK_IS_QUEUE D_ADDST_MLTSK_HALT D_ADDST_TASK_CHECK_CODE
     unset D_ADDST_HALT D_ADDST_PROMPT
     unset D_ADDST_ATTENTION D_ADDST_REBOOT D_ADDST_WARNING D_ADDST_CRITICAL
 
     # Expose additional variables to the task
     D__TASK_NUM="$d__mti" D__TASK_NAME="$d__mtn"
 
+    # Run task pre-processing, if implemented
+    d__mrtc=0 d__mth=false
+    if declare -f "$d__mtbf" &>/dev/null; then "$d__mtbf"; else true; fi
+    if [[ $D_ADDST_TASK_CHECK_CODE =~ ^[0-9]+$ ]]; then
+      d__notify -l!h -- "Task's pre-check hook forces" \
+        "check code '$D_ADDST_TASK_CHECK_CODE'"
+      d__mrtc="$D_ADDST_TASK_CHECK_CODE" d__mth=true
+    fi
+    if [ "$D_ADDST_MLTSK_HALT" = true ]; then d__mth=true
+      d__notify -l!h -- "Task's pre-check hook forces halting of multitask"
+    fi
+
     # Get return code of d_dpl_check, or fall back to zero
-    if declare -f "$d__mtf" &>/dev/null; then "$d__mtf"; else true; fi
-    d__mrtc=$?; D__TASK_CHECK_CODES[$d__mti]=$d__mrtc
+    if ! $d__mth; then
+      if declare -f "$d__mtf" &>/dev/null; then "$d__mtf"; else true; fi
+      d__mrtc=$?
+      if [ "$D_ADDST_MLTSK_HALT" = true ]; then d__mth=true
+        d__notify -l!h -- "Task's checking forces halting of multitask"
+      fi
+    fi
+
+    # Run task post-processing, if implemented
+    if ! $d__mth; then
+      D__TASK_CHECK_CODE="$d__mrtc"
+      if declare -f "$d__mtaf" &>/dev/null; then "$d__mtaf"; else true; fi
+      if [[ $D_ADDST_TASK_CHECK_CODE =~ ^[0-9]+$ ]]; then
+        d__notify -l!h -- "Task's post-check hook forces" \
+          "check code '$D_ADDST_TASK_CHECK_CODE'" \
+          "instead of actual code '$d__mrtc'"
+        d__mrtc="$D_ADDST_TASK_CHECK_CODE"
+      fi
+      if [ "$D_ADDST_MLTSK_HALT" = true ]; then
+        d__notify -l!h -- "Task's post-check hook forces halting of multitask"
+      fi
+    fi
+
+    # Store return code
+    D__TASK_CHECK_CODES[$d__mti]=$d__mrtc
 
     # Catch add-statuses
     if ((${#D_ADDST_ATTENTION[@]}))
@@ -121,17 +170,13 @@ d__mltsk_check()
     fi
 
     # Process potential multitask halting
-    if [ "$D_ADDST_MLTSK_HALT" = true ]; then
-      D__MLTSK_CAP_NUM=$((d__mti+1))
-      d__notify -!h -- \
-        "Task '$d__mtn' has requested to not check further tasks"
-      d__context -- pop; break
-    fi
+    if [ "$D_ADDST_MLTSK_HALT" = true ]
+    then D__MLTSK_CAP_NUM=$((d__mti+1)); d__context -- pop; break; fi
 
     d__context -- pop
 
   # Done iterating over numbers of task names
-  done
+  done; unset -f "$d__mtf" "$d__mtbf" "$d__mtaf"
 
   # Switch context
   d__context -- push 'Reconciling check status of tasks'
@@ -148,6 +193,19 @@ d__mltsk_check()
   # Combine check codes
   d___reconcile_task_check_codes; d__mrtc=$?
   d__context -- pop "Settled on multitask check code '$d__mrtc'"
+
+  # Run multitask post-processing, if implemented
+  if declare -f d_mltsk_post_check &>/dev/null; then
+    unset D_ADDST_MLTSK_CHECK_CODE; D__MLTSK_CHECK_CODE="$d__mrtc"
+    d_mltsk_post_check; unset -f d_mltsk_post_check
+    if [[ $D_ADDST_MLTSK_CHECK_CODE =~ ^[0-9]+$ ]]; then
+      d__notify -l!h -- "Multitask's post-check hook forces" \
+        "check code '$D_ADDST_MLTSK_CHECK_CODE'" \
+        "instead of actual code '$d__mrtc'"
+      d__context -- lop; return $D_ADDST_MLTSK_CHECK_CODE
+    fi
+  fi
+
   d__context -- lop; return $d__mrtc
 }
 
@@ -156,10 +214,22 @@ d__mltsk_install()
   d__context -- notch
   d__context -- push "Installing multitask deployment"
 
+  # Run multitask pre-processing, if implemented
+  if declare -f d_mltsk_pre_install &>/dev/null; then
+    unset D_ADDST_MLTSK_INSTALL_CODE
+    d_mltsk_pre_install; unset -f d_mltsk_pre_install
+    if [[ $D_ADDST_MLTSK_INSTALL_CODE =~ ^[0-9]+$ ]]; then
+      d__notify -l!h -- "Multitask's pre-install hook forces" \
+        "install code '$D_ADDST_MLTSK_INSTALL_CODE'"
+      d__context -- lop; return $D_ADDST_MLTSK_INSTALL_CODE
+    fi
+  fi
+
   # Storage variables
   local d__mti d__mtcap d__mtn d__mtf d__mrtc d__mas d__mss d__msscnt=0 d__i
-  local d__mas_a=() d__mas_r=() d__mas_w=() d__mas_c=() d__mas_h=false
+  local d__mas_a=() d__mas_r=() d__mas_w=() d__mas_c=() d__mas_h=false d__mth
   local d__mtplq d__mtdfac d__mtfrcd d__mtcc d__mtok d__mtocc d__mtof
+  local d__mtbf d__mtaf
   unset D__TASK_INSTALL_CODES
 
   # Initialize/reset status variables
@@ -172,6 +242,7 @@ d__mltsk_install()
 
     # Extract number, name, and check code; compose task name; switch context
     d__mtn="${D_MLTSK_MAIN[$d__mti]}" d__mtf="d_${d__mtn}_install"
+    d__mtbf="d_${d__mtn}_pre_install" d__mtaf="d_${d__mtn}_post_install"
     d__mtcc="${D__TASK_CHECK_CODES[$d__mti]}"
     d__mtplq="'$d__mtn' (#$((d__mti+1)) of ${#D_MLTSK_MAIN[@]})"
     d__context -- push "Installing task $d__mtplq"
@@ -274,7 +345,7 @@ d__mltsk_install()
     fi
 
     # Initialize marker var; clear add-statuses
-    unset D_ADDST_MLTSK_HALT D_ADDST_HALT
+    unset D_ADDST_MLTSK_HALT D_ADDST_HALT D_ADDST_TASK_INSTALL_CODE
     unset D_ADDST_ATTENTION D_ADDST_REBOOT D_ADDST_WARNING D_ADDST_CRITICAL
 
     # Expose additional variables to the task
@@ -283,9 +354,45 @@ d__mltsk_install()
     d__mtocc="$D__DPL_CHECK_CODE" d__mtof="$D__DPL_IS_FORCED"
     D__DPL_CHECK_CODE="$d__mtcc" D__DPL_IS_FORCED="$d__mtfrcd"
 
+    # Run task pre-processing, if implemented
+    d__mrtc=0 d__mth=false
+    if declare -f "$d__mtbf" &>/dev/null; then "$d__mtbf"; else true; fi
+    if [[ $D_ADDST_TASK_INSTALL_CODE =~ ^[0-9]+$ ]]; then
+      d__notify -l!h -- "Task's pre-install hook forces" \
+        "install code '$D_ADDST_TASK_INSTALL_CODE'"
+      d__mrtc="$D_ADDST_TASK_INSTALL_CODE" d__mth=true
+    fi
+    if [ "$D_ADDST_MLTSK_HALT" = true ]; then d__mth=true
+      d__notify -l!h -- "Task's pre-install hook forces halting of multitask"
+    fi
+
     # Get return code of d_dpl_install, or fall back to zero
-    if declare -f "$d__mtf" &>/dev/null; then "$d__mtf"; else true; fi
-    d__mrtc=$?; D__TASK_INSTALL_CODES[$d__mti]=$d__mrtc
+    if ! $d__mth; then
+      if declare -f "$d__mtf" &>/dev/null; then "$d__mtf"; else true; fi
+      d__mrtc=$?
+      if [ "$D_ADDST_MLTSK_HALT" = true ]; then d__mth=true
+        d__notify -l!h -- "Task's installation forces halting of multitask"
+      fi
+    fi
+
+    # Run task post-processing, if implemented
+    if ! $d__mth; then
+      D__TASK_INSTALL_CODE="$d__mrtc"
+      if declare -f "$d__mtaf" &>/dev/null; then "$d__mtaf"; else true; fi
+      if [[ $D_ADDST_TASK_INSTALL_CODE =~ ^[0-9]+$ ]]; then
+        d__notify -l!h -- "Task's post-install hook forces" \
+          "install code '$D_ADDST_TASK_INSTALL_CODE'" \
+          "instead of actual code '$d__mrtc'"
+        d__mrtc="$D_ADDST_TASK_INSTALL_CODE"
+      fi
+      if [ "$D_ADDST_MLTSK_HALT" = true ]; then
+        d__notify -l!h -- \
+          "Task's post-install hook forces halting of multitask"
+      fi
+    fi
+
+    # Store return code
+    D__TASK_INSTALL_CODES[$d__mti]=$d__mrtc
 
     # Restore overwritten deployment-level variables
     D__DPL_CHECK_CODE="$d__mtocc" D__DPL_IS_FORCED="$d__mtof"
@@ -320,16 +427,12 @@ d__mltsk_install()
     fi
 
     # Process potential multitask halting
-    if [ "$D_ADDST_MLTSK_HALT" = true ]; then
-      d__notify -!h -- \
-        "Task '$d__mtn' has requested to not install further tasks"
-      d__context -- pop; break
-    fi
+    if [ "$D_ADDST_MLTSK_HALT" = true ]; then d__context -- pop; break; fi
 
     d__context -- pop
 
   # Done iterating over numbers of task names
-  done
+  done; unset -f "$d__mtf" "$d__mtbf" "$d__mtaf"
 
   # Switch context
   d__context -- push 'Reconciling install status of tasks'
@@ -345,6 +448,19 @@ d__mltsk_install()
   # Combine status codes
   d___reconcile_task_insrmv_codes; d__mrtc=$?
   d__context -- pop "Settled on multitask install code '$d__mrtc'"
+
+  # Run multitask post-processing, if implemented
+  if declare -f d_mltsk_post_install &>/dev/null; then
+    unset D_ADDST_MLTSK_INSTALL_CODE; D__MLTSK_INSTALL_CODE="$d__mrtc"
+    d_mltsk_post_install; unset -f d_mltsk_post_install
+    if [[ $D_ADDST_MLTSK_INSTALL_CODE =~ ^[0-9]+$ ]]; then
+      d__notify -l!h -- "Multitask's post-install hook forces" \
+        "install code '$D_ADDST_MLTSK_INSTALL_CODE'" \
+        "instead of actual code '$d__mrtc'"
+      d__context -- lop; return $D_ADDST_MLTSK_INSTALL_CODE
+    fi
+  fi
+
   d__context -- lop; return $d__mrtc
 }
 
@@ -353,10 +469,22 @@ d__mltsk_remove()
   d__context -- notch
   d__context -- push "Removing multitask deployment"
 
+  # Run multitask pre-processing, if implemented
+  if declare -f d_mltsk_pre_remove &>/dev/null; then
+    unset D_ADDST_MLTSK_REMOVE_CODE
+    d_mltsk_pre_remove; unset -f d_mltsk_pre_remove
+    if [[ $D_ADDST_MLTSK_REMOVE_CODE =~ ^[0-9]+$ ]]; then
+      d__notify -l!h -- "Multitask's pre-remove hook forces" \
+        "remove code '$D_ADDST_MLTSK_REMOVE_CODE'"
+      d__context -- lop; return $D_ADDST_MLTSK_REMOVE_CODE
+    fi
+  fi
+
   # Storage variables
   local d__mti d__mtcap d__mtn d__mtf d__mrtc d__mas d__mss d__msscnt=0 d__i
-  local d__mas_a=() d__mas_r=() d__mas_w=() d__mas_c=() d__mas_h=false
+  local d__mas_a=() d__mas_r=() d__mas_w=() d__mas_c=() d__mas_h=false d__mth
   local d__mtplq d__mtabn d__mtfrcd d__mtcc d__mtok d__mtocc d__mtof
+  local d__mtbf d__mtaf
   unset D__TASK_REMOVE_CODES
 
   # Initialize/reset status variables
@@ -369,6 +497,7 @@ d__mltsk_remove()
 
     # Extract number, name, and check code; compose task name; switch context
     d__mtn="${D_MLTSK_MAIN[$d__mti]}" d__mtf="d_${d__mtn}_remove"
+    d__mtbf="d_${d__mtn}_pre_remove" d__mtaf="d_${d__mtn}_post_remove"
     d__mtcc="${D__TASK_CHECK_CODES[$d__mti]}"
     d__mtplq="'$d__mtn' (#$((d__mti+1)) of ${#D_MLTSK_MAIN[@]})"
     d__context -- push "Removing task $d__mtplq"
@@ -470,7 +599,7 @@ d__mltsk_remove()
     fi
 
     # Initialize marker var; clear add-statuses
-    unset D_ADDST_MLTSK_HALT D_ADDST_HALT
+    unset D_ADDST_MLTSK_HALT D_ADDST_HALT D_ADDST_TASK_REMOVE_CODE
     unset D_ADDST_ATTENTION D_ADDST_REBOOT D_ADDST_WARNING D_ADDST_CRITICAL
 
     # Expose additional variables to the task
@@ -479,9 +608,44 @@ d__mltsk_remove()
     d__mtocc="$D__DPL_CHECK_CODE" d__mtof="$D__DPL_IS_FORCED"
     D__DPL_CHECK_CODE="$d__mtcc" D__DPL_IS_FORCED="$d__mtfrcd"
 
+    # Run task pre-processing, if implemented
+    d__mrtc=0 d__mth=false
+    if declare -f "$d__mtbf" &>/dev/null; then "$d__mtbf"; else true; fi
+    if [[ $D_ADDST_TASK_REMOVE_CODE =~ ^[0-9]+$ ]]; then
+      d__notify -l!h -- "Task's pre-remove hook forces" \
+        "remove code '$D_ADDST_TASK_REMOVE_CODE'"
+      d__mrtc="$D_ADDST_TASK_REMOVE_CODE" d__mth=true
+    fi
+    if [ "$D_ADDST_MLTSK_HALT" = true ]; then d__mth=true
+      d__notify -l!h -- "Task's pre-remove hook forces halting of multitask"
+    fi
+
     # Get return code of d_dpl_remove, or fall back to zero
-    if declare -f "$d__mtf" &>/dev/null; then "$d__mtf"; else true; fi
-    d__mrtc=$?; D__TASK_REMOVE_CODES[$d__mti]=$d__mrtc
+    if ! $d__mth; then
+      if declare -f "$d__mtf" &>/dev/null; then "$d__mtf"; else true; fi
+      d__mrtc=$?
+      if [ "$D_ADDST_MLTSK_HALT" = true ]; then d__mth=true
+        d__notify -l!h -- "Task's removing forces halting of multitask"
+      fi
+    fi
+
+    # Run task post-processing, if implemented
+    if ! $d__mth; then
+      D__TASK_INSTALL_CODE="$d__mrtc"
+      if declare -f "$d__mtaf" &>/dev/null; then "$d__mtaf"; else true; fi
+      if [[ $D_ADDST_TASK_REMOVE_CODE =~ ^[0-9]+$ ]]; then
+        d__notify -l!h -- "Task's post-remove hook forces" \
+          "remove code '$D_ADDST_TASK_REMOVE_CODE'" \
+          "instead of actual code '$d__mrtc'"
+        d__mrtc="$D_ADDST_TASK_REMOVE_CODE"
+      fi
+      if [ "$D_ADDST_MLTSK_HALT" = true ]; then
+        d__notify -l!h -- "Task's post-remove hook forces halting of multitask"
+      fi
+    fi
+
+    # Store return code
+    D__TASK_REMOVE_CODES[$d__mti]=$d__mrtc
 
     # Restore overwritten deployment-level variables
     D__DPL_CHECK_CODE="$d__mtocc" D__DPL_IS_FORCED="$d__mtof"
@@ -516,16 +680,12 @@ d__mltsk_remove()
     fi
 
     # Process potential multitask halting
-    if [ "$D_ADDST_MLTSK_HALT" = true ]; then
-      d__notify -!h -- \
-        "Task '$d__mtn' has requested to not remove further tasks"
-      d__context -- pop; break
-    fi
+    if [ "$D_ADDST_MLTSK_HALT" = true ]; then d__context -- pop; break; fi
 
     d__context -- pop
 
   # Done iterating over numbers of task names
-  done
+  done; unset -f "$d__mtf" "$d__mtbf" "$d__mtaf"
 
   # Switch context
   d__context -- push 'Reconciling remove status of tasks'
@@ -541,6 +701,19 @@ d__mltsk_remove()
   # Combine status codes
   d___reconcile_task_insrmv_codes; d__mrtc=$?
   d__context -- pop "Settled on multitask remove code '$d__mrtc'"
+
+  # Run multitask post-processing, if implemented
+  if declare -f d_mltsk_post_remove &>/dev/null; then
+    unset D_ADDST_MLTSK_REMOVE_CODE; D__MLTSK_REMOVE_CODE="$d__mrtc"
+    d_mltsk_post_remove; unset -f d_mltsk_post_remove
+    if [[ $D_ADDST_MLTSK_REMOVE_CODE =~ ^[0-9]+$ ]]; then
+      d__notify -l!h -- "Multitask's post-remove hook forces" \
+        "remove code '$D_ADDST_MLTSK_REMOVE_CODE'" \
+        "instead of actual code '$d__mrtc'"
+      d__context -- lop; return $D_ADDST_MLTSK_REMOVE_CODE
+    fi
+  fi
+
   d__context -- lop; return $d__mrtc
 }
 
