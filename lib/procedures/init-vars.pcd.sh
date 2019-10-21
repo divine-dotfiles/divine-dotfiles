@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.21
-#:revremark:    Include variables to play with dotglob and nullglob
+#:revremark:    Streamline generic queue hooks
 #:created_at:   2019.10.11
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -136,6 +136,14 @@ d__require_var_names()
     D_ADDST_ATTENTION D_ADDST_REBOOT D_ADDST_WARNING D_ADDST_CRITICAL \
     D_ADDST_MLTSK_HALT D_ADDST_QUEUE_HALT \
     D_ADDST_CHECK_CODE D_ADDST_INSTALL_CODE D_ADDST_REMOVE_CODE \
+    D_ADDST_ITEM_CHECK_CODE D_ADDST_ITEM_INSTALL_CODE \
+    D_ADDST_ITEM_REMOVE_CODE \
+    D_ADDST_QUEUE_CHECK_CODE D_ADDST_QUEUE_INSTALL_CODE \
+    D_ADDST_QUEUE_REMOVE_CODE \
+    D_ADDST_TASK_CHECK_CODE D_ADDST_TASK_INSTALL_CODE \
+    D_ADDST_TASK_REMOVE_CODE \
+    D_ADDST_MLTSK_CHECK_CODE D_ADDST_MLTSK_INSTALL_CODE \
+    D_ADDST_MLTSK_REMOVE_CODE \
     # Multitask deployments
     D_MLTSK_MAIN D__MLTSK_CAP_NUM D__TASKS_ARE_QUEUES \
     D__TASK_NAME D__TASK_NUM D__TASK_IS_QUEUE \
@@ -143,7 +151,7 @@ d__require_var_names()
     D__TASK_CHECK_CODE D__TASK_IS_FORCED \
     # Queue deployments
     D__QUEUE_SPLIT_POINTS D__QUEUE_SECTNUM D__QUEUE_SECTMIN D__QUEUE_SECTMAX \
-    D_QUEUE_MAIN D__QUEUE_CAP_NUM \
+    D_QUEUE_MAIN D__QUEUE_CAP_NUMS \
     D__ITEM_NAME D__ITEM_NUM \
     D__ITEM_CHECK_CODES D__ITEM_INSTALL_CODES D__ITEM_REMOVE_CODES \
     D__ITEM_CHECK_CODE D__ITEM_INSTALL_CODE D__ITEM_REMOVE_CODE \

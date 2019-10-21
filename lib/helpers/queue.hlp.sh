@@ -2,8 +2,8 @@
 #:title:        Divine Bash deployment helpers: queue
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.14
-#:revremark:    Implement robust dependency loading system
+#:revdate:      2019.10.21
+#:revremark:    Streamline generic queue hooks
 #:created_at:   2019.06.10
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -52,32 +52,33 @@ d__queue_check()
     return 3
   done
 
-  # Run pre-processing, if implemented
-  local d__qhrtc; if declare -f d_queue_pre_check &>/dev/null; then
-    unset D_ADDST_CHECK_CODE
-    d_queue_pre_check; d__qhrtc=$?; unset -f d_queue_pre_check
-    if (($d__qhrtc)); then
-      d__notify -l!h -- 'Queue pre-check hook forces halting'
-      d__context -- lop; return 3
-    elif [[ $D_ADDST_CHECK_CODE =~ ^[0-9]+$ ]]; then
-      d__notify -l!h -- 'Queue pre-check hook forces halting' \
-        "with code '$D_ADDST_CHECK_CODE'"
-      d__context -- lop; return $D_ADDST_CHECK_CODE
+  # Run queue pre-processing, if implemented
+  if declare -f d_queue_pre_check &>/dev/null; then
+    unset D_ADDST_QUEUE_CHECK_CODE
+    d_queue_pre_check; unset -f d_queue_pre_check
+    if [[ $D_ADDST_QUEUE_CHECK_CODE =~ ^[0-9]+$ ]]; then
+      d__notify -l!h -- "Queue's pre-check hook forces" \
+        "check code '$D_ADDST_QUEUE_CHECK_CODE'"
+      d__context -- lop; return $D_ADDST_QUEUE_CHECK_CODE
     fi
   fi
 
   # Storage variables
-  local d__qei d__qen d__qas d__qss d__qeplq d__qrtc
+  local d__qei d__qen d__qas d__qss d__qeplq d__qrtc d__qeh
   local d__qas_a=() d__qas_r=() d__qas_w=() d__qas_c=()
   local d__qas_h=false d__qas_p=false
 
   # Initialize/reset status variables
   d__qas=( true true true true true true true true true true )
   d__qss=( false false false false false false false false false false )
-  unset D__ITEM_CHECK_CODES D__QUEUE_CAP_NUM
+  unset D__ITEM_CHECK_CODES
 
-  # Implement dummy primary if necessary
+  # Implement dummy primary and hooks if necessary
   if ! declare -f d_item_check &>/dev/null; then d_item_check() { :; }; fi
+  if ! declare -f d_item_pre_check &>/dev/null
+  then d_item_pre_check() { :; }; fi
+  if ! declare -f d_item_post_check &>/dev/null
+  then d_item_post_check() { :; }; fi
 
   # Iterate over numbers of item names
   for ((d__qei=$d__qsl;d__qei<$d__qsr;++d__qei)); do
@@ -88,15 +89,47 @@ d__queue_check()
       "Checking item '$d__qen' (#$((d__qei+1)) of ${#D_QUEUE_MAIN[@]})"
 
     # Initialize marker var; clear add-statuses
-    unset D_ADDST_QUEUE_HALT
+    unset D_ADDST_QUEUE_HALT D_ADDST_ITEM_CHECK_CODE
     unset D_ADDST_HALT D_ADDST_PROMPT
     unset D_ADDST_ATTENTION D_ADDST_REBOOT D_ADDST_WARNING D_ADDST_CRITICAL
 
     # Expose additional variables to the item
     D__ITEM_NUM="$d__qei" D__ITEM_NAME="$d__qen"
 
+    # Run item pre-processing, if implemented
+    d__qrtc=0 d__qeh=false; d_item_pre_check
+    if [[ $D_ADDST_ITEM_CHECK_CODE =~ ^[0-9]+$ ]]; then
+      d__notify -l!h -- "Queue item's pre-check hook forces" \
+        "check code '$D_ADDST_ITEM_CHECK_CODE'"
+      d__qrtc="$D_ADDST_ITEM_CHECK_CODE" d__qeh=true
+    fi
+    if [ "$D_ADDST_QUEUE_HALT" = true ]; then d__qeh=true
+      d__notify -l!h -- "Queue item's pre-check hook forces queue halting"
+    fi
+
     # Get return code of d_dpl_check, or fall back to zero
-    d_item_check; d__qrtc=$?; D__ITEM_CHECK_CODES[$d__qei]=$d__qrtc
+    if ! $d__qeh; then d_item_check; d__qrtc=$?
+      if [ "$D_ADDST_QUEUE_HALT" = true ]; then d__qeh=true
+        d__notify -l!h -- "Queue item's checking forces queue halting"
+      fi
+    fi
+
+    # Run item post-processing, if implemented
+    if ! $d__qeh; then
+      D__ITEM_CHECK_CODE="$d__qrtc"; d_item_post_check
+      if [[ $D_ADDST_ITEM_CHECK_CODE =~ ^[0-9]+$ ]]; then
+        d__notify -l!h -- "Queue item's post-check hook forces" \
+          "check code '$D_ADDST_ITEM_CHECK_CODE'" \
+          "instead of actual code '$d__qrtc'"
+        d__qrtc="$D_ADDST_ITEM_CHECK_CODE"
+      fi
+      if [ "$D_ADDST_QUEUE_HALT" = true ]; then
+        d__notify -l!h -- "Queue item's post-check hook forces queue halting"
+      fi
+    fi
+
+    # Store return code
+    D__ITEM_CHECK_CODES[$d__qei]=$d__qrtc
 
     # Catch add-statuses
     if ((${#D_ADDST_ATTENTION[@]}))
@@ -152,17 +185,13 @@ d__queue_check()
     fi
 
     # Process potential queue halting
-    if [ "$D_ADDST_QUEUE_HALT" = true ]; then
-      D__QUEUE_CAP_NUM=$((d__qei+1))
-      d__notify -!h -- \
-        "Item '$d__qen' has requested to not check further items"
-      d__context -- pop; break
-    fi
+    if [ "$D_ADDST_QUEUE_HALT" = true ]
+    then D__QUEUE_CAP_NUMS[$d__qsi]=$((d__qei+1)); d__context -- pop; break; fi
 
     d__context -- pop
 
   # Done iterating over numbers of item names
-  done; unset -f d_item_check
+  done; unset -f d_item_check d_item_pre_check d_item_post_check
 
   # Switch context
   d__context -- push 'Reconciling check status of items'
@@ -180,17 +209,15 @@ d__queue_check()
   d___reconcile_item_check_codes; d__qrtc=$?
   d__context -- pop "Settled on queue check code '$d__qrtc'"
 
-  # Run post-processing, if implemented
+  # Run queue post-processing, if implemented
   if declare -f d_queue_post_check &>/dev/null; then
-    unset D_ADDST_CHECK_CODE; D__QUEUE_CHECK_CODE="$d__qrtc"
-    d_queue_post_check; d__qhrtc=$?; unset -f d_queue_post_check
-    if (($d__qhrtc)); then
-      d__notify -l!h -- 'Queue post-check hook forces halting'
-      d__context -- lop; return 3
-    elif [[ $D_ADDST_CHECK_CODE =~ ^[0-9]+$ ]]; then
-      d__notify -l!h -- 'Queue post-check hook forces halting' \
-        "with code '$D_ADDST_CHECK_CODE'"
-      d__context -- lop; return $D_ADDST_CHECK_CODE
+    unset D_ADDST_QUEUE_CHECK_CODE; D__QUEUE_CHECK_CODE="$d__qrtc"
+    d_queue_post_check; unset -f d_queue_post_check
+    if [[ $D_ADDST_QUEUE_CHECK_CODE =~ ^[0-9]+$ ]]; then
+      d__notify -l!h -- "Queue's post-check hook forces" \
+        "check code '$D_ADDST_QUEUE_CHECK_CODE'" \
+        "instead of actual code '$d__qrtc'"
+      d__context -- lop; return $D_ADDST_QUEUE_CHECK_CODE
     fi
   fi
 
@@ -221,36 +248,37 @@ d__queue_install()
   local d__qsl=$D__QUEUE_SECTMIN d__qsr=$D__QUEUE_SECTMAX
   d__context -- push "Installing queue items $((d__qsl+1))-$((d__qsr))"
 
-  # Run pre-processing, if implemented
-  local d__qhrtc; if declare -f d_queue_pre_install &>/dev/null; then
-    unset D_ADDST_INSTALL_CODE
-    d_queue_pre_install; d__qhrtc=$?; unset -f d_queue_pre_install
-    if (($d__qhrtc)); then
-      d__notify -l!h -- 'Queue pre-install hook forces halting'
-      d__context -- lop; return 2
-    elif [[ $D_ADDST_INSTALL_CODE =~ ^[0-9]+$ ]]; then
-      d__notify -l!h -- 'Queue pre-install hook forces halting' \
-        "with code '$D_ADDST_INSTALL_CODE'"
-      d__context -- lop; return $D_ADDST_INSTALL_CODE
+  # Run queue pre-processing, if implemented
+  if declare -f d_queue_pre_install &>/dev/null; then
+    unset D_ADDST_QUEUE_INSTALL_CODE
+    d_queue_pre_install; unset -f d_queue_pre_install
+    if [[ $D_ADDST_QUEUE_INSTALL_CODE =~ ^[0-9]+$ ]]; then
+      d__notify -l!h -- "Queue's pre-install hook forces" \
+        "install code '$D_ADDST_QUEUE_INSTALL_CODE'"
+      d__context -- lop; return $D_ADDST_QUEUE_INSTALL_CODE
     fi
   fi
 
   # Storage variables
-  local d__qei d__qecap d__qen d__qrtc d__qas d__qss d__i
+  local d__qei d__qecap d__qen d__qrtc d__qas d__qss d__i d__qeh
   local d__qas_a=() d__qas_r=() d__qas_w=() d__qas_c=() d__qas_h=false
   local d__qeplq d__qedfac d__qefrcd d__qecc d__qeok d__qeocc d__qeof
   unset D__ITEM_INSTALL_CODES
 
   # Initialize/reset status variables
   d__qas=( true true true true ) d__qss=( false false false false )
-  if [ -z ${D__QUEUE_CAP_NUM+isset} ]; then d__qecap=${#D_QUEUE_MAIN[@]}
-  else d__qecap="$D__QUEUE_CAP_NUM"; fi
+  if [ -z ${D__QUEUE_CAP_NUMS[$d__qsi]+isset} ]; then d__qecap=$d__qsr
+  else d__qecap="${D__QUEUE_CAP_NUMS[$d__qsi]}"; fi
 
-  # Implement dummy primary if necessary
+  # Implement dummy primary and hooks if necessary
   if ! declare -f d_item_install &>/dev/null; then d_item_install() { :; }; fi
+  if ! declare -f d_item_pre_install &>/dev/null
+  then d_item_pre_install() { :; }; fi
+  if ! declare -f d_item_post_install &>/dev/null
+  then d_item_post_install() { :; }; fi
 
   # Iterate over numbers of item names
-  for ((d__qei=0;d__qei<$d__qecap;++d__qei)); do
+  for ((d__qei=$d__qsl;d__qei<$d__qecap;++d__qei)); do
 
     # Extract number, name, and check code; compose item name; switch context
     d__qen="${D_QUEUE_MAIN[$d__qei]}"
@@ -356,7 +384,7 @@ d__queue_install()
     fi
 
     # Initialize marker var; clear add-statuses
-    unset D_ADDST_QUEUE_HALT D_ADDST_HALT
+    unset D_ADDST_QUEUE_HALT D_ADDST_HALT D_ADDST_ITEM_INSTALL_CODE
     unset D_ADDST_ATTENTION D_ADDST_REBOOT D_ADDST_WARNING D_ADDST_CRITICAL
 
     # Expose additional variables to the item
@@ -365,8 +393,40 @@ d__queue_install()
     d__qeocc="$D__DPL_CHECK_CODE" d__qeof="$D__DPL_IS_FORCED"
     D__DPL_CHECK_CODE="$d__qecc" D__DPL_IS_FORCED="$d__qefrcd"
 
+    # Run item pre-processing, if implemented
+    d__qrtc=0 d__qeh=false; d_item_pre_install
+    if [[ $D_ADDST_ITEM_INSTALL_CODE =~ ^[0-9]+$ ]]; then
+      d__notify -l!h -- "Queue item's pre-install hook forces" \
+        "install code '$D_ADDST_ITEM_INSTALL_CODE'"
+      d__qrtc="$D_ADDST_ITEM_INSTALL_CODE" d__qeh=true
+    fi
+    if [ "$D_ADDST_QUEUE_HALT" = true ]; then d__qeh=true
+      d__notify -l!h -- "Queue item's pre-install hook forces queue halting"
+    fi
+
     # Get return code of d_dpl_install, or fall back to zero
-    d_item_install; d__qrtc=$?; D__ITEM_INSTALL_CODES[$d__qei]=$d__qrtc
+    if ! $d__qeh; then d_item_install; d__qrtc=$?
+      if [ "$D_ADDST_QUEUE_HALT" = true ]; then d__qeh=true
+        d__notify -l!h -- "Queue item's installation forces queue halting"
+      fi
+    fi
+
+    # Run item post-processing, if implemented
+    if ! $d__qeh; then
+      D__ITEM_INSTALL_CODE="$d__qrtc"; d_item_post_install
+      if [[ $D_ADDST_ITEM_INSTALL_CODE =~ ^[0-9]+$ ]]; then
+        d__notify -l!h -- "Queue item's post-install hook forces" \
+          "install code '$D_ADDST_ITEM_INSTALL_CODE'" \
+          "instead of actual code '$d__qrtc'"
+        d__qrtc="$D_ADDST_ITEM_INSTALL_CODE"
+      fi
+      if [ "$D_ADDST_QUEUE_HALT" = true ]; then
+        d__notify -l!h -- "Queue item's post-install hook forces queue halting"
+      fi
+    fi
+
+    # Store return code
+    D__ITEM_INSTALL_CODES[$d__qei]=$d__qrtc
 
     # Restore overwritten deployment-level variables
     D__DPL_CHECK_CODE="$d__qeocc" D__DPL_IS_FORCED="$d__qeof"
@@ -401,16 +461,12 @@ d__queue_install()
     fi
 
     # Process potential queue halting
-    if [ "$D_ADDST_QUEUE_HALT" = true ]; then
-      d__notify -!h -- \
-        "Item '$d__qen' has requested to not install further items"
-      d__context -- pop; break
-    fi
+    if [ "$D_ADDST_QUEUE_HALT" = true ]; then d__context -- pop; break; fi
 
     d__context -- pop
 
   # Done iterating over numbers of item names
-  done; unset -f d_item_install
+  done; unset -f d_item_install d_item_pre_install d_item_post_install
 
   # Switch context
   d__context -- push 'Reconciling install status of items'
@@ -427,17 +483,15 @@ d__queue_install()
   d___reconcile_item_insrmv_codes; d__qrtc=$?
   d__context -- pop "Settled on queue install code '$d__qrtc'"
 
-  # Run post-processing, if implemented
+  # Run queue post-processing, if implemented
   if declare -f d_queue_post_install &>/dev/null; then
-    unset D_ADDST_INSTALL_CODE; D__QUEUE_INSTALL_CODE="$d__qrtc"
-    d_queue_post_install; d__qhrtc=$?; unset -f d_queue_post_install
-    if (($d__qhrtc)); then
-      d__notify -l!h -- 'Queue post-install hook forces halting'
-      d__context -- lop; return 1
-    elif [[ $D_ADDST_INSTALL_CODE =~ ^[0-9]+$ ]]; then
-      d__notify -l!h -- 'Queue post-install hook forces halting' \
-        "with code '$D_ADDST_INSTALL_CODE'"
-      d__context -- lop; return $D_ADDST_INSTALL_CODE
+    unset D_ADDST_QUEUE_INSTALL_CODE; D__QUEUE_INSTALL_CODE="$d__qrtc"
+    d_queue_post_install; unset -f d_queue_post_install
+    if [[ $D_ADDST_QUEUE_INSTALL_CODE =~ ^[0-9]+$ ]]; then
+      d__notify -l!h -- "Queue's post-install hook forces" \
+        "install code '$D_ADDST_QUEUE_INSTALL_CODE'" \
+        "instead of actual code '$d__qrtc'"
+      d__context -- lop; return $D_ADDST_QUEUE_INSTALL_CODE
     fi
   fi
 
@@ -469,36 +523,37 @@ d__queue_remove()
   local d__qsl=$D__QUEUE_SECTMIN d__qsr=$D__QUEUE_SECTMAX
   d__context -- push "Removing queue items $((d__qsl+1))-$((d__qsr))"
 
-  # Run pre-processing, if implemented
-  local d__qhrtc; if declare -f d_queue_pre_remove &>/dev/null; then
-    unset D_ADDST_REMOVE_CODE
-    d_queue_pre_remove; d__qhrtc=$?; unset -f d_queue_pre_remove
-    if (($d__qhrtc)); then
-      d__notify -l!h -- 'Queue pre-remove hook forces halting'
-      d__context -- lop; return 2
-    elif [[ $D_ADDST_REMOVE_CODE =~ ^[0-9]+$ ]]; then
-      d__notify -l!h -- 'Queue pre-remove hook forces halting' \
-        "with code '$D_ADDST_REMOVE_CODE'"
-      d__context -- lop; return $D_ADDST_REMOVE_CODE
+  # Run queue pre-processing, if implemented
+  if declare -f d_queue_pre_remove &>/dev/null; then
+    unset D_ADDST_QUEUE_REMOVE_CODE
+    d_queue_pre_remove; unset -f d_queue_pre_remove
+    if [[ $D_ADDST_QUEUE_REMOVE_CODE =~ ^[0-9]+$ ]]; then
+      d__notify -l!h -- "Queue's pre-remove hook forces" \
+        "remove code '$D_ADDST_QUEUE_REMOVE_CODE'"
+      d__context -- lop; return $D_ADDST_QUEUE_REMOVE_CODE
     fi
   fi
 
   # Storage variables
-  local d__qei d__qecap d__qen d__qrtc d__qas d__qss d__i
+  local d__qei d__qecap d__qen d__qrtc d__qas d__qss d__i d__qeh
   local d__qas_a=() d__qas_r=() d__qas_w=() d__qas_c=() d__qas_h=false
   local d__qeplq d__qeabn d__qefrcd d__qecc d__qeok d__qeocc d__qeof
   unset D__ITEM_REMOVE_CODES
 
   # Initialize/reset status variables
   d__qas=( true true true true ) d__qss=( false false false false )
-  if [ -z ${D__QUEUE_CAP_NUM+isset} ]; then d__qecap=${#D_QUEUE_MAIN[@]}
-  else d__qecap="$D__QUEUE_CAP_NUM"; fi
+  if [ -z ${D__QUEUE_CAP_NUMS[$d__qsi]+isset} ]; then d__qecap=$d__qsr
+  else d__qecap="${D__QUEUE_CAP_NUMS[$d__qsi]}"; fi
 
-  # Implement dummy primary if necessary
-  if ! declare -f d_item_install &>/dev/null; then d_item_install() { :; }; fi
+  # Implement dummy primary and hooks if necessary
+  if ! declare -f d_item_remove &>/dev/null; then d_item_remove() { :; }; fi
+  if ! declare -f d_item_pre_remove &>/dev/null
+  then d_item_pre_remove() { :; }; fi
+  if ! declare -f d_item_post_remove &>/dev/null
+  then d_item_post_remove() { :; }; fi
 
   # Iterate over numbers of item names
-  for ((d__qei=$d__qecap-1;d__qei>=0;--d__qei)); do
+  for ((d__qei=$d__qecap-1;d__qei>=$d__qsl;--d__qei)); do
 
     # Extract number, name, and check code; compose item name; switch context
     d__qen="${D_QUEUE_MAIN[$d__qei]}"
@@ -603,7 +658,7 @@ d__queue_remove()
     fi
 
     # Initialize marker var; clear add-statuses
-    unset D_ADDST_QUEUE_HALT D_ADDST_HALT
+    unset D_ADDST_QUEUE_HALT D_ADDST_HALT D_ADDST_ITEM_REMOVE_CODE
     unset D_ADDST_ATTENTION D_ADDST_REBOOT D_ADDST_WARNING D_ADDST_CRITICAL
 
     # Expose additional variables to the item
@@ -612,8 +667,40 @@ d__queue_remove()
     d__qeocc="$D__DPL_CHECK_CODE" d__qeof="$D__DPL_IS_FORCED"
     D__DPL_CHECK_CODE="$d__qecc" D__DPL_IS_FORCED="$d__qefrcd"
 
+    # Run item pre-processing, if implemented
+    d__qrtc=0 d__qeh=false; d_item_pre_remove
+    if [[ $D_ADDST_ITEM_REMOVE_CODE =~ ^[0-9]+$ ]]; then
+      d__notify -l!h -- "Queue item's pre-remove hook forces" \
+        "remove code '$D_ADDST_ITEM_REMOVE_CODE'"
+      d__qrtc="$D_ADDST_ITEM_REMOVE_CODE" d__qeh=true
+    fi
+    if [ "$D_ADDST_QUEUE_HALT" = true ]; then d__qeh=true
+      d__notify -l!h -- "Queue item's pre-remove hook forces queue halting"
+    fi
+
     # Get return code of d_dpl_remove, or fall back to zero
-    d_item_remove; d__qrtc=$?; D__ITEM_REMOVE_CODES[$d__qei]=$d__qrtc
+    if ! $d__qeh; then d_item_remove; d__qrtc=$?
+      if [ "$D_ADDST_QUEUE_HALT" = true ]; then d__qeh=true
+        d__notify -l!h -- "Queue item's removing forces queue halting"
+      fi
+    fi
+
+    # Run item post-processing, if implemented
+    if ! $d__qeh; then
+      D__ITEM_INSTALL_CODE="$d__qrtc"; d_item_post_remove
+      if [[ $D_ADDST_ITEM_REMOVE_CODE =~ ^[0-9]+$ ]]; then
+        d__notify -l!h -- "Queue item's post-remove hook forces" \
+          "remove code '$D_ADDST_ITEM_REMOVE_CODE'" \
+          "instead of actual code '$d__qrtc'"
+        d__qrtc="$D_ADDST_ITEM_REMOVE_CODE"
+      fi
+      if [ "$D_ADDST_QUEUE_HALT" = true ]; then
+        d__notify -l!h -- "Queue item's post-remove hook forces queue halting"
+      fi
+    fi
+
+    # Store return code
+    D__ITEM_REMOVE_CODES[$d__qei]=$d__qrtc
 
     # Restore overwritten deployment-level variables
     D__DPL_CHECK_CODE="$d__qeocc" D__DPL_IS_FORCED="$d__qeof"
@@ -648,16 +735,12 @@ d__queue_remove()
     fi
 
     # Process potential queue halting
-    if [ "$D_ADDST_QUEUE_HALT" = true ]; then
-      d__notify -!h -- \
-        "Item '$d__qen' has requested to not remove further items"
-      d__context -- pop; break
-    fi
+    if [ "$D_ADDST_QUEUE_HALT" = true ]; then d__context -- pop; break; fi
 
     d__context -- pop
 
   # Done iterating over numbers of item names
-  done; unset -f d_item_remove
+  done; unset -f d_item_remove d_item_pre_remove d_item_post_remove
 
   # Switch context
   d__context -- push 'Reconciling remove status of items'
@@ -674,17 +757,15 @@ d__queue_remove()
   d___reconcile_item_insrmv_codes; d__qrtc=$?
   d__context -- pop "Settled on queue remove code '$d__qrtc'"
 
-  # Run post-processing, if implemented
+  # Run queue post-processing, if implemented
   if declare -f d_queue_post_remove &>/dev/null; then
-    unset D_ADDST_REMOVE_CODE; D__QUEUE_REMOVE_CODE="$d__qrtc"
-    d_queue_post_remove; d__qhrtc=$?; unset -f d_queue_post_remove
-    if (($d__qhrtc)); then
-      d__notify -l!h -- 'Queue post-remove hook forces halting'
-      d__context -- lop; return 1
-    elif [[ $D_ADDST_REMOVE_CODE =~ ^[0-9]+$ ]]; then
-      d__notify -l!h -- 'Queue post-remove hook forces halting' \
-        "with code '$D_ADDST_REMOVE_CODE'"
-      d__context -- lop; return $D_ADDST_REMOVE_CODE
+    unset D_ADDST_QUEUE_REMOVE_CODE; D__QUEUE_REMOVE_CODE="$d__qrtc"
+    d_queue_post_remove; unset -f d_queue_post_remove
+    if [[ $D_ADDST_QUEUE_REMOVE_CODE =~ ^[0-9]+$ ]]; then
+      d__notify -l!h -- "Queue's post-remove hook forces" \
+        "remove code '$D_ADDST_QUEUE_REMOVE_CODE'" \
+        "instead of actual code '$d__qrtc'"
+      d__context -- lop; return $D_ADDST_QUEUE_REMOVE_CODE
     fi
   fi
 
