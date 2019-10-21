@@ -2,8 +2,8 @@
 #:title:        Divine Bash utils: scan
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.20
-#:revremark:    Extend dpl metadata scan 5->20 non-empty lines
+#:revdate:      2019.10.21
+#:revremark:    Fix scanning of dpls with less then 20 lines
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -264,7 +264,7 @@ d__scan_for_dpl_files()
 
   # Storage variables
   local scan_dir d__dpl_p d__dpl_n d__dpl_d dpl_prty d__dpl_f d__dpl_w
-  local dpl_line ii jj tmp vlu mtdt algd=true dpl_relpath dpl_showpath d__dpl_b
+  local dpll ii jj tmp vlu mtdt algd=true dpl_relpath dpl_showpath d__dpl_b
   local dpl_name_taken dpl_names=() dpl_name_paths=() dpl_bad_names=()
   local dpl_name_counts=() dpl_name_dupls=() dpl_bad dpl_count=0
 
@@ -295,12 +295,12 @@ d__scan_for_dpl_files()
       fi
 
       # Look for metadata in the first few non-empty lines of the file
-      unset mtdt; ii=20; while (($ii)); do read -r dpl_line
-        [ -z "$dpl_line" ] && continue; ((--ii))
-        [[ $dpl_line = D_DPL_* ]] || continue
-        case ${dpl_line:6} in NAME=*) jj=0;; DESC=*) jj=1;; PRIORITY=*) jj=2;;
+      unset mtdt; ii=20
+      while read -r dpll || [[ -n "$dpll" ]]; do [ -z "$dpll" ] && continue
+        ((ii--)) || break; [[ $dpll = D_DPL_* ]] || continue
+        case ${dpll:6} in NAME=*) jj=0;; DESC=*) jj=1;; PRIORITY=*) jj=2;;
           FLAGS=*) jj=3;; WARNING=*) jj=4;; *) continue;; esac
-        IFS='=' read -r tmp vlu <<<"$dpl_line"
+        IFS='=' read -r tmp vlu <<<"$dpll"
         [[ $vlu = \'*\' || $vlu = \"*\" ]] \
           && read -r vlu <<<"${vlu:1:${#vlu}-2}"
         [ -n "$vlu" ] && mtdt[$jj]="$vlu"
