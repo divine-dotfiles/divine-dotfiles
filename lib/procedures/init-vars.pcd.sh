@@ -2,8 +2,8 @@
 #:title:        Divine Bash procedure: init-vars
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.17
-#:revremark:    Improve existing dir handling during fmwk installation
+#:revdate:      2019.10.21
+#:revremark:    Include variables to play with dotglob and nullglob
 #:created_at:   2019.10.11
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -69,6 +69,8 @@ d__require_var_names()
     D__SUFFIX_DPL_SH D__SUFFIX_DPL_MNF D__SUFFIX_DPL_QUE \
     D__CONST_NAME_DIVINEFILE D__CONST_NAME_STASHFILE D__CONST_DEF_PRIORITY \
     D__DISABLE_CASE_SENSITIVITY D__RESTORE_CASE_SENSITIVITY \
+    D__ENABLE_DOTGLOB D__RESTORE_DOTGLOB \
+    D__ENABLE_NULLGLOB D__RESTORE_NULLGLOB \
     # Arguments and options
     # D__REQ_ROUTINE D__REQ_GROUPS D__REQ_ARGS D__REQ_BUNDLES D__REQ_FILTER \
     # D__REQ_PKGS D__REQ_DPLS \
@@ -217,6 +219,14 @@ d__populate_globals()
   # Commands to play with 'nocasematch' (case sensitivity) Bash option
   readonly D__DISABLE_CASE_SENSITIVITY='shopt -s nocasematch'
   readonly D__RESTORE_CASE_SENSITIVITY="$( shopt -p nocasematch )"
+
+  # Commands to play with 'dotglob' (dotfiles globbing) Bash option
+  readonly D__ENABLE_DOTGLOB='shopt -s dotglob'
+  readonly D__RESTORE_DOTGLOB="$( shopt -p dotglob )"
+
+  # Commands to play with 'nullglob' (zero glob results) Bash option
+  readonly D__ENABLE_NULLGLOB='shopt -s nullglob'
+  readonly D__RESTORE_NULLGLOB="$( shopt -p nullglob )"
 
   return 0
 }
