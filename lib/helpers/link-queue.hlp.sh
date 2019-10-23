@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.23
-#:revremark:    Interpret returning non-zero from hooks
+#:revremark:    Expand helpers for sudo checks
 #:created_at:   2019.04.02
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -168,7 +168,7 @@ d__link_item_install()
 
   # Do the actual installing
   if d__push_backup -- "$d__lqet" "$d__lqeb"; then
-    d__lqcmd=ln; d__require_writable "$d__lqet" || d__lqcmd='sudo ln'
+    d__lqcmd=ln; d__require_wdir "$d__lqet" || d__lqcmd='sudo ln'
     $d__lqcmd -s &>/dev/null -- "$d__lqea" "$d__lqet" \
       && d__lqrtc=0 || d__lqrtc=1
   else d__lqrtc=1; fi

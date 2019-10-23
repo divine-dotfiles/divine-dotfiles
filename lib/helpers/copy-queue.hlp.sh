@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.23
-#:revremark:    Interpret returning non-zero from hooks
+#:revremark:    Expand helpers for sudo checks
 #:created_at:   2019.05.23
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -168,7 +168,7 @@ d__copy_item_install()
 
   # Do the actual installing
   if d__push_backup -- "$d__cqet" "$d__cqeb"; then
-    d__cqcmd=cp; d__require_writable "$d__cqet" || d__cqcmd='sudo cp'
+    d__cqcmd=cp; d__require_wdir "$d__cqet" || d__cqcmd='sudo cp'
     $d__cqcmd -Rn &>/dev/null -- "$d__cqea" "$d__cqet" \
       && d__cqrtc=0 || d__cqrtc=1
   else d__cqrtc=1; fi

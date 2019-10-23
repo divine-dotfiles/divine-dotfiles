@@ -1,8 +1,8 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revdate: 2019.10.15
-:revremark: Temporarily switch to dev branch for fmwk (un)installation
+:revdate: 2019.10.23
+:revremark: Expand helpers for sudo checks
 :doctype: article
 // Visual
 :toc:
@@ -1736,9 +1736,9 @@ The entire context block is omitted if the context stack is not requested or is 
 
 | `*-u*`, `*--sudo*`
 
-Print the notification only if the caller lacks the `sudo` privelege.
+Print the notification only if the caller lacks the `sudo` privilege.
 Automatically makes the notification `--loud`.
-Also, automatically sets the `*_TITLE_*` to `Password prompt` and the `*_DESCRIPTION_*` to `The upcoming command requires sudo priveleges.`, unless these parts are already set.
+Also, automatically sets the `*_TITLE_*` to `Password prompt` and the `*_DESCRIPTION_*` to `The upcoming command requires sudo privileges.`, unless these parts are already set.
 
 | `*-t* *_TITLE_*`, `*--title* *_TITLE_*`
 

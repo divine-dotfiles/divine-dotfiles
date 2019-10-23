@@ -2,8 +2,8 @@
 #:title:        Divine Bash utils: workflow
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.14
-#:revremark:    Implement robust dependency loading system
+#:revdate:      2019.10.23
+#:revremark:    Expand helpers for sudo checks
 #:created_at:   2019.09.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -21,7 +21,8 @@
 #>  d__cmd [<options>] [----] CMD...
 #>  d__require [<options>] [----] CMD...
 #>  d__pipe [<options>] [----] CMD
-#>  d__require_writable PATH
+#>  d__require_wdir PATH
+#>  d__require_wfile PATH
 #>  d__require_sudo UTIL_NAME
 #
 
@@ -196,10 +197,6 @@ d__announce()
 #.  2 - Stack not modified: pushing without a DESCRIPTION.
 #.  3 - Stack not modified: popping from an empty stack.
 #.  4 - Stack not modified: notching at the same position.
-#
-## Prints:
-#.  stdout: Nothing.
-#.  stderr: Debug messages about argument errors and context modifications.
 #
 d__context()
 {
@@ -893,10 +890,6 @@ d__pipe()
 ## Returns:
 #.  0 - Always.
 #
-## Prints:
-#.  stdout: Nothing.
-#.  stderr: Debug messages about argument errors and the failure notice itself.
-#
 d__fail()
 {
   # Pluck out options, round up arguments
@@ -984,7 +977,7 @@ d__fail()
 #
 ## Options:
 #.  -u, --sudo                - Print the notification only if the caller lacks 
-#.                              the sudo privelege. Automatically makes the 
+#.                              the sudo privilege. Automatically makes the 
 #.                              notification `--loud`.
 #.  -t TITLE, --title TITLE   - Custom title for the leading line.
 #.  -n, --newline             - With this option, if this function produces any 
@@ -1038,11 +1031,8 @@ d__fail()
 ## Para-options work only after the option-argument separator '--'.
 #
 ## Returns:
-#.  0 - Always.
-#
-## Prints:
-#.  stdout: Nothing.
-#.  stderr: Debug messages about argument errors and the notification itself.
+#.  0 - Almost always, with one exception.
+#.  1 - With --sudo option, when the caller does not have the privilege.
 #
 d__notify()
 {
@@ -1088,7 +1078,7 @@ d__notify()
   # Settle on sudo option
   if $sudo; then
     qt=0; [ -n "$ttl" ] || ttl='Password prompt'
-    ((${#args[@]})) || args='The upcoming command requires sudo priveleges'
+    ((${#args[@]})) || args='The upcoming command requires sudo privileges'
   fi
 
   # Settle on quiet call
@@ -1135,8 +1125,8 @@ d__notify()
     fi
   fi
 
-  # Print the output
-  printf >&2 "$pft%s" "${pfa[@]}" "$NORMAL"
+  # Print the output; custom return
+  printf >&2 "$pft%s" "${pfa[@]}" "$NORMAL"; $sudo && return 1 || return 0
 }
 
 #>  d__prompt [-!1bchknqsvxy] [-p PROMPT] [-a ANSWER] [-t TITLE] [--] \
@@ -1241,10 +1231,6 @@ d__notify()
 #
 ## Returns:
 #.  0 - Always.
-#
-## Prints:
-#.  stdout: Nothing.
-#.  stderr: Debug messages about argument errors and the prompt itself.
 #
 d__prompt()
 {
@@ -1478,26 +1464,53 @@ d___fail_from_cmd()
   $opt || d__context -- lop
 }
 
-#>  d__require_writable PATH
+#>  d__require_wdir PATH
 #
 ## A small helper that ensures eiher that the PATH itself is a writable 
 #. directory, or that its closest existing parent directory is writable. If 
 #. neither is the case, issues a warning to the user about the required sudo 
-#. privelege.
+#. privilege.
 #
 ## Returns:
 #.  0 - The PATH or its existing parent is writable without sudo.
 #.  1 - The PATH or its existing parent is only writable with sudo.
 #.  2 - The PATH is empty.
 #
-d__require_writable()
+d__require_wdir()
 {
   local path="$1"; if [ -z "$path" ]
   then d__notify -lx -- 'Unable to write into a blank path'; return 2; fi
   while [ ! -d "$path" ]; do path="$( dirname -- "$path" )"; done
   if [ -w "$path" ]; then return 0
-  else d__notify -u! -- 'Sudo privelege is required to operate under:' \
+  else d__notify -u! -- 'Sudo privilege is required to write under:' \
     -i- "$path"; return 1; fi
+}
+
+#>  d__require_wfile PATH
+#
+## A small helper that ensures eiher that the PATH itself is a writable 
+#. file, or that its closest existing parent directory is writable. If 
+#. neither is the case, issues a warning to the user about the required sudo 
+#. privilege.
+#
+## Returns:
+#.  0 - The PATH or its existing parent is writable without sudo.
+#.  1 - The PATH or its existing parent is only writable with sudo.
+#.  2 - The PATH is empty.
+#.  3 - The PATH is an existing non-file.
+#
+d__require_wfile()
+{
+  local path="$1"; if [ -z "$path" ]
+  then d__notify -lx -- 'Unable to write into a blank path'; return 2; fi
+  if [ -e "$path" ]; then
+    if [ -f "$path" ]; then
+      if [ -w "$path" ]; then return 0
+      else d__notify -u! -- 'Sudo privilege is required to write into:' \
+        -i- "$path"; return 1; fi
+    else d__notify -lx -- 'Unable to write into an existing non-file at:' \
+      -i- "$path"; return 3; fi
+  else d__require_wdir "$path"; fi
 }
 
 #>  d__require_sudo UTIL_NAME
@@ -1509,5 +1522,5 @@ d__require_writable()
 #
 d__require_sudo()
 {
-  d__notify -u! -- "Sudo privelege is required to work with '$1'"; return 1
+  d__notify -u! -- "Sudo privilege is required to work with '$1'"; return 0
 }

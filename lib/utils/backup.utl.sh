@@ -2,8 +2,8 @@
 #:title:        Divine Bash utils: backup
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.17
-#:revremark:    Add --precise option to popping backup
+#:revdate:      2019.10.23
+#:revremark:    Expand helpers for sudo checks
 #:created_at:   2019.09.18
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -94,7 +94,7 @@ d__push_backup()
     if ! [ -d "$orig_dirpath" ]; then
       d__context -- push \
         "Ensuring existence of the parent directory of: $orig_path"
-      cmd=mkdir; d__require_writable "$orig_dirpath" || cmd='sudo mkdir'
+      cmd=mkdir; d__require_wdir "$orig_dirpath" || cmd='sudo mkdir'
       d__cmd $cmd -p -- --ORIG_DIRPATH-- "$orig_dirpath" \
         --else-- 'Desired location is inaccessible' || return 1
     fi
@@ -134,7 +134,7 @@ d__push_backup()
   d__context -- push "Backing up into: $backup_path"
   if ! [ -d "$backup_dirpath" ]; then
     d__context -- push 'Ensuring existence of the directory containing backups'
-    cmd=mkdir; d__require_writable "$backup_path" || cmd='sudo mkdir'
+    cmd=mkdir; d__require_wdir "$backup_path" || cmd='sudo mkdir'
     d__cmd $cmd -p -- --BACKUP_DIRPATH-- "$backup_dirpath" \
       --else-- "Unable to back up into an inaccessible directory" \
       || return 2
@@ -156,7 +156,7 @@ d__push_backup()
   fi
 
   d__context -- push 'Moving the original to the backup location'
-  cmd=mv; d__require_writable "$backup_dirpath" || cmd='sudo mv'
+  cmd=mv; d__require_wdir "$backup_dirpath" || cmd='sudo mv'
   d__cmd $cmd -n -- --ORIG_PATH-- "$orig_path" --BACKUP_PATH-- "$backup_path" \
     --else-- 'Failed to push backup' \
     || return 3
@@ -284,7 +284,7 @@ d__pop_backup()
     if ! [ -d "$orig_dirpath" ]; then
       d__context -- push \
         "Ensuring existence of the parent directory of: $orig_path"
-      cmd=mkdir; d__require_writable "$orig_dirpath" || cmd='sudo mkdir'
+      cmd=mkdir; d__require_wdir "$orig_dirpath" || cmd='sudo mkdir'
       d__cmd $cmd -p -- --ORIG_DIRPATH-- "$orig_dirpath" \
         --else-- 'Desired location is inaccessible' || return 1
       d__context -- pop
@@ -300,7 +300,7 @@ d__pop_backup()
     [ -d "$orig_path" ] && orig_type=directory || orig_type=file
     if $dispose; then
       d__context -- push "Clobbering a $orig_type at: $orig_path"
-      cmd=rm; d__require_writable "$orig_dirpath" || cmd='sudo rm'
+      cmd=rm; d__require_wdir "$orig_dirpath" || cmd='sudo rm'
       d__cmd $cmd -rf -- --ORIG_PATH-- "$orig_path" \
         --else-- 'Failed to clobber the path' || return 3
       d__context -- pop
@@ -318,7 +318,7 @@ d__pop_backup()
         d__context -- pop
       fi
       d__context -- push "Evicting to: $orig_path_bak"
-      cmd=mv; d__require_writable "$orig_dirpath" || cmd='sudo mv'
+      cmd=mv; d__require_wdir "$orig_dirpath" || cmd='sudo mv'
       d__cmd $cmd -n -- --ORIG_PATH-- "$orig_path" \
         --EVICT_PATH-- "$orig_path_bak" \
         --else-- "Failed to evict the $orig_type" || return 3
@@ -330,7 +330,7 @@ d__pop_backup()
   if ! $restore; then d__context lop; return 0; fi
 
   d__context -- push 'Moving the backup to its original location'
-  cmd=mv; d__require_writable "$orig_dirpath" || cmd='sudo mv'
+  cmd=mv; d__require_wdir "$orig_dirpath" || cmd='sudo mv'
   d__cmd $cmd -n -- --BACKUP_PATH-- "$backup_path" --ORIG_PATH-- "$orig_path" \
     --else-- 'Failed to pop backup' \
     || return 3
