@@ -2,8 +2,8 @@
 #:title:        Divine Bash deployment helpers: link-queue
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.21
-#:revremark:    Streamline specialized queue hooks
+#:revdate:      2019.10.23
+#:revremark:    Interpret returning non-zero from hooks
 #:created_at:   2019.04.02
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -79,8 +79,8 @@ d__link_queue_pre_check()
   fi
 
   # Run queue pre-processing, if implemented
-  if declare -f d_link_queue_pre_check &>/dev/null
-  then d_link_queue_pre_check; unset -f d_link_queue_pre_check; fi
+  local d__rtc=0; if declare -f d_link_queue_pre_check &>/dev/null
+  then d_link_queue_pre_check; d__rtc=$?; unset -f d_link_queue_pre_check; fi
 
   # If item check hooks are not implemented, implement dummies
   if ! declare -f d_link_item_pre_check &>/dev/null
@@ -88,7 +88,7 @@ d__link_queue_pre_check()
   if ! declare -f d_link_item_post_check &>/dev/null
   then d_link_item_post_check() { :; }; fi
 
-  d__context -- pop; return 0
+  d__context -- pop; return $d__rtc
 }
 
 d__link_item_check()
@@ -132,18 +132,20 @@ d__link_queue_post_check()
   unset -f d_link_item_pre_check d_link_item_post_check
 
   # Run queue post-processing, if implemented
-  if declare -f d_link_queue_post_check &>/dev/null
-  then d_link_queue_post_check; unset -f d_link_queue_post_check; fi
+  local d__rtc=0; if declare -f d_link_queue_post_check &>/dev/null
+  then d_link_queue_post_check; d__rtc=$?; unset -f d_link_queue_post_check; fi
 
-  d__context -- pop; return 0
+  d__context -- pop; return $d__rtc
 }
 
 d__link_queue_pre_install()
 {
   # Switch context; run queue pre-processing, if implemented
   d__context -- push 'Preparing link-queue for installing'
-  if declare -f d_link_queue_pre_install &>/dev/null
-  then d_link_queue_pre_install; unset -f d_link_queue_pre_install; fi
+  local d__rtc=0; if declare -f d_link_queue_pre_install &>/dev/null
+  then
+    d_link_queue_pre_install; d__rtc=$?; unset -f d_link_queue_pre_install
+  fi
 
   # If item install hooks are not implemented, implement dummies
   if ! declare -f d_link_item_pre_install &>/dev/null
@@ -151,7 +153,7 @@ d__link_queue_pre_install()
   if ! declare -f d_link_item_post_install &>/dev/null
   then d_link_item_post_install() { :; }; fi
 
-  d__context -- pop; return 0
+  d__context -- pop; return $d__rtc
 }
 
 d__link_item_install()
@@ -188,18 +190,22 @@ d__link_queue_post_install()
   unset -f d_link_item_pre_install d_link_item_post_install
 
   # Run queue post-processing, if implemented
-  if declare -f d_link_queue_post_install &>/dev/null
-  then d_link_queue_post_install; unset -f d_link_queue_post_install; fi
+  local d__rtc=0; if declare -f d_link_queue_post_install &>/dev/null
+  then
+    d_link_queue_post_install; d__rtc=$?; unset -f d_link_queue_post_install
+  fi
 
-  d__context -- pop; return 0
+  d__context -- pop; return $d__rtc
 }
 
 d__link_queue_pre_remove()
 {
   # Switch context; run queue pre-processing, if implemented
   d__context -- push 'Preparing link-queue for removing'
-  if declare -f d_link_queue_pre_remove &>/dev/null
-  then d_link_queue_pre_remove; unset -f d_link_queue_pre_remove; fi
+  local d__rtc=0; if declare -f d_link_queue_pre_remove &>/dev/null
+  then
+    d_link_queue_pre_remove; d__rtc=$?; unset -f d_link_queue_pre_remove
+  fi
 
   # If item remove hooks are not implemented, implement dummies
   if ! declare -f d_link_item_pre_remove &>/dev/null
@@ -207,7 +213,7 @@ d__link_queue_pre_remove()
   if ! declare -f d_link_item_post_remove &>/dev/null
   then d_link_item_post_remove() { :; }; fi
 
-  d__context -- pop; return 0
+  d__context -- pop; return $d__rtc
 }
 
 d__link_item_remove()
@@ -241,8 +247,10 @@ d__link_queue_post_remove()
   unset -f d_link_item_pre_remove d_link_item_post_remove
 
   # Run queue post-processing, if implemented
-  if declare -f d_copy_queue_post_remove &>/dev/null
-  then d_copy_queue_post_remove; unset -f d_copy_queue_post_remove; fi
+  local d__rtc=0; if declare -f d_copy_queue_post_remove &>/dev/null
+  then
+    d_copy_queue_post_remove; d__rtc=$?; unset -f d_copy_queue_post_remove
+  fi
 
-  d__context -- pop; return 0
+  d__context -- pop; return $d__rtc
 }
