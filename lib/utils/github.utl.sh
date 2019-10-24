@@ -2,8 +2,8 @@
 #:title:        Divine Bash utils: github
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.17
-#:revremark:    Split prep-gh in two
+#:revdate:      2019.10.24
+#:revremark:    Silence calls to popd in gh pull func
 #:created_at:   2019.09.13
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -115,10 +115,10 @@ d___pull_updates_from_gh()
   d__cmd --sb-- pushd -- --REPO_PATH-- "$2" \
     --else-- 'Unable to pull updates into inaccessible directory' || return 1
   d__context -- push "Pulling from Github repository '$1'"
-  d__cmd --qq-- git pull --rebase --stat origin master \
-    --else-- 'Failed to pull updates' || { popd; return 1; }
+  if ! d__cmd --qq-- git pull --rebase --stat origin master \
+    --else-- 'Failed to pull updates'; then popd &>/dev/null; return 1; fi
   d__context -- pop
-  popd
+  popd &>/dev/null
   d__context -t 'Done' -- pop \
     "Successfully pulled updates from Github repository '$1'"
   d__context -- lop
