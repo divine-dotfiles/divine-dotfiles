@@ -2,8 +2,8 @@
 #:title:        Divine Bash utils: scan
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.21
-#:revremark:    Fix scanning of dpls with less then 20 lines
+#:revdate:      2019.10.24
+#:revremark:    Make scan util depend on manifests util
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -23,6 +23,7 @@
 readonly D__UTL_SCAN=loaded
 d__load procedure prep-sys
 d__load util workflow
+d__load util manifests
 d__load procedure detect-os
 
 #>  d__scan_for_divinefiles [--internal|--external] [--enqueue] \
