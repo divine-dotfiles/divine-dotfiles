@@ -2,8 +2,8 @@
 #:title:        Divine Bash procedure: print-colors
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.15
-#:revremark:    Finish rewriting entire framework
+#:revdate:      2019.10.24
+#:revremark:    Reword reboot intro into smth more generic
 #:created_at:   2018.12.20
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -169,7 +169,7 @@ d__define_intros()
   readonly D__INTRO_HALTN="$RED$REVERSE${BOLD}___$NORMAL $RED${BOLD}Halting         $NORMAL :"
 
   readonly D__INTRO_ATTNT="$YELLOW$BOLD-!- Atención        $NORMAL :"
-  readonly D__INTRO_RBOOT="$MAGENTA$BOLD<-> Reboot needed   $NORMAL :"
+  readonly D__INTRO_RBOOT="$MAGENTA$BOLD<-> Help wanted     $NORMAL :"
   readonly D__INTRO_WARNG="$RED$BOLD!!! Warning         $NORMAL :"
   readonly D__INTRO_CRTCL="$RED$REVERSE${BOLD}x_x$NORMAL $RED${BOLD}Critical        $NORMAL :"
   readonly D__INTRO_SUCCS="$GREEN$REVERSE${BOLD}vvv$NORMAL ${BOLD}Success         $NORMAL :"
