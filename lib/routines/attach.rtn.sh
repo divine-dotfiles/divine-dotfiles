@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.24
-#:revremark:    Prepend attached path when merging records
+#:revremark:    Be more verbose by default when announcing gh interaction
 #:created_at:   2019.05.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -136,8 +136,8 @@ d___attach_bundle()
 
   # Compose destination path; print location
   bdst="$D__DIR_BUNDLES/$barg"
-  d__notify -q -- "Repo URL: https://github.com/$barg"
-  d__notify -q -- "Location: $bdst"
+  d__notify -l -- "Repo URL: https://github.com/$barg"
+  d__notify -l -- "Location: $bdst"
 
   # Check if destination already exists
   if [ -e "$bdst" ]; then

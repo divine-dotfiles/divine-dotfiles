@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: update
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.18
-#:revremark:    Remove repainting & silencing of external calls
+#:revdate:      2019.10.24
+#:revremark:    Be more verbose by default when announcing gh interaction
 #:created_at:   2019.05.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -170,8 +170,8 @@ d___update_fmk()
 
   # Compose destination path; print location
   udst="$D__DIR_FMWK"
-  d__notify -q -- "Repo URL: https://github.com/$uarg"
-  d__notify -q -- "Location: $udst"
+  d__notify -l -- "Repo URL: https://github.com/$uarg"
+  d__notify -l -- "Location: $udst"
 
   # Check if framework directory is a cloned Github repository
   if d___path_is_gh_clone "$udst" "$uarg"; then

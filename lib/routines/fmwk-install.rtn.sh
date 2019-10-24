@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: fmwk-install
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.18
-#:revremark:    Delay github util loading during fmwk inst
+#:revdate:      2019.10.24
+#:revremark:    Be more verbose by default when announcing gh interaction
 #:created_at:   2019.10.15
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -227,8 +227,8 @@ d___install_fmwk()
 
   # Print intro; print locations
   printf >&2 '%s %s\n' "$D__INTRO_INS_N" "$iplq"
-  d__notify -q -- "Repo URL: https://github.com/$iarg"
-  d__notify -q -- "Location: $idst"
+  d__notify -l -- "Repo URL: https://github.com/$iarg"
+  d__notify -l -- "Location: $idst"
 
   # Conditionally prompt for user's approval
   if [ "$D__OPT_ANSWER_F" != true ]; then
