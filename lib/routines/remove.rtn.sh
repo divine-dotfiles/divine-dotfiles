@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: remove
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.18
-#:revremark:    Remove repainting & silencing of external calls
+#:revdate:      2019.10.24
+#:revremark:    Ensure printed intro before unsuppressed system calls
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -145,6 +145,9 @@ d___remove_pkgs()
       printf >&2 '%s %s\n' "$D__INTRO_RMV_S" "$d__plq"; continue
     fi
 
+    # Print intro
+    printf >&2 '%s %s\n' "$D__INTRO_RMV_N" "$d__plq"
+
     # Extract the rest of the data
     d__pkg_b="${d__pkga_b[$d__i]}"
     d__pkg_f=; [ "$d__pkg_b" = 1 ] && d__pkg_f="${d__pkga_f[$d__i]}"
@@ -207,12 +210,9 @@ d___remove_pkgs()
       fi
     fi
 
-    # Settle on always-ask mode; conditionally print intro
+    # Settle on always-ask mode; if forcing, print force intro
     d__aamd=false; case $d__pkg_f in *[ar]*) d__aamd=true;; esac
-    if $d__aamd || [ "$D__OPT_ANSWER" != true ] || (($D__OPT_VERBOSITY)); then
-      if $d__frcd; then printf >&2 '%s %s\n' "$D__INTRO_RMV_F" "$d__plq"
-      else printf >&2 '%s %s\n' "$D__INTRO_RMV_N" "$d__plq"; fi
-    fi
+    if $d__frcd; then printf >&2 '%s %s\n' "$D__INTRO_RMV_F" "$d__plq"; fi
 
     # Conditionally prompt for user's approval
     if $d__aamd || $d__frcd || [ "$D__OPT_ANSWER" != true ]; then

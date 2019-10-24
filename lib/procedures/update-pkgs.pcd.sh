@@ -2,8 +2,8 @@
 #:title:        Divine Bash procedure: update-pkgs
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.18
-#:revremark:    Remove repainting & silencing of external calls
+#:revdate:      2019.10.24
+#:revremark:    Ensure printed intro before unsuppressed system calls
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -51,9 +51,8 @@ d__pcd_update_pkgs()
     printf >&2 '%s %s\n' "$D__INTRO_UPD_S" "$d__plq"; return 0
   fi
 
-  # Conditionally print intro
-  if [ "$D__OPT_ANSWER" != true ] || (($D__OPT_VERBOSITY))
-  then printf >&2 '%s %s\n' "$D__INTRO_UPD_N" "$d__plq"; fi
+  # Print intro
+  printf >&2 '%s %s\n' "$D__INTRO_UPD_N" "$d__plq"; fi
 
   # Conditionally prompt for user's approval
   if [ "$D__OPT_ANSWER" != true ]; then

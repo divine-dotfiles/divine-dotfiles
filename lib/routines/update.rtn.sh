@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.24
-#:revremark:    Fix incorrect arg parsing in main script
+#:revremark:    Ensure printed intro before unsuppressed system calls
 #:created_at:   2019.05.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -448,8 +448,8 @@ d___update_bdl()
 
   # Compose destination path; print location
   udst="$D__DIR_BUNDLES/$uarg"
-  d__notify -q -- "Repo URL: https://github.com/$uarg"
-  d__notify -q -- "Location: $udst"
+  d__notify -l -- "Repo URL: https://github.com/$uarg"
+  d__notify -l -- "Location: $udst"
 
   # Check if bundle directory is a cloned Github repository
   if d___path_is_gh_clone "$udst" "$uarg"; then

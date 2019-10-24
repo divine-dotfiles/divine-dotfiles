@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: check
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.17
-#:revremark:    Split prep-gh in two
+#:revdate:      2019.10.24
+#:revremark:    Ensure printed intro before unsuppressed system calls
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -135,7 +135,9 @@ d___check_pkgs()
 
     # Perform check
     if d__os_pkgmgr check $d__pkg_n; then
-      if d__stash -rs -- has "pkg_$( dmd5 -s $d__pkg_n )"; then
+      if d__stash -rs -- has "pkg_$( dmd5 -s $d__pkg_n )" \
+        || d__stash -rs -- has installed_utils "$d__pkg_n"
+      then
         # Installed with stash record
         printf >&2 '%s %s\n' "$D__INTRO_CHK_1" "$d__plq"
       else
@@ -143,7 +145,9 @@ d___check_pkgs()
         printf >&2 '%s %s\n' "$D__INTRO_CHK_7" "$d__plq"
       fi
     elif type -P -- $d__pkg_n; then
-      if d__stash -rs -- has "pkg_$( dmd5 -s $d__pkg_n )"; then
+      if d__stash -rs -- has "pkg_$( dmd5 -s $d__pkg_n )" \
+        || d__stash -rs -- has installed_utils "$d__pkg_n"
+      then
         # Installed without package manager, somehow there is a stash record
         d__notify -lx -- "Package '$d__pkg_n' is recorded" \
           "as previously installed via '$D__OS_PKGMGR'" \
