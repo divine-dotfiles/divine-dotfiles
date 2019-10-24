@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: attach
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.17
-#:revremark:    Split prep-gh in two
+#:revdate:      2019.10.24
+#:revremark:    Prepend attached path when merging records
 #:created_at:   2019.05.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -207,7 +207,7 @@ d___attach_bundle()
   fi
 
   # Merge records; report success
-  d__merge_ext_into_int; d__notify -lv -- "$bss"
+  d__merge_ext_into_int "$bdst"; d__notify -lv -- "$bss"
 
   # Set stash record
   if  d__stash -gs -- add attached_bundles "$barg"; then

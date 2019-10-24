@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.24
-#:revremark:    Make scan util depend on manifests util
+#:revremark:    Prepend attached path when merging records
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -504,11 +504,17 @@ d__cross_validate_dpls()
   $algd && return 0 || return 1
 }
 
-#>  d__merge_ext_into_int
+#>  d__merge_ext_into_int PATH_PREFIX
 #
 ## Merges previously assembled records of deployments in the external 
 #. directories into the previously assebled records of deployments in the 
 #. internal directories. Does no validation whatsoever.
+#
+## Arguments:
+#.  PATH_PREFIX     - Path to the directory that now contains the external 
+#.                    deployments, which are being merged. Trailing slash 
+#.                    should be omitted. This path will be prepended to the 
+#.                    relative paths that are stored in $D__EXT_DPL_NAME_PATHS.
 #
 ## Requires in the global scope:
 #.  $D__INT_DPL_NAMES         - Names of deployments.
@@ -530,9 +536,14 @@ d__merge_ext_into_int()
   d__context -- notch
   d__context -- push 'Merging records of detected deployments' \
     'in external and internal directories'
-  local ii; for ((ii=0;ii<${#D__EXT_DPL_NAMES[@]};++ii)); do
+  local pfx="$1" ii
+  if ! [ -d "$pfx"]; then
+    d__notify -lx -- 'Merging of external records initiated' \
+      'with a prefix path that is not a directory:' -i- "$pfx"
+  fi
+  for ((ii=0;ii<${#D__EXT_DPL_NAMES[@]};++ii)); do
     D__INT_DPL_NAMES+=("${D__EXT_DPL_NAMES[$ii]}")
-    D__INT_DPL_NAME_PATHS+=("${D__EXT_DPL_NAME_PATHS[$ii]}")
+    D__INT_DPL_NAME_PATHS+=("$pfx/${D__EXT_DPL_NAME_PATHS[$ii]}")
   done
   ((D__INT_DPL_COUNT+=$D__EXT_DPL_COUNT))
   ((D__INT_DF_COUNT+=$D__EXT_DF_COUNT))
