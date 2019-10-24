@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.24
-#:revremark:    Be more verbose by default when announcing gh interaction
+#:revremark:    Fix incorrect arg parsing in main script
 #:created_at:   2019.05.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -118,7 +118,7 @@ d___parse_update_args()
 {
   # If given a list of bundles, update just them by default
   if ((${#D__REQ_BUNDLES[@]}))
-  then ubdl=true ubdla=("${D__REQ_BUNDLES[@]}"); fi
+  then ubdl=true ubdla+=("${D__REQ_BUNDLES[@]}"); fi
 
   # Parse update arguments
   if [ ${#D__REQ_ARGS[@]} -eq 0 ]; then

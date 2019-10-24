@@ -2,8 +2,8 @@
 #:title:        Divine Bash script: intervene
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.16
-#:revremark:    Make fmwk (un)installation available offline
+#:revdate:      2019.10.24
+#:revremark:    Fix incorrect arg parsing in main script
 #:created_at:   2018.03.25
 
 ## Launches the Divine intervention
@@ -72,7 +72,7 @@ d__parse_arguments()
           S|-shct-no)   D__OPT_ANSWER_S=false;;
           u|-util-yes)  D__OPT_ANSWER_U=true;;
           U|-util-no)   D__OPT_ANSWER_U=false;;
-          b|-bundle)    if (($#)); then shift; D__REQ_BUNDLES+=("$1")
+          b|-bundle)    if (($#)); then D__REQ_BUNDLES+=("$1"); shift
                         else erra+=( -i- "- option '$arg' requires argument" )
                         fi;;
           f|-force)     D__OPT_FORCE=true;;
@@ -96,7 +96,7 @@ d__parse_arguments()
                 S)  D__OPT_ANSWER_S=false;;
                 u)  D__OPT_ANSWER_U=true;;
                 U)  D__OPT_ANSWER_U=false;;
-                b)  if (($#)); then shift; D__REQ_BUNDLES+=("$1")
+                b)  if (($#)); then D__REQ_BUNDLES+=("$1"); shift
                     else erra+=( -i- "- option '$opt' requires argument" )
                     fi;;
                 f)  D__OPT_FORCE=true;;
