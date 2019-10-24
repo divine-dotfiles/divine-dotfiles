@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.24
-#:revremark:    Prepend attached path when merging records
+#:revremark:    Fix syntax error in scan util
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -537,7 +537,7 @@ d__merge_ext_into_int()
   d__context -- push 'Merging records of detected deployments' \
     'in external and internal directories'
   local pfx="$1" ii
-  if ! [ -d "$pfx"]; then
+  if ! [ -d "$pfx" ]; then
     d__notify -lx -- 'Merging of external records initiated' \
       'with a prefix path that is not a directory:' -i- "$pfx"
   fi
