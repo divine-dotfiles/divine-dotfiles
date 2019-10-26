@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.26
-#:revremark:    Implement multitask leader
+#:revremark:    Fix handling of inst-by-usr in mltsk & queues
 #:created_at:   2019.06.18
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -314,11 +314,13 @@ d__mltsk_install()
           if $D__OPT_FORCE; then d__mtfrcd=true
             printf >&2 '%s %s\n' "$D__INTRO_QIN_N" "$d__mtplq"
             d__notify -l! -- "${d__msg[@]}"
-          elif (($D__OPT_VERBOSITY)); then d__mtok=false
-            printf >&2 '%s %s\n' "$D__INTRO_QIN_N" "$d__mtplq"
-            d__notify -q! -- "${d__msg[@]}"
-            d__notify -q! -- 'Re-try with --force to overcome'
-            printf >&2 '%s %s\n' "$D__INTRO_QCH_7" "$d__mtplq"
+          else d__mtok=false
+            if (($D__OPT_VERBOSITY)); then
+              printf >&2 '%s %s\n' "$D__INTRO_QIN_N" "$d__mtplq"
+              d__notify -q! -- "${d__msg[@]}"
+              d__notify -q! -- 'Re-try with --force to overcome'
+              printf >&2 '%s %s\n' "$D__INTRO_QCH_7" "$d__mtplq"
+            fi
           fi;;
       8)  # Partly installed by user or OS
           printf >&2 '%s %s\n' "$D__INTRO_QIN_N" "$d__mtplq"
