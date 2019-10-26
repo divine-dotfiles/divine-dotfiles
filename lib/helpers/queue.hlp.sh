@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.26
-#:revremark:    Further add check status combinations
+#:revremark:    Fix queue section incremental nightmare
 #:created_at:   2019.06.10
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -394,14 +394,7 @@ d__queue_install()
     fi
 
     # Shared cut-off for skipping current item
-    if ! $d__qeok; then
-      # If skipping a queue, initialize or increment queue section number
-      if [ "${D__TASKS_ARE_QUEUES[$d__qei]}" = true ]; then
-        if [ -z ${D__QUEUE_SECTNUM[1]+isset} ]; then D__QUEUE_SECTNUM[1]=0
-        else ((++D__QUEUE_SECTNUM[1])); fi
-      fi
-      continue
-    fi
+    $d__qeok || continue
 
     # Initialize marker var; clear add-statuses
     unset D_ADDST_QUEUE_HALT D_ADDST_HALT D_ADDST_ITEM_INSTALL_CODE
@@ -682,14 +675,7 @@ d__queue_remove()
     fi
 
     # Shared cut-off for skipping current item
-    if ! $d__qeok; then
-      # If skipping a queue, initialize or increment queue section number
-      if [ "${D__TASKS_ARE_QUEUES[$d__qei]}" = true ]; then
-        if [ -z ${D__QUEUE_SECTNUM[1]+isset} ]; then D__QUEUE_SECTNUM[1]=0
-        else ((++D__QUEUE_SECTNUM[1])); fi
-      fi
-      continue
-    fi
+    $d__qeok || continue
 
     # Initialize marker var; clear add-statuses
     unset D_ADDST_QUEUE_HALT D_ADDST_HALT D_ADDST_ITEM_REMOVE_CODE
