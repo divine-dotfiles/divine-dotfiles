@@ -2,8 +2,8 @@
 #:title:        Divine Bash utils: items
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.14
-#:revremark:    Implement robust dependency loading system
+#:revdate:      2019.10.26
+#:revremark:    Fix wrong underscores in queue manifest path var
 #:created_at:   2019.10.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -22,12 +22,12 @@ d__load helper queue
 
 #>  d__process_queue_manifest_of_current_dpl
 #
-## Looks for manifest file at path stored in $D__DPL_QUE_PATH; parses it. All 
+## Looks for manifest file at path stored in $D_DPL_QUE_PATH; parses it. All 
 #. lines are interpreted as queue items.
 #
 ## Requires:
 #.  $D_DPL_NAME         - Name of the deployment.
-#.  $D__DPL_QUE_PATH    - Path to queue manifest file.
+#.  $__DPL_QUE_PATH     - Path to queue manifest file.
 #
 ## Provides into the global scope:
 #.  $D_QUEUE_MAIN       - Array of relative paths to assets.
@@ -39,7 +39,7 @@ d__load helper queue
 d__process_queue_manifest_of_current_dpl()
 {
   # Attempt to parse manifest file, or return early
-  if ! d__process_manifest "$D__DPL_QUE_PATH"; then
+  if ! d__process_manifest "$D_DPL_QUE_PATH"; then
     d__notify -qqq -- "Deployment '$D_DPL_NAME' has no queue manifest"
     return 0
   elif [ ${#D__MANIFEST_LINES[@]} -eq 0 ]; then
