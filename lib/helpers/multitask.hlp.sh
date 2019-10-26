@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.26
-#:revremark:    Add check status combinations
+#:revremark:    Further add check status combinations
 #:created_at:   2019.06.18
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -778,19 +778,30 @@ d__mltsk_remove()
 d___reconcile_task_check_codes()
 {
   local i c=0; for ((i=0;i<10;++i)); do ${d__mas[$i]} && return $i; done
-  for ((i=0;i<10;++i)); do ${d__mss[$i]} && ((++c)); done
-  if ((c=2)); then
-    if ${d__mss[3]}; then for i in 0 1 2 4 5 6 7 8 9
-    do ${d__mss[$i]} && return $i; done; fi
-    if ${d__mss[1]}; then  
-      ${d__mss[7]} && return 1
-      ${d__mss[8]} && return 4
-      ${d__mss[5]} && return 5
-    fi
-    ${d__mss[2]} && ${d__mss[9]} && return 9
-  fi
-  ((c=3)) && ${d__mss[3]} && ${d__mss[7]} && ${d__mss[8]} && return 8
-  if ${d__mss[1]} || ${d__mss[4]}; then return 4; fi
+  for i in 0 1 2 4 5 6 7 8 9; do ${d__mss[$i]} && ((++c)); done
+  case $c in
+    1)  for i in 0 1 2 4 5 6 7 8 9; do ${d__mss[$i]} && return $i; done;;
+    2)  if ${d__mss[1]}; then
+          ${d__mss[2]} && return 4
+          ${d__mss[4]} && return 4
+          ${d__mss[5]} && return 5
+          ${d__mss[7]} && return 1
+          ${d__mss[8]} && return 4
+        elif ${d__mss[2]}; then
+          ${d__mss[4]} && return 4
+          ${d__mss[7]} && return 8
+          ${d__mss[8]} && return 8
+          ${d__mss[9]} && return 9
+        elif ${d__mss[4]}; then
+          ${d__mss[7]} && return 4
+          ${d__mss[8]} && return 4
+        elif ${d__mss[7]}; then
+          ${d__mss[8]} && return 8
+        fi;;
+    3)  if ${d__mss[2]} && ${d__mss[7]} && ${d__mss[8]}; then return 8; fi;;
+  esac
+  if ! ( ${d__mss[0]} || ${d__mss[5]} || ${d__mss[6]} || ${d__mss[9]} )
+  then return 4; fi
   return 0
 }
 
