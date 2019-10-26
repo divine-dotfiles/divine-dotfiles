@@ -2,8 +2,8 @@
 #:title:        Divine Bash utils: scan
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.24
-#:revremark:    Fix syntax error in scan util
+#:revdate:      2019.10.26
+#:revremark:    Improve counting of assembled dpls
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -338,9 +338,15 @@ d__scan_for_dpl_files()
       fi
 
       # Continue only when enqueueing; run filters against name and flags
-      ((++dpl_count)); d__dpl_f="${mtdt[3]}"
-      if $enqn && d___run_dpl_through_filters; then :
-      else d__context -- pop; continue; fi
+      if $enqn; then d__dpl_f="${mtdt[3]}"
+        if d___run_dpl_through_filters; then
+          ((++dpl_count)); d__context -- pop
+          d__context -- push "Adding deployment '$d__dpl_n' to assembly"
+        else
+          d__context -qqqst 'Filtered out' -- pop "Deployment '$d__dpl_n'"
+          continue
+        fi
+      else ((++dpl_count)); d__context -- pop; continue; fi
 
       # Process deployment description
       d__dpl_d="${mtdt[1]}"
