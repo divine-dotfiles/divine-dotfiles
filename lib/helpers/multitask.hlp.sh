@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.26
-#:revremark:    Fix queue section incremental nightmare
+#:revremark:    Implement multitask leader
 #:created_at:   2019.06.18
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -767,7 +767,8 @@ d__mltsk_remove()
 #
 ## INTERNAL USE ONLY
 #
-## Tool that analyzes multiple check codes and combines them into one.
+## Tool that analyzes multiple check codes and combines them into one. If a 
+#. leader task is detected, simply returns its check code.
 #
 ## Local variables that need to be set in the calling context:
 #>  $d__mas     - Array of all-statuses.
@@ -778,6 +779,10 @@ d__mltsk_remove()
 #
 d___reconcile_task_check_codes()
 {
+  if [[ $D_MLTSK_LEADER =~ ^[0-9]+$ ]] \
+    && ! [ -z ${D_MLTSK_MAIN[$D_MLTSK_LEADER]+isset} ] \
+    && [[ ${D__TASK_CHECK_CODES[$D_MLTSK_LEADER]} =~ ^[0-9]+$ ]]
+  then return ${D__TASK_CHECK_CODES[$D_MLTSK_LEADER]}; fi
   local i c=0; for ((i=0;i<10;++i)); do ${d__mas[$i]} && return $i; done
   for i in 0 1 2 4 5 6 7 8 9; do ${d__mss[$i]} && ((++c)); done
   case $c in
