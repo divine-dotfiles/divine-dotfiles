@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: install
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.24
-#:revremark:    Ensure printed intro before unsuppressed system calls
+#:revdate:      2019.10.26
+#:revremark:    Make inst-by-usr status less verbose throughout
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -121,7 +121,7 @@ d___install_pkgs()
 
   # Storage variables
   local d__plq d__pkga_n d__pkga_b d__pkga_f d__pkg_n d__pkg_b d__pkg_f d__i
-  local d__aamd d__frcd d__shi d__shs
+  local d__aamd d__frcd d__shi d__shs d__msg
 
   # Split package names on newline
   IFS=$'\n' read -r -d '' -a d__pkga_n <<<"${D__WKLD_PKGS[$d__prty]}"
@@ -159,10 +159,11 @@ d___install_pkgs()
         printf >&2 '%s %s\n' "$D__INTRO_INS_A" "$d__plq"; continue
       else
         # Installed without stash record
-        d__notify -l! -- "Package '$d__pkg_n' appears to be already installed"
-        if $D__OPT_FORCE; then d__frcd=true d__shs=true
-        else
-          d__notify -l! -- 'Re-try with --force to overcome'
+        d__msg="Package '$d__pkg_n' appears to be already installed"
+        if $D__OPT_FORCE; then d__notify -l! -- "$d__msg"
+          d__frcd=true d__shs=true
+        else d__notify -q! -- "$d__msg"
+          d__notify -q! -- 'Re-try with --force to overcome'
           printf >&2 '%s %s\n' "$D__INTRO_CHK_7" "$d__plq"; continue
         fi
       fi
@@ -179,11 +180,12 @@ d___install_pkgs()
         fi
       else
         # Installed without package manager, no stash record
-        d__notify -l! -- "Package '$d__pkg_n' appears to be installed" \
-          "by means other than '$D__OS_PKGMGR'"
-        if $D__OPT_FORCE; then d__frcd=true d__shi=true d__shs=true
-        else
-          d__notify -l! -- 'Re-try with --force to overcome'
+        d__msg="Package '$d__pkg_n' appears to be installed"
+        d__msg+="by means other than '$D__OS_PKGMGR'"
+        if $D__OPT_FORCE; then d__notify -l! -- "$d__msg"
+          d__frcd=true d__shi=true d__shs=true
+        else d__notify -q! -- "$d__msg"
+          d__notify -q! -- 'Re-try with --force to overcome'
           printf >&2 '%s %s\n' "$D__INTRO_CHK_7" "$d__plq"; continue
         fi
       fi
@@ -272,7 +274,7 @@ d___install_dpls()
   # Storage variables
   local d__dpla_p=() d__dpl_p d__plq d__rtc d__aamd d__dfac d__frcd d__adsti
   local d__dpla_b d__dpla_n d__dpla_d d__dpla_f d__dpla_w d__i
-  local d__dpl_b d__dpl_n d__dpl_d d__dpl_f d__dpl_w
+  local d__dpl_b d__dpl_n d__dpl_d d__dpl_f d__dpl_w d__msg
 
   # Extract data by splitting on newline
   IFS=$'\n' read -r -d '' -a d__dpla_n <<<"${D__WKLD_DPL_NAMES[$d__prty]}"
@@ -408,19 +410,19 @@ d___install_dpls()
               d__notify -qqq -- 'Exiting sub-shell'; continue
             fi;;
         7)  # Fully installed by user or OS
-            d__notify -l! -- \
-              "Deployment '$d__dpl_n' appears to be fully installed" \
-              "by means other than installing this deployment"
-            if $D__OPT_FORCE; then d__frcd=true
-            else
-              d__notify -l! -- 'Re-try with --force to overcome'
+            d__msg=( "Deployment '$d__dpl_n' appears to be fully installed" \
+              'by means other than installing this deployment' )
+            if $D__OPT_FORCE; then d__notify -l! -- "${d__msg[@]}"
+              d__frcd=true
+            else d__notify -q! -- "${d__msg[@]}"
+              d__notify -q! -- 'Re-try with --force to overcome'
               printf >&2 '%s %s\n' "$D__INTRO_CHK_7" "$d__plq"
               d__notify -qqq -- 'Exiting sub-shell'; continue
             fi;;
         8)  # Partly installed by user or OS
             d__notify -l! -- \
               "Deployment '$d__dpl_n' appears to be partly installed" \
-              "by means other than installing this deployment"
+              'by means other than installing this deployment'
             d__dfac=true; if $D__OPT_FORCE; then d__frcd=true; fi;;
         9)  # Likely not installed (unknown)
             d__notify -l! -- \

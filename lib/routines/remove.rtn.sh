@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: remove
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.24
-#:revremark:    Ensure printed intro before unsuppressed system calls
+#:revdate:      2019.10.26
+#:revremark:    Make inst-by-usr status less verbose throughout
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -414,7 +414,7 @@ d___remove_dpls()
         7)  # Fully installed by user or OS
             d__notify -l! -- \
               "Deployment '$d__dpl_n' appears to be fully installed" \
-              "by means other than installing this deployment"
+              'by means other than installing this deployment'
             if $D__OPT_FORCE; then d__frcd=true
             else
               d__notify -l! -- 'Re-try with --force to overcome'
@@ -424,7 +424,7 @@ d___remove_dpls()
         8)  # Partly installed by user or OS
             d__notify -l! -- \
               "Deployment '$d__dpl_n' appears to be partly installed" \
-              "by means other than installing this deployment"
+              'by means other than installing this deployment'
             if $D__OPT_FORCE; then d__frcd=true
             else
               d__notify -l! -- 'Re-try with --force to overcome'

@@ -2,8 +2,8 @@
 #:title:        Divine Bash deployment helpers: queue
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.23
-#:revremark:    Interpret returning non-zero from hooks
+#:revdate:      2019.10.26
+#:revremark:    Make inst-by-usr status less verbose throughout
 #:created_at:   2019.06.10
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -349,17 +349,18 @@ d__queue_install()
           fi;;
       7)  # Fully installed by user or OS
           printf >&2 '%s %s\n' "$D__INTRO_QIN_N" "$d__qeplq"
-          d__notify -l! -- "Item '$d__qen' appears to be fully installed" \
-            "by means other than installing this deployment"
-          if $D__OPT_FORCE; then d__qefrcd=true
-          else d__qeok=false
-            d__notify -l! -- 'Re-try with --force to overcome'
+          d__msg=( "Item '$d__qen' appears to be fully installed" \
+            'by means other than installing this deployment' )
+          if $D__OPT_FORCE; then d__notify -l! -- "${d__msg[@]}"
+            d__qefrcd=true
+          else d__notify -q! -- "${d__msg[@]}"; d__qeok=false
+            d__notify -q! -- 'Re-try with --force to overcome'
             printf >&2 '%s %s\n' "$D__INTRO_QCH_7" "$d__qeplq"
           fi;;
       8)  # Partly installed by user or OS
           printf >&2 '%s %s\n' "$D__INTRO_QIN_N" "$d__qeplq"
           d__notify -l! -- "Item '$d__qen' appears to be partly installed" \
-            "by means other than installing this deployment"
+            'by means other than installing this deployment'
           d__qedfac=true; if $D__OPT_FORCE; then d__qefrcd=true; fi;;
       9)  # Likely not installed (unknown)
           printf >&2 '%s %s\n' "$D__INTRO_QIN_N" "$d__qeplq"
@@ -640,7 +641,7 @@ d__queue_remove()
       7)  # Fully installed by user or OS
           printf >&2 '%s %s\n' "$D__INTRO_QRM_N" "$d__qeplq"
           d__notify -l! -- "Item '$d__qen' appears to be fully installed" \
-            "by means other than installing this deployment"
+            'by means other than installing this deployment'
           if $D__OPT_FORCE; then d__qefrcd=true
           else d__qeok=false
             d__notify -l! -- 'Re-try with --force to overcome'
@@ -649,7 +650,7 @@ d__queue_remove()
       8)  # Partly installed by user or OS
           printf >&2 '%s %s\n' "$D__INTRO_QRM_N" "$d__qeplq"
           d__notify -l! -- "Item '$d__qen' appears to be partly installed" \
-            "by means other than installing this deployment"
+            'by means other than installing this deployment'
           if $D__OPT_FORCE; then d__qefrcd=true
           else d__qeok=false
             d__notify -l! -- 'Re-try with --force to overcome'

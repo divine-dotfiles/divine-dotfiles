@@ -2,8 +2,8 @@
 #:title:        Divine Bash deployment helpers: reconcile
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.23
-#:revremark:    Interpret returning non-zero from hooks
+#:revdate:      2019.10.26
+#:revremark:    Make inst-by-usr status less verbose throughout
 #:created_at:   2019.06.18
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -246,7 +246,7 @@ d__mltsk_install()
   local d__mti d__mtcap d__mtn d__mtf d__mtrtc d__mas d__mss d__msscnt=0 d__i
   local d__mas_a=() d__mas_r=() d__mas_w=() d__mas_c=() d__mas_h=false d__mth
   local d__mtplq d__mtdfac d__mtfrcd d__mtcc d__mtok d__mtocc d__mtof
-  local d__mtbf d__mtaf
+  local d__mtbf d__mtaf d__msg
   unset D__TASK_INSTALL_CODES
 
   # Initialize/reset status variables
@@ -310,17 +310,18 @@ d__mltsk_install()
           fi;;
       7)  # Fully installed by user or OS
           printf >&2 '%s %s\n' "$D__INTRO_QIN_N" "$d__mtplq"
-          d__notify -l! -- "Task '$d__mtn' appears to be fully installed" \
-            "by means other than installing this deployment"
-          if $D__OPT_FORCE; then d__mtfrcd=true
-          else d__mtok=false
-            d__notify -l! -- 'Re-try with --force to overcome'
+          d__msg=( "Task '$d__mtn' appears to be fully installed" \
+            'by means other than installing this deployment' )
+          if $D__OPT_FORCE; then d__notify -l! -- "${d__msg[@]}"
+            d__mtfrcd=true
+          else d__notify -q! -- "${d__msg[@]}"; d__mtok=false
+            d__notify -q! -- 'Re-try with --force to overcome'
             printf >&2 '%s %s\n' "$D__INTRO_QCH_7" "$d__mtplq"
           fi;;
       8)  # Partly installed by user or OS
           printf >&2 '%s %s\n' "$D__INTRO_QIN_N" "$d__mtplq"
           d__notify -l! -- "Task '$d__mtn' appears to be partly installed" \
-            "by means other than installing this deployment"
+            'by means other than installing this deployment'
           d__mtdfac=true; if $D__OPT_FORCE; then d__mtfrcd=true; fi;;
       9)  # Likely not installed (unknown)
           printf >&2 '%s %s\n' "$D__INTRO_QIN_N" "$d__mtplq"
@@ -581,7 +582,7 @@ d__mltsk_remove()
       7)  # Fully installed by user or OS
           printf >&2 '%s %s\n' "$D__INTRO_QRM_N" "$d__mtplq"
           d__notify -l! -- "Task '$d__mtn' appears to be fully installed" \
-            "by means other than installing this deployment"
+            'by means other than installing this deployment'
           if $D__OPT_FORCE; then d__mtfrcd=true
           else d__mtok=false
             d__notify -l! -- 'Re-try with --force to overcome'
@@ -590,7 +591,7 @@ d__mltsk_remove()
       8)  # Partly installed by user or OS
           printf >&2 '%s %s\n' "$D__INTRO_QRM_N" "$d__mtplq"
           d__notify -l! -- "Task '$d__mtn' appears to be partly installed" \
-            "by means other than installing this deployment"
+            'by means other than installing this deployment'
           if $D__OPT_FORCE; then d__mtfrcd=true
           else d__mtok=false
             d__notify -l! -- 'Re-try with --force to overcome'
