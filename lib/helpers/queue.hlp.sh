@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.26
-#:revremark:    Fix queue section incremental nightmare
+#:revremark:    Do not unset global codes arrays in queues
 #:created_at:   2019.06.10
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -74,7 +74,6 @@ d__queue_check()
   # Initialize/reset status variables
   d__qas=( true true true true true true true true true true )
   d__qss=( false false false false false false false false false false )
-  unset D__ITEM_CHECK_CODES
 
   # Implement dummy primary and hooks if necessary
   if ! declare -f d_item_check &>/dev/null; then d_item_check() { :; }; fi
@@ -280,7 +279,6 @@ d__queue_install()
   local d__qei d__qecap d__qen d__qertc d__qas d__qss d__i d__qeh
   local d__qas_a=() d__qas_r=() d__qas_w=() d__qas_c=() d__qas_h=false
   local d__qeplq d__qedfac d__qefrcd d__qecc d__qeok d__qeocc d__qeof
-  unset D__ITEM_INSTALL_CODES
 
   # Initialize/reset status variables
   d__qas=( true true true true ) d__qss=( false false false false )
@@ -565,7 +563,6 @@ d__queue_remove()
   local d__qei d__qecap d__qen d__qertc d__qas d__qss d__i d__qeh
   local d__qas_a=() d__qas_r=() d__qas_w=() d__qas_c=() d__qas_h=false
   local d__qeplq d__qeabn d__qefrcd d__qecc d__qeok d__qeocc d__qeof
-  unset D__ITEM_REMOVE_CODES
 
   # Initialize/reset status variables
   d__qas=( true true true true ) d__qss=( false false false false )
