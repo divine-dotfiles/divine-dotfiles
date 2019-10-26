@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.26
-#:revremark:    Make inst-by-usr status less verbose throughout
+#:revremark:    Better handle offered utils in Divinefiles
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -157,6 +157,16 @@ d___install_pkgs()
       if d__stash -rs -- has "pkg_$( dmd5 -s $d__pkg_n )"; then
         # Installed with stash record
         printf >&2 '%s %s\n' "$D__INTRO_INS_A" "$d__plq"; continue
+      elif d__stash -rs -- has installed_utils "$d__pkg_n"; then
+        # Installed through offer
+        d__msg="Package '$d__pkg_n' appears to be"
+        d__msg+="already installed by $D__FMWK_NAME itself"
+        if $D__OPT_FORCE; then d__notify -l! -- "$d__msg"
+          d__frcd=true d__shs=true
+        else d__notify -q! -- "$d__msg"
+          d__notify -q! -- 'Re-try with --force to overcome'
+          printf >&2 '%s %s\n' "$D__INTRO_INS_A" "$d__plq"; continue
+        fi
       else
         # Installed without stash record
         d__msg="Package '$d__pkg_n' appears to be already installed"
@@ -174,6 +184,16 @@ d___install_pkgs()
           "as previously installed via '$D__OS_PKGMGR'" \
           -n- 'but it now appears to be installed by other means'
         if $D__OPT_FORCE; then d__frcd=true d__shi=true
+        else
+          d__notify -l! -- 'Re-try with --force to overcome'
+          printf >&2 '%s %s\n' "$D__INTRO_INS_2" "$d__plq"; continue
+        fi
+      elif d__stash -rs -- has installed_utils "$d__pkg_n"; then
+        # Installed without package manager, somehow there is an offer record
+        d__notify -lx -- "Package '$d__pkg_n' is recorded" \
+          "as previously installed by $D__FMWK_NAME itself" \
+          -n- 'but it now appears to be installed by other means'
+        if $D__OPT_FORCE; then d__frcd=true d__shi=true d__shs=true
         else
           d__notify -l! -- 'Re-try with --force to overcome'
           printf >&2 '%s %s\n' "$D__INTRO_INS_2" "$d__plq"; continue
@@ -197,6 +217,18 @@ d___install_pkgs()
           -n- "but does $BOLDnot$NORMAL appear to be installed right now" \
           -n- '(which may be due to manual tinkering)'
         if $D__OPT_FORCE; then d__frcd=true d__shi=true
+        else
+          d__notify -l! -- 'Re-try with --force to overcome'
+          printf >&2 '%s %s\n' "$D__INTRO_INS_2" "$d__plq"; continue
+        fi
+      if d__stash -rs -- has installed_utils "$d__pkg_n"; then
+        # Not installed, but offer record exists
+        d__notify -lx -- \
+          "Package '$d__pkg_n' is recorded as previously installed" \
+          "by $D__FMWK_NAME itself"
+          -n- "but does $BOLDnot$NORMAL appear to be installed right now" \
+          -n- '(which may be due to manual tinkering)'
+        if $D__OPT_FORCE; then d__frcd=true d__shi=true d__shs=true
         else
           d__notify -l! -- 'Re-try with --force to overcome'
           printf >&2 '%s %s\n' "$D__INTRO_INS_2" "$d__plq"; continue

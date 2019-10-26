@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.26
-#:revremark:    Make inst-by-usr status less verbose throughout
+#:revremark:    Better handle offered utils in Divinefiles
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -160,6 +160,15 @@ d___remove_pkgs()
       if d__stash -rs -- has "pkg_$( dmd5 -s $d__pkg_n )"; then
         # Installed with stash record
         d__shr=true d__shs=true
+      elif d__stash -rs -- has installed_utils "$d__pkg_n"; then
+        # Installed through offer
+        d__notify -l! -- "Package '$d__pkg_n' appears to be installed" \
+          "by $D__FMWK_NAME itself"
+        if $D__OPT_FORCE; then d__frcd=true d__shr=true d__shs=true
+        else
+          d__notify -l! -- 'Re-try with --force to overcome'
+          printf >&2 '%s %s\n' "$D__INTRO_RMV_2" "$d__plq"; continue
+        fi
       else
         # Installed without stash record
         d__notify -l! -- "Package '$d__pkg_n' appears to be installed" \
@@ -175,6 +184,16 @@ d___remove_pkgs()
         # Installed without package manager, somehow there is a stash record
         d__notify -lx -- "Package '$d__pkg_n' is recorded" \
           "as previously installed via '$D__OS_PKGMGR'" \
+          -n- 'but it now appears to be installed by other means'
+        if $D__OPT_FORCE; then d__frcd=true d__shs=true
+        else
+          d__notify -l! -- 'Re-try with --force to overcome'
+          printf >&2 '%s %s\n' "$D__INTRO_CHK_6" "$d__plq"; continue
+        fi
+      elif d__stash -rs -- has installed_utils "$d__pkg_n"; then
+        # Installed without package manager, somehow there is an offer record
+        d__notify -lx -- "Package '$d__pkg_n' is recorded" \
+          "as previously installed by $D__FMWK_NAME itself" \
           -n- 'but it now appears to be installed by other means'
         if $D__OPT_FORCE; then d__frcd=true d__shs=true
         else
@@ -197,6 +216,18 @@ d___remove_pkgs()
         # Not installed, but stash record exists
         d__notify -lx -- \
           "Package '$d__pkg_n' is recorded as previously installed" \
+          -n- "but does $BOLDnot$NORMAL appear to be installed right now" \
+          -n- '(which may be due to manual tinkering)'
+        if $D__OPT_FORCE; then d__frcd=true d__shs=true
+        else
+          d__notify -l! -- 'Re-try with --force to overcome'
+          printf >&2 '%s %s\n' "$D__INTRO_CHK_6" "$d__plq"; continue
+        fi
+      elif d__stash -rs -- has installed_utils "$d__pkg_n"; then
+        # Not installed, but offer record exists
+        d__notify -lx -- \
+          "Package '$d__pkg_n' is recorded as previously installed" \
+          "by $D__FMWK_NAME itself" \
           -n- "but does $BOLDnot$NORMAL appear to be installed right now" \
           -n- '(which may be due to manual tinkering)'
         if $D__OPT_FORCE; then d__frcd=true d__shs=true
@@ -235,7 +266,8 @@ d___remove_pkgs()
 
     # Unset stash record
     if $d__shs; then
-      d__stash -rs -- unset "pkg_$( dmd5 -s $d__pkg_n )"
+      d__stash -rs -- unset "pkg_$( dmd5 -s $d__pkg_n )" \
+        && d__stash -rs -- unset installed_utils "$d__pkg_n"
       if (($?)); then
         d__notify -lx -- "Failed to unset stash record for package '$d__pkg_n'"
         printf >&2 '%s %s\n' "$D__INTRO_RMV_1" "$d__plq"; continue
