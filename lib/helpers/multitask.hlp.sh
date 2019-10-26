@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.26
-#:revremark:    Make inst-by-usr status less verbose throughout
+#:revremark:    Make inst-by-usr even less verbose
 #:created_at:   2019.06.18
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -309,12 +309,14 @@ d__mltsk_install()
             printf >&2 '%s %s\n' "$D__INTRO_QIN_S" "$d__mtplq"
           fi;;
       7)  # Fully installed by user or OS
-          printf >&2 '%s %s\n' "$D__INTRO_QIN_N" "$d__mtplq"
           d__msg=( "Task '$d__mtn' appears to be fully installed" \
             'by means other than installing this deployment' )
-          if $D__OPT_FORCE; then d__notify -l! -- "${d__msg[@]}"
-            d__mtfrcd=true
-          else d__notify -q! -- "${d__msg[@]}"; d__mtok=false
+          if $D__OPT_FORCE; then d__mtfrcd=true
+            printf >&2 '%s %s\n' "$D__INTRO_QIN_N" "$d__mtplq"
+            d__notify -l! -- "${d__msg[@]}"
+          elif (($D__OPT_VERBOSITY)); then d__mtok=false
+            printf >&2 '%s %s\n' "$D__INTRO_QIN_N" "$d__mtplq"
+            d__notify -q! -- "${d__msg[@]}"
             d__notify -q! -- 'Re-try with --force to overcome'
             printf >&2 '%s %s\n' "$D__INTRO_QCH_7" "$d__mtplq"
           fi;;
