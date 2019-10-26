@@ -2,8 +2,8 @@
 #:title:        Divine Bash procedure: update-pkgs
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.24
-#:revremark:    Ensure printed intro before unsuppressed system calls
+#:revdate:      2019.10.26
+#:revremark:    Fix syntax error in update-pkgs
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -52,7 +52,7 @@ d__pcd_update_pkgs()
   fi
 
   # Print intro
-  printf >&2 '%s %s\n' "$D__INTRO_UPD_N" "$d__plq"; fi
+  printf >&2 '%s %s\n' "$D__INTRO_UPD_N" "$d__plq"
 
   # Conditionally prompt for user's approval
   if [ "$D__OPT_ANSWER" != true ]; then
