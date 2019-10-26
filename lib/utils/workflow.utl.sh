@@ -2,8 +2,8 @@
 #:title:        Divine Bash utils: workflow
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.23
-#:revremark:    Expand helpers for sudo checks
+#:revdate:      2019.10.26
+#:revremark:    Make d__cmd family non-suppressed by default
 #:created_at:   2019.09.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -419,9 +419,10 @@ d___context_lop()
 #.  --neg--   - Negate the return code of CMD, as if by prepending '!' to it.
 #
 ## Output suppression modes (one active at a time, last option wins):
-#.  --sn--    - Do not suppress neither stdout nor stderr of the command.
+#.  --sn--    - (default) Do not suppress neither stdout nor stderr of the 
+#.              command.
 #.  --so--    - Suppress stdout of the command.
-#.  --se--    - (default) Suppress stderr of the command.
+#.  --se--    - Suppress stderr of the command.
 #.  --sb--    - Suppress both stdout and stderr of the command.
 #
 ## Quiet options:
@@ -487,7 +488,7 @@ d___context_lop()
 d__cmd()
 {
   # Pluck out options, round up arguments
-  local args=() tmp d__cmd labels=() hunks=() neg=false qt=0 sup=e opt=false
+  local args=() tmp d__cmd labels=() hunks=() neg=false qt=0 sup=n opt=false
   while (($#)); do tmp="$1"; shift; case $tmp in
     --*--)  tmp="${tmp:2:${#tmp}-4}"
       case $tmp in
@@ -573,7 +574,7 @@ d__require()
 {
   # Pluck out options, round up arguments
   local args0=() args1=() args2=() tmp pcnt= d__cmd=() labels=() hunks=()
-  local neg=(false) qt=0 sup=e ret=() opt=false
+  local neg=(false) qt=0 sup=n ret=() opt=false
   while (($#)); do tmp="$1"; shift; case $tmp in
     --*--)  tmp="${tmp:2:${#tmp}-4}"
       case $tmp in
@@ -729,7 +730,7 @@ d__pipe()
 {
   # Pluck out options, round up arguments
   local args0=() args1=() args2=() tmp pcnt=0 d__cmd labels=() hunks=()
-  local neg=false qt=0 sup=e opt=false
+  local neg=false qt=0 sup=n opt=false
   while (($#)); do tmp="$1"; shift; case $tmp in
     --*--)  tmp="${tmp:2:${#tmp}-4}"
       case $tmp in

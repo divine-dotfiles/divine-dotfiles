@@ -2,8 +2,8 @@
 #:title:        Divine Bash utils: github
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.24
-#:revremark:    Silence calls to popd in gh pull func
+#:revdate:      2019.10.26
+#:revremark:    Make d__cmd family non-suppressed by default
 #:created_at:   2019.09.13
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -145,10 +145,11 @@ d___move_root_files()
   local src_path rel_path dest_path
   while IFS= read -r -d $'\0' src_path; do
     rel_path="${src_path#"$1/"}"; dest_path="$2/$rel_path"
-    d__cmd rm -rf -- --DEST_PATH-- "$dest_path" \
+    d__cmd --se-- rm -rf -- --DEST_PATH-- "$dest_path" \
       --else-- "Failed to clobber: $rel_path" || return 1
-    d__cmd mv -n -- --SRC_PATH-- "$src_path" --DESC_PATH-- "$dest_path" \
-      --else-- "Failed to move: $rel_path" || return 1
+    d__cmd --se-- mv -n -- --SRC_PATH-- "$src_path" \
+      --DESC_PATH-- "$dest_path"  --else-- "Failed to move: $rel_path" \
+      || return 1
   done < <( find "$1" -mindepth 1 -maxdepth 1 \
     \( -type f -or -type d \) -print0 )
   d__context -- pop

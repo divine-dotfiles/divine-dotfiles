@@ -2,8 +2,8 @@
 #:title:        Divine Bash utils: assets
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.14
-#:revremark:    Implement robust dependency loading system
+#:revdate:      2019.10.26
+#:revremark:    Make d__cmd family non-suppressed by default
 #:created_at:   2019.10.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -72,7 +72,7 @@ d__process_asset_manifest_of_current_dpl()
   # Flags are: regex; dpl-dir-only; optional; no-queue; provided-only; force
 
   # Ensure existence of asset directory
-  d__cmd mkdir -p -- "$D__DPL_ASSET_DIR" \
+  d__cmd --se-- mkdir -p -- "$D__DPL_ASSET_DIR" \
     --else-- 'Unable to process assets' || return 1
 
   # Iterate over lines extracted from manifest
