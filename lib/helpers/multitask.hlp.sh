@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.26
-#:revremark:    Make inst-by-usr even less verbose
+#:revremark:    Add check status combinations
 #:created_at:   2019.06.18
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -782,7 +782,11 @@ d___reconcile_task_check_codes()
   if ((c=2)); then
     if ${d__mss[3]}; then for i in 0 1 2 4 5 6 7 8 9
     do ${d__mss[$i]} && return $i; done; fi
-    ${d__mss[1]} && ${d__mss[5]} && return 5
+    if ${d__mss[1]}; then  
+      ${d__mss[7]} && return 1
+      ${d__mss[8]} && return 4
+      ${d__mss[5]} && return 5
+    fi
     ${d__mss[2]} && ${d__mss[9]} && return 9
   fi
   ((c=3)) && ${d__mss[3]} && ${d__mss[7]} && ${d__mss[8]} && return 8

@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.26
-#:revremark:    Make inst-by-usr even less verbose
+#:revremark:    Add check status combinations
 #:created_at:   2019.06.10
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -850,7 +850,11 @@ d___reconcile_item_check_codes()
   if ((c=2)); then
     if ${d__qss[3]}; then for i in 0 1 2 4 5 6 7 8 9
     do ${d__qss[$i]} && return $i; done; fi
-    ${d__qss[1]} && ${d__qss[5]} && return 5
+    if ${d__qss[1]}; then  
+      ${d__qss[7]} && return 1
+      ${d__qss[8]} && return 4
+      ${d__qss[5]} && return 5
+    fi
     ${d__qss[2]} && ${d__qss[9]} && return 9
   fi
   ((c=3)) && ${d__qss[3]} && ${d__qss[7]} && ${d__qss[8]} && return 8
