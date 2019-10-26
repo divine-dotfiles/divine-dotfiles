@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: usage
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.16
-#:revremark:    Prioritize arg parsing in main scripts
+#:revdate:      2019.10.26
+#:revremark:    Tweak usage note layout
 #:created_at:   2018.03.25
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -39,7 +39,7 @@ ${BOLD}${D__FMWK_NAME}${NORMAL} usage:
   ${BOLD}${D__EXEC_NAME}${NORMAL} ${BOLD}a${NORMAL}|${BOLD}attach${NORMAL}  [-yn]   REPO...                      - Attach bundles
   ${BOLD}${D__EXEC_NAME}${NORMAL} ${BOLD}d${NORMAL}|${BOLD}detach${NORMAL}  [-yn]   REPO...                      - Detach bundles
   ${BOLD}${D__EXEC_NAME}${NORMAL} ${BOLD}p${NORMAL}|${BOLD}plug${NORMAL}    [-ynl]  REPO/DIR...                  - Plug Grail
-  ${BOLD}${D__EXEC_NAME}${NORMAL} ${BOLD}u${NORMAL}|${BOLD}update${NORMAL}  [-yn]   [-b BUNDLE]...    [f|b|g]... - Update parts
+  ${BOLD}${D__EXEC_NAME}${NORMAL} ${BOLD}u${NORMAL}|${BOLD}update${NORMAL}  [-yn]   [-b BUNDLE]... [f|b|g]...    - Update parts
 
   ${BOLD}${D__EXEC_NAME}${NORMAL} --version                                      - Show version
   ${BOLD}${D__EXEC_NAME}${NORMAL} -h|--help                                      - Show help
