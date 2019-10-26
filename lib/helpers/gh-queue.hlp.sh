@@ -2,8 +2,8 @@
 #:title:        Divine Bash deployment helpers: gh-queue
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.23
-#:revremark:    Interpret returning non-zero from hooks
+#:revdate:      2019.10.26
+#:revremark:    Improve check codes in gh-queue
 #:created_at:   2019.10.10
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -117,15 +117,19 @@ d__gh_item_check()
   then d__stash -s -- has $d__gqesk && d__gqrtc=1 || d__gqrtc=7
   elif [ -d "$d__gqet" ]
   then d__stash -s -- has $d__gqesk && d__gqrtc=5 || d__gqrtc=9
-  else d__gqrtc=2
+  else d__stash -s -- has $d__gqesk && d__gqrtc=6 || d__gqrtc=2
     if [ -e "$d__gqet" ]; then
       if [ "$D__REQ_ROUTINE" = install ]; then
-        D_ADDST_WARNING+=("Something exists at: $d__gqet"); D_ADDST_PROMPT=true
-      else d__notify -l! -- "Something exists at: $d__gqet"; fi
+        D_ADDST_WARNING+=("Path for Github clone is occupied: $d__gqet")
+        D_ADDST_PROMPT=true
+      else d__notify -l! -- "Path for Github clone is occupied: $d__gqet"; fi
     fi
   fi
-  case $d__gqrtc in 2|7) [ -e "$d__gqeb" ] \
-    && d__notify -l!h -- "Orphaned backup at: $d__gqeb";; esac
+  case $d__gqrtc in
+    1|5)  :;;
+    *)    [ -e "$d__gqeb" ] \
+            && d__notify -l!h -- "Orphaned backup at: $d__gqeb";;
+  esac
 
   # Switch context and return
   d__context -qq -- pop "Check code is '$d__gqrtc'"; return $d__gqrtc
