@@ -2,8 +2,8 @@
 #:title:        Divine Bash utils: offer
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.18
-#:revremark:    Fix incorrect stash key for offers
+#:revdate:      2019.10.26
+#:revremark:    Improve output of offer util
 #:created_at:   2019.07.06
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -66,12 +66,12 @@ d__offer_pkg()
   d__prompt -!ap "$D__OPT_ANSWER" "Install '$utl'?" $or_q
   case $? in
     0)  # Switch context; load package updating
+        d__load procedure prep-pkgmgr
         d__context -l! -- push "Installing optional dependency '$utl'" \
           "using '$D__OS_PKGMGR'"
-        d__load procedure prep-pkgmgr
 
         # Launch installation
-        d__os_pkgmgr install "$utl" &>/dev/null
+        d__os_pkgmgr install "$utl"
 
         # Check return code
         if (($?)); then
@@ -89,7 +89,8 @@ d__offer_pkg()
         fi
 
         # Finish up
-        d__context -lvt 'Done' -- pop; d__context -- lop; return 0
+        d__context -lvt 'Installed' -- pop "Optional dependency '$utl'"
+        d__context -- lop; return 0
         ;;
     1)  d__context -l!t 'Refused' -- pop "Proceeding without '$utl'"
         d__context -- lop; return 1;;
