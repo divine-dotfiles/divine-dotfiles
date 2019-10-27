@@ -2,8 +2,8 @@
 #:title:        Divine.dotfiles Fedora adapter
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.14
-#:revremark:    Implement robust dependency loading system
+#:revdate:      2019.10.27
+#:revremark:    Add 'has' command to d__os_pkgmgr wrapper
 #:created_at:   2019.06.04
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -32,6 +32,7 @@ d__detect_os_pkgmgr()
     {
       case "$1" in
         update)   d__require_sudo dnf; sudo dnf upgrade -y;;
+        has)      dnf info "$2" &>/dev/null;;
         check)    d__require_sudo dnf; sudo dnf list --installed "$2" &>/dev/null;;
         install)  d__require_sudo dnf; sudo dnf install -y "$2";;
         remove)   d__require_sudo dnf; sudo dnf remove -y "$2";;
@@ -49,6 +50,7 @@ d__detect_os_pkgmgr()
     {
       case "$1" in
         update)   d__require_sudo yum; sudo yum update -y;;
+        has)      yum info "$2" &>/dev/null;;
         check)    d__require_sudo yum; sudo yum list installed "$2" &>/dev/null;;
         install)  d__require_sudo yum; sudo yum install -y "$2";;
         remove)   d__require_sudo yum; sudo yum remove -y "$2";;

@@ -2,8 +2,8 @@
 #:title:        Divine Bash procedure: detect-os
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.15
-#:revremark:    Finish rewriting entire framework
+#:revdate:      2019.10.27
+#:revremark:    Add 'has' command to d__os_pkgmgr wrapper
 #:created_at:   2019.03.15
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -34,11 +34,12 @@ d__load procedure prep-stash
 #
 ## Provides into the global scope these functions:
 #.  d__os_pkgmgr  - A thin wrapper around system's package manager. Accepts the 
-#.                  following commands as first argument: 'update', 'check', 
-#.                  'install', and 'remove'. The second argument is the name of 
-#.                  a package. Avoids prompting for user input (except for the 
-#.                  sudo password). Returns whatever the package manager 
-#.                  returns, or 2 when the package manager is not supported.
+#.                  following commands as first argument: 'update', 'has', 
+#.                  'check', 'install', and 'remove'. The second argument is 
+#.                  the name of a package. Avoids prompting for user input 
+#.                  (except for the sudo password). Returns whatever the 
+#.                  package manager returns, or 2 when the package manager is 
+#.                  not supported.
 #
 d__pcd_detect_os()
 {
@@ -148,11 +149,12 @@ d__detect_os_family()
 #.                      * 'yum'     - older Fedora
 #.                      * unset     - Not recognized
 #.  d__os_pkgmgr  - A thin wrapper around system's package manager. Accepts the 
-#.                  following commands as first argument: 'update', 'check', 
-#.                  'install', and 'remove'. The second argument is the name of 
-#.                  a package. Avoids prompting for user input (except for the 
-#.                  sudo password). Returns whatever the package manager 
-#.                  returns, or 2 when the package manager is not supported.
+#.                  following commands as first argument: 'update', 'has', 
+#.                  'check', 'install', and 'remove'. The second argument is 
+#.                  the name of a package. Avoids prompting for user input 
+#.                  (except for the sudo password). Returns whatever the 
+#.                  package manager returns, or 2 when the package manager is 
+#.                  not supported.
 #
 ## Returns:
 #.  0 - Success.

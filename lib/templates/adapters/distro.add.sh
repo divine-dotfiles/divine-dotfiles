@@ -2,8 +2,8 @@
 #:title:        Divine.dotfiles template OS distro adapter
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.14
-#:revremark:    Implement robust dependency loading system
+#:revdate:      2019.10.27
+#:revremark:    Add 'has' command to d__os_pkgmgr wrapper
 #:created_at:   2019.06.04
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -81,6 +81,12 @@ d__detect_os_pkgmgr()
   #.  $1  - One of four routines to launch:
   #.          * 'update'  - Updates all installed packages. Other arguments 
   #.                        should be ignored.
+  #.          * 'has'     - Checks whether the single provided package can be 
+  #.                        installed, i.e., whether it exists at all in the 
+  #.                        currently available repositories. Must return zero 
+  #.                        if it is, and non-zero otherwise. Also, this call 
+  #.                        to the package manager must be completely silent 
+  #.                        (&>/dev/null).
   #.          * 'check'   - Checks whether the single provided package is 
   #.                        installed. Must return zero if it is, and non-zero 
   #.                        otherwise. Also, this call to the package manager 
@@ -104,6 +110,7 @@ d__detect_os_pkgmgr()
   {
     case "$1" in
       update)   d__require_sudo apt-get; sudo apt-get update -y; sudo apt-get upgrade -y;;
+      has)      apt-cache show "$2" &>/dev/null;;
       check)    grep -qFx 'install ok installed' <( dpkg-query -W -f='${Status}\n' "$2" 2>/dev/null );;
       install)  d__require_sudo apt-get; sudo apt-get install -y "$2";;
       remove)   d__require_sudo apt-get; sudo apt-get remove -y "$2";;

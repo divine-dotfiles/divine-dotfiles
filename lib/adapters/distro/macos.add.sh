@@ -2,8 +2,8 @@
 #:title:        Divine.dotfiles macOS adapter
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.18
-#:revremark:    Remove repainting & silencing of external calls
+#:revdate:      2019.10.27
+#:revremark:    Add 'has' command to d__os_pkgmgr wrapper
 #:created_at:   2019.06.04
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -41,6 +41,7 @@ d__detect_os_pkgmgr()
   {
     case "$1" in
       update)   brew update; brew upgrade;;
+      has)      HOMEBREW_NO_AUTO_UPDATE=1 brew info "$2" &>/dev/null;;
       check)    HOMEBREW_NO_AUTO_UPDATE=1 brew list "$2" &>/dev/null;;
       install)  brew install "$2";;
       remove)   brew uninstall "$2";;

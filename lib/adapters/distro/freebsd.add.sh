@@ -2,8 +2,8 @@
 #:title:        Divine.dotfiles FreeBSD adapter
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.14
-#:revremark:    Implement robust dependency loading system
+#:revdate:      2019.10.27
+#:revremark:    Add 'has' command to d__os_pkgmgr wrapper
 #:created_at:   2019.08.08
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -32,6 +32,7 @@ d__detect_os_pkgmgr()
   {
     case "$1" in
       update)   d__require_sudo pkg; sudo pkg update; sudo pkg upgrade -y;;
+      has)      pkg rquery %n "$2" &>/dev/null;;
       check)    pkg info "$2" &>/dev/null;;
       install)  d__require_sudo pkg; sudo pkg install -y "$2";;
       remove)   d__require_sudo pkg; sudo pkg delete -y "$2" ;;
