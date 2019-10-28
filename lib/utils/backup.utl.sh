@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.28
-#:revremark:    Add d__push_backup --keep-original option
+#:revremark:    Add i variable to locals in backup utils
 #:created_at:   2019.09.18
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -66,7 +66,7 @@ d__load procedure prep-md5
 d__push_backup()
 {
   # Pluck out options, round up arguments
-  local args=() arg opt keep=false
+  local args=() arg opt i keep=false
   while (($#)); do arg="$1"; shift; case $arg in
     -*) case ${arg:1} in
           -)                args+=("$@"); break;;
@@ -227,7 +227,7 @@ d__push_backup()
 d__pop_backup()
 {
   # Pluck out options, round up arguments
-  local args=() arg opt evict=false dispose=false precise=false
+  local args=() arg opt i evict=false dispose=false precise=false
   while (($#)); do arg="$1"; shift; case $arg in
     -*) case ${arg:1} in
           -)          args+=("$@"); break;;
