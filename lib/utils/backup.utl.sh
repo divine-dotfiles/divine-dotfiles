@@ -2,8 +2,8 @@
 #:title:        Divine Bash utils: backup
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.26
-#:revremark:    Make d__cmd family non-suppressed by default
+#:revdate:      2019.10.28
+#:revremark:    Add d__push_backup --keep-original option
 #:created_at:   2019.09.18
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -17,7 +17,7 @@
 #. nothing is erased, everything is backed up.
 #
 ## Summary of functions in this file:
-#>  d__push_backup [--] ORIG_PATH [BACKUP_PATH]
+#>  d__push_backup [-k] [--] ORIG_PATH [BACKUP_PATH]
 #>  d__pop_backup [-de]... [--] ORIG_PATH [BACKUP_PATH]
 #
 
@@ -26,7 +26,7 @@ readonly D__UTL_BACKUP=loaded
 d__load util workflow
 d__load procedure prep-md5
 
-#>  d__push_backup [--] ORIG_PATH [BACKUP_PATH]
+#>  d__push_backup [-k] [--] ORIG_PATH [BACKUP_PATH]
 #
 ## This function ensures that the ORIG_PATH becomes empty, and if anything 
 #. exists there currently, it is backed up. Thus, if the ORIG_PATH does not 
@@ -51,6 +51,11 @@ d__load procedure prep-md5
 #
 ## This function is intended to be used in conjunction with d__pop_backup.
 #
+## Options:
+#.  -k, --keep-original   - Do not vacate ORIG_PATH. If something is in there, 
+#.                          create backup by copying, but leave the original in 
+#.                          place.
+#
 ## Returns:
 #.  0 - The ORIG_PATH has been made empty; and if anything existed there, it 
 #.      has been backed up.
@@ -61,11 +66,13 @@ d__load procedure prep-md5
 d__push_backup()
 {
   # Pluck out options, round up arguments
-  local args=() arg opt
+  local args=() arg opt keep=false
   while (($#)); do arg="$1"; shift; case $arg in
     -*) case ${arg:1} in
-          -)  args+=("$@"); break;;
+          -)                args+=("$@"); break;;
+          k|-keep-original) keep=true;;
           *)  for ((i=1;i<${#arg};++i)); do opt="${arg:i:1}"; case $opt in
+                k)  keep=true;;
                 *)  printf >&2 '%s %s\n' "$YELLOW$BOLD==>$NORMAL" \
                       "$FUNCNAME: Ignoring unrecognized option: '$opt'";;
               esac; done;;
@@ -155,11 +162,19 @@ d__push_backup()
     d__context -- push 'Using the backup path unchanged'
   fi
 
-  d__context -- push 'Moving the original to the backup location'
-  cmd=mv; d__require_wdir "$backup_dirpath" || cmd='sudo mv'
-  d__cmd --se-- $cmd -n -- --ORIG_PATH-- "$orig_path" \
-    --BACKUP_PATH-- "$backup_path" --else-- 'Failed to push backup' \
-    || return 3
+  if $keep; then
+    d__context -- push 'Copying the original to the backup location'
+    cmd=cp; d__require_wdir "$backup_dirpath" || cmd='sudo cp'
+    d__cmd --se-- $cmd -Rn -- --ORIG_PATH-- "$orig_path" \
+      --BACKUP_PATH-- "$backup_path" --else-- 'Failed to push backup' \
+      || return 3
+  else
+    d__context -- push 'Moving the original to the backup location'
+    cmd=mv; d__require_wdir "$backup_dirpath" || cmd='sudo mv'
+    d__cmd --se-- $cmd -n -- --ORIG_PATH-- "$orig_path" \
+      --BACKUP_PATH-- "$backup_path" --else-- 'Failed to push backup' \
+      || return 3
+  fi
   if ! [ -z ${d__bckp+isset} ]; then d__bckp="$backup_path"; fi
   d__context -- lop
   return 0
