@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.28
-#:revremark:    Check if pkg is available before handling it via pkgmgr
+#:revremark:    Widen manually removed to manually broken
 #:created_at:   2018.12.20
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -185,7 +185,7 @@ d__define_intros()
   readonly D__INTRO_CHK_3="$WHITE$REVERSE$BOLD~~~$NORMAL ${BOLD}Irrelevant      $NORMAL :"
   readonly D__INTRO_CHK_4="$GREEN$REVERSE${BOLD}vv$NORMAL$YELLOW${BOLD}x$NORMAL ${BOLD}Partly installed$NORMAL :"
   readonly D__INTRO_CHK_5="$GREEN$REVERSE${BOLD}v??$NORMAL ${BOLD}Likely installed$NORMAL :"
-  readonly D__INTRO_CHK_6="$RED$REVERSE${BOLD}x_x$NORMAL $RED${BOLD}Manually removed$NORMAL :"
+  readonly D__INTRO_CHK_6="$RED$REVERSE${BOLD}x_x$NORMAL $RED${BOLD}Manually broken $NORMAL :"
   readonly D__INTRO_CHK_7="$MAGENTA$REVERSE${BOLD}vvv$NORMAL ${BOLD}Installed by usr$NORMAL :"
   readonly D__INTRO_CHK_8="$MAGENTA$REVERSE${BOLD}vv$NORMAL$MAGENTA${BOLD}x$NORMAL ${BOLD}Prt. ins. by usr$NORMAL :"
   readonly D__INTRO_CHK_9="$RED$REVERSE${BOLD}x??$NORMAL ${BOLD}Likely not instd$NORMAL :"
@@ -225,7 +225,7 @@ d__define_intros()
   readonly D__INTRO_QCH_3="$CYAN$REVERSE$BOLD~~~$NORMAL $CYAN${BOLD}Irrelevant      $NORMAL $CYAN:"
   readonly D__INTRO_QCH_4="$CYAN$REVERSE${BOLD}vv$NORMAL$CYAN${BOLD}x Partly installed$NORMAL $CYAN:"
   readonly D__INTRO_QCH_5="$CYAN$REVERSE${BOLD}v??$NORMAL $CYAN${BOLD}Likely installed$NORMAL $CYAN:"
-  readonly D__INTRO_QCH_6="$CYAN$REVERSE${BOLD}x_x$NORMAL $CYAN${BOLD}Manually removed$NORMAL $CYAN:"
+  readonly D__INTRO_QCH_6="$CYAN$REVERSE${BOLD}x_x$NORMAL $CYAN${BOLD}Manually broken $NORMAL $CYAN:"
   readonly D__INTRO_QCH_7="$CYAN$REVERSE${BOLD}vvv$NORMAL $CYAN${BOLD}Installed by usr$NORMAL $CYAN:"
   readonly D__INTRO_QCH_8="$CYAN$REVERSE${BOLD}vv$NORMAL$CYAN${BOLD}x Prt. ins. by usr$NORMAL $CYAN:"
   readonly D__INTRO_QCH_9="$CYAN$REVERSE${BOLD}x??$NORMAL $CYAN${BOLD}Likely not instd$NORMAL $CYAN:"
