@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: install
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.26
-#:revremark:    Better handle offered utils in Divinefiles
+#:revdate:      2019.10.28
+#:revremark:    Check if pkg is available before handling it via pkgmgr
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -237,6 +237,13 @@ d___install_pkgs()
         # Not installed, no stash record
         d__shi=true d__shs=true
       fi
+    fi
+
+    # Check whether that particular package is available in package manager
+    if ! d__os_pkgmgr has $d__pkg_n; then
+      d__notify -qs -- \
+        "Package '$d__pkg_n' is currently not available from '$D__OS_PKGMGR'"
+      printf >&2 '%s %s\n' "$D__INTRO_NOTAV" "$d__plq"; continue
     fi
 
     # Settle on always-ask mode; if forcing, print force intro

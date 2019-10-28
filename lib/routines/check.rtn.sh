@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: check
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.24
-#:revremark:    Ensure printed intro before unsuppressed system calls
+#:revdate:      2019.10.28
+#:revremark:    Check if pkg is available before handling it via pkgmgr
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -163,6 +163,9 @@ d___check_pkgs()
       if d__stash -rs -- has "pkg_$( dmd5 -s $d__pkg_n )"; then
         # Not installed, but stash record exists
         printf >&2 '%s %s\n' "$D__INTRO_CHK_6" "$d__plq"
+      elif ! d__os_pkgmgr has $d__pkg_n; then
+        # Not available in package manager at all
+        printf >&2 '%s %s\n' "$D__INTRO_NOTAV" "$d__plq"
       else
         # Not installed, no stash record
         printf >&2 '%s %s\n' "$D__INTRO_CHK_2" "$d__plq"

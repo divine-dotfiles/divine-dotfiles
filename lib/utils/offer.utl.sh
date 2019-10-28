@@ -2,8 +2,8 @@
 #:title:        Divine Bash utils: offer
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.26
-#:revremark:    Improve output of offer util
+#:revdate:      2019.10.28
+#:revremark:    Check if pkg is available before handling it via pkgmgr
 #:created_at:   2019.07.06
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -65,12 +65,19 @@ d__offer_pkg()
   # Prompt user and check response
   d__prompt -!ap "$D__OPT_ANSWER" "Install '$utl'?" $or_q
   case $? in
-    0)  # Switch context; load package updating
+    0)  # Update currently installed packages
         d__load procedure prep-pkgmgr
+
+        # Check whether that package is available at all
+        if ! d__os_pkgmgr has "$utl"; then
+          d__fail -- "Package '$d__pkg_n' is currently not available" \
+            "from '$D__OS_PKGMGR'"
+          return 1
+        fi
+
+        # Announce and launch installation
         d__context -l! -- push "Installing optional dependency '$utl'" \
           "using '$D__OS_PKGMGR'"
-
-        # Launch installation
         d__os_pkgmgr install "$utl"
 
         # Check return code
