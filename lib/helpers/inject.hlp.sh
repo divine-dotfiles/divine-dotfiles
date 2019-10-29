@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.29
-#:revremark:    Implement inject helper
+#:revremark:    Polish inject helper
 #:created_at:   2019.10.28
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -28,8 +28,10 @@ d__load procedure prep-md5
 #.  $D_INJECT_TGT     - Path to the file to inject into. May not exist. Must be 
 #.                      writable.
 #.  $D_INJECT_SRC     - Path to the file, entire content of which is to be 
-#.                      injected. Normally, this should be a temporary file, 
-#.                      e.g., a file created through 'mktemp' utility.
+#.                      injected. This file should be a temporary file, i.e., 
+#.                      it should be created via:
+#.                        D_INJECT_SRC="$(mktemp)"
+#.                      Removing this file is left to the user.
 #.  $D_INJECT_CMT     - String that initiates a line comment in the type of 
 #.                      file being injected into. This is used to comment out 
 #.                      the injection delimiters. Defaults to an empty string 
@@ -318,7 +320,8 @@ d__inject_remove()
             njwrn='Overwriting differing previous injection in target file'
           else
             if ! [ "$njcs_src" = "$njcs_stsh" ] || [ $njrtc -ne 6 ]; then
-              njwrn="Target file's previous injection has been modified manually"
+              njwrn="Target file's previous injection"
+              njwrn+='has been modified manually'
             fi
           fi
         fi
