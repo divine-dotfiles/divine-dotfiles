@@ -2,8 +2,8 @@
 #:title:        Divine Bash utils: backup
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.28
-#:revremark:    Add i variable to locals in backup utils
+#:revdate:      2019.10.29
+#:revremark:    Leave note of original path when backing up
 #:created_at:   2019.09.18
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -148,6 +148,7 @@ d__push_backup()
     d__context -- pop
   fi
 
+  local note_path="$backup_path.path"
   if [ -e "$backup_path" ]; then
     d__notify -qqq -- "Backup location is occupied"
     d__context -- push 'Scanning for an unoccupied backup location'
@@ -175,6 +176,7 @@ d__push_backup()
       --BACKUP_PATH-- "$backup_path" --else-- 'Failed to push backup' \
       || return 3
   fi
+  printf '%s\n' "$orig_path" >"$note_path"
   if ! [ -z ${d__bckp+isset} ]; then d__bckp="$backup_path"; fi
   d__context -- lop
   return 0
@@ -281,7 +283,7 @@ d__pop_backup()
       || return 2
   fi
 
-  local restore=false
+  local restore=false pbackup_path="$backup_path" note_path="$backup_path.path"
   if [ -e "$backup_path" ]; then
     d__notify -qqq -- "Backup exists"
     if [ -e "$backup_path-1" ]; then
@@ -350,6 +352,7 @@ d__pop_backup()
     --ORIG_PATH-- "$orig_path" --else-- 'Failed to pop backup' \
     || return 3
   if ! [ -z ${d__bckp+isset} ]; then d__bckp="$backup_path"; fi
+  [ -f "$note_path" -a ! -e "$pbackup_path" ] && rm -f -- "$note_path"
   d__context -- lop
   return 0
 }
