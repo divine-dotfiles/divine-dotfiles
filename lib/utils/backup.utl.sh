@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.29
-#:revremark:    Leave note of original path when backing up
+#:revremark:    Leave note of original path when backing up, dpls only
 #:created_at:   2019.09.18
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -109,7 +109,7 @@ d__push_backup()
     return 0
   fi
   
-  local backup_path backup_dirpath i
+  local backup_path backup_dirpath note_path i
   if [ -z ${args[1]+isset} ]; then
     d__notify -qq -- 'No backup path provided explicitly'
     d__context -- push "Backing up into the deployment's backups directory"
@@ -123,6 +123,7 @@ d__push_backup()
       d__fail -- 'Failed to generate the md5 checksum of the path'
       return 3
     fi
+    note_path="$backup_path.path"
   else
     d__notify -qq -- 'A backup path is provided'
     backup_path="${args[1]}"
@@ -148,7 +149,6 @@ d__push_backup()
     d__context -- pop
   fi
 
-  local note_path="$backup_path.path"
   if [ -e "$backup_path" ]; then
     d__notify -qqq -- "Backup location is occupied"
     d__context -- push 'Scanning for an unoccupied backup location'
@@ -176,7 +176,7 @@ d__push_backup()
       --BACKUP_PATH-- "$backup_path" --else-- 'Failed to push backup' \
       || return 3
   fi
-  printf '%s\n' "$orig_path" >"$note_path"
+  [ -n "$note_path" ] && printf '%s\n' "$orig_path" >"$note_path"
   if ! [ -z ${d__bckp+isset} ]; then d__bckp="$backup_path"; fi
   d__context -- lop
   return 0
@@ -261,7 +261,7 @@ d__pop_backup()
     $evict && d__notify -qq -- "Nothing to evict at: $orig_path"; evict=false
   fi
 
-  local backup_path i
+  local backup_path i pbackup_path note_path
   if [ -z ${args[1]+isset} ]; then
     d__notify -qq -- 'No backup path provided explicitly'
     d__context -- push "Popping backup from the deployment's backups directory"
@@ -274,6 +274,7 @@ d__pop_backup()
       d__fail -- 'Failed to generate the md5 checksum of the path'
       return 3
     fi
+    pbackup_path="$backup_path" note_path="$backup_path.path"
   else
     d__notify -qq -- 'A backup path is provided'
     backup_path="${args[1]}"
@@ -283,7 +284,7 @@ d__pop_backup()
       || return 2
   fi
 
-  local restore=false pbackup_path="$backup_path" note_path="$backup_path.path"
+  local restore=false
   if [ -e "$backup_path" ]; then
     d__notify -qqq -- "Backup exists"
     if [ -e "$backup_path-1" ]; then
