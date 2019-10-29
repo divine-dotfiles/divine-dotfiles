@@ -1,17 +1,18 @@
 * [`*feature*`] Push and pop backups of files with `d\__push_backup` and `d__pop_backup`.
+* [`*feature*`] Inject textual chunks into files with `inject` deployment helpers.
 * [`*feature*`] List all stashed keys with `d__stash list-keys`.
 * [`*feature*`] Check whether stash contains a key with particular value with `d__stash has _KEY_ _VALUE_`.
 * [`*feature*`] Install/remove primaries can now access return code of their check primary in `D__DPL_CHECK_CODE`.
 
+* [`*other*`] Re-write the entire framework. Just because.
+* [`*other*`] Implement a more robust internal dependency system.
 * [`*other*`] Implement a multi-level verbosity system to gradually supplant the existing Boolean one.
 * [`*other*`] Implement the Divine workflow system along with its functions:
 ** `*d__context*` — workflow context handler.
 ** `*d__notify*` — debug printer.
 ** `*d__prompt*` — user prompt mechanism.
 ** `*d__fail*` — failure mechanism.
-** `*d__cmd*` — simple command wrapper.
-** `*d__pipe*` — command wrapper with support for pipes.
-** `*d__require*` — command wrapper with support for and/or chaining.
+** `*d\__cmd*`, `*d\__pipe*`, `*d\__require*` — simple command wrappers.
 * [`*other*`] Optimize framework initialization sequence
 * [`*other*`] Optimize code in `stash.hlp.sh`
 * [`*other*`] Demote `dmd5.utl.sh` to a small helper implemented in `prep-1-sys.pcd.sh`.
