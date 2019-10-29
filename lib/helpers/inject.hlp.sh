@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.29
-#:revremark:    Improve wording of injection delimiters
+#:revremark:    Further improve wording of injection delimiters
 #:created_at:   2019.10.28
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -62,7 +62,7 @@ d__inject_check()
     then
       while IFS= read -r lbf || [ -n "$lbf" ]; do case $lbf in
         "${njcmt}CREATED AUTOMATICALLY; DO NOT MODIFY THIS BLOCK") continue;;
-        "${njcmt}<<<<<<<<<<END BLOCK: DEPLOYMENT '$D_DPL_NAME'") break;;
+        "${njcmt}<<<<<<<<<<<<END BLOCK: DEPLOYMENT '$D_DPL_NAME'") break;;
         *) printf '%s\n' "$lbf";;
       esac; done; njexs=true
     fi
@@ -224,7 +224,7 @@ d__inject_install()
       if [[ $lbf = "$njcmt>>>>>>>>>>BEGIN BLOCK: DEPLOYMENT '$D_DPL_NAME'" ]]
       then
         while IFS= read -r lbf || [ -n "$lbf" ]; do case $lbf in
-          "${njcmt}<<<<<<<<<<END BLOCK: DEPLOYMENT '$D_DPL_NAME'")
+          "${njcmt}<<<<<<<<<<<<END BLOCK: DEPLOYMENT '$D_DPL_NAME'")
             IFS= read -r lbf; read -r ltbf <<<"$lbf"
             if [ -n "$ltbf" ]; then printf '%s\n' "$lbf"; fi
             break;;
@@ -243,7 +243,7 @@ d__inject_install()
     "${njcmt}CREATED AUTOMATICALLY; DO NOT MODIFY THIS BLOCK"
   cat "$njsp" >>$njtmp
   printf >>$njtmp '%s\n\n' \
-    "${njcmt}<<<<<<<<<<END BLOCK: DEPLOYMENT '$D_DPL_NAME'"
+    "${njcmt}<<<<<<<<<<<<END BLOCK: DEPLOYMENT '$D_DPL_NAME'"
 
   # Move proxy into place
   if $njexs && ! d__cmd mv -n -- --TEMP_PATH-- $njtmp --TARGET_PATH-- "$njtp" \
@@ -362,7 +362,7 @@ d__inject_remove()
       if [[ $lbf = "$njcmt>>>>>>>>>>BEGIN BLOCK: DEPLOYMENT '$D_DPL_NAME'" ]]
       then
         while IFS= read -r lbf || [ -n "$lbf" ]; do case $lbf in
-          "${njcmt}<<<<<<<<<<END BLOCK: DEPLOYMENT '$D_DPL_NAME'")
+          "${njcmt}<<<<<<<<<<<<END BLOCK: DEPLOYMENT '$D_DPL_NAME'")
             IFS= read -r lbf; read -r ltbf <<<"$lbf"
             if [ -n "$ltbf" ]; then printf '%s\n' "$lbf"; fi
             break;;
