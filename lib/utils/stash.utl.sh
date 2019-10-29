@@ -2,8 +2,8 @@
 #:title:        Divine Bash utils: stash
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.18
-#:revremark:    Tweak wording of missing md5 prompt in stash util
+#:revdate:      2019.10.29
+#:revremark:    Implement inject helper
 #:created_at:   2019.05.15
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -107,7 +107,7 @@ d__stash()
                   g)  stash_level=g;;
                   s)  do_checks=false;;
                   q)  quiet=true;;
-                  *)  d__notify -lat "$FUNCNAME" -- \
+                  *)  d__notify -l!t "$FUNCNAME" -- \
                         "Ignoring unrecognized option: '$opt'";;
                 esac
               done;;
@@ -722,7 +722,7 @@ d___stash_check_md5()
     d___stash_store_md5
 
     # Warn of the decision and return
-    d__notify -la -- 'Working with unverified stash'
+    d__notify -l! -- 'Working with unverified stash'
     return 0
 
   else

@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: remove
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.28
-#:revremark:    Check if pkg is available before handling it via pkgmgr
+#:revdate:      2019.10.29
+#:revremark:    Implement inject helper
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -27,6 +27,7 @@ d__load helper queue
 d__load helper link-queue
 d__load helper copy-queue
 d__load helper gh-queue
+d__load helper inject
 d__load procedure prep-stash
 d__load procedure offer-gh
 d__load procedure check-gh
@@ -179,7 +180,7 @@ d___remove_pkgs()
           printf >&2 '%s %s\n' "$D__INTRO_RMV_2" "$d__plq"; continue
         fi
       fi
-    elif type -P -- $d__pkg_n; then
+    elif type -P -- $d__pkg_n &>/dev/null; then
       if d__stash -rs -- has "pkg_$( dmd5 -s $d__pkg_n )"; then
         # Installed without package manager, somehow there is a stash record
         d__notify -lx -- "Package '$d__pkg_n' is recorded" \
