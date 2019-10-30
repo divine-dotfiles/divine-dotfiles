@@ -2,8 +2,8 @@
 #:title:        Divine.dotfiles fmwk uninstall script
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.18
-#:revremark:    Tweak intro to fmwk (un)inst
+#:revdate:      2019.10.31
+#:revremark:    Support --obliterate in fmwk (un)installation
 #:created_at:   2019.07.22
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -45,6 +45,7 @@ d__parse_arguments()
 
   # Global flags for command line options
   D__OPT_FORCE=false        # Flag for forceful mode
+  D__OPT_OBLITERATE=false   # Flag for slash-and-burn mode
   D__OPT_VERBOSITY=0        # Verbosity setting
   D__OPT_ANSWER=            # Blanket answer to all prompts
   D__OPT_ANSWER_F=          # Blanket answer to framework prompts
@@ -66,6 +67,7 @@ d__parse_arguments()
           u|-util-yes)  D__OPT_ANSWER_U=true;;
           U|-util-no)   D__OPT_ANSWER_U=false;;
           f|-force)     D__OPT_FORCE=true;;
+          o|-obliterate)  D__OPT_OBLITERATE=true;;
           q|-quiet)     D__OPT_VERBOSITY=0;;
           v|-verbose)   ((++D__OPT_VERBOSITY));;
           '') D__REQ_ERRORS+=( -i- "- unrecognized option '-'" );;
@@ -82,6 +84,7 @@ d__parse_arguments()
                 u)  D__OPT_ANSWER_U=true;;
                 U)  D__OPT_ANSWER_U=false;;
                 f)  D__OPT_FORCE=true;;
+                o)  D__OPT_OBLITERATE=true;;
                 q)  D__OPT_VERBOSITY=0;;
                 v)  ((++D__OPT_VERBOSITY));;
                 *)  D__REQ_ERRORS+=( -i- "- unrecognized option '$opt'" );;
