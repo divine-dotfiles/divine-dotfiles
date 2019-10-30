@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: fmwk-uninstall
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.24
-#:revremark:    Be more verbose by default when announcing gh interaction
+#:revdate:      2019.10.31
+#:revremark:    Lay groundwork for --obliterate option
 #:created_at:   2019.10.15
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -25,6 +25,10 @@ d__load util workflow
 #
 d__rtn_fmwk_uninstall()
 {
+  if $D__OPT_OBLITERATE \
+    && ! [ "$D__OPT_ANSWER" = false -o "$D__OPT_ANSWER_F" = false ]
+  then d__confirm_obliteration; fi
+
   # Print a separating empty line, switch context
   printf >&2 '\n'
   d__context -- notch

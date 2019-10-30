@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: plug
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.17
-#:revremark:    Split prep-gh in two
+#:revdate:      2019.10.31
+#:revremark:    Lay groundwork for --obliterate option
 #:created_at:   2019.06.26
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -34,6 +34,9 @@ d__rtn_plug()
     d__notify -lst 'Nothing to do' -- 'Replacement Grail not provided'
     exit 0
   fi
+
+  if $D__OPT_OBLITERATE && [ "$D__OPT_ANSWER" != false ]
+  then d__confirm_obliteration; fi
 
   # Print a separating empty line, switch context
   printf >&2 '\n'

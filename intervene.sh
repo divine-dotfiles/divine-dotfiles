@@ -2,8 +2,8 @@
 #:title:        Divine Bash script: intervene
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.24
-#:revremark:    Fix incorrect arg parsing in main script
+#:revdate:      2019.10.31
+#:revremark:    Lay groundwork for --obliterate option
 #:created_at:   2018.03.25
 
 ## Launches the Divine intervention
@@ -49,6 +49,7 @@ d__parse_arguments()
   # Global flags for command line options
   D__OPT_INVERSE=false      # Flag for whether filtering is inverted
   D__OPT_FORCE=false        # Flag for forceful mode
+  D__OPT_OBLITERATE=false   # Flag for slash-and-burn mode
   D__OPT_EXCLAM=false       # Flag for whether include '!'-dpls by default
   D__OPT_VERBOSITY=0        # Verbosity setting
   D__OPT_ANSWER=            # Blanket answer to all prompts
@@ -76,6 +77,7 @@ d__parse_arguments()
                         else erra+=( -i- "- option '$arg' requires argument" )
                         fi;;
           f|-force)     D__OPT_FORCE=true;;
+          o|-obliterate)  D__OPT_OBLITERATE=true;;
           e|-except)    D__OPT_INVERSE=true;;
           w|-with-!)    D__OPT_EXCLAM=true;;
           q|-quiet)     D__OPT_VERBOSITY=0;;
@@ -100,6 +102,7 @@ d__parse_arguments()
                     else erra+=( -i- "- option '$opt' requires argument" )
                     fi;;
                 f)  D__OPT_FORCE=true;;
+                o)  D__OPT_OBLITERATE=true;;
                 e)  D__OPT_INVERSE=true;;
                 w)  D__OPT_EXCLAM=true;;
                 q)  D__OPT_VERBOSITY=0;;
@@ -120,6 +123,7 @@ d__parse_arguments()
   readonly D__OPT_VERBOSITY
   readonly D__OPT_ANSWER
   readonly D__OPT_FORCE
+  readonly D__OPT_OBLITERATE
   readonly D__OPT_INVERSE
   readonly D__OPT_PLUG_LINK
 

@@ -2,8 +2,8 @@
 #:title:        Divine Bash utils: workflow
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.26
-#:revremark:    Make d__cmd family non-suppressed by default
+#:revdate:      2019.10.31
+#:revremark:    Lay groundwork for --obliterate option
 #:created_at:   2019.09.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -1524,4 +1524,22 @@ d__require_wfile()
 d__require_sudo()
 {
   d__notify -u! -- "Sudo privilege is required to work with '$1'"; return 0
+}
+
+#>  d__confirm_obliteration
+#
+## Prompts the user to confirm foregoing zero data loss concerns. If the user 
+#. relents, exits the script.
+#
+d__confirm_obliteration()
+{
+  if d__prompt -!pn 'Slash & burn?' -- \
+    "You have chosen the $BOLD--obliterate$NORMAL option." \
+    -n- \
+    "This means, that the framework will ${BOLD}forego the usual" \
+    "concerns of zero data loss$NORMAL while performing any removals." \
+    -n- \
+    'The built-in framework mechanisms will obey,' \
+    'but no guarantees can be given about the third-party deployments.'
+  then return 0; else exit 1; fi
 }

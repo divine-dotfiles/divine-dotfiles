@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: update
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.24
-#:revremark:    Ensure printed intro before unsuppressed system calls
+#:revdate:      2019.10.31
+#:revremark:    Lay groundwork for --obliterate option
 #:created_at:   2019.05.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -41,6 +41,9 @@ d__rtn_update()
       'the tools to interact with Git/Github repositories'
     exit 1
   fi
+
+  if $D__OPT_OBLITERATE && [ "$D__OPT_ANSWER" != false ]
+  then d__confirm_obliteration; fi
 
   # Print a separating empty line, switch context
   printf >&2 '\n'

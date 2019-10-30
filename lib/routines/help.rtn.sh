@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: help
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.16
-#:revremark:    Prioritize arg parsing in main scripts
+#:revdate:      2019.10.31
+#:revremark:    Lay groundwork for --obliterate option
 #:created_at:   2018.03.25
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -180,11 +180,23 @@ OPTIONS
                     attaching of bundles. This option also works during update 
                     routine, where it specifies bundles to update.
 
-    -f, --force     By default, framework tries NOT to:
+    -f, --force     By default, the framework tries NOT to:
                       * re-install something that appears already installed;
                       * remove something that appears not installed;
                       * remove something that appears installed by means other 
                         than this framework.
+                    This option signals that such considerations are to be 
+                    forgone. Note, however, that it is mostly up to authors of 
+                    deployments to honor this option. Divine deployments 
+                    (distributed separately) are designed with this option in 
+                    mind.
+
+    -o, --obliterate
+                    By default, the framework does NOT erase files or 
+                    directories that may potentially have unrecoverable data. 
+                    The 'rm' command is called strictly for files that are 
+                    temporary or demonstrably value-less. All other removal 
+                    operations move to backup locations instead.
                     This option signals that such considerations are to be 
                     forgone. Note, however, that it is mostly up to authors of 
                     deployments to honor this option. Divine deployments 
