@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.31
-#:revremark:    Lay groundwork for --obliterate option
+#:revremark:    Accept rm as another synonym for remove
 #:created_at:   2018.03.25
 
 ## Launches the Divine intervention
@@ -141,18 +141,18 @@ d__parse_arguments()
   # Parse the first argument
   local rarg="${D__REQ_ARGS[0]}"; D__REQ_ARGS=("${D__REQ_ARGS[@]:1}")
   case $rarg in
-    c|ch|che|check)                     rtn=check;;
-    i|in|ins|install)                   rtn=install;;
-    r|re|rem|remove|un|uni|uninstall)   rtn=remove;;
-    a|at|att|attach|ad|add)             rtn=attach;;
-    d|de|det|detach|del|delete)         rtn=detach;;
-    p|pl|plu|plug)                      rtn=plug;;
-    u|up|upd|update)                    rtn=update;;
-    v|ve|ver|version)                   rtn=version;;
-    h|he|hel|help)                      rtn=help;;
-    us|usa|usage)                       rtn=usage;;
-    fmwk-install)                       rtn=fmwk-install;;
-    fmwk-uninstall)                     rtn=fmwk-uninstall;;
+    c|ch|che|check)                       rtn=check;;
+    i|in|ins|install)                     rtn=install;;
+    r|re|rm|rem|remove|un|uni|uninstall)  rtn=remove;;
+    a|at|att|attach|ad|add)               rtn=attach;;
+    d|de|det|detach|del|delete)           rtn=detach;;
+    p|pl|plu|plug)                        rtn=plug;;
+    u|up|upd|update)                      rtn=update;;
+    v|ve|ver|version)                     rtn=version;;
+    h|he|hel|help)                        rtn=help;;
+    us|usa|usage)                         rtn=usage;;
+    fmwk-install)                         rtn=fmwk-install;;
+    fmwk-uninstall)                       rtn=fmwk-uninstall;;
     '') rtn=usage;;
     *)  rtn=usage erra+=( -i- "- unrecognized routine '$rarg'" );;
   esac; ((${#erra[@]})) && D__REQ_ERRORS+=("${erra[@]}")
