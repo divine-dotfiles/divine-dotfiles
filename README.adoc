@@ -2,7 +2,7 @@
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
 :revdate: 2019.10.30
-:revremark: Shrink readme plaque a bit, provide dimensions
+:revremark: Remove height from readme plaque
 :doctype: article
 // Visual
 :toc:
@@ -22,7 +22,7 @@
 
 ++++
 <p align="center">
-  <img id="divine-dotfiles-plaque" width="640" height="360" src="lib/img/divine-dotfiles-plaque.png" alt="Divine.dotfiles">
+  <img id="divine-dotfiles-plaque" width="640" src="lib/img/divine-dotfiles-plaque.png" alt="Divine.dotfiles">
 </p>
 ++++
 
