@@ -1,8 +1,8 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revdate: 2019.10.23
-:revremark: Expand helpers for sudo checks
+:revdate: 2019.10.30
+:revremark: Shrink readme plaque a bit, provide dimensions
 :doctype: article
 // Visual
 :toc:
@@ -20,8 +20,11 @@
 </p>
 ++++
 
-[#divine-dotfiles-plaque]
-image::lib/img/divine-dotfiles-plaque.png[Divine.dotfiles,align="center"]
+++++
+<p align="center">
+  <img id="divine-dotfiles-plaque" width="640" height="360" src="lib/img/divine-dotfiles-plaque.png" alt="Divine.dotfiles">
+</p>
+++++
 
 New machine or new OS?
 Set it up with a single `*di install --yes*`.
