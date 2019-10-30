@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.31
-#:revremark:    Accept rm as another synonym for remove
+#:revremark:    Add more routine name synonyms
 #:created_at:   2018.03.25
 
 ## Launches the Divine intervention
@@ -145,12 +145,12 @@ d__parse_arguments()
     i|in|ins|install)                     rtn=install;;
     r|re|rm|rem|remove|un|uni|uninstall)  rtn=remove;;
     a|at|att|attach|ad|add)               rtn=attach;;
-    d|de|det|detach|del|delete)           rtn=detach;;
-    p|pl|plu|plug)                        rtn=plug;;
-    u|up|upd|update)                      rtn=update;;
-    v|ve|ver|version)                     rtn=version;;
-    h|he|hel|help)                        rtn=help;;
-    us|usa|usage)                         rtn=usage;;
+    d|de|dt|det|detach|del|delete)        rtn=detach;;
+    p|pl|pg|plu|plug)                     rtn=plug;;
+    u|up|ud|upd|update)                   rtn=update;;
+    v|ve|vr|ver|version)                  rtn=version;;
+    h|he|hl|hp|hel|help)                  rtn=help;;
+    us|ug|usa|usage)                      rtn=usage;;
     fmwk-install)                         rtn=fmwk-install;;
     fmwk-uninstall)                       rtn=fmwk-uninstall;;
     '') rtn=usage;;
