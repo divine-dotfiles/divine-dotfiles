@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.31
-#:revremark:    Add more routine name synonyms
+#:revremark:    Add more routine name synonyms, pt.2
 #:created_at:   2018.03.25
 
 ## Launches the Divine intervention
@@ -151,8 +151,8 @@ d__parse_arguments()
     v|ve|vr|ver|version)                  rtn=version;;
     h|he|hl|hp|hel|help)                  rtn=help;;
     us|ug|usa|usage)                      rtn=usage;;
-    fmwk-install)                         rtn=fmwk-install;;
-    fmwk-uninstall)                       rtn=fmwk-uninstall;;
+    fmwk-install|fi)                      rtn=fmwk-install;;
+    fmwk-uninstall|fu|fr)                 rtn=fmwk-uninstall;;
     '') rtn=usage;;
     *)  rtn=usage erra+=( -i- "- unrecognized routine '$rarg'" );;
   esac; ((${#erra[@]})) && D__REQ_ERRORS+=("${erra[@]}")
