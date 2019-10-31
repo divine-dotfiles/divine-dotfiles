@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.31
-#:revremark:    Repaint notices about repo url and location
+#:revremark:    Print location of backed up pre-existing path
 #:created_at:   2019.10.15
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -124,7 +124,9 @@ d___get_ready()
 
     # Push backup of occupied path
     d__bckp=
-    if d__push_backup -- "$idst" "$idst.bak"; then ioccbckp="$d__bckp"
+    if d__push_backup -- "$idst" "$idst.bak"; then
+      ioccbckp="$d__bckp" [ -n "$ioccbckp" ] && d__notify -lv -- \
+        'Pre-existing installation path is backed up to:' -i- "$ioccbckp"
     else
       d__notify -lx -- 'Failed to back up pre-existing installation path'
       printf >&2 '%s %s\n' "$D__INTRO_FAILR" "$iplq"; return 1
