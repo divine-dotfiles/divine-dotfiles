@@ -2,7 +2,7 @@
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
 :revdate: 2019.10.31
-:revremark: Update readme for D.d v2, pt. 2
+:revremark: Update readme for D.d v2, pt. 3
 :doctype: article
 // Visual
 :toc:
@@ -105,7 +105,7 @@ But wait, there's [.small]#_(hopefully)_# more.
 
 | +++<p align="center">+++<<divinefiles,*Divinefiles*>>+++</p>+++
 
-A special kind of deployments that maintains a stable set of packages across machines and OS's.
+A special kind of deployments, the <<divinefiles,*Divinefiles*>> maintain a stable set of packages across machines and OS's.
 
 | +++<p align="center">+++<<grail-directory,*The Grail directory*>>+++</p>+++
 
@@ -193,10 +193,11 @@ However, even with force applied, the zero data loss <<fmwk-zero-data-loss,polic
 ==== Reversibility
 
 Where feasible, the built-in mechanisms that introduce changes to the system are paired with the reversal counterparts.
-A glaring exception to this is the upgrading of the local package repositories through the system package manager (e.g., `sudo dnf upgrade -y`), which is deemed safe enough to overlook.
 
 To give an example, any backups created when installing a <<copy-queue,copy-queue>> are restored to their original locations when that queue is removed.
-Another example is the introductory <<joy-ride,joy ride>>: if taken reasonably it will leave the system in largely the same state as before installing the framework.
+Another example is the introductory <<joy-ride,joy ride>>: if taken reasonably, it will leave the system in largely the same state as before installing the framework.
+
+A glaring exception to this principle is the upgrading of the local package repositories through the system package manager (e.g., `sudo dnf upgrade -y`), which is deemed safe enough to overlook.
 
 == Installing and uninstalling the framework
 
@@ -207,11 +208,11 @@ Another example is the introductory <<joy-ride,joy ride>>: if taken reasonably i
 Following OS distributions are openly supported:
 +
 --
-** *Debian*;
-** *Fedora*;
-** *FreeBSD*;
-** *macOS*;
-** *Ubuntu*.
+** *Debian*
+** *Fedora*
+** *FreeBSD*
+** *macOS*
+** *Ubuntu*
 --
 +
 [.note]
@@ -220,7 +221,7 @@ Following OS distributions are openly supported:
 | This list is incomplete; you can help by <<contributing-os-support,expanding it>>.
 |===
 +
-The framework will work on other operating systems too, but without support for packages (e.g., <<divinefiles,Divinefiles>> will not work).
+The framework will work on other operating systems too, but without the support for packages (e.g., the <<divinefiles,Divinefiles>> will not work).
 
 * Bash 3.2+ and either `curl` or `wget`.
 +
@@ -248,19 +249,6 @@ P; exit 2; }; chmod +x \$TMP && \$TMP \"\$@\"; RC=\$?; rm -f \$TMP; ((RC)) && \
 exit 3 || exit 0" bash
 ----
 
-[.note]
-[%noheader,cols="<.<a"]
-|===
-| Nothing too spectacular will happen:
-
-* Optional dependencies, such as Git, will be offered, unless installed already.
-* This repository will be cloned/downloaded.
-* Optionally, one symlink (<<intervention-utility,`di`>>) to the framework's main script will be created on `$PATH`.
-* Zero data loss <<fmwk-zero-data-loss,policy>> will be in effect, as normal.
-
-And naturally, you will be <<fmwk-interactivity,prompted>> for everything.
-|===
-
 Equivalently, the framework can be installed from a local copy of this repository (located outside of the installation path) by running this command:
 
 [source,bash]
@@ -268,12 +256,23 @@ Equivalently, the framework can be installed from a local copy of this repositor
 ./intervene.sh fmwk-install
 ----
 
+[.note]
+[%noheader,cols="<.<a"]
+|===
+| Nothing too spectacular will happen:
+
+* Optional dependencies — such as Git — will be offered, unless installed already.
+* This repository will be cloned/downloaded.
+* Optionally, one symlink (<<intervention-utility,`di`>>) to the framework's main script will be created on `$PATH`.
+* Zero data loss <<fmwk-zero-data-loss,policy>> will be in effect, as normal.
+
+And naturally, you will be <<fmwk-interactivity,prompted>> for everything.
+|===
+
 The documentation assumes that the framework has been installed with the optional shortcut command <<intervention-utility,`di`>>.
-Still, all invocations of the `di` command can be substituted by executing the `./intervene.sh` script in the root of the installation directory.
+Still, all invocations of the `di` command are equivalent to executing the `./intervene.sh` script in the root of the installation directory.
 
 ==== Installation options and overrides
-
-Add flavoring to your installation as such:
 
 .Framework installation options and overrides
 [%noheader,cols="<.<a",stripes=none]
@@ -326,8 +325,9 @@ Assumes a negatory answer to the prompt about installing the shortcut command.
 
 | `*-f*`, `*--force*`
 
-By default the installation halts immediately if the destination directory already exists and is not empty.
-This option allows to instead back up the pre-existing destination via an <<urgent-prompts,urgent prompt>>.
+By default the installation halts immediately if the destination path already exists and is not an empty directory.
+This is in keeping with the zero data loss <<fmwk-zero-data-loss,policy>>.
+This option directs to instead issue an <<urgent-prompts,urgent prompt>> about whether to displace the pre-existing destination to a backup location.
 
 | `*-v*`, `*--verbose*`
 
@@ -369,7 +369,7 @@ Equivalently, the framework can be uninstalled from a local copy of this reposit
 ./intervene.sh fmwk-uninstall
 ----
 
-Directing an existing installation of _Divine.dotfiles_ to uninstall itself is also possible:
+Also, an existing installation of _Divine.dotfiles_ may be directed to uninstall itself:
 
 [source,bash]
 ----
@@ -392,8 +392,6 @@ One thing that framework uninstallation does *_not_* do is uninstall deployments
 Any deployments that might have been installed *_must be removed manually_* before uninstalling Divine.dotfiles. 
 
 ==== Uninstallation options and overrides
-
-Add flavoring to your uninstallation as such:
 
 .Framework uninstallation options and overrides
 [%noheader,cols="<.<a",stripes=none]
@@ -436,8 +434,8 @@ Assumes a negatory answer to the prompt about installing the optional dependenci
 
 | `*-f*`, `*--force*`
 
-By default the uninstallation halts immediately if it fails to uninstall any of the existing optional dependencies.
-This option allows to instead ignore such debacles via an <<urgent-prompts,urgent prompt>>.
+By default the uninstallation halts immediately if it fails to uninstall any of the optional dependencies.
+This option directs to instead issue an <<urgent-prompts,urgent prompt>> about whether to ignore the debacle.
 
 | `*-o*`, `*--obliterate*`
 
@@ -482,13 +480,23 @@ exit 3 || exit 0" bash --yes \
 && ~/.divine/intervene.sh install --yes
 ----
 
-This command: installs the framework without prompts; attaches the https://github.com/no-simpler/divine-bundle-essentials[`essentials`] bundle of Divine deployments to your Grail directory; installs the deployments.
+[.note]
+[%noheader,cols="<.<a"]
+|===
+| This three-part command is pretty unceremonious:
 
-Divine deployments *_never overwrite_* pre-existing files on your system without backing them up.
-Everything that is backed up is *_automatically restored_* upon uninstallation.
+* The framework will be installed.
+* The https://github.com/no-simpler/divine-bundle-essentials[`essentials`] bundle of Divine deployments will be attached to the freshly minted <<grail-directory,Grail directory>>.
+* All bundled deployments will be installed.
+
+For this joy ride, no framework <<fmwk-interactivity,prompts>> will be issued.
+|===
+
+As stated before, the Divine deployments <<fmwk-zero-data-loss,do not overwrite>> pre-existing files on your system without backing them up.
+Everything that is backed up is <<fmwk-reversibility,automatically restored>> upon the removal of deployments.
 
 After all installations are successful, *reload your shell/terminal*.
-(On macOS, if the default shell has been changed, you have to re-log into the system.)
+(On macOS, you have to re-log into the system.)
 
 ==== What it does
 
@@ -499,39 +507,35 @@ Once the bundle is fully installed, and the shell reloaded, _voilà_:
 * Both https://ohmyz.sh[oh-my-zsh] and https://github.com/Bash-it/bash-it[Bash-it] frameworks are now installed and loaded.
 * A minimalistic theme for both shell frameworks is active.
 * Opinionated configs are plugged in for Git, Vim, Bash, and Zsh.
-* Overwritten files and installations are safely backed up or re-used.
+* Pre-existing files and installations are safely backed up or re-used.
 
-All of the above is controlled and customized from your <<grail-directory,Grail directory>>:
-
-[source]
-----
-~/.divine/grail/assets/
-----
+All of the above is controlled and customized through key configuration files located in the <<grail-directory,Grail directory>> at `~/.divine/grail/assets/`.
 
 .Description of asset directories for the bundle `essentials`
 [%noheader,cols="<.<a,<.<a",stripes=none]
 |===
 
 | `*bash-it*/` *&dagger;*
-| Custom assets for https://github.com/Bash-it/bash-it[Bash-it] shell framework
+| Custom assets for the https://github.com/Bash-it/bash-it[Bash-it] shell framework.
 
 | `*brewfile*/` *&dagger;*
-| https://github.com/Homebrew/homebrew-bundle[Brewfile], maintained on macOS
+| The https://github.com/Homebrew/homebrew-bundle[Brewfile], maintained on macOS.
 
 | `*config-git*/`
-| Global configuration for Git
+| Global configuration for Git.
 
 | `*config-shell*/`
-| Startup scripts (https://en.wikipedia.org/wiki/Run_commands[runcoms]) for Bash and Zsh
+| Startup scripts (https://en.wikipedia.org/wiki/Run_commands[runcoms]) for Bash and Zsh.
+Within the `.runcoms` sub-directory, all files ending with `.sh`, `.bash`, and `.zsh` are sourced in order on every shell start-up.
 
 | `*config-vim*/`
-| Global configuration for Vim
+| Global configuration for Vim.
 
 | `*home-dirs*/` *&dagger;*
-| File `*home-dirs.cfg*` defines a sub-directory tree, to be maintained under the home directory
+| The file `*home-dirs.cfg*` defines a sub-directory tree, to be maintained under the home directory.
 
 | `*oh-my-zsh*/` *&dagger;*
-| Custom assets for https://ohmyz.sh[oh-my-zsh] shell framework
+| Custom assets for the https://ohmyz.sh[oh-my-zsh] shell framework.
 
 | `*portable-bin*/`
 | Portable container for personal executables; this directory is maintained on the `$PATH`
@@ -541,7 +545,7 @@ All of the above is controlled and customized from your <<grail-directory,Grail 
 [.note]
 [%noheader,cols="<.<a"]
 |===
-| Dagger *&dagger;* mark meaning: in order for the modifications in that asset directory to take effect, the deployment must be (re-)installed.
+| The dagger *&dagger;* mark meaning: in order for the modifications in that asset directory to take effect, the deployment must be (re-)installed.
 |===
 
 ==== Cleaning up
@@ -551,13 +555,13 @@ Below are the separate 'undo' steps, in order:
 
 [source,bash]
 ----
-# Uninstall deployments:
-~/.divine/intervene.sh remove --yes
+# Uninstall the Divine deployments WITHOUT BACKUPS:
+~/.divine/intervene.sh remove --yes --obliterate
 
-# Detach Divine deployments from your Grail directory:
+# Detach the essentials bundle from the Grail directory:
 ~/.divine/intervene.sh detach essentials --yes
 
-# Erase the framework:
+# Erase the framework WITHOUT BACKUPS:
 bash -c "TMP=\$(mktemp); \
 URL=https://raw.github.com/no-simpler/divine-dotfiles/master/lib/uninstall/uni\
 nstall.sh; if curl --version &>/dev/null; then curl -fsSL \$URL >\$TMP; elif w\
@@ -565,18 +569,18 @@ get --version &>/dev/null; then wget -qO \$TMP \$URL; else printf >&2 \"\n==> \
 Error: failed to detect neither curl nor wget\n\"; rm -f \$TMP; exit 1; fi || \
 { printf >&2 \"\n==> Error: failed to download uninstallation script\n\"; rm -\
 f \$TMP; exit 2; }; chmod +x \$TMP && \$TMP \"\$@\"; RC=\$?; rm -f \$TMP; ((RC\
-)) && exit 3 || exit 0" bash --yes
+)) && exit 3 || exit 0" bash --yes --obliterate
 ----
 
-After the three 'undo' steps have successfully run, there is no trace of _Divine.dotfiles_ on your system.
+After the three 'undo' steps have successfully run, there is no trace of _Divine.dotfiles_ on the system.
 [.small]#_(Sigh.)_#
 
 == Framework structure
 
-_Divine.dotfiles_ is installed, by default, to `~/.divine/`, and is contained entirely in that directory, except:
+_Divine.dotfiles_ is installed, by default, to the `~/.divine/` directory, and is contained entirely in that directory, *except*:
 
-* Symlink to the framework's main executable is created somewhere on `$PATH`.
-* Deployments may affect your system pretty much anywhere.
+* A symlink to the framework's main script is created somewhere on `$PATH`.
+* Deployments may affect your system pretty much <<fmwk-security,anywhere>>.
 
 The framework itself consists of the following main parts:
 
