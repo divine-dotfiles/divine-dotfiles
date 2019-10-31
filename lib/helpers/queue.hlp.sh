@@ -2,8 +2,8 @@
 #:title:        Divine Bash deployment helpers: queue
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.26
-#:revremark:    Fix handling of inst-by-usr in mltsk & queues
+#:revdate:      2019.10.31
+#:revremark:    Implement item/task flags
 #:created_at:   2019.06.10
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -99,7 +99,7 @@ d__queue_check()
     D__ITEM_NUM="$d__qei" D__ITEM_NAME="$d__qen"
 
     # Run item pre-processing, if implemented
-    d__qertc=0 d__qeh=false; d_item_pre_check
+    unset D_ADDST_ITEM_FLAGS; d__qertc=0 d__qeh=false; d_item_pre_check
     if (($?)); then
       d__notify -qh -- "Queue item's pre-check hook declares it irrelevant"
       d__qertc=3 d__qeh=true
@@ -111,16 +111,20 @@ d__queue_check()
     if [ "$D_ADDST_QUEUE_HALT" = true ]; then d__qeh=true
       d__notify -qh -- "Queue item's pre-check hook forces queue halting"
     fi
+    if ! [ -z ${D_ADDST_ITEM_FLAGS+isset} ]
+    then D__ITEM_FLAG_SETS[$d__qei]="$D_ADDST_ITEM_FLAGS"; fi
 
     # Get return code of d_dpl_check, or fall back to zero
-    if ! $d__qeh; then d_item_check; d__qertc=$?
+    if ! $d__qeh; then unset D_ADDST_ITEM_FLAGS; d_item_check; d__qertc=$?
       if [ "$D_ADDST_QUEUE_HALT" = true ]; then d__qeh=true
         d__notify -qh -- "Queue item's checking forces queue halting"
       fi
+      if ! [ -z ${D_ADDST_ITEM_FLAGS+isset} ]
+      then D__ITEM_FLAG_SETS[$d__qei]="$D_ADDST_ITEM_FLAGS"; fi
     fi
 
     # Run item post-processing, if implemented
-    if ! $d__qeh; then
+    if ! $d__qeh; then unset D_ADDST_ITEM_FLAGS
       D__ITEM_CHECK_CODE="$d__qertc"; d_item_post_check
       if (($?)); then
         d__notify -qh -- \
@@ -136,6 +140,8 @@ d__queue_check()
       if [ "$D_ADDST_QUEUE_HALT" = true ]; then
         d__notify -qh -- "Queue item's post-check hook forces queue halting"
       fi
+      if ! [ -z ${D_ADDST_ITEM_FLAGS+isset} ]
+      then D__ITEM_FLAG_SETS[$d__qei]="$D_ADDST_ITEM_FLAGS"; fi
     fi
 
     # Store return code
@@ -276,7 +282,7 @@ d__queue_install()
   fi
 
   # Storage variables
-  local d__qei d__qecap d__qen d__qertc d__qas d__qss d__i d__qeh
+  local d__qei d__qecap d__qen d__qertc d__qas d__qss d__i d__qeh d__qeflg
   local d__qas_a=() d__qas_r=() d__qas_w=() d__qas_c=() d__qas_h=false
   local d__qeplq d__qedfac d__qefrcd d__qecc d__qeok d__qeocc d__qeof
 
@@ -298,6 +304,7 @@ d__queue_install()
     # Extract number, name, and check code; compose item name; switch context
     d__qen="${D_QUEUE_MAIN[$d__qei]}"
     d__qecc="${D__ITEM_CHECK_CODES[$d__qei]}"
+    d__qeflg="${D__ITEM_FLAG_SETS[$d__qei]}"
     d__qeplq="'$d__qen' (#$((d__qei+1)) of ${#D_QUEUE_MAIN[@]})"
     d__context -- push "Installing item $d__qeplq"
     d__qeplq="Item $d__qeplq$NORMAL"
@@ -401,7 +408,7 @@ d__queue_install()
     unset D_ADDST_ATTENTION D_ADDST_REBOOT D_ADDST_WARNING D_ADDST_CRITICAL
 
     # Expose additional variables to the item
-    D__ITEM_NUM="$d__qei" D__ITEM_NAME="$d__qen"
+    D__ITEM_NUM="$d__qei" D__ITEM_NAME="$d__qen" D__ITEM_FLAGS="$d__qeflg"
     D__ITEM_CHECK_CODE="$d__qecc" D__ITEM_IS_FORCED="$d__qefrcd"
     d__qeocc="$D__DPL_CHECK_CODE" d__qeof="$D__DPL_IS_FORCED"
     D__DPL_CHECK_CODE="$d__qecc" D__DPL_IS_FORCED="$d__qefrcd"
@@ -562,7 +569,7 @@ d__queue_remove()
   fi
 
   # Storage variables
-  local d__qei d__qecap d__qen d__qertc d__qas d__qss d__i d__qeh
+  local d__qei d__qecap d__qen d__qertc d__qas d__qss d__i d__qeh d__qeflg
   local d__qas_a=() d__qas_r=() d__qas_w=() d__qas_c=() d__qas_h=false
   local d__qeplq d__qeabn d__qefrcd d__qecc d__qeok d__qeocc d__qeof
 
@@ -584,6 +591,7 @@ d__queue_remove()
     # Extract number, name, and check code; compose item name; switch context
     d__qen="${D_QUEUE_MAIN[$d__qei]}"
     d__qecc="${D__ITEM_CHECK_CODES[$d__qei]}"
+    d__qeflg="${D__ITEM_FLAG_SETS[$d__qei]}"
     d__qeplq="'$d__qen' (#$((d__qei+1)) of ${#D_QUEUE_MAIN[@]})"
     d__context -- push "Removing item $d__qeplq"
     d__qeplq="Item $d__qeplq$NORMAL"
@@ -681,7 +689,7 @@ d__queue_remove()
     unset D_ADDST_ATTENTION D_ADDST_REBOOT D_ADDST_WARNING D_ADDST_CRITICAL
 
     # Expose additional variables to the item
-    D__ITEM_NUM="$d__qei" D__ITEM_NAME="$d__qen"
+    D__ITEM_NUM="$d__qei" D__ITEM_NAME="$d__qen" D__ITEM_FLAGS="$d__qeflg"
     D__ITEM_CHECK_CODE="$d__qecc" D__ITEM_IS_FORCED="$d__qefrcd"
     d__qeocc="$D__DPL_CHECK_CODE" d__qeof="$D__DPL_IS_FORCED"
     D__DPL_CHECK_CODE="$d__qecc" D__DPL_IS_FORCED="$d__qefrcd"

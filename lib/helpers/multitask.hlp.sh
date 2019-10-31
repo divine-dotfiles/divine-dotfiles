@@ -2,8 +2,8 @@
 #:title:        Divine Bash deployment helpers: reconcile
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.26
-#:revremark:    Fix handling of inst-by-usr in mltsk & queues
+#:revdate:      2019.10.31
+#:revremark:    Implement item/task flags
 #:created_at:   2019.06.18
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -54,6 +54,7 @@ d__mltsk_check()
   d__mas=( true true true true true true true true true true )
   d__mss=( false false false false false false false false false false )
   unset D__TASK_CHECK_CODES D__MLTSK_CAP_NUM D__TASKS_ARE_QUEUES
+  unset D__TASK_FLAG_SETS
 
   # Iterate over numbers of task names
   for ((d__mti=0;d__mti<${#D_MLTSK_MAIN[@]};++d__mti)); do
@@ -73,7 +74,7 @@ d__mltsk_check()
     D__TASK_NUM="$d__mti" D__TASK_NAME="$d__mtn"
 
     # Run task pre-processing, if implemented
-    d__mtrtc=0 d__mth=false
+    unset D_ADDST_TASK_FLAGS; d__mtrtc=0 d__mth=false
     if declare -f "$d__mtbf" &>/dev/null; then "$d__mtbf"; else true; fi
     if (($?)); then
       d__notify -qh -- "Task's pre-check hook declares it irrelevant"
@@ -86,19 +87,23 @@ d__mltsk_check()
     if [ "$D_ADDST_MLTSK_HALT" = true ]; then d__mth=true
       d__notify -qh -- "Task's pre-check hook forces halting of multitask"
     fi
+    if ! [ -z ${D_ADDST_TASK_FLAGS+isset} ]
+    then D__TASK_FLAG_SETS[$d__mti]="$D_ADDST_TASK_FLAGS"; fi
 
     # Get return code of d_dpl_check, or fall back to zero
-    if ! $d__mth; then
+    if ! $d__mth; then unset D_ADDST_TASK_FLAGS
       if declare -f "$d__mtf" &>/dev/null; then "$d__mtf"; else true; fi
       d__mtrtc=$?
       if [ "$D_ADDST_MLTSK_HALT" = true ]; then d__mth=true
         d__notify -qh -- "Task's checking forces halting of multitask"
       fi
+      if ! [ -z ${D_ADDST_TASK_FLAGS+isset} ]
+      then D__TASK_FLAG_SETS[$d__mti]="$D_ADDST_TASK_FLAGS"; fi
     fi
 
     # Run task post-processing, if implemented
     if ! $d__mth; then
-      D__TASK_CHECK_CODE="$d__mtrtc"
+      unset D_ADDST_TASK_FLAGS; D__TASK_CHECK_CODE="$d__mtrtc"
       if declare -f "$d__mtaf" &>/dev/null; then "$d__mtaf"; else true; fi
       if (($?)); then
         d__notify -qh -- "Task's post-check hook declares it irrelevant" \
@@ -113,6 +118,8 @@ d__mltsk_check()
       if [ "$D_ADDST_MLTSK_HALT" = true ]; then
         d__notify -qh -- "Task's post-check hook forces halting of multitask"
       fi
+      if ! [ -z ${D_ADDST_TASK_FLAGS+isset} ]
+      then D__TASK_FLAG_SETS[$d__mti]="$D_ADDST_TASK_FLAGS"; fi
     fi
 
     # Store return code
@@ -246,7 +253,7 @@ d__mltsk_install()
   local d__mti d__mtcap d__mtn d__mtf d__mtrtc d__mas d__mss d__msscnt=0 d__i
   local d__mas_a=() d__mas_r=() d__mas_w=() d__mas_c=() d__mas_h=false d__mth
   local d__mtplq d__mtdfac d__mtfrcd d__mtcc d__mtok d__mtocc d__mtof
-  local d__mtbf d__mtaf d__msg
+  local d__mtbf d__mtaf d__msg d__mtflg
   unset D__TASK_INSTALL_CODES
 
   # Initialize/reset status variables
@@ -261,6 +268,7 @@ d__mltsk_install()
     d__mtn="${D_MLTSK_MAIN[$d__mti]}" d__mtf="d_${d__mtn}_install"
     d__mtbf="d_${d__mtn}_pre_install" d__mtaf="d_${d__mtn}_post_install"
     d__mtcc="${D__TASK_CHECK_CODES[$d__mti]}"
+    d__mtflg="${D__TASK_FLAG_SETS[$d__mti]}"
     d__mtplq="'$d__mtn' (#$((d__mti+1)) of ${#D_MLTSK_MAIN[@]})"
     d__context -- push "Installing task $d__mtplq"
     d__mtplq="Task $d__mtplq$NORMAL"
@@ -371,7 +379,7 @@ d__mltsk_install()
     unset D_ADDST_ATTENTION D_ADDST_REBOOT D_ADDST_WARNING D_ADDST_CRITICAL
 
     # Expose additional variables to the task
-    D__TASK_NUM="$d__mti" D__TASK_NAME="$d__mtn"
+    D__TASK_NUM="$d__mti" D__TASK_NAME="$d__mtn" D__TASK_FLAGS="$d__mtflg"
     D__TASK_CHECK_CODE="$d__mtcc" D__TASK_IS_FORCED="$d__mtfrcd"
     d__mtocc="$D__DPL_CHECK_CODE" d__mtof="$D__DPL_IS_FORCED"
     D__DPL_CHECK_CODE="$d__mtcc" D__DPL_IS_FORCED="$d__mtfrcd"
@@ -520,7 +528,7 @@ d__mltsk_remove()
   local d__mti d__mtcap d__mtn d__mtf d__mtrtc d__mas d__mss d__msscnt=0 d__i
   local d__mas_a=() d__mas_r=() d__mas_w=() d__mas_c=() d__mas_h=false d__mth
   local d__mtplq d__mtabn d__mtfrcd d__mtcc d__mtok d__mtocc d__mtof
-  local d__mtbf d__mtaf
+  local d__mtbf d__mtaf d__mtflg
   unset D__TASK_REMOVE_CODES
 
   # Initialize/reset status variables
@@ -535,6 +543,7 @@ d__mltsk_remove()
     d__mtn="${D_MLTSK_MAIN[$d__mti]}" d__mtf="d_${d__mtn}_remove"
     d__mtbf="d_${d__mtn}_pre_remove" d__mtaf="d_${d__mtn}_post_remove"
     d__mtcc="${D__TASK_CHECK_CODES[$d__mti]}"
+    d__mtflg="${D__TASK_FLAG_SETS[$d__mti]}"
     d__mtplq="'$d__mtn' (#$((d__mti+1)) of ${#D_MLTSK_MAIN[@]})"
     d__context -- push "Removing task $d__mtplq"
     d__mtplq="Task $d__mtplq$NORMAL"
@@ -640,7 +649,7 @@ d__mltsk_remove()
     unset D_ADDST_ATTENTION D_ADDST_REBOOT D_ADDST_WARNING D_ADDST_CRITICAL
 
     # Expose additional variables to the task
-    D__TASK_NUM="$d__mti" D__TASK_NAME="$d__mtn"
+    D__TASK_NUM="$d__mti" D__TASK_NAME="$d__mtn" D__TASK_FLAGS="$d__mtflg"
     D__TASK_CHECK_CODE="$d__mtcc" D__TASK_IS_FORCED="$d__mtfrcd"
     d__mtocc="$D__DPL_CHECK_CODE" d__mtof="$D__DPL_IS_FORCED"
     D__DPL_CHECK_CODE="$d__mtcc" D__DPL_IS_FORCED="$d__mtfrcd"
