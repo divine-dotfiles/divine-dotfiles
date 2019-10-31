@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.31
-#:revremark:    React to --obliterate in key framework mechanisms
+#:revremark:    Take advantage of item flags in exact copy-queue
 #:created_at:   2019.05.23
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -99,6 +99,8 @@ d__copy_item_check()
   local d__cqet="${D_DPL_TARGET_PATHS[$d__cqei]}"
   local d__cqesk="copy_$( dmd5 -s "$d__cqet" )"
   local d__cqeb="$D__DPL_BACKUP_DIR/$d__cqesk"
+  local d__cqexct=false; if [ "$D_QUEUE_EXACT_COPY" = true ]
+  then d__cqexct=true; D_ADDST_ITEM_FLAGS='e'; fi
   d__context -- push "Checking if copied to: '$d__cqet'"
 
   # Do sanity checks
@@ -113,11 +115,11 @@ d__copy_item_check()
   if [ -e "$d__cqet" ]; then
     if ! [ -r "$d__cqea" ]; then
       d__notify -lxh -- "Unreadable asset at: $d__cqea"
-      if [ "$D_QUEUE_EXACT_COPY" = true ]; then d__cqrtc=3
+      if $d__cqexct; then d__cqrtc=3
       else [ "$D__REQ_ROUTINE" = install ] && d__cqrtc=3; fi
     fi
     if [ -z "$d__cqrtc" ]; then
-      if [ "$D_QUEUE_EXACT_COPY" = true ]; then
+      if $d__cqexct; then
         if [ "$( dmd5 "$d__cqea" )" = "$( dmd5 "$d__cqet" )" ]
         then d__stash -s -- has $d__cqesk && d__cqrtc=1 || d__cqrtc=7
         else d__stash -s -- has $d__cqesk && d__cqrtc=6 || d__cqrtc=2; fi
@@ -126,8 +128,7 @@ d__copy_item_check()
   else d__stash -s -- has $d__cqesk && d__cqrtc=6 || d__cqrtc=2; fi
   if ! [ $d__cqrtc = 1 ] && [ -e "$d__cqeb" ]; then
     local d__cqeno='-l!h'
-    if [ "$D_QUEUE_EXACT_COPY" = true -a "$D__REQ_ROUTINE" != check ]
-    then d__cqeno='-q!h'; fi
+    if $d__cqexct && [ "$D__REQ_ROUTINE" != check ]; then d__cqeno='-q!h'; fi
     d__notify $d__cqeno -- "Orphaned backup at: $d__cqeb"
   fi
 
@@ -137,9 +138,10 @@ d__copy_item_check()
 
 d__copy_queue_post_check()
 {
-  # Switch context; unset check hooks
+  # Switch context; unset check hooks; unset exact copy marker
   d__context -- push 'Tidying up after checking copy-queue'
   unset -f d_copy_item_pre_check d_copy_item_post_check
+  unset D_QUEUE_EXACT_COPY
 
   # Run queue post-processing, if implemented
   local d__rtc=0; if declare -f d_copy_queue_post_check &>/dev/null
@@ -238,7 +240,7 @@ d__copy_item_remove()
   # Do the actual removing
   d__cqeo='-e'
   if $D__OPT_OBLITERATE \
-    || [ "$D_QUEUE_EXACT_COPY" = true -a "$D__ITEM_CHECK_CODE" -eq 1 ]
+    || [[ $D__ITEM_CHECK_CODE -eq 1 && $D__ITEM_FLAGS = *e* ]]
   then d__cqeo='-ed'; fi
   d__pop_backup $d__cqeo -- "$d__cqet" "$d__cqeb" && d__cqrtc=0 || d__cqrtc=1
   if [ $d__cqrtc -eq 0 ]; then
