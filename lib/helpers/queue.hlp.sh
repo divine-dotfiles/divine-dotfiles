@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.31
-#:revremark:    Implement item/task flags
+#:revremark:    Compound item/task flags instead of overwriting
 #:created_at:   2019.06.10
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -94,6 +94,7 @@ d__queue_check()
     unset D_ADDST_QUEUE_HALT D_ADDST_ITEM_CHECK_CODE
     unset D_ADDST_HALT D_ADDST_PROMPT
     unset D_ADDST_ATTENTION D_ADDST_REBOOT D_ADDST_WARNING D_ADDST_CRITICAL
+    D__ITEM_FLAG_SETS[$d__qei]=
 
     # Expose additional variables to the item
     D__ITEM_NUM="$d__qei" D__ITEM_NAME="$d__qen"
@@ -112,7 +113,7 @@ d__queue_check()
       d__notify -qh -- "Queue item's pre-check hook forces queue halting"
     fi
     if ! [ -z ${D_ADDST_ITEM_FLAGS+isset} ]
-    then D__ITEM_FLAG_SETS[$d__qei]="$D_ADDST_ITEM_FLAGS"; fi
+    then D__ITEM_FLAG_SETS[$d__qei]+="$D_ADDST_ITEM_FLAGS"; fi
 
     # Get return code of d_dpl_check, or fall back to zero
     if ! $d__qeh; then unset D_ADDST_ITEM_FLAGS; d_item_check; d__qertc=$?
@@ -120,7 +121,7 @@ d__queue_check()
         d__notify -qh -- "Queue item's checking forces queue halting"
       fi
       if ! [ -z ${D_ADDST_ITEM_FLAGS+isset} ]
-      then D__ITEM_FLAG_SETS[$d__qei]="$D_ADDST_ITEM_FLAGS"; fi
+      then D__ITEM_FLAG_SETS[$d__qei]+="$D_ADDST_ITEM_FLAGS"; fi
     fi
 
     # Run item post-processing, if implemented
@@ -141,7 +142,7 @@ d__queue_check()
         d__notify -qh -- "Queue item's post-check hook forces queue halting"
       fi
       if ! [ -z ${D_ADDST_ITEM_FLAGS+isset} ]
-      then D__ITEM_FLAG_SETS[$d__qei]="$D_ADDST_ITEM_FLAGS"; fi
+      then D__ITEM_FLAG_SETS[$d__qei]+="$D_ADDST_ITEM_FLAGS"; fi
     fi
 
     # Store return code

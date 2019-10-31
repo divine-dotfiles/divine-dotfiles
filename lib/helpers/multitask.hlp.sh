@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.31
-#:revremark:    Implement item/task flags
+#:revremark:    Compound item/task flags instead of overwriting
 #:created_at:   2019.06.18
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -69,6 +69,7 @@ d__mltsk_check()
     unset D__TASK_IS_QUEUE D_ADDST_MLTSK_HALT D_ADDST_TASK_CHECK_CODE
     unset D_ADDST_HALT D_ADDST_PROMPT
     unset D_ADDST_ATTENTION D_ADDST_REBOOT D_ADDST_WARNING D_ADDST_CRITICAL
+    D__TASK_FLAG_SETS[$d__mti]=
 
     # Expose additional variables to the task
     D__TASK_NUM="$d__mti" D__TASK_NAME="$d__mtn"
@@ -88,7 +89,7 @@ d__mltsk_check()
       d__notify -qh -- "Task's pre-check hook forces halting of multitask"
     fi
     if ! [ -z ${D_ADDST_TASK_FLAGS+isset} ]
-    then D__TASK_FLAG_SETS[$d__mti]="$D_ADDST_TASK_FLAGS"; fi
+    then D__TASK_FLAG_SETS[$d__mti]+="$D_ADDST_TASK_FLAGS"; fi
 
     # Get return code of d_dpl_check, or fall back to zero
     if ! $d__mth; then unset D_ADDST_TASK_FLAGS
@@ -98,7 +99,7 @@ d__mltsk_check()
         d__notify -qh -- "Task's checking forces halting of multitask"
       fi
       if ! [ -z ${D_ADDST_TASK_FLAGS+isset} ]
-      then D__TASK_FLAG_SETS[$d__mti]="$D_ADDST_TASK_FLAGS"; fi
+      then D__TASK_FLAG_SETS[$d__mti]+="$D_ADDST_TASK_FLAGS"; fi
     fi
 
     # Run task post-processing, if implemented
@@ -119,7 +120,7 @@ d__mltsk_check()
         d__notify -qh -- "Task's post-check hook forces halting of multitask"
       fi
       if ! [ -z ${D_ADDST_TASK_FLAGS+isset} ]
-      then D__TASK_FLAG_SETS[$d__mti]="$D_ADDST_TASK_FLAGS"; fi
+      then D__TASK_FLAG_SETS[$d__mti]+="$D_ADDST_TASK_FLAGS"; fi
     fi
 
     # Store return code
