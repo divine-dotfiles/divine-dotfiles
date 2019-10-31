@@ -2,8 +2,8 @@
 #:title:        Divine Bash utils: github
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.26
-#:revremark:    Make d__cmd family non-suppressed by default
+#:revdate:      2019.10.31
+#:revremark:    Decrement quiet level on git pull
 #:created_at:   2019.09.13
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -115,7 +115,7 @@ d___pull_updates_from_gh()
   d__cmd --sb-- pushd -- --REPO_PATH-- "$2" \
     --else-- 'Unable to pull updates into inaccessible directory' || return 1
   d__context -- push "Pulling from Github repository '$1'"
-  if ! d__cmd --qq-- git pull --rebase --stat origin master \
+  if ! d__cmd --q-- git pull --rebase --stat origin master \
     --else-- 'Failed to pull updates'; then popd &>/dev/null; return 1; fi
   d__context -- pop
   popd &>/dev/null
