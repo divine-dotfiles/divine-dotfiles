@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.31
-#:revremark:    Support --obliterate in fmwk (un)installation
+#:revremark:    Plug the master branch back into (un)inst. scripts
 #:created_at:   2019.07.22
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -165,7 +165,7 @@ d__load()
 {
   # Init vars; transform subject name
   local vr="$( printf '%s\n' "$2" | tr a-z- A-Z_ )" tmp rc
-  local url='https://raw.github.com/no-simpler/divine-dotfiles/dev/lib'
+  local url='https://raw.github.com/no-simpler/divine-dotfiles/master/lib'
 
   # Perform different
   case $1 in
