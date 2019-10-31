@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.31
-#:revremark:    Lay groundwork for --obliterate option
+#:revremark:    Repaint notices about repo url and location
 #:created_at:   2019.05.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -173,8 +173,8 @@ d___update_fmk()
 
   # Compose destination path; print location
   udst="$D__DIR_FMWK"
-  d__notify -l -- "Repo URL: https://github.com/$uarg"
-  d__notify -l -- "Location: $udst"
+  d__notify -lv -- "Repo URL: https://github.com/$uarg"
+  d__notify -lv -- "Location: $udst"
 
   # Check if framework directory is a cloned Github repository
   if d___path_is_gh_clone "$udst" "$uarg"; then
@@ -451,8 +451,8 @@ d___update_bdl()
 
   # Compose destination path; print location
   udst="$D__DIR_BUNDLES/$uarg"
-  d__notify -l -- "Repo URL: https://github.com/$uarg"
-  d__notify -l -- "Location: $udst"
+  d__notify -lv -- "Repo URL: https://github.com/$uarg"
+  d__notify -lv -- "Location: $udst"
 
   # Check if bundle directory is a cloned Github repository
   if d___path_is_gh_clone "$udst" "$uarg"; then

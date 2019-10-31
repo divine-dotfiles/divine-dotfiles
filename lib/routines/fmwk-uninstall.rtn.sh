@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.31
-#:revremark:    React to --obliterate in key framework mechanisms
+#:revremark:    Repaint notices about repo url and location
 #:created_at:   2019.10.15
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -346,8 +346,8 @@ d___uninstall_fmwk()
 
   # Print intro; print locations
   printf >&2 '%s %s\n' "$D__INTRO_RMV_N" "$uplq"
-  d__notify -l -- 'Repo URL: https://github.com/no-simpler/divine-dotfiles'
-  d__notify -l -- "Location: $udst"
+  d__notify -lv -- 'Repo URL: https://github.com/no-simpler/divine-dotfiles'
+  d__notify -lv -- "Location: $udst"
 
   # Conditionally prompt for user's approval
   if [ "$D__OPT_ANSWER_F" != true ]; then

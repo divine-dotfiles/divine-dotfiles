@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: detach
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.24
-#:revremark:    Be more verbose by default when detaching
+#:revdate:      2019.10.31
+#:revremark:    Repaint notices about repo url and location
 #:created_at:   2019.06.28
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -103,8 +103,8 @@ d___detach_bundle()
 
   # Compose destination path; print location
   bdst="$D__DIR_BUNDLES/$barg"
-  d__notify -l -- "Repo URL: https://github.com/$barg"
-  d__notify -l -- "Location: $bdst"
+  d__notify -lv -- "Repo URL: https://github.com/$barg"
+  d__notify -lv -- "Location: $bdst"
 
   # Check if such bundle directory exists
   if [ -e "$bdst" ]; then
