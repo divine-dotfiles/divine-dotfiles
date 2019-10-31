@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.31
-#:revremark:    React to --obliterate in key framework mechanisms
+#:revremark:    Improve message composition in install routine
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -163,7 +163,7 @@ d___install_pkgs()
         printf >&2 '%s %s\n' "$D__INTRO_INS_A" "$d__plq"; continue
       elif d__stash -rs -- has installed_utils "$d__pkg_n"; then
         # Installed through offer
-        d__msg="Package '$d__pkg_n' appears to be"
+        d__msg="Package '$d__pkg_n' appears to be "
         d__msg+="already installed by $D__FMWK_NAME itself"
         if $D__OPT_FORCE; then d__notify -l! -- "$d__msg"
           d__frcd=true d__shs=true
@@ -204,7 +204,7 @@ d___install_pkgs()
         fi
       else
         # Installed without package manager, no stash record
-        d__msg="Package '$d__pkg_n' appears to be installed"
+        d__msg="Package '$d__pkg_n' appears to be installed "
         d__msg+="by means other than '$D__OS_PKGMGR'"
         if $D__OPT_FORCE; then d__notify -l! -- "$d__msg"
           d__frcd=true d__shi=true d__shs=true

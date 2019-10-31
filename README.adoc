@@ -2,7 +2,7 @@
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
 :revdate: 2019.10.31
-:revremark: Update readme for D.d v2, pt. 1
+:revremark: Improve message composition in install routine
 :doctype: article
 // Visual
 :toc:
@@ -40,7 +40,7 @@ Set it up with a single `*di install --yes*`.
 [.note]
 [%noheader,cols="<.<a"]
 |===
-| First time users are very welcome to take a <<joy-ride,*joy ride*>>.
+| First-time users are very welcome to take a <<joy-ride,*joy ride*>>.
 |===
 
 _Divine.dotfiles_ leverages *deployments*.
@@ -65,7 +65,7 @@ Deployment ecosystem is designed with distribution and pluggability in mind.
 
 === Example deployment
 
-Say, you install the same command line utility on every machine.
+Say, you install the same personal utility on every machine.
 Here's a sample deployment that does a scaled down version of that:
 
 [source,bash,subs="verbatim,attributes"]
