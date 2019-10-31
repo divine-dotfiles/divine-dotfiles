@@ -2,7 +2,7 @@
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
 :revdate: 2019.10.31
-:revremark: Improve message composition in install routine
+:revremark: Better set the new example gif in README
 :doctype: article
 // Visual
 :toc:
@@ -65,7 +65,7 @@ Deployment ecosystem is designed with distribution and pluggability in mind.
 
 === Example deployment
 
-Say, you install the same personal utility on every machine.
+Say, you install the same command line utility on every machine.
 Here's a sample deployment that does a scaled down version of that:
 
 [source,bash,subs="verbatim,attributes"]
@@ -87,8 +87,11 @@ d_dpl_remove() {
 
 And here is what working with it looks like:
 
-[#divine-dotfiles-example-1]
-image::lib/img/divine-dotfiles-example-1.gif[Divine.dotfiles example 1,align="center"]
+++++
+<p align="center">
+  <img id="divine-dotfiles-example-1" width="640" src="lib/img/divine-dotfiles-example-1.gif" alt="Divine.dotfiles example 1">
+</p>
+++++
 
 Dead simple, right?
 You wouldn’t need a framework for that.
