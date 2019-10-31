@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.31
-#:revremark:    Lay groundwork for --obliterate option
+#:revremark:    React to --obliterate in key framework mechanisms
 #:created_at:   2019.09.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -1536,10 +1536,9 @@ d__confirm_obliteration()
   if d__prompt -!pn 'Slash & burn?' -- \
     "You have chosen the $BOLD--obliterate$NORMAL option." \
     -n- \
-    "This means, that the framework will ${BOLD}forego the usual" \
-    "concerns of zero data loss$NORMAL while performing any removals." \
+    "This means, that the framework will ${BOLD}forego the usual concerns" \
+    "of zero data loss$NORMAL while performing removals (if any occur)." \
     -n- \
-    'The built-in framework mechanisms will obey,' \
-    'but no guarantees can be given about the third-party deployments.'
+    'However, no guarantees can be given about the third-party deployments.'
   then return 0; else exit 1; fi
 }

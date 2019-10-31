@@ -2,8 +2,8 @@
 #:title:        Divine Bash deployment helpers: copy-queue
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.23
-#:revremark:    Expand helpers for sudo checks
+#:revdate:      2019.10.31
+#:revremark:    React to --obliterate in key framework mechanisms
 #:created_at:   2019.05.23
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -94,7 +94,7 @@ d__copy_queue_pre_check()
 d__copy_item_check()
 {
   # Init storage variables; switch context
-  local d__cqei="$D__ITEM_NUM" d__cqrtc d__cqer=()
+  local d__cqei="$D__ITEM_NUM" d__cqrtc= d__cqer=()
   local d__cqea="${D_DPL_ASSET_PATHS[$d__cqei]}"
   local d__cqet="${D_DPL_TARGET_PATHS[$d__cqei]}"
   local d__cqesk="copy_$( dmd5 -s "$d__cqet" )"
@@ -110,15 +110,25 @@ d__copy_item_check()
   fi
 
   # Do the actual checking; check if source is readable
-  if d__stash -s -- has $d__cqesk
-  then [ -e "$d__cqet" ] && d__cqrtc=1 || d__cqrtc=6
-  else [ -e "$d__cqet" ] && d__cqrtc=7 || d__cqrtc=2; fi
-  if ! [ $d__cqrtc = 1 ]; then
-    [ -e "$d__cqeb" ] && d__notify -l!h -- "Orphaned backup at: $d__cqeb"
-  fi
-  if ! [ -r "$d__cqea" ]; then
-    d__notify -lxh -- "Unreadable asset at: $d__cqea"
-    [ "$D__REQ_ROUTINE" = install ] && d__cqrtc=3
+  if [ -e "$d__cqet" ]; then
+    if ! [ -r "$d__cqea" ]; then
+      d__notify -lxh -- "Unreadable asset at: $d__cqea"
+      if [ "$D_QUEUE_EXACT_COPY" = true ]; then d__cqrtc=3
+      else [ "$D__REQ_ROUTINE" = install ] && d__cqrtc=3; fi
+    fi
+    if [ -z "$d__cqrtc" ]; then
+      if [ "$D_QUEUE_EXACT_COPY" = true ]; then
+        if [ "$( dmd5 "$d__cqea" )" = "$( dmd5 "$d__cqet" )" ]
+        then d__stash -s -- has $d__cqesk && d__cqrtc=1 || d__cqrtc=7
+        else d__stash -s -- has $d__cqesk && d__cqrtc=6 || d__cqrtc=2; fi
+      else d__stash -s -- has $d__cqesk && d__cqrtc=1 || d__cqrtc=7; fi
+    fi
+  else d__stash -s -- has $d__cqesk && d__cqrtc=6 || d__cqrtc=2; fi
+  if ! [ $d__cqrtc = 1 ] && [ -e "$d__cqeb" ]; then
+    local d__cqeno='-l!h'
+    if [ "$D_QUEUE_EXACT_COPY" = true -a "$D__REQ_ROUTINE" != check ]
+    then d__cqeno='-q!h'; fi
+    d__notify $d__cqeno -- "Orphaned backup at: $d__cqeb"
   fi
 
   # Switch context and return
@@ -219,19 +229,25 @@ d__copy_queue_pre_remove()
 d__copy_item_remove()
 {
   # Init storage variables; switch context
-  local d__cqei="$D__ITEM_NUM" d__cqrtc
+  local d__cqei="$D__ITEM_NUM" d__cqrtc d__cqeo
   local d__cqet="${D_DPL_TARGET_PATHS[$d__cqei]}"
   local d__cqesk="copy_$( dmd5 -s "$d__cqet" )"
   local d__cqeb="$D__DPL_BACKUP_DIR/$d__cqesk"
   d__context -- push "Undoing copying to: '$d__cqet'"
 
   # Do the actual removing
-  d__pop_backup -e -- "$d__cqet" "$d__cqeb" && d__cqrtc=0 || d__cqrtc=1
+  d__cqeo='-e'
+  if $D__OPT_OBLITERATE \
+    || [ "$D_QUEUE_EXACT_COPY" = true -a "$D__ITEM_CHECK_CODE" -eq 1 ]
+  then d__cqeo='-ed'; fi
+  d__pop_backup $d__cqeo -- "$d__cqet" "$d__cqeb" && d__cqrtc=0 || d__cqrtc=1
   if [ $d__cqrtc -eq 0 ]; then
     case $D__ITEM_CHECK_CODE in
       1|6)  d__stash -s -- unset $d__cqesk || d__cqrtc=1;;
     esac
-    [ -e "$d__cqeb" ] || rm -f -- "$d__cqeb.path"
+    if [ -e "$d__cqeb" ]
+    then d__notify -l!h -- "An older backup remains at: $d__cqeb"
+    else rm -f -- "$d__cqeb.path"; fi
   fi
 
   # Switch context and return

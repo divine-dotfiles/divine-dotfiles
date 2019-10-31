@@ -2,8 +2,8 @@
 #:title:        Divine Bash deployment helpers: link-queue
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.23
-#:revremark:    Expand helpers for sudo checks
+#:revdate:      2019.10.31
+#:revremark:    React to --obliterate in key framework mechanisms
 #:created_at:   2019.04.02
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -113,9 +113,8 @@ d__link_item_check()
   if [ -L "$d__lqet" -a "$d__lqet" -ef "$d__lqea" ]
   then d__stash -s -- has $d__lqesk && d__lqrtc=1 || d__lqrtc=7
   else d__stash -s -- has $d__lqesk && d__lqrtc=6 || d__lqrtc=2; fi
-  if ! [ $d__lqrtc = 1 ]; then
-    [ -e "$d__lqeb" ] && d__notify -l!h -- "Orphaned backup at: $d__lqeb"
-  fi
+  if ! [ $d__lqrtc = 1 ] && [ -e "$d__lqeb" ];
+  then d__notify -l!h -- "Orphaned backup at: $d__lqeb"; fi
   if ! [ -r "$d__lqea" ]; then
     d__notify -lxh -- "Unreadable asset at: $d__lqea"
     [ "$D__REQ_ROUTINE" = install ] && d__lqrtc=3
@@ -227,13 +226,16 @@ d__link_item_remove()
   d__context -- push "Undoing link at: '$d__lqet'"
 
   # Do the actual removing
-  d__lqeo='-e'; [ "$D__ITEM_CHECK_CODE" -eq 1 ] && d__lqeo='-ed'
+  d__lqeo='-e'; if $D__OPT_OBLITERATE || [ "$D__ITEM_CHECK_CODE" -eq 1 ]
+  then d__lqeo='-ed'; fi
   d__pop_backup $d__lqeo -- "$d__lqet" "$d__lqeb" && d__lqrtc=0 || d__lqrtc=1
   if [ $d__lqrtc -eq 0 ]; then
     case $D__ITEM_CHECK_CODE in
       1|6)  d__stash -s -- unset $d__lqesk || d__lqrtc=1;;
     esac
-    [ -e "$d__lqeb" ] || rm -f -- "$d__lqeb.path"
+    if [ -e "$d__lqeb" ]
+    then d__notify -l!h -- "An older backup remains at: $d__lqeb"
+    else rm -f -- "$d__lqeb.path"; fi
   fi
 
   # Switch context and return

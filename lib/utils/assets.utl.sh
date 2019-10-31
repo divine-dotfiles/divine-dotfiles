@@ -2,8 +2,8 @@
 #:title:        Divine Bash utils: assets
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.26
-#:revremark:    Make d__cmd family non-suppressed by default
+#:revdate:      2019.10.31
+#:revremark:    React to --obliterate in key framework mechanisms
 #:created_at:   2019.10.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -240,7 +240,8 @@ d___copy_asset()
   if [ -e "$p_dst" ]; then
 
     # Cut-off checks for non-forced assets and byte-by-byte copies
-    if ! $flgf || cmp -s "$p_src" "$p_dst"; then return 0; fi
+    if ! $flgf || [ "$( dmd5 "$p_src" )" = "$( dmd5 "$p_dst" )" ]
+    then return 0; fi
 
     # Overwriting: READMEs are clobbered, other files backed up in place
     if [ -f "$p_dst" ] \

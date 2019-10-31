@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.31
-#:revremark:    Lay groundwork for --obliterate option
+#:revremark:    React to --obliterate in key framework mechanisms
 #:created_at:   2019.06.26
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -155,11 +155,19 @@ d___plug_github_repo()
   pdcs="$D__EXT_DPL_COUNT deployment"; [ $D__EXT_DPL_COUNT -eq 1 ] || pdcs+='s'
   d__notify -l! -- "Grail candidate contains $ppcs and $pdcs"
 
-  # Back up previous Grail directory
-  if ! d__push_backup -- "$pdst" "$pdst.bak"; then
-    d__notify -lx -- "Failed to back up old Grail directory"
-    printf >&2 '%s %s\n' "$D__INTRO_PLG_1" "$pplq"
-    rm -rf -- "$ptmp"; return 2
+  # Back up or erase previous Grail directory
+  if $D__OPT_OBLITERATE; then
+    if ! rm -rf -- "$pdst" &>/dev/null; then
+      d__notify -lx -- "Failed to erase old Grail directory"
+      printf >&2 '%s %s\n' "$D__INTRO_PLG_1" "$pplq"
+      rm -rf -- "$ptmp"; return 2
+    fi
+  else
+    if ! d__push_backup -- "$pdst" "$pdst.bak"; then
+      d__notify -lx -- "Failed to back up old Grail directory"
+      printf >&2 '%s %s\n' "$D__INTRO_PLG_1" "$pplq"
+      rm -rf -- "$ptmp"; return 2
+    fi
   fi
 
   # Move the retrieved Grail candidate into place
@@ -219,11 +227,19 @@ d___plug_local_repo()
   pdcs="$D__EXT_DPL_COUNT deployment"; [ $D__EXT_DPL_COUNT -eq 1 ] || pdcs+='s'
   d__notify -l! -- "Grail candidate contains $ppcs and $pdcs"
 
-  # Back up previous Grail directory
-  if ! d__push_backup -- "$pdst" "$pdst.bak"; then
-    d__notify -lx -- "Failed to back up old Grail directory"
-    printf >&2 '%s %s\n' "$D__INTRO_PLG_1" "$pplq"
-    rm -rf -- "$ptmp"; return 2
+  # Back up or erase previous Grail directory
+  if $D__OPT_OBLITERATE; then
+    if ! rm -rf -- "$pdst" &>/dev/null; then
+      d__notify -lx -- "Failed to erase old Grail directory"
+      printf >&2 '%s %s\n' "$D__INTRO_PLG_1" "$pplq"
+      rm -rf -- "$ptmp"; return 2
+    fi
+  else
+    if ! d__push_backup -- "$pdst" "$pdst.bak"; then
+      d__notify -lx -- "Failed to back up old Grail directory"
+      printf >&2 '%s %s\n' "$D__INTRO_PLG_1" "$pplq"
+      rm -rf -- "$ptmp"; return 2
+    fi
   fi
 
   # Move the retrieved Grail candidate into place
@@ -271,11 +287,19 @@ d___plug_local_dir()
   pdcs="$D__EXT_DPL_COUNT deployment"; [ $D__EXT_DPL_COUNT -eq 1 ] || pdcs+='s'
   d__notify -l! -- "Grail candidate contains $ppcs and $pdcs"
 
-  # Back up previous Grail directory
-  if ! d__push_backup -- "$pdst" "$pdst.bak"; then
-    d__notify -lx -- "Failed to back up old Grail directory"
-    printf >&2 '%s %s\n' "$D__INTRO_PLG_1" "$pplq"
-    return 2
+  # Back up or erase previous Grail directory
+  if $D__OPT_OBLITERATE; then
+    if ! rm -rf -- "$pdst" &>/dev/null; then
+      d__notify -lx -- "Failed to erase old Grail directory"
+      printf >&2 '%s %s\n' "$D__INTRO_PLG_1" "$pplq"
+      rm -rf -- "$ptmp"; return 2
+    fi
+  else
+    if ! d__push_backup -- "$pdst" "$pdst.bak"; then
+      d__notify -lx -- "Failed to back up old Grail directory"
+      printf >&2 '%s %s\n' "$D__INTRO_PLG_1" "$pplq"
+      rm -rf -- "$ptmp"; return 2
+    fi
   fi
 
   # Plug with appropriate method

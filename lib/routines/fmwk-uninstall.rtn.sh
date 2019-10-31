@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.10.31
-#:revremark:    Lay groundwork for --obliterate option
+#:revremark:    React to --obliterate in key framework mechanisms
 #:created_at:   2019.10.15
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -372,16 +372,25 @@ d___uninstall_fmwk()
       'of shortcut command location from root stash'
   fi
 
-  # Back up previous framework directory (and capture backup path)
-  local d__bckp=; if ! d__push_backup -- "$udst" "$udst.bak"; then
-    d__notify -lx -- 'Failed to back up framework directory'
-    printf >&2 '%s %s\n' "$D__INTRO_RMV_1" "$uplq"
-    return 1
+  # Back up or erase the framework directory (and capture backup path)
+  if $D__OPT_OBLITERATE; then
+    if ! rm -rf -- "$udst" &>/dev/null; then
+      d__notify -lx -- 'Failed to erase framework directory'
+      printf >&2 '%s %s\n' "$D__INTRO_RMV_1" "$uplq"
+      return 1
+    fi
+    d__notify -lv -- 'Erased framework directory at:' -i- "$udst"
+  else
+    local d__bckp=; if ! d__push_backup -- "$udst" "$udst.bak"; then
+      d__notify -lx -- 'Failed to back up framework directory'
+      printf >&2 '%s %s\n' "$D__INTRO_RMV_1" "$uplq"
+      return 1
+    fi
+    d__notify -lv -- 'Backup of uninstalled framework is retained at:' \
+      -i- "$d__bckp" -n- 'You can safely delete it manually'
   fi
 
   # Report success
-  d__notify -lv -- 'Backup of uninstalled framework is retained at:' \
-    -i- "$d__bckp" -n- 'You can safely delete it manually'
   printf >&2 '%s %s\n' "$D__INTRO_RMV_0" "$uplq"
   return 0
 }

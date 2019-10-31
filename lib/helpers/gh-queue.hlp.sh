@@ -2,8 +2,8 @@
 #:title:        Divine Bash deployment helpers: gh-queue
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.26
-#:revremark:    Improve check codes in gh-queue
+#:revdate:      2019.10.31
+#:revremark:    React to --obliterate in key framework mechanisms
 #:created_at:   2019.10.10
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -226,19 +226,22 @@ d__gh_queue_pre_remove()
 d__gh_item_remove()
 {
   # Init storage variables; switch context
-  local d__gqei="$D__ITEM_NUM" d__gqen="$D__ITEM_NAME" d__gqrtc
+  local d__gqei="$D__ITEM_NUM" d__gqen="$D__ITEM_NAME" d__gqrtc d__gqeo
   local d__gqet="${D_DPL_TARGET_PATHS[$d__gqei]}"
   local d__gqesk="gh_$( dmd5 -s "$d__gqet" )"
   local d__gqeb="$D__DPL_BACKUP_DIR/$d__gqesk"
   d__context -- push "Removing Github repo at: '$d__gqet'"
 
   # Do the actual removing
-  d__pop_backup -e -- "$d__gqet" "$d__gqeb" && d__gqrtc=0 || d__gqrtc=1
+  d__gqeo='-e'; if $D__OPT_OBLITERATE; then d__gqeo='-ed'; fi
+  d__pop_backup $d__gqeo -- "$d__gqet" "$d__gqeb" && d__gqrtc=0 || d__gqrtc=1
   if [ $d__gqrtc -eq 0 ]; then
     case $D__ITEM_CHECK_CODE in
       1|5)  d__stash -s -- unset $d__gqesk || d__gqrtc=1;;
     esac
-    [ -e "$d__gqeb" ] || rm -f -- "$d__gqeb.path"
+    if [ -e "$d__gqeb" ]
+    then d__notify -l!h -- "An older backup remains at: $d__gqeb"
+    else rm -f -- "$d__gqeb.path"; fi
   fi
 
   # Switch context and return
