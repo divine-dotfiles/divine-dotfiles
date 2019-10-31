@@ -2,8 +2,8 @@
 #:title:        Divine Bash utils: manifests
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.14
-#:revremark:    Implement robust dependency loading system
+#:revdate:      2019.10.31
+#:revremark:    Separate OS names with whitespace in manifests, instead of vbar
 #:created_at:   2019.05.30
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -304,8 +304,8 @@ d___evaluate_key_os()
     ## If value is empty, all OS's are allowed (negation of empty 
     #. list is not allowed)
     if [ -z "$vl" ]; then cur_rel=true; return 0; fi
-    # Read value as vertical bar-separated list of relevant OS's
-    IFS='|' read -r -a vla <<<"$vl"
+    # Read value as whitespace-separated list of relevant OS's
+    read -r -a vla <<<"$vl"
     # Set default value
     cur_rel=true
 
@@ -323,10 +323,10 @@ d___evaluate_key_os()
 
   else
 
-    # Normal list, does not stasrt with '!': set default status
+    # Normal list, does not start with '!': set default status
     cur_rel=false
-    # Read value as vertical bar-separated list of relevant OS's
-    IFS='|' read -r -a vla <<<"$vl"
+    # Read value as whitespace-separated list of relevant OS's
+    read -r -a vla <<<"$vl"
 
     # Iterate over list of relevant OS's
     for vl in "${vla[@]}"; do
