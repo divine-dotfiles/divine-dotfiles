@@ -1,8 +1,8 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revdate: 2019.10.31
-:revremark: Update readme for D.d v2, pt. 3
+:revdate: 2019.11.01
+:revremark: Update readme for D.d v2, pt. 4
 :doctype: article
 // Visual
 :toc:
@@ -65,8 +65,8 @@ Ecosystem of deployments is designed with distribution and pluggability in mind.
 
 === Example deployment
 
-Say, you install the same command line utility on every machine.
-Here's a sample deployment that does a scaled down version of that:
+Say, there is a need to maintain a certain command line utility on every machine.
+Below is a sample deployment that does a scaled down version of that:
 
 [source,bash,subs="verbatim,attributes"]
 ----
@@ -94,7 +94,7 @@ And here is what working with it looks like:
 ++++
 
 Dead simple, right?
-You wouldn't need a framework for that.
+One wouldn't need a framework for that.
 But wait, there's [.small]#_(hopefully)_# more.
 
 === Framework features
@@ -110,7 +110,7 @@ A special kind of deployments, the <<divinefiles,*Divinefiles*>> maintain a stab
 | +++<p align="center">+++<<grail-directory,*The Grail directory*>>+++</p>+++
 
 A centralized storage for personal deployments and assets (e.g., config files).
-On a new machine — <<plug-routine,plug in>> your Grail from a repo or a local dir with one command.
+On a new machine — the Grail can be <<plug-routine,plugged in>> from a repo or a local dir with one command.
 
 | +++<p align="center">+++<<deployment-priority,*Priorities*>>+++</p>+++
 
@@ -172,6 +172,10 @@ The so-called *urgent prompts* — saved for potentially messy situations — ig
 All framework components avoid deleting or clobbering any data that is not proven as recoverable.
 Instead, whenever files need to be replaced or removed, they are pushed to a backup location.
 
+For the deployment-specific overwrites, the backups are sent into the <<state-directory,state directory>>.
+Other backups are created in place, by appending the `.bak` suffix.
+Whenever multiple backups stack up, an incrementing counter is added, e.g., `_NAME_.bak-17`.
+
 The <<opt-obliterate,`--obliterate`>> option is available to suppress this behavior.
 
 [[fmwk-non-interference]]
@@ -198,6 +202,65 @@ To give an example, any backups created when installing a <<copy-queue,copy-queu
 Another example is the introductory <<joy-ride,joy ride>>: if taken reasonably, it will leave the system in largely the same state as before installing the framework.
 
 A glaring exception to this principle is the upgrading of the local package repositories through the system package manager (e.g., `sudo dnf upgrade -y`), which is deemed safe enough to overlook.
+
+=== Framework structure
+
+_Divine.dotfiles_ is installed, by default, into the `~/.divine/` directory, and is contained entirely in that directory, *except*:
+
+* A symlink to the framework's main script, `intervene.sh`, is created somewhere on `$PATH`.
+* Deployments may affect the system pretty much <<fmwk-security,anywhere>>.
+
+The installed framework consists of the following main parts:
+
+.Framework structure
+[%noheader,cols="<.<a",stripes=none]
+|===
+
+| +++<p align="center">+++[#grail-directory]#`~/.divine/*grail*/`#+++</p>+++
+
+*The Grail directory* (or simply, *the Grail*) houses user's deployments, assets, and persistent settings.
+
+The Grail is designed to contain just enough data to replicate the current set of deployments, bundles, and assets on any system that runs _Divine.dotfiles_.
+Naturally, it is recommended to take the Grail under version control and sync it, e.g., via a cloud service or Github.
+
+The Grail is sub-structured as follows:
+
+* `*assets*/` — The directory for user's assets, such as config files.
+* `*dpls*/` — The directory for user's custom deployments.
+* `*.stash.cfg*` — _The Grail-level <<stash,stash>> container, maintained by the framework._
+* `*.stash.cfg.md5*` — _The stash integrity checksum, maintained by the framework._
+
+| +++<p align="center">+++[#state-directory]#`~/.divine/*state*/`#+++</p>+++
+
+*The state directory* stores the current state of deployment installations on current system.
+_(The entire state directory is maintained by the framework.)_
+
+As this directory is automated and is specific to the machine it is maintained on, it is normally not needed to dive into it manually or version-control it.
+Still, this directory might come in handy in some emergency situations.
+
+The state directory is sub-structured as follows:
+
+* `*backups*/` — The directory for the deployment-level <<fmwk-zero-data-loss,backups>>.
+* `*bundles*/` — The directory for the copies of <<attach-routine,attached>> bundles of deployments.
+* `*stash*/` — The directory for the key-value containers of the root-level and deployment-level <<stash,stashing>> system.
+
+| +++<p align="center">+++[#lib-directory]#`~/.divine/*lib*/`#+++</p>+++
+
+This directory holds the guts of the framework.
+_(The entire directory is, naturally, maintained by the framework.)_
+
+| +++<p align="center">+++[#main-script]#`~/.divine/*intervene.sh*`#+++</p>+++
+
+The <<intervention-utility,*Divine intervention utility*>>.
+This script is the command line interface to the framework.
+_(The script file is, of course, maintained by the framework.)_
+
+| +++<p align="center">+++[#shortcut-cmd]#`_A{us}DIR{us}ON{us}$PATH_/*di*`#+++</p>+++
+
+The shortcut command: a symlink to the framework's <<main-script,main script>>.
+This symlink is normally created automatically, during the framework installation.
+
+|===
 
 == Installing and uninstalling the framework
 
@@ -229,10 +292,11 @@ The framework will work on other operating systems too, but without the support 
 [%noheader,cols="<.<a"]
 |===
 | Git is not a hard requirement, but it is not flaccid either.
-You can install _Divine.dotfiles_ without Git.
-However, the framework will bug you with suggestions to auto-install it until you relent.
+_Divine.dotfiles_ can be installed without Git.
+However, the framework will then proceed to vex the user with suggestions to auto-install it, until some day the `y` key is finally pressed.
 |===
 
+[[fmwk-install]]
 === Installing the framework
 
 The following single shell command installs the _Divine.dotfiles_ framework:
@@ -259,19 +323,20 @@ Equivalently, the framework can be installed from a local copy of this repositor
 [.note]
 [%noheader,cols="<.<a"]
 |===
-| Nothing too spectacular will happen:
+| The framework installation does nothing too spectacular:
 
 * Optional dependencies — such as Git — will be offered, unless installed already.
 * This repository will be cloned/downloaded.
-* Optionally, one symlink (<<intervention-utility,`di`>>) to the framework's main script will be created on `$PATH`.
+* Optionally, one symlink (<<shortcut-cmd,`di`>>) to the framework's main script will be created on `$PATH`.
 * Zero data loss <<fmwk-zero-data-loss,policy>> will be in effect, as normal.
 
-And naturally, you will be <<fmwk-interactivity,prompted>> for everything.
+The script will <<fmwk-interactivity,prompt>> for every major life decision.
 |===
 
-The documentation assumes that the framework has been installed with the optional shortcut command <<intervention-utility,`di`>>.
+The documentation assumes that the framework has been installed with the optional shortcut command <<shortcut-cmd,`di`>>.
 Still, all invocations of the `di` command are equivalent to executing the `./intervene.sh` script in the root of the installation directory.
 
+[[fmwk-install-opts]]
 ==== Installation options and overrides
 
 .Framework installation options and overrides
@@ -287,12 +352,12 @@ This directs to install it into the `_DIRPATH_` directory instead.
 
 | `*D_SHCT_NAME*=_CMD_`
 
-By default, the shortcut command for the framework is named `di`.
+By default, the <<shortcut-cmd,shortcut command>> for the framework is named `di`.
 This directs to name it `_CMD_` instead.
 
 | `*D_SHCT_DIR*=_DIRPATH_`
 
-By default, the shortcut command for the framework is installed into one of the usual `/{das}/bin/` directories on `$PATH`.
+By default, the <<shortcut-cmd,shortcut command>> for the framework is installed into one of the usual `/{das}/bin/` directories on `$PATH`.
 This directs to install it into the `_DIRPATH_` directory instead.
 
 ^.^h| Append on the right
@@ -317,24 +382,24 @@ This option is effectively a synonym of `--no`, as no optional parts are install
 
 | `*-s*`, `*--shct-yes*`
 
-Assumes an affirmative answer to the prompt about installing the shortcut command.
+Assumes an affirmative answer to the prompt about installing the <<shortcut-cmd,shortcut command>>.
 
 | `*-S*`, `*--shct-no*`
 
-Assumes a negatory answer to the prompt about installing the shortcut command.
+Assumes a negatory answer to the prompt about installing the <<shortcut-cmd,shortcut command>>.
 
 | `*-f*`, `*--force*`
 
 By default the installation halts immediately if the destination path already exists and is not an empty directory.
-This is in keeping with the zero data loss <<fmwk-zero-data-loss,policy>>.
-This option directs to instead issue an <<urgent-prompts,urgent prompt>> about whether to displace the pre-existing destination to a backup location.
+This is in keeping with the non-interference <<fmwk-non-interference,policy>>.
+The `--force` option directs to instead issue an <<urgent-prompts,urgent prompt>> about whether to displace the pre-existing destination to a backup location.
 
 | `*-v*`, `*--verbose*`
 
 _(repeatable)_
 Gradually increases the amount of informative output.
 
-This option is fully analogous to the <<global-verbosity-level,global verbosity level>> used by the framework itself.
+The `--verbose` option is fully analogous to the <<global-verbosity-level,global verbosity level>> used by the framework itself.
 
 | `*-q*`, `*--quiet*`
 
@@ -346,6 +411,7 @@ Note, that no combination of options guarantees an unattended installation of th
 For example, when installing the optional Git dependency, the underlying package manager may interact with the user in ways that are outside of the script's control.
 As established before, _Divine.dotfiles_ is intended as an <<fmwk-interactivity,interactive>> tool.
 
+[[fmwk-uninstall]]
 === Uninstalling the framework
 
 The following single shell command uninstalls the _Divine.dotfiles_ framework:
@@ -385,12 +451,13 @@ di fmwk-uninstall
 * The installation directory will be displaced (backed up) according to the zero data loss <<fmwk-zero-data-loss,policy>>.
 * The optional symlink (<<intervention-utility,`di`>>) will be erased.
 
-And, again, you will be <<fmwk-interactivity,prompted>> for everything.
+The script will <<fmwk-interactivity,prompt>> for every major life decision.
 |===
 
 One thing that framework uninstallation does *_not_* do is uninstall deployments.
 Any deployments that might have been installed *_must be removed manually_* before uninstalling Divine.dotfiles. 
 
+[[fmwk-uninstall-opts]]
 ==== Uninstallation options and overrides
 
 .Framework uninstallation options and overrides
@@ -435,7 +502,7 @@ Assumes a negatory answer to the prompt about installing the optional dependenci
 | `*-f*`, `*--force*`
 
 By default the uninstallation halts immediately if it fails to uninstall any of the optional dependencies.
-This option directs to instead issue an <<urgent-prompts,urgent prompt>> about whether to ignore the debacle.
+The `--force` option directs to instead issue an <<urgent-prompts,urgent prompt>> about whether to ignore the debacle.
 
 | `*-o*`, `*--obliterate*`
 
@@ -448,7 +515,7 @@ The `--obliterate` option directs to irrecoverably erase the framework directory
 _(repeatable)_
 Gradually increases the amount of informative output.
 
-This option is fully analogous to the <<global-verbosity-level,global verbosity level>> used by the framework itself.
+The `--verbose` option is fully analogous to the <<global-verbosity-level,global verbosity level>> used by the framework itself.
 
 | `*-q*`, `*--quiet*`
 
@@ -462,9 +529,7 @@ As established before, _Divine.dotfiles_ is intended as an <<fmwk-interactivity,
 [[joy-ride]]
 === Joy ride
 
-First timer?
-Looking for a feel of what _Divine.dotfiles_ offers?
-Here's a safe and fully removable way to acquaint yourself with the framework:
+The following single shell command provides a removable introductory experience of the framework and deployments.
 
 [source,bash]
 ----
@@ -483,35 +548,35 @@ exit 3 || exit 0" bash --yes \
 [.note]
 [%noheader,cols="<.<a"]
 |===
-| This three-part command is pretty unceremonious:
+| The joy-ride command is three-pronged:
 
-* The framework will be installed.
+* The framework will be <<fmwk-install,installed>>.
 * The https://github.com/no-simpler/divine-bundle-essentials[`essentials`] bundle of Divine deployments will be attached to the freshly minted <<grail-directory,Grail directory>>.
 * All bundled deployments will be installed.
 
-For this joy ride, no framework <<fmwk-interactivity,prompts>> will be issued.
+No framework <<fmwk-interactivity,prompts>> will be issued.
 |===
 
-As stated before, the Divine deployments <<fmwk-zero-data-loss,do not overwrite>> pre-existing files on your system without backing them up.
+As stated before, both the Divine framework and deployments <<fmwk-zero-data-loss,do not overwrite>> pre-existing files on the system without backing them up.
 Everything that is backed up is <<fmwk-reversibility,automatically restored>> upon the removal of deployments.
 
-After all installations are successful, *reload your shell/terminal*.
-(On macOS, you have to re-log into the system.)
+After all installations are successful, it is necessary to *reload the shell/terminal* (or re-log into the system on macOS).
 
 ==== What it does
 
 Once the bundle is fully installed, and the shell reloaded, _voilà_:
 
-* You are greeted by https://sourceforge.net/projects/zsh[Zsh] as the default shell.
+* https://sourceforge.net/projects/zsh[Zsh] is the default shell.
+* Zsh is supercharged with https://github.com/zsh-users/zsh-completions[completions], https://github.com/zsh-users/zsh-syntax-highlighting[syntax highlighting], and https://github.com/zsh-users/zsh-autosuggestions[auto-suggestions].
 * Basic necessities, such as https://git-scm.com[Git], https://www.vim.org[Vim], and https://gnupg.org[GnuPG] are available.
-* Both https://ohmyz.sh[oh-my-zsh] and https://github.com/Bash-it/bash-it[Bash-it] frameworks are now installed and loaded.
+* Both https://ohmyz.sh[oh-my-zsh] and https://github.com/Bash-it/bash-it[Bash-it] frameworks are installed and loaded.
 * A minimalistic theme for both shell frameworks is active.
 * Opinionated configs are plugged in for Git, Vim, Bash, and Zsh.
 * Pre-existing files and installations are safely backed up or re-used.
 
 All of the above is controlled and customized through key configuration files located in the <<grail-directory,Grail directory>> at `~/.divine/grail/assets/`.
 
-.Description of asset directories for the bundle `essentials`
+.Overview of asset directories for the bundle `essentials`
 [%noheader,cols="<.<a,<.<a",stripes=none]
 |===
 
@@ -526,7 +591,6 @@ All of the above is controlled and customized through key configuration files lo
 
 | `*config-shell*/`
 | Startup scripts (https://en.wikipedia.org/wiki/Run_commands[runcoms]) for Bash and Zsh.
-Within the `.runcoms` sub-directory, all files ending with `.sh`, `.bash`, and `.zsh` are sourced in order on every shell start-up.
 
 | `*config-vim*/`
 | Global configuration for Vim.
@@ -538,7 +602,7 @@ Within the `.runcoms` sub-directory, all files ending with `.sh`, `.bash`, and `
 | Custom assets for the https://ohmyz.sh[oh-my-zsh] shell framework.
 
 | `*portable-bin*/`
-| Portable container for personal executables; this directory is maintained on the `$PATH`
+| Container for personal executables (maintained on `$PATH`).
 
 |===
 
@@ -550,19 +614,13 @@ Within the `.runcoms` sub-directory, all files ending with `.sh`, `.bash`, and `
 
 ==== Cleaning up
 
-Yes, all of the above is fully removable.
-Below are the separate 'undo' steps, in order:
+The following single shell command methodically undoes all the <<joy-ride,joy ride>> installation:
 
 [source,bash]
 ----
-# Uninstall the Divine deployments WITHOUT BACKUPS:
-~/.divine/intervene.sh remove --yes --obliterate
-
-# Detach the essentials bundle from the Grail directory:
-~/.divine/intervene.sh detach essentials --yes
-
-# Erase the framework WITHOUT BACKUPS:
-bash -c "TMP=\$(mktemp); \
+~/.divine/intervene.sh remove --yes --obliterate \
+&& ~/.divine/intervene.sh detach essentials --yes \
+&& bash -c "TMP=\$(mktemp); \
 URL=https://raw.github.com/no-simpler/divine-dotfiles/master/lib/uninstall/uni\
 nstall.sh; if curl --version &>/dev/null; then curl -fsSL \$URL >\$TMP; elif w\
 get --version &>/dev/null; then wget -qO \$TMP \$URL; else printf >&2 \"\n==> \
@@ -572,65 +630,20 @@ f \$TMP; exit 2; }; chmod +x \$TMP && \$TMP \"\$@\"; RC=\$?; rm -f \$TMP; ((RC\
 )) && exit 3 || exit 0" bash --yes --obliterate
 ----
 
+[.note]
+[%noheader,cols="<.<a"]
+|===
+| The reverse joy-ride command is also three-pronged:
+
+* All bundled deployments will be uninstalled, without keeping backups of their assets.
+* The https://github.com/no-simpler/divine-bundle-essentials[`essentials`] bundle of Divine deployments will be detached (deleted).
+* The framework will be <<fmwk-uninstall,uninstalled>>, without keeping a backup copy.
+
+No framework <<fmwk-interactivity,prompts>> will be issued.
+|===
+
 After the three 'undo' steps have successfully run, there is no trace of _Divine.dotfiles_ on the system.
 [.small]#_(Sigh.)_#
-
-== Framework structure
-
-_Divine.dotfiles_ is installed, by default, to the `~/.divine/` directory, and is contained entirely in that directory, *except*:
-
-* A symlink to the framework's main script is created somewhere on `$PATH`.
-* Deployments may affect your system pretty much <<fmwk-security,anywhere>>.
-
-The framework itself consists of the following main parts:
-
-.Framework structure
-[%noheader,cols="<.<a",stripes=none]
-|===
-
-| +++<p align="center">+++[#grail-directory]#`~/.divine/*grail*/`#+++</p>+++
-
-*The Grail directory* houses user's deployments, assets, and persistent settings.
-
-If you settle on using _Divine.dotfiles_, it is recommended to take your Grail directory under version control and syncing it, e.g., via cloud services or Github.
-
-Sub-structured as follows:
-
-* `*assets*/` — Directory for user's assets, such as config files.
-* `*dpls*/` — Directory for user's deployments.
-* `*.stash.cfg*` — _Grail <<stash,stash>> entries maintained by the framework._
-* `*.stash.cfg.md5*` — _Grail <<stash,stash>> integrity checksum maintained by the framework._
-
-| +++<p align="center">+++[#state-directory]#`~/.divine/*state*/`#+++</p>+++
-
-*The state directory* stores data on the current state of deployments on current machine.
-_(Entire directory is maintained by the framework.)_
-
-Sub-structured as follows:
-
-* `*backups*/` — _Divine.dotfiles_ provides facilities to back up existing files from the system.
-This directory stores such backups.
-* `*bundles*/` — _Divine.dotfiles_ provides facilities to <<attach-routine,attach third-party bundles of deployments>> from Github.
-This directory stores such deployments.
-* `*stash*/` — _Divine.dotfiles_ provides a <<stash,persistent key-value store>> for use within deployments.
-This directory houses key-value containers.
-
-| +++<p align="center">+++[#lib-directory]#`~/.divine/*lib*/`#+++</p>+++
-
-Guts of the framework, structured to the best of creator's ability.
-_(Entire directory is, naturally, maintained by the framework.)_
-
-| +++<p align="center">+++`~/.divine/*intervene.sh*`+++</p>+++
-
-<<intervention-utility,*Divine intervention utility*>>, the command line interface to the framework.
-_(File is maintained by the framework.)_
-
-| +++<p align="center">+++`<a directory on $PATH>/*di*`+++</p>+++
-
-Symlink to the intervention utility, providing an easy access.
-This symlink is usually automatically created during framework installation.
-
-|===
 
 == Usage
 
