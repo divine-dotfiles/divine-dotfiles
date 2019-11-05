@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: remove
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.31
-#:revremark:    Lay groundwork for --obliterate option
+#:revdate:      2019.11.05
+#:revremark:    Update readme for D.d v2, pt. 5
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -408,7 +408,7 @@ d___remove_dpls()
 
       # Clear add-statuses
       unset D_ADDST_PROMPT D_ADDST_HALT
-      unset D_ADDST_ATTENTION D_ADDST_REBOOT D_ADDST_WARNING D_ADDST_CRITICAL
+      unset D_ADDST_ATTENTION D_ADDST_HELP D_ADDST_WARNING D_ADDST_CRITICAL
 
       # Get return code of d_dpl_check, or fall back to zero
       if declare -f d_dpl_check &>/dev/null; then d_dpl_check; d__rtc=$?
@@ -495,8 +495,8 @@ d___remove_dpls()
           printf >&2 '%s %s\n' "$D__INTRO_ATTNT" "$d__adsti"
         done
       fi
-      if ((${#D_ADDST_REBOOT[@]})); then
-        for d__adsti in "${D_ADDST_REBOOT[@]}"; do
+      if ((${#D_ADDST_HELP[@]})); then
+        for d__adsti in "${D_ADDST_HELP[@]}"; do
           printf >&2 '%s %s\n' "$D__INTRO_RBOOT" "$d__adsti"
         done
       fi
@@ -533,7 +533,7 @@ d___remove_dpls()
 
       # Clear add-statuses again
       unset D_ADDST_HALT
-      unset D_ADDST_ATTENTION D_ADDST_REBOOT D_ADDST_WARNING D_ADDST_CRITICAL
+      unset D_ADDST_ATTENTION D_ADDST_HELP D_ADDST_WARNING D_ADDST_CRITICAL
 
       ## Expose additional variables to the deployment. These are not readonly 
       #. because they might be further changed by the underlying helpers, e.g., 
@@ -559,8 +559,8 @@ d___remove_dpls()
           printf >&2 '%s %s\n' "$D__INTRO_ATTNT" "$d__adsti"
         done
       fi
-      if ((${#D_ADDST_REBOOT[@]})); then
-        for d__adsti in "${D_ADDST_REBOOT[@]}"; do
+      if ((${#D_ADDST_HELP[@]})); then
+        for d__adsti in "${D_ADDST_HELP[@]}"; do
           printf >&2 '%s %s\n' "$D__INTRO_RBOOT" "$d__adsti"
         done
       fi

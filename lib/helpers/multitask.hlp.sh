@@ -2,8 +2,8 @@
 #:title:        Divine Bash deployment helpers: reconcile
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.31
-#:revremark:    Compound item/task flags instead of overwriting
+#:revdate:      2019.11.05
+#:revremark:    Update readme for D.d v2, pt. 5
 #:created_at:   2019.06.18
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -68,7 +68,7 @@ d__mltsk_check()
     # Initialize marker var; clear add-statuses
     unset D__TASK_IS_QUEUE D_ADDST_MLTSK_HALT D_ADDST_TASK_CHECK_CODE
     unset D_ADDST_HALT D_ADDST_PROMPT
-    unset D_ADDST_ATTENTION D_ADDST_REBOOT D_ADDST_WARNING D_ADDST_CRITICAL
+    unset D_ADDST_ATTENTION D_ADDST_HELP D_ADDST_WARNING D_ADDST_CRITICAL
     D__TASK_FLAG_SETS[$d__mti]=
 
     # Expose additional variables to the task
@@ -129,8 +129,8 @@ d__mltsk_check()
     # Catch add-statuses
     if ((${#D_ADDST_ATTENTION[@]}))
     then for d__i in "${D_ADDST_ATTENTION[@]}"; do d__mas_a+="$d__i"; done; fi
-    if ((${#D_ADDST_REBOOT[@]}))
-    then for d__i in "${D_ADDST_REBOOT[@]}"; do d__mas_r+="$d__i"; done; fi
+    if ((${#D_ADDST_HELP[@]}))
+    then for d__i in "${D_ADDST_HELP[@]}"; do d__mas_r+="$d__i"; done; fi
     if ((${#D_ADDST_WARNING[@]}))
     then for d__i in "${D_ADDST_WARNING[@]}"; do d__mas_w+="$d__i"; done; fi
     if ((${#D_ADDST_CRITICAL[@]}))
@@ -200,9 +200,9 @@ d__mltsk_check()
   d__context -- push 'Reconciling check status of tasks'
 
   # Pass on add-statuses
-  unset D_ADDST_ATTENTION D_ADDST_REBOOT D_ADDST_WARNING D_ADDST_CRITICAL
+  unset D_ADDST_ATTENTION D_ADDST_HELP D_ADDST_WARNING D_ADDST_CRITICAL
   ((${#d__mas_a[@]})) && D_ADDST_ATTENTION=("${d__mas_a[@]}")
-  ((${#d__mas_r[@]})) && D_ADDST_REBOOT=("${d__mas_r[@]}")
+  ((${#d__mas_r[@]})) && D_ADDST_HELP=("${d__mas_r[@]}")
   ((${#d__mas_w[@]})) && D_ADDST_WARNING=("${d__mas_w[@]}")
   ((${#d__mas_c[@]})) && D_ADDST_CRITICAL=("${d__mas_c[@]}")
   unset D_ADDST_HALT; $d__mas_h && D_ADDST_HALT=true
@@ -377,7 +377,7 @@ d__mltsk_install()
 
     # Initialize marker var; clear add-statuses
     unset D_ADDST_MLTSK_HALT D_ADDST_HALT D_ADDST_TASK_INSTALL_CODE
-    unset D_ADDST_ATTENTION D_ADDST_REBOOT D_ADDST_WARNING D_ADDST_CRITICAL
+    unset D_ADDST_ATTENTION D_ADDST_HELP D_ADDST_WARNING D_ADDST_CRITICAL
 
     # Expose additional variables to the task
     D__TASK_NUM="$d__mti" D__TASK_NAME="$d__mtn" D__TASK_FLAGS="$d__mtflg"
@@ -438,8 +438,8 @@ d__mltsk_install()
     # Catch add-statuses
     if ((${#D_ADDST_ATTENTION[@]}))
     then for d__i in "${D_ADDST_ATTENTION[@]}"; do d__mas_a+="$d__i"; done; fi
-    if ((${#D_ADDST_REBOOT[@]}))
-    then for d__i in "${D_ADDST_REBOOT[@]}"; do d__mas_r+="$d__i"; done; fi
+    if ((${#D_ADDST_HELP[@]}))
+    then for d__i in "${D_ADDST_HELP[@]}"; do d__mas_r+="$d__i"; done; fi
     if ((${#D_ADDST_WARNING[@]}))
     then for d__i in "${D_ADDST_WARNING[@]}"; do d__mas_w+="$d__i"; done; fi
     if ((${#D_ADDST_CRITICAL[@]}))
@@ -476,9 +476,9 @@ d__mltsk_install()
   d__context -- push 'Reconciling install status of tasks'
 
   # Pass on add-statuses
-  unset D_ADDST_ATTENTION D_ADDST_REBOOT D_ADDST_WARNING D_ADDST_CRITICAL
+  unset D_ADDST_ATTENTION D_ADDST_HELP D_ADDST_WARNING D_ADDST_CRITICAL
   ((${#d__mas_a[@]})) && D_ADDST_ATTENTION=("${d__mas_a[@]}")
-  ((${#d__mas_r[@]})) && D_ADDST_REBOOT=("${d__mas_r[@]}")
+  ((${#d__mas_r[@]})) && D_ADDST_HELP=("${d__mas_r[@]}")
   ((${#d__mas_w[@]})) && D_ADDST_WARNING=("${d__mas_w[@]}")
   ((${#d__mas_c[@]})) && D_ADDST_CRITICAL=("${d__mas_c[@]}")
   unset D_ADDST_HALT; $d__mas_h && D_ADDST_HALT=true
@@ -647,7 +647,7 @@ d__mltsk_remove()
 
     # Initialize marker var; clear add-statuses
     unset D_ADDST_MLTSK_HALT D_ADDST_HALT D_ADDST_TASK_REMOVE_CODE
-    unset D_ADDST_ATTENTION D_ADDST_REBOOT D_ADDST_WARNING D_ADDST_CRITICAL
+    unset D_ADDST_ATTENTION D_ADDST_HELP D_ADDST_WARNING D_ADDST_CRITICAL
 
     # Expose additional variables to the task
     D__TASK_NUM="$d__mti" D__TASK_NAME="$d__mtn" D__TASK_FLAGS="$d__mtflg"
@@ -707,8 +707,8 @@ d__mltsk_remove()
     # Catch add-statuses
     if ((${#D_ADDST_ATTENTION[@]}))
     then for d__i in "${D_ADDST_ATTENTION[@]}"; do d__mas_a+="$d__i"; done; fi
-    if ((${#D_ADDST_REBOOT[@]}))
-    then for d__i in "${D_ADDST_REBOOT[@]}"; do d__mas_r+="$d__i"; done; fi
+    if ((${#D_ADDST_HELP[@]}))
+    then for d__i in "${D_ADDST_HELP[@]}"; do d__mas_r+="$d__i"; done; fi
     if ((${#D_ADDST_WARNING[@]}))
     then for d__i in "${D_ADDST_WARNING[@]}"; do d__mas_w+="$d__i"; done; fi
     if ((${#D_ADDST_CRITICAL[@]}))
@@ -745,9 +745,9 @@ d__mltsk_remove()
   d__context -- push 'Reconciling remove status of tasks'
 
   # Pass on add-statuses
-  unset D_ADDST_ATTENTION D_ADDST_REBOOT D_ADDST_WARNING D_ADDST_CRITICAL
+  unset D_ADDST_ATTENTION D_ADDST_HELP D_ADDST_WARNING D_ADDST_CRITICAL
   ((${#d__mas_a[@]})) && D_ADDST_ATTENTION=("${d__mas_a[@]}")
-  ((${#d__mas_r[@]})) && D_ADDST_REBOOT=("${d__mas_r[@]}")
+  ((${#d__mas_r[@]})) && D_ADDST_HELP=("${d__mas_r[@]}")
   ((${#d__mas_w[@]})) && D_ADDST_WARNING=("${d__mas_w[@]}")
   ((${#d__mas_c[@]})) && D_ADDST_CRITICAL=("${d__mas_c[@]}")
   unset D_ADDST_HALT; $d__mas_h && D_ADDST_HALT=true

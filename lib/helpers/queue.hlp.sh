@@ -2,8 +2,8 @@
 #:title:        Divine Bash deployment helpers: queue
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.31
-#:revremark:    Compound item/task flags instead of overwriting
+#:revdate:      2019.11.05
+#:revremark:    Update readme for D.d v2, pt. 5
 #:created_at:   2019.06.10
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -93,7 +93,7 @@ d__queue_check()
     # Initialize marker var; clear add-statuses
     unset D_ADDST_QUEUE_HALT D_ADDST_ITEM_CHECK_CODE
     unset D_ADDST_HALT D_ADDST_PROMPT
-    unset D_ADDST_ATTENTION D_ADDST_REBOOT D_ADDST_WARNING D_ADDST_CRITICAL
+    unset D_ADDST_ATTENTION D_ADDST_HELP D_ADDST_WARNING D_ADDST_CRITICAL
     D__ITEM_FLAG_SETS[$d__qei]=
 
     # Expose additional variables to the item
@@ -151,8 +151,8 @@ d__queue_check()
     # Catch add-statuses
     if ((${#D_ADDST_ATTENTION[@]}))
     then for d__i in "${D_ADDST_ATTENTION[@]}"; do d__qas_a+="$d__i"; done; fi
-    if ((${#D_ADDST_REBOOT[@]}))
-    then for d__i in "${D_ADDST_REBOOT[@]}"; do d__qas_r+="$d__i"; done; fi
+    if ((${#D_ADDST_HELP[@]}))
+    then for d__i in "${D_ADDST_HELP[@]}"; do d__qas_r+="$d__i"; done; fi
     if ((${#D_ADDST_WARNING[@]}))
     then for d__i in "${D_ADDST_WARNING[@]}"; do d__qas_w+="$d__i"; done; fi
     if ((${#D_ADDST_CRITICAL[@]}))
@@ -214,9 +214,9 @@ d__queue_check()
   d__context -- push 'Reconciling check status of items'
 
   # Pass on add-statuses
-  unset D_ADDST_ATTENTION D_ADDST_REBOOT D_ADDST_WARNING D_ADDST_CRITICAL
+  unset D_ADDST_ATTENTION D_ADDST_HELP D_ADDST_WARNING D_ADDST_CRITICAL
   ((${#d__qas_a[@]})) && D_ADDST_ATTENTION=("${d__qas_a[@]}")
-  ((${#d__qas_r[@]})) && D_ADDST_REBOOT=("${d__qas_r[@]}")
+  ((${#d__qas_r[@]})) && D_ADDST_HELP=("${d__qas_r[@]}")
   ((${#d__qas_w[@]})) && D_ADDST_WARNING=("${d__qas_w[@]}")
   ((${#d__qas_c[@]})) && D_ADDST_CRITICAL=("${d__qas_c[@]}")
   unset D_ADDST_HALT; $d__qas_h && D_ADDST_HALT=true
@@ -406,7 +406,7 @@ d__queue_install()
 
     # Initialize marker var; clear add-statuses
     unset D_ADDST_QUEUE_HALT D_ADDST_HALT D_ADDST_ITEM_INSTALL_CODE
-    unset D_ADDST_ATTENTION D_ADDST_REBOOT D_ADDST_WARNING D_ADDST_CRITICAL
+    unset D_ADDST_ATTENTION D_ADDST_HELP D_ADDST_WARNING D_ADDST_CRITICAL
 
     # Expose additional variables to the item
     D__ITEM_NUM="$d__qei" D__ITEM_NAME="$d__qen" D__ITEM_FLAGS="$d__qeflg"
@@ -463,8 +463,8 @@ d__queue_install()
     # Catch add-statuses
     if ((${#D_ADDST_ATTENTION[@]}))
     then for d__i in "${D_ADDST_ATTENTION[@]}"; do d__qas_a+="$d__i"; done; fi
-    if ((${#D_ADDST_REBOOT[@]}))
-    then for d__i in "${D_ADDST_REBOOT[@]}"; do d__qas_r+="$d__i"; done; fi
+    if ((${#D_ADDST_HELP[@]}))
+    then for d__i in "${D_ADDST_HELP[@]}"; do d__qas_r+="$d__i"; done; fi
     if ((${#D_ADDST_WARNING[@]}))
     then for d__i in "${D_ADDST_WARNING[@]}"; do d__qas_w+="$d__i"; done; fi
     if ((${#D_ADDST_CRITICAL[@]}))
@@ -501,9 +501,9 @@ d__queue_install()
   d__context -- push 'Reconciling install status of items'
 
   # Pass on add-statuses
-  unset D_ADDST_ATTENTION D_ADDST_REBOOT D_ADDST_WARNING D_ADDST_CRITICAL
+  unset D_ADDST_ATTENTION D_ADDST_HELP D_ADDST_WARNING D_ADDST_CRITICAL
   ((${#d__qas_a[@]})) && D_ADDST_ATTENTION=("${d__qas_a[@]}")
-  ((${#d__qas_r[@]})) && D_ADDST_REBOOT=("${d__qas_r[@]}")
+  ((${#d__qas_r[@]})) && D_ADDST_HELP=("${d__qas_r[@]}")
   ((${#d__qas_w[@]})) && D_ADDST_WARNING=("${d__qas_w[@]}")
   ((${#d__qas_c[@]})) && D_ADDST_CRITICAL=("${d__qas_c[@]}")
   unset D_ADDST_HALT; $d__qas_h && D_ADDST_HALT=true
@@ -687,7 +687,7 @@ d__queue_remove()
 
     # Initialize marker var; clear add-statuses
     unset D_ADDST_QUEUE_HALT D_ADDST_HALT D_ADDST_ITEM_REMOVE_CODE
-    unset D_ADDST_ATTENTION D_ADDST_REBOOT D_ADDST_WARNING D_ADDST_CRITICAL
+    unset D_ADDST_ATTENTION D_ADDST_HELP D_ADDST_WARNING D_ADDST_CRITICAL
 
     # Expose additional variables to the item
     D__ITEM_NUM="$d__qei" D__ITEM_NAME="$d__qen" D__ITEM_FLAGS="$d__qeflg"
@@ -743,8 +743,8 @@ d__queue_remove()
     # Catch add-statuses
     if ((${#D_ADDST_ATTENTION[@]}))
     then for d__i in "${D_ADDST_ATTENTION[@]}"; do d__qas_a+="$d__i"; done; fi
-    if ((${#D_ADDST_REBOOT[@]}))
-    then for d__i in "${D_ADDST_REBOOT[@]}"; do d__qas_r+="$d__i"; done; fi
+    if ((${#D_ADDST_HELP[@]}))
+    then for d__i in "${D_ADDST_HELP[@]}"; do d__qas_r+="$d__i"; done; fi
     if ((${#D_ADDST_WARNING[@]}))
     then for d__i in "${D_ADDST_WARNING[@]}"; do d__qas_w+="$d__i"; done; fi
     if ((${#D_ADDST_CRITICAL[@]}))
@@ -781,9 +781,9 @@ d__queue_remove()
   d__context -- push 'Reconciling remove status of items'
 
   # Pass on add-statuses
-  unset D_ADDST_ATTENTION D_ADDST_REBOOT D_ADDST_WARNING D_ADDST_CRITICAL
+  unset D_ADDST_ATTENTION D_ADDST_HELP D_ADDST_WARNING D_ADDST_CRITICAL
   ((${#d__qas_a[@]})) && D_ADDST_ATTENTION=("${d__qas_a[@]}")
-  ((${#d__qas_r[@]})) && D_ADDST_REBOOT=("${d__qas_r[@]}")
+  ((${#d__qas_r[@]})) && D_ADDST_HELP=("${d__qas_r[@]}")
   ((${#d__qas_w[@]})) && D_ADDST_WARNING=("${d__qas_w[@]}")
   ((${#d__qas_c[@]})) && D_ADDST_CRITICAL=("${d__qas_c[@]}")
   unset D_ADDST_HALT; $d__qas_h && D_ADDST_HALT=true

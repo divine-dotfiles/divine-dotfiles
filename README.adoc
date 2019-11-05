@@ -1,8 +1,8 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revdate: 2019.11.01
-:revremark: Update readme for D.d v2, pt. 4
+:revdate: 2019.11.05
+:revremark: Update readme for D.d v2, pt. 5
 :doctype: article
 // Visual
 :toc:
@@ -46,6 +46,7 @@ Set it up with a single `*di install --yes*`.
 _Divine.dotfiles_ leverages *deployments*.
 
 A deployment is a Bash script with three specially named functions: one to *check*, another to *install*, third to *remove*.
+No assumptions are made about what a deployment does for a living.
 Return codes are used to communicate status back to the framework.
 As such, authoring a deployment is akin to implementing an interface.
 
@@ -110,21 +111,21 @@ A special kind of deployments, the <<divinefiles,*Divinefiles*>> maintain a stab
 | +++<p align="center">+++<<grail-directory,*The Grail directory*>>+++</p>+++
 
 A centralized storage for personal deployments and assets (e.g., config files).
-On a new machine — the Grail can be <<plug-routine,plugged in>> from a repo or a local dir with one command.
+On a new machine — the Grail can be <<rtn-plug,plugged in>> from a repo or a local dir with one command.
 
-| +++<p align="center">+++<<deployment-priority,*Priorities*>>+++</p>+++
+| +++<p align="center">+++<<mtd-priority,*Priorities*>>+++</p>+++
 
 Deployments are always ordered by their numerical priority, and the order is automatically reversed for removal.
 
-| +++<p align="center">+++<<deployment-groups,*Groups*>>+++</p>+++
+| +++<p align="center">+++<<mtd-groups,*Groups*>>+++</p>+++
 
-Deployments support basic grouping via single-character <<deployment-flags,flags>>.
+Deployments support basic grouping via single-character <<mtd-flags,flags>>.
 
 | +++<p align="center">+++<<detected-os,*Cross-platformness*>>+++</p>+++
 
 Built-in OS detection mechanism allows to adapt to a growing <<os-support,list>> of supported OS distributions and families.
 
-| +++<p align="center">+++<<attach-routine,*Third-party deployments (bundles)*>>+++</p>+++
+| +++<p align="center">+++<<rtn-attach,*Third-party deployments (bundles)*>>+++</p>+++
 
 Github repositories containing deployments are treated as bundles that can be attached with one command.
 One example is the https://github.com/no-simpler/divine-bundle-essentials[`essentials`] bundle.
@@ -241,7 +242,7 @@ Still, this directory might come in handy in some emergency situations.
 The state directory is sub-structured as follows:
 
 * `*backups*/` — The directory for the deployment-level <<fmwk-zero-data-loss,backups>>.
-* `*bundles*/` — The directory for the copies of <<attach-routine,attached>> bundles of deployments.
+* `*bundles*/` — The directory for the copies of <<rtn-attach,attached>> bundles of deployments.
 * `*stash*/` — The directory for the key-value containers of the root-level and deployment-level <<stash,stashing>> system.
 
 | +++<p align="center">+++[#lib-directory]#`~/.divine/*lib*/`#+++</p>+++
@@ -328,7 +329,7 @@ Equivalently, the framework can be installed from a local copy of this repositor
 * Optional dependencies — such as Git — will be offered, unless installed already.
 * This repository will be cloned/downloaded.
 * Optionally, one symlink (<<shortcut-cmd,`di`>>) to the framework's main script will be created on `$PATH`.
-* Zero data loss <<fmwk-zero-data-loss,policy>> will be in effect, as normal.
+* The zero data loss <<fmwk-zero-data-loss,policy>> will be in effect, as normal.
 
 The script will <<fmwk-interactivity,prompt>> for every major life decision.
 |===
@@ -348,7 +349,7 @@ Still, all invocations of the `di` command are equivalent to executing the `./in
 | `*D_DIR*=_DIRPATH_`
 
 By default, the framework is installed into the `~/.divine/` directory.
-This directs to install it into the `_DIRPATH_` directory instead.
+This directs to instead install it into the `_DIRPATH_` directory.
 
 | `*D_SHCT_NAME*=_CMD_`
 
@@ -358,52 +359,64 @@ This directs to name it `_CMD_` instead.
 | `*D_SHCT_DIR*=_DIRPATH_`
 
 By default, the <<shortcut-cmd,shortcut command>> for the framework is installed into one of the usual `/{das}/bin/` directories on `$PATH`.
-This directs to install it into the `_DIRPATH_` directory instead.
+This directs to instead install it into the `_DIRPATH_` directory.
 
 ^.^h| Append on the right
 
-| `*-y*`, `*--yes*`
+| +++<p align="center">+++
+*Prompt options*
++++<br>+++
+`*-y*`, `*--yes*`
++++<br>+++
+`*-n*`, `*--no*`
++++</p>+++
 
-Assumes an affirmative answer to the prompts about installing the framework and all optional parts.
+Assumes an affirmative (`--yes`) or negatory (`--no`) answer to the prompts about installing the framework and all optional parts.
 
-| `*-n*`, `*--no*`
+Other options notwithstanding, *the* `*--no*` *option guarantees a 'dry run'*: no changes to the system will be introduced.
 
-Assumes a negatory answer to the prompts about installing the framework and all optional parts.
-In essence, this performs a harmless 'dry run'.
+| +++<p align="center">+++
+*Framework prompt options*
++++<br>+++
+`*-d*`, `*--fmwk-yes*`
++++<br>+++
+`*-D*`, `*--fmwk-no*`
++++</p>+++
 
-| `*-d*`, `*--fmwk-yes*`
+Assumes an affirmative (`--yes`) or negatory (`--no`) answer specifically to the prompt about installing the framework.
 
-Assumes an affirmative answer to the prompt about installing the framework.
+Other options notwithstanding, *the* `*--fmwk-no*` *option guarantees a 'dry run'*, because no optional parts are installed without the framework itself.
 
-| `*-D*`, `*--fmwk-no*`
+| +++<p align="center">+++
+*Shortcut prompt options*
++++<br>+++
+`*-s*`, `*--shct-yes*`
++++<br>+++
+`*-S*`, `*--shct-no*`
++++</p>+++
 
-Assumes a negatory answer to the prompt about installing the framework.
-This option is effectively a synonym of `--no`, as no optional parts are installed without the framework itself.
+Assumes an affirmative (`--yes`) or negatory (`--no`) answer specifically to the prompt about installing the <<shortcut-cmd,shortcut command>>.
 
-| `*-s*`, `*--shct-yes*`
+| +++<p align="center">+++
+`*-f*`, `*--force*`
++++</p>+++
 
-Assumes an affirmative answer to the prompt about installing the <<shortcut-cmd,shortcut command>>.
+The framework adheres to the non-interference <<fmwk-non-interference, policy>>.
 
-| `*-S*`, `*--shct-no*`
+If the destination path for the framework already exists and is not an empty directory, the installation unconditionally backs off with an alert.
 
-Assumes a negatory answer to the prompt about installing the <<shortcut-cmd,shortcut command>>.
+The `--force` option directs to instead <<urgent-prompts,urgently>> prompt the user and, if given permission, to displace the pre-existing destination to a backup location.
 
-| `*-f*`, `*--force*`
+| +++<p align="center">+++
+*Verbosity options*
++++<br>+++
+`*-v*`, `*--verbose*` _(repeatable)_
++++<br>+++
+`*-q*`, `*--quiet*`
++++</p>+++
 
-By default the installation halts immediately if the destination path already exists and is not an empty directory.
-This is in keeping with the non-interference <<fmwk-non-interference,policy>>.
-The `--force` option directs to instead issue an <<urgent-prompts,urgent prompt>> about whether to displace the pre-existing destination to a backup location.
-
-| `*-v*`, `*--verbose*`
-
-_(repeatable)_
-Gradually increases the amount of informative output.
-
-The `--verbose` option is fully analogous to the <<global-verbosity-level,global verbosity level>> used by the framework itself.
-
-| `*-q*`, `*--quiet*`
-
-Resets the amount of output to the default, minimal level.
+Gradually increases (`--verbose`), or resets to the default minimal level (`--quiet`), the amount of installation output.
+This affects the same <<opt-verbosity,global verbosity level>> as is used by the primary routines of the framework.
 
 |===
 
@@ -469,57 +482,74 @@ Any deployments that might have been installed *_must be removed manually_* befo
 | `*D_DIR*=_DIRPATH_`
 
 By default, the framework is uninstalled from the `~/.divine/` directory.
-This directs to uninstall it from the `_DIRPATH_` directory instead.
+This directs to instead uninstall it from the `_DIRPATH_` directory.
 
 ^.^h| Append on the right
 
-| `*-y*`, `*--yes*`
+| +++<p align="center">+++
+*Prompt options*
++++<br>+++
+`*-y*`, `*--yes*`
++++<br>+++
+`*-n*`, `*--no*`
++++</p>+++
 
-Assumes an affirmative answer to the prompts about uninstalling the framework and all optional parts.
+Assumes an affirmative (`--yes`) or negatory (`--no`) answer to the prompts about uninstalling the framework and all optional parts.
 
-| `*-n*`, `*--no*`
+Other options notwithstanding, *the* `*--no*` *option guarantees a 'dry run'*: no changes to the system will be introduced.
 
-Assumes a negatory answer to the prompts about uninstalling the framework and all optional parts.
-In essence, this performs a harmless 'dry run'.
+| +++<p align="center">+++
+*Framework prompt options*
++++<br>+++
+`*-d*`, `*--fmwk-yes*`
++++<br>+++
+`*-D*`, `*--fmwk-no*`
++++</p>+++
 
-| `*-d*`, `*--fmwk-yes*`
+Assumes an affirmative (`--yes`) or negatory (`--no`) answer specifically to the prompt about uninstalling the framework.
 
-Assumes an affirmative answer to the prompt about uninstalling the framework.
+Other options notwithstanding, *the* `*--fmwk-no*` *option guarantees a 'dry run'*, because no optional parts are uninstalled without the framework itself.
 
-| `*-D*`, `*--fmwk-no*`
+| +++<p align="center">+++
+*Optional dependency prompt options*
++++<br>+++
+`*-u*`, `*--util-yes*`
++++<br>+++
+`*-U*`, `*--util-no*`
++++</p>+++
 
-Assumes a negatory answer to the prompt about uninstalling the framework.
-This option is effectively a synonym of `--no`, as no optional parts are uninstalled without the framework itself.
+Assumes an affirmative (`--yes`) or negatory (`--no`) answer specifically to the prompt about uninstalling the optional dependencies that might have been installed.
 
-| `*-u*`, `*--util-yes*`
+| +++<p align="center">+++
+`*-f*`, `*--force*`
++++</p>+++
 
-Assumes an affirmative answer to the prompt about uninstalling the optional dependencies that might have been installed.
+The framework adheres to the reversibility <<fmwk-reversibility, policy>>.
 
-| `*-U*`, `*--util-no*`
+If the script fails to uninstall any of the optional dependencies, the installation unconditionally backs off with an alert.
 
-Assumes a negatory answer to the prompt about installing the optional dependencies that might have been installed.
+The `--force` option directs to instead <<urgent-prompts,urgently>> prompt the user and, if given permission, to ignore the debacle and uninstall the framework anyway.
 
-| `*-f*`, `*--force*`
+| +++<p align="center">+++
+`*-o*`, `*--obliterate*`
++++</p>+++
 
-By default the uninstallation halts immediately if it fails to uninstall any of the optional dependencies.
-The `--force` option directs to instead issue an <<urgent-prompts,urgent prompt>> about whether to ignore the debacle.
+The framework adheres to the zero data loss <<fmwk-zero-data-loss, policy>>.
 
-| `*-o*`, `*--obliterate*`
+Accordingly, during the uninstallation of the framework, its directory is displaced into a backup location.
 
-By default the uninstallation of the framework means displacing its directory to a backup location.
-This is in keeping with the zero data loss <<fmwk-zero-data-loss,policy>>.
-The `--obliterate` option directs to irrecoverably erase the framework directory instead.
+The `--obliterate` option directs to instead erase the framework directory.
 
-| `*-v*`, `*--verbose*`
+| +++<p align="center">+++
+*Verbosity options*
++++<br>+++
+`*-v*`, `*--verbose*` _(repeatable)_
++++<br>+++
+`*-q*`, `*--quiet*`
++++</p>+++
 
-_(repeatable)_
-Gradually increases the amount of informative output.
-
-The `--verbose` option is fully analogous to the <<global-verbosity-level,global verbosity level>> used by the framework itself.
-
-| `*-q*`, `*--quiet*`
-
-Resets the amount of output to the default, minimal level.
+Gradually increases (`--verbose`), or resets to the default minimal level (`--quiet`), the amount of uninstallation output.
+This affects the same <<opt-verbosity,global verbosity level>> as is used by the primary routines of the framework.
 
 |===
 
@@ -614,7 +644,7 @@ All of the above is controlled and customized through key configuration files lo
 
 ==== Cleaning up
 
-The following single shell command methodically undoes all the <<joy-ride,joy ride>> installation:
+The following single shell command methodically undoes all of the <<joy-ride,joy ride>> installation:
 
 [source,bash]
 ----
@@ -642,7 +672,7 @@ f \$TMP; exit 2; }; chmod +x \$TMP && \$TMP \"\$@\"; RC=\$?; rm -f \$TMP; ((RC\
 No framework <<fmwk-interactivity,prompts>> will be issued.
 |===
 
-After the three 'undo' steps have successfully run, there is no trace of _Divine.dotfiles_ on the system.
+After the 'undo' steps have successfully run, there is no trace of _Divine.dotfiles_ on the system.
 [.small]#_(Sigh.)_#
 
 == Usage
@@ -651,16 +681,39 @@ After the three 'undo' steps have successfully run, there is no trace of _Divine
 === Divine intervention utility `di`
 
 _Divine.dotfiles_ provides a command line interface via *Divine intervention utility `di`*.
+(Invoking the shortcut <<shortcut-cmd,`di`>> is equivalent to executing the framework's main script, <<main-script,`intervene.sh`>>.)
 
-Intervention utility's functions are:
+[source,subs="verbatim,quotes,attributes"]
+----
+*di* [-efhlnoqvwy]… [-version] [-b *_BUNDLE_*]… [--] *_ROUTINE_* [*_ARG_*]…
+----
 
-. <<primary-routines,*Primary routines*>> on <<deployments,deployments>> and <<divinefiles,Divinefiles>>:
-.. *Check* whether deployments are installed or not.
-.. *Install* deployments.
-.. *Remove* (uninstall) deployments.
-. <<attach-routine,*Attach/detach*>> third-party bundles of deployments from Github.
-. <<plug-routine,*Plug in*>> pre-made Grail directory from a repository or local directory.
-. <<update-routine,*Update*>> framework itself, attached bundles, and Grail directory, if it is a cloned repository.
+The first non-option argument, `*_ROUTINE_*`, can be any of the following:
+
+.List of the intervention utility's routines
+[%noheader,cols="<.<a",stripes=none]
+|===
+
+| The <<rtn-primaries,*primary routines*>>, operating on deployments:
+
+* `*c*{vbar}<<rtn-check,*check*>>` — checks whether deployments are installed or not;
+* `*i*{vbar}<<rtn-install,*install*>>` — checks, then, if not installed, installs;
+* `*r*{vbar}<<rtn-remove,*remove*>>` — checks, then, if installed, removes.
+
+| The <<rtn-bundles,*bundle routines*>>, operating on Github repositories:
+
+* `*a*{vbar}<<rtn-attach,*attach*>>` — imports Github repositories that contain deployments.
+* `*d*{vbar}<<rtn-detach,*detach*>>` — erases previously attached Github repositories.
+
+| The routine that wrangles the <<grail-directory,Grail directory>>:
+
+* `*p*{vbar}<<rtn-plug,*plug*>>` — replaces the current Grail directory with the one provided.
+
+| The routine that brings what it can up to date:
+
+* `*u*{vbar}<<rtn-update,*update*>>` — updates the framework itself, the Grail directory (if it is a cloned repository), and the attached bundles.
+
+|===
 
 [.note]
 [%noheader,cols="<.<a"]
@@ -668,537 +721,715 @@ Intervention utility's functions are:
 | The term '<<deployments,deployments>>' includes <<divinefiles,Divinefiles>> as a special kind.
 |===
 
-[[primary-routines]]
-=== Checking/installing/removing deployments
+[[opt-arg-parsing]]
+=== Options and arguments
 
-Primary routines — the core of the framework — launch respective functions on deployments.
+The intervention routines, and the _Divine.dotfiles_ overall, use a familiar set of rules for taking options and arguments:
+
+* The options and arguments are read left-to-right, word by word, separated by any unescaped whitespace.
++
+Whenever options override each other, the last option given wins.
+In the documentation, the overriding options have their descriptions grouped.
+* Most options have single-character and long versions, which are equivalent.
+* The single-character options can be combined (`-_CHARS_`).
++
+Words that start with one hyphen are interpreted as combined options.
+* Words that start with two hyphens (`--_WORD_`) are interpreted as long options.
+* The arguments and options can be freely mixed; all words after the optional separator (`*--*`) are interpreted as arguments.
+* The two special options take priority over all other arguments/options:
+** `*-h*`, `*--help*` — outputs the help summary for the intervention utility.
+** `*--version*` — prints the version of the framework.
+
+[[rtn-primaries]]
+=== Primary routines (`check`, `install`, `remove`)
+
+The three primary routines somewhat correspond to the three fundamental actions (functions) that the framework recognizes for any deployment:
+
+* checking whether something is installed;
+* installing it;
+* and removing it.
+
+The correspondence is not strictly one-to-one because all three primary routines do the checking part.
+The <<rtn-check,`check`>> routine stops there, but the <<rtn-install,`install`>> and <<rtn-remove,`remove`>> routines proceed based on the `check` result.
+
+[[rtn-check]]
+==== `check` routine
+
+The `check` routine iterates over deployments (and Divinefile packages), ordered by *ascending* <<dpl-metadata,priority>> (smaller numbers first).
+The routine checks whether each item is installed or not, then prints the appropriate plaque.
 
 [source,subs="verbatim,quotes,attributes"]
 ----
-$ *di* *c*[*heck*]    [-ynqvew]  [-b *_BUNDLE_*]… [--] [*_NAME_*]…
-
-$ *di* *i*[*nstall*]  [-ynqvewf] [-b *_BUNDLE_*]… [--] [*_NAME_*]…
-
-$ *di* *r*[*emove*]   [-ynqvewf] [-b *_BUNDLE_*]… [--] [*_NAME_*]…
+$ *di* [-efhnoqvwy] [-b *_BUNDLE_*]… [--] *c*|*check* [*_NAME_*]…
 ----
 
-Accepted values of `*_NAME_*` are (case-insensitive):
+The meaning of the optional `*_NAME_*` <<rtn-primaries-args,arguments>> and the <<rtn-primaries-opts,options>> is near identical for all three primary routines.
+Their description is grouped below.
 
-* Names of <<deployments,deployments>>.
+For each deployment, the `check` routine calls the <<func-dpl-check,`d_dpl_check`>> primary function, and deduces the current status from the return code.
+
+[[rtn-install]]
+==== `install` routine
+
+The `install` routine iterates over deployments (and Divinefile packages), ordered by *ascending* <<dpl-metadata,priority>> (smaller numbers first).
+The routine checks whether each item is installed or not.
+If the item is not (fully) installed, the routine installs it, and prints the appropriate plaque.
+
+[source,subs="verbatim,quotes,attributes"]
+----
+$ *di* [-efhnoqvwy] [-b *_BUNDLE_*]… [--] *i*|*install* [*_NAME_*]…
+----
+
+The meaning of the optional `*_NAME_*` <<rtn-primaries-args,arguments>> and the <<rtn-primaries-opts,options>> is near identical for all three primary routines.
+Their description is grouped below.
+
+For each deployment, the `install` routine calls the <<func-dpl-check,`d_dpl_check`>> primary function, and deduces the current status from the return code.
+Depending on that, the routine either returns immediately, or calls the <<func-dpl-install,`d_dpl_install`>> primary function.
+The return code of the latter is taken to indicate whether the installation succeeded.
+
+[[rtn-remove]]
+==== `remove` routine
+
+The `remove` routine iterates over deployments (and Divinefile packages), ordered by *descending* <<dpl-metadata,priority>> (larger numbers first).
+The routine checks whether each item is installed or not.
+If the item is (at least in some part) previously installed, the routine removes it, and prints the appropriate plaque.
+
+[source,subs="verbatim,quotes,attributes"]
+----
+$ *di* [-efhnoqvwy] [-b *_BUNDLE_*]… [--] *r*|*remove* [*_NAME_*]…
+----
+
+The meaning of the optional `*_NAME_*` <<rtn-primaries-args,arguments>> and the <<rtn-primaries-opts,options>> is near identical for all three primary routines.
+Their description is grouped below.
+
+For each deployment, the `remove` routine calls the <<func-dpl-check,`d_dpl_check`>> primary function, and deduces the current status from the return code.
+Depending on that, the routine either returns immediately, or calls the <<func-dpl-remove,`d_dpl_remove`>> primary function.
+The return code of the latter is taken to indicate whether the removal succeeded.
+
+[[rtn-primaries-args]]
+==== Specifying deployments
+
+For the optional `*_NAME_*` arguments, the following (case-insensitive) values are accepted:
+
+* <<dpl-metadata,Names>> of <<deployments,deployments>>.
 * Reserved synonyms for <<divinefiles,Divinefiles>>: `divinefile`, `dfile`, `df`.
-* Single-digit names of <<deployment-groups,deployment groups>>: `0`, `1`, `2`, `3`, `4`, `5`, `6`, `7`, `8`, `9`.
+* Single-digit names of <<mtd-groups,deployment groups>>: `0`, `1`, `2`, `3`, `4`, `5`, `6`, `7`, `8`, `9`.
 
-==== Filtering deployments
+The primary routines filter the deployments according to these rules:
 
-The intervention utility filters the deployments according to these rules:
-
-* Without any arguments, all deployments are processed.
-* By default, deployments are retrieved from two locations (at any depth):
-** Directory for user's deployments: `grail/dpls/`.
-** Directory for attached bundles of deployments: `state/bundles/`.
-* Particular deployments are requested by listing their names or <<deployment-groups,single-digit group names>>, in any combination.
-* <<dangerous-deployments,Dangerous>> deployments are ignored unless requested by name (not by single-digit group name), or unless `--with-!`/`-w` option is used.
-* Option `--except`/`-e` inverts filtering: all deployments are processed, _except_ those listed.
-Note, that without any arguments, this is a no-opt.
+* Without any `*_NAME_*` arguments, all deployments are processed.
+* With at least one `*_NAME_*` argument, some form of filtering is applied:
+** In the *normal filtering*, a deployment is processed if and only if it is requested by name or by name of its <<mtd-groups,single-digit group>>.
+** The <<opt-except,`--except`>> option makes the filtering *inverted*: all deployments are processed, *unless* requested by name or by name of its <<mtd-groups,single-digit group>>.
 +
-In this mode, dangerous deployments are still filtered out by default.
-* The search can be narrowed down to particular bundles of deployments by listing each with the `--bundle`/`-b` option.
+Note, that without any `*_NAME_*` arguments, the <<opt-except,`--except`>> option is a no-opt.
 
-After filtering, deployments and packages from Divinefiles are sorted in order of ascending <<deployment-priority,priority>>.
-For uninstallation, that order is fully reversed.
+<<mtd-exclam,Dangerous>> deployments are treated specially:
 
+* A dangerous deployment is ignored by both filtering modes, *unless* it is requested by name in the normal filtering.
++
+Note, that requesting by name of the <<mtd-groups,single-digit group>> does not work.
+* The <<opt-with-exclam,`--with-!`>> option prevents any special treatment of dangerous deployments.
+
+Deployments are retrieved from two directories (at any depth):
+
+* The directory for user's deployments: `<<grail-directory,grail>>/dpls/`.
+* The directory for attached bundles of deployments: `<<state-directory,state>>/bundles/`.
+
+The search can be narrowed down to particular bundles of deployments by including any number of the <<opt-bundle,`--bundle`>> options.
+
+[[rtn-primaries-opts]]
 ==== Primary routine options
+
+The run-time state of all options can be inspected by a deployment through the corresponding read-only global variables.
+The Divine <<divine-bundles,bundles>> of deployments follow the given interpretation of the options, as well as the framework's <<fmwk-design,design>> in general.
+A 'good' deployment is expected to follow suit.
 
 .Primary routine options
 [%noheader,cols="<.<a",stripes=none]
 |===
 
-| `*-y*`, `*--yes*`
+| +++<p align="center">+++
+[[opt-answers]][[opt-yes]][[opt-no]]*Prompt options*
++++<br>+++
+`*-y*`, `*--yes*`
++++<br>+++
+`*-n*`, `*--no*`
++++</p>+++
 
-Normally, framework prompts user right before sourcing each deployment script.
-Other events — like offering an optional framework dependency — also trigger a prompt.
+Assumes an affirmative (`--yes`) or negatory (`--no`) answer to the non-<<urgent-prompts,urgent>> framework prompts, e.g.:
 
-With this option, affirmative answer is assumed to every non-<<urgent-prompt,urgent>> prompt.
+* A confirmation before sourcing (reading and interpreting) each deployment script.
+* A confirmation before installing an optional framework dependency.
 
-Note, that deployments are free to add any number of custom prompts unaffected by this option.
+Examples of the <<urgent-prompts,urgent>> prompts, which are *not* affected by the prompt options:
 
-Access within deployments: `$D__OPT_ANSWER` (`true` / `false` / _empty_).
+* A confirmation before undertaking a <<opt-force,forced>> action.
+* Any prompt in the user-defined deployment code, unless it is specifically made to honor this option.
 
-| `*-n*`, `*--no*`
+Other options notwithstanding, *the* `*--no*` *option guarantees a 'dry run'*: no user code will be sourced, and no changes to the system will be introduced.
 
-With this option, negatory answer is assumed to every built-it prompt.
-This option is equivalent to a 'dry run' — apart from skip messages, nothing will actually be done.
+The status of the prompt options is reflected in the value of the `$*D__OPT_ANSWER*` variable:
 
-Access within deployments: `$D__OPT_ANSWER` (`true` / `false` / _empty_).
+* `true` — the `--yes` option is active;
+* `false` — the `--no` option is active;
+* _empty_ — none of the prompt options have been given.
 
-| [#bundle-option]#`*-b* *_BUNDLE_*`, `*--bundle* *_BUNDLE_*`#
+| +++<p align="center">+++
+[[opt-obliterate]]`*-o*`, `*--obliterate*`
++++</p>+++
 
-[.gray]##_(repeatable)_## If at least one such option is provided, the search for deployments will be limited to the given <<attach-routine,attached bundles>> of deployments.
-Accepted values of `*_BUNDLE_*` are the same as the <<accepted-repo-values,accepted values of `*_REPO_*`>> during attaching of bundles.
+The framework adheres to the zero data loss <<fmwk-zero-data-loss, policy>>.
 
-| `*-f*`, `*--force*`
+Whenever a built-in framework mechanism is not sure whether a particular piece of data is recoverable, it chooses to displace it to a backup location instead of deleting it.
 
-By default, the framework does *not*:
+The `--obliterate` option directs to instead erase such data.
 
-* re-install deployments that appear already installed;
-* uninstall deployments that appear already not installed;
-* process deployments that appear installed by means other than this framework.
+The presence of the `--obliterate` option is reflected in the value of the `$*D__OPT_OBLITERATE*` variable:
 
-This option overrules such considerations.
+* `true` — the option is given;
+* `false` — the option is not given.
 
-Access within deployments: `$D__OPT_FORCE` (`true` / `false`).
+| +++<p align="center">+++
+[[opt-force]]`*-f*`, `*--force*`
++++</p>+++
 
-| `*-e*`, `*--except*`
+The framework adheres to the non-interference <<fmwk-non-interference, policy>>.
 
-This option inverts the behavior of deployment filter: instead of processing only listed deployments, all deployments are processed _except_ listed.
+During the <<rtn-install,`install`>> and <<rtn-remove,`remove`>> routines, if the `check` <<rtc-check,code>> speaks to a clash with something done by the user or the operating system (e.g., a previously installed file is nowhere to be found), the framework unconditionally backs off with an alert.
 
-Access within deployments: `$D__OPT_INVERSE` (`true` / `false`).
+The `--force` option directs to instead <<urgent-prompts,urgently>> prompt the user and, if given permission, carry out the installation/removal anyway.
 
-| `*-w*`, `*--with-!*`
+The presence of the `--force` option is reflected in the value of the `$*D__OPT_FORCE*` variable:
 
-By default framework ignores <<dangerous-deployments,dangerous deployments>> unless they are named explicitly.
-This option disables such behavior.
+* `true` — the option is given;
+* `false` — the option is not given.
 
-Access within deployments: `$D__OPT_EXCLAM` (`true` / `false`).
+| +++<p align="center">+++
+[[opt-bundle]]`*-b* _BUNDLE_`, `*--bundle* _BUNDLE_` _(repeatable)_
++++</p>+++
 
-| [#global-verbosity-level]#`*-v*`, `*--verbose*`#
+If at least one such option is included, the search for deployments will be limited to the given <<rtn-attach,attached>> bundles of deployments.
 
-_(repeatable)_
-Gradually increase the amount of output.
+The same values are accepted for the `_BUNDLE_` arguments as are for the <<rtn-bundles-args,`_REPO_`>> arguments during the <<rtn-bundles,bundle routines>>.
 
-Every instance of this option increments by one the *global verbosity level* of the framework.
-The debug output in the deployments and the framework components has the *quiet level*.
+The list of requested bundles (if any) is reflected in the items of the `${*D__REQ_BUNDLES*[@]}` array.
+
+| +++<p align="center">+++
+[[opt-except]]`*-e*`, `*--except*`
++++</p>+++
+
+The primary routines <<rtn-primaries-args,interpret>> the optional `*_NAME_*` arguments as a list of deployments to process.
+The `--except` option directs to instead interpret the arguments as the list of deployments to exclude from processing.
+
+The presence of the `--except` option is reflected in the value of the `$*D__OPT_INVERSE*` variable:
+
+* `true` — the option is given;
+* `false` — the option is not given.
+
+| +++<p align="center">+++
+[[opt-with-exclam]]`*-w*`, `*--with-!*`
++++</p>+++
+
+The primary routines <<rtn-primaries-args,interpret>> the <<mtd-exclam,dangerous>> deployments (marked with the `!` flag) specially by making them harder to accidentally process.
+The `--with-!` option directs to instead give them no special treatment at all.
+
+The presence of the `--with-!` option is reflected in the value of the `$*D__OPT_EXCLAM*` variable:
+
+* `true` — the option is given;
+* `false` — the option is not given.
+
+| +++<p align="center">+++
+[[opt-verbosity]][[opt-verbose]][[opt-quiet]]*Verbosity options*
++++<br>+++
+`*-v*`, `*--verbose*` _(repeatable)_
++++<br>+++
+`*-q*`, `*--quiet*`
++++</p>+++
+
+Gradually increases (`--verbose`), or resets to the default minimal level (`--quiet`), the amount of framework output.
+
+Every instance of the `--verbose` option increments by one the *global verbosity level* of the framework.
+On the other hand, the framework's printing functions have the comparable *quiet level*.
 For a message to be printed, the global verbosity level must be greater than or equal to that message's quiet level.
 
-Currently, the maximum quiet level used across the framework is `4`.
-Thus, launching the <<intervention-utility,intervention>> with the `-vvvv` options yields the most complete output.
+The `--quiet` option reverts the global verbosity level to its default value of zero.
 
-Access within deployments: `$D__OPT_VERBOSITY` (non-negative integer).
+The amount of output per the verbosity level can be described as such:
 
-| `*-q*`, `*--quiet*`
+* `-q` — prints just the essentials and the critical alerts;
+* `-v` — allows some non-critical alerts here and there;
+* `-vv` — also, announces the internal context switches;
+* `-vvv` — enters into the serious debugging mode;
+* `-vvvv` — just floods the user with everything it has.
++
+Further verbosity levels are yet unused by the framework.
 
-_(default)_
-Reset the amount of output to the minimal level.
-
-This option reverts the <<global-verbosity-level,global verbosity level>> to its defaul value of zero.
-
-Access within deployments: `$D__OPT_VERBOSITY` (non-negative integer).
+The global verbosity level is reflected in the value of the `$*D__OPT_VERBOSITY*` variable, which is a non-negative integer.
 
 |===
 
-[.note]
-[%noheader,cols="<.<a"]
-|===
-| Even though every option above serves a function within the framework, it is also up to deployment authors to honor their semantics.
-|===
+[[rtn-bundles]]
+=== Bundle routines (`attach`, `detach`)
 
-[[attach-routine]]
-=== Attaching third-party deployments
+The framework treats any Github repository containing <<deployments,deployments>> as *bundles* of deployments.
 
-Beside using own deployments, _Divine.dotfiles_ allows you to attach (i.e., import) third-party *bundles* of deployments distributed via Github repositories.
-A bundle is understood to group together one or more deployments.
+When a bundle is *attached* to the particular <<grail-directory,Grail directory>>, its address is stored in the Grail <<stash,stash>>, while a copy of the repository is pulled into the <<state-directory,state directory>>.
+This way, the attached deployments are treated as if they are in the Grail, but the directory itself is not unnecessarily bloated.
+
+On every invocation, the <<intervention-utility, intervention utility>> synchronizes the stashed list of attached bundles with the copies in the state directory.
+Thus, transfering the Grail directory alone to another machine is enough to fully re-create the set of deployments.
+
+The two bundle routines do what one might expect:
+
+* <<rtn-attach,attaching>> a bundle;
+* <<rtn-detach,detaching>> the previously attached bundle.
+
+[[rtn-attach]]
+==== `attach` routine
+
+The `attach` routine takes any number of repository handles, ensures that they correspond to existing Github repositories containing deployments, and attaches each that does.
 
 [source,subs="verbatim,quotes,attributes"]
 ----
-$ *di* *a*[*ttach*] [-yn] [--] *_REPO_*…
-
-$ *di* *d*[*etach*] [-yn] [--] *_REPO_*…
+$ *di* [-yn]… [--] *a*|*attach* [*_REPO_*]…
 ----
 
-[#accepted-repo-values]#Accepted values of `*_REPO_*`# are (case-insensitive):
+The meaning of the optional `*_REPO_*` <<rtn-bundles-args,arguments>> and the <<rtn-bundles-opts,options>> is identical for both bundle routines.
+Their description is grouped below.
 
-* Github repository in the form: `no-simpler/divine-bundle-essentials`.
-* Specifically for Divine deployments, a shorthand is accepted:
+[[rtn-detach]]
+==== `detach` routine
+
+The `detach` routine takes any number of repository handles, ensures that they are currently attached to the Grail directory, and detaches those that are.
+Both the 
+
+[source,subs="verbatim,quotes,attributes"]
+----
+$ *di* [-yn]… [--] *d*|*detach* [*_REPO_*]…
+----
+
+The meaning of the optional `*_REPO_*` <<rtn-bundles-args,arguments>> and the <<rtn-bundles-opts,options>> is identical for both bundle routines.
+Their description is grouped below.
+
+Detaching a bundle deletes the copy of its repository, as well as the stash record.
+However, it is left to the user to:
+
+* Uninstall the deployments.
++
+(If a lapse occurred, re-attaching and uninstalling should work fine.)
+* Remove any assets that might have been copied into the <<grail-directory,Grail>>'s asset directory.
+
+[[rtn-bundles-args]]
+==== Specifying bundles
+
+For the optional `*_REPO_*` arguments, the following (case-insensitive) values are accepted:
+
+* A Github repository in the form: `username/repository`.
+* Specifically for the <<divine-bundles,Divine bundles>>, a shorthand is accepted:
 +
 [source,subs="verbatim,quotes,attributes"]
 ----
-`*_NAME_*`  =>  `no-simpler/divine-bundle-*_NAME_*`
+`*_REPO_*`  =>  `no-simpler/divine-bundle-*_REPO_*`
 ----
 +
-(To be a shorthand, `*_NAME_*` must match the RegEx pattern `^[0-9A-Za-z_.-]+$`.)
+(`*_REPO_*` must match the RegEx pattern `^[0-9A-Za-z_.-]+$`.)
 
-Detaching deployments deletes the copy of their repository, but it is up to you to:
+[[rtn-bundles-opts]]
+==== Bundle routine options
 
-* Uninstall the deployments beforehand (re-attach if you forgot).
-* Remove any assets that might have been copied into your <<grail-directory,Grail>> assets directory.
-
-[.note]
-[%noheader,cols="<.<a"]
-|===
-| Attached bundles are cloned/downloaded into your <<state-directory,state directory>>, but _attachment records_ are stored in <<grail-directory,the Grail>>.
-On every launch, intervention utility synchronizes Grail records with actual repositories in state directory.
-
-Thus, by synchronizing Grail between machines, you will have the same set of both personal and attached deployments everywhere.
-|===
-
-==== Attach/detach routine options
-
-.Attach/detach routine options
+.Bundle routine options
 [%noheader,cols="<.<a",stripes=none]
 |===
 
-| `*-y*`, `*--yes*`
+| +++<p align="center">+++
+*Prompt options*
++++<br>+++
+`*-y*`, `*--yes*`
++++<br>+++
+`*-n*`, `*--no*`
++++</p>+++
 
-Normally, framework prompts user right before cloning/downloading repository.
-Other events — like offering an optional framework dependency — also trigger a prompt.
+Assumes an affirmative (`--yes`) or negatory (`--no`) answer to the non-<<urgent-prompts,urgent>> framework prompts, e.g.:
 
-With this option, affirmative answer is assumed to every built-it prompt.
+* A confirmation before attaching or detaching a bundle.
+* A confirmation before installing an optional framework dependency.
 
-| `*-n*`, `*--no*`
+Other options notwithstanding, *the* `*--no*` *option guarantees a 'dry run'*: no changes to the system will be introduced.
 
-With this option, negatory answer is assumed to every built-it prompt.
-This option is equivalent to a 'dry run' — apart from skip messages, nothing will actually be done.
+| +++<p align="center">+++
+*Verbosity options*
++++<br>+++
+`*-v*`, `*--verbose*` _(repeatable)_
++++<br>+++
+`*-q*`, `*--quiet*`
++++</p>+++
+
+Gradually increases (`--verbose`), or resets to the default minimal level (`--quiet`), the amount of framework output.
+This affects the same <<opt-verbosity,global verbosity level>> as is used by the primary routines of the framework.
 
 |===
 
-[[plug-routine]]
-=== Plugging the Grail
+[[rtn-plug]]
+=== `plug` routine
 
-If you have a copy of your carefully crafted <<grail-directory,Grail directory>> stored somewhere, _Divine.dotfiles_ lets you easily plug it in.
+The <<grail-directory,Grail directory>> is the central hub for all user content.
+As such, it is the obvious target for version controlling and syncing.
+
+The `plug` routine, unsurprisingly, imports an externally saved Grail directory, replacing the currently existing one.
 
 [source,subs="verbatim,quotes,attributes"]
 ----
-$ *di* *p*[*lug*] [-ynl] [--] *_ADDRESS_*
+$ *di* [-ynl] [--] *p*|*plug* *_ADDRESS_*
 ----
 
-Accepted values of `*_ADDRESS_*` are:
+For the `*_ADDRESS_*` argument, the following (case-insensitive) values are accepted:
 
-* Github repository in the form: `username/repo-name`.
-* Path to a generic git repository.
-* Path to a local directory.
+* A Github repository in the form: `username/repository`.
+* A path to a Git repository.
+* A path to a local directory.
 
-Repositories are cloned, directories are copied.
-Note, that existing Grail directory will be utterly destroyed in the process.
+The framework iterates over possible interpretations of the argument and prompts the user for confirmation.
 
-If provided argument can be interpreted in multiple ways, the framework will iterate over possible options in the order they are given above.
+The repositories are cloned, the directories are copied.
+The pre-existing Grail directory is backed up in-place by appending the `.bak` suffix.
 
-==== Plug routine options
+==== `plug` routine options
 
-.Plug routine options
+.`plug` routine options
 [%noheader,cols="<.<a",stripes=none]
 |===
 
-| `*-y*`, `*--yes*`
+| +++<p align="center">+++
+*Prompt options*
++++<br>+++
+`*-y*`, `*--yes*`
++++<br>+++
+`*-n*`, `*--no*`
++++</p>+++
 
-Normally, framework prompts user right before overwriting existing Grail directory.
-Other events — like offering an optional framework dependency — also trigger a prompt.
+Assumes an affirmative (`--yes`) or negatory (`--no`) answer to the non-<<urgent-prompts,urgent>> framework prompts, e.g.:
 
-With this option, affirmative answer is assumed to every built-it prompt.
+* A confirmation before interpreting the `*_ADDRESS_*` argument in a particular way.
+* A confirmation before installing an optional framework dependency.
 
-If provided argument can be interpreted in multiple ways, the first viable interpretation will be silently settled upon.
+With the `--yes` option active, the first viable interpretation of the `*_ADDRESS_*` argument will be silently settled upon.
 
-| `*-n*`, `*--no*`
+Other options notwithstanding, *the* `*--no*` *option guarantees a 'dry run'*: no changes to the system will be introduced.
 
-With this option, negatory answer is assumed to every built-it prompt.
-This option is equivalent to a 'dry run' — apart from skip messages, nothing will actually be done.
+| +++<p align="center">+++
+`*-o*`, `*--obliterate*`
++++</p>+++
 
-| `*-l*`, `*--link*`
+The framework adheres to the zero data loss <<fmwk-zero-data-loss, policy>>.
 
-With this option, symlink is created to the directory, path to which is given, instead of copying it.
-In this mode, given argument is not considered as a repository.
+Accordingly, during the `plug` routine the pre-existing Grail directory is displaced into a backup location.
+
+The `--obliterate` option directs to instead erase the pre-existing Grail.
+
+| +++<p align="center">+++
+`*-l*`, `*--link*`
++++</p>+++
+
+Normally, the `plug` routine retrieves a copy of the Grail at the given `*_ADDRESS_*`.
+
+The `--obliterate` option directs to instead create a symlink to it.
+Consequently, when the `--obliterate` option is active, the `*_ADDRESS_*` is interpreted only as a local directory.
+
+| +++<p align="center">+++
+*Verbosity options*
++++<br>+++
+`*-v*`, `*--verbose*` _(repeatable)_
++++<br>+++
+`*-q*`, `*--quiet*`
++++</p>+++
+
+Gradually increases (`--verbose`), or resets to the default minimal level (`--quiet`), the amount of framework output.
+This affects the same <<opt-verbosity,global verbosity level>> as is used by the primary routines of the framework.
 
 |===
 
-[[update-routine]]
-=== Updating framework and deployments
+[[rtn-update]]
+=== `update` routine
+
+There are three parts of a _Divine.dotfiles_ installation that are potentially cloned Git repositories:
+
+* The framework https://github.com/no-simpler/divine-dotfiles[itself].
+* The Grail directory (if <<rtn-plug,plugged>> from a repository).
+* The <<rtn-bundles,attached>> bundles of deployments.
+
+The update routine is a convenient tool that pulls the latest updates from the remote `master` branches of such repositories.
 
 [source,subs="verbatim,quotes,attributes"]
 ----
-$ *di* *u*[*pdate*] [-yn] [--] [*f*[*ramework*]] [*g*[*rail*]] [*d*[*eployments*]]
+$ *di* [-yn] [--] *u*|*update* [*f*|*framework*] [*g*|*grail*] [*b*|*bundles*]
 ----
 
-Update routine is three-pronged, and you are free to engage any and all of the prongs:
+The `update` routine is three-pronged, and the user is free to choose which prongs to engage by providing or not providing arguments:
 
-* `*f*` or `*framework*` — pulls latest revision of _Divine.dotfiles_.
-* `*g*` or `*grail*` — pulls latest revision of <<grail-directory,Grail directory>>, _if_ it is a <<plug-routine,plugged>> repository.
-* `*d*` or `*deployments*` — pulls latest revision of every <<attach-routine,_attached_>> bundle of deployments.
-* Without any arguments, all of the above are performed.
+* `*f*|*framework*` updates the framework.
+* `*g*|*grail*` — updates the cloned <<grail-directory,Grail directory>>.
+* `*b*|*bundles*` — updates all <<rtn-bundles,attached>> bundles of deployments.
+* Without any arguments, all three types of updates are performed.
 
-==== Updating routine options
+==== `update` routine options
 
-.Updating routine options
+.`update` routine options
 [%noheader,cols="<.<a",stripes=none]
 |===
 
-| `*-y*`, `*--yes*`
+| +++<p align="center">+++
+*Prompt options*
++++<br>+++
+`*-y*`, `*--yes*`
++++<br>+++
+`*-n*`, `*--no*`
++++</p>+++
 
-Normally, framework prompts user right before pulling from remote repository.
-Other events — like offering an optional framework dependency — also trigger a prompt.
+Assumes an affirmative (`--yes`) or negatory (`--no`) answer to the non-<<urgent-prompts,urgent>> framework prompts, e.g.:
 
-With this option, affirmative answer is assumed to every built-it prompt.
+* A confirmation before pulling from a remote repository.
+* A confirmation before installing an optional framework dependency.
 
-| `*-n*`, `*--no*`
+Other options notwithstanding, *the* `*--no*` *option guarantees a 'dry run'*: no changes to the system will be introduced.
 
-With this option, negatory answer is assumed to every built-it prompt.
-This option is equivalent to a 'dry run' — apart from skip messages, nothing will actually be done.
+| +++<p align="center">+++
+[[opt-bundle]]`*-b* _BUNDLE_`, `*--bundle* _BUNDLE_` _(repeatable)_
++++</p>+++
+
+If at least one such option is included:
+
+* the presence of `*bundles*` argument is implicitly assumed;
+* only the given bundles (if currently <<rtn-attach,attached>>) are updated.
+
+The same values are accepted for the `_BUNDLE_` arguments as are for the <<rtn-bundles-args,`_REPO_`>> arguments during the <<rtn-bundles,bundle routines>>.
+
+| +++<p align="center">+++
+*Verbosity options*
++++<br>+++
+`*-v*`, `*--verbose*` _(repeatable)_
++++<br>+++
+`*-q*`, `*--quiet*`
++++</p>+++
+
+Gradually increases (`--verbose`), or resets to the default minimal level (`--quiet`), the amount of framework output.
+This affects the same <<opt-verbosity,global verbosity level>> as is used by the primary routines of the framework.
 
 |===
 
 [[deployments]]
 == Deployments
 
-A _Divine.dotfiles_ *deployment* is a Bash script named in `*_DPL-NAME_*.dpl.sh` pattern.
-`*_DPL_NAME_*` must be non-empty.
+A _Divine.dotfiles_ *deployment* is a Bash script with the file name consisting of a non-empty name and the `.dpl.sh` suffix.
+No other parts of a deployment are mandatory.
 
-To be picked up by the framework, deployments must be located at any depth under two recognized deployment directories:
+To be picked up by the framework, the deployments must be located at any depth under the two recognized deployment locations:
 
-* `grail/dpls/` — user's deployments.
-Create your deployments here.
-* `state/bundles/` — attached third-party bundles of deployments.
-This one is maintained by the framework.
+* `<<grail-directory,grail>>/dpls/` — user's deployments;
+* `<<state-directory,state>>/bundles/` — <<rtn-bundles,attached>> bundles of deployments.
 
 === Deployment structure
 
 The minimal valid deployment is an empty file.
-As such, it does nothing but appear in framework output.
+As such, it does nothing but appear in the framework output.
 
-Deployments are written in Bash syntax (with some limitations on metadata).
-Each deployment is sourced by Bash interpreter no more than once per intervention routine.
+Deployments are written in Bash syntax, with some syntax limitations on the <<dpl-metadata,metadata>>.
+Each deployment is sourced by the Bash interpreter no more than once per <<rtn-primaries,primary routine>>.
 
-A deployment is formed by:
+To be useful, a deployment may contain:
 
-* implementing specially named Bash functions (<<primary-functions,*primaries*>>);
-* assigning to specially named variables (<<deployment-metadata,*metadata*>>).
+* Implementations of any or all of the <<primary-functions,*primary functions*>>.
+* Assignments to the special pseudo-variables — the <<dpl-metadata,*metadata*>>.
+
+It is highly recommended to *not* include any non-trivial Bash code outside of functions.
+Nothing will prevent things from going off the rails.
+There are <<fmwk-security,*no*>> safety nets.
+Unless the intention is very well thought-out, _Divine.dotfiles_ is only useful while the guidelines are followed.
 
 [[primary-functions]]
-=== Primary functions
+=== Primary functions (`d_dpl_check`, `d_dpl_install`, `d_dpl_remove`)
 
-*Primary functions*, or *primaries*, correspond to three fundamental actions performed upon a deployment:
+The *primary functions*, or *primaries*, correspond to the three fundamental actions performed by a deployment:
 
-* `d_dpl_check()` — checks whether deployment is installed or not.
-* `d_dpl_install()` — installs deployment.
-* `d_dpl_remove()` — uninstalls (reverses previous installation of) deployment.
+* `<<func-dpl-check,*d_dpl_check*>>` — checks whether the deployment is installed or not.
+* `<<func-dpl-install,*d_dpl_install*>>` — installs the deployment.
+* `<<func-dpl-remove,*d_dpl_remove*>>` — removes (reverses the previous installation of) the deployment.
 
-This section includes semantic meanings behind primaries and their return codes.
-Feel free to stretch semantic guidelines according to your particular use case.
+The primary functions have two ways of 'talking' to the framework:
+
+* The return <<rtc-overview,codes>> are the main vehicles of indicating status.
+* The <<addst-overview,add-statuses>> (specially named global variables) are available to tweak the behavior in some places.
+
+[[addst-summary]]
+The add-status variables, if set in the primary function, provide additional information.
+(The following summary of the recognized add-statuses is expanded upon in the relevant <<addst-overview,section>>.)
+
+* `*D_ADDST_PROMPT*` — if set to `true`, forces an <<urgent-prompts,urgent>> prompt before installation/removal.
+* `*D_ADDST_HALT*` — if set to `true`, forces halting of the <<rtn-primaries,primary routine>>.
+* The following output add-statuses may be set to a string or array thereof.
+If set, their messages will be printed to the user in appropriate styling.
+** `*D_ADDST_ATTENTION*` — non-critical alerts to the user.
+** `*D_ADDST_HELP*` — calls for user's involvement (e.g., requests to reboot the machine).
+** `*D_ADDST_WARNING*` — grave warnings to the user.
+** `*D_ADDST_CRITICAL*` — critical failures.
 
 [[func-dpl-check]]
-==== Primary function `d_dpl_check()`
+==== Primary function `d_dpl_check`
 
 If this function is implemented, it will be called:
 
-* During `check` routine — to determine status and show relevant output.
-* During `install` routine — to determine whether installation is necessary/possible.
-* During `remove` routine — to determine whether uninstallation is necessary/possible.
+* During the <<rtn-check,`check`>> routine — to determine the status and to show the relevant output.
+* During the <<rtn-install,`install`>> routine — to determine whether the installation is warranted.
+* During the <<rtn-remove,`remove`>> routine — to determine whether the removal is warranted.
 
-Return code of `d_dpl_check()` determines current status of the deployment:
+The return code of the `d_dpl_check` function determines the current status of the deployment.
+(The following summary of the recognized codes is expanded upon in the relevant <<rtc-check,section>>.)
 
-.Supported return codes of `d_dpl_check()`
-[%noheader,cols="<.<a",stripes=none]
-|===
+* Basic codes:
+** `*0*` — _'Truly unknown'_
++
+This code is assumed if the `d_dpl_check` function is not implemented.
+** `*1*` — _'Fully installed'_.
+** `*2*` — _'Fully not installed'_.
+** `*3*` — _'Irrelevant or invalid'_.
+* Extended codes:
+** `*4*` — _'Partly installed'_.
+** `*5*` — _'Likely installed (unknown)'_.
+** `*6*` — _'Manually removed (tinkered with)'_.
+** `*7*` — _'Fully installed by user or OS'_.
+** `*8*` — _'Partly installed by user or OS'_.
+** `*9*` — _'Likely not installed (unknown)'_.
 
-| `*0*`: *Unknown*
-
-Meaning: no reliable way to tell whether this deployment is installed or not.
-
-_This return code is assumed if `d_dpl_check()` is not implemented or if unsupported code is returned._
-
-Routines that will proceed further:
-
-* `install`
-* `remove`
-
-| `*1*`: *Installed*
-
-Meaning: as it stands, intended goal of installing this deployment is entirely achieved.
-
-Routines that will proceed further:
-
-* `remove`
-
-| `*2*`: *Not installed*
-
-Meaning: as it stands, intended goal of installing this deployment is entirely not achieved.
-
-Routines that will proceed further:
-
-* `install`
-
-| `*3*`: *Irrelevant*
-
-Meaning: processing this deployment in current environment does not make sense.
-
-This code is appropriate, for example, if current OS is unsupported.
-
-None of the routines will proceed further.
-
-| `*4*`: *Partly installed*
-
-Meaning: as it stands, intended goal of installing this deployment is partly achieved and partly not achieved.
-
-This code differs from 'Unknown' in semantics and output styling.
-
-Routines that will proceed further:
-
-* `install`
-* `remove`
-
-|===
+Some additional instructions can be passed to the framework via the <<addst-overview,add-status>> variables and the deployment <<dpl-metadata,metadata>>.
 
 [[func-dpl-install]]
-==== Primary function `d_dpl_install()`
+==== Primary function `d_dpl_install`
 
-If this function is implemented, it will be called during `install` routine — to achieve the intended goal of this deployment.
+If this function is implemented, it will be called:
 
-Return code of `d_dpl_install()` determines output of `install` routine:
+* During the <<rtn-install,`install`>> routine — to install the deployment.
 
-.Supported return codes of `d_dpl_install()`
-[%noheader,cols="<.<a",stripes=none]
-|===
+The return code of the `d_dpl_install` function describes the outcome of the installation.
+(The following summary of the recognized codes is expanded upon in the relevant <<rtc-install,section>>.)
 
-| `*0*`: *Successfully installed*
+* Basic codes:
+** `*0*` — _'Successfully installed'_
++
+This code is assumed if the `d_dpl_install` function is not implemented.
+** `*1*` — _'Failed to install'_.
+** `*2*` — _'Refused to install'_.
+* Extended codes:
+** `*3*` — _'Partly installed'_.
 
-Meaning: intended goal of installing this deployment is entirely achieved.
-
-_This return code is assumed if `d_dpl_install()` is not implemented or if unsupported code is returned._
-
-| `*1*`: *Failed to install*
-
-Meaning: intended goal of installing this deployment is _not entirely_ achieved due to error.
-
-| `*2*`: *Skipped*
-
-Meaning: intended goal of installing this deployment is _entirely not_ achieved because nothing has been done.
-
-| `*100*`: *Reboot needed*
-
-Meaning: same as 'Successfully installed', except:
-
-* Intervention will gracefully shut down without moving past this deployment.
-* User will be asked to reboot the machine and resume afterward.
-
-| `*101*`: *User attention needed*
-
-Meaning: same as 'Successfully installed', except:
-
-* Intervention will gracefully shut down without moving past this deployment.
-* Deployment is expected to print explanation to `stderr`.
-
-| `*102*`: *Critical failure*
-
-Meaning: same as 'Failed to install', except:
-
-* Intervention will shut down without moving past this deployment.
-* Output will mention critical failure.
-
-|===
+Some additional instructions can be passed to the framework via the <<addst-overview,add-status>> variables and the deployment <<dpl-metadata,metadata>>.
 
 [[func-dpl-remove]]
-==== Primary function `d_dpl_remove()`
+==== Primary function `d_dpl_remove`
 
-If this function is implemented, it will be called during `remove` routine — to reverse the effects of previously installing this deployment.
+If this function is implemented, it will be called:
 
-Return code of `d_dpl_remove()` determines output of `remove` routine:
+* During the <<rtn-remove,`remove`>> routine — to remove the deployment.
 
-.Supported return codes of `d_dpl_remove()`
-[%noheader,cols="<.<a",stripes=none]
-|===
+The return code of the `d_dpl_remove` function describes the outcome of the removal.
+(The following summary of the recognized codes is expanded upon in the relevant <<rtc-remove,section>>.)
 
-| `*0*`: *Successfully uninstalled*
+* Basic codes:
+** `*0*` — _'Successfully removed'_
++
+This code is assumed if the `d_dpl_remove` function is not implemented.
+** `*1*` — _'Failed to remove'_.
+** `*2*` — _'Refused to remove'_.
+* Extended codes:
+** `*3*` — _'Partly removed'_.
 
-Meaning: effects of previously installing this deployment are entirely reversed.
+Some additional instructions can be passed to the framework via the <<addst-overview,add-status>> variables and the deployment <<dpl-metadata,metadata>>.
 
-_This return code is assumed if `d_dpl_remove()` is not implemented or if unsupported code is returned._
-
-| `*1*`: *Failed to uninstall*
-
-Meaning: effects of previously installing this deployment are _not entirely_ reversed due to error.
-
-| `*2*`: *Skipped*
-
-Meaning: effects of previously installing this deployment are _entirely not_ reversed because nothing has been done.
-
-| `*100*`: *Reboot needed*
-
-Meaning: same as 'Successfully uninstalled', except:
-
-* Intervention will gracefully shut down without moving past this deployment.
-* User will be asked to reboot the machine and resume afterward.
-
-| `*101*`: *User attention needed*
-
-Meaning: same as 'Successfully uninstalled', except:
-
-* Intervention will gracefully shut down without moving past this deployment.
-* Deployment is expected to print explanation to `stderr`.
-
-| `*102*`: *Critical failure*
-
-Meaning: same as uninstall', excep:
-
-* Intervention will shut down without moving past this deployment.
-* Output will mention critical failure.
-
-|===
-
-[.note]
-[%noheader,cols="<.<a"]
-|===
-| It is worth noting that intended semantics of uninstallation are not direct inverse to that of installation.
-Ideally, if no installation via the framework has previously occurred, uninstallation should do nothing.
-
-This philosophy is followed by the magnificent https://github.com/no-simpler/divine-bundle-essentials[`essentials`] bundle of Divine deployments.
-|===
-
-[[deployment-metadata]]
+[[dpl-metadata]]
 === Deployment metadata
 
-*Deployment metadata* (posing as variable assignments) alter deployment's appearance and behavior:
+*Deployment metadata* pose as definitions of Bash global variables and alter deployment's appearance and behavior.
+In reality, the metadata 'assignments' are read from the file _before_ the Bash interpreter sources it.
+In the interests of optimization, *the metadata must be contained in the first 20 non-empty lines of the deployment script*.
 
-* <<deployment-name-and-desc,`D_DPL_NAME`>> — explicit name for the deployment.
-* <<deployment-name-and-desc,`D_DPL_DESC`>> — one-line description of the deployment.
-* <<deployment-priority,`D_DPL_PRIORITY`>> — priority of the deployment (non-negative integer).
-* <<deployment-flags,`D_DPL_FLAGS`>> — one-character flags, causing special treatment.
-* <<deployment-warning,`D_DPL_WARNING`>> — one-line cautionary message about this deployment.
+* `<<mtd-name-and-desc,*D_DPL_NAME*>>=_NAME_`
++
+The explicit name for the deployment.
+The implicit fallback name is the name of the deployment file sans the `.dpl.sh` suffix.
+* `<<mtd-name-and-desc,*D_DPL_DESC*>>="_DESCRIPTION TEXT_"`
++
+The one-line description of the deployment.
+For user's eyes only.
+* `<<mtd-priority,*D_DPL_PRIORITY*>>=_PRIORITY_`
++
+The priority of the deployment (a non-negative integer).
+* `<<mtd-flags,*D_DPL_FLAGS*>>=_FLAGS_`
++
+The single-character flags that cause special treatment.
+* `<<mtd-warning,*D_DPL_WARNING*>>='_WARNING TEXT_'`
++
+The one-line cautionary message about this deployment.
+This message is printed to the user if and only if the <<mtd-aa,always-prompt>> flag causes the appearance of an <<urgent-prompts,urgent>> prompt.
 
-[.note]
-[%noheader,cols="<.<a"]
-|===
-| Although all deployment metadata look like Bash variable assignments, they are in fact extracted from the file _before_ it is interpreted by Bash.
+Below is an example of metadata in the head of a deployment script:
 
-For each reserved 'variable' name, first line that looks like the usual Bash assignment is used.
+[source,subs="verbatim,quotes,attributes"]
+----
+D_DPL_NAME=example
+D_DPL_DESC='An example deployment'
+D_DPL_PRIORITY=777
+D_DPL_FLAGS=ci!89
+D_DPL_WARNING="A warning message"
+----
 
-With that in mind, follow these simple rules for deployment metadata:
+The following syntax limitations are imposed upon metadata:
 
-* Write one 'assignment' per line, without line continuation.
-* Do not use Bash substitutions or comments.
-* Avoid leading and trailing whitespace, as well as whitespace around the `=`.
-* Matching quotes around the value are allowed (they are stripped in the processing).
-|===
+* As mentioned above, only the first 20 lines of the deployment script are scanned for metadata.
+* No more than one 'assignment' must be written per line, without line continuation.
+* Bash substitutions, as well as comments, should be avoided.
+* In keeping with the Bash syntax, no whitespace is allowed around the `=`.
+* A pair of matching quotes around the value is allowed.
+Such pair of quotes us stripped in processing.
 
-[[deployment-name-and-desc]]
+[[mtd-name-and-desc]]
 ==== Deployment name and description
 
 [source,bash]
 ----
 D_DPL_NAME=example
-D_DPL_DESC='Simple description that shows in deployment prompts'
+D_DPL_DESC='An example deployment'
 ----
 
-While *description* is mostly cosmetic, deployment *name* is very important.
-It is the single unique identifier for every deployment, and is used to invoke primary routines on it.
-As such, the framework forbids having more than one deployment sharing a name.
+While the *description* is mostly cosmetic, the *name* of a deployment is very important.
+The name is the single unique identifier of every deployment.
+If the deployment name is not provided explicitly, the name of the script file is used instead, sans the `.dpl.sh` suffix.
 
-If deployment name is not provided explicitly, file name is used instead, sans `.dpl.sh` suffix.
 Deployment names are case insensitive.
 
-[[deployment-priority]]
+The following restrictions are imposed upon the deployment names:
+
+* A deployment may not be named `divinefile`, `dfile`, or `df`.
+* A deployment name may not be a single digit or a single `!` symbol.
+* No two deployments across the deployment directories may share a name.
+
+If any of the naming rules is broken, the framework halts with an alert, even before a <<rtn-primaries,primary routine>> starts.
+
+[[mtd-priority]]
 ==== Deployment priority
 
 [source,bash]
 ----
-D_DPL_PRIORITY=420
+D_DPL_PRIORITY=777
 ----
 
-Priority is the way to impose order on deployment processing.
+The priority is the way to order the deployments for processing:
 
-During `check` and `install` routines, deployments are sorted in ascending order (smaller integer values go first).
-During `uninstall` routine, the order is fully reversed.
-Order of deployments with the same priority is undefined.
+* The <<rtn-check,`check`>> and <<rtn-install,`install`>> routines order the deployments by *ascending* priority (smaller numbers first).
+* The <<rtn-remove,`remove`>> routine orders the deployments by *descending* <<dpl-metadata,priority>> (larger numbers first).
+* The order of deployments with the same priority is undefined.
 
-Priority must be a non-negative integer, otherwise it falls back to the default value of `4096`.
+The priority must be a non-negative integer, otherwise it falls back to *the default value of* `*4096*`.
 
-[[deployment-flags]]
+[[mtd-flags]]
 ==== Deployment flags
 
 [source,bash]
@@ -1206,10 +1437,10 @@ Priority must be a non-negative integer, otherwise it falls back to the default 
 D_DPL_FLAGS=ci!89
 ----
 
-Flags alter some of the framework's behavior toward the deployment.
+The flags alter some of the framework's behavior toward the deployment.
 
 * A flag is a single non-whitespace character.
-* Any number of flags can be put together in any order.
+* Any number of flags can be combined in any order.
 * Repeating a flag does not bear any additional significance.
 * There is no way to unset a flag, apart from not setting it.
 * Unsupported flags are silently ignored.
@@ -1220,41 +1451,35 @@ Below is the exhaustive rundown of supported flags and their effects.
 [%noheader,cols="<.<a",stripes=none]
 |===
 
-| [#deployment-groups]#`*[0-9]*`# _(any single digit)_
+| +++<p align="center">+++
+[[mtd-groups]]`*[0-9]*` _(any single digit)_
++++</p>+++
 
 Assigns the deployment to one of the ten single-digit *groups*.
-Groups of deployments may be processed together by referring to them by that group's digit in place of deployment name.
+When invoking a <<rtn-primaries,primary routine>>, a group of deployments may be <<rtn-primaries-args,referred>> to by that group's digit, instead of listing the deployment names.
 
-[.note]
-[%noheader,cols="<.<a"]
-!===
-! A deployment may not have a single-digit name.
-The framework guards against using reserved words as deployment names.
-!===
-
-| [#dangerous-deployments]#`*!*`# _(an exclamation mark)_
+| +++<p align="center">+++
+[[mtd-exclam]]`*!*` _(an exclamation mark)_
++++</p>+++
 
 Marks the deployment as *dangerous*.
-By default, framework ignores dangerous deployments unless they are listed by name or by name of their group.
-Another way to include dangerous deployments is the `--with-!`/`-w` option on intervention utility.
+The framework ignores dangerous deployments, unless explicitly <<rtn-primaries-args,told>> not to.
 
-| [#urgent-prompt]#`*[cira]*`# _(any of the four lowercase letters)_
+| +++<p align="center">+++
+[[mtd-aa]]`*[cira]*` _(any of the four lowercase letters)_
++++</p>+++
 
-Intervention utility has the `--yes`/`-y` option that effectively skips all normal prompts and confirmations.
-It is possible to force the appearance of an *urgent prompt* before the deployment is sourced regardless of said option.
-To do so, use any of these flags:
+The following flags engage the *always-prompt* mode for particular <<rtn-primaries,primary routines>>.
+An <<urgent-prompts,urgent>> prompt will appear on the chosen routines, before the deployment script is sourced.
 
-* `*c*` — always prompt during `**c**heck` routine.
-* `*i*` — always prompt during `**i**nstall` routine.
-* `*r*` — always prompt during `**r**emove` routine.
+* `*c*` — always prompt during the <<rtn-check,`**c**heck`>> routine.
+* `*i*` — always prompt during the <<rtn-install,`**i**nstall`>> routine.
+* `*r*` — always prompt during the <<rtn-remove,`**r**emove`>> routine.
 * `*a*` — **a**ll of the avove.
-
-When a prompt is forced by a flag, it remains urgent even without `--yes` option.
-Urgent prompts are styled to stand out a bit more in terminal.
 
 |===
 
-[[deployment-warning]]
+[[mtd-warning]]
 ==== Deployment warning
 
 [source,bash]
@@ -1262,7 +1487,7 @@ Urgent prompts are styled to stand out a bit more in terminal.
 D_DPL_WARNING="Warning for 'urgent' prompts forced by a flag"
 ----
 
-If such warning is provided, it will accompany every <<urgent-prompt,urgent>> prompt enforced by a deployment flag.
+If a deployment has a warning, and the <<mtd-aa,always-prompt>> mode is engaged, then the warning is printed alongside the <<urgent-prompts,urgent>> prompt.
 
 [[divinefiles]]
 == Divinefiles
@@ -1293,7 +1518,7 @@ Divinefiles are processed in their merged entirety or not processed at all.
 The framework guards against using reserved words as deployment names.
 |===
 
-You can assign deployment-style <<deployment-priority,*priorities*>> and <<deployment-flags,*flags*>> to individual packages within Divinefiles.
+You can assign deployment-style <<mtd-priority,*priorities*>> and <<mtd-flags,*flags*>> to individual packages within Divinefiles.
 Packages are intertwined with regular deployments in a shared workflow.
 
 [.note]
@@ -1308,7 +1533,7 @@ Divinefiles follow the general <<manifest-syntax,manifest syntax>>.
 
 Every entry is a *list* of whitespace-separated names of packages.
 Keys `flags` and `priority` set the respective attributes for the packages.
-The priority works identically for packages in the same way as it does for <<deployment-priority,deployments>>.
+The priority works identically for packages in the same way as it does for <<mtd-priority,deployments>>.
 
 The following flags are supported for packages.
 
@@ -1316,7 +1541,7 @@ The following flags are supported for packages.
 [%noheader,cols="<.<a",stripes=none]
 |===
 
-| [#urgent-prompt]#`*[ir]*`# _(any of the two lowercase letters)_
+| [#mtd-aa]#`*[ir]*`# _(any of the two lowercase letters)_
 
 Intervention utility has the `--yes`/`-y` option that effectively skips all normal prompts and confirmations.
 It is possible to force the appearance of an *urgent prompt* before the package is installed/removed regardless of said option.
@@ -1502,7 +1727,7 @@ perform_sub_task()
 [%noheader,cols="<.<a",stripes=none]
 |===
 
-^.^h| <<deployment-metadata,Deployment metadata>>
+^.^h| <<dpl-metadata,Deployment metadata>>
 
 | `*D_DPL_NAME*`
 
@@ -1662,15 +1887,15 @@ When this variable is non-empty, you also have the built-in <<func-os-pkgmgr,pac
 
 | [#var-another-prompt]#`*D_DPL_NEEDS_ANOTHER_PROMPT*`#
 
-Set this variable to `true` to trigger an <<urgent-prompt,urgent prompt>> before the framework proceeds to (un)installation.
+Set this variable to `true` to trigger an <<mtd-aa,urgent prompt>> before the framework proceeds to (un)installation.
 
-_Works only during `install`/`remove` <<primary-routines,routines>> and only if set within <<func-dpl-check,check>> primary._
+_Works only during `install`/`remove` <<rtn-primaries,routines>> and only if set within <<func-dpl-check,check>> primary._
 
 | [#var-another-warning]#`*D_DPL_NEEDS_ANOTHER_WARNING*`#
 
 If `$D_DPL_NEEDS_ANOTHER_PROMPT` is set to `true` and this variable is non-empty, then its content is shown to the user as textual warning.
 
-_Works only during `install`/`remove` <<primary-routines,routines>> and only if set within <<func-dpl-check,check>> primary._
+_Works only during `install`/`remove` <<rtn-primaries,routines>> and only if set within <<func-dpl-check,check>> primary._
 
 | [#var-user-or-os]#`*D_DPL_INSTALLED_BY_USER_OR_OS*`#
 
@@ -1701,7 +1926,7 @@ This is also the case within <<multitask,multitask>> sub-primaries.
 
 | `*D__REQ_ROUTINE*`
 
-Name of <<primary-routines,primary routine>> currently being executed:
+Name of <<rtn-primaries,primary routine>> currently being executed:
 
 * `check`
 * `install`
@@ -1716,12 +1941,12 @@ Whether `-f` / `--force` option is provided:
 
 | [#var-opt-verbosity]#`*D__OPT_VERBOSITY*`#
 
-Represent the current <<global-verbosity-level,global verbosity level>>.
+Represent the current <<opt-verbose,global verbosity level>>.
 The value is a non-negative integer, where zero stands for the minimal verbosity.
 
 | `*D__OPT_EXCLAM*`
 
-Whether `-w` / `--with-!` option is provided to process <<dangerous-deployments,dangerous>> deployments:
+Whether `-w` / `--with-!` option is provided to process <<mtd-exclam,dangerous>> deployments:
 
 * `true`
 * `false`
@@ -1729,7 +1954,7 @@ Whether `-w` / `--with-!` option is provided to process <<dangerous-deployments,
 | `*D__OPT_ANSWER*`
 
 Which blanket answer is provided last.
-This affects all non-<<urgent-prompt,urgent>> built-in prompts.
+This affects all non-<<mtd-aa,urgent>> built-in prompts.
 
 * `true` — affirmative answer is provided
 * `false` — negatory answer is provided
@@ -1757,7 +1982,7 @@ The `lop` operation repeatedly executes a `pop` until the next notch (or root) i
 Any number of notches can be made, as long as they are not duplicated (at the same position).
 Within the context stack, the latest pushed item is called the *tip*, and the items pushed after the latest notch are called the *head*.
 
-Most stack manipulations trigger a debug message that honors the <<global-verbosity-level,global verbosity level>>, as stored in <<var-opt-verbosity,`$D{dus}OPT_VERBOSITY`>>.
+Most stack manipulations trigger a debug message that honors the <<opt-verbose,global verbosity level>>, as stored in <<var-opt-verbosity,`$D{dus}OPT_VERBOSITY`>>.
 If a `push` is prepended to every logical unit of code, and then a matching `pop` is appended at the end, a useful pattern of breadcrumbs arises in the debug output.
 Other Divine workflow utilities (<<func-notify,`d{dus}notify`>>, <<func-prompt,`d{dus}prompt`>>, <<func-fail,`d{dus}fail`>>, <<func-cmd,`d{dus}cmd`>>, <<func-pipe,`d{dus}pipe`>>, <<func-require,`d{dus}require`>>) may include the state of the context stack in their output.
 
@@ -1804,7 +2029,7 @@ With this option, if this function produces any output, an extra newline is prep
 ^.^h| Quiet options
 
 | *Quiet options* designate the *quiet level* for the current call.
-Changes to context are announced only if the <<global-verbosity-level,global verbosity level>> is greater than or equal to the quiet level.
+Changes to context are announced only if the <<opt-verbose,global verbosity level>> is greater than or equal to the quiet level.
 
 Quiet options are read sequentially, left-to-right, and the quiet level starts at zero.
 However, if these options are not given at all, the default quiet levels per operation are:
@@ -1867,7 +2092,7 @@ For notes on usage within the Divine workflow, see the workflow <<divine-workflo
 *d{dus}notify* [-!1cdhlnqsuvx] [-t *_TITLE_*] [--] [*_DESCRIPTION_*...]
 ----
 
-Whether the output is printed depends on the <<global-verbosity-level,global verbosity level>>, as stored in <<var-opt-verbosity,`$D{dus}OPT_VERBOSITY`>>.
+Whether the output is printed depends on the <<opt-verbose,global verbosity level>>, as stored in <<var-opt-verbosity,`$D{dus}OPT_VERBOSITY`>>.
 
 Returns:
 
@@ -1924,7 +2149,7 @@ With this option, if this function produces any output, an extra newline is prep
 ^.^h| Quiet options
 
 | *Quiet options* designate the *quiet level* for the current call.
-The notification is printed only if the <<global-verbosity-level,global verbosity level>> is greater than or equal to the quiet level.
+The notification is printed only if the <<opt-verbose,global verbosity level>> is greater than or equal to the quiet level.
 
 Quiet options are read sequentially, left-to-right, and the quiet level starts at zero.
 However, if these options are not given at all, the default quiet level is `1`.
@@ -2332,7 +2557,7 @@ Suppresses both `stdout` and `stderr` of the `*_CMD_*`.
 ^.^h| Quiet options
 
 | *Quiet options* designate the *quiet level* for the current call.
-The non-suppressed output of the underlying command is printed only if the <<global-verbosity-level,global verbosity level>> is greater than or equal to the quiet level.
+The non-suppressed output of the underlying command is printed only if the <<opt-verbose,global verbosity level>> is greater than or equal to the quiet level.
 
 Quiet options are read sequentially, left-to-right, and the quiet level starts at zero.
 If these options are not given at all, the default quiet level is also zero.
@@ -2722,7 +2947,7 @@ It is recommended that after initial `d{dus}stash ready`, this option is then in
 | `*-q*`, `*--quiet*`
 
 Without this option, any error during the stash readiness checks triggers an error message that always appears.
-This option causes such error messages to instead honor the <<global-verbosity-level,global verbosity level>>.
+This option causes such error messages to instead honor the <<opt-verbose,global verbosity level>>.
 This option is intended to be included with readiness checks in cases where not using stash is also a viable option.
 
 ^.^h| Stash <<stash-types,level>> (one active at a time, last option wins)
@@ -2929,8 +3154,8 @@ Relative paths are resolved from:
 
 Processing of asset manifests occurs:
 
-* During <<primary-routines,primary routines>>, immediately before sourcing the deployment file.
-* During <<attach-routine,attaching of deployments>>, so that the assets of newly introduced deployments are immediately present in <<grail-directory,the Grail>>.
+* During <<rtn-primaries,primary routines>>, immediately before sourcing the deployment file.
+* During <<rtn-attach,attaching of deployments>>, so that the assets of newly introduced deployments are immediately present in <<grail-directory,the Grail>>.
 
 [[asset-manifest-syntax-and-behavior]]
 ==== Asset manifest syntax and behavior
