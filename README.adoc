@@ -1,11 +1,11 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revdate: 2019.11.05
-:revremark: Update readme for D.d v2, pt. 5
+:revdate: 2019.11.06
+:revremark: Update readme for D.d v2, pt. 6
 :doctype: article
 // Visual
-:toc:
+:toc: macro
 // Subs:
 :hs: #
 :dhs: ##
@@ -13,6 +13,8 @@
 :dus: __
 :as: *
 :das: **
+:lsb: [
+:rsb: ]
 
 ++++
 <p align="center">
@@ -35,12 +37,15 @@ Set it up with a single `*di install --yes*`.
 | `di` stands for **d**ivine **i**ntervention.
 |===
 
+toc::[]
+
+[[fmwk-main]]
 == In a nutshell
 
 [.note]
 [%noheader,cols="<.<a"]
 |===
-| First-time users are very welcome to take a <<joy-ride,*joy ride*>>.
+| First-time users are very welcome to take a <<fmwk-joy-ride,*joy ride*>>.
 |===
 
 _Divine.dotfiles_ leverages *deployments*.
@@ -54,7 +59,7 @@ The goals of _Divine.dotfiles_ are:
 
 * *Automation* of setting-up any system that runs Bash.
 +
-The <<intervention-utility,intervention utility>> `di` is a practical tool for handling any number of deployments.
+The <<iutil-main,intervention utility>> `di` is a practical tool for handling any number of deployments.
 * *Cross-platformness* within the Unix-like airspace.
 +
 Built-in OS detection mechanisms facilitate writing portable deployments.
@@ -98,32 +103,33 @@ Dead simple, right?
 One wouldn't need a framework for that.
 But wait, there's [.small]#_(hopefully)_# more.
 
+[[fmwk-features]]
 === Framework features
 
 .Framework features
 [%noheader,cols="<.<a",stripes=none]
 |===
 
-| +++<p align="center">+++<<divinefiles,*Divinefiles*>>+++</p>+++
+| +++<p align="center">+++<<dfls-main,*Divinefiles*>>+++</p>+++
 
-A special kind of deployments, the <<divinefiles,*Divinefiles*>> maintain a stable set of packages across machines and OS's.
+A special kind of deployments, the <<dfls-main,*Divinefiles*>> maintain a stable set of packages across machines and OS's.
 
-| +++<p align="center">+++<<grail-directory,*The Grail directory*>>+++</p>+++
+| +++<p align="center">+++<<fmwk-grail,*The Grail directory*>>+++</p>+++
 
 A centralized storage for personal deployments and assets (e.g., config files).
 On a new machine — the Grail can be <<rtn-plug,plugged in>> from a repo or a local dir with one command.
 
-| +++<p align="center">+++<<mtd-priority,*Priorities*>>+++</p>+++
+| +++<p align="center">+++<<mtdt-priority,*Priorities*>>+++</p>+++
 
 Deployments are always ordered by their numerical priority, and the order is automatically reversed for removal.
 
-| +++<p align="center">+++<<mtd-groups,*Groups*>>+++</p>+++
+| +++<p align="center">+++<<mtdt-groups,*Groups*>>+++</p>+++
 
-Deployments support basic grouping via single-character <<mtd-flags,flags>>.
+Deployments support basic grouping via single-character <<mtdt-flags,flags>>.
 
-| +++<p align="center">+++<<detected-os,*Cross-platformness*>>+++</p>+++
+| +++<p align="center">+++<<indct-os,*Cross-platformness*>>+++</p>+++
 
-Built-in OS detection mechanism allows to adapt to a growing <<os-support,list>> of supported OS distributions and families.
+Built-in OS detection mechanism allows to adapt to a growing <<fmwk-os-support,list>> of supported OS distributions and families.
 
 | +++<p align="center">+++<<rtn-attach,*Third-party deployments (bundles)*>>+++</p>+++
 
@@ -163,7 +169,7 @@ Guarantees described in this section cover only the built-in mechanisms of the f
 _Divine.dotfiles_ is intended for interactive use, and no guarantee of unattended access is offered.
 The framework tends to prompt for user's confirmation before major junctions in logic.
 
-[[urgent-prompts]]
+[[fmwk-upmt]]
 The <<opt-yes,`--yes`>> option is provided to auto-accept the more trivial framework prompts.
 The so-called *urgent prompts* — saved for potentially messy situations — ignore the `--yes` option and always interject.
 
@@ -173,7 +179,7 @@ The so-called *urgent prompts* — saved for potentially messy situations — ig
 All framework components avoid deleting or clobbering any data that is not proven as recoverable.
 Instead, whenever files need to be replaced or removed, they are pushed to a backup location.
 
-For the deployment-specific overwrites, the backups are sent into the <<state-directory,state directory>>.
+For the deployment-specific overwrites, the backups are sent into the <<fmwk-state,state directory>>.
 Other backups are created in place, by appending the `.bak` suffix.
 Whenever multiple backups stack up, an incrementing counter is added, e.g., `_NAME_.bak-17`.
 
@@ -192,7 +198,7 @@ The framework does its best to *not*:
 Alerts are printed whenever such cases are encountered.
 
 The <<opt-force,`--force`>> option opens path to overcome these restrictions.
-However, even with force applied, the zero data loss <<fmwk-zero-data-loss,policy>> still applies, and an <<urgent-prompts,urgent prompt>> is issued for every instance of forced behavior.
+However, even with force applied, the zero data loss <<fmwk-zero-data-loss,policy>> still applies, and an <<fmwk-upmt,urgent prompt>> is issued for every instance of forced behavior.
 
 [[fmwk-reversibility]]
 ==== Reversibility
@@ -200,10 +206,11 @@ However, even with force applied, the zero data loss <<fmwk-zero-data-loss,polic
 Where feasible, the built-in mechanisms that introduce changes to the system are paired with the reversal counterparts.
 
 To give an example, any backups created when installing a <<copy-queue,copy-queue>> are restored to their original locations when that queue is removed.
-Another example is the introductory <<joy-ride,joy ride>>: if taken reasonably, it will leave the system in largely the same state as before installing the framework.
+Another example is the introductory <<fmwk-joy-ride,joy ride>>: if taken reasonably, it will leave the system in largely the same state as before installing the framework.
 
 A glaring exception to this principle is the upgrading of the local package repositories through the system package manager (e.g., `sudo dnf upgrade -y`), which is deemed safe enough to overlook.
 
+[[fmwk-structure]]
 === Framework structure
 
 _Divine.dotfiles_ is installed, by default, into the `~/.divine/` directory, and is contained entirely in that directory, *except*:
@@ -217,7 +224,7 @@ The installed framework consists of the following main parts:
 [%noheader,cols="<.<a",stripes=none]
 |===
 
-| +++<p align="center">+++[#grail-directory]#`~/.divine/*grail*/`#+++</p>+++
+| [[fmwk-grail]]+++<p align="center">+++#`~/.divine/*grail*/`#+++</p>+++
 
 *The Grail directory* (or simply, *the Grail*) houses user's deployments, assets, and persistent settings.
 
@@ -231,7 +238,7 @@ The Grail is sub-structured as follows:
 * `*.stash.cfg*` — _The Grail-level <<stash,stash>> container, maintained by the framework._
 * `*.stash.cfg.md5*` — _The stash integrity checksum, maintained by the framework._
 
-| +++<p align="center">+++[#state-directory]#`~/.divine/*state*/`#+++</p>+++
+| [[fmwk-state]]+++<p align="center">+++#`~/.divine/*state*/`#+++</p>+++
 
 *The state directory* stores the current state of deployment installations on current system.
 _(The entire state directory is maintained by the framework.)_
@@ -245,20 +252,20 @@ The state directory is sub-structured as follows:
 * `*bundles*/` — The directory for the copies of <<rtn-attach,attached>> bundles of deployments.
 * `*stash*/` — The directory for the key-value containers of the root-level and deployment-level <<stash,stashing>> system.
 
-| +++<p align="center">+++[#lib-directory]#`~/.divine/*lib*/`#+++</p>+++
+| [[fmwk-lib]]+++<p align="center">+++#`~/.divine/*lib*/`#+++</p>+++
 
 This directory holds the guts of the framework.
 _(The entire directory is, naturally, maintained by the framework.)_
 
-| +++<p align="center">+++[#main-script]#`~/.divine/*intervene.sh*`#+++</p>+++
+| [[fmwk-script]]+++<p align="center">+++#`~/.divine/*intervene.sh*`#+++</p>+++
 
-The <<intervention-utility,*Divine intervention utility*>>.
+The <<iutil-main,*Divine intervention utility*>>.
 This script is the command line interface to the framework.
 _(The script file is, of course, maintained by the framework.)_
 
-| +++<p align="center">+++[#shortcut-cmd]#`_A{us}DIR{us}ON{us}$PATH_/*di*`#+++</p>+++
+| [[fmwk-shortcut]]+++<p align="center">+++#`_A{us}DIR{us}ON{us}$PATH_/*di*`#+++</p>+++
 
-The shortcut command: a symlink to the framework's <<main-script,main script>>.
+The shortcut command: a symlink to the framework's <<fmwk-script,main script>>.
 This symlink is normally created automatically, during the framework installation.
 
 |===
@@ -267,7 +274,7 @@ This symlink is normally created automatically, during the framework installatio
 
 === System requirements
 
-[[os-support]]
+[[fmwk-os-support]]
 * https://en.wikipedia.org/wiki/Unix-like[Unix-like OS].
 Following OS distributions are openly supported:
 +
@@ -282,10 +289,10 @@ Following OS distributions are openly supported:
 [.note]
 [%noheader,cols="<.<a"]
 |===
-| This list is incomplete; you can help by <<contributing-os-support,expanding it>>.
+| This list is incomplete; you can help by <<cntrb-os-support,expanding it>>.
 |===
 +
-The framework will work on other operating systems too, but without the support for packages (e.g., the <<divinefiles,Divinefiles>> will not work).
+The framework will work on other operating systems too, but without the support for packages (e.g., the <<dfls-main,Divinefiles>> will not work).
 
 * Bash 3.2+ and either `curl` or `wget`.
 +
@@ -328,13 +335,13 @@ Equivalently, the framework can be installed from a local copy of this repositor
 
 * Optional dependencies — such as Git — will be offered, unless installed already.
 * This repository will be cloned/downloaded.
-* Optionally, one symlink (<<shortcut-cmd,`di`>>) to the framework's main script will be created on `$PATH`.
+* Optionally, one symlink (<<fmwk-shortcut,`di`>>) to the framework's main script will be created on `$PATH`.
 * The zero data loss <<fmwk-zero-data-loss,policy>> will be in effect, as normal.
 
 The script will <<fmwk-interactivity,prompt>> for every major life decision.
 |===
 
-The documentation assumes that the framework has been installed with the optional shortcut command <<shortcut-cmd,`di`>>.
+The documentation assumes that the framework has been installed with the optional shortcut command <<fmwk-shortcut,`di`>>.
 Still, all invocations of the `di` command are equivalent to executing the `./intervene.sh` script in the root of the installation directory.
 
 [[fmwk-install-opts]]
@@ -353,12 +360,12 @@ This directs to instead install it into the `_DIRPATH_` directory.
 
 | `*D_SHCT_NAME*=_CMD_`
 
-By default, the <<shortcut-cmd,shortcut command>> for the framework is named `di`.
+By default, the <<fmwk-shortcut,shortcut command>> for the framework is named `di`.
 This directs to name it `_CMD_` instead.
 
 | `*D_SHCT_DIR*=_DIRPATH_`
 
-By default, the <<shortcut-cmd,shortcut command>> for the framework is installed into one of the usual `/{das}/bin/` directories on `$PATH`.
+By default, the <<fmwk-shortcut,shortcut command>> for the framework is installed into one of the usual `/{das}/bin/` directories on `$PATH`.
 This directs to instead install it into the `_DIRPATH_` directory.
 
 ^.^h| Append on the right
@@ -395,7 +402,7 @@ Other options notwithstanding, *the* `*--fmwk-no*` *option guarantees a 'dry run
 `*-S*`, `*--shct-no*`
 +++</p>+++
 
-Assumes an affirmative (`--yes`) or negatory (`--no`) answer specifically to the prompt about installing the <<shortcut-cmd,shortcut command>>.
+Assumes an affirmative (`--yes`) or negatory (`--no`) answer specifically to the prompt about installing the <<fmwk-shortcut,shortcut command>>.
 
 | +++<p align="center">+++
 `*-f*`, `*--force*`
@@ -405,7 +412,7 @@ The framework adheres to the non-interference <<fmwk-non-interference, policy>>.
 
 If the destination path for the framework already exists and is not an empty directory, the installation unconditionally backs off with an alert.
 
-The `--force` option directs to instead <<urgent-prompts,urgently>> prompt the user and, if given permission, to displace the pre-existing destination to a backup location.
+The `--force` option directs to instead <<fmwk-upmt,urgently>> prompt the user and, if given permission, to displace the pre-existing destination to a backup location.
 
 | +++<p align="center">+++
 *Verbosity options*
@@ -462,7 +469,7 @@ di fmwk-uninstall
 
 * Optional dependencies that have been installed will be offered for removal.
 * The installation directory will be displaced (backed up) according to the zero data loss <<fmwk-zero-data-loss,policy>>.
-* The optional symlink (<<intervention-utility,`di`>>) will be erased.
+* The optional symlink (<<iutil-main,`di`>>) will be erased.
 
 The script will <<fmwk-interactivity,prompt>> for every major life decision.
 |===
@@ -528,7 +535,7 @@ The framework adheres to the reversibility <<fmwk-reversibility, policy>>.
 
 If the script fails to uninstall any of the optional dependencies, the installation unconditionally backs off with an alert.
 
-The `--force` option directs to instead <<urgent-prompts,urgently>> prompt the user and, if given permission, to ignore the debacle and uninstall the framework anyway.
+The `--force` option directs to instead <<fmwk-upmt,urgently>> prompt the user and, if given permission, to ignore the debacle and uninstall the framework anyway.
 
 | +++<p align="center">+++
 `*-o*`, `*--obliterate*`
@@ -556,7 +563,7 @@ This affects the same <<opt-verbosity,global verbosity level>> as is used by the
 Note, that no combination of options guarantees an unattended uninstallation of the framework.
 As established before, _Divine.dotfiles_ is intended as an <<fmwk-interactivity,interactive>> tool.
 
-[[joy-ride]]
+[[fmwk-joy-ride]]
 === Joy ride
 
 The following single shell command provides a removable introductory experience of the framework and deployments.
@@ -581,7 +588,7 @@ exit 3 || exit 0" bash --yes \
 | The joy-ride command is three-pronged:
 
 * The framework will be <<fmwk-install,installed>>.
-* The https://github.com/no-simpler/divine-bundle-essentials[`essentials`] bundle of Divine deployments will be attached to the freshly minted <<grail-directory,Grail directory>>.
+* The https://github.com/no-simpler/divine-bundle-essentials[`essentials`] bundle of Divine deployments will be attached to the freshly minted <<fmwk-grail,Grail directory>>.
 * All bundled deployments will be installed.
 
 No framework <<fmwk-interactivity,prompts>> will be issued.
@@ -604,7 +611,7 @@ Once the bundle is fully installed, and the shell reloaded, _voilà_:
 * Opinionated configs are plugged in for Git, Vim, Bash, and Zsh.
 * Pre-existing files and installations are safely backed up or re-used.
 
-All of the above is controlled and customized through key configuration files located in the <<grail-directory,Grail directory>> at `~/.divine/grail/assets/`.
+All of the above is controlled and customized through key configuration files located in the <<fmwk-grail,Grail directory>> at `~/.divine/grail/assets/`.
 
 .Overview of asset directories for the bundle `essentials`
 [%noheader,cols="<.<a,<.<a",stripes=none]
@@ -644,7 +651,7 @@ All of the above is controlled and customized through key configuration files lo
 
 ==== Cleaning up
 
-The following single shell command methodically undoes all of the <<joy-ride,joy ride>> installation:
+The following single shell command methodically undoes all of the <<fmwk-joy-ride,joy ride>> installation:
 
 [source,bash]
 ----
@@ -677,11 +684,11 @@ After the 'undo' steps have successfully run, there is no trace of _Divine.dotfi
 
 == Usage
 
-[[intervention-utility]]
+[[iutil-main]]
 === Divine intervention utility `di`
 
 _Divine.dotfiles_ provides a command line interface via *Divine intervention utility `di`*.
-(Invoking the shortcut <<shortcut-cmd,`di`>> is equivalent to executing the framework's main script, <<main-script,`intervene.sh`>>.)
+(Invoking the shortcut <<fmwk-shortcut,`di`>> is equivalent to executing the framework's main script, <<fmwk-script,`intervene.sh`>>.)
 
 [source,subs="verbatim,quotes,attributes"]
 ----
@@ -705,7 +712,7 @@ The first non-option argument, `*_ROUTINE_*`, can be any of the following:
 * `*a*{vbar}<<rtn-attach,*attach*>>` — imports Github repositories that contain deployments.
 * `*d*{vbar}<<rtn-detach,*detach*>>` — erases previously attached Github repositories.
 
-| The routine that wrangles the <<grail-directory,Grail directory>>:
+| The routine that wrangles the <<fmwk-grail,Grail directory>>:
 
 * `*p*{vbar}<<rtn-plug,*plug*>>` — replaces the current Grail directory with the one provided.
 
@@ -718,10 +725,10 @@ The first non-option argument, `*_ROUTINE_*`, can be any of the following:
 [.note]
 [%noheader,cols="<.<a"]
 |===
-| The term '<<deployments,deployments>>' includes <<divinefiles,Divinefiles>> as a special kind.
+| The term '<<dpls-main,deployments>>' includes <<dfls-main,Divinefiles>> as a special kind.
 |===
 
-[[opt-arg-parsing]]
+[[iutil-arg-parsing]]
 === Options and arguments
 
 The intervention routines, and the _Divine.dotfiles_ overall, use a familiar set of rules for taking options and arguments:
@@ -755,7 +762,7 @@ The <<rtn-check,`check`>> routine stops there, but the <<rtn-install,`install`>>
 [[rtn-check]]
 ==== `check` routine
 
-The `check` routine iterates over deployments (and Divinefile packages), ordered by *ascending* <<dpl-metadata,priority>> (smaller numbers first).
+The `check` routine iterates over deployments (and Divinefile packages), ordered by *ascending* <<dpls-metadata,priority>> (smaller numbers first).
 The routine checks whether each item is installed or not, then prints the appropriate plaque.
 
 [source,subs="verbatim,quotes,attributes"]
@@ -771,7 +778,7 @@ For each deployment, the `check` routine calls the <<func-dpl-check,`d_dpl_check
 [[rtn-install]]
 ==== `install` routine
 
-The `install` routine iterates over deployments (and Divinefile packages), ordered by *ascending* <<dpl-metadata,priority>> (smaller numbers first).
+The `install` routine iterates over deployments (and Divinefile packages), ordered by *ascending* <<dpls-metadata,priority>> (smaller numbers first).
 The routine checks whether each item is installed or not.
 If the item is not (fully) installed, the routine installs it, and prints the appropriate plaque.
 
@@ -790,7 +797,7 @@ The return code of the latter is taken to indicate whether the installation succ
 [[rtn-remove]]
 ==== `remove` routine
 
-The `remove` routine iterates over deployments (and Divinefile packages), ordered by *descending* <<dpl-metadata,priority>> (larger numbers first).
+The `remove` routine iterates over deployments (and Divinefile packages), ordered by *descending* <<dpls-metadata,priority>> (larger numbers first).
 The routine checks whether each item is installed or not.
 If the item is (at least in some part) previously installed, the routine removes it, and prints the appropriate plaque.
 
@@ -811,37 +818,38 @@ The return code of the latter is taken to indicate whether the removal succeeded
 
 For the optional `*_NAME_*` arguments, the following (case-insensitive) values are accepted:
 
-* <<dpl-metadata,Names>> of <<deployments,deployments>>.
-* Reserved synonyms for <<divinefiles,Divinefiles>>: `divinefile`, `dfile`, `df`.
-* Single-digit names of <<mtd-groups,deployment groups>>: `0`, `1`, `2`, `3`, `4`, `5`, `6`, `7`, `8`, `9`.
+* <<dpls-metadata,Names>> of <<dpls-main,deployments>>.
+* Reserved synonyms for <<dfls-main,Divinefiles>>: `divinefile`, `dfile`, `df`.
+* Single-digit names of <<mtdt-groups,deployment groups>>: `0`, `1`, `2`, `3`, `4`, `5`, `6`, `7`, `8`, `9`.
 
 The primary routines filter the deployments according to these rules:
 
 * Without any `*_NAME_*` arguments, all deployments are processed.
 * With at least one `*_NAME_*` argument, some form of filtering is applied:
-** In the *normal filtering*, a deployment is processed if and only if it is requested by name or by name of its <<mtd-groups,single-digit group>>.
-** The <<opt-except,`--except`>> option makes the filtering *inverted*: all deployments are processed, *unless* requested by name or by name of its <<mtd-groups,single-digit group>>.
+** In the *normal filtering*, a deployment is processed if and only if it is requested by name or by name of its <<mtdt-groups,single-digit group>>.
+** The <<opt-except,`--except`>> option makes the filtering *inverted*: all deployments are processed, *unless* requested by name or by name of its <<mtdt-groups,single-digit group>>.
 +
 Note, that without any `*_NAME_*` arguments, the <<opt-except,`--except`>> option is a no-opt.
 
-<<mtd-exclam,Dangerous>> deployments are treated specially:
+<<mtdt-exclam,Dangerous>> deployments are treated specially:
 
 * A dangerous deployment is ignored by both filtering modes, *unless* it is requested by name in the normal filtering.
 +
-Note, that requesting by name of the <<mtd-groups,single-digit group>> does not work.
+Note, that requesting by name of the <<mtdt-groups,single-digit group>> does not work for dangerous deployments.
 * The <<opt-with-exclam,`--with-!`>> option prevents any special treatment of dangerous deployments.
 
 Deployments are retrieved from two directories (at any depth):
 
-* The directory for user's deployments: `<<grail-directory,grail>>/dpls/`.
-* The directory for attached bundles of deployments: `<<state-directory,state>>/bundles/`.
+* The directory for user's deployments: `<<fmwk-grail,grail>>/dpls/`.
+* The directory for attached bundles of deployments: `<<fmwk-state,state>>/bundles/`.
 
 The search can be narrowed down to particular bundles of deployments by including any number of the <<opt-bundle,`--bundle`>> options.
 
 [[rtn-primaries-opts]]
 ==== Primary routine options
 
-The run-time state of all options can be inspected by a deployment through the corresponding read-only global variables.
+The run-time state of all options can be inspected within the deployment code through their corresponding read-only global variables.
+
 The Divine <<divine-bundles,bundles>> of deployments follow the given interpretation of the options, as well as the framework's <<fmwk-design,design>> in general.
 A 'good' deployment is expected to follow suit.
 
@@ -857,12 +865,12 @@ A 'good' deployment is expected to follow suit.
 `*-n*`, `*--no*`
 +++</p>+++
 
-Assumes an affirmative (`--yes`) or negatory (`--no`) answer to the non-<<urgent-prompts,urgent>> framework prompts, e.g.:
+Assumes an affirmative (`--yes`) or negatory (`--no`) answer to the non-<<fmwk-upmt,urgent>> framework prompts, e.g.:
 
 * A confirmation before sourcing (reading and interpreting) each deployment script.
 * A confirmation before installing an optional framework dependency.
 
-Examples of the <<urgent-prompts,urgent>> prompts, which are *not* affected by the prompt options:
+Examples of the <<fmwk-upmt,urgent>> prompts, which are *not* affected by the prompt options:
 
 * A confirmation before undertaking a <<opt-force,forced>> action.
 * Any prompt in the user-defined deployment code, unless it is specifically made to honor this option.
@@ -898,7 +906,7 @@ The framework adheres to the non-interference <<fmwk-non-interference, policy>>.
 
 During the <<rtn-install,`install`>> and <<rtn-remove,`remove`>> routines, if the `check` <<rtc-check,code>> speaks to a clash with something done by the user or the operating system (e.g., a previously installed file is nowhere to be found), the framework unconditionally backs off with an alert.
 
-The `--force` option directs to instead <<urgent-prompts,urgently>> prompt the user and, if given permission, carry out the installation/removal anyway.
+The `--force` option directs to instead <<fmwk-upmt,urgently>> prompt the user and, if given permission, carry out the installation/removal anyway.
 
 The presence of the `--force` option is reflected in the value of the `$*D__OPT_FORCE*` variable:
 
@@ -931,7 +939,7 @@ The presence of the `--except` option is reflected in the value of the `$*D__OPT
 [[opt-with-exclam]]`*-w*`, `*--with-!*`
 +++</p>+++
 
-The primary routines <<rtn-primaries-args,interpret>> the <<mtd-exclam,dangerous>> deployments (marked with the `!` flag) specially by making them harder to accidentally process.
+The primary routines <<rtn-primaries-args,interpret>> the <<mtdt-exclam,dangerous>> deployments (marked with the `!` flag) specially by making them harder to accidentally process.
 The `--with-!` option directs to instead give them no special treatment at all.
 
 The presence of the `--with-!` option is reflected in the value of the `$*D__OPT_EXCLAM*` variable:
@@ -972,12 +980,12 @@ The global verbosity level is reflected in the value of the `$*D__OPT_VERBOSITY*
 [[rtn-bundles]]
 === Bundle routines (`attach`, `detach`)
 
-The framework treats any Github repository containing <<deployments,deployments>> as *bundles* of deployments.
+The framework treats any Github repository containing <<dpls-main,deployments>> as *bundles* of deployments.
 
-When a bundle is *attached* to the particular <<grail-directory,Grail directory>>, its address is stored in the Grail <<stash,stash>>, while a copy of the repository is pulled into the <<state-directory,state directory>>.
+When a bundle is *attached* to the particular <<fmwk-grail,Grail directory>>, its address is stored in the Grail <<stash,stash>>, while a copy of the repository is pulled into the <<fmwk-state,state directory>>.
 This way, the attached deployments are treated as if they are in the Grail, but the directory itself is not unnecessarily bloated.
 
-On every invocation, the <<intervention-utility, intervention utility>> synchronizes the stashed list of attached bundles with the copies in the state directory.
+On every invocation, the <<iutil-main, intervention utility>> synchronizes the stashed list of attached bundles with the copies in the state directory.
 Thus, transfering the Grail directory alone to another machine is enough to fully re-create the set of deployments.
 
 The two bundle routines do what one might expect:
@@ -1018,7 +1026,7 @@ However, it is left to the user to:
 * Uninstall the deployments.
 +
 (If a lapse occurred, re-attaching and uninstalling should work fine.)
-* Remove any assets that might have been copied into the <<grail-directory,Grail>>'s asset directory.
+* Remove any assets that might have been copied into the <<fmwk-grail,Grail>>'s asset directory.
 
 [[rtn-bundles-args]]
 ==== Specifying bundles
@@ -1030,7 +1038,7 @@ For the optional `*_REPO_*` arguments, the following (case-insensitive) values a
 +
 [source,subs="verbatim,quotes,attributes"]
 ----
-`*_REPO_*`  =>  `no-simpler/divine-bundle-*_REPO_*`
+*_REPO_*  =>  no-simpler/divine-bundle-*_REPO_*
 ----
 +
 (`*_REPO_*` must match the RegEx pattern `^[0-9A-Za-z_.-]+$`.)
@@ -1050,7 +1058,7 @@ For the optional `*_REPO_*` arguments, the following (case-insensitive) values a
 `*-n*`, `*--no*`
 +++</p>+++
 
-Assumes an affirmative (`--yes`) or negatory (`--no`) answer to the non-<<urgent-prompts,urgent>> framework prompts, e.g.:
+Assumes an affirmative (`--yes`) or negatory (`--no`) answer to the non-<<fmwk-upmt,urgent>> framework prompts, e.g.:
 
 * A confirmation before attaching or detaching a bundle.
 * A confirmation before installing an optional framework dependency.
@@ -1073,7 +1081,7 @@ This affects the same <<opt-verbosity,global verbosity level>> as is used by the
 [[rtn-plug]]
 === `plug` routine
 
-The <<grail-directory,Grail directory>> is the central hub for all user content.
+The <<fmwk-grail,Grail directory>> is the central hub for all user content.
 As such, it is the obvious target for version controlling and syncing.
 
 The `plug` routine, unsurprisingly, imports an externally saved Grail directory, replacing the currently existing one.
@@ -1108,7 +1116,7 @@ The pre-existing Grail directory is backed up in-place by appending the `.bak` s
 `*-n*`, `*--no*`
 +++</p>+++
 
-Assumes an affirmative (`--yes`) or negatory (`--no`) answer to the non-<<urgent-prompts,urgent>> framework prompts, e.g.:
+Assumes an affirmative (`--yes`) or negatory (`--no`) answer to the non-<<fmwk-upmt,urgent>> framework prompts, e.g.:
 
 * A confirmation before interpreting the `*_ADDRESS_*` argument in a particular way.
 * A confirmation before installing an optional framework dependency.
@@ -1168,7 +1176,7 @@ $ *di* [-yn] [--] *u*|*update* [*f*|*framework*] [*g*|*grail*] [*b*|*bundles*]
 The `update` routine is three-pronged, and the user is free to choose which prongs to engage by providing or not providing arguments:
 
 * `*f*|*framework*` updates the framework.
-* `*g*|*grail*` — updates the cloned <<grail-directory,Grail directory>>.
+* `*g*|*grail*` — updates the cloned <<fmwk-grail,Grail directory>>.
 * `*b*|*bundles*` — updates all <<rtn-bundles,attached>> bundles of deployments.
 * Without any arguments, all three types of updates are performed.
 
@@ -1186,7 +1194,7 @@ The `update` routine is three-pronged, and the user is free to choose which pron
 `*-n*`, `*--no*`
 +++</p>+++
 
-Assumes an affirmative (`--yes`) or negatory (`--no`) answer to the non-<<urgent-prompts,urgent>> framework prompts, e.g.:
+Assumes an affirmative (`--yes`) or negatory (`--no`) answer to the non-<<fmwk-upmt,urgent>> framework prompts, e.g.:
 
 * A confirmation before pulling from a remote repository.
 * A confirmation before installing an optional framework dependency.
@@ -1194,7 +1202,7 @@ Assumes an affirmative (`--yes`) or negatory (`--no`) answer to the non-<<urgent
 Other options notwithstanding, *the* `*--no*` *option guarantees a 'dry run'*: no changes to the system will be introduced.
 
 | +++<p align="center">+++
-[[opt-bundle]]`*-b* _BUNDLE_`, `*--bundle* _BUNDLE_` _(repeatable)_
+`*-b* _BUNDLE_`, `*--bundle* _BUNDLE_` _(repeatable)_
 +++</p>+++
 
 If at least one such option is included:
@@ -1217,7 +1225,7 @@ This affects the same <<opt-verbosity,global verbosity level>> as is used by the
 
 |===
 
-[[deployments]]
+[[dpls-main]]
 == Deployments
 
 A _Divine.dotfiles_ *deployment* is a Bash script with the file name consisting of a non-empty name and the `.dpl.sh` suffix.
@@ -1225,28 +1233,28 @@ No other parts of a deployment are mandatory.
 
 To be picked up by the framework, the deployments must be located at any depth under the two recognized deployment locations:
 
-* `<<grail-directory,grail>>/dpls/` — user's deployments;
-* `<<state-directory,state>>/bundles/` — <<rtn-bundles,attached>> bundles of deployments.
+* `<<fmwk-grail,grail>>/dpls/` — the user's deployments;
+* `<<fmwk-state,state>>/bundles/` — the <<rtn-bundles,attached>> bundles of deployments.
 
 === Deployment structure
 
 The minimal valid deployment is an empty file.
 As such, it does nothing but appear in the framework output.
 
-Deployments are written in Bash syntax, with some syntax limitations on the <<dpl-metadata,metadata>>.
+Deployments are written in Bash syntax, with some syntax limitations on the <<dpls-metadata,metadata>>.
 Each deployment is sourced by the Bash interpreter no more than once per <<rtn-primaries,primary routine>>.
 
 To be useful, a deployment may contain:
 
-* Implementations of any or all of the <<primary-functions,*primary functions*>>.
-* Assignments to the special pseudo-variables — the <<dpl-metadata,*metadata*>>.
+* Implementations of any or all of the <<func-primaries,*primary functions*>>.
+* Assignments to the special pseudo-variables — the <<dpls-metadata,*metadata*>>.
 
 It is highly recommended to *not* include any non-trivial Bash code outside of functions.
 Nothing will prevent things from going off the rails.
 There are <<fmwk-security,*no*>> safety nets.
 Unless the intention is very well thought-out, _Divine.dotfiles_ is only useful while the guidelines are followed.
 
-[[primary-functions]]
+[[func-primaries]]
 === Primary functions (`d_dpl_check`, `d_dpl_install`, `d_dpl_remove`)
 
 The *primary functions*, or *primaries*, correspond to the three fundamental actions performed by a deployment:
@@ -1255,23 +1263,13 @@ The *primary functions*, or *primaries*, correspond to the three fundamental act
 * `<<func-dpl-install,*d_dpl_install*>>` — installs the deployment.
 * `<<func-dpl-remove,*d_dpl_remove*>>` — removes (reverses the previous installation of) the deployment.
 
-The primary functions have two ways of 'talking' to the framework:
+The primary functions have the following ways of interacting with the framework:
 
-* The return <<rtc-overview,codes>> are the main vehicles of indicating status.
-* The <<addst-overview,add-statuses>> (specially named global variables) are available to tweak the behavior in some places.
-
-[[addst-summary]]
-The add-status variables, if set in the primary function, provide additional information.
-(The following summary of the recognized add-statuses is expanded upon in the relevant <<addst-overview,section>>.)
-
-* `*D_ADDST_PROMPT*` — if set to `true`, forces an <<urgent-prompts,urgent>> prompt before installation/removal.
-* `*D_ADDST_HALT*` — if set to `true`, forces halting of the <<rtn-primaries,primary routine>>.
-* The following output add-statuses may be set to a string or array thereof.
-If set, their messages will be printed to the user in appropriate styling.
-** `*D_ADDST_ATTENTION*` — non-critical alerts to the user.
-** `*D_ADDST_HELP*` — calls for user's involvement (e.g., requests to reboot the machine).
-** `*D_ADDST_WARNING*` — grave warnings to the user.
-** `*D_ADDST_CRITICAL*` — critical failures.
+* To 'talk' to the framework:
+** The *return* <<rtc-overview,*codes*>> are the main vehicles of indicating status.
+** The <<addst-overview,*add-statuses*>> (specially named global variables) are available to tweak the behavior in some places.
+* To 'hear' from the framework:
+** The <<indct-main,*indicator*>> *variables* are populated by the framework with the relevant run-time data.
 
 [[func-dpl-check]]
 ==== Primary function `d_dpl_check`
@@ -1300,7 +1298,7 @@ This code is assumed if the `d_dpl_check` function is not implemented.
 ** `*8*` — _'Partly installed by user or OS'_.
 ** `*9*` — _'Likely not installed (unknown)'_.
 
-Some additional instructions can be passed to the framework via the <<addst-overview,add-status>> variables and the deployment <<dpl-metadata,metadata>>.
+Some additional instructions can be passed to the framework via the <<addst-overview,add-status>> variables and the deployment <<dpls-metadata,metadata>>.
 
 [[func-dpl-install]]
 ==== Primary function `d_dpl_install`
@@ -1312,16 +1310,14 @@ If this function is implemented, it will be called:
 The return code of the `d_dpl_install` function describes the outcome of the installation.
 (The following summary of the recognized codes is expanded upon in the relevant <<rtc-install,section>>.)
 
-* Basic codes:
-** `*0*` — _'Successfully installed'_
+* `*0*` — _'Successfully installed'_
 +
 This code is assumed if the `d_dpl_install` function is not implemented.
-** `*1*` — _'Failed to install'_.
-** `*2*` — _'Refused to install'_.
-* Extended codes:
-** `*3*` — _'Partly installed'_.
+* `*1*` — _'Failed to install'_.
+* `*2*` — _'Refused to install'_.
+* `*3*` — _'Partly installed'_.
 
-Some additional instructions can be passed to the framework via the <<addst-overview,add-status>> variables and the deployment <<dpl-metadata,metadata>>.
+Some additional instructions can be passed to the framework via the <<addst-overview,add-status>> variables and the deployment <<dpls-metadata,metadata>>.
 
 [[func-dpl-remove]]
 ==== Primary function `d_dpl_remove`
@@ -1333,42 +1329,40 @@ If this function is implemented, it will be called:
 The return code of the `d_dpl_remove` function describes the outcome of the removal.
 (The following summary of the recognized codes is expanded upon in the relevant <<rtc-remove,section>>.)
 
-* Basic codes:
-** `*0*` — _'Successfully removed'_
+* `*0*` — _'Successfully removed'_
 +
 This code is assumed if the `d_dpl_remove` function is not implemented.
-** `*1*` — _'Failed to remove'_.
-** `*2*` — _'Refused to remove'_.
-* Extended codes:
-** `*3*` — _'Partly removed'_.
+* `*1*` — _'Failed to remove'_.
+* `*2*` — _'Refused to remove'_.
+* `*3*` — _'Partly removed'_.
 
-Some additional instructions can be passed to the framework via the <<addst-overview,add-status>> variables and the deployment <<dpl-metadata,metadata>>.
+Some additional instructions can be passed to the framework via the <<addst-overview,add-status>> variables and the deployment <<dpls-metadata,metadata>>.
 
-[[dpl-metadata]]
+[[dpls-metadata]]
 === Deployment metadata
 
 *Deployment metadata* pose as definitions of Bash global variables and alter deployment's appearance and behavior.
 In reality, the metadata 'assignments' are read from the file _before_ the Bash interpreter sources it.
 In the interests of optimization, *the metadata must be contained in the first 20 non-empty lines of the deployment script*.
 
-* `<<mtd-name-and-desc,*D_DPL_NAME*>>=_NAME_`
+* `<<mtdt-name-and-desc,*D_DPL_NAME*>>=_NAME_`
 +
 The explicit name for the deployment.
 The implicit fallback name is the name of the deployment file sans the `.dpl.sh` suffix.
-* `<<mtd-name-and-desc,*D_DPL_DESC*>>="_DESCRIPTION TEXT_"`
+* `<<mtdt-name-and-desc,*D_DPL_DESC*>>="_DESCRIPTION TEXT_"`
 +
 The one-line description of the deployment.
-For user's eyes only.
-* `<<mtd-priority,*D_DPL_PRIORITY*>>=_PRIORITY_`
+For the user's eyes only.
+* `<<mtdt-priority,*D_DPL_PRIORITY*>>=_PRIORITY_`
 +
 The priority of the deployment (a non-negative integer).
-* `<<mtd-flags,*D_DPL_FLAGS*>>=_FLAGS_`
+* `<<mtdt-flags,*D_DPL_FLAGS*>>=_FLAGS_`
 +
 The single-character flags that cause special treatment.
-* `<<mtd-warning,*D_DPL_WARNING*>>='_WARNING TEXT_'`
+* `<<mtdt-warning,*D_DPL_WARNING*>>='_WARNING TEXT_'`
 +
 The one-line cautionary message about this deployment.
-This message is printed to the user if and only if the <<mtd-aa,always-prompt>> flag causes the appearance of an <<urgent-prompts,urgent>> prompt.
+This message is printed to the user if and only if the <<mtdt-aa,always-prompt>> flag causes the appearance of an <<fmwk-upmt,urgent>> prompt.
 
 Below is an example of metadata in the head of a deployment script:
 
@@ -1390,7 +1384,7 @@ The following syntax limitations are imposed upon metadata:
 * A pair of matching quotes around the value is allowed.
 Such pair of quotes us stripped in processing.
 
-[[mtd-name-and-desc]]
+[[mtdt-name-and-desc]]
 ==== Deployment name and description
 
 [source,bash]
@@ -1413,7 +1407,7 @@ The following restrictions are imposed upon the deployment names:
 
 If any of the naming rules is broken, the framework halts with an alert, even before a <<rtn-primaries,primary routine>> starts.
 
-[[mtd-priority]]
+[[mtdt-priority]]
 ==== Deployment priority
 
 [source,bash]
@@ -1424,12 +1418,12 @@ D_DPL_PRIORITY=777
 The priority is the way to order the deployments for processing:
 
 * The <<rtn-check,`check`>> and <<rtn-install,`install`>> routines order the deployments by *ascending* priority (smaller numbers first).
-* The <<rtn-remove,`remove`>> routine orders the deployments by *descending* <<dpl-metadata,priority>> (larger numbers first).
+* The <<rtn-remove,`remove`>> routine orders the deployments by *descending* <<dpls-metadata,priority>> (larger numbers first).
 * The order of deployments with the same priority is undefined.
 
 The priority must be a non-negative integer, otherwise it falls back to *the default value of* `*4096*`.
 
-[[mtd-flags]]
+[[mtdt-flags]]
 ==== Deployment flags
 
 [source,bash]
@@ -1452,25 +1446,25 @@ Below is the exhaustive rundown of supported flags and their effects.
 |===
 
 | +++<p align="center">+++
-[[mtd-groups]]`*[0-9]*` _(any single digit)_
+[[mtdt-groups]]`*[0-9]*` _(any single digit)_
 +++</p>+++
 
 Assigns the deployment to one of the ten single-digit *groups*.
 When invoking a <<rtn-primaries,primary routine>>, a group of deployments may be <<rtn-primaries-args,referred>> to by that group's digit, instead of listing the deployment names.
 
 | +++<p align="center">+++
-[[mtd-exclam]]`*!*` _(an exclamation mark)_
+[[mtdt-exclam]]`*!*` _(an exclamation mark)_
 +++</p>+++
 
 Marks the deployment as *dangerous*.
 The framework ignores dangerous deployments, unless explicitly <<rtn-primaries-args,told>> not to.
 
 | +++<p align="center">+++
-[[mtd-aa]]`*[cira]*` _(any of the four lowercase letters)_
+[[mtdt-aa]]`*[cira]*` _(any of the four lowercase letters)_
 +++</p>+++
 
-The following flags engage the *always-prompt* mode for particular <<rtn-primaries,primary routines>>.
-An <<urgent-prompts,urgent>> prompt will appear on the chosen routines, before the deployment script is sourced.
+These flags engage the *always-prompt* mode for particular <<rtn-primaries,primary routines>>.
+An <<fmwk-upmt,urgent>> prompt will appear on the chosen routines, before the deployment script is sourced.
 
 * `*c*` — always prompt during the <<rtn-check,`**c**heck`>> routine.
 * `*i*` — always prompt during the <<rtn-install,`**i**nstall`>> routine.
@@ -1479,7 +1473,7 @@ An <<urgent-prompts,urgent>> prompt will appear on the chosen routines, before t
 
 |===
 
-[[mtd-warning]]
+[[mtdt-warning]]
 ==== Deployment warning
 
 [source,bash]
@@ -1487,82 +1481,669 @@ An <<urgent-prompts,urgent>> prompt will appear on the chosen routines, before t
 D_DPL_WARNING="Warning for 'urgent' prompts forced by a flag"
 ----
 
-If a deployment has a warning, and the <<mtd-aa,always-prompt>> mode is engaged, then the warning is printed alongside the <<urgent-prompts,urgent>> prompt.
+If a deployment has a warning, and the <<mtdt-aa,always-prompt>> mode is engaged, then the warning is printed alongside the <<fmwk-upmt,urgent>> prompt.
 
-[[divinefiles]]
+[[rtc-overview]]
+=== Return codes
+
+The return codes are the main vehicle for communicating to the framework the result of running a <<func-primaries,primary function>>.
+
+The supported return codes have semantic meanings, which affect the human-readable output.
+In the case of the <<func-dpl-check,`d_dpl_check`>> function, the `check` code also determines whether the <<rtn-install,`install`>> and <<rtn-remove,`remove`>> routines proceed with their task.
+Guidelines are provided for how to interpret the various `check` codes in the user-defined deployment code.
+
+Finally, most of the extended `check` codes represent an unusual situation which causes the framework to unconditionally back off from the deployment, with an alert.
+This is in keeping with the framework's non-interference <<fmwk-non-interference,policy>>.
+The <<opt-force,`--force`>> option may be used to compel the framework.
+
+[[rtc-check]]
+==== `check` codes
+
+The four <<rtc-check-basic,basic>> `check` codes are the bread & butter that can satisfy most deployment needs.
+A set of <<rtc-check-extended,`extended`>> `check` codes is provided for those deployments that use the <<stash,stashing>> system to 'remember' the status of the installation between interventions.
+
+.Supported return codes of the `d_dpl_check` function
+[%noheader.stretch,cols="5*^.^a,4*<.^a",stripes=none]
+|===
+
+1.3+^.^h| `check` code
+1.3+^.^h| Meaning
+3.1+^.^h| Sub-statuses
+4.1+^.^h| Actions during the <<rtn-primaries,primary routines>>
+1.2+^.^h| Relevant?
+1.2+^.^h| <<stash,Stash>> record?
+1.2+^.^h| Appears installed?
+2.1+^.^h| <<rtn-install,`*install*`>>
+2.1+^.^h| <<rtn-remove,`*remove*`>>
+^.^h| Regular
+^.^h| <<opt-force,Forced>>
+^.^h| Regular
+^.^h| <<opt-force,Forced>>
+
+9.1+h| [[rtc-check-basic]]Basic codes
+
+| `*0*`
+| 'Truly unknown'
+| *Yes*
+| _unused_
+| _unknown_
+2.1+| * Push backup
+* Install
+2.1+| * Uninstall
+* Pop backup
+
+| `*1*`
+| 'Fully installed'
+| *Yes*
+| *Yes*
+/
+_unused_
+| *Yes*
+^.^h| _blocked_
+| * Push backup
+* Install anew
+
++++<p align=center>+++_— or —_+++</p>+++
+
+* Bring up to date
+2.1+| * Uninstall
+* Pop backup
+* Clear stash
+
+| `*2*`
+| 'Fully not installed'
+| *Yes*
+| No
+/
+_unused_
+| No
+2.1+| * Push backup
+* Install
+* Set stash
+^.^h| _blocked_
+| * Pop backup
+
+| `*3*`
+| 'Irrelevant or invalid'
+| No
+2.1+^.^h| _n/a_
+4.1+^.^h| _blocked_
+
+9.1+h| [[rtc-check-extended]]Extended codes
+
+| `*4*`
+| 'Partly installed'
+| *Yes*
+| *Yes*
+/
+_unused_
+| **Par**tly
+| * Make us whole
+| * Push backup
+* Install anew
+2.1+| * Uninstall
+* Pop backup
+* Clear stash
+
+| `*5*`
+| 'Likely installed (unknown)'
+| *Yes*
+| *Yes*
+| _unknown_
+^.^h| _blocked_
+| * Push backup
+* Install anew
+
++++<p align=center>+++_— or —_+++</p>+++
+
+* Bring up to date
+^.^h| _blocked_
+| * Uninstall
+* Pop backup
+* Clear stash
+
+| `*6*`
+| 'Manually removed (tinkered with)'
+| *Yes*
+| *Yes*
+| No
+^.^h| _blocked_
+| * Push backup
+* Install anew
+^.^h| _blocked_
+| * Clear stash
+
+| `*7*`
+| 'Fully installed by user or OS'
+| *Yes*
+| No
+| *Yes*
+^.^h| _blocked_
+| * Push backup
+* Install anew
+* Set stash
+^.^h| _blocked_
+| * Uninstall
+* Pop backup
+
+| `*8*`
+| 'Partly installed by user or OS'
+| *Yes*
+| No
+| **Par**tly
+| * Make whole
+* Set stash
+| * Push backup
+* Install anew
+* Set stash
+^.^h| _blocked_
+| * Uninstall
+* Pop backup
+
+| `*9*`
+| 'Likely not installed (unknown)'
+| *Yes*
+| No
+| _unknown_
+^.^h| _blocked_
+| * Push backup
+* Install
+* Set stash
+^.^h| _blocked_
+| * Pop backup
+
+|===
+
+[[rtc-install]]
+==== `install` codes
+
+The `install` codes are much less diversified than the <<rtc-check,`check` codes>> because no major internal decisions are made based on the result of the installation.
+
+.Supported return codes of the `d_dpl_install` function
+[%noheader.stretch,cols="2*^.^a,1*<.^a",stripes=none]
+|===
+
+^.^h| `install` code
+^.^h| Meaning
+^.^h| Elaboration
+
+| `*0*`
+| 'Successfully installed'
+| The function has run without any errors.
+
+| `*1*`
+| 'Failed to install'
+| There has been at least one error, which potentially created an inconsistent state.
+
+| `*2*`
+| 'Refused to install'
+| The function has returned before proceeding to the installation proper.
+
+| `*3*`
+| 'Partly installed'
+| The function has returned midway (because of an error), but has avoided creating an inconsistent state.
+
+|===
+
+[[rtc-remove]]
+==== `remove` codes
+
+The `remove` codes are much less diversified than the <<rtc-check,`check` codes>> because no major internal decisions are made based on the result of the removal.
+
+.Supported return codes of the `d_dpl_remove` function
+[%noheader.stretch,cols="2*^.^a,1*<.^a",stripes=none]
+|===
+
+^.^h| `remove` code
+^.^h| Meaning
+^.^h| Elaboration
+
+| `*0*`
+| 'Successfully removed'
+| The function has run without any errors.
+
+| `*1*`
+| 'Failed to remove'
+| There has been at least one error, which potentially created an inconsistent state.
+
+| `*2*`
+| 'Refused to remove'
+| The function has returned before proceeding to the removeation proper.
+
+| `*3*`
+| 'Partly removed'
+| The function has returned midway (because of an error), but has avoided creating an inconsistent state.
+
+|===
+
+[[addst-overview]]
+=== Add-statuses
+
+The *add-statuses* are the specially named global variables.
+The framework clears the add-statuses before running a <<func-primaries,primary function>>, and after running it — checks if the add-statuses contain (supported) values.
+The value assigned to an add-status changes the behavior of the framework.
+
+.Supported add-statuses
+[%noheader,cols="<.<a",stripes=none]
+|===
+
+^.^h| Add-statuses in <<func-primaries,primary functions>>
+
+| +++<p align="center">+++
+`*D_ADDST_PROMPT*`
++++</p>+++
+
+If set to `true`, forces an <<fmwk-upmt,urgent>> prompt before installation/removal.
+
+Naturally, this add-status only makes sense when set in the <<func-dpl-check,`d_dpl_check`>> function during the <<rtn-install,`install`>> or <<rtn-remove,`remove`>> routines.
+
+| +++<p align="center">+++
+`*D_ADDST_HALT*`
++++</p>+++
+
+If set to `true`, forces halting of the current <<rtn-primaries,primary routine>>.
+No further deployments will be processed.
+
+| +++<p align="center">+++
+*Output add-statuses*
++++<br>+++
+`*D_ADDST_ATTENTION*`, `*D_ADDST_HELP*`,
++++<br>+++
+`*D_ADDST_WARNING*`, `*D_ADDST_CRITICAL*`
++++</p>+++
+
+The following output add-statuses may be set to a string or array thereof.
+If set, their messages will be printed to the user with appropriate styling.
+
+* `*D_ADDST_ATTENTION*` — non-critical alerts to the user.
+* `*D_ADDST_HELP*` — calls for user's involvement (e.g., requests to reboot the machine).
+* `*D_ADDST_WARNING*` — grave warnings to the user.
+* `*D_ADDST_CRITICAL*` — critical failures.
+
+Other than printing the styled message, these add-statuses do nothing.
+
+|===
+
+[[indct-main]]
+=== Indicator variables
+
+An *indicator variable* (or simply an *indicator*) is a global variable that is populated by the framework at run-time with the intention of providing potentially useful information to the deployment code.
+
+The indicator variables are read-only in spirit.
+However, due to practical limitations, they are not always protected from writing using the Bash's `readonly` mechanism.
+Please, enjoy responsibly.
+
+.List of indicator variables
+[%noheader,cols="<.<a",stripes=none]
+|===
+
+| +++<p align="center">+++
+[[indct-dpl-check-code]]*Deployment check code indicator*
++++<br>+++
+`*D{dus}DPL_CHECK_CODE*`
++++</p>+++
+
+This indicator contains the integer check <<rtc-check,code>> returned by the <<func-dpl-check,`d_dpl_check`>> primary function.
+Naturally, this indicator is only available to the <<func-dpl-install,`d_dpl_install`>> and <<func-dpl-remove,`d_dpl_remove`>> primary functions.
+
+| +++<p align="center">+++
+[[indct-dpl-is-forced]]`*D{dus}DPL_IS_FORCED*`
++++</p>+++
+
+In the <<func-dpl-install,`install`>> and <<func-dpl-remove,`remove`>> primary functions, this indicator reflects whether the current deployment is being <<opt-force,forced>>.
+If set to `true`, this indicator tells that the installation/removal would not have been run if the `--force` option weren't provided.
+
+Possible values: `true` / `false`.
+
+| +++<p align="center">+++
+[[indct-os]][[indct-os-family]][[indct-os-distro]][[indct-os-pkgmgr]]*Current OS indicators*
++++<br>+++
+`*D{dus}OS_FAMILY*`
++++<br>+++
+`*D{dus}OS_DISTRO*`
++++<br>+++
+`*D{dus}OS_PKGMGR*`
++++</p>+++
+
+These indicators describe the current operating system as detected by the built-in framework mechanisms.
+All are declared `readonly`.
+
+* `*D__OS_FAMILY*` — the broad description of the current OS family.
++
+The framework does not start up unless it detects one of the following OS families:
++
+--
+** `bsd` — https://en.wikipedia.org/wiki/List_of_BSD_operating_systems[BSD descendants]
+** `cygwin` — https://en.wikipedia.org/wiki/Cygwin[Cygwin]
+** `linux` — https://en.wikipedia.org/wiki/Linux[Linux]
+** `macos` — https://en.wikipedia.org/wiki/MacOS[macOS]
+** `msys` — https://en.wikipedia.org/wiki/MinGW[Minimalist GNU for Windows]
+** `solaris` — https://en.wikipedia.org/wiki/Solaris_(operating_system)[Oracle Solaris]
+** `wsl` — https://en.wikipedia.org/wiki/Windows_Subsystem_for_Linux[Windows Subsystem for Linux]
+--
++
+It should be noted, that `linux` and `wsl` are separate entries.
+* `*D__OS_DISTRO*` — the best guess on the name of the current OS distribution:
++
+--
+** `debian`
+** `fedora`
+** `freebsd`
+** `macos`
+** `ubuntu`
+** _empty_ — failed to reliably detect a supported distribution
+--
++
+The <<fmwk-os-support,system requirements>> always show the list of supported operating systems and ways to <<cntrb-os-support,expand it>>.
+* `*D__OS_PKGMGR*` — the name of the supported package manager on the current OS:
++
+--
+** `apt-get`
+** `brew`
+** `dnf`
+** `pkg`
+** `yum`
+** _empty_ — failed to reliably detect a supported package manager
+--
++
+Whenever this variable is not empty, the built-in package manager wrapper, <<func-os-pkgmgr,`d__os_pkgmgr`>>, is available.
+
+| +++<p align="center">+++
+[[indct-dpl-dir]][[indct-dpl-asset-dir]][[indct-dpl-backup-dir]]*Special directory indicators*
++++<br>+++
+`*D{dus}DPL_DIR*`
++++<br>+++
+`*D{dus}DPL_ASSET_DIR*`
++++<br>+++
+`*D{dus}DPL_BACKUP_DIR*`
++++</p>+++
+
+These indicators contain the absolute paths to the deployment's special directories.
+All are declared `readonly`.
+
+* `*D__DPL_DIR*` — the directory containing the deployment file.
+* `*D__DPL_ASSET_DIR*` — the directory generated for the deployment's assets.
++
+Located at: `<<fmwk-grail,grail>>/assets/<<mtdt-name-and-desc,_DPL-NAME_>>/`
+* `*D__DPL_BACKUP_DIR*` — the directory generated for the deployment's backups.
++
+Located at: `<<fmwk-state,state>>/backups/<<mtdt-name-and-desc,_DPL-NAME_>>/`
+
+| +++<p align="center">+++
+[[indct-dpl-path]][[indct-dpl-mnf-path]][[indct-dpl-que-dir]]*Special path indicators*
++++<br>+++
+`*D{dus}DPL_SH_PATH*`
++++<br>+++
+`*D{dus}DPL_MNF_PATH*`
++++<br>+++
+`*D{dus}DPL_QUE_PATH*`
++++</p>+++
+
+These indicators contain the absolute paths to the deployment's special files.
+All are declared `readonly`.
+
+* `*D__DPL_SH_PATH*` — the deployment file itself.
+* `*D__DPL_MNF_PATH*` — the path where the deployment's <<asset-manifests,asset manifest>> will be looked up.
++
+The same as the deployment's filepath, with the `.dpl.sh` suffix changed to `.dpl.mnf`.
+* `*D__DPL_QUE_PATH*` — the path where the deployment's <<queue-manifests,queue manifest>> will be looked up.
++
+The same as the deployment's filepath, with the `.dpl.sh` suffix changed to `.dpl.que`.
++
+This path in particular can be overridden with an <<addst-queue-mnf,add-status>>.
+However, the override will _not_ be reflected in the indicator.
+
+| +++<p align="center">+++
+*Deployment <<dpls-metadata,metadata>> indicators*
++++<br>+++
+`*D{dus}DPL_NAME*`, `*D{dus}DPL_DESC*`, `*D{dus}DPL_PRIORITY*`, 
++++<br>+++
+`*D{dus}DPL_FLAGS*`, `*D{dus}DPL_WARNING*`
++++</p>+++
+
+Since the deployment <<dpls-metadata,metadata>> 'assignments' are technically Bash assignments too, they are available to the deployment code.
+
+| +++<p align="center">+++
+*Option indicators*
++++<br>+++
+`*D{dus}OPT_ANSWER*`, `*D{dus}OPT_OBLITERATE*`, `*D{dus}OPT_FORCE*`, 
++++<br>+++
+`*D{dus}OPT_INVERSE*`, `*D{dus}OPT_EXCLAM*`, `*D{dus}OPT_VERBOSITY*`
++++</p>+++
+
+The *option indicators* reflect the run-time state of the <<rtn-primaries-opts,options>>, provided to the <<rtn-primaries,primary routine>>.
+
+The option indicators are declared `readonly` with the following possible values:
+
+* `*D__OPT_ANSWER*` — `true` / `false` / _empty_.
+* `*D__OPT_OBLITERATE*` — `true` / `false`.
+* `*D__OPT_FORCE*` — `true` / `false`.
+* `*D__OPT_INVERSE*` — `true` / `false`.
+* `*D__OPT_EXCLAM*` — `true` / `false`.
+* `*D__OPT_VERBOSITY*` — _non-negative integer_.
+
+| +++<p align="center">+++
+*Request indicators*
++++<br>+++
+`*D{dus}REQ_ROUTINE*`, `*D{dus}REQ_ARGS*`, `*D{dus}REQ_GROUPS*`, 
++++<br>+++
+`*D{dus}REQ_BUNDLES*`, `*D{dus}REQ_PKGS*`
++++</p>+++
+
+The *request indicators* reflect the parameters of the current request to the <<rtn-primaries,primary routine>>.
+
+The request indicators are declared `readonly` with the following possible values:
+
+* `*D__REQ_ROUTINE*` — `check` / `install` / `remove`.
+* `*D__REQ_ARGS*` — _array of non-<<rtn-primaries-opts,option>> non-<<mtdt-groups,group>> arguments_.
+* `*D__REQ_GROUPS*` — _array of <<mtdt-groups,group>> arguments_.
+* `*D__REQ_BUNDLES*` — _array of <<opt-bundle,bundles>> requested_.
+* `*D__REQ_PKGS*` — `true` / `false` (whether the <<dfls-main,Divinefiles>> are requested).
+
+|===
+
+[[mnf-main]]
+== Manifests
+
+_Divine.dotfiles_ introduces a simple markup language for special files called *manifests*.
+
+There are three types of special files that are manifests:
+
+* <<dfls-main, Divinefiles>>.
+* <<asset-manifests, Asset manifests>>.
+* <<queue-manifests, Queue manifests>>.
+
+While they differ in purpose and supported features, all types of manifests share basic syntax and are internally parsed by the same engine.
+
+[[mnf-syntax]]
+=== Manifest syntax
+
+Manifests are processed in terms of lines.
+A simplest line represents an *entry* of some kind.
+
+The whitespace rules are fairly permissive.
+Any amount of leading and trailing whitespace is allowed and ignored.
+Within an entry, the whitespace is preserved.
+
+.Example of manifest with four entries
+[source]
+----
+entry1
+entry2
+entry with whitespace
+  indented entry will not include indentation
+----
+
+[[mnf-kv]]
+=== Key-values
+
+Whenever a line starts with an opening parenthesis `(` and contains a closing one `)`, what's between them is interpreted as a *key-value* pair.
+There may be more than one key-value per line.
+The key-values are used to qualify entries and provide additional information.
+
+A key-value is separated into key and value by the first occurrence of the `:` symbol (colon).
+
+Key-values may:
+
+* occupy their own line;
+* precede an entry.
+
+Key-values that occupy their own line come into effect for the rest of the document, or until overridden.
+Key-values that precede an entry affect only that entry.
+
+.Example of key-values in manifest
+[source,bash]
+----
+entry1                  # Regular entry
+(color: red) entry2     # Set color to red for this entry only
+
+(color: blue)           # Set color to blue henceforth
+
+entry3                  # Color is blue
+(color: green) entry4   # Color is green (overridden)
+entry5                  # Color is blue
+
+(color:)                # Unset color henceforth
+
+entry6                  # No color
+entry7                  # No color
+----
+
+The two keys — <<mnf-kv-os,`os`>> and <<mnf-kv-flags,`flags`>> — are universal to all types of manifests, and are described below.
+Particular kinds of manifests support additional keys.
+
+[[mnf-kv-os]]
+==== Key-value `os`
+
+The key `os` makes entries specific to particular operating systems.
+Multiple OS names may be given by separating them with whitespace.
+The entire list of OS's may be negated by prepending it with the `!` symbol.
+
+.Example of `os` key-values in manifest
+[source]
+----
+(os: debian)          entry1    # Relevant only on Debian
+
+(os: macos bsd)       entry2    # Relevant only on macOS or BSD
+
+(os: ! linux wsl)     entry3    # Relevant everywhere except Linux or WSL
+
+(os: all)             entry4    ## Keywords 'all'/'any' are reserved to denote 
+                                #. any OS. This is synonymous to empty list.
+----
+
+The OS names are matched against the <<indct-os-family,`$D\__OS_FAMILY`>> and <<indct-os-distro,`$D__OS_DISTRO`>> variables.
+A match against any of the two is sufficient.
+
+[[mnf-kv-flags]]
+==== Key-value `flags`
+
+The key `flags` adds a string of single-character flags to an entry.
+
+A *shorthand* is provided: whenever a <<mnf-kv,key-value>> does not contain the `:` separator (i.e., there is no key), the `flags` key is assumed.
+
+Flags may be appended to those currently in effect (instead of replacing them) by prepending the value with the `+` symbol.
+
+.Example of `flags` key-values in manifest
+[source,bash]
+----
+(flags: i!0)  entry1    # Flags: i, !, 0
+
+(flags: a)
+              entry2    # Flags: a
+(+b)
+(flags: +c)   entry3    # Flags: a, b, c
+              entry4    # Flags: a, b
+(flags: d)    entry5    # Flags: d
+              entry6    # Flags: a, b
+----
+
+[[mnf-misc]]
+=== Comments, line continuation, and escaping
+
+The hash/pound symbol (`#`) comments out the rest of the line.
+
+A line may be 'glued' to the next by terminating it with a backslash (`\`).
+Whitespace and comments are allowed to follow the backslash.
+
+.Example of line continuation in manifests
+[source,bash]
+----
+(os: fedora)  \   ## This is a single logical line
+lengthy entry \   #. spanning three physical lines
+text              #. (yes, even with comments attached like this)
+----
+
+The escaping rules are as follows:
+
+* To start an entry with a literal opening parenthesis `(`, prepend it with a backslash `\`.
++
+_One and only one backslash is always removed from the left edge of an entry._
+* To use a literal closing parenthesis `)` within a key-value, prepend it with a backslash.
+* To use a literal hash/pound symbol `#` anywhere, prepend it with a backslash.
+* To end a line with a literal backslash `\`, double every literal backslash at the line's right edge.
++
+_An odd number of backslashes at the right edge of a line will be reduced to a single backslash and will result in line continuation._
+
+[[dfls-main]]
 == Divinefiles
 
-A *Divinefile* is a special kind of deployment.
-Its purpose is akin to that of https://github.com/Homebrew/homebrew-bundle[Brewfile] or https://bundler.io/gemfile.html[Gemfile].
-A Divinefile is a manifest of system packages to be maintained using supported system package managers.
+A *Divinefile* is a special kind of <<dpls-main,deployment>>.
+Its purpose is akin to that of the https://github.com/Homebrew/homebrew-bundle[Brewfile] or the https://bundler.io/gemfile.html[Gemfile].
+Quite simply, a Divinefile is a <<mnf-main,manifest>> of packages to be maintained using the supported system package manager.
 
 * A Divinefile must be named, well, `Divinefile`.
 * There can absolutely be more than one — their contents are effectively merged.
 * The framework picks up every Divinefile located at any depth under two recognized deployment directories:
-** `grail/dpls/` — user's Divinefiles. Create yours here.
-** `state/bundles/` — attached third-party Divinefiles.
-* Divinefiles collectively are a deployment.
+** `<<fmwk-grail,grail>>/dpls/` — the user's Divinefiles.
+** `<<fmwk-state,state>>/bundles/` — the <<rtn-bundles,attached>> third-party Divinefiles.
+* The Divinefiles collectively act as a deployment.
 
+[[dfls-usage]]
 === Divinefile usage
 
-Divinefiles are automatically picked up by the framework along with other deployments.
-
-Divinefiles are referred to with synonyms: `divinefile`, `dfile`, or `df`.
-As with all deployment names, these are case insensitive.
+The Divinefiles are automatically picked up by the framework along with the other deployments.
 Divinefiles are processed in their merged entirety or not processed at all.
 
-[.note]
-[%noheader,cols="<.<a"]
-|===
-| Yes, you also cannot name regular deployments `divinefile`, `dfile`, or `df`.
-The framework guards against using reserved words as deployment names.
-|===
+The Divinefiles are referred to with synonyms: `divinefile`, `dfile`, or `df`.
+As with all deployment names, these are case insensitive.
 
-You can assign deployment-style <<mtd-priority,*priorities*>> and <<mtd-flags,*flags*>> to individual packages within Divinefiles.
-Packages are intertwined with regular deployments in a shared workflow.
+The deployment-style <<mtdt-priority,*priorities*>> and <<mtdt-flags,*flags*>> can be assigned to the individual packages within the Divinefiles.
+The packages are then intertwined with the regular deployments in a shared workflow.
 
-[.note]
-[%noheader,cols="<.<a"]
-|===
-| For more complex system package installations, e.g., involving particular versions or special package manager options, use regular deployments.
-|===
+The Divinefiles do *not* support the advanced features of the system package managers.
+For the more complex package installations — e.g., involving particular versions or special package manager options — the regular <<dpls-main,deployments>> should be used instead.
 
+[[dfls-syntax]]
 === Divinefile syntax
 
-Divinefiles follow the general <<manifest-syntax,manifest syntax>>.
+The Divinefiles follow the general <<mnf-main,manifest>> syntax.
 
-Every entry is a *list* of whitespace-separated names of packages.
-Keys `flags` and `priority` set the respective attributes for the packages.
-The priority works identically for packages in the same way as it does for <<mtd-priority,deployments>>.
+Every Divinefile entry is a *list* of whitespace-separated package names.
+The keys `flags` and `priority` set the respective attributes for the packages.
+The priority works for packages in the same way as it does for the <<mtdt-priority,deployments>>.
 
 The following flags are supported for packages.
 
-.List of supported package flags
+.List of supported package flags in Divinefiles
 [%noheader,cols="<.<a",stripes=none]
 |===
 
-| [#mtd-aa]#`*[ir]*`# _(any of the two lowercase letters)_
+| +++<p align="center">+++
+`*[ir]*` _(any of the two lowercase letters)_
++++</p>+++
 
-Intervention utility has the `--yes`/`-y` option that effectively skips all normal prompts and confirmations.
-It is possible to force the appearance of an *urgent prompt* before the package is installed/removed regardless of said option.
-To do so, use any of these flags:
+These flags engage the *always-prompt* mode for particular <<rtn-primaries,primary routines>>.
+An <<fmwk-upmt,urgent>> prompt will appear on the chosen routines, before the package is processed.
 
-* `*i*` — always prompt during `**i**nstall` routine.
-* `*r*` — always prompt during `**r**emove` routine.
-
-When a prompt is forced by a flag, it remains urgent even without `--yes` option.
-Urgent prompts are styled to stand out a bit more in terminal.
+* `*i*` — always prompt during the <<rtn-install,`**i**nstall`>> routine.
+* `*r*` — always prompt during the <<rtn-remove,`**r**emove`>> routine.
 
 |===
 
 Within a line, each vertical bar `|` starts an *alt-list*, which fully overrides the original list for a particular package manager.
-Within an alt-list, everything to the left of first colon `:` is read as package manager name; everything to the right — as the alt-list itself.
-
-[.note]
-[%noheader,cols="<.<a"]
-|===
-| Package manager name is matched against <<var-os-pkgmgr,`$D__OS_PKGMGR`>> built-in variable.
-|===
+Within an alt-list, everything to the left of the first `:` symbol (colon) is read as the package manager's name; everything to the right — as the alt-list of packages.
+The package manager's name is matched against the <<indct-os-pkgmgr,`$D__OS_PKGMGR`>> variable.
 
 .Example of Divinefile
 [source]
@@ -1583,42 +2164,517 @@ node            \       # Maintain node
 util-linux-user         # Maintain util-linux-user with priority 300
 ----
 
-== Advanced features
+[[mltsk-main]]
+== Multitask helpers
 
-_Divine.dotfiles_ offers mechanisms that facilitate creation of better, stronger, faster deployments.
+The *multitask helpers* are a set of partly pre-implemented <<func-primaries,primary functions>> for deployments that carry out a series of _dissimilar_ tasks.
+(For deployments that deal with a series of _similar_ tasks, the <<queues,queue helpers>> should be used.)
 
-=== Deployment guidelines
+The multitask helpers provide a way to cram any number of *sub-deployments* (called *tasks*) into a multitask deployment.
+Each task can have its own set of *mini-primaries*, which are near-identical in behavior to the <<func-primaries,regular>> primaries.
+In particular, the same <<rtc-overview,return codes>> are supported for the mini-primaries as are for their older siblings.
+The framework automatically amalgamates the return codes of the tasks into the single return code of the multitask deployment itself.
 
-A deployment file is interpreted by Bash no more than once per intervention.
-Sourcing occurs as late as possible, after exhausting excuses to skip it.
+The multitask helpers can be employed no more than once per deployment.
 
-A subshell is created for every deployment, shielding other deployments from it.
+[[mltsk-setup]]
+=== Setting up a multitask deployment
+
+To assemble a multitask deployment:
+
+* Populate the `*D_MLTSK_MAIN*` variable with an array of task names, e.g.:
++
+[source,bash]
+----
+D_MLTSK_MAIN=( task_one task_two )
+----
++
+The `D_MLTSK_MAIN` variable must be populated _before_ the first multitask helper (`d__mltsk_check`) is called.
++
+The multitask array must be uninterrupted.
+* Implement the (optional) mini-primaries for the tasks, following the naming pattern:
++
+[source,subs="verbatim,quotes,attributes"]
+----
+          d{us}**_TASK_**{us}check
+*_TASK_*  =>  d{us}**_TASK_**{us}install
+          d{us}**_TASK_**{us}remove
+----
+* Call the multitask *helper primaries* as the last commands of the deployment's <<func-primaries,primary functions>>, e.g.:
++
+[source,bash]
+----
+d_dpl_check()   { d__mltsk_check;   }
+d_dpl_install() { d__mltsk_install; }
+d_dpl_remove()  { d__mltsk_remove;  }
+----
+
+.Example of multitask deployment
+[source,bash]
+----
+# Delegate the primaries to the multitask helper primaries
+d_dpl_check()    { assemble_tasks;  d__mltsk_check;   }
+d_dpl_install()  {                  d__mltsk_install; }
+d_dpl_remove()   {                  d__mltsk_remove;  }
+
+# This function is the recommended way of organizing logic
+assemble_tasks() { D_MLTSK_MAIN=( eat pray love ); }
+
+# Implement the (optional) mini-primaries for the tasks
+
+d_eat_check()     { :; }
+d_eat_install()   { :; }
+d_eat_remove()    { :; }
+
+d_pray_check()    { :; }
+d_pray_install()  { :; }
+d_pray_remove()   { :; }
+
+d_love_check()    { :; }
+d_love_install()  { :; }
+d_love_remove()   { :; }
+----
+
+[[mltsk-hooks]]
+=== Multitask hooks
+
+The framework recognizes a set of specially named functions — *hooks* — that are called at particular junctions of processing a multitask deployment.
+The hooks have the power to alter the behavior of the multitask deployment via their return codes and <<mltsk-addst,add-statuses>>.
+
+* Pre- and post- multitask hooks can do arbitrary work.
+** When the multitask check hook returns a non-zero code, the corresponding helper primary shuts down with the code `3` ('Irrelevant or invalid').
+*** `*d_mltsk_pre_check*` — called before the checking of tasks starts.
+*** `*d_mltsk_post_check*` — called after the checking of tasks completes.
+** When the multitask install/remove hook returns a non-zero code, the corresponding helper primary shuts down with the code `2` ('Refused to install/remove').
+*** `*d_mltsk_pre_install*` — called before (and if) the installation of tasks starts.
+*** `*d_mltsk_post_install*` — called after the installation of tasks completes.
+*** `*d_mltsk_pre_remove*` — called before (and if) the removal of tasks starts.
+*** `*d_mltsk_post_remove*` — called after the removal of tasks completes.
+* Pre- and post- task hooks can, too, do arbitrary work.
+** When the task check hook returns a non-zero code, the corresponding mini-primary shuts down with the code `3` ('Irrelevant or invalid').
+*** `*d{us}__TASK__{us}pre_check*` — called before the checking of that task starts.
+*** `*d{us}__TASK__{us}post_check*` — called after the checking of that task completes.
+** When the task install/remove hook returns a non-zero code, the corresponding mini-primary shuts down with the code `2` ('Refused to install/remove').
+*** `*d{us}__TASK__{us}pre_install*` — called before (and if) the installation of that task starts.
+*** `*d{us}__TASK__{us}post_install*` — called after the installation of that task completes.
+*** `*d{us}__TASK__{us}pre_remove*` — called before (and if) the removal of that task starts.
+*** `*d{us}__TASK__{us}post_remove*` — called after the removal of that task completes.
+
+[[mltsk-addst]]
+=== Multitask add-statuses
+
+The multitask deployments can take advantage of the deployment-level <<addst-overview,add-statuses>>.
+On top of that, the framework provides add-statuses that are specific to the multitask deployments.
+
+.Supported multitask add-statuses
+[%noheader,cols="<.<a",stripes=none]
+|===
+
+^.^h| Add-statuses in <<mltsk-main,multitask>>
+
+| +++<p align="center">+++
+`*D_ADDST_MLTSK_HALT*`
++++</p>+++
+
+If set to `true`, forces halting of the current <<mltsk-main,multitask>> deployment.
+No further tasks will be processed.
+
+If set during the `check` phase, the `install`/`remove` phase will still commence for the tasks that have been checked before the halting.
+
+| +++<p align="center">+++
+*Add-statuses of pre- and post- multitask <<mltsk-hooks,hooks>>*
++++<br>+++
+`*D_ADDST_MLTSK_CHECK_CODE*`,
++++<br>+++
+`*D_ADDST_MLTSK_INSTALL_CODE*`,
++++<br>+++
+`*D_ADDST_MLTSK_REMOVE_CODE*`
++++</p>+++
+
+These add-statuses allow to override the corresponding code of the entire multitask deployment from either the pre- or post- multitask <<mltsk-hooks,hook>>.
+
+| +++<p align="center">+++
+*Add-statuses of pre- and post- task <<mltsk-hooks,hooks>>*
++++<br>+++
+`*D_ADDST_TASK_CHECK_CODE*`,
++++<br>+++
+`*D_ADDST_TASK_INSTALL_CODE*`,
++++<br>+++
+`*D_ADDST_TASK_REMOVE_CODE*`
++++</p>+++
+
+These add-statuses allow to override the corresponding code of the current task from either the pre- or post- task <<mltsk-hooks,hook>>.
+
+| +++<p align="center">+++
+[[addst-task-flags]]`*D_ADDST_TASK_FLAGS*`
++++</p>+++
+
+Acts as a vehicle for transporting arbitrary single-character flags between the `check` and the `install`/`remove` mini-primaries.
+Whatever is assigned to this add-status during the `check` phase (including the task's pre- and post- <<mltsk-hooks,hooks>>), will be made available to the mini-primaries at the `install`/`remove` phase within the <<indct-task-flags,`*D__TASK_FLAGS*`>> indicator variable.
+
+The assignments by different functions to the `D_ADDST_TASK_FLAGS` variable are concatenated by the framwwork.
+
+|===
+
+[[mltsk-indct]]
+=== Multitask indicators
+
+The multitask deployments can take advantage of the deployment-level <<indct-main,indicators>>.
+On top of that, the framework provides indicators that are specific to the multitask deployments.
+
+.List of multitask indicator variables
+[%noheader,cols="<.<a",stripes=none]
+|===
+
+| +++<p align="center">+++
+`*D{dus}TASK_NUM*`, `*D{dus}TASK_NAME*`
++++</p>+++
+
+These indicators contain the current task's ordinal number (`D{dus}TASK_NUM`, starts at zero) and name (`D{dus}TASK_NAME`).
+
+| +++<p align="center">+++
+`*D{dus}TASK_IS_FORCED*`
++++</p>+++
+
+During the `install`/`remove` phase, this indicator reflects whether the current task is being <<opt-force,forced>>.
+If set to `true`, this indicator tells that the installation/removal would not have been run if the `--force` option weren't provided.
+
+Possible values: `true` / `false`.
+
+| +++<p align="center">+++
+[[indct-task-flags]]`*D{dus}TASK_FLAGS*`
++++</p>+++
+
+This indicator contains whatever flags might have been <<addst-task-flags,assigned>> to the current task during the `check` phase.
+
+Naturally, this indicator is only available during the `install`/`remove` phases.
+
+| +++<p align="center">+++
+*Task code indicators*
++++<br>+++
+`*D{dus}TASK_CHECK_CODE*`
++++<br>+++
+`*D{dus}TASK_INSTALL_CODE*`
++++<br>+++
+`*D{dus}TASK_REMOVE_CODE*`
++++</p>+++
+
+These indicators contain the integer <<rtc-overview,codes>> returned by the task's mini-primaries.
+
+Naturally, these indicators are only available after their corresponding mini-primaries have completed their run.
+
+Particularly, the `D{dus}TASK_INSTALL_CODE` and `D{dus}TASK_REMOVE_CODE` indicators are only available to the task's corresponding post- install/remove <<mltsk-hooks,hooks>>.
+
+| +++<p align="center">+++
+*Multitask code indicators*
++++<br>+++
+`*D{dus}MLTSK_CHECK_CODE*`
++++<br>+++
+`*D{dus}MLTSK_INSTALL_CODE*`
++++<br>+++
+`*D{dus}MLTSK_REMOVE_CODE*`
++++</p>+++
+
+These indicators contain the integer <<rtc-overview,codes>> returned by the task's helper primaries.
+
+Naturally, these indicators are only available after their corresponding helper primaries have completed their run.
+
+Particularly, the `D{dus}MLTSK_INSTALL_CODE` and `D{dus}MLTSK_REMOVE_CODE` indicators are only available to the deployment's corresponding post- install/remove <<mltsk-hooks,hooks>>.
+
+|===
+
+[[queue-main]]
+== Queue helpers
+
+The *queue helpers* are a set of partly pre-implemented <<func-primaries,primary functions>> for deployments that carry out a series of _similar_ tasks.
+(For deployments that deal with a series of _dissimilar_ tasks, the <<mltsk-main,multitask helpers>> should be used.)
+
+The queue helpers provide a way to cram any number of *sub-deployments* (called queue *items*) into a deployment.
+All queue items share the same set of *mini-primaries*, which are near-identical in behavior to the <<func-primaries,regular>> primaries.
+In particular, the same <<rtc-overview,return codes>> are supported for the mini-primaries as are for their older siblings.
+The framework automatically amalgamates the return codes of the queue items into the single return code of the queue itself.
+
+The queue helpers may be employed multiple times in a single deployment under the following conditions:
+
+* Each invocation of the queue helpers must be contained in its own task in a <<mltsk-main,multitask>> deployment.
+* The queue must be properly <<queue-split,split>> into sections between the tasks.
+
+[[queue-setup]]
+=== Setting up a queue
+
+To assemble a generic queue within a deployment (or <<mltsk-main,task>>):
+
+* Populate the `*D_QUEUE_MAIN*` variable with an array of queue item names, e.g.:
++
+[source,bash]
+----
+D_QUEUE_MAIN=( item_one item_two )
+----
++
+For the generic queue, the `D_QUEUE_MAIN` variable must be populated _before_ the first queue helper (`d__queue_check`) is called.
+Alternatively, the queue array may be populated via the <<queue-manifests,queue>> or <<asset-manifest,asset>> manifests.
++
+The queue array must be uninterrupted.
+* Implement the (optional) mini-primaries for the queue:
+** `*d_item_check*`
+** `*d_item_install*`
+** `*d_item_remove*`
+* Call the queue *helper primaries* as the last commands of the deployment's <<func-primaries,primary functions>>, e.g.:
++
+[source,bash]
+----
+d_dpl_check()   { d__queue_check;   }
+d_dpl_install() { d__queue_install; }
+d_dpl_remove()  { d__queue_remove;  }
+----
+
+.Example of queue deployment
+[source,bash]
+----
+# Delegate the primaries to the queue helper primaries
+d_dpl_check()    { assemble_items;  d__queue_check;   }
+d_dpl_install()  {                  d__queue_install; }
+d_dpl_remove()   {                  d__queue_remove;  }
+
+# This function is the recommended way of organizing logic
+assemble_items() { D_QUEUE_MAIN=( one two three ); }
+
+# Implement the (optional) mini-primaries for the items
+
+d_item_check()     { :; }
+d_item_install()   { :; }
+d_item_remove()    { :; }
+----
+
+[[queue-manifests]]
+=== Queue manifests
+
+The queue items, whatever they are, may be separated from the deployment logic into their own files, the *queue <<mnf-main,manifest>>*.
+
+A queue manifest is located, by default, in the same directory as the deployment file and named the same, except for exchanging `.dpl.sh` suffix for `.dpl.que`.
+Unlike with <<asset-manifests,asset manifests>>, you are free to customize the location/name of your queue manifest by re-assigning <<indct-dpl-que-path,`D__DPL_QUE_PATH`>> variable *at the top level* of your deployment.
+
+Queue manifests follow the general <<mnf-syntax,manifest syntax>>.
+Only the key `os` is recognized within queue manifests.
 
 [.note]
 [%noheader,cols="<.<a"]
 |===
-| Naturally, there is no way to prevent deployments from negatively affecting your system.
-Deployments are free-form Bash scripts, and sandboxing them beyond a subshell would defeat their purpose.
+| A suggested way of using queue manifests is:
 
-If there is a voice of wisdom here, it says, 'Be careful.'
+. Provide a sample queue manifest of some entries in whatever form.
+. Declare the queue manifest an asset, by listing it in your <<asset-manifests,asset manifest>>.
+. Within the deployment, customize the <<indct-dpl-que-path,`D__DPL_QUE_PATH`>> variable to point to asset copy within <<fmwk-grail,the Grail>>, e.g.:
++
+[source,bash]
+----
+D__DPL_QUE_PATH="$D__DPL_ASSET_DIR/$D_DPL_NAME.dpl.que"
+----
 |===
 
-It is good style to isolate all deployment logic within functions and global variables, and then call/use them within <<primary-functions,primary functions>>.
+[[queue-hooks]]
+=== Queue hooks
 
-==== Naming convention
+The framework recognizes a set of specially named functions — *hooks* — that are called at particular junctions of processing a queue deployment.
+The hooks have the power to alter the behavior of the queue deployment via their return codes and <<queue-addst,add-statuses>>.
 
-_Divine.dotfiles_ uses a naming convention in its own code:
+* Pre- and post- queue hooks can do arbitrary work.
+** When the queue check hook returns a non-zero code, the corresponding helper primary shuts down with the code `3` ('Irrelevant or invalid').
+*** `*d_queue_pre_check*` — called before the checking of items starts.
+*** `*d_queue_post_check*` — called after the checking of items completes.
+** When the queue install/remove hook returns a non-zero code, the corresponding helper primary shuts down with the code `2` ('Refused to install/remove').
+*** `*d_queue_pre_install*` — called before (and if) the installation of items starts.
+*** `*d_queue_post_install*` — called after the installation of items completes.
+*** `*d_queue_pre_remove*` — called before (and if) the removal of items starts.
+*** `*d_queue_post_remove*` — called after the removal of items completes.
+* Pre- and post- item hooks can, too, do arbitrary work.
+** When the item check hook returns a non-zero code, the corresponding mini-primary shuts down with the code `3` ('Irrelevant or invalid').
+*** `*d_item_pre_check*` — called before the checking of an item starts.
+*** `*d_item_post_check*` — called after the checking of an item completes.
+** When the item install/remove hook returns a non-zero code, the corresponding mini-primary shuts down with the code `2` ('Refused to install/remove').
+*** `*d_item_pre_install*` — called before (and if) the installation of an item starts.
+*** `*d_item_post_install*` — called after the installation of an item completes.
+*** `*d_item_pre_remove*` — called before (and if) the removal of an item starts.
+*** `*d_item_post_remove*` — called after the removal of an item completes.
 
-* `*D_*` prefix — for names of global variables;
-* `*d_*` prefix — for names of functions.
+[[queue-addst]]
+=== Queue add-statuses
 
-Whenever the framework does _not_ expect you to reassign a global variable or re-implement a function, the underscore is doubled:
+The queues can take advantage of the deployment-level <<addst-overview,add-statuses>>.
+On top of that, the framework provides add-statuses that are specific to the queues.
 
-* `*D__*` prefix — for names of read-only internal variables;
-* `*d__*` prefix — for names of call-only internal functions.
+.Supported queue add-statuses
+[%noheader,cols="<.<a",stripes=none]
+|===
+
+^.^h| Add-statuses in <<queue-main,queues>>
+
+| +++<p align="center">+++
+[[addst-queue-mnf]]`*D_ADDST_QUEUE_MNF_PATH*`
++++</p>+++
+
+If set to a non-empty value, directs to look for the <<queue-manifests,queue manifest>> at that path.
+To be picked up, this add-status must be set at the root of the deployment script.
+
+| +++<p align="center">+++
+`*D_ADDST_QUEUE_HALT*`
++++</p>+++
+
+If set to `true`, forces halting of the current <<queues,queue>>.
+No further queue items will be processed.
+
+If set during the `check` phase, the `install`/`remove` phase will still commence for the queue items that have been checked before the halting.
+
+| +++<p align="center">+++
+*Add-statuses of pre- and post- queue <<queue-hooks,hooks>>*
++++<br>+++
+`*D_ADDST_QUEUE_CHECK_CODE*`,
++++<br>+++
+`*D_ADDST_QUEUE_INSTALL_CODE*`,
++++<br>+++
+`*D_ADDST_QUEUE_REMOVE_CODE*`
++++</p>+++
+
+These add-statuses allow to override the corresponding code of the entire queue from either the pre- or post- queue <<queue-hooks,hook>>.
+
+| +++<p align="center">+++
+*Add-statuses of pre- and post- item <<queue-hooks,hooks>>*
++++<br>+++
+`*D_ADDST_ITEM_CHECK_CODE*`,
++++<br>+++
+`*D_ADDST_ITEM_INSTALL_CODE*`,
++++<br>+++
+`*D_ADDST_ITEM_REMOVE_CODE*`
++++</p>+++
+
+These add-statuses allow to override the corresponding code of the current queue item from either the pre- or post- item <<queue-hooks,hook>>.
+
+| +++<p align="center">+++
+[[addst-item-flags]]`*D_ADDST_ITEM_FLAGS*`
++++</p>+++
+
+Acts as a vehicle for transporting arbitrary single-character flags between the `check` and the `install`/`remove` mini-primaries.
+Whatever is assigned to this add-status during the `check` phase (including the item's pre- and post- <<queue-hooks,hooks>>), will be made available to the mini-primaries at the `install`/`remove` phase within the <<indct-item-flags,`*D__ITEM_FLAGS*`>> indicator variable.
+
+The assignments by different functions to the `D_ADDST_ITEM_FLAGS` variable are concatenated by the framwwork.
+
+|===
+
+[[queue-indct]]
+=== Queue indicators
+
+The queues can take advantage of the deployment-level <<indct-main,indicators>>.
+On top of that, the framework provides indicators that are specific to the queues.
+
+.List of queue indicator variables
+[%noheader,cols="<.<a",stripes=none]
+|===
+
+| +++<p align="center">+++
+`*D{dus}ITEM_NUM*`, `*D{dus}ITEM_NAME*`
++++</p>+++
+
+These indicators contain the current queue item's ordinal number (`D{dus}ITEM_NUM`, starts at zero) and name (`D{dus}ITEM_NAME`).
+
+| +++<p align="center">+++
+`*D{dus}ITEM_IS_FORCED*`
++++</p>+++
+
+During the `install`/`remove` phase, this indicator reflects whether the current queue item is being <<opt-force,forced>>.
+If set to `true`, this indicator tells that the installation/removal would not have been run if the `--force` option weren't provided.
+
+Possible values: `true` / `false`.
+
+| +++<p align="center">+++
+[[indct-item-flags]]`*D{dus}ITEM_FLAGS*`
++++</p>+++
+
+This indicator contains whatever flags might have been <<addst-item-flags,assigned>> to the current queue item during the `check` phase.
+
+Naturally, this indicator is only available during the `install`/`remove` phases.
+
+| +++<p align="center">+++
+*Item code indicators*
++++<br>+++
+`*D{dus}ITEM_CHECK_CODE*`
++++<br>+++
+`*D{dus}ITEM_INSTALL_CODE*`
++++<br>+++
+`*D{dus}ITEM_REMOVE_CODE*`
++++</p>+++
+
+These indicators contain the integer <<rtc-overview,codes>> returned by the queue item's mini-primaries.
+
+Naturally, these indicators are only available after their corresponding mini-primaries have completed their run.
+
+Particularly, the `D{dus}ITEM_INSTALL_CODE` and `D{dus}ITEM_REMOVE_CODE` indicators are only available to the queue item's corresponding post- install/remove <<queue-hooks,hooks>>.
+
+| +++<p align="center">+++
+*Queue code indicators*
++++<br>+++
+`*D{dus}QUEUE_CHECK_CODE*`
++++<br>+++
+`*D{dus}QUEUE_INSTALL_CODE*`
++++<br>+++
+`*D{dus}QUEUE_REMOVE_CODE*`
++++</p>+++
+
+These indicators contain the integer <<rtc-overview,codes>> returned by the queue item's helper primaries.
+
+Naturally, these indicators are only available after their corresponding helper primaries have completed their run.
+
+Particularly, the `D{dus}QUEUE_INSTALL_CODE` and `D{dus}QUEUE_REMOVE_CODE` indicators are only available to the deployment's corresponding post- install/remove <<queue-hooks,hooks>>.
+
+|===
+
+[[queue-split]]
+=== Splitting queue
+
+The <<queue-main,queue helperss>> can be employed more than once per deployment.
+When that happens, all types of queues (<<queue-main,generic>> and the various <<spcqe-main,specialized>> types) share the same internal mechanism and the same queue array, `D_QUEUE_MAIN`.
+Consequently, in case of multiple queues in a deployment, the queue array must be split into *queue sections*.
+
+Whenever more than one queue is used in a deployment (the generic queues)
+
+[[spcqe-main]]
+== Specialized queues
+
+// TODO
+
+[[cpqe-main]]
+=== Copy-queues
+
+// TODO
+
+[[lnqe-main]]
+=== Link-queues
+
+// TODO
+
+[[ghqe-main]]
+=== Github-queues
+
+// TODO
+
+== Advanced features
+
+_Divine.dotfiles_ offers mechanisms that facilitate creation of better, stronger, faster deployments.
+
+=== Naming convention
+
+_Divine.dotfiles_ uses a system of prefixes to gradually separate the framework's inner workings.
+
+* The single-underscore prefixes are for entities to be implemented by the user:
+** `**D{us}**NAME` — variables to be assigned by the user (e.g., the <<dpls-metadata,metadata>> or the <<addst-overview,add-statuses>>).
+** `**d{us}**name` — functions to be implemented by the user (e.g., the <<func-primaries,primary functions>>).
+* The double-underscore prefixes are for entities to be accessed by the user:
+** `**D{dus}**NAME` — variables to be read by the user.
+** `**d{dus}**name` — functions to be called by the user.
+* The triple-underscore prefixes are for entities that are strictly internal:
+** `**d{dus}{us}**name` — functions to be called internally.
 
 [[divine-workflow]]
-==== Divine workflow
+=== Divine workflow
 
 The Divine workflow is the recommended way to organize Bash code within deployments.
 The framework provides a set of functions that facilitate breaking down Bash code into meaningful blocks.
@@ -1650,7 +2706,7 @@ With the idea of context in mind, the Divine workflow boils down to the followin
 * Everything should be written within Bash functions.
 * There should be a function for every logical sub-routine.
 * The workflow context should be maintained by calling <<func-context,`d{dus}context`>> at specific junctions:
-** At the beginning of a <<primary-functions,primary function>> — `d{dus}context notch`.
+** At the beginning of a <<func-primaries,primary function>> — `d{dus}context notch`.
 ** At the top of every sub-routine — `d{dus}context push`.
 * Whenever a sub-routine needs to fail, two pathways are available:
 ** Critical commands should be enwrapped in <<func-cmd,`d{dus}cmd`>>, <<func-pipe,`d{dus}pipe`>>, or <<func-require,`d{dus}require`>>.
@@ -1660,7 +2716,7 @@ With the idea of context in mind, the Divine workflow boils down to the followin
 ** Prompts that include information on current workflow context can be initiated via <<func-prompt,`d{dus}prompt`>>.
 * <<func-context,`d{dus}context`>> should again be used to wrap things up:
 ** Before successfully returning from a sub-routine — `d{dus}context pop`.
-** Before successfully returning from a <<primary-functions,primary function>> — `d{dus}context lop`.
+** Before successfully returning from a <<func-primaries,primary function>> — `d{dus}context lop`.
 
 .Illustration of the Divine workflow
 [source,bash]
@@ -1727,7 +2783,7 @@ perform_sub_task()
 [%noheader,cols="<.<a",stripes=none]
 |===
 
-^.^h| <<dpl-metadata,Deployment metadata>>
+^.^h| <<dpls-metadata,Deployment metadata>>
 
 | `*D_DPL_NAME*`
 
@@ -1755,17 +2811,17 @@ One-line cautionary message about this deployment.
 
 ^.^h| Special directory paths
 
-| [#var-dpl-dir]#`*D__DPL_DIR*`#
+| [#ind-dpl-dir]#`*D__DPL_DIR*`#
 
 Absolute path to directory containing `*.dpl.sh` file.
 
-| [#var-dpl-asset-dir]#`*D__DPL_ASSET_DIR*`#
+| [#ind-dpl-asset-dir]#`*D__DPL_ASSET_DIR*`#
 
 Generated absolute path to directory assigned to hold assets of current deployment.
 
-Located within <<grail-directory,the Grail>>, specifically `grail/assets/*_D_DPL_NAME_*/`.
+Located within <<fmwk-grail,the Grail>>, specifically `grail/assets/*_D_DPL_NAME_*/`.
 
-| [#var-dpl-backup-dir]#`*D__DPL_BACKUP_DIR*`*_`#_*`
+| [#ind-dpl-backup-dir]#`*D__DPL_BACKUP_DIR*`*_`#_*`
 
 
 Generated absolute path to directory assigned to hold backups of current deployment.
@@ -1781,7 +2837,7 @@ Absolute path `*_to_*` `*.dpl.sh` fil<func-pop-backup,<e`>>.
 
 `
 
-| [#var-dpl-mnf-path]#`*D__DPL_MNF_PATH*`#
+| [#ind-dpl-mnf-path]#`*D__DPL_MNF_PATH*`#
 
 Generated absolute path to asset manifest of current deployment.
 This path does not necessarily exist.
@@ -1796,7 +2852,7 @@ Same as `*_D__DPL_SH_PATH_*`, but with suffix changed to `*.dpl.mnf`.
 Thus, path to asset manifest is locked, and this variable is read-only.
 !===
 
-| [#var-dpl-que-path]#`*D_DPL_QUE_PATH*`#
+| [#ind-dpl-que-path]#`*D__DPL_QUE_PATH*`#
 
 Generated absolute path to queue manifest of current deployment.
 This path does not necessarily exist.
@@ -1811,9 +2867,9 @@ Same as `*_D__DPL_SH_PATH_*`, but with suffix changed to `*.dpl.que`.
 Thus, you are free to adjust this path at the top level of deployment script.
 !===
 
-^.^h| [#detected-os]#Detected operating system (OS)#
+^.^h| [#ind-os]#Detected operating system (OS)#
 
-| [#var-os-family]#`*D__OS_FAMILY*`#
+| [#ind-os-family]#`*D__OS_FAMILY*`#
 
 Broad description of current OS.
 
@@ -1843,7 +2899,7 @@ esac
 
 !===
 
-| [#var-os-distro]#`*D__OS_DISTRO*`#
+| [#ind-os-distro]#`*D__OS_DISTRO*`#
 
 Best guess on the name of the current OS distribution.
 
@@ -1859,10 +2915,10 @@ Exhaustive list of possible values:
 [.note]
 [%noheader,cols="<.<a"]
 !===
-! This list is incomplete; you can help by <<contributing-os-support,expanding it>>.
+! This list is incomplete; you can help by <<cntrb-os-support,expanding it>>.
 !===
 
-| [#var-os-pkgmgr]#`*D__OS_PKGMGR*`#
+| [#ind-os-pkgmgr]#`*D__OS_PKGMGR*`#
 
 Name of supported system package manager available on current system.
 
@@ -1878,7 +2934,7 @@ Exhaustive list of possible values:
 [.note]
 [%noheader,cols="<.<a"]
 !===
-! This list is incomplete; you can help by <<contributing-os-support,expanding it>>.
+! This list is incomplete; you can help by <<cntrb-os-support,expanding it>>.
 !===
 
 When this variable is non-empty, you also have the built-in <<func-os-pkgmgr,package manager wrapper>>, `d__os_pkgmgr()`, at your disposal.
@@ -1887,7 +2943,7 @@ When this variable is non-empty, you also have the built-in <<func-os-pkgmgr,pac
 
 | [#var-another-prompt]#`*D_DPL_NEEDS_ANOTHER_PROMPT*`#
 
-Set this variable to `true` to trigger an <<mtd-aa,urgent prompt>> before the framework proceeds to (un)installation.
+Set this variable to `true` to trigger an <<mtdt-aa,urgent prompt>> before the framework proceeds to (un)installation.
 
 _Works only during `install`/`remove` <<rtn-primaries,routines>> and only if set within <<func-dpl-check,check>> primary._
 
@@ -1902,7 +2958,7 @@ _Works only during `install`/`remove` <<rtn-primaries,routines>> and only if set
 Set this variable to `true` to signal to the framework: whatever parts of current deployment are installed, have been installed by other methods, not by this framework.
 
 _Works only if set within check primary._
-_Value of `true` is preserved into install/remove primaries, even in <<multitask,multitask>> sub-primaries._
+_Value of `true` is preserved into install/remove primaries, even in <<mltsk-main,multitask>> sub-primaries._
 
 This affects behavior of the following return codes of <<func-dpl-check,`d_dpl_check`>>:
 
@@ -1917,10 +2973,10 @@ This affects behavior of the following return codes of <<func-dpl-check,`d_dpl_c
 
 ^.^h| Check code in <<func-dpl-install,install>>/<<func-dpl-remove,remove>> primaries
 
-| [#var-check-code]#`*D__DPL_CHECK_CODE*`#
+| [#ind-dpl-check-code]#`*D__DPL_CHECK_CODE*`#
 
 Within install/remove primaries, this variable contains the code returned by their respective check primary.
-This is also the case within <<multitask,multitask>> sub-primaries.
+This is also the case within <<mltsk-main,multitask>> sub-primaries.
 
 ^.^h| Parameters of current request
 
@@ -1946,7 +3002,7 @@ The value is a non-negative integer, where zero stands for the minimal verbosity
 
 | `*D__OPT_EXCLAM*`
 
-Whether `-w` / `--with-!` option is provided to process <<mtd-exclam,dangerous>> deployments:
+Whether `-w` / `--with-!` option is provided to process <<mtdt-exclam,dangerous>> deployments:
 
 * `true`
 * `false`
@@ -1954,7 +3010,7 @@ Whether `-w` / `--with-!` option is provided to process <<mtd-exclam,dangerous>>
 | `*D__OPT_ANSWER*`
 
 Which blanket answer is provided last.
-This affects all non-<<mtd-aa,urgent>> built-in prompts.
+This affects all non-<<mtdt-aa,urgent>> built-in prompts.
 
 * `true` — affirmative answer is provided
 * `false` — negatory answer is provided
@@ -2729,7 +3785,7 @@ For the backup path, the first available strategy is employed:
 
 * If a BACKUP_PATH is given, it is used.
 If it turns out unusable, further strategies are not tried; an error code is returned instead.
-* If called from a deployment, the backup is placed into <<var-dpl-backup-dir,`$D__DPL_BACKUP_DIR`>>, and the backup file name is generated by concatenating two parts:
+* If called from a deployment, the backup is placed into <<indct-dpl-backup-dir,`$D__DPL_BACKUP_DIR`>>, and the backup file name is generated by concatenating two parts:
 ** the md5 checksum of the `*_ORIG_PATH_*`;
 ** the suffix `.bak`.
 * If none of the above works, an error code is returned.
@@ -2770,7 +3826,7 @@ For the backup path, the first available strategy is employed:
 
 * If a `*_BACKUP_PATH_*` is given, it is used.
 If it turns out unusable, further strategies are not tried; an error code is returned instead.
-* If called from a deployment, the backup is placed into <<var-dpl-backup-dir,`$D__DPL_BACKUP_DIR`>>, and the backup file name is generated by concatenating two parts:
+* If called from a deployment, the backup is placed into <<indct-dpl-backup-dir,`$D__DPL_BACKUP_DIR`>>, and the backup file name is generated by concatenating two parts:
 ** the md5 checksum of the `*_ORIG_PATH_*`;
 ** the suffix `.bak`.
 * If none of the above works, an error code is returned.
@@ -2848,7 +3904,7 @@ Stored in `state/stash/*_DPL-NAME_*/.stash.cfg`.
 * *Root stash* — shared by all deployments on current machine.
 +
 Stored in `state/stash/.stash.cfg`.
-* *Grail stash* — shared by all deployments across all machines that use the same <<grail-directory,Grail>>.
+* *Grail stash* — shared by all deployments across all machines that use the same <<fmwk-grail,Grail>>.
 +
 Stored in `grail/.stash.cfg`.
 
@@ -2974,158 +4030,17 @@ Directs to work with the <<stash-types,Grail stash>> instead of default deployme
 Records of installing optional framework dependencies are stored in <<stash-types,root stash>>.
 |===
 
-=== Manifests
-
-_Divine.dotfiles_ introduces a simple markup language for special files called *manifests*.
-
-There are three types of special files that are manifests:
-
-* <<divinefiles, Divinefiles>>.
-* <<asset-manifests, Asset manifests>>.
-* <<queue-manifests, Queue manifests>>.
-
-While they differ in purpose and supported features, all types of manifests share basic syntax, as they are internally parsed by the same engine.
-
-[[manifest-syntax]]
-==== Manifest syntax
-
-Manifests are processed in terms of lines.
-Simplest line contains an *entry* of some kind.
-
-Whitespace rules are fairly permissive.
-Any amount of leading and trailing whitespace is allowed and ignored.
-Within an entry, whitespace is preserved.
-
-[source]
-----
-entry1
-entry2
-entry with whitespace
-  indented entry will not contain indentation
-----
-
-[[manifest-key-values]]
-==== Manifest key-values
-
-Whenever a line starts with an opening parenthesis `(` and contains a closing one `)`, what's between them is interpreted as a *key-value* pair.
-Key-values are used to qualify entries and provide additional info.
-
-A key-value is separated into key and value by the first occurrence of `:` (colon) within the parentheses.
-
-There may be more than one key-value per line.
-Key-values are recognized only when they occupy their own line or precede an entry.
-Key-values that occupy their own line come into effect for the rest of the document, or until overridden.
-Key-values that precede an entry affect only that entry.
-
-[source,bash]
-----
-entry1                  # Regular entry
-(color: red) entry2     # Set color to red for this entry only
-
-(color: blue)           # Set color to blue henceforth
-
-entry3                  # Color is blue
-(color: green) entry4   # Color is green (overridden)
-entry5                  # Color is blue
-
-(color:)                # Unset color henceforth
-
-entry6                  # Regular entry (no color)
-entry7                  # Regular entry (no color)
-----
-
-[.note]
-[%noheader,cols="<.<a"]
-|===
-| There are a few keys that are universal to all types of manifests.
-They are described below.
-
-Particular kinds of manifests support additional keys.
-|===
-
-==== OS-specific manifest entries
-
-Key `os` makes entries specific to particular operating systems.
-Multiple OS's may be given by separating with vartical bars.
-Entire list of OS's may be negated (inverted) by prepending it with a `!`.
-
-[source]
-----
-(os: debian)          entry1    # Relevant only on Debian
-
-(os: macos|bsd)       entry2    # Relevant only on macOS or BSD
-
-(os: ! linux | wsl)   entry3    # Relevant everywhere except Linux or WSL
-
-(os: all)             entry4    ## Keywords 'all'/'any' are reserved to denote 
-                                #. any OS. This is synonymous to empty list.
-----
-
-[.note]
-[%noheader,cols="<.<a"]
-|===
-| OS names are matched against <<var-os-family,`$D\__OS_FAMILY`>> and <<var-os-distro,`$D__OS_DISTRO`>> built-in variables.
-Single match against any of the two is sufficient.
-|===
-
-[[manifest-entry-flags]]
-==== Manifest entry flags
-
-Key `flags` adds a string of single-character flags to the entries.
-
-Flags specifically have a *shorthand*: whenever a key-value does not contain a `:` (colon) separator (i.e., there is no key), content of parentheses is interpreted as `flags`.
-
-Flags may be appended to those currently in effect, instead of replacing them, by including the plus sign '+' as the first non-whitespace char of the flags' value.
-
-[source,bash]
-----
-(flags: i!0)  entry1    # Flags: i, !, 0
-
-(flags: a)
-              entry2    # Flags: a
-(+b)
-(flags: +c)   entry3    # Flags: a, b, c
-              entry4    # Flags: a, b
-(flags: d)    entry5    # Flags: d
-              entry6    # Flags: a, b
-----
-
-==== Comments and line continuation in manifests
-
-Hash/pound symbol (`#`) comments out the rest of the line.
-
-A line may be 'glued' to the next by terminating it with a backslash (`\`).
-Whitespace and comment are allowed to follow the backslash.
-
-[source,bash]
-----
-(os: fedora)  \   ## This is a single logical line
-lengthy entry \   #. spanning three physical lines
-text              #. (yes, even with comments attached like this)
-----
-
-==== Escaping in manifests
-
-* To start an entry with a literal opening parenthesis `(`, prepend it with a backslash `\`.
-+
-_One and only one backslash is always removed from the left edge of an entry._
-* To use a literal closing parenthesis `)` within a key-value, prepend it with a backslash `\`.
-* To use a literal hash/pound symbol `#` anywhere, prepend it with a backslash.
-* To end a line with a literal backslash `\`, double every literal backslash at its right edge.
-+
-_Odd number of backslashes at the right edge will result in line continuation._
-
 [[assets]]
 === Assets
 
 If you intend to distribute your deployments, you will soon encounter the problem of separating more-or-less static deployment logic from dynamic deployment assets.
 
 Lets study an example deployment that symlinks configuration files into the system.
-It would be desirable to copy samples of those configuration files into user's <<grail-directory,Grail directory>>, and then create symlinks to the copies.
+It would be desirable to copy samples of those configuration files into user's <<fmwk-grail,Grail directory>>, and then create symlinks to the copies.
 The user would then be free to inspect, modify, and synchronize his copies as his personal versions.
-At the same time, the deployment logic is better kept within <<state-directory,state directory>>, where it would be easily updated by the framework.
+At the same time, the deployment logic is better kept within <<fmwk-state,state directory>>, where it would be easily updated by the framework.
 
-Each deployment has a designated *asset directory*: `grail/assets/*_DPL-NAME_*/`, path to which is readable from a <<var-dpl-asset-dir,variable>>.
+Each deployment has a designated *asset directory*: `grail/assets/*_DPL-NAME_*/`, path to which is readable from a <<indct-dpl-asset-dir,variable>>.
 The asset directory is the space where user controls the behavior of the deployment by adding/modifying/removing asset files.
 Deployments, on their part, are free to provide initial/default versions of some or all assets.
 
@@ -3137,14 +4052,14 @@ To facilitate handling of assets, _Divine.dotfiles_ offers the mechanism of *ass
 An *asset manifest* is a text file located in the same directory as the deployment file and named the same, except for exchanging `.dpl.sh` suffix for `.dpl.mnf`.
 It serves two purposes:
 
-* An asset manifest can ensure that a copy of every asset that you provide is placed into the deployment's <<var-dpl-asset-dir,asset directory>> inside the user's <<grail-directory,Grail>>, _unless_ an asset by that name already exists there.
-* An asset manifest can automatically populate <<asset-arrays,global asset arrays>>, making the assets immediately available for processing by <<generic-queue,queues>> of <<link-queue,various>> <<copy-queue,kinds>>.
+* An asset manifest can ensure that a copy of every asset that you provide is placed into the deployment's <<indct-dpl-asset-dir,asset directory>> inside the user's <<fmwk-grail,Grail>>, _unless_ an asset by that name already exists there.
+* An asset manifest can automatically populate <<asset-arrays,global asset arrays>>, making the assets immediately available for processing by <<queue-main,queues>> of <<link-queue,various>> <<copy-queue,kinds>>.
 
 Entries in an asset manifest describe a set of *assets* (files and directories) by providing relative paths to them.
 Relative paths are resolved from:
 
-* <<var-dpl-dir,deployment directory>> (to locate initial versions provided by the author);
-* <<var-dpl-asset-dir,asset directory>> (to locate user's versions to be processed by the framework).
+* <<indct-dpl-dir,deployment directory>> (to locate initial versions provided by the author);
+* <<indct-dpl-asset-dir,asset directory>> (to locate user's versions to be processed by the framework).
 
 [.note]
 [%noheader,cols="<.<a"]
@@ -3155,18 +4070,18 @@ Relative paths are resolved from:
 Processing of asset manifests occurs:
 
 * During <<rtn-primaries,primary routines>>, immediately before sourcing the deployment file.
-* During <<rtn-attach,attaching of deployments>>, so that the assets of newly introduced deployments are immediately present in <<grail-directory,the Grail>>.
+* During <<rtn-attach,attaching of deployments>>, so that the assets of newly introduced deployments are immediately present in <<fmwk-grail,the Grail>>.
 
-[[asset-manifest-syntax-and-behavior]]
+[[asset-mnf-syntax-and-behavior]]
 ==== Asset manifest syntax and behavior
 
-Asset manifests follow the general <<manifest-syntax,manifest syntax>>.
+Asset manifests follow the general <<mnf-syntax,manifest syntax>>.
 
-Every entry is a *relative path*, which is resolved within <<var-dpl-dir,deployment>> and <<var-dpl-asset-dir,asset>> directories.
+Every entry is a *relative path*, which is resolved within <<indct-dpl-dir,deployment>> and <<indct-dpl-asset-dir,asset>> directories.
 Two kinds of relative paths are accepted: *concrete paths* and *RegEx patterns*.
 Leading and trailing slashes are disregarded in all paths in the asset manifests (including <<asset-manifest-prefix,`prefix`>> sub-paths).
 
-The following <<manifest-entry-flags,*flags*>> are recognized within asset manifests for each asset entry:
+The following <<mnf-kv-flags,*flags*>> are recognized within asset manifests for each asset entry:
 
 .List of asset manifest entry flags
 [%header,cols="<.<4,^.<1,<.<4",stripes=none]
@@ -3182,16 +4097,16 @@ The following <<manifest-entry-flags,*flags*>> are recognized within asset manif
 _**R**egEx_
 | The entry is interpreted as a **R**egEx pattern (see <<asset-manifest-regex-note,note>> below), matching any number of assets.
 
-| All matching files and directories within the <<var-dpl-dir,deployment directory>> are copied into the <<var-dpl-asset-dir,asset directory>>, unless the destination already exists.
-Afterward, matching files and directories within the <<var-dpl-asset-dir,*asset directory*>> are pushed onto the <<asset-arrays,asset arrays>>.
+| All matching files and directories within the <<indct-dpl-dir,deployment directory>> are copied into the <<indct-dpl-asset-dir,asset directory>>, unless the destination already exists.
+Afterward, matching files and directories within the <<indct-dpl-asset-dir,*asset directory*>> are pushed onto the <<asset-arrays,asset arrays>>.
 | [#asset-flag-d]#`*d*`#
 
 _**d**pl-dir-only_
-| This asset entry does not leave the <<var-dpl-dir,**d**eployment directory>>.
+| This asset entry does not leave the <<indct-dpl-dir,**d**eployment directory>>.
 Matching files and directories are not copied anywhere, and are pushed onto the <<asset-arrays,asset arrays>> from their original location.
 This provides a way to conceal assets from user's view.
 
-| Some version of the asset must be provided by the author into the <<var-dpl-dir,deployment directory>>.
+| Some version of the asset must be provided by the author into the <<indct-dpl-dir,deployment directory>>.
 (If the entry is a RegEx pattern, it must have at least one matching file/directory.)
 Failing that, the entire deployment is not processed at all.
 | `*o*`
@@ -3207,7 +4122,7 @@ _**n**o-queue_
 
 _Together with the <<asset-flag-d,`d` flag>>, this will cause the asset to be completely ignored._
 
-| All matching files and directories within the <<var-dpl-asset-dir,*asset directory*>> will be pushed onto <<asset-arrays,asset arrays>>.
+| All matching files and directories within the <<indct-dpl-asset-dir,*asset directory*>> will be pushed onto <<asset-arrays,asset arrays>>.
 This opens the door for user to add additional assets.
 
 _Irrelevant when the <<asset-flag-d,`d` flag>> is in effect._
@@ -3218,12 +4133,12 @@ _**p**rovided-only_
 
 _Irrelevant when the <<asset-flag-d,`d` flag>> is in effect._
 
-| Pre-existing files in the user's <<grail-directory,Grail>> are not overwritten under any circumstances.
+| Pre-existing files in the user's <<fmwk-grail,Grail>> are not overwritten under any circumstances.
 
 | `*f*`
 
 _**f**orce-copy_
-| The framework ensures that a byte-by-byte copy of the provided version of an asset is present in the user's <<grail-directory,Grail>>.
+| The framework ensures that a byte-by-byte copy of the provided version of an asset is present in the user's <<fmwk-grail,Grail>>.
 If a differing version is found there, it is renamed by appending `-backup` suffix (with optional trailing ordinal for multiple backups), and the proper version is placed instead.
 An alert is shown to the user whenever this happens.
 
@@ -3237,7 +4152,7 @@ Naturally, this is designed for convenience, not security.
 
 |===
 
-The following <<manifest-key-values,*key-values*>> are recognized within asset manifests:
+The following <<mnf-kv,*key-values*>> are recognized within asset manifests:
 
 .Asset manifest key-values
 [%noheader,cols="<.<a",stripes=none]
@@ -3245,13 +4160,13 @@ The following <<manifest-key-values,*key-values*>> are recognized within asset m
 
 | [#asset-manifest-prefix]#`(*prefix: _SUBPATH_*)`#
 
-If you — the deployment author — want to contain your assets under some sub-path within the deployment directory, but you don't want that sub-path to be carried over to the asset directory, specify that sub-path in the `prefix` <<manifest-key-values,key>>.
+If you — the deployment author — want to contain your assets under some sub-path within the deployment directory, but you don't want that sub-path to be carried over to the asset directory, specify that sub-path in the `prefix` <<mnf-kv,key>>.
 
 | [#asset-manifest-queue-split]#`(*queue: split*)`#
 
 This key-value does not work like the other key-values.
 It does not affect the asset entries in any way.
-Instead it creates a <<split-queue,queue split>> point wherever it appears.
+Instead it creates a <<queue-split,queue split>> point wherever it appears.
 
 |===
 
@@ -3285,11 +4200,11 @@ img2.jpg            #. and copied into the root of asset directory.
 
 Whenever the framework processes an asset manifest, it automatically populates two global arrays:
 
-* `*D_DPL_ASSET_PATHS*` — this array is filled with absolute paths to the assets within <<var-dpl-asset-dir,deployment's asset directory>> (contained in <<grail-directory,the Grail>>).
+* `*D_DPL_ASSET_PATHS*` — this array is filled with absolute paths to the assets within <<indct-dpl-asset-dir,deployment's asset directory>> (contained in <<fmwk-grail,the Grail>>).
 * `*D_QUEUE_MAIN*` — for each path in the previous array, this one will contain some relative version of that path at the same index.
-Relative paths are resolved against <<var-dpl-asset-dir,deployment's asset directory>>.
+Relative paths are resolved against <<indct-dpl-asset-dir,deployment's asset directory>>.
 
-You may notice, that these arrays coincide with those used in the <<generic-queue,queues>> (including <<link-queue,link>> and <<copy-queue,copy>> queue variations).
+You may notice, that these arrays coincide with those used in the <<queue-main,queues>> (including <<link-queue,link>> and <<copy-queue,copy>> queue variations).
 The reasoning there is that assets are perfect candidates to be handled by a queue.
 You are, of course, free to override these automatically populated arrays.
 
@@ -3306,7 +4221,7 @@ To use it:
 
 . Populate a specially named array with one string for each queue item.
 . Implement logic to be applied to a single item.
-. Delegate your deployment's <<primary-functions,primaries>> to built-in helpers.
+. Delegate your deployment's <<func-primaries,primaries>> to built-in helpers.
 
 This kind of deployment is best demonstrated with an example:
 
@@ -3344,7 +4259,7 @@ In generic queues, the framework uses the strings themselves only for debug mess
 
 |===
 
-The queue arrays must be consecutive.
+The queue arrays must be uninterrupted.
 Failing that, the queue will fail utterly and miserably.
 You have been warned.
 
@@ -3500,7 +4415,7 @@ Ideally, there is no reason for you to know this or use these variables.
 
 | `*D{dus}QUEUE_RETURN_CODE*`
 
-Within queue post-processing hooks, this variable is populated with the code that is set to be returned by the corresponding <<primary-functions,primary>>.
+Within queue post-processing hooks, this variable is populated with the code that is set to be returned by the corresponding <<func-primaries,primary>>.
 Changing this variable has no effect — use the hook's return code instead.
 
 | `*D{dus}ITEM_RETURN_CODE*`
@@ -3518,9 +4433,9 @@ Changing this variable has no effect — use the hook's return code instead.
 Queue manifests to the resqueue.
 
 A *queue manifest* is a text file, which is — by default — located in the same directory as the deployment file and named the same, except for exchanging `.dpl.sh` suffix for `.dpl.que`.
-Unlike with <<asset-manifests,asset manifests>>, you are free to customize the location/name of your queue manifest by re-assigning <<var-dpl-que-path,`D_DPL_QUE_PATH`>> variable *at the top level* of your deployment.
+Unlike with <<asset-manifests,asset manifests>>, you are free to customize the location/name of your queue manifest by re-assigning <<indct-dpl-que-path,`D__DPL_QUE_PATH`>> variable *at the top level* of your deployment.
 
-Queue manifests follow the general <<manifest-syntax,manifest syntax>>.
+Queue manifests follow the general <<mnf-syntax,manifest syntax>>.
 Only the key `os` is recognized within queue manifests.
 
 [.note]
@@ -3530,11 +4445,11 @@ Only the key `os` is recognized within queue manifests.
 
 . Provide a sample queue manifest of some entries in whatever form.
 . Declare the queue manifest an asset, by listing it in your <<asset-manifests,asset manifest>>.
-. Within the deployment, customize the <<var-dpl-que-path,`D_DPL_QUE_PATH`>> variable to point to asset copy within <<grail-directory,the Grail>>, e.g.:
+. Within the deployment, customize the <<indct-dpl-que-path,`D__DPL_QUE_PATH`>> variable to point to asset copy within <<fmwk-grail,the Grail>>, e.g.:
 +
 [source,bash]
 ----
-D_DPL_QUE_PATH="$D__DPL_ASSET_DIR/$D_DPL_NAME.dpl.que"
+D__DPL_QUE_PATH="$D__DPL_ASSET_DIR/$D_DPL_NAME.dpl.que"
 ----
 |===
 
@@ -3545,14 +4460,14 @@ A common use case of queues is creating symlinks that point to deployment's asse
 For example, one might want to:
 
 * create symlinks located at `~/.bashrc` and `~/.zshrc`;
-* point them at custom assets stored in <<grail-directory,the Grail>>;
+* point them at custom assets stored in <<fmwk-grail,the Grail>>;
 * store original files as backups and restore them upon uninstallation.
 
-For such purposes, _Divine.dotfiles_ provides a partially implemented version of <<generic-queue,generic queue>> called *link queue*.
+For such purposes, _Divine.dotfiles_ provides a partially implemented version of <<queue-main,generic queue>> called *link queue*.
 To use it:
 
 . Populate a few specially named arrays with necessary paths.
-. Delegate your deployment's <<primary-functions,primaries>> to built-in helpers.
+. Delegate your deployment's <<func-primaries,primaries>> to built-in helpers.
 
 This kind of deployment is best demonstrated with an example:
 
@@ -3597,7 +4512,7 @@ For each path in `*D_DPL_ASSET_PATHS*`, this array must contain the intended abs
 
 |===
 
-The queue arrays must be consecutive and have the same number of elements.
+The queue arrays must be uninterrupted and have the same number of elements.
 Failing that, the queue will fail utterly and miserably.
 You have been warned.
 
@@ -3757,7 +4672,7 @@ D_DPL_TARGET_DIR_WSL=/path/on/wsl
 [.note]
 [%noheader,cols="<.<a"]
 |===
-| The OS handles are matched against both  <<var-os-family,`$D\__OS_FAMILY`>> and <<var-os-distro,`$D__OS_DISTRO`>> built-in variables.
+| The OS handles are matched against both  <<indct-os-family,`$D\__OS_FAMILY`>> and <<indct-os-distro,`$D__OS_DISTRO`>> built-in variables.
 A match against distro overrules a match against family, because such is life.
 |===
 
@@ -3770,11 +4685,11 @@ For example, one might want to:
 * copy an assortment of font files into the system's font directory;
 * not overwrite existing files.
 
-For such purposes, _Divine.dotfiles_ provides a partially implemented version of <<generic-queue,generic queue>> called *copy queue*.
+For such purposes, _Divine.dotfiles_ provides a partially implemented version of <<queue-main,generic queue>> called *copy queue*.
 To use it:
 
 . Populate a few specially named arrays with necessary paths.
-. Delegate your deployment's <<primary-functions,primaries>> to built-in helpers.
+. Delegate your deployment's <<func-primaries,primaries>> to built-in helpers.
 
 [.note]
 [%noheader,cols="<.<a"]
@@ -3830,7 +4745,7 @@ For each path in `*D_DPL_ASSET_PATHS*`, this array must contain the destination 
 
 |===
 
-The queue arrays must be consecutive and have the same number of elements.
+The queue arrays must be uninterrupted and have the same number of elements.
 Failing that, the queue will fail utterly and miserably.
 You have been warned.
 
@@ -3990,11 +4905,11 @@ D_DPL_TARGET_DIR_WSL=/path/on/wsl
 [.note]
 [%noheader,cols="<.<a"]
 |===
-| The OS handles are matched against both  <<var-os-family,`$D\__OS_FAMILY`>> and <<var-os-distro,`$D__OS_DISTRO`>> built-in variables.
+| The OS handles are matched against both  <<indct-os-family,`$D\__OS_FAMILY`>> and <<indct-os-distro,`$D__OS_DISTRO`>> built-in variables.
 A match against distro overrules a match against family, because such is life.
 |===
 
-[[multitask]]
+[[mltsk-main]]
 === Multitask
 
 What if a deployment carries out an assortment of _dissimilar_ tasks?
@@ -4005,7 +4920,7 @@ To use them:
 
 . Populate a specially named array with one string for each task.
 . Implement sub-primaries for the tasks, as if each one was a deployment of its own.
-. Delegate your deployment's <<primary-functions,primaries>> to built-in helpers.
+. Delegate your deployment's <<func-primaries,primaries>> to built-in helpers.
 
 This kind of deployment is best demonstrated with an example:
 
@@ -4058,7 +4973,7 @@ Members of this array are strings, and are used in forming names of sub-primarie
 
 |===
 
-The multitask array must be consecutive.
+The multitask array must be uninterrupted.
 Failing that, the deployment will fail utterly and miserably.
 You have been warned.
 
@@ -4086,7 +5001,7 @@ See the guidelines to the <<func-dpl-remove,deployment-level sibling>>, `d_dpl_r
 
 |===
 
-[[split-queue]]
+[[queue-split]]
 ==== Split queue
 
 Eventually, you will want to include more than one queue in your multitask deployment.
@@ -4155,7 +5070,7 @@ populate_generic_queue() {
 You are free to contribute to _Divine.dotfiles_ in any way you deem beneficial.
 This section is periodically updated to state the most sought after avenues of improvement.
 
-[[contributing-os-support]]
+[[cntrb-os-support]]
 === Contributing OS support
 
 One of the main goals of this framework is *portability*.
