@@ -2,8 +2,8 @@
 #:title:        Divine Bash deployment helpers: queue
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.05
-#:revremark:    Update readme for D.d v2, pt. 5
+#:revdate:      2019.11.08
+#:revremark:    Update readme for D.d v2, pt. 7
 #:created_at:   2019.06.10
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -67,7 +67,7 @@ d__queue_check()
   fi
 
   # Storage variables
-  local d__qei d__qen d__qas d__qss d__qeplq d__qertc d__qeh
+  local d__qei d__qen d__qas d__qss d__qeplq d__qertc d__qeh d__qeflg
   local d__qas_a=() d__qas_r=() d__qas_w=() d__qas_c=()
   local d__qas_h=false d__qas_p=false
 
@@ -87,6 +87,7 @@ d__queue_check()
 
     # Extract number, name; switch context
     d__qen="${D_QUEUE_MAIN[$d__qei]}"
+    d__qeflg="${D__QUEUE_FLAGS[$d__qei]}"
     d__context -- push \
       "Checking item '$d__qen' (#$((d__qei+1)) of ${#D_QUEUE_MAIN[@]})"
 
@@ -94,10 +95,9 @@ d__queue_check()
     unset D_ADDST_QUEUE_HALT D_ADDST_ITEM_CHECK_CODE
     unset D_ADDST_HALT D_ADDST_PROMPT
     unset D_ADDST_ATTENTION D_ADDST_HELP D_ADDST_WARNING D_ADDST_CRITICAL
-    D__ITEM_FLAG_SETS[$d__qei]=
 
     # Expose additional variables to the item
-    D__ITEM_NUM="$d__qei" D__ITEM_NAME="$d__qen"
+    D__ITEM_NUM="$d__qei" D__ITEM_NAME="$d__qen" D__ITEM_FLAGS="$d__qeflg"
 
     # Run item pre-processing, if implemented
     unset D_ADDST_ITEM_FLAGS; d__qertc=0 d__qeh=false; d_item_pre_check
@@ -112,16 +112,20 @@ d__queue_check()
     if [ "$D_ADDST_QUEUE_HALT" = true ]; then d__qeh=true
       d__notify -qh -- "Queue item's pre-check hook forces queue halting"
     fi
-    if ! [ -z ${D_ADDST_ITEM_FLAGS+isset} ]
-    then D__ITEM_FLAG_SETS[$d__qei]+="$D_ADDST_ITEM_FLAGS"; fi
+    if ! [ -z ${D_ADDST_ITEM_FLAGS+isset} ]; then
+      d__qeflg+="$D_ADDST_ITEM_FLAGS" D__ITEM_FLAGS+="$D_ADDST_ITEM_FLAGS"
+      D__QUEUE_FLAGS[$d__qei]+="$D_ADDST_ITEM_FLAGS"
+    fi
 
     # Get return code of d_dpl_check, or fall back to zero
     if ! $d__qeh; then unset D_ADDST_ITEM_FLAGS; d_item_check; d__qertc=$?
       if [ "$D_ADDST_QUEUE_HALT" = true ]; then d__qeh=true
         d__notify -qh -- "Queue item's checking forces queue halting"
       fi
-      if ! [ -z ${D_ADDST_ITEM_FLAGS+isset} ]
-      then D__ITEM_FLAG_SETS[$d__qei]+="$D_ADDST_ITEM_FLAGS"; fi
+      if ! [ -z ${D_ADDST_ITEM_FLAGS+isset} ]; then
+        d__qeflg+="$D_ADDST_ITEM_FLAGS" D__ITEM_FLAGS+="$D_ADDST_ITEM_FLAGS"
+        D__QUEUE_FLAGS[$d__qei]+="$D_ADDST_ITEM_FLAGS"
+      fi
     fi
 
     # Run item post-processing, if implemented
@@ -141,12 +145,14 @@ d__queue_check()
       if [ "$D_ADDST_QUEUE_HALT" = true ]; then
         d__notify -qh -- "Queue item's post-check hook forces queue halting"
       fi
-      if ! [ -z ${D_ADDST_ITEM_FLAGS+isset} ]
-      then D__ITEM_FLAG_SETS[$d__qei]+="$D_ADDST_ITEM_FLAGS"; fi
+      if ! [ -z ${D_ADDST_ITEM_FLAGS+isset} ]; then
+        d__qeflg+="$D_ADDST_ITEM_FLAGS" D__ITEM_FLAGS+="$D_ADDST_ITEM_FLAGS"
+        D__QUEUE_FLAGS[$d__qei]+="$D_ADDST_ITEM_FLAGS"
+      fi
     fi
 
     # Store return code
-    D__ITEM_CHECK_CODES[$d__qei]=$d__qertc
+    D__QUEUE_CHECK_CODES[$d__qei]=$d__qertc
 
     # Catch add-statuses
     if ((${#D_ADDST_ATTENTION[@]}))
@@ -304,8 +310,8 @@ d__queue_install()
 
     # Extract number, name, and check code; compose item name; switch context
     d__qen="${D_QUEUE_MAIN[$d__qei]}"
-    d__qecc="${D__ITEM_CHECK_CODES[$d__qei]}"
-    d__qeflg="${D__ITEM_FLAG_SETS[$d__qei]}"
+    d__qecc="${D__QUEUE_CHECK_CODES[$d__qei]}"
+    d__qeflg="${D__QUEUE_FLAGS[$d__qei]}"
     d__qeplq="'$d__qen' (#$((d__qei+1)) of ${#D_QUEUE_MAIN[@]})"
     d__context -- push "Installing item $d__qeplq"
     d__qeplq="Item $d__qeplq$NORMAL"
@@ -415,7 +421,7 @@ d__queue_install()
     D__DPL_CHECK_CODE="$d__qecc" D__DPL_IS_FORCED="$d__qefrcd"
 
     # Run item pre-processing, if implemented
-    d__qertc=0 d__qeh=false; d_item_pre_install
+    unset D_ADDST_ITEM_FLAGS; d__qertc=0 d__qeh=false; d_item_pre_install
     if (($?)); then
       d__notify -qh -- "Queue item's pre-install hook declares it rejected"
       d__qertc=2 d__qeh=true
@@ -427,16 +433,24 @@ d__queue_install()
     if [ "$D_ADDST_QUEUE_HALT" = true ]; then d__qeh=true
       d__notify -qh -- "Queue item's pre-install hook forces queue halting"
     fi
+    if ! [ -z ${D_ADDST_ITEM_FLAGS+isset} ]; then
+      d__qeflg+="$D_ADDST_ITEM_FLAGS" D__ITEM_FLAGS+="$D_ADDST_ITEM_FLAGS"
+      D__QUEUE_FLAGS[$d__qei]+="$D_ADDST_ITEM_FLAGS"
+    fi
 
     # Get return code of d_dpl_install, or fall back to zero
-    if ! $d__qeh; then d_item_install; d__qertc=$?
+    if ! $d__qeh; then unset D_ADDST_ITEM_FLAGS; d_item_install; d__qertc=$?
       if [ "$D_ADDST_QUEUE_HALT" = true ]; then d__qeh=true
         d__notify -qh -- "Queue item's installation forces queue halting"
+      fi
+      if ! [ -z ${D_ADDST_ITEM_FLAGS+isset} ]; then
+        d__qeflg+="$D_ADDST_ITEM_FLAGS" D__ITEM_FLAGS+="$D_ADDST_ITEM_FLAGS"
+        D__QUEUE_FLAGS[$d__qei]+="$D_ADDST_ITEM_FLAGS"
       fi
     fi
 
     # Run item post-processing, if implemented
-    if ! $d__qeh; then
+    if ! $d__qeh; then unset D_ADDST_ITEM_FLAGS
       D__ITEM_INSTALL_CODE="$d__qertc"; d_item_post_install
       if (($?)); then
         d__notify -qh -- \
@@ -452,10 +466,14 @@ d__queue_install()
       if [ "$D_ADDST_QUEUE_HALT" = true ]; then
         d__notify -qh -- "Queue item's post-install hook forces queue halting"
       fi
+      if ! [ -z ${D_ADDST_ITEM_FLAGS+isset} ]; then
+        d__qeflg+="$D_ADDST_ITEM_FLAGS" D__ITEM_FLAGS+="$D_ADDST_ITEM_FLAGS"
+        D__QUEUE_FLAGS[$d__qei]+="$D_ADDST_ITEM_FLAGS"
+      fi
     fi
 
     # Store return code
-    D__ITEM_INSTALL_CODES[$d__qei]=$d__qertc
+    D__QUEUE_INSTALL_CODES[$d__qei]=$d__qertc
 
     # Restore overwritten deployment-level variables
     D__DPL_CHECK_CODE="$d__qeocc" D__DPL_IS_FORCED="$d__qeof"
@@ -591,8 +609,8 @@ d__queue_remove()
 
     # Extract number, name, and check code; compose item name; switch context
     d__qen="${D_QUEUE_MAIN[$d__qei]}"
-    d__qecc="${D__ITEM_CHECK_CODES[$d__qei]}"
-    d__qeflg="${D__ITEM_FLAG_SETS[$d__qei]}"
+    d__qecc="${D__QUEUE_CHECK_CODES[$d__qei]}"
+    d__qeflg="${D__QUEUE_FLAGS[$d__qei]}"
     d__qeplq="'$d__qen' (#$((d__qei+1)) of ${#D_QUEUE_MAIN[@]})"
     d__context -- push "Removing item $d__qeplq"
     d__qeplq="Item $d__qeplq$NORMAL"
@@ -696,7 +714,7 @@ d__queue_remove()
     D__DPL_CHECK_CODE="$d__qecc" D__DPL_IS_FORCED="$d__qefrcd"
 
     # Run item pre-processing, if implemented
-    d__qertc=0 d__qeh=false; d_item_pre_remove
+    unset D_ADDST_ITEM_FLAGS; d__qertc=0 d__qeh=false; d_item_pre_remove
     if (($?)); then
       d__notify -qh -- "Queue item's pre-remove hook declares it rejected"
       d__qertc=2 d__qeh=true
@@ -708,16 +726,24 @@ d__queue_remove()
     if [ "$D_ADDST_QUEUE_HALT" = true ]; then d__qeh=true
       d__notify -qh -- "Queue item's pre-remove hook forces queue halting"
     fi
+    if ! [ -z ${D_ADDST_ITEM_FLAGS+isset} ]; then
+      d__qeflg+="$D_ADDST_ITEM_FLAGS" D__ITEM_FLAGS+="$D_ADDST_ITEM_FLAGS"
+      D__QUEUE_FLAGS[$d__qei]+="$D_ADDST_ITEM_FLAGS"
+    fi
 
     # Get return code of d_dpl_remove, or fall back to zero
-    if ! $d__qeh; then d_item_remove; d__qertc=$?
+    if ! $d__qeh; then unset D_ADDST_ITEM_FLAGS; d_item_remove; d__qertc=$?
       if [ "$D_ADDST_QUEUE_HALT" = true ]; then d__qeh=true
         d__notify -qh -- "Queue item's removing forces queue halting"
+      fi
+      if ! [ -z ${D_ADDST_ITEM_FLAGS+isset} ]; then
+        d__qeflg+="$D_ADDST_ITEM_FLAGS" D__ITEM_FLAGS+="$D_ADDST_ITEM_FLAGS"
+        D__QUEUE_FLAGS[$d__qei]+="$D_ADDST_ITEM_FLAGS"
       fi
     fi
 
     # Run item post-processing, if implemented
-    if ! $d__qeh; then
+    if ! $d__qeh; then unset D_ADDST_ITEM_FLAGS
       D__ITEM_INSTALL_CODE="$d__qertc"; d_item_post_remove
       if (($?)); then
         d__notify -qh -- "Queue item's post-remove hook declares it rejected" \
@@ -732,10 +758,14 @@ d__queue_remove()
       if [ "$D_ADDST_QUEUE_HALT" = true ]; then
         d__notify -qh -- "Queue item's post-remove hook forces queue halting"
       fi
+      if ! [ -z ${D_ADDST_ITEM_FLAGS+isset} ]; then
+        d__qeflg+="$D_ADDST_ITEM_FLAGS" D__ITEM_FLAGS+="$D_ADDST_ITEM_FLAGS"
+        D__QUEUE_FLAGS[$d__qei]+="$D_ADDST_ITEM_FLAGS"
+      fi
     fi
 
     # Store return code
-    D__ITEM_REMOVE_CODES[$d__qei]=$d__qertc
+    D__QUEUE_REMOVE_CODES[$d__qei]=$d__qertc
 
     # Restore overwritten deployment-level variables
     D__DPL_CHECK_CODE="$d__qeocc" D__DPL_IS_FORCED="$d__qeof"

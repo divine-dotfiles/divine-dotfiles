@@ -2,8 +2,8 @@
 #:title:        Divine Bash utils: assets
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.31
-#:revremark:    React to --obliterate in key framework mechanisms
+#:revdate:      2019.11.08
+#:revremark:    Update readme for D.d v2, pt. 7
 #:created_at:   2019.10.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -66,8 +66,8 @@ d__process_asset_manifest_of_current_dpl()
   # Switch context; init storage variables
   d__context -- notch
   d__context -- push "Processing assets of deployment '$D_DPL_NAME'"
-  D_QUEUE_MAIN=() D_DPL_ASSET_PATHS=()
-  local ii jj p_ptn p_pfx p_rel p_ori p_src p_dst prvd erra=()
+  D_QUEUE_MAIN=() D_DPL_ASSET_PATHS=() D__QUEUE_FLAGS=()
+  local ii jj p_ptn p_pfx p_rel p_ori p_src p_dst p_flgs prvd erra=()
   local flgr flgd flgo flgn flgp flgf
   # Flags are: regex; dpl-dir-only; optional; no-queue; provided-only; force
 
@@ -94,12 +94,11 @@ d__process_asset_manifest_of_current_dpl()
     flgr=false flgd=false flgo=false flgn=false flgp=false flgf=false
 
     # Extract flags
-    for ((jj=0;jj<${#D__MANIFEST_LINE_FLAGS[$ii]};++jj)); do
-      case ${D__MANIFEST_LINE_FLAGS[$ii]:$jj:1} in
-        r) flgr=true;; d) flgd=true;; o) flgo=true;;
-        n) flgn=true;; p) flgp=true;; f) flgf=true;;
-      esac
-    done
+    p_flgs="${D__MANIFEST_LINE_FLAGS[$ii]}"
+    for ((jj=0;jj<${#p_flgs};++jj)); do case ${p_flgs:$jj:1} in
+      r) flgr=true;; d) flgd=true;; o) flgo=true;;
+      n) flgn=true;; p) flgp=true;; f) flgf=true;;
+    esac; done
 
     # Fork into four modes based on presence of 'd' and 'r' flags
     if $flgd; then $flgr && d___process_asset_dr || d___process_asset_d
@@ -130,8 +129,11 @@ d___process_asset()
     # Copy asset
     d___copy_asset
     # If pushing onto asset arrays and limited to provided, push now
-    if ! $flgn && $flgp
-    then D_QUEUE_MAIN+=("$p_ptn") D_DPL_ASSET_PATHS+=("$p_dst"); fi
+    if [ $? -eq 0 ] && ! $flgn && $flgp; then
+      D_QUEUE_MAIN+=("$p_ptn")
+      D_DPL_ASSET_PATHS+=("$p_dst")
+      D__QUEUE_FLAGS+=("$p_flgs")
+    fi
   else
     # Asset not provided: if its not optional, mark failure
     if ! $flgo
@@ -139,8 +141,11 @@ d___process_asset()
   fi
 
   # If pushing onto asset arrays but NOT limited to provided, push now
-  if ! $flgn && ! $flgp && [ -r "$p_dst" ]
-  then D_QUEUE_MAIN+=("$p_ptn") D_DPL_ASSET_PATHS+=("$p_dst"); fi
+  if ! $flgn && ! $flgp && [ -r "$p_dst" ]; then
+    D_QUEUE_MAIN+=("$p_ptn")
+    D_DPL_ASSET_PATHS+=("$p_dst")
+    D__QUEUE_FLAGS+=("$p_flgs")
+  fi
 }
 
 d___process_asset_r()
@@ -158,8 +163,11 @@ d___process_asset_r()
       # Copy asset
       d___copy_asset
       # If pushing onto asset arrays and limited to provided, push now
-      if ! $flgn && $flgp
-      then D_QUEUE_MAIN+=("$p_rel") D_DPL_ASSET_PATHS+=("$p_dst"); fi
+      if [ $? -eq 0 ] && ! $flgn && $flgp; then
+        D_QUEUE_MAIN+=("$p_rel")
+        D_DPL_ASSET_PATHS+=("$p_dst")
+        D__QUEUE_FLAGS+=("$p_flgs")
+      fi
     done < <( d__efind -regex "^\./$p_ptn$" -print0 )
     popd &>/dev/null
   fi
@@ -178,7 +186,9 @@ d___process_asset_r()
         # Compose relative and absolute paths
         p_rel="${p_rel#./}"; p_dst="$D__DPL_ASSET_DIR/$p_rel"
         # Push the asset onto global containers
-        D_QUEUE_MAIN+=("$p_rel") D_DPL_ASSET_PATHS+=("$p_dst")
+        D_QUEUE_MAIN+=("$p_rel")
+        D_DPL_ASSET_PATHS+=("$p_dst")
+        D__QUEUE_FLAGS+=("$p_flgs")
       done < <( d__efind -regex "^\./$p_ptn$" -print0 )
       popd &>/dev/null
     fi
@@ -192,8 +202,11 @@ d___process_asset_d()
   # If the asset is readable; if not check if it is optional
   if [ -r "$p_ori" ]; then
     # If pushing onto asset arrays, push now
-    if ! $flgn
-    then D_QUEUE_MAIN+=("$p_ptn") D_DPL_ASSET_PATHS+=("$p_ori"); fi
+    if ! $flgn; then
+      D_QUEUE_MAIN+=("$p_ptn")
+      D_DPL_ASSET_PATHS+=("$p_ori")
+      D__QUEUE_FLAGS+=("$p_flgs")
+    fi
   elif ! $flgo
   then erra+=( -i- "- required asset not provided: '$p_ptn'" ); fi
 }
@@ -211,8 +224,11 @@ d___process_asset_dr()
       prvd=true p_rel="${p_rel#./}"
       p_ori="${D__DPL_DIR}${p_pfx}/$p_rel"
       # If pushing onto asset arrays, push now
-      if ! $flgn
-      then D_QUEUE_MAIN+=("$p_rel") D_DPL_ASSET_PATHS+=("$p_ori"); fi
+      if ! $flgn; then
+        D_QUEUE_MAIN+=("$p_rel")
+        D_DPL_ASSET_PATHS+=("$p_ori")
+        D__QUEUE_FLAGS+=("$p_flgs")
+      fi
     done < <( d__efind -regex "^\./$p_ptn$" -print0 )
     popd &>/dev/null
   fi

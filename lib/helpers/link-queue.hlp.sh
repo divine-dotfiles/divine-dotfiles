@@ -2,8 +2,8 @@
 #:title:        Divine Bash deployment helpers: link-queue
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.31
-#:revremark:    React to --obliterate in key framework mechanisms
+#:revdate:      2019.11.08
+#:revremark:    Update readme for D.d v2, pt. 7
 #:created_at:   2019.04.02
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -60,23 +60,23 @@ d__link_queue_pre_check()
   d__override_dpl_targets_for_os_family
   d__override_dpl_targets_for_os_distro
 
-  # Attempt to auto-asseble the section of queue
-  if [ ${#D_DPL_TARGET_PATHS[@]} -eq "$D__QUEUE_SECTMIN" ]; then
-    # If $D_QUEUE_MAIN has items, interpret them as relative paths
-    if [ -n "$D_DPL_TARGET_DIR" ] \
-      && [ ${#D_QUEUE_MAIN[@]} -ge "$D__QUEUE_SECTMAX" ]
-    then local d__i
-      for ((d__i=$D__QUEUE_SECTMIN;d__i<$D__QUEUE_SECTMAX;++d__i)); do
-        D_DPL_TARGET_PATHS+=( "$D_DPL_TARGET_DIR/${D_QUEUE_MAIN[$d__i]}" )
-      done
-    else local d__dos="$D__OS_FAMILY"
-      if [ -n "$D__OS_DISTRO" -a "$D__OS_DISTRO" != "$D__OS_FAMILY" ]
-      then d__dos+=" ($D__OS_DISTRO)"; fi
-      d__notify -lx -- 'Empty list of target paths ($D_DPL_TARGET_PATHS)' \
-        "for detected OS: $d__dos"
+  # Ensure the required arrays are continuous at the given section
+  local d__i; for ((d__i=$D__QUEUE_SECTMIN;d__i<$D__QUEUE_SECTMAX;++d__i)); do
+    if [ -z ${D_DPL_ASSET_PATHS[$d__i]+isset} ]; then
+      d__notify -lxht 'Link-queue failed' -- \
+        'Array $D_DPL_ASSET_PATHS is not continuous in the given section'
       return 1
     fi
-  fi
+    if [ -z ${D_DPL_TARGET_PATHS[$d__i]+isset} ]; then
+      if [ -n "$D_DPL_TARGET_DIR" ]; then
+        D_DPL_TARGET_PATHS[$d__i]="$D_DPL_TARGET_DIR/${D_QUEUE_MAIN[$d__i]}"
+      else
+        d__notify -lxht 'Link-queue failed' -- \
+          'Array $D_DPL_TARGET_PATHS is not continuous in the given section'
+        return 1
+      fi
+    fi
+  done
 
   # Run queue pre-processing, if implemented
   local d__rtc=0; if declare -f d_link_queue_pre_check &>/dev/null

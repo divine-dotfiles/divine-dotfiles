@@ -1,8 +1,8 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revdate: 2019.11.06
-:revremark: Update readme for D.d v2, pt. 6
+:revdate: 2019.11.08
+:revremark: Update readme for D.d v2, pt. 7
 :doctype: article
 // Visual
 :toc: macro
@@ -136,15 +136,15 @@ Built-in OS detection mechanism allows to adapt to a growing <<fmwk-os-support,l
 Github repositories containing deployments are treated as bundles that can be attached with one command.
 One example is the https://github.com/no-simpler/divine-bundle-essentials[`essentials`] bundle.
 
-| +++<p align="center">+++<<stash,*Stash*>>+++</p>+++
+| +++<p align="center">+++<<stash-main,*Stash*>>+++</p>+++
 
 Deployments have access to a persistent key-value store, which can be used to remember statuses between invocations.
 
-| +++<p align="center">+++<<assets,*Assets*>>+++</p>+++
+| +++<p align="center">+++<<assets-main,*Assets*>>+++</p>+++
 
 The notion of assets provides a way to separate static logic from dynamic content.
 
-| +++<p align="center">+++<<helpers,*Helper functions*>>+++</p>+++
+| +++<p align="center">+++*<<queue-main,Queues>> and <<mltsk-main,multitasking>>*+++</p>+++
 
 An assortment of helper functions streamline basic tasks, such as queues and multitasking.
 
@@ -197,15 +197,18 @@ The framework does its best to *not*:
 
 Alerts are printed whenever such cases are encountered.
 
-The <<opt-force,`--force`>> option opens path to overcome these restrictions.
-However, even with force applied, the zero data loss <<fmwk-zero-data-loss,policy>> still applies, and an <<fmwk-upmt,urgent prompt>> is issued for every instance of forced behavior.
+The <<opt-force,`--force`>> option opens a path to overcome these restrictions.
+However, even when the `--force` is applied:
+
+* an <<fmwk-upmt,urgent prompt>> is issued for every instance of forced behavior;
+* the zero data loss <<fmwk-zero-data-loss,policy>> still applies.
 
 [[fmwk-reversibility]]
 ==== Reversibility
 
 Where feasible, the built-in mechanisms that introduce changes to the system are paired with the reversal counterparts.
 
-To give an example, any backups created when installing a <<copy-queue,copy-queue>> are restored to their original locations when that queue is removed.
+To give an example, any backups created when installing a <<cpqe-main,copy-queue>> are restored to their original locations when that queue is removed.
 Another example is the introductory <<fmwk-joy-ride,joy ride>>: if taken reasonably, it will leave the system in largely the same state as before installing the framework.
 
 A glaring exception to this principle is the upgrading of the local package repositories through the system package manager (e.g., `sudo dnf upgrade -y`), which is deemed safe enough to overlook.
@@ -215,7 +218,7 @@ A glaring exception to this principle is the upgrading of the local package repo
 
 _Divine.dotfiles_ is installed, by default, into the `~/.divine/` directory, and is contained entirely in that directory, *except*:
 
-* A symlink to the framework's main script, `intervene.sh`, is created somewhere on `$PATH`.
+* A symlink to the framework's <<fmwk-script,main script>>, `intervene.sh`, is created somewhere on `$PATH`.
 * Deployments may affect the system pretty much <<fmwk-security,anywhere>>.
 
 The installed framework consists of the following main parts:
@@ -226,7 +229,7 @@ The installed framework consists of the following main parts:
 
 | [[fmwk-grail]]+++<p align="center">+++#`~/.divine/*grail*/`#+++</p>+++
 
-*The Grail directory* (or simply, *the Grail*) houses user's deployments, assets, and persistent settings.
+*The Grail directory* (or simply, *the Grail*) houses the user's deployments, assets, and persistent settings.
 
 The Grail is designed to contain just enough data to replicate the current set of deployments, bundles, and assets on any system that runs _Divine.dotfiles_.
 Naturally, it is recommended to take the Grail under version control and sync it, e.g., via a cloud service or Github.
@@ -235,7 +238,7 @@ The Grail is sub-structured as follows:
 
 * `*assets*/` — The directory for user's assets, such as config files.
 * `*dpls*/` — The directory for user's custom deployments.
-* `*.stash.cfg*` — _The Grail-level <<stash,stash>> container, maintained by the framework._
+* `*.stash.cfg*` — _The Grail-level <<stash-main,stash>> container, maintained by the framework._
 * `*.stash.cfg.md5*` — _The stash integrity checksum, maintained by the framework._
 
 | [[fmwk-state]]+++<p align="center">+++#`~/.divine/*state*/`#+++</p>+++
@@ -250,7 +253,7 @@ The state directory is sub-structured as follows:
 
 * `*backups*/` — The directory for the deployment-level <<fmwk-zero-data-loss,backups>>.
 * `*bundles*/` — The directory for the copies of <<rtn-attach,attached>> bundles of deployments.
-* `*stash*/` — The directory for the key-value containers of the root-level and deployment-level <<stash,stashing>> system.
+* `*stash*/` — The directory for the key-value containers of the root-level and deployment-level <<stash-main,stashing>> system.
 
 | [[fmwk-lib]]+++<p align="center">+++#`~/.divine/*lib*/`#+++</p>+++
 
@@ -982,7 +985,7 @@ The global verbosity level is reflected in the value of the `$*D__OPT_VERBOSITY*
 
 The framework treats any Github repository containing <<dpls-main,deployments>> as *bundles* of deployments.
 
-When a bundle is *attached* to the particular <<fmwk-grail,Grail directory>>, its address is stored in the Grail <<stash,stash>>, while a copy of the repository is pulled into the <<fmwk-state,state directory>>.
+When a bundle is *attached* to the particular <<fmwk-grail,Grail directory>>, its address is stored in the Grail <<stash-main,stash>>, while a copy of the repository is pulled into the <<fmwk-state,state directory>>.
 This way, the attached deployments are treated as if they are in the Grail, but the directory itself is not unnecessarily bloated.
 
 On every invocation, the <<iutil-main, intervention utility>> synchronizes the stashed list of attached bundles with the copies in the state directory.
@@ -1266,8 +1269,8 @@ The *primary functions*, or *primaries*, correspond to the three fundamental act
 The primary functions have the following ways of interacting with the framework:
 
 * To 'talk' to the framework:
-** The *return* <<rtc-overview,*codes*>> are the main vehicles of indicating status.
-** The <<addst-overview,*add-statuses*>> (specially named global variables) are available to tweak the behavior in some places.
+** The *return* <<rtc-main,*codes*>> are the main vehicles of indicating status.
+** The <<addst-main,*add-statuses*>> (specially named global variables) are available to tweak the behavior in some places.
 * To 'hear' from the framework:
 ** The <<indct-main,*indicator*>> *variables* are populated by the framework with the relevant run-time data.
 
@@ -1298,7 +1301,7 @@ This code is assumed if the `d_dpl_check` function is not implemented.
 ** `*8*` — _'Partly installed by user or OS'_.
 ** `*9*` — _'Likely not installed (unknown)'_.
 
-Some additional instructions can be passed to the framework via the <<addst-overview,add-status>> variables and the deployment <<dpls-metadata,metadata>>.
+Some additional instructions can be passed to the framework via the <<addst-main,add-status>> variables and the deployment <<dpls-metadata,metadata>>.
 
 [[func-dpl-install]]
 ==== Primary function `d_dpl_install`
@@ -1317,7 +1320,7 @@ This code is assumed if the `d_dpl_install` function is not implemented.
 * `*2*` — _'Refused to install'_.
 * `*3*` — _'Partly installed'_.
 
-Some additional instructions can be passed to the framework via the <<addst-overview,add-status>> variables and the deployment <<dpls-metadata,metadata>>.
+Some additional instructions can be passed to the framework via the <<addst-main,add-status>> variables and the deployment <<dpls-metadata,metadata>>.
 
 [[func-dpl-remove]]
 ==== Primary function `d_dpl_remove`
@@ -1336,7 +1339,7 @@ This code is assumed if the `d_dpl_remove` function is not implemented.
 * `*2*` — _'Refused to remove'_.
 * `*3*` — _'Partly removed'_.
 
-Some additional instructions can be passed to the framework via the <<addst-overview,add-status>> variables and the deployment <<dpls-metadata,metadata>>.
+Some additional instructions can be passed to the framework via the <<addst-main,add-status>> variables and the deployment <<dpls-metadata,metadata>>.
 
 [[dpls-metadata]]
 === Deployment metadata
@@ -1483,7 +1486,7 @@ D_DPL_WARNING="Warning for 'urgent' prompts forced by a flag"
 
 If a deployment has a warning, and the <<mtdt-aa,always-prompt>> mode is engaged, then the warning is printed alongside the <<fmwk-upmt,urgent>> prompt.
 
-[[rtc-overview]]
+[[rtc-main]]
 === Return codes
 
 The return codes are the main vehicle for communicating to the framework the result of running a <<func-primaries,primary function>>.
@@ -1500,10 +1503,10 @@ The <<opt-force,`--force`>> option may be used to compel the framework.
 ==== `check` codes
 
 The four <<rtc-check-basic,basic>> `check` codes are the bread & butter that can satisfy most deployment needs.
-A set of <<rtc-check-extended,`extended`>> `check` codes is provided for those deployments that use the <<stash,stashing>> system to 'remember' the status of the installation between interventions.
+A set of <<rtc-check-extended,`extended`>> `check` codes is provided for those deployments that use the <<stash-main,stashing>> system to 'remember' the status of the installation between interventions.
 
 .Supported return codes of the `d_dpl_check` function
-[%noheader.stretch,cols="5*^.^a,4*<.^a",stripes=none]
+[%noheader.stretch,cols="5*^.^,4*<.^",stripes=none]
 |===
 
 1.3+^.^h| `check` code
@@ -1511,7 +1514,7 @@ A set of <<rtc-check-extended,`extended`>> `check` codes is provided for those d
 3.1+^.^h| Sub-statuses
 4.1+^.^h| Actions during the <<rtn-primaries,primary routines>>
 1.2+^.^h| Relevant?
-1.2+^.^h| <<stash,Stash>> record?
+1.2+^.^h| <<stash-main,Stash>> record?
 1.2+^.^h| Appears installed?
 2.1+^.^h| <<rtn-install,`*install*`>>
 2.1+^.^h| <<rtn-remove,`*remove*`>>
@@ -1527,10 +1530,8 @@ A set of <<rtc-check-extended,`extended`>> `check` codes is provided for those d
 | *Yes*
 | _unused_
 | _unknown_
-2.1+| * Push backup
-* Install
-2.1+| * Uninstall
-* Pop backup
+2.1+| Push backup; install
+2.1+| Uninstall; pop backup
 
 | `*1*`
 | 'Fully installed'
@@ -1540,15 +1541,12 @@ A set of <<rtc-check-extended,`extended`>> `check` codes is provided for those d
 _unused_
 | *Yes*
 ^.^h| _blocked_
-| * Push backup
-* Install anew
+| Push backup; install anew
 
-+++<p align=center>+++_— or —_+++</p>+++
+—or—
 
-* Bring up to date
-2.1+| * Uninstall
-* Pop backup
-* Clear stash
+Bring up to date
+2.1+| Uninstall; pop backup; clear stash
 
 | `*2*`
 | 'Fully not installed'
@@ -1557,11 +1555,9 @@ _unused_
 /
 _unused_
 | No
-2.1+| * Push backup
-* Install
-* Set stash
+2.1+| Push backup; install; set stash
 ^.^h| _blocked_
-| * Pop backup
+| Pop backup
 
 | `*3*`
 | 'Irrelevant or invalid'
@@ -1578,12 +1574,9 @@ _unused_
 /
 _unused_
 | **Par**tly
-| * Make us whole
-| * Push backup
-* Install anew
-2.1+| * Uninstall
-* Pop backup
-* Clear stash
+| Make us whole
+| Push backup; install anew
+2.1+| Uninstall; pop backup; clear stash
 
 | `*5*`
 | 'Likely installed (unknown)'
@@ -1591,16 +1584,13 @@ _unused_
 | *Yes*
 | _unknown_
 ^.^h| _blocked_
-| * Push backup
-* Install anew
+| Push backup; install anew
 
-+++<p align=center>+++_— or —_+++</p>+++
+—or—
 
-* Bring up to date
+Bring up to date
 ^.^h| _blocked_
-| * Uninstall
-* Pop backup
-* Clear stash
+| Uninstall; pop backup; clear stash
 
 | `*6*`
 | 'Manually removed (tinkered with)'
@@ -1608,10 +1598,9 @@ _unused_
 | *Yes*
 | No
 ^.^h| _blocked_
-| * Push backup
-* Install anew
+| Push backup; install anew
 ^.^h| _blocked_
-| * Clear stash
+| Clear stash
 
 | `*7*`
 | 'Fully installed by user or OS'
@@ -1619,26 +1608,19 @@ _unused_
 | No
 | *Yes*
 ^.^h| _blocked_
-| * Push backup
-* Install anew
-* Set stash
+| Push backup; install anew; set stash
 ^.^h| _blocked_
-| * Uninstall
-* Pop backup
+| Uninstall; pop backup
 
 | `*8*`
 | 'Partly installed by user or OS'
 | *Yes*
 | No
 | **Par**tly
-| * Make whole
-* Set stash
-| * Push backup
-* Install anew
-* Set stash
+| Make whole; set stash
+| Push backup; install anew; set stash
 ^.^h| _blocked_
-| * Uninstall
-* Pop backup
+| Uninstall; pop backup
 
 | `*9*`
 | 'Likely not installed (unknown)'
@@ -1646,11 +1628,9 @@ _unused_
 | No
 | _unknown_
 ^.^h| _blocked_
-| * Push backup
-* Install
-* Set stash
+| Push backup; install; set stash
 ^.^h| _blocked_
-| * Pop backup
+| Pop backup
 
 |===
 
@@ -1660,7 +1640,7 @@ _unused_
 The `install` codes are much less diversified than the <<rtc-check,`check` codes>> because no major internal decisions are made based on the result of the installation.
 
 .Supported return codes of the `d_dpl_install` function
-[%noheader.stretch,cols="2*^.^a,1*<.^a",stripes=none]
+[%noheader.stretch,cols="2*^.^,1*<.^",stripes=none]
 |===
 
 ^.^h| `install` code
@@ -1691,7 +1671,7 @@ The `install` codes are much less diversified than the <<rtc-check,`check` codes
 The `remove` codes are much less diversified than the <<rtc-check,`check` codes>> because no major internal decisions are made based on the result of the removal.
 
 .Supported return codes of the `d_dpl_remove` function
-[%noheader.stretch,cols="2*^.^a,1*<.^a",stripes=none]
+[%noheader.stretch,cols="2*^.^,1*<.^",stripes=none]
 |===
 
 ^.^h| `remove` code
@@ -1716,7 +1696,7 @@ The `remove` codes are much less diversified than the <<rtc-check,`check` codes>
 
 |===
 
-[[addst-overview]]
+[[addst-main]]
 === Add-statuses
 
 The *add-statuses* are the specially named global variables.
@@ -1883,10 +1863,10 @@ These indicators contain the absolute paths to the deployment's special files.
 All are declared `readonly`.
 
 * `*D__DPL_SH_PATH*` — the deployment file itself.
-* `*D__DPL_MNF_PATH*` — the path where the deployment's <<asset-manifests,asset manifest>> will be looked up.
+* `*D__DPL_MNF_PATH*` — the path where the deployment's <<assets-mnf,asset manifest>> will be looked up.
 +
 The same as the deployment's filepath, with the `.dpl.sh` suffix changed to `.dpl.mnf`.
-* `*D__DPL_QUE_PATH*` — the path where the deployment's <<queue-manifests,queue manifest>> will be looked up.
+* `*D__DPL_QUE_PATH*` — the path where the deployment's <<queue-mnf,queue manifest>> will be looked up.
 +
 The same as the deployment's filepath, with the `.dpl.sh` suffix changed to `.dpl.que`.
 +
@@ -1950,8 +1930,8 @@ _Divine.dotfiles_ introduces a simple markup language for special files called *
 There are three types of special files that are manifests:
 
 * <<dfls-main, Divinefiles>>.
-* <<asset-manifests, Asset manifests>>.
-* <<queue-manifests, Queue manifests>>.
+* <<assets-mnf, Asset manifests>>.
+* <<queue-mnf, Queue manifests>>.
 
 While they differ in purpose and supported features, all types of manifests share basic syntax and are internally parsed by the same engine.
 
@@ -2085,6 +2065,198 @@ _One and only one backslash is always removed from the left edge of an entry._
 +
 _An odd number of backslashes at the right edge of a line will be reduced to a single backslash and will result in line continuation._
 
+[[assets-main]]
+== Assets
+
+Deployment *assets* are any files that are associated with the deployment, but are not part of its deployment script.
+_Divine.dotfiles_ provides a way to separate the static deployment logic from the dynamic deployment assets.
+
+[[assets-dir]]
+Every deployment is alotted a designated <<indct-dpl-asset-dir,*asset directory*>> at `<<fmwk-grail,grail>>/assets/*_DPL-NAME_*/`.
+Keeping the deployment assets in their separate directory within the <<fmwk-grail,Grail>> provides the following advantages:
+
+* The assets — e.g., symlinked configuration files — are in one place, for the user to inspect and modify.
+* The assets can be version-controlled and synchronized independently from their deployment scripts.
+
+[[assets-mnf]]
+=== Asset manifests
+
+The *asset* <<mnf-main,*manifests*>> are used to:
+
+* Catalog the deployment's assets.
+* Copy the provided initial versions of assets into the <<assets-dir,asset directory>>.
+* <<queue-auto,Automatically>> assemble <<queue-main,queues>> from the asset paths.
+
+The asset manifest is <<indct-dpl-mnf-dir,looked up>> at the path of the deployment file, with the `.dpl.sh` suffix exchanged for `.dpl.mnf`.
+
+An asset manifest entry is a relative path to a file.
+(In regards to assets, the term 'file' includes directories.)
+Two kinds of relative paths are accepted: *concrete paths* and *RegEx patterns*.
+Leading and trailing slashes are always disregarded.
+The relative path is resolved from:
+
+* the <<indct-dpl-dir,deployment directory>> (to locate the initial versions possibly provided with the deployment);
+* the deployment's <<indct-dpl-asset-dir,asset directory>> (to locate the user's current versions).
+
+[[assets-mnf-usage]]
+=== Asset manifest usage
+
+Processing of the asset manifests occurs:
+
+* During the <<rtn-primaries,primary routines>>, immediately before sourcing the deployment script.
+* After <<rtn-attach,attaching>> a bundle.
+
+The asset manifests follow the general <<mnf-syntax,manifest syntax>>, which provides the <<mnf-kv-os,OS>> recognition and the <<mnf-kv-flags,`flags`>>.
+
+What is being done for the catalogued assets is largely determined by their <<mnf-kv-flags,flags>>:
+
+.List of asset manifest flags
+[%header,cols="<.<4,^.<1,<.<4",stripes=none]
+|===
+
+^.^| Behavior _without_ the flag (default)
+^.^| Asset flag
+^.^| Behavior _with_ the flag
+
+| The entry is interpreted as a concrete path to a single asset.
+| [[assets-mnf-flag-r]]+++<p align="center">+++
+`*r*`
++++<br>+++
++++<br>+++
+_**R**egEx_
++++</p>+++
+| The entry is interpreted as a **R**egEx pattern (see <<assets-mnf-regex-note,note>> below) that can match any number of assets.
+
+| Some version of the asset must be provided by the deployment's author in the <<indct-dpl-dir,deployment directory>>.
+If the entry is a RegEx pattern, it must have at least one matching asset.
+Failing that, the entire deployment is not processed at all.
+| [[assets-mnf-flag-o]]+++<p align="center">+++
+`*o*`
++++<br>+++
++++<br>+++
+_**o**ptional_
++++</p>+++
+| The asset entry is considered **o**ptional: its provision by the author is not enforced.
+
+| The matching asset(s) within the <<indct-dpl-dir,deployment directory>> are copied into the <<indct-dpl-asset-dir,asset directory>>.
+| [[assets-mnf-flag-d]]+++<p align="center">+++
+`*d*`
++++<br>+++
++++<br>+++
+_**d**pl-dir-only_
++++</p>+++
+| This asset entry does not leave the <<indct-dpl-dir,**d**eployment directory>>.
+Matching asset(s) are not copied anywhere, and are pushed onto the <<assets-arrays,asset arrays>> from their original locations.
+This provides a way to conceal assets from user's view.
+
+| The assets already in the user's <<fmwk-grail,Grail>> are *not* overwritten under any circumstances.
+| [[assets-mnf-flag-f]]+++<p align="center">+++
+`*f*`
++++<br>+++
++++<br>+++
+_**f**orce-copy_
++++</p>+++
+| The framework ensures that an exact copy of the provided version of an asset is present in the user's <<fmwk-grail,Grail>>.
+If a differing version is found there, it is <<fmwk-zero-data-loss,backed up>>, and overwritten.
+
+This flag is useful for supplying and updating READMEs.
+Whenever a file matches the RegEx pattern `README(\.[a-z]+)?` (case-sensitive), the framework does not create a backup.
+
+*This flag should be used sparingly!*
+
+| Paths to matching assets are pushed onto the <<assets-arrays,asset arrays>> for further usage.
+| [[assets-mnf-flag-n]]+++<p align="center">+++
+`*n*`
++++<br>+++
++++<br>+++
+_**n**o-queue_
++++</p>+++
+| Paths to matching assets are **n**ot pushed onto the <<assets-arrays,asset arrays>>.
+
+_Together with the <<assets-mnf-flag-d,`d` flag>>, this will cause the asset to be completely ignored._
+
+| All matching assets in the <<indct-dpl-asset-dir,asset directory>> are pushed onto the <<assets-arrays,asset arrays>>.
+This will include any matching assets added by the user manually.
+
+_Irrelevant when the <<assets-mnf-flag-d,`d` flag>> is in effect._
+| [[assets-mnf-flag-p]]+++<p align="center">+++
+`*p*`
++++<br>+++
++++<br>+++
+_**p**rovided-only_
++++</p>+++
+| The asset entry is considered limited to those matching assets, for which the author has **p**rovided the initial versions.
+
+_Irrelevant when the <<assets-mnf-flag-d,`d` flag>> is in effect._
+
+|===
+
+On top of the flags, the following <<mnf-kv,key-values>> are recognized in asset manifests:
+
+.List of asset manifest key-values
+[%noheader,cols="<.<a",stripes=none]
+|===
+
+| [[assets-mnf-pfx]]`(*prefix*: _SUBPATH_)`
+
+The `SUBPATH` is implicitly prepended to the asset entries when looking up the assets in the <<indct-dpl-dir,deployment directory>>, but not in the <<indct-dpl-asset-dir,asset directory>>.
+Leading and trailing slashes are ignored.
+
+| [[assets-mnf-split]]`(*queue*: *split*)`
+
+This key-value does not affect the actual asset entries, nor does it support any values other than the pre-defined word `split`.
+
+The `(queue: split)` key-value <<queue-split,splits>> the <<queue-main,queue>>, which is auto-generated from the asset paths.
+Such splits occur at the exact positions where the key-value is encountered.
+
+|===
+
+[[assets-mnf-regex-note]]
+The RegEx patterns are interpreted by the http://man7.org/linux/man-pages/man1/find.1.html[`find`] utility using the https://en.wikibooks.org/wiki/Regular_Expressions/POSIX-Extended_Regular_Expressions[POSIX Extended Regular Expressions] dialect.
+The provided pattern is inserted into a larger one, e.g.:
+
+[source,bash]
+----
+find -E . -regex "^\./${PATTERN}$"
+----
+
+Consequently, the patterns should not include the `^` and `$` meta-characters.
+
+The order of entries in the asset manifest is guaranteed to correspond to the order of elements in the resulting <<assets-arrays,asset arrays>>.
+However, the order of assets that match a single RegEx entry is not guaranteed.
+
+The relative paths from a manifest are simply appended to their respective parent directories, so the paths like `.` or `..` or `../..` will work.
+
+.Example of asset manifest
+[source]
+----
+file1.txt           ## These files will be copied from the deployment directory
+file2.txt           #. into the root of the asset directory.
+
+(r) configs/\       ## The matching '*.cfg' files will be copied with their 
+[a-z]+\.cfg         #. parent 'configs/' directory preserved on both ends.
+
+(prefix: images)
+img1.jpg            ## These files will be copied from the 'images/' directory
+img2.jpg            #. into the root of the asset directory.
+
+(prefix:)
+(d) sys.f           ## These files will not be copied, but their paths will be 
+(d) sys.d           #. pushed onto the asset arrays
+----
+
+[[assets-arrays]]
+=== Asset arrays
+
+Whenever the framework processes an _existing_ asset manifest, it automatically _clears_ and then populates two global arrays:
+
+* `*D_DPL_ASSET_PATHS*` — absolute paths to the assets within the deployment's <<indct-dpl-asset-dir,asset directory>>.
+* `*D_QUEUE_MAIN*` — for each absolute path in the previous array, this one will contain its relative version.
+
+These arrays coincide with the arrays used by the <<queue-main,queues>>, especially the <<lnqe-main,link-queue>> and <<cpqe-main,copy-queue>> variants.
+It makes sense, because the assets are the perfect candidates for sequential processing.
+The deployment is, of course, free to override these automatically populated arrays.
+
 [[dfls-main]]
 == Divinefiles
 
@@ -2165,14 +2337,14 @@ util-linux-user         # Maintain util-linux-user with priority 300
 ----
 
 [[mltsk-main]]
-== Multitask helpers
+== Multitask deployments
 
 The *multitask helpers* are a set of partly pre-implemented <<func-primaries,primary functions>> for deployments that carry out a series of _dissimilar_ tasks.
 (For deployments that deal with a series of _similar_ tasks, the <<queues,queue helpers>> should be used.)
 
 The multitask helpers provide a way to cram any number of *sub-deployments* (called *tasks*) into a multitask deployment.
 Each task can have its own set of *mini-primaries*, which are near-identical in behavior to the <<func-primaries,regular>> primaries.
-In particular, the same <<rtc-overview,return codes>> are supported for the mini-primaries as are for their older siblings.
+In particular, the same <<rtc-main,return codes>> are supported for the mini-primaries as are for their older siblings.
 The framework automatically amalgamates the return codes of the tasks into the single return code of the multitask deployment itself.
 
 The multitask helpers can be employed no more than once per deployment.
@@ -2182,25 +2354,22 @@ The multitask helpers can be employed no more than once per deployment.
 
 To assemble a multitask deployment:
 
-* Populate the `*D_MLTSK_MAIN*` variable with an array of task names, e.g.:
+* [[mltsk-determinant]]Set the *multitask determinant* — an array named `*D_MLTSK_MAIN*`, each element of which single-handedly defines a task.
+The ordinal number of an array element is the *task's number*, and the value of that element is the *task's name*.
 +
 [source,bash]
 ----
 D_MLTSK_MAIN=( task_one task_two )
 ----
 +
-The `D_MLTSK_MAIN` variable must be populated _before_ the first multitask helper (`d__mltsk_check`) is called.
+The multitask determinant must be populated _before_ the first multitask helper (`d__mltsk_check`) is called.
 +
-The multitask array must be uninterrupted.
-* Implement the (optional) mini-primaries for the tasks, following the naming pattern:
-+
-[source,subs="verbatim,quotes,attributes"]
-----
-          d{us}**_TASK_**{us}check
-*_TASK_*  =>  d{us}**_TASK_**{us}install
-          d{us}**_TASK_**{us}remove
-----
-* Call the multitask *helper primaries* as the last commands of the deployment's <<func-primaries,primary functions>>, e.g.:
+The determinant array must be continuous (uninterrupted).
+* [[mltsk-mini-primaries]]Implement the (optional) *mini-primaries* for the tasks, following the naming pattern (for the task named `*_TASK_*`):
+** `*d{us}**__TASK__**{us}check*` — the task-level equivalent of the <<func-dpl-check,`d_dpl_check`>> function.
+** `*d{us}**__TASK__**{us}install*` — the task-level equivalent of the <<func-dpl-install,`d_dpl_install`>> function.
+** `*d{us}**__TASK__**{us}remove*` — the task-level equivalent of the <<func-dpl-remove,`d_dpl_remove`>> function.
+* [[mltsk-helper-primaries]]Call the multitask *helper primaries* as the last commands of the deployment's <<func-primaries,primary functions>>, e.g.:
 +
 [source,bash]
 ----
@@ -2208,6 +2377,15 @@ d_dpl_check()   { d__mltsk_check;   }
 d_dpl_install() { d__mltsk_install; }
 d_dpl_remove()  { d__mltsk_remove;  }
 ----
+
+[.note]
+[%noheader,cols="<.<a"]
+|===
+| One difference between the reglar <<func-primaries,primaries>> and the <<mltsk-mini-primaries,mini-primaries>>:
+
+* The regular deployments are treated individually: one is ``check``ed, and then immediately ``install``ed/``remove``d.
+* The tasks are treated collectively: all are sequentially ``check``ed, and only then sequentially ``install``ed/``remove``d.
+|===
 
 .Example of multitask deployment
 [source,bash]
@@ -2241,36 +2419,36 @@ d_love_remove()   { :; }
 The framework recognizes a set of specially named functions — *hooks* — that are called at particular junctions of processing a multitask deployment.
 The hooks have the power to alter the behavior of the multitask deployment via their return codes and <<mltsk-addst,add-statuses>>.
 
-* Pre- and post- multitask hooks can do arbitrary work.
-** When the multitask check hook returns a non-zero code, the corresponding helper primary shuts down with the code `3` ('Irrelevant or invalid').
+* [[mltsk-hooks-hlp]]Pre- and post- multitask hooks can do arbitrary work.
+** When the multitask check hook returns a non-zero code, the corresponding <<mltsk-helper-primaries,helper primary>> shuts down with the code `3` ('Irrelevant or invalid').
 *** `*d_mltsk_pre_check*` — called before the checking of tasks starts.
-*** `*d_mltsk_post_check*` — called after the checking of tasks completes.
-** When the multitask install/remove hook returns a non-zero code, the corresponding helper primary shuts down with the code `2` ('Refused to install/remove').
+*** `*d_mltsk_post_check*` — called after the checking of tasks concludes.
+** When the multitask install/remove hook returns a non-zero code, the corresponding <<mltsk-helper-primaries,helper primary>> shuts down with the code `2` ('Refused to install/remove').
 *** `*d_mltsk_pre_install*` — called before (and if) the installation of tasks starts.
-*** `*d_mltsk_post_install*` — called after the installation of tasks completes.
+*** `*d_mltsk_post_install*` — called after the installation of tasks concludes.
 *** `*d_mltsk_pre_remove*` — called before (and if) the removal of tasks starts.
-*** `*d_mltsk_post_remove*` — called after the removal of tasks completes.
-* Pre- and post- task hooks can, too, do arbitrary work.
-** When the task check hook returns a non-zero code, the corresponding mini-primary shuts down with the code `3` ('Irrelevant or invalid').
+*** `*d_mltsk_post_remove*` — called after the removal of tasks concludes.
+* [[mltsk-hooks-mini]]Pre- and post- task hooks can, too, do arbitrary work.
+** When the task check hook returns a non-zero code, the corresponding <<mltsk-mini-primaries,mini-primary>> shuts down with the code `3` ('Irrelevant or invalid').
 *** `*d{us}__TASK__{us}pre_check*` — called before the checking of that task starts.
-*** `*d{us}__TASK__{us}post_check*` — called after the checking of that task completes.
-** When the task install/remove hook returns a non-zero code, the corresponding mini-primary shuts down with the code `2` ('Refused to install/remove').
+*** `*d{us}__TASK__{us}post_check*` — called after the checking of that task concludes.
+** When the task install/remove hook returns a non-zero code, the corresponding <<mltsk-mini-primaries,mini-primary>> shuts down with the code `2` ('Refused to install/remove').
 *** `*d{us}__TASK__{us}pre_install*` — called before (and if) the installation of that task starts.
-*** `*d{us}__TASK__{us}post_install*` — called after the installation of that task completes.
+*** `*d{us}__TASK__{us}post_install*` — called after the installation of that task concludes.
 *** `*d{us}__TASK__{us}pre_remove*` — called before (and if) the removal of that task starts.
-*** `*d{us}__TASK__{us}post_remove*` — called after the removal of that task completes.
+*** `*d{us}__TASK__{us}post_remove*` — called after the removal of that task concludes.
 
 [[mltsk-addst]]
 === Multitask add-statuses
 
-The multitask deployments can take advantage of the deployment-level <<addst-overview,add-statuses>>.
+The multitask deployments can take advantage of the deployment-level <<addst-main,add-statuses>>.
 On top of that, the framework provides add-statuses that are specific to the multitask deployments.
 
 .Supported multitask add-statuses
 [%noheader,cols="<.<a",stripes=none]
 |===
 
-^.^h| Add-statuses in <<mltsk-main,multitask>>
+^.^h| Add-statuses in <<mltsk-main,multitask>> deployments
 
 | +++<p align="center">+++
 `*D_ADDST_MLTSK_HALT*`
@@ -2291,7 +2469,7 @@ If set during the `check` phase, the `install`/`remove` phase will still commenc
 `*D_ADDST_MLTSK_REMOVE_CODE*`
 +++</p>+++
 
-These add-statuses allow to override the corresponding code of the entire multitask deployment from either the pre- or post- multitask <<mltsk-hooks,hook>>.
+These add-statuses allow to override the corresponding code of the <<mltsk-helper-primaries,helper primary>> from either the pre- or post- multitask <<mltsk-hooks-hlp,hook>>.
 
 | +++<p align="center">+++
 *Add-statuses of pre- and post- task <<mltsk-hooks,hooks>>*
@@ -2303,16 +2481,14 @@ These add-statuses allow to override the corresponding code of the entire multit
 `*D_ADDST_TASK_REMOVE_CODE*`
 +++</p>+++
 
-These add-statuses allow to override the corresponding code of the current task from either the pre- or post- task <<mltsk-hooks,hook>>.
+These add-statuses allow to override the corresponding code of the current task from either the pre- or post- task <<mltsk-hooks-mini,hook>>.
 
 | +++<p align="center">+++
 [[addst-task-flags]]`*D_ADDST_TASK_FLAGS*`
 +++</p>+++
 
-Acts as a vehicle for transporting arbitrary single-character flags between the `check` and the `install`/`remove` mini-primaries.
-Whatever is assigned to this add-status during the `check` phase (including the task's pre- and post- <<mltsk-hooks,hooks>>), will be made available to the mini-primaries at the `install`/`remove` phase within the <<indct-task-flags,`*D__TASK_FLAGS*`>> indicator variable.
-
-The assignments by different functions to the `D_ADDST_TASK_FLAGS` variable are concatenated by the framwwork.
+Acts as a vehicle for transporting arbitrary single-character flags between the <<mltsk-hooks,hooks>> and <<mltsk-mini-primaries,mini-primaries>>.
+Whatever is assigned to this add-status is appended to the <<indct-task-flags,`*D__TASK_FLAGS*`>> indicator variable.
 
 |===
 
@@ -2345,9 +2521,7 @@ Possible values: `true` / `false`.
 [[indct-task-flags]]`*D{dus}TASK_FLAGS*`
 +++</p>+++
 
-This indicator contains whatever flags might have been <<addst-task-flags,assigned>> to the current task during the `check` phase.
-
-Naturally, this indicator is only available during the `install`/`remove` phases.
+This indicator contains whatever flags might have been <<addst-task-flags,assigned>> to the current task.
 
 | +++<p align="center">+++
 *Task code indicators*
@@ -2359,11 +2533,11 @@ Naturally, this indicator is only available during the `install`/`remove` phases
 `*D{dus}TASK_REMOVE_CODE*`
 +++</p>+++
 
-These indicators contain the integer <<rtc-overview,codes>> returned by the task's mini-primaries.
+These indicators contain the integer <<rtc-main,codes>> returned by the task's <<mltsk-mini-primaries,mini-primaries>>.
 
 Naturally, these indicators are only available after their corresponding mini-primaries have completed their run.
 
-Particularly, the `D{dus}TASK_INSTALL_CODE` and `D{dus}TASK_REMOVE_CODE` indicators are only available to the task's corresponding post- install/remove <<mltsk-hooks,hooks>>.
+Particularly, the `D{dus}TASK_INSTALL_CODE` and `D{dus}TASK_REMOVE_CODE` indicators are only available to the task's corresponding post- install/remove <<mltsk-hooks-mini,hooks>>.
 
 | +++<p align="center">+++
 *Multitask code indicators*
@@ -2375,23 +2549,23 @@ Particularly, the `D{dus}TASK_INSTALL_CODE` and `D{dus}TASK_REMOVE_CODE` indicat
 `*D{dus}MLTSK_REMOVE_CODE*`
 +++</p>+++
 
-These indicators contain the integer <<rtc-overview,codes>> returned by the task's helper primaries.
+These indicators contain the integer <<rtc-main,codes>> returned by the task's <<mltsk-helper-primaries,helper primaries>>.
 
 Naturally, these indicators are only available after their corresponding helper primaries have completed their run.
 
-Particularly, the `D{dus}MLTSK_INSTALL_CODE` and `D{dus}MLTSK_REMOVE_CODE` indicators are only available to the deployment's corresponding post- install/remove <<mltsk-hooks,hooks>>.
+Particularly, the `D{dus}MLTSK_INSTALL_CODE` and `D{dus}MLTSK_REMOVE_CODE` indicators are only available to the deployment's corresponding post- install/remove <<mltsk-hooks-hlp,hooks>>.
 
 |===
 
 [[queue-main]]
-== Queue helpers
+== Queues
 
 The *queue helpers* are a set of partly pre-implemented <<func-primaries,primary functions>> for deployments that carry out a series of _similar_ tasks.
 (For deployments that deal with a series of _dissimilar_ tasks, the <<mltsk-main,multitask helpers>> should be used.)
 
 The queue helpers provide a way to cram any number of *sub-deployments* (called queue *items*) into a deployment.
 All queue items share the same set of *mini-primaries*, which are near-identical in behavior to the <<func-primaries,regular>> primaries.
-In particular, the same <<rtc-overview,return codes>> are supported for the mini-primaries as are for their older siblings.
+In particular, the same <<rtc-main,return codes>> are supported for the mini-primaries as are for their older siblings.
 The framework automatically amalgamates the return codes of the queue items into the single return code of the queue itself.
 
 The queue helpers may be employed multiple times in a single deployment under the following conditions:
@@ -2399,27 +2573,34 @@ The queue helpers may be employed multiple times in a single deployment under th
 * Each invocation of the queue helpers must be contained in its own task in a <<mltsk-main,multitask>> deployment.
 * The queue must be properly <<queue-split,split>> into sections between the tasks.
 
+Partly pre-implemented <<spcqe-main,specialized queues>> are also available:
+
+* <<cpqe-main,*Copy-queue*>> — copies files, with backups and comparison.
+* <<lnqe-main,*Link-queue*>> — symlinks files, with backups.
+* <<ghqe-main,*Github-queue*>> — retrieves Github repositories, with backups and additional checks.
+
 [[queue-setup]]
 === Setting up a queue
 
-To assemble a generic queue within a deployment (or <<mltsk-main,task>>):
+To assemble a generic queue within a deployment (or a <<mltsk-main,task>>):
 
-* Populate the `*D_QUEUE_MAIN*` variable with an array of queue item names, e.g.:
+* [[queue-determinant]]Set the *queue determinant* — an array named `*D_QUEUE_MAIN*`, each element of which single-handedly defines a queue item.
+The ordinal number of an array element is the *item's number*, and the value of that element is the *item's name*.
 +
 [source,bash]
 ----
 D_QUEUE_MAIN=( item_one item_two )
 ----
 +
-For the generic queue, the `D_QUEUE_MAIN` variable must be populated _before_ the first queue helper (`d__queue_check`) is called.
-Alternatively, the queue array may be populated via the <<queue-manifests,queue>> or <<asset-manifest,asset>> manifests.
+The queue determinant must be populated _before_ the first queue helper (`d__queue_check`) is called.
+The queue array may be automatically populated via the <<queue-mnf,queue>> or <<assets-mnf,asset>> manifests.
 +
-The queue array must be uninterrupted.
-* Implement the (optional) mini-primaries for the queue:
-** `*d_item_check*`
-** `*d_item_install*`
-** `*d_item_remove*`
-* Call the queue *helper primaries* as the last commands of the deployment's <<func-primaries,primary functions>>, e.g.:
+The determinant array must be continuoue (uninterrupted).
+* [[queue-mini-primaries]]Implement the (optional) *mini-primaries* for the queue items:
+** `*d_item_check*` — the queue item equivalent of the <<func-dpl-check,`d_dpl_check`>> function.
+** `*d_item_install*` — the queue item equivalent of the <<func-dpl-install,`d_dpl_install`>> function.
+** `*d_item_remove*` — the queue item equivalent of the <<func-dpl-remove,`d_dpl_remove`>> function.
+* [[queue-helper-primaries]]Call the queue *helper primaries* as the last commands of the deployment's (or task's) <<func-primaries,primary functions>>, e.g.:
 +
 [source,bash]
 ----
@@ -2427,6 +2608,15 @@ d_dpl_check()   { d__queue_check;   }
 d_dpl_install() { d__queue_install; }
 d_dpl_remove()  { d__queue_remove;  }
 ----
+
+[.note]
+[%noheader,cols="<.<a"]
+|===
+| One difference between the reglar <<func-primaries,primaries>> and the <<queue-mini-primaries,mini-primaries>>:
+
+* The regular deployments are treated individually: one is ``check``ed, and then immediately ``install``ed/``remove``d.
+* The queue items are treated collectively: all are sequentially ``check``ed, and only then sequentially ``install``ed/``remove``d.
+|===
 
 .Example of queue deployment
 [source,bash]
@@ -2446,61 +2636,61 @@ d_item_install()   { :; }
 d_item_remove()    { :; }
 ----
 
-[[queue-manifests]]
+[[queue-mnf]]
 === Queue manifests
 
-The queue items, whatever they are, may be separated from the deployment logic into their own files, the *queue <<mnf-main,manifest>>*.
+The queue items, whatever they are, may be separated from the deployment logic into their own file, the *queue <<mnf-main,manifest>>*.
+The framework detects the asset manifest and <<queue-auto,automatically>> assembles the queue <<queue-determinant,determinant>> from it.
 
-A queue manifest is located, by default, in the same directory as the deployment file and named the same, except for exchanging `.dpl.sh` suffix for `.dpl.que`.
-Unlike with <<asset-manifests,asset manifests>>, you are free to customize the location/name of your queue manifest by re-assigning <<indct-dpl-que-path,`D__DPL_QUE_PATH`>> variable *at the top level* of your deployment.
+The queue manifest is <<indct-dpl-que-dir,looked up>>, by default, at the path of the deployment file, with the `.dpl.sh` suffix exchanged for `.dpl.que`.
+Unlike with the <<assets-mnf,asset manifests>>, the deployment is free to customize the location of the queue manifest via an <<addst-queue-mnf,add-status>>.
 
-Queue manifests follow the general <<mnf-syntax,manifest syntax>>.
-Only the key `os` is recognized within queue manifests.
+The queue manifests follow the general <<mnf-syntax,manifest syntax>>, which provides the <<mnf-kv-os,OS>> recognition.
+The manifest <<mnf-kv-flags,flags>> are not used.
+On top of that, a queue splitting mechanism is supported:
 
-[.note]
-[%noheader,cols="<.<a"]
+.List of queue manifest key-values
+[%noheader,cols="<.<a",stripes=none]
 |===
-| A suggested way of using queue manifests is:
 
-. Provide a sample queue manifest of some entries in whatever form.
-. Declare the queue manifest an asset, by listing it in your <<asset-manifests,asset manifest>>.
-. Within the deployment, customize the <<indct-dpl-que-path,`D__DPL_QUE_PATH`>> variable to point to asset copy within <<fmwk-grail,the Grail>>, e.g.:
-+
-[source,bash]
-----
-D__DPL_QUE_PATH="$D__DPL_ASSET_DIR/$D_DPL_NAME.dpl.que"
-----
+| [[queue-mnf-split]]`(*queue*: *split*)`
+
+This key-value does not affect the actual queue entries, nor does it support any values other than the pre-defined word `split`.
+
+The `(queue: split)` key-value <<queue-split,splits>> the <<queue-main,queue>>.
+Such splits occur at the exact positions where the key-value is encountered.
+
 |===
 
 [[queue-hooks]]
 === Queue hooks
 
-The framework recognizes a set of specially named functions — *hooks* — that are called at particular junctions of processing a queue deployment.
-The hooks have the power to alter the behavior of the queue deployment via their return codes and <<queue-addst,add-statuses>>.
+The framework recognizes a set of specially named functions — *hooks* — that are called at particular junctions of processing a queue.
+The hooks have the power to alter the behavior of the queue via their return codes and <<queue-addst,add-statuses>>.
 
-* Pre- and post- queue hooks can do arbitrary work.
-** When the queue check hook returns a non-zero code, the corresponding helper primary shuts down with the code `3` ('Irrelevant or invalid').
+* [[queue-hooks-hlp]]Pre- and post- queue hooks can do arbitrary work.
+** When the queue check hook returns a non-zero code, the corresponding <<queue-helper-primaries,helper primary>> shuts down with the code `3` ('Irrelevant or invalid').
 *** `*d_queue_pre_check*` — called before the checking of items starts.
-*** `*d_queue_post_check*` — called after the checking of items completes.
-** When the queue install/remove hook returns a non-zero code, the corresponding helper primary shuts down with the code `2` ('Refused to install/remove').
+*** `*d_queue_post_check*` — called after the checking of items concludes.
+** When the queue install/remove hook returns a non-zero code, the corresponding <<queue-helper-primaries,helper primary>> shuts down with the code `2` ('Refused to install/remove').
 *** `*d_queue_pre_install*` — called before (and if) the installation of items starts.
-*** `*d_queue_post_install*` — called after the installation of items completes.
+*** `*d_queue_post_install*` — called after the installation of items concludes.
 *** `*d_queue_pre_remove*` — called before (and if) the removal of items starts.
-*** `*d_queue_post_remove*` — called after the removal of items completes.
-* Pre- and post- item hooks can, too, do arbitrary work.
-** When the item check hook returns a non-zero code, the corresponding mini-primary shuts down with the code `3` ('Irrelevant or invalid').
+*** `*d_queue_post_remove*` — called after the removal of items concludes.
+* [[queue-hooks-mini]]Pre- and post- item hooks can, too, do arbitrary work.
+** When the item check hook returns a non-zero code, the corresponding <<queue-mini-primaries,mini-primary>> shuts down with the code `3` ('Irrelevant or invalid').
 *** `*d_item_pre_check*` — called before the checking of an item starts.
-*** `*d_item_post_check*` — called after the checking of an item completes.
-** When the item install/remove hook returns a non-zero code, the corresponding mini-primary shuts down with the code `2` ('Refused to install/remove').
+*** `*d_item_post_check*` — called after the checking of an item concludes.
+** When the item install/remove hook returns a non-zero code, the corresponding <<queue-mini-primaries,mini-primary>> shuts down with the code `2` ('Refused to install/remove').
 *** `*d_item_pre_install*` — called before (and if) the installation of an item starts.
-*** `*d_item_post_install*` — called after the installation of an item completes.
+*** `*d_item_post_install*` — called after the installation of an item concludes.
 *** `*d_item_pre_remove*` — called before (and if) the removal of an item starts.
-*** `*d_item_post_remove*` — called after the removal of an item completes.
+*** `*d_item_post_remove*` — called after the removal of an item concludes.
 
 [[queue-addst]]
 === Queue add-statuses
 
-The queues can take advantage of the deployment-level <<addst-overview,add-statuses>>.
+The queues can take advantage of the deployment-level <<addst-main,add-statuses>>.
 On top of that, the framework provides add-statuses that are specific to the queues.
 
 .Supported queue add-statuses
@@ -2513,7 +2703,7 @@ On top of that, the framework provides add-statuses that are specific to the que
 [[addst-queue-mnf]]`*D_ADDST_QUEUE_MNF_PATH*`
 +++</p>+++
 
-If set to a non-empty value, directs to look for the <<queue-manifests,queue manifest>> at that path.
+If set to a non-empty value, directs to look for the <<queue-mnf,queue manifest>> at that path.
 To be picked up, this add-status must be set at the root of the deployment script.
 
 | +++<p align="center">+++
@@ -2535,7 +2725,7 @@ If set during the `check` phase, the `install`/`remove` phase will still commenc
 `*D_ADDST_QUEUE_REMOVE_CODE*`
 +++</p>+++
 
-These add-statuses allow to override the corresponding code of the entire queue from either the pre- or post- queue <<queue-hooks,hook>>.
+These add-statuses allow to override the corresponding code of the <<queue-helper-primaries,helper primary>> from either the pre- or post- queue <<queue-hooks-hlp,hook>>.
 
 | +++<p align="center">+++
 *Add-statuses of pre- and post- item <<queue-hooks,hooks>>*
@@ -2547,16 +2737,14 @@ These add-statuses allow to override the corresponding code of the entire queue 
 `*D_ADDST_ITEM_REMOVE_CODE*`
 +++</p>+++
 
-These add-statuses allow to override the corresponding code of the current queue item from either the pre- or post- item <<queue-hooks,hook>>.
+These add-statuses allow to override the corresponding code of the current queue item from either the pre- or post- item <<queue-hooks-mini,hook>>.
 
 | +++<p align="center">+++
 [[addst-item-flags]]`*D_ADDST_ITEM_FLAGS*`
 +++</p>+++
 
-Acts as a vehicle for transporting arbitrary single-character flags between the `check` and the `install`/`remove` mini-primaries.
-Whatever is assigned to this add-status during the `check` phase (including the item's pre- and post- <<queue-hooks,hooks>>), will be made available to the mini-primaries at the `install`/`remove` phase within the <<indct-item-flags,`*D__ITEM_FLAGS*`>> indicator variable.
-
-The assignments by different functions to the `D_ADDST_ITEM_FLAGS` variable are concatenated by the framwwork.
+Acts as a vehicle for transporting arbitrary single-character flags between the <<queue-hooks,hooks>> and <<queue-mini-primaries,mini-primaries>>.
+Whatever is assigned to this add-status is appended to the <<indct-item-flags,`*D__ITEM_FLAGS*`>> indicator variable.
 
 |===
 
@@ -2589,9 +2777,8 @@ Possible values: `true` / `false`.
 [[indct-item-flags]]`*D{dus}ITEM_FLAGS*`
 +++</p>+++
 
-This indicator contains whatever flags might have been <<addst-item-flags,assigned>> to the current queue item during the `check` phase.
-
-Naturally, this indicator is only available during the `install`/`remove` phases.
+This indicator contains whatever flags might have been <<addst-item-flags,assigned>> to the current queue item.
+Additionally, in the <<queue-auto,auto-queues>>, this indicator is also pre-populated with the <<mnf-kv-flags,flags>> gleaned from the <<assets-mnf,asset>> or <<queue-mnf,queue>> manifest.
 
 | +++<p align="center">+++
 *Item code indicators*
@@ -2603,11 +2790,11 @@ Naturally, this indicator is only available during the `install`/`remove` phases
 `*D{dus}ITEM_REMOVE_CODE*`
 +++</p>+++
 
-These indicators contain the integer <<rtc-overview,codes>> returned by the queue item's mini-primaries.
+These indicators contain the integer <<rtc-main,codes>> returned by the queue item's <<queue-mini-primaries,mini-primaries>>.
 
 Naturally, these indicators are only available after their corresponding mini-primaries have completed their run.
 
-Particularly, the `D{dus}ITEM_INSTALL_CODE` and `D{dus}ITEM_REMOVE_CODE` indicators are only available to the queue item's corresponding post- install/remove <<queue-hooks,hooks>>.
+Particularly, the `D{dus}ITEM_INSTALL_CODE` and `D{dus}ITEM_REMOVE_CODE` indicators are only available to the queue item's corresponding post- install/remove <<queue-hooks-mini,hooks>>.
 
 | +++<p align="center">+++
 *Queue code indicators*
@@ -2619,42 +2806,237 @@ Particularly, the `D{dus}ITEM_INSTALL_CODE` and `D{dus}ITEM_REMOVE_CODE` indicat
 `*D{dus}QUEUE_REMOVE_CODE*`
 +++</p>+++
 
-These indicators contain the integer <<rtc-overview,codes>> returned by the queue item's helper primaries.
+These indicators contain the integer <<rtc-main,codes>> returned by the queue item's <<queue-helper-primaries,helper primaries>>.
 
 Naturally, these indicators are only available after their corresponding helper primaries have completed their run.
 
-Particularly, the `D{dus}QUEUE_INSTALL_CODE` and `D{dus}QUEUE_REMOVE_CODE` indicators are only available to the deployment's corresponding post- install/remove <<queue-hooks,hooks>>.
+Particularly, the `D{dus}QUEUE_INSTALL_CODE` and `D{dus}QUEUE_REMOVE_CODE` indicators are only available to the deployment's corresponding post- install/remove <<queue-hooks-hlp,hooks>>.
 
 |===
 
 [[queue-split]]
-=== Splitting queue
+=== Multiple queues
 
-The <<queue-main,queue helperss>> can be employed more than once per deployment.
-When that happens, all types of queues (<<queue-main,generic>> and the various <<spcqe-main,specialized>> types) share the same internal mechanism and the same queue array, `D_QUEUE_MAIN`.
-Consequently, in case of multiple queues in a deployment, the queue array must be split into *queue sections*.
+The <<queue-main,queue helpers>> can be employed more than once per deployment.
+When that happens, all types of queues (<<queue-main,generic>> and the various <<spcqe-main,specialized>> types) share the same internal mechanism and the same <<queue-determinant,determinant>>, `D_QUEUE_MAIN`.
+Consequently, when a deployment contains multiple queues, the queue must be split into *queue sections*.
 
-Whenever more than one queue is used in a deployment (the generic queues)
+Queue sections are delimited by the ordinal number of their first elements in the queue array (determinant).
+Such delimiters are called the *queue splits*.
+A section spans from its split until the split of the next section (the latter not inclusive), or until the end of the queue array.
+The first section always implicitly starts at the first element of the queue array.
+So, the total number of queue sections is the number of splits plus one.
+(The word 'first' is used for readability; the underlying Bash numberings start at `0`.)
+
+There are two ways to split a queue:
+
+* In the deployment code, call the `*d__queue_split*` function:
++
+[source,bash]
+----
+D_QUEUE_MAIN=( elem0-0 elem0-1 elem0-2 )  # Initialize with first section
+
+d__queue_split  ## Without arguments, splits at the current right edge of the 
+                #. queue array (in this example - position 3)
+
+D_QUEUE_MAIN+=( elem1-0 elem1-1 elem2-0 elem2-1 )  # Append two more sections
+
+d__queue_split 5  ## Manual split after the fact, at position 5, 'elem2-0'
+----
+* In the <<assets-mnf,asset>> and <<queue-mnf,queue>> manifests, the automatically populated queue array can be split by including the key-value `(*queue*: *split*)` at the desired split position.
+
+The queue <<queue-determinant,determinant>> may be put together incrementally, but a section of it must be fully assembled by the time its first <<queue-helper-primaries,helper primary>> is called.
+
+Whenever a queue section uses multiple arrays to store relevant data (which is true, for instance, for all <<spcqe-main,specialized queues>>), a care must be taken to ensure that all arrays use the same indices for the same queue items.
+
+It is crucial to understand, that the framework *unsets* (deletes) the queue's <<queue-mini-primaries,mini-primaries>>, <<queue-addst,add-statuses>>, and <<queue-hooks,hooks>> as soon as the current queue section has used them fully.
+Each subsequent section needs to define and implement its own.
+
+[[queue-auto]]
+=== Auto-queues
+
+Regardless of whether the deployment employs the <<queue-main,queues>>, the framework automatically populates the queue <<queue-determinant,determinant>> (and some accompanying arrays) whenever a suitable <<mnf-main, manifest>> is encountered.
+
+The *auto-queues* are built at two points in processing of a deployment.
+The order is significant here, because the queues supersede each other.
+
+. [[queue-auto-amnf]]_Before_ the deployment script is sourced, an auto-queue is built from the deployment's <<assets-mnf,asset manifest>>:
++
+--
+** <<queue-determinant,`D_QUEUE_MAIN`>> — populated with the relative paths to the assets.
+** <<spcqe-main,`D_DPL_ASSET_PATHS`>> — populated with the absolute versions thereof.
+This array is used by the <<cpqe-main,copy-queue>> and the <<lnqe-main,link-queue>> variations.
+--
++
+This kind of auto-queue can be handily complemented with the <<queue-auto-targeting,auto-targeting>>.
+. [[queue-auto-qmnf]]_Immediately after_ the deployment script is sourced (and before any deployment functions are called), an auto-queue is built from the deployment's <<queue-mnf,queue manifest>>:
+** <<queue-determinant,`D_QUEUE_MAIN`>> — populated with the manifest entries.
+
+An auto-queue is only built if the corresponding manifest exists.
+Both types of auto-queues support <<queue-split,splitting>> the queue (via the manifest syntax).
+
+[[queue-auto-targeting]]
+==== Queue auto-targeting
+
+A queue is *auto-targeted* when:
+
+* The special variable `*D_DPL_TARGET_DIR*` is set to a path to some target directory.
+* The queue <<queue-determinant,determinant>> `D_QUEUE_MAIN` is filled with some relative paths.
+(This happens, for example, when an <<queue-auto-amnf,auto-queue>> is built from the <<assets-mnf,asset manifest>>.)
+
+The *auto-targeting* simply creates the `*D_DPL_TARGET_PATHS*` array, in which every relative path from the `D_QUEUE_MAIN` array is prepended with the `D_DPL_TARGET_DIR` directory path.
+
+The auto-targeting can be used for the <<spcqe-main,specialized queues>>, which make use of the `D_DPL_TARGET_PATHS` array.
+Naturally, the auto-targeting only works when all the relarive targets are huddled in the same directory.
+
+Different target directories can be given for the different operating systems by appending the `{us}**_OS_**` suffix to the name of the variable.
+ The `*_OS_*` is the name of the OS <<indct-or-family,family>> or <<indct-or-distro,distro>> in all caps.
+ For example:
+
+* For the `bsd` OS family, assign to the variable `D_DPL_TARGET_PATHS_BSD`.
+* For the `debian` distribution, assign to the variable `D_DPL_TARGET_PATHS_DEBIAN`
 
 [[spcqe-main]]
 == Specialized queues
 
-// TODO
+The <<spcqe-main,specialized queues>> are partly pre-implemented <<queue-main,generic queues>>:
+
+* <<cpqe-main,*Copy-queue*>> — copies files, with backups and comparison.
+* <<lnqe-main,*Link-queue*>> — symlinks files, with backups.
+* <<ghqe-main,*Github-queue*>> — retrieves Github repositories, with backups and additional checks.
+
+All specialized queues use the same underlying mechanism.
+A care must be taken when employing <<queue-split,more than one queue>> of any type in a deployment.
 
 [[cpqe-main]]
 === Copy-queues
 
-// TODO
+The *copy-<<queue-main,queue>>* takes a list of <<assets-main,asset>> paths, a list of destination paths, and sequentially copies the former onto the latter.
+No overwriting is done, although this can be <<addst-cpqe-queue-exact,influenced>>.
+The <<stash-main,stashing>> system is used to track the installations of the copy-queue.
+
+[[cpqe-setup]]
+==== Setting up a copy-queue
+
+To assemble a copy-queue within a deployment (or a <<mltsk-main,task>>):
+
+* Set the queue <<queue-determinant,*determinant*>>, `*D_QUEUE_MAIN*`.
+Any names may be used for the copy-queue items.
+An obvious (and the recommended) choice — is the relative paths to the assets.
+* For each index in the determinant array, populate the following special arrays:
+** `*D_DPL_ASSET_PATHS*` — the absolute paths to the assets.
+** `*D_DPL_TARGET_PATHS*` — the absolute paths to the destinations.
+* Call the copy-queue helper primaries as the last commands of the deployment's (or task's) <<func-primaries,primary functions>>, e.g.:
++
+[source,bash]
+----
+d_dpl_check()   { d__copy_queue_check;   }
+d_dpl_install() { d__copy_queue_install; }
+d_dpl_remove()  { d__copy_queue_remove;  }
+----
+
+The assembly of the copy-queue arrays can be <<queue-auto,automated>>, especially when using the copy-queue to process the deployment <<assets-main,assets>>.
+
+[[cpqe-h-a-i]]
+==== Copy-queue hooks, add-statuses, and indicators
+
+The copy-queue supports the equivalent set of <<queue-hooks,hooks>> as the generic queue, with the `d_` prefix exchanged for the `d_copy_` prefix.
+(E.g., `d_item_post_install` becomes `d_copy_item_post_install`.)
+Other than the name difference, the hooks behave identically.
+
+The copy-queue also supports the same <<queue-addst,add-statuses>> and <<queue-indct,indicators>>, with additions to the former:
+
+.Supported copy-queue add-statuses
+[%noheader,cols="<.<a",stripes=none]
+|===
+
+| +++<p align="center">+++
+[[addst-cpqe-queue-exact]]`*D_ADDST_COPY_QUEUE_EXACT*`
++++<br>+++
+[[addst-cpqe-item-exact]]`*D_ADDST_COPY_ITEM_EXACT*`
++++</p>+++
+
+By default, the copy-queue merely ensures that an asset by the same name exists at the destination, and, if not, does the copying.
+
+If set to `true`, these add-statuses ensure that the _exact_ copy of the provided asset exists at the destination, not just a namesake.
+The two add-statuses differ in scope:
+
+* `D_ADDST_COPY_QUEUE_EXACT` — affects the entire copy-queue; must be set before the copy-queue's first helper primary (`d__copy_queue_check`) is called.
+* `D_ADDST_COPY_ITEM_EXACT` — affects the current copy-queue item; must be set in that item's pre-check hook (`d_copy_queue_pre_check`).
+
+The same effect can be achieved by setting the `*e*` <<mnf-kv-flags,flag>> for the relevant assets in either the <<assets-mnf,asset>> or <<queue-mnf,queue>> manifests.
+
+|===
 
 [[lnqe-main]]
 === Link-queues
 
-// TODO
+The *link-<<queue-main,queue>>* takes a list of <<assets-main,asset>> paths, a list of destination paths, and sequentially creates symlinks at the latter, pointing to the former.
+Any pre-existing files at the symlink locations are <<fmwk-zero-data-loss,backed up>>.
+The <<stash-main,stashing>> system is used to track the installations of the link-queue.
+
+[[lnqe-setup]]
+==== Setting up a link-queue
+
+To assemble a link-queue within a deployment (or a <<mltsk-main,task>>):
+
+* Set the queue <<queue-determinant,*determinant*>>, `*D_QUEUE_MAIN*`.
+Any names may be used for the link-queue items.
+An obvious (and the recommended) choice — is the relative paths to the assets.
+* For each index in the determinant array, populate the following special arrays:
+** `*D_DPL_ASSET_PATHS*` — the absolute paths to the assets.
+** `*D_DPL_TARGET_PATHS*` — the absolute paths to the symlink locations.
+* Call the link-queue helper primaries as the last commands of the deployment's (or task's) <<func-primaries,primary functions>>, e.g.:
++
+[source,bash]
+----
+d_dpl_check()   { d__link_queue_check;   }
+d_dpl_install() { d__link_queue_install; }
+d_dpl_remove()  { d__link_queue_remove;  }
+----
+
+The assembly of the link-queue arrays can be <<queue-auto,automated>>, especially when using the link-queue to process the deployment <<assets-main,assets>>.
+
+[[lnqe-h-a-i]]
+==== Link-queue hooks, add-statuses, and indicators
+
+The link-queue supports the equivalent set of <<queue-hooks,hooks>> as the generic queue, with the `d_` prefix exchanged for the `d_link_` prefix.
+(E.g., `d_item_pre_remove` becomes `d_link_item_pre_remove`.)
+Other than the name difference, the hooks behave identically.
 
 [[ghqe-main]]
 === Github-queues
 
-// TODO
+The *Github-<<queue-main,queue>>* takes a list of https://github.com[Github] repository handles (`username/repository`), a list of destination paths, and sequentially clones/downloads the former into the latter.
+The <<stash-main,stashing>> system is used to track the installations of the Github-queue.
+
+[[ghqe-setup]]
+==== Setting up a Github-queue
+
+To assemble a Github-queue within a deployment (or a <<mltsk-main,task>>):
+
+* Set the queue <<queue-determinant,*determinant*>>, `*D_QUEUE_MAIN*`.
+Any names may be used for the Github-queue items.
+An obvious (and the recommended) choice — is the Github repository handles (`username/repository`).
+* For each index in the determinant array, populate the following special arrays:
+** `*D_DPL_TARGET_PATHS*` — the absolute paths to the repository destinations.
+* Call the Github-queue helper primaries as the last commands of the deployment's (or task's) <<func-primaries,primary functions>>, e.g.:
++
+[source,bash]
+----
+d_dpl_check()   { d__gh_queue_check;   }
+d_dpl_install() { d__gh_queue_install; }
+d_dpl_remove()  { d__gh_queue_remove;  }
+----
+
+The assembly of the Github-queue arrays can be <<queue-auto,automated>>, especially when using the Github-queue to process the deployment <<assets-main,assets>>.
+
+[[ghqe-h-a-i]]
+==== Github-queue hooks, add-statuses, and indicators
+
+The Github-queue supports the equivalent set of <<queue-hooks,hooks>> as the generic queue, with the `d_` prefix exchanged for the `d_gh_` prefix.
+(E.g., `d_item_post_check` becomes `d_gh_item_post_check`.)
+Other than the name difference, the hooks behave identically.
 
 == Advanced features
 
@@ -2665,7 +3047,7 @@ _Divine.dotfiles_ offers mechanisms that facilitate creation of better, stronger
 _Divine.dotfiles_ uses a system of prefixes to gradually separate the framework's inner workings.
 
 * The single-underscore prefixes are for entities to be implemented by the user:
-** `**D{us}**NAME` — variables to be assigned by the user (e.g., the <<dpls-metadata,metadata>> or the <<addst-overview,add-statuses>>).
+** `**D{us}**NAME` — variables to be assigned by the user (e.g., the <<dpls-metadata,metadata>> or the <<addst-main,add-statuses>>).
 ** `**d{us}**name` — functions to be implemented by the user (e.g., the <<func-primaries,primary functions>>).
 * The double-underscore prefixes are for entities to be accessed by the user:
 ** `**D{dus}**NAME` — variables to be read by the user.
@@ -3766,7 +4148,7 @@ Returns zero on success and non-zero if something goes wrong.
 
 ==== Function `d{dus}stash`
 
-Function `d{dus}stash` is so important that it deserved its <<stash,own section>>.
+Function `d{dus}stash` is so important that it deserved its <<stash-main,own section>>.
 
 [[func-push-backup]]
 ==== Function `d__push_backup`
@@ -4030,184 +4412,6 @@ Directs to work with the <<stash-types,Grail stash>> instead of default deployme
 Records of installing optional framework dependencies are stored in <<stash-types,root stash>>.
 |===
 
-[[assets]]
-=== Assets
-
-If you intend to distribute your deployments, you will soon encounter the problem of separating more-or-less static deployment logic from dynamic deployment assets.
-
-Lets study an example deployment that symlinks configuration files into the system.
-It would be desirable to copy samples of those configuration files into user's <<fmwk-grail,Grail directory>>, and then create symlinks to the copies.
-The user would then be free to inspect, modify, and synchronize his copies as his personal versions.
-At the same time, the deployment logic is better kept within <<fmwk-state,state directory>>, where it would be easily updated by the framework.
-
-Each deployment has a designated *asset directory*: `grail/assets/*_DPL-NAME_*/`, path to which is readable from a <<indct-dpl-asset-dir,variable>>.
-The asset directory is the space where user controls the behavior of the deployment by adding/modifying/removing asset files.
-Deployments, on their part, are free to provide initial/default versions of some or all assets.
-
-To facilitate handling of assets, _Divine.dotfiles_ offers the mechanism of *asset manifests*.
-
-[[asset-manifests]]
-==== Asset manifests
-
-An *asset manifest* is a text file located in the same directory as the deployment file and named the same, except for exchanging `.dpl.sh` suffix for `.dpl.mnf`.
-It serves two purposes:
-
-* An asset manifest can ensure that a copy of every asset that you provide is placed into the deployment's <<indct-dpl-asset-dir,asset directory>> inside the user's <<fmwk-grail,Grail>>, _unless_ an asset by that name already exists there.
-* An asset manifest can automatically populate <<asset-arrays,global asset arrays>>, making the assets immediately available for processing by <<queue-main,queues>> of <<link-queue,various>> <<copy-queue,kinds>>.
-
-Entries in an asset manifest describe a set of *assets* (files and directories) by providing relative paths to them.
-Relative paths are resolved from:
-
-* <<indct-dpl-dir,deployment directory>> (to locate initial versions provided by the author);
-* <<indct-dpl-asset-dir,asset directory>> (to locate user's versions to be processed by the framework).
-
-[.note]
-[%noheader,cols="<.<a"]
-|===
-| To reiterate, the framework never overwrites assets that are already present in asset directory.
-|===
-
-Processing of asset manifests occurs:
-
-* During <<rtn-primaries,primary routines>>, immediately before sourcing the deployment file.
-* During <<rtn-attach,attaching of deployments>>, so that the assets of newly introduced deployments are immediately present in <<fmwk-grail,the Grail>>.
-
-[[asset-mnf-syntax-and-behavior]]
-==== Asset manifest syntax and behavior
-
-Asset manifests follow the general <<mnf-syntax,manifest syntax>>.
-
-Every entry is a *relative path*, which is resolved within <<indct-dpl-dir,deployment>> and <<indct-dpl-asset-dir,asset>> directories.
-Two kinds of relative paths are accepted: *concrete paths* and *RegEx patterns*.
-Leading and trailing slashes are disregarded in all paths in the asset manifests (including <<asset-manifest-prefix,`prefix`>> sub-paths).
-
-The following <<mnf-kv-flags,*flags*>> are recognized within asset manifests for each asset entry:
-
-.List of asset manifest entry flags
-[%header,cols="<.<4,^.<1,<.<4",stripes=none]
-|===
-
-^.^| Behavior _without_ the flag (default)
-^.^| Asset flag
-^.^| Behavior _with_ the flag
-
-| The entry is interpreted as a concrete path to a single asset.
-| `*r*`
-
-_**R**egEx_
-| The entry is interpreted as a **R**egEx pattern (see <<asset-manifest-regex-note,note>> below), matching any number of assets.
-
-| All matching files and directories within the <<indct-dpl-dir,deployment directory>> are copied into the <<indct-dpl-asset-dir,asset directory>>, unless the destination already exists.
-Afterward, matching files and directories within the <<indct-dpl-asset-dir,*asset directory*>> are pushed onto the <<asset-arrays,asset arrays>>.
-| [#asset-flag-d]#`*d*`#
-
-_**d**pl-dir-only_
-| This asset entry does not leave the <<indct-dpl-dir,**d**eployment directory>>.
-Matching files and directories are not copied anywhere, and are pushed onto the <<asset-arrays,asset arrays>> from their original location.
-This provides a way to conceal assets from user's view.
-
-| Some version of the asset must be provided by the author into the <<indct-dpl-dir,deployment directory>>.
-(If the entry is a RegEx pattern, it must have at least one matching file/directory.)
-Failing that, the entire deployment is not processed at all.
-| `*o*`
-
-_**o**ptional_
-| The asset entry is considered **o**ptional: its provision by the author is not enforced.
-
-| Files and directories matching the asset entry are pushed onto <<asset-arrays,asset arrays>> for further usage.
-| `*n*`
-
-_**n**o-queue_
-| Files and directories matching the asset entry are **n**ot pushed onto <<asset-arrays,asset arrays>>.
-
-_Together with the <<asset-flag-d,`d` flag>>, this will cause the asset to be completely ignored._
-
-| All matching files and directories within the <<indct-dpl-asset-dir,*asset directory*>> will be pushed onto <<asset-arrays,asset arrays>>.
-This opens the door for user to add additional assets.
-
-_Irrelevant when the <<asset-flag-d,`d` flag>> is in effect._
-| `*p*`
-
-_**p**rovided-only_
-| The asset entry is considered limited to those matching files and directories, versions of which are **p**rovided by the author.
-
-_Irrelevant when the <<asset-flag-d,`d` flag>> is in effect._
-
-| Pre-existing files in the user's <<fmwk-grail,Grail>> are not overwritten under any circumstances.
-
-| `*f*`
-
-_**f**orce-copy_
-| The framework ensures that a byte-by-byte copy of the provided version of an asset is present in the user's <<fmwk-grail,Grail>>.
-If a differing version is found there, it is renamed by appending `-backup` suffix (with optional trailing ordinal for multiple backups), and the proper version is placed instead.
-An alert is shown to the user whenever this happens.
-
-*_Use this option sparingly!_*
-The user is normally entitled to fully control their own Grail directory.
-Replacing files there undermines the trust in your deployment.
-
-This flag, however, is useful for supplying and updating READMEs.
-In fact, whenever a file matching the RegEx pattern `README(\.[a-z]+)?` (case-sensitive) is replaced via this flag, the framework does not issue an alert or create a backup.
-Naturally, this is designed for convenience, not security.
-
-|===
-
-The following <<mnf-kv,*key-values*>> are recognized within asset manifests:
-
-.Asset manifest key-values
-[%noheader,cols="<.<a",stripes=none]
-|===
-
-| [#asset-manifest-prefix]#`(*prefix: _SUBPATH_*)`#
-
-If you — the deployment author — want to contain your assets under some sub-path within the deployment directory, but you don't want that sub-path to be carried over to the asset directory, specify that sub-path in the `prefix` <<mnf-kv,key>>.
-
-| [#asset-manifest-queue-split]#`(*queue: split*)`#
-
-This key-value does not work like the other key-values.
-It does not affect the asset entries in any way.
-Instead it creates a <<queue-split,queue split>> point wherever it appears.
-
-|===
-
-[#asset-manifest-regex-note]#Under the hood#, RegEx patterns are fed to the http://man7.org/linux/man-pages/man1/find.1.html[find] utility, using https://en.wikibooks.org/wiki/Regular_Expressions/POSIX-Extended_Regular_Expressions[POSIX Extended Regular Expressions] dialect.
-The provided pattern is inserted into a larger one, similarly to the following example: `find -E . -regex "^\./${PATTERN}$"`.
-As a consequence, the patterns should not include `^` and `$` meta-characters.
-
-Order of entries in the asset manifest is guaranteed to correspond to the order of elements in the resulting <<asset-arrays,asset arrays>>.
-However, order of files/directories matching a songle RegEx entry is not guaranteed.
-
-Relative paths from a manifest are simply appended to their respective parent directory.
-Paths like `.`, `..`, `../..`, etc. will work.
-Keep in mind, tha asset manifests are designed for convenience, not security: with free-form Bash code within deployments, security is pretty much a moot point.
-
-.Example of asset manifest
-[source]
-----
-file1.txt           ## These files will be copied from deployment directory
-file2.txt           #. into the root of asset directory.
-
-(r) configs/\       ## Any .cfg files will be copied into 'configs/' directory. 
-[a-z]+\.cfg         #. (Line continuation is part of manifest syntax.)
-
-(prefix: images)
-img1.jpg            ## These two files will be grabbed from 'images/' directory 
-img2.jpg            #. and copied into the root of asset directory.
-----
-
-[[asset-arrays]]
-==== Asset arrays
-
-Whenever the framework processes an asset manifest, it automatically populates two global arrays:
-
-* `*D_DPL_ASSET_PATHS*` — this array is filled with absolute paths to the assets within <<indct-dpl-asset-dir,deployment's asset directory>> (contained in <<fmwk-grail,the Grail>>).
-* `*D_QUEUE_MAIN*` — for each path in the previous array, this one will contain some relative version of that path at the same index.
-Relative paths are resolved against <<indct-dpl-asset-dir,deployment's asset directory>>.
-
-You may notice, that these arrays coincide with those used in the <<queue-main,queues>> (including <<link-queue,link>> and <<copy-queue,copy>> queue variations).
-The reasoning there is that assets are perfect candidates to be handled by a queue.
-You are, of course, free to override these automatically populated arrays.
-
 [[generic-queue]]
 === Generic queue
 
@@ -4420,20 +4624,20 @@ Changing this variable has no effect — use the hook's return code instead.
 
 | `*D{dus}ITEM_RETURN_CODE*`
 
-This variable is only relevant for <<link-queue,link>> and <<copy-queue,copy>> queue variations.
+This variable is only relevant for <<lnqe-main,link>> and <<cpqe-main,copy>> queue variations.
 Within queue _item_ post-processing hooks, this variable is populated with the code that is set to be returned by the corresponding mini-primary.
 Changing this variable has no effect — use the hook's return code instead.
 
 |===
 
-[[queue-manifests]]
+[[queue-mnf]]
 ==== Queue manifests
 
 <<var-queue-main,Contents>> of the queue, whatever they are, sound like a perfect candidate for separation from deployment logic.
 Queue manifests to the resqueue.
 
 A *queue manifest* is a text file, which is — by default — located in the same directory as the deployment file and named the same, except for exchanging `.dpl.sh` suffix for `.dpl.que`.
-Unlike with <<asset-manifests,asset manifests>>, you are free to customize the location/name of your queue manifest by re-assigning <<indct-dpl-que-path,`D__DPL_QUE_PATH`>> variable *at the top level* of your deployment.
+Unlike with <<assets-mnf,asset manifests>>, you are free to customize the location/name of your queue manifest by re-assigning <<indct-dpl-que-path,`D__DPL_QUE_PATH`>> variable *at the top level* of your deployment.
 
 Queue manifests follow the general <<mnf-syntax,manifest syntax>>.
 Only the key `os` is recognized within queue manifests.
@@ -4444,7 +4648,7 @@ Only the key `os` is recognized within queue manifests.
 | A suggested way of using queue manifests is:
 
 . Provide a sample queue manifest of some entries in whatever form.
-. Declare the queue manifest an asset, by listing it in your <<asset-manifests,asset manifest>>.
+. Declare the queue manifest an asset, by listing it in your <<assets-mnf,asset manifest>>.
 . Within the deployment, customize the <<indct-dpl-que-path,`D__DPL_QUE_PATH`>> variable to point to asset copy within <<fmwk-grail,the Grail>>, e.g.:
 +
 [source,bash]
@@ -4636,14 +4840,14 @@ Supported return codes:
 [[link-queue-asset-automation]]
 ==== Link queue asset automation
 
-So, you have your list of assets in a <<asset-manifests,manifest>>, and you know where to symlink them to.
+So, you have your list of assets in a <<assets-mnf,manifest>>, and you know where to symlink them to.
 Why bother with manually populating arrays?
 
 No need.
 
 _Divine.dotfiles_ provides two major automation avenues for link queue arrays:
 
-* Arrays `*D_QUEUE_MAIN*` and `*D_DPL_ASSET_PATHS*` are both <<asset-arrays,automatically populated>> when the <<asset-manifests,asset manifest>> is processed, which happens immediately before your deployment file is sourced.
+* Arrays `*D_QUEUE_MAIN*` and `*D_DPL_ASSET_PATHS*` are both <<assets-arrays,automatically populated>> when the <<assets-mnf,asset manifest>> is processed, which happens immediately before your deployment file is sourced.
 * Array `*D_DPL_TARGET_PATHS*` can be automatically populated if all your assets are intended to go into one target directory.
 +
 For that to occur, put the target directory into `*D_DPL_TARGET_DIR*` variable before any of the built-in helpers are called.
@@ -4699,7 +4903,7 @@ To use it:
 * If a file by that name already exists at destination — no copying is done.
 * Upon uninstallation, a file is only erased if there is a record of it previously being copied into that location.
 
-If you want to actually substitute existing files (while backing them up), prefer the <<link-queue,link queue>>.
+If you want to actually substitute existing files (while backing them up), prefer the <<lnqe-main,link queue>>.
 |===
 
 This kind of deployment is best demonstrated with an example:
@@ -4869,14 +5073,14 @@ Supported return codes:
 [[copy-queue-asset-automation]]
 ==== Copy queue asset automation
 
-So, you have your list of assets in a <<asset-manifests,manifest>>, and you know where to copy them to.
+So, you have your list of assets in a <<assets-mnf,manifest>>, and you know where to copy them to.
 Why bother with manually populating arrays?
 
 No need.
 
 _Divine.dotfiles_ provides two major automation avenues for copy queue arrays:
 
-* Arrays `*D_QUEUE_MAIN*` and `*D_DPL_ASSET_PATHS*` are both <<asset-arrays,automatically populated>> when the <<asset-manifests,asset manifest>> is processed, which happens immediately before your deployment file is sourced.
+* Arrays `*D_QUEUE_MAIN*` and `*D_DPL_ASSET_PATHS*` are both <<asset-arrays,automatically populated>> when the <<assets-mnf,asset manifest>> is processed, which happens immediately before your deployment file is sourced.
 * Array `*D_DPL_TARGET_PATHS*` can be automatically populated if all your assets are intended to go into one target directory.
 +
 For that to occur, put the target directory into `*D_DPL_TARGET_DIR*` variable before any of the built-in helpers are called.
@@ -5062,7 +5266,7 @@ populate_generic_queue() {
 [.note]
 [%noheader,cols="<.<a"]
 |===
-| If you use <<asset-manifests,asset manifests>>, you may <<asset-manifest-queue-split,split your queue>> directly within the asset manifest file.
+| If you use <<assets-mnf,asset manifests>>, you may <<assets-mnf-split,split your queue>> directly within the asset manifest file.
 |===
 
 == Ways to contribute

@@ -2,8 +2,8 @@
 #:title:        Divine Bash deployment helpers: reconcile
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.05
-#:revremark:    Update readme for D.d v2, pt. 5
+#:revdate:      2019.11.08
+#:revremark:    Update readme for D.d v2, pt. 7
 #:created_at:   2019.06.18
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -53,8 +53,8 @@ d__mltsk_check()
   # Initialize/reset status variables
   d__mas=( true true true true true true true true true true )
   d__mss=( false false false false false false false false false false )
-  unset D__TASK_CHECK_CODES D__MLTSK_CAP_NUM D__TASKS_ARE_QUEUES
-  unset D__TASK_FLAG_SETS
+  unset D__MLTSK_CHECK_CODES D__MLTSK_CAP_NUM D__TASKS_ARE_QUEUES
+  unset D__MLTSK_FLAGS
 
   # Iterate over numbers of task names
   for ((d__mti=0;d__mti<${#D_MLTSK_MAIN[@]};++d__mti)); do
@@ -69,7 +69,7 @@ d__mltsk_check()
     unset D__TASK_IS_QUEUE D_ADDST_MLTSK_HALT D_ADDST_TASK_CHECK_CODE
     unset D_ADDST_HALT D_ADDST_PROMPT
     unset D_ADDST_ATTENTION D_ADDST_HELP D_ADDST_WARNING D_ADDST_CRITICAL
-    D__TASK_FLAG_SETS[$d__mti]=
+    D__MLTSK_FLAGS[$d__mti]=
 
     # Expose additional variables to the task
     D__TASK_NUM="$d__mti" D__TASK_NAME="$d__mtn"
@@ -89,7 +89,7 @@ d__mltsk_check()
       d__notify -qh -- "Task's pre-check hook forces halting of multitask"
     fi
     if ! [ -z ${D_ADDST_TASK_FLAGS+isset} ]
-    then D__TASK_FLAG_SETS[$d__mti]+="$D_ADDST_TASK_FLAGS"; fi
+    then D__MLTSK_FLAGS[$d__mti]+="$D_ADDST_TASK_FLAGS"; fi
 
     # Get return code of d_dpl_check, or fall back to zero
     if ! $d__mth; then unset D_ADDST_TASK_FLAGS
@@ -99,7 +99,7 @@ d__mltsk_check()
         d__notify -qh -- "Task's checking forces halting of multitask"
       fi
       if ! [ -z ${D_ADDST_TASK_FLAGS+isset} ]
-      then D__TASK_FLAG_SETS[$d__mti]+="$D_ADDST_TASK_FLAGS"; fi
+      then D__MLTSK_FLAGS[$d__mti]+="$D_ADDST_TASK_FLAGS"; fi
     fi
 
     # Run task post-processing, if implemented
@@ -120,11 +120,11 @@ d__mltsk_check()
         d__notify -qh -- "Task's post-check hook forces halting of multitask"
       fi
       if ! [ -z ${D_ADDST_TASK_FLAGS+isset} ]
-      then D__TASK_FLAG_SETS[$d__mti]+="$D_ADDST_TASK_FLAGS"; fi
+      then D__MLTSK_FLAGS[$d__mti]+="$D_ADDST_TASK_FLAGS"; fi
     fi
 
     # Store return code
-    D__TASK_CHECK_CODES[$d__mti]=$d__mtrtc
+    D__MLTSK_CHECK_CODES[$d__mti]=$d__mtrtc
 
     # Catch add-statuses
     if ((${#D_ADDST_ATTENTION[@]}))
@@ -255,7 +255,7 @@ d__mltsk_install()
   local d__mas_a=() d__mas_r=() d__mas_w=() d__mas_c=() d__mas_h=false d__mth
   local d__mtplq d__mtdfac d__mtfrcd d__mtcc d__mtok d__mtocc d__mtof
   local d__mtbf d__mtaf d__msg d__mtflg
-  unset D__TASK_INSTALL_CODES
+  unset D__MLTSK_INSTALL_CODES
 
   # Initialize/reset status variables
   d__mas=( true true true true ) d__mss=( false false false false )
@@ -268,8 +268,8 @@ d__mltsk_install()
     # Extract number, name, and check code; compose task name; switch context
     d__mtn="${D_MLTSK_MAIN[$d__mti]}" d__mtf="d_${d__mtn}_install"
     d__mtbf="d_${d__mtn}_pre_install" d__mtaf="d_${d__mtn}_post_install"
-    d__mtcc="${D__TASK_CHECK_CODES[$d__mti]}"
-    d__mtflg="${D__TASK_FLAG_SETS[$d__mti]}"
+    d__mtcc="${D__MLTSK_CHECK_CODES[$d__mti]}"
+    d__mtflg="${D__MLTSK_FLAGS[$d__mti]}"
     d__mtplq="'$d__mtn' (#$((d__mti+1)) of ${#D_MLTSK_MAIN[@]})"
     d__context -- push "Installing task $d__mtplq"
     d__mtplq="Task $d__mtplq$NORMAL"
@@ -430,7 +430,7 @@ d__mltsk_install()
     fi
 
     # Store return code
-    D__TASK_INSTALL_CODES[$d__mti]=$d__mtrtc
+    D__MLTSK_INSTALL_CODES[$d__mti]=$d__mtrtc
 
     # Restore overwritten deployment-level variables
     D__DPL_CHECK_CODE="$d__mtocc" D__DPL_IS_FORCED="$d__mtof"
@@ -530,7 +530,7 @@ d__mltsk_remove()
   local d__mas_a=() d__mas_r=() d__mas_w=() d__mas_c=() d__mas_h=false d__mth
   local d__mtplq d__mtabn d__mtfrcd d__mtcc d__mtok d__mtocc d__mtof
   local d__mtbf d__mtaf d__mtflg
-  unset D__TASK_REMOVE_CODES
+  unset D__MLTSK_REMOVE_CODES
 
   # Initialize/reset status variables
   d__mas=( true true true true ) d__mss=( false false false false )
@@ -543,8 +543,8 @@ d__mltsk_remove()
     # Extract number, name, and check code; compose task name; switch context
     d__mtn="${D_MLTSK_MAIN[$d__mti]}" d__mtf="d_${d__mtn}_remove"
     d__mtbf="d_${d__mtn}_pre_remove" d__mtaf="d_${d__mtn}_post_remove"
-    d__mtcc="${D__TASK_CHECK_CODES[$d__mti]}"
-    d__mtflg="${D__TASK_FLAG_SETS[$d__mti]}"
+    d__mtcc="${D__MLTSK_CHECK_CODES[$d__mti]}"
+    d__mtflg="${D__MLTSK_FLAGS[$d__mti]}"
     d__mtplq="'$d__mtn' (#$((d__mti+1)) of ${#D_MLTSK_MAIN[@]})"
     d__context -- push "Removing task $d__mtplq"
     d__mtplq="Task $d__mtplq$NORMAL"
@@ -699,7 +699,7 @@ d__mltsk_remove()
     fi
 
     # Store return code
-    D__TASK_REMOVE_CODES[$d__mti]=$d__mtrtc
+    D__MLTSK_REMOVE_CODES[$d__mti]=$d__mtrtc
 
     # Restore overwritten deployment-level variables
     D__DPL_CHECK_CODE="$d__mtocc" D__DPL_IS_FORCED="$d__mtof"
@@ -793,8 +793,8 @@ d___reconcile_task_check_codes()
 {
   if [[ $D_MLTSK_LEADER =~ ^[0-9]+$ ]] \
     && ! [ -z ${D_MLTSK_MAIN[$D_MLTSK_LEADER]+isset} ] \
-    && [[ ${D__TASK_CHECK_CODES[$D_MLTSK_LEADER]} =~ ^[0-9]+$ ]]
-  then return ${D__TASK_CHECK_CODES[$D_MLTSK_LEADER]}; fi
+    && [[ ${D__MLTSK_CHECK_CODES[$D_MLTSK_LEADER]} =~ ^[0-9]+$ ]]
+  then return ${D__MLTSK_CHECK_CODES[$D_MLTSK_LEADER]}; fi
   local i c=0; for ((i=0;i<10;++i)); do ${d__mas[$i]} && return $i; done
   for i in 0 1 2 4 5 6 7 8 9; do ${d__mss[$i]} && ((++c)); done
   case $c in

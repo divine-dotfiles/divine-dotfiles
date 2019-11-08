@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: remove
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.05
-#:revremark:    Update readme for D.d v2, pt. 5
+#:revdate:      2019.11.08
+#:revremark:    Update readme for D.d v2, pt. 7
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -383,7 +383,8 @@ d___remove_dpls()
       D_DPL_PRIORITY="$d__prty"
       readonly D__DPL_SH_PATH="$d__dpl_p"
       D__DPL_MNF_PATH="${d__dpl_p%$D__SUFFIX_DPL_SH}"
-      D_DPL_QUE_PATH="${D__DPL_MNF_PATH}$D__SUFFIX_DPL_QUE"
+      readonly D__DPL_QUE_PATH="${D__DPL_MNF_PATH}$D__SUFFIX_DPL_QUE"
+      unset D_ADDST_QUEUE_MNF_PATH
       readonly D__DPL_MNF_PATH+="$D__SUFFIX_DPL_MNF"
       readonly D__DPL_DIR="$( dirname -- "$d__dpl_p" )"
       readonly D__DPL_ASSET_DIR="$D__DIR_ASSETS/$D_DPL_NAME"
