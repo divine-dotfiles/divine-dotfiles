@@ -2,7 +2,7 @@
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
 :revdate: 2019.11.11
-:revremark: Rename queue arrays
+:revremark: Update readme for D.d v2, pt. 8
 :doctype: article
 // Visual
 :toc: macro
@@ -411,7 +411,7 @@ Assumes an affirmative (`--yes`) or negatory (`--no`) answer specifically to the
 `*-f*`, `*--force*`
 +++</p>+++
 
-The framework adheres to the non-interference <<fmwk-non-interference, policy>>.
+The framework adheres to the non-interference <<fmwk-non-interference,policy>>.
 
 If the destination path for the framework already exists and is not an empty directory, the installation unconditionally backs off with an alert.
 
@@ -534,7 +534,7 @@ Assumes an affirmative (`--yes`) or negatory (`--no`) answer specifically to the
 `*-f*`, `*--force*`
 +++</p>+++
 
-The framework adheres to the reversibility <<fmwk-reversibility, policy>>.
+The framework adheres to the reversibility <<fmwk-reversibility,policy>>.
 
 If the script fails to uninstall any of the optional dependencies, the installation unconditionally backs off with an alert.
 
@@ -544,7 +544,7 @@ The `--force` option directs to instead <<fmwk-upmt,urgently>> prompt the user a
 `*-o*`, `*--obliterate*`
 +++</p>+++
 
-The framework adheres to the zero data loss <<fmwk-zero-data-loss, policy>>.
+The framework adheres to the zero data loss <<fmwk-zero-data-loss,policy>>.
 
 Accordingly, during the uninstallation of the framework, its directory is displaced into a backup location.
 
@@ -890,7 +890,7 @@ The status of the prompt options is reflected in the value of the `$*D__OPT_ANSW
 [[opt-obliterate]]`*-o*`, `*--obliterate*`
 +++</p>+++
 
-The framework adheres to the zero data loss <<fmwk-zero-data-loss, policy>>.
+The framework adheres to the zero data loss <<fmwk-zero-data-loss,policy>>.
 
 Whenever a built-in framework mechanism is not sure whether a particular piece of data is recoverable, it chooses to displace it to a backup location instead of deleting it.
 
@@ -905,7 +905,7 @@ The presence of the `--obliterate` option is reflected in the value of the `$*D_
 [[opt-force]]`*-f*`, `*--force*`
 +++</p>+++
 
-The framework adheres to the non-interference <<fmwk-non-interference, policy>>.
+The framework adheres to the non-interference <<fmwk-non-interference,policy>>.
 
 During the <<rtn-install,`install`>> and <<rtn-remove,`remove`>> routines, if the `check` <<rtc-check,code>> speaks to a clash with something done by the user or the operating system (e.g., a previously installed file is nowhere to be found), the framework unconditionally backs off with an alert.
 
@@ -1132,7 +1132,7 @@ Other options notwithstanding, *the* `*--no*` *option guarantees a 'dry run'*: n
 `*-o*`, `*--obliterate*`
 +++</p>+++
 
-The framework adheres to the zero data loss <<fmwk-zero-data-loss, policy>>.
+The framework adheres to the zero data loss <<fmwk-zero-data-loss,policy>>.
 
 Accordingly, during the `plug` routine the pre-existing Grail directory is displaced into a backup location.
 
@@ -3055,386 +3055,144 @@ _Divine.dotfiles_ uses a system of prefixes to gradually separate the framework'
 ** `**d{us}**name` — the functions to be implemented, e.g., the <<func-primaries,primary functions>>.
 * The double-underscore prefixes are for entities to be accessed by a deployment:
 ** `**D{dus}**NAME` — the variables to be read, e.g., the <<indct-main,indicators>>.
-** `**d{dus}**name` — the functions to be called, e.g., the <<stash,`d__stash`>> function.
+** `**d{dus}**name` — the functions to be called, e.g., the <<stash-main,`d__stash`>> function.
 * The triple-underscore prefixes are for entities that are strictly internal:
 ** `**d{dus}{us}**name` — the functions that the framework uses for logic encapsulation.
 
 To stay on the safe side, the <<deployments,deployment>> code needs to stay away from identifiers that start with the letter `d`/`D` followed by an underscore, unless a framework mechanism is being employed.
 
-[[divine-workflow]]
+[[wkfl-main]]
 === Divine workflow
+
+====
+Divine workflow functions:
+
+[none]
+* <<func-context,Function `d{dus}context`>>
+* <<func-notify,Function `d{dus}notify`>>
+* <<func-prompt,Function `d{dus}prompt`>>
+* <<func-fail,Function `d{dus}fail`>>
+* <<func-cmd,Function `d{dus}cmd`>>
+* <<func-pipe,Function `d{dus}pipe`>>
+* <<func-require,Function `d{dus}require`>>
+====
 
 The Divine workflow is the recommended way to organize Bash code within deployments.
 The framework provides a set of functions that facilitate breaking down Bash code into meaningful blocks.
-The goal here is to both annotate the code and automatically provide useful debug output.
+The goal of the workflow system is to both annotate the code and automatically provide useful debug output.
 
 Central to the idea of the Divine workflow is the concept of *workflow context*.
-The workflow context is a stack (very similar to the function https://en.wikipedia.org/wiki/Call_stack[call stack]) that at any moment contains the hierarchy of tasks currently being performed.
-An example of the context stack would look like this:
+The workflow context is a stack (similar to the function https://en.wikipedia.org/wiki/Call_stack[call stack]) that at any moment contains the hierarchy of tasks currently being performed.
+The context stack can be visualized like this:
 
 .Illustration of the Divine workflow context stack
-====
-[start=0]
-. Running _Divine.dotfiles_ `install` routine.
-. Installing deployments at priority `4096`.
-. Deployment `example`.
-+
+[source]
+----
+0. Running `install` routine
+1. Installing deployments at priority `4096`
+2. Deployment `example`
 ---
-. Executing a particular task within the deployment.
-. Executing a sub-task.
-====
+3. Executing a particular task within the deployment
+4. Executing a sub-task
+----
 
 The context stack starts at the root and grows down to arbitrary depth.
-Context items are pushed and popped from the bottom.
-*Notches* (represented by a horizontal line in the illustration) delimit logical layers and provide a way to quickly pop multiple items.
+Context items are *pushed* and *popped* from the bottom.
+*Notches* — represented by the three hyphens (`---`) in the illustration — delimit the logical stratas.
 
-[[divine-workflow-guide]]
+[[wkfl-guide]]
 With the idea of context in mind, the Divine workflow boils down to the following principles:
 
-* Everything should be written within Bash functions.
-* There should be a function for every logical sub-routine.
-* The workflow context should be maintained by calling <<func-context,`d{dus}context`>> at specific junctions:
-** At the beginning of a <<func-primaries,primary function>> — `d{dus}context notch`.
-** At the top of every sub-routine — `d{dus}context push`.
-* Whenever a sub-routine needs to fail, two pathways are available:
-** Critical commands should be enwrapped in <<func-cmd,`d{dus}cmd`>>, <<func-pipe,`d{dus}pipe`>>, or <<func-require,`d{dus}require`>>.
-** 'Manual' failures should be orchestrated via <<func-fail,`d{dus}fail`>>.
+* The logic should be encapsulated in functions.
+* The workflow context tree should be grown by calling the <<func-context,`d{dus}context`>> function:
+** `d{dus}context notch` — to place a notch.
+** `d{dus}context push` — to push a workflow item onto the stack.
+* Whenever a context branch needs to fail:
+** Critical commands could be wrapped in the <<func-cmd,`d{dus}cmd`>>, <<func-pipe,`d{dus}pipe`>>, or <<func-require,`d{dus}require`>> calls.
+** 'Manual' failures should be orchestrated via the <<func-fail,`d{dus}fail`>> function.
 * To interact with the user along the way:
-** Non-failure alerts should be delivered via <<func-notify,`d{dus}notify`>>.
-** Prompts that include information on current workflow context can be initiated via <<func-prompt,`d{dus}prompt`>>.
-* <<func-context,`d{dus}context`>> should again be used to wrap things up:
-** Before successfully returning from a sub-routine — `d{dus}context pop`.
-** Before successfully returning from a <<func-primaries,primary function>> — `d{dus}context lop`.
+** Non-failure alerts should be delivered via the <<func-notify,`d{dus}notify`>> function.
+** Prompts could be initiated via the <<func-prompt,`d{dus}prompt`>> function.
+* To finalize successful runs:
+** `d{dus}context pop` — to pop a workflow item from the stack.
+** `d{dus}context lop` — to slash the context stack up to and including the latest notch.
 
-.Illustration of the Divine workflow
+If a `push` is prepended to every logical unit of code, and then a matching `pop` is appended at the end, a useful pattern of breadcrumbs arises in the debug output.
+The Divine workflow functions (<<func-notify,`d{dus}notify`>>, <<func-prompt,`d{dus}prompt`>>, <<func-fail,`d{dus}fail`>>, <<func-cmd,`d{dus}cmd`>>, <<func-pipe,`d{dus}pipe`>>, <<func-require,`d{dus}require`>>) may include the state of the context stack in their output.
+
+.Divine workflow in action
 [source,bash]
 ----
-# grail/dpls/example.dpl.sh
-
 d__dpl_install()
 {
-  d__context notch          # mark beginning of primary
-  
-  perform_task || return 1  # do the work
-
-  d__context lop            # lop off everything down to and including the notch
-  return 0
-}
-
-perform_task()
-{
-  d__context push 'Performing task'
-
-  perform_sub_task || return 1
-
-  d__context pop
-  return 0
-}
-
-perform_sub_task()
-{
-  d__context push 'Performing sub-task'
-
-  d__require [ --THIS-- "$this_number" -eq --THAT-- "$that_number" ] \
-    --else-- 'Refusing to proceed' \
-    || return 1
-
-  d__notify --loud --context-head --title Attention -- 'Sub-task done'
-
-  d__context pop
+  d__context notch
+  d__context push 'Installing feature'
+  d__context push 'Performing critical work'
+  d__cmd perform_critical_work --ARG-- "$some_arg" \
+    --else-- 'Nothing was installed' || return 1
+  d__context lop
   return 0
 }
 ----
 
-.Example of success output from the illustration of the Divine workflow above
+With the default <<opt-verbosity,verbosity>> level, the code above produces no output when successful.
+If something goes wrong in the critical task, a message similar to the following will be printed:
+
 [source,subs="verbatim,quotes,attributes"]
 ----
-[.yellow]#*==>*# *Attention:* Sub-task done
-    *Context:* Performing task
-             Performing sub-task
+[.red]#*==>*# *Command failed:* perform_critical_work *ARG*
+        *ARG:* 'whetever $some_arg variable contained'
+    *Context:* Installing feature
+             Performing critical work
+    *Result:* Nothing was installed
 ----
-
-.Example of failure output from the illustration of the Divine workflow above
-[source,subs="verbatim,quotes,attributes"]
-----
-[.red]#*==>*# *Command failed:* [ *THIS* -eq *THAT* ]
-        *THIS:* '0'
-        *THAT:* '1'
-    *Context:* Performing task
-             Performing sub-task
-    *Result:* Refusing to proceed
-----
-
-=== Variables available to deployments
-
-.List of variables available/recognized in each deployment
-[%noheader,cols="<.<a",stripes=none]
-|===
-
-^.^h| <<dpls-metadata,Deployment metadata>>
-
-| `*D_DPL_NAME*`
-
-Explicit name for the deployment.
-
-This variable will be non-empty even if there is no assignment within the file.
-
-| `*D_DPL_DESC*`
-
-One-line description of the deployment.
-
-| `*D_DPL_PRIORITY*`
-
-Priority of the deployment (non-negative integer).
-
-This variable will be non-empty even if there is no assignment within the file.
-
-| `*D_DPL_FLAGS*`
-
-One-character flags, causing special treatment.
-
-| `*D_DPL_WARNING*`
-
-One-line cautionary message about this deployment.
-
-^.^h| Special directory paths
-
-| [#ind-dpl-dir]#`*D__DPL_DIR*`#
-
-Absolute path to directory containing `*.dpl.sh` file.
-
-| [#ind-dpl-asset-dir]#`*D__DPL_ASSET_DIR*`#
-
-Generated absolute path to directory assigned to hold assets of current deployment.
-
-Located within <<fmwk-grail,the Grail>>, specifically `grail/assets/*_D_DPL_NAME_*/`.
-
-| [#ind-dpl-backup-dir]#`*D__DPL_BACKUP_DIR*`*_`#_*`
-
-
-Generated absolute path to directory assigned to hold backups of current deployment.
-Located within <<state-directory
-state directory>>, specifically `stat`/backup
-`*`
-^.^`| Special file 
-
-| [#var-dpl-sh-path]#`*D_
-DPL_SH_PATH*`#
-
-Absolute path `*_to_*` `*.dpl.sh` fil<func-pop-backup,<e`>>.
-
-`
-
-| [#ind-dpl-mnf-path]#`*D__DPL_MNF_PATH*`#
-
-Generated absolute path to asset manifest of current deployment.
-This path does not necessarily exist.
-
-Same as `*_D__DPL_SH_PATH_*`, but with suffix changed to `*.dpl.mnf`.
-
-[.note]
-[%noheader,cols="<.<a"]
-!===
-! Asset manifests are also processed by routines that don't source deployments.
-
-Thus, path to asset manifest is locked, and this variable is read-only.
-!===
-
-| [#ind-dpl-que-path]#`*D__DPL_QUE_PATH*`#
-
-Generated absolute path to queue manifest of current deployment.
-This path does not necessarily exist.
-
-Same as `*_D__DPL_SH_PATH_*`, but with suffix changed to `*.dpl.que`.
-
-[.note]
-[%noheader,cols="<.<a"]
-!===
-! Queue manifests are processed only after sourcing their deployment file.
-
-Thus, you are free to adjust this path at the top level of deployment script.
-!===
-
-^.^h| [#ind-os]#Detected operating system (OS)#
-
-| [#ind-os-family]#`*D__OS_FAMILY*`#
-
-Broad description of current OS.
-
-Exhaustive list of possible values:
-
-* `bsd` — https://en.wikipedia.org/wiki/List_of_BSD_operating_systems[BSD descendants]
-* `cygwin` — https://en.wikipedia.org/wiki/Cygwin[Cygwin]
-* `linux` — https://en.wikipedia.org/wiki/Linux[Linux]
-* `macos` — https://en.wikipedia.org/wiki/MacOS[macOS]
-* `msys` — https://en.wikipedia.org/wiki/MinGW[Minimalist GNU for Windows]
-* `solaris` — https://en.wikipedia.org/wiki/Solaris_(operating_system)[Oracle Solaris]
-* `wsl` — https://en.wikipedia.org/wiki/Windows_Subsystem_for_Linux[Windows Subsystem for Linux]
-
-[.note]
-[%noheader,cols="<.<a"]
-!===
-! Note that `linux` and `wsl` are separate entries.
-Check for both to determine whether currently under modern Linux, e.g.:
-
-[source,bash,subs="verbatim,attributes"]
-----
-case $D__OS_FAMILY in
-  linux{vbar}wsl)   echo linux;;
-  *)           echo other;;
-esac
-----
-
-!===
-
-| [#ind-os-distro]#`*D__OS_DISTRO*`#
-
-Best guess on the name of the current OS distribution.
-
-Exhaustive list of possible values:
-
-* `debian`
-* `fedora`
-* `freebsd`
-* `macos`
-* `ubuntu`
-* _empty_ — failed to reliably detect a supported distribution
-
-[.note]
-[%noheader,cols="<.<a"]
-!===
-! This list is incomplete; you can help by <<cntrb-os-support,expanding it>>.
-!===
-
-| [#ind-os-pkgmgr]#`*D__OS_PKGMGR*`#
-
-Name of supported system package manager available on current system.
-
-Exhaustive list of possible values:
-
-* `apt-get`
-* `brew`
-* `dnf`
-* `pkg`
-* `yum`
-* _empty_ — failed to reliably detect a supported package manager
-
-[.note]
-[%noheader,cols="<.<a"]
-!===
-! This list is incomplete; you can help by <<cntrb-os-support,expanding it>>.
-!===
-
-When this variable is non-empty, you also have the built-in <<func-os-pkgmgr,package manager wrapper>>, `d__os_pkgmgr()`, at your disposal.
-
-^.^h| [#marker-vars]#Marker variables in <<func-dpl-check,check>> primary#
-
-| [#var-another-prompt]#`*D_DPL_NEEDS_ANOTHER_PROMPT*`#
-
-Set this variable to `true` to trigger an <<mtdt-aa,urgent prompt>> before the framework proceeds to (un)installation.
-
-_Works only during `install`/`remove` <<rtn-primaries,routines>> and only if set within <<func-dpl-check,check>> primary._
-
-| [#var-another-warning]#`*D_DPL_NEEDS_ANOTHER_WARNING*`#
-
-If `$D_DPL_NEEDS_ANOTHER_PROMPT` is set to `true` and this variable is non-empty, then its content is shown to the user as textual warning.
-
-_Works only during `install`/`remove` <<rtn-primaries,routines>> and only if set within <<func-dpl-check,check>> primary._
-
-| [#var-user-or-os]#`*D_DPL_INSTALLED_BY_USER_OR_OS*`#
-
-Set this variable to `true` to signal to the framework: whatever parts of current deployment are installed, have been installed by other methods, not by this framework.
-
-_Works only if set within check primary._
-_Value of `true` is preserved into install/remove primaries, even in <<mltsk-main,multitask>> sub-primaries._
-
-This affects behavior of the following return codes of <<func-dpl-check,`d_dpl_check`>>:
-
-* `1` ('installed') — prohibits uninstalling;
-* `4` ('partly installed') — prohibits uninstalling.
-
-[.note]
-[%noheader,cols="<.<a"]
-!===
-! This is useful for deployments designed to not interfere with manual tinkering.
-!===
-
-^.^h| Check code in <<func-dpl-install,install>>/<<func-dpl-remove,remove>> primaries
-
-| [#ind-dpl-check-code]#`*D__DPL_CHECK_CODE*`#
-
-Within install/remove primaries, this variable contains the code returned by their respective check primary.
-This is also the case within <<mltsk-main,multitask>> sub-primaries.
-
-^.^h| Parameters of current request
-
-| `*D__REQ_ROUTINE*`
-
-Name of <<rtn-primaries,primary routine>> currently being executed:
-
-* `check`
-* `install`
-* `remove`
-
-| `*D__OPT_FORCE*`
-
-Whether `-f` / `--force` option is provided:
-
-* `true`
-* `false`
-
-| [#var-opt-verbosity]#`*D__OPT_VERBOSITY*`#
-
-Represent the current <<opt-verbose,global verbosity level>>.
-The value is a non-negative integer, where zero stands for the minimal verbosity.
-
-| `*D__OPT_EXCLAM*`
-
-Whether `-w` / `--with-!` option is provided to process <<mtdt-exclam,dangerous>> deployments:
-
-* `true`
-* `false`
-
-| `*D__OPT_ANSWER*`
-
-Which blanket answer is provided last.
-This affects all non-<<mtdt-aa,urgent>> built-in prompts.
-
-* `true` — affirmative answer is provided
-* `false` — negatory answer is provided
-* _empty_ — no blanket answer is provided
-
-|===
-
-=== Functions available to deployments
 
 [[func-context]]
 ==== Function `d{dus}context`
 
-The function `d{dus}context` manipulates the current Divine <<divine-workflow,workflow>> context stack.
-For notes on usage within the Divine workflow, see the workflow <<divine-workflow-guide,guidelines>>.
+The function `d{dus}context` manipulates the context stack of the Divine <<wkfl-main,workflow>>.
+The main <<wkfl-main,section>> ties together the usage of the Divine workflow.
 
 [source,subs="verbatim,quotes,attributes"]
 ----
-*d{dus}context* [-lnq] [-t *_TITLE_*] [--] *push*|*pop*|*notch*|*lop* *_DESCRIPTION_*...
+*d{dus}context* [-!dlnqsvx] [-t *_TITLE_*] [--] *push*|*pop*|*notch*|*lop* *_DESCRIPTION_*|[*_DESCRIPTION_*]
 ----
 
-The `push` and `pop` operations add and remove context items from below, respectively.
-The `notch` operation places an invisible mark at the tip of the stack.
-The `lop` operation repeatedly executes a `pop` until the next notch (or root) is reached, and then removes that notch.
+The usage per routine is:
 
-Any number of notches can be made, as long as they are not duplicated (at the same position).
-Within the context stack, the latest pushed item is called the *tip*, and the items pushed after the latest notch are called the *head*.
+* `*push* *_DESCRIPTION_*` — appends the `*_DESCRIPTION_*` item to the bottom of the context stack.
+* `*pop* [*_DESCRIPTION_*]` — removes an item from the bottom of the context stack.
++
+If given, the optional `*_DESCRIPTION_*` substitutes for the actual description of the popped item.
+* `*notch*` — places a notch past the bottom of the context stack.
+* `*lop*` — repeatedly executes a `pop` until the latest notch (or root) is reached, and then removes that notch.
 
-Most stack manipulations trigger a debug message that honors the <<opt-verbose,global verbosity level>>, as stored in <<var-opt-verbosity,`$D{dus}OPT_VERBOSITY`>>.
-If a `push` is prepended to every logical unit of code, and then a matching `pop` is appended at the end, a useful pattern of breadcrumbs arises in the debug output.
-Other Divine workflow utilities (<<func-notify,`d{dus}notify`>>, <<func-prompt,`d{dus}prompt`>>, <<func-fail,`d{dus}fail`>>, <<func-cmd,`d{dus}cmd`>>, <<func-pipe,`d{dus}pipe`>>, <<func-require,`d{dus}require`>>) may include the state of the context stack in their output.
+All stack manipulations trigger a debug message that honors the <<opt-verbosity,global verbosity level>>.
+
+Any number of notches can be made, as long as they are not duplicated at the same position.
+Within the context stack, the latest pushed item is called the *tip*, and all items pushed after the latest notch are collectively called the *head*.
 
 Each item on the context stack must be given a `*_DESCRIPTION_*`.
-As a matter of good style, the `*_DESCRIPTION_*` should be worded around either a noun or a verb in its -ing form (gerund).
-Repetition of information from above levels should be minimized.
+Stylistically, the `*_DESCRIPTION_*` should be a single sentence (no full stop at the end), worded around either a noun or a https://en.wikipedia.org/wiki/Gerund[gerund] (_yeah, that's important!_).
+Repetition of information from the above levels should be minimized.
 
-Returns:
+.Output layout of `d{dus}context`
+[source,subs="verbatim,quotes,attributes"]
+----
+# Pushing an item
+==> *Start*: Description of the context item
+
+# Popping an item
+==> *End*: Description of the context item
+
+# Making a notch
+==> *Notched*: At position _X_
+
+# Removing a notch
+==> *De-notched*: At position _X_
+----
+
+The return codes are:
 
 * `0` — Stack modified as requested.
 * `1` — Stack not modified: no arguments or unrecognized first argument.
@@ -3446,109 +3204,95 @@ Returns:
 [%noheader,cols="<.<a",stripes=none]
 |===
 
-| `*-t* *_TITLE_*`, `*--title* *_TITLE_*`
+| +++<p align="center">+++
+`*-t* _TITLE_`, `*--title* _TITLE_`
++++</p>+++
 
-Sets custom title for the debug message.
-All operations have default titles; these are shown in the illustration below in *bold*:
+Sets a custom title for the debug message.
+The title is not a part of the `*_DESCRIPTION_*`.
+All operations have default titles (these are shown in the illustration above in *bold*).
 
-[source,subs="verbatim,quotes,attributes"]
-----
-# Pushing an item
-==> *Start*: Description of the context item
+| +++<p align="center">+++
+`*-n*`, `*--newline*`
++++</p>+++
 
-# Popping an item
-==> *End*: Description of the context item
+When this option is given: if the function produces any output, an extra newline is prepended to it.
 
-# Making a notch
-==> *Notched*: At position X
+| +++<p align="center">+++
+*Quiet options*
++++<br>+++
+`*-q*`, `*--quiet*` _(repeatable)_
++++<br>+++
+`*-l*`, `*--loud*`
++++</p>+++
 
-# Removing a notch
-==> *De-notched*: At position X
-----
+The *quiet options* designate the *quiet level* for the current call.
+The function's output is printed only if the <<opt-verbosity,global verbosity level>> is greater than or equal to the quiet level.
 
-| `*-n*`, `*--newline*`
+When the quiet options are read, left-to-right, the quiet level starts at zero:
 
-With this option, if this function produces any output, an extra newline is prepended to it.
+* Each `--quiet` option increments the quiet level by one.
+* The `--loud` option sets the quiet level to zero.
 
-^.^h| Quiet options
-
-| *Quiet options* designate the *quiet level* for the current call.
-Changes to context are announced only if the <<opt-verbose,global verbosity level>> is greater than or equal to the quiet level.
-
-Quiet options are read sequentially, left-to-right, and the quiet level starts at zero.
-However, if these options are not given at all, the default quiet levels per operation are:
+However, if none of the quiet options are given, the default quiet levels per operation are:
 
 * `*push*` — `2`
 * `*pop*` — `3`
 * `*notch*` — `4`
 * `*lop*` — `4`
 +
-The default quiet level for the `lop` operation includes the underlying `pop` operations.
-For the pops to be performed at a different quiet level, they must be initiated separately.
+The default quiet level for the `lop` applies to the underlying ``pop``s.
+For the ``pop``s to be performed at a different quiet level, they must be made separately.
 
-| `*-q*`, `*--quiet*`
+| +++<p align="center">+++
+*Styling options*
++++<br>+++
+`*-d*`, `*--debug*` _(default)_
++++<br>+++
+`*-!*`, `*--alert*`
++++<br>+++
+`*-v*`, `*--success*`
++++<br>+++
+`*-x*`, `*--failure*`
++++<br>+++
+`*-s*`, `*--skip*`
++++</p>+++
 
-_(repeatable)_
-Increments the quiet level by one.
-
-| `*-l*`, `*--loud*`
-
-Sets the quiet level to zero.
-
-^.^h| Styling options (one active at a time, last option wins)
-
-| *Styling options* are only relevant if the terminal coloring is available.
+The *styling options* are only relevant if the terminal coloring is available.
 Otherwise, they do nothing.
 
-In all modes titles are formatted in *bold*.
+The titles are formatted in *bold*, and on top of that:
 
-| `*-d*`, `*--debug*`
+* The `--debug` option paints the entire output in cyan.
+* The `--alert` option paints the introductory arrow in yellow.
+* The `--success` option paints the introductory arrow in green.
+* The `--failure` option paints the introductory arrow in red.
+* The `--skip` option paints the introductory arrow in white.
 
-_(default)_
-Colors the entire output in cyan.
-
-| `*-!*`, `*--alert*`
-
-Colors the introductory arrow in yellow.
-
-| `*-v*`, `*--success*`
-
-Colors the introductory arrow in green.
-
-| `*-x*`, `*--failure*`
-
-Colors the introductory arrow in red.
-
-| `*-s*`, `*--skip*`
-
-Colors the introductory arrow in white.
+These options are not combined and the last option given wins.
 
 |===
 
 [[func-notify]]
 ==== Function `d{dus}notify`
 
-The function `d{dus}notify` conveys any information to the user and does not produce any side effects.
-For notes on usage within the Divine workflow, see the workflow <<divine-workflow-guide,guidelines>>.
+The `d{dus}notify` function is a debug printer that does not cause any side effects.
+The main <<wkfl-main,section>> ties together the usage of the Divine workflow.
 
 [source,subs="verbatim,quotes,attributes"]
 ----
 *d{dus}notify* [-!1cdhlnqsuvx] [-t *_TITLE_*] [--] [*_DESCRIPTION_*...]
 ----
 
-Whether the output is printed depends on the <<opt-verbose,global verbosity level>>, as stored in <<var-opt-verbosity,`$D{dus}OPT_VERBOSITY`>>.
+Whether the output is printed depends on the <<opt-verbosity,global verbosity level>>.
 
-Returns:
-
-* `0` — Always.
-
-.The layout of the output of `d{dus}notify` (without any arguments)
+.Output layout of `d{dus}notify` (without any arguments)
 [source,subs="verbatim,quotes,attributes"]
 ----
 ==> *_TITLE_*
 ----
 
-.The layout of the output of `d{dus}notify` (all optional parts included)
+.Output layout of `d{dus}notify` (all optional parts included)
 [source,subs="verbatim,quotes,attributes"]
 ----
 ==> *_TITLE_*: *_DESCRIPTION-0_*
@@ -3559,120 +3303,139 @@ Returns:
              ...
 ----
 
-* `*_TITLE_*` — _(optional)_ Short heading for the notification.
-Defaults to:
-** Without a `*_DESCRIPTION_*` — omitted.
-** With a `*_DESCRIPTION_*` — `Generic alert`.
-* `*_DESCRIPTION_*` — _(optional)_ Short elaboration on the notification.
-* `*_CONTEXT_*` — _(optional)_ Some part of the context stack, as requested by any of the relevant options.
+* `*_TITLE_*` — _(optional)_ a short heading.
+* `*_DESCRIPTION_*` — _(optional)_ an elaboration.
+* `*_CONTEXT_*` — _(optional)_ some part of the context stack (depending on options).
++
 The entire context block is omitted if the context stack is not requested or is empty.
+
+The return codes are:
+
+* `0` — Always.
 
 .List of `d{dus}notify` options
 [%noheader,cols="<.<a",stripes=none]
 |===
 
-| `*-u*`, `*--sudo*`
+| +++<p align="center">+++
+`*-u*`, `*--sudo*`
++++</p>+++
 
-Print the notification only if the caller lacks the `sudo` privilege.
+Directs to print the notification only if the caller lacks the `sudo` privilege.
 Automatically makes the notification `--loud`.
-Also, automatically sets the `*_TITLE_*` to `Password prompt` and the `*_DESCRIPTION_*` to `The upcoming command requires sudo privileges.`, unless these parts are already set.
 
-| `*-t* *_TITLE_*`, `*--title* *_TITLE_*`
+With this option, new defaults are in effect:
 
-Sets custom title for the notification.
+* `*_TITLE_*` — `Password prompt`.
+* `*_DESCRIPTION_*` — `The upcoming command requires sudo privileges`.
+
+| +++<p align="center">+++
+`*-t* _TITLE_`, `*--title* _TITLE_`
++++</p>+++
+
+Sets a custom title for the notification.
 
 Without this option, the `*_TITLE_*` defaults to:
 
-** Without a `*_DESCRIPTION_*` — omitted.
-** With a `*_DESCRIPTION_*` — `Generic alert`.
+** With a `*_DESCRIPTION_*` — omitted.
+** Without a `*_DESCRIPTION_*` — `Generic alert`.
 
-| `*-n*`, `*--newline*`
+| +++<p align="center">+++
+`*-n*`, `*--newline*`
++++</p>+++
 
-With this option, if this function produces any output, an extra newline is prepended to it.
+When this option is given: if the function produces any output, an extra newline is prepended to it.
 
-^.^h| Quiet options
+| +++<p align="center">+++
+*Quiet options*
++++<br>+++
+`*-q*`, `*--quiet*` _(repeatable)_
++++<br>+++
+`*-l*`, `*--loud*`
++++</p>+++
 
-| *Quiet options* designate the *quiet level* for the current call.
-The notification is printed only if the <<opt-verbose,global verbosity level>> is greater than or equal to the quiet level.
+The *quiet options* designate the *quiet level* for the current call.
+The function's output is printed only if the <<opt-verbosity,global verbosity level>> is greater than or equal to the quiet level.
 
-Quiet options are read sequentially, left-to-right, and the quiet level starts at zero.
-However, if these options are not given at all, the default quiet level is `1`.
+When the quiet options are read, left-to-right, the quiet level starts at zero:
 
-| `*-q*`, `*--quiet*`
+* Each `--quiet` option increments the quiet level by one.
+* The `--loud` option sets the quiet level to zero.
 
-_(repeatable)_
-Increments the quiet level by one.
+However, if none of the quiet options are given, the default quiet level is `1`.
 
-| `*-l*`, `*--loud*`
+| +++<p align="center">+++
+*Context options*
++++<br>+++
+`*-c*`, `*--context-all*`
++++<br>+++
+`*-h*`, `*--context-head*`
++++<br>+++
+`*-1*`, `*--context-tip*`
++++</p>+++
 
-Sets the quiet level to zero.
+Includes the context block in the output with the following content:
 
-^.^h| Context-related options (one active at a time, last option wins)
+* `--context-all` — the entire context stack;
+* `--context-head` — the head of the context stack (the items pushed since the last notch);
+* `--context-tip` — the tip of the context stack (the last pushed item).
 
-| `*-c*`, `*--context-all*`
+These options are not combined and the last option given wins.
 
-Includes the entire workflow context stack in the output.
+| +++<p align="center">+++
+*Styling options*
++++<br>+++
+`*-d*`, `*--debug*` _(default)_
++++<br>+++
+`*-!*`, `*--alert*`
++++<br>+++
+`*-v*`, `*--success*`
++++<br>+++
+`*-x*`, `*--failure*`
++++<br>+++
+`*-s*`, `*--skip*`
++++</p>+++
 
-| `*-h*`, `*--context-head*`
-
-Includes the head of the workflow context stack (the items pushed since the last notch) in the output.
-
-| `*-1*`, `*--context-tip*`
-
-Includes the tip of the workflow context stack (the last pushed item) in the output.
-
-^.^h| Styling options (one active at a time, last option wins)
-
-| *Styling options* are only relevant if the terminal coloring is available.
+The *styling options* are only relevant if the terminal coloring is available.
 Otherwise, they do nothing.
 
-In all modes titles are formatted in *bold*.
+The titles are formatted in *bold*, and on top of that:
 
-| `*-d*`, `*--debug*`
+* The `--debug` option paints the entire output in cyan.
+* The `--alert` option paints the introductory arrow in yellow.
+* The `--success` option paints the introductory arrow in green.
+* The `--failure` option paints the introductory arrow in red.
+* The `--skip` option paints the introductory arrow in white.
 
-_(default)_
-Colors the entire output in cyan.
+These options are not combined and the last option given wins.
 
-| `*-!*`, `*--alert*`
+| +++<p align="center">+++
+*Special para-options*
++++<br>+++
+`*-t-*`
++++<br>+++
+`*-n-*`
++++<br>+++
+`*-i-*`
++++</p>+++
 
-Colors the introductory arrow in yellow.
+The *para-options* work only _to the right_ of the option-argument separator (`--`).
 
-| `*-v*`, `*--success*`
+The para-options are shorthand for linebreaks, indentation, and bold titles.
 
-Colors the introductory arrow in green.
-
-| `*-x*`, `*--failure*`
-
-Colors the introductory arrow in red.
-
-| `*-s*`, `*--skip*`
-
-Colors the introductory arrow in white.
-
-^.^h| Special formatting para-options (work only after the option-argument separator `--`)
-
-| Para-options are shorthand for things like linebreaks, indentation, and bold titles.
-
-| `*-t-*`
-
-This para-option treats the next `WORD` in the `*_DESCRIPTION_*` as a title.
-That `WORD` is then styled as a title and is followed by a colon.
-
-| `*-n-*`
-
-This para-option inserts a newline followed by the arrow-width indentation (four spaces).
-
-| `*-i-*`
-
-This para-option is similar to the `-n-` para-option, but the indentation is doubled.
+* `-t-` — treats the next `WORD` in the `*_DESCRIPTION_*` as a title.
++
+The title is styled in bold (if the terminal coloring is available) and is followed by a colon.
+* `-n-` — inserts a newline followed by the arrow-width indentation (four spaces).
+* `-i-` — similar to the `-n-` para-option, but the indentation is doubled.
 
 |===
 
 [[func-prompt]]
 ==== Function `d{dus}prompt`
 
-The function `d{dus}prompt` is the preferred user-prompting mechanism.
-For notes on usage within the Divine workflow, see the workflow <<divine-workflow-guide,guidelines>>.
+The function `d{dus}prompt` is the preferred mechanism for requesting a confirmation from the user.
+The main <<wkfl-main,section>> ties together the usage of the Divine workflow.
 
 [source,subs="verbatim,quotes,attributes"]
 ----
@@ -3681,18 +3444,18 @@ For notes on usage within the Divine workflow, see the workflow <<divine-workflo
 
 Two prompting modes are supported:
 
-* Decision prompt (yes or no): returns `0` for the affirmative answer and `1` for the negatory answer.
-* Any key prompt: returns `0` for any key press.
+* The *decision prompt* (yes or no): returns `0` for the affirmative answer and `1` for the negatory answer.
+* The *any-key prompt*: returns `0` for any key press.
 
-If the option `--or-quit` is used, both modes return `2` whenever the user chooses to quit.
+Both modes support the `--or-quit` option, which adds an additional 'quit' response with the return code of `2`.
 
-.The layout of the output of `d{dus}prompt` (without any arguments)
+.Output layout of `d{dus}prompt` (without any arguments)
 [source,subs="verbatim,quotes,attributes"]
 ----
 *_PROMPT_* *_KEYS_*
 ----
 
-.The layout of the output of `d{dus}prompt` (all optional parts included)
+.Output layout of `d{dus}prompt` (all optional parts included)
 [source,subs="verbatim,quotes,attributes"]
 ----
 ==> *_TITLE_*: *_DESCRIPTION-0_*
@@ -3706,156 +3469,182 @@ If the option `--or-quit` is used, both modes return `2` whenever the user choos
 
 If the prompt contains no optional parts, it is considered a one-liner, and the introductory arrow is omitted.
 
-* `*_PROMPT_*` — Short conclusion for the prompt. Defaults to `Proceed?`.
-* `*_KEYS_*` — Short explanation of accepted key presses:
-** Decision prompt: `[y/n]`
-** Decision prompt (with `--or-quit`): `[y/n/q]`
-** Any key prompt: `[<any key>]`
-** Any key prompt (with `--or-quit`): `[<any key>/q]`
-* `*_TITLE_*` — _(optional)_ Short heading for the prompt.
+* `*_PROMPT_*` — a short question.
+Defaults to `Proceed?`.
+* `*_KEYS_*` — the reference of accepted keys:
+** The decision prompt: `[y/n]`
+** The decision prompt (with the `--or-quit` option): `[y/n/q]`
+** The any-key prompt: `[<any key>]`
+** The any-key prompt (with the `--or-quit` option): `[<any key>/q]`
+* `*_TITLE_*` — _(optional)_ a short heading.
++
 If the `*_DECSRIPTION_*` is empty and if the prompt is not a one-liner, defaults to `User attention required`.
-* `*_DESCRIPTION_*` — _(optional)_ Short elaboration on the prompt.
-* `*_CONTEXT_*` — _(optional)_ Some part of the context stack, as requested by any of the relevant options.
+* `*_DESCRIPTION_*` — _(optional)_ an elaboration.
+* `*_CONTEXT_*` — _(optional)_ some part of the context stack (depending on options).
++
 The entire context block is omitted if the context stack is not requested or is empty.
 
 .List of `d{dus}prompt` options
 [%noheader,cols="<.<a",stripes=none]
 |===
 
-| `*-t* *_TITLE_*`, `*--title* *_TITLE_*`
+| +++<p align="center">+++
+*Prompting modes*
++++<br>+++
+`*-y*`, `*--yes-no*` _(default)_
++++<br>+++
+`*-k*`, `*--any-key*`
++++</p>+++
 
-Sets custom `*_TITLE_*` for the leading line.
+The prompting mode:
 
-Without this option:
+* `--yes-no` — the decision prompt (yes or no).
+* `--any-key` — the any-key prompt.
 
-* If the `*_DESCRIPTION_*` is provided, the title is omitted.
-* If the `*_DESCRIPTION_*` is not provided, the title defaults to `User attention required`.
+These options are not combined and the last option given wins.
 
-| `*-p* *_PROMPT_*`, `*--prompt* *_PROMPT_*`
-
-Sets custom `*_PROMPT_*`.
-Without this option, the `*_PROMPT_*` defaults to `Proceed?`.
-
-| `*-a* *_ANSWER_*`, `*--answer* *_ANSWER_*`
-
-Provides an opportunity to skip the prompt if the value of `*_ANSWER_*` is either `true` or `false`.
-
-In the decision mode:
-
-* If `*_ANSWER_*` is `true`, returns 0.
-* If `*_ANSWER_*` is `false`, returns 1.
-* Otherwise, proceeds with prompting.
-
-In the any-key mode:
-
-* If `*_ANSWER_*` is either `true` or `false`, returns 0.
-* Otherwise, proceeds with prompting.
-
-| `*-q*`, `*--or-quit*`
+| +++<p align="center">+++
+`*-q*`, `*--or-quit*`
++++</p>+++
 
 In both prompting modes, provides an extra option: 'quit'.
 The returned value for the 'quit' option is always `2`.
 
-^.^h| Prompting modes (one active at a time, last option wins)
+| +++<p align="center">+++
+`*-t* _TITLE_`, `*--title* _TITLE_`
++++</p>+++
 
-| `*-y*`, `*--yes-no*`
+Sets a custom title for the leading line.
 
-_(default)_
-Prompts for a yes/no decision.
+Without this option, the `*_TITLE_*` defaults to:
 
-| `*-k*`, `*--any-key*`
+** With a `*_DESCRIPTION_*` — omitted.
+** Without a `*_DESCRIPTION_*` — `User attention required`.
 
-Prompts for any key press.
+| +++<p align="center">+++
+`*-p* _PROMPT_`, `*--prompt* _PROMPT_`
++++</p>+++
 
-| `*-n*`, `*--newline*`
+Sets a custom `*_PROMPT_*`.
+Without this option, the `*_PROMPT_*` defaults to `Proceed?`.
 
-With this option, if this function produces any output, an extra newline is prepended to it.
+| +++<p align="center">+++
+`*-a* _ANSWER_`, `*--answer* _ANSWER_`
++++</p>+++
 
-^.^h| Context-related options (one active at a time, last option wins)
+In the decision mode:
 
-| `*-c*`, `*--context-all*`
+* If the value of `_ANSWER_` is `true`, returns `0` without prompting.
+* If the value of `_ANSWER_` is `false`, returns `1` without prompting.
 
-Includes the entire workflow context stack in the output.
+In the any-key mode:
 
-| `*-h*`, `*--context-head*`
+* If the value of `_ANSWER_` is either `true` or `false`, returns `0` without prompting.
 
-Includes the head of the workflow context stack (the items pushed since the last notch) in the output.
+Passing the value of the `$D__OPT_ANSWER` variable into the `--answer` option makes the prompt obey the <<<<opt-answers,answer>> that the user provides to the <<iutil-main,intervention utility>>.
 
-| `*-1*`, `*--context-tip*`
+| +++<p align="center">+++
+`*-n*`, `*--newline*`
++++</p>+++
 
-Includes the tip of the workflow context stack (the last pushed item) in the output.
+When this option is given: if the function produces any output, an extra newline is prepended to it.
 
-^.^h| Styling options (one active at a time, last option wins)
+| +++<p align="center">+++
+*Context options*
++++<br>+++
+`*-c*`, `*--context-all*`
++++<br>+++
+`*-h*`, `*--context-head*`
++++<br>+++
+`*-1*`, `*--context-tip*`
++++</p>+++
 
-| *Styling options* are only relevant if the terminal coloring is available.
+Includes the context block in the output with the following content:
+
+* `--context-all` — the entire context stack;
+* `--context-head` — the head of the context stack (the items pushed since the last notch);
+* `--context-tip` — the tip of the context stack (the last pushed item).
+
+These options are not combined and the last option given wins.
+
+| +++<p align="center">+++
+*Styling options*
++++<br>+++
+`*-d*`, `*--debug*` _(default)_
++++<br>+++
+`*-!*`, `*--alert*`
++++<br>+++
+`*-v*`, `*--success*`
++++<br>+++
+`*-x*`, `*--failure*`
++++<br>+++
+`*-s*`, `*--skip*`
++++<br>+++
+`*-b*`, `*--bare*`
++++</p>+++
+
+The *styling options* are only relevant if the terminal coloring is available.
 Otherwise, they do nothing.
 
-In all modes titles are formatted in *bold*.
+The titles are formatted in *bold*, and on top of that:
 
-| `*-!*`, `*--alert*`
+* The `--debug` option paints the entire output in cyan.
+* The `--alert` option paints the introductory arrow in yellow.
+* The `--success` option paints the introductory arrow in green.
+* The `--failure` option paints the introductory arrow in red.
+* The `--skip` option paints the introductory arrow in white.
+* The `--bare` option removes the coloring completely.
 
-_(default)_
-Colors the introductory arrow and the `*_PROMPT_*` in yellow.
+These options are not combined and the last option given wins.
 
-| `*-v*`, `*--success*`
+| +++<p align="center">+++
+*Special para-options*
++++<br>+++
+`*-t-*`
++++<br>+++
+`*-n-*`
++++<br>+++
+`*-i-*`
++++</p>+++
 
-Colors the introductory arrow and the `*_PROMPT_*` in green.
+The *para-options* work only _to the right_ of the option-argument separator (`--`).
 
-| `*-x*`, `*--failure*`
+The para-options are shorthand for linebreaks, indentation, and bold titles.
 
-Colors the introductory arrow and the `*_PROMPT_*` in red.
-
-| `*-s*`, `*--skip*`
-
-Colors the introductory arrow and the `*_PROMPT_*` in white.
-
-| `*-b*`, `*--bare*`
-
-Removes coloring completely.
-
-| Para-options are shorthand for things like linebreaks, indentation, and bold titles.
-
-| `*-t-*`
-
-This para-option treats the next `WORD` in the `*_DESCRIPTION_*` as a title.
-That `WORD` is then styled as a title and is followed by a colon.
-
-| `*-n-*`
-
-This para-option inserts a newline followed by the arrow-width indentation (four spaces).
-
-| `*-i-*`
-
-This para-option is similar to the `-n-` para-option, but the indentation is doubled.
+* `-t-` — treats the next `WORD` in the `*_DESCRIPTION_*` as a title.
++
+The title is styled in bold (if the terminal coloring is available) and is followed by a colon.
+* `-n-` — inserts a newline followed by the arrow-width indentation (four spaces).
+* `-i-` — similar to the `-n-` para-option, but the indentation is doubled.
 
 |===
 
 [[func-fail]]
 ==== Function `d{dus}fail`
 
-The function `d{dus}fail` announces a failure to the user and pops every item in the workflow context down to and including the latest notch (or the root of the stack).
-For notes on usage within the Divine workflow, see the workflow <<divine-workflow-guide,guidelines>>.
+The function `d{dus}fail` announces a failure to the user and lops the head of the workflow context stack.
+The main <<wkfl-main,section>> ties together the usage of the Divine workflow.
 
 [source,subs="verbatim,quotes,attributes"]
 ----
 *d{dus}fail* [-n] [-t *_TITLE_*] [--] [*_DESCRIPTION_*...]
 ----
 
-As mentioned, every call to this function includes a call to `d{dus}context lop`.
-Thus, this function should not be used for non-consequential failures that do not affect the workflow context.
-(For such things, `d{dus}notify --failure` works nicely.)
+Every call to this function internally calls `<<func-context,d{dus}context>> lop`.
+This function should _not_ be used for non-consequential failures that do not affect the workflow context.
+(For such things, `<<func-notify,d{dus}notify>> --failure` works nicely.)
 
-Returns:
+The return codes are:
 
 * `0` — Always, as in 'failed successfully'.
 
-.The layout of the output of `d{dus}fail` (without any arguments and with empty context stack)
+.Output layout of `d{dus}fail` (without any arguments and with empty context stack)
 [source,subs="verbatim,quotes,attributes"]
 ----
 ==> *_TITLE_*
 ----
 
-.The layout of the output of `d{dus}fail` (all optional parts included)
+.Output layout of `d{dus}fail` (all optional parts included)
 [source,subs="verbatim,quotes,attributes"]
 ----
 ==> *_TITLE_*: *_DESCRIPTION-0_*
@@ -3866,10 +3655,7 @@ Returns:
              ...
 ----
 
-* `*_TITLE_*` — _(optional)_ Short heading for the failure.
-Defaults to:
-** Without a `*_DESCRIPTION_*` — `Failure`.
-** With a `*_DESCRIPTION_*` — `Something went wrong`.
+* `*_TITLE_*` — _(optional)_ a short heading.
 * `*_DESCRIPTION_*` — _(optional)_ Short elaboration on the failure.
 * `*_CONTEXT_*` — The head of the context stack, which is about to be lopped off.
 The entire context block is omitted if the context stack is empty.
@@ -3878,77 +3664,93 @@ The entire context block is omitted if the context stack is empty.
 [%noheader,cols="<.<a",stripes=none]
 |===
 
-| `*-t* *_TITLE_*`, `*--title* *_TITLE_*`
+| +++<p align="center">+++
+`*-t* _TITLE_`, `*--title* _TITLE_`
++++</p>+++
 
-Sets custom title for the failure.
+Sets a custom title for the failure message.
 
 Without this option, the `*_TITLE_*` defaults to:
 
-* Without a `*_DESCRIPTION_*` — `Failure`.
-* With a `*_DESCRIPTION_*` — `Something went wrong`.
+* With a `*_DESCRIPTION_*` — `Failure`.
+* Without a `*_DESCRIPTION_*` — `Something went wrong`.
 
-| `*-n*`, `*--newline*`
+| +++<p align="center">+++
+`*-n*`, `*--newline*`
++++</p>+++
 
-With this option, an extra newline is prepended to all output.
+When this option is given: if the function produces any output, an extra newline is prepended to it.
 
-| Para-options are shorthand for things like linebreaks, indentation, and bold titles.
+| +++<p align="center">+++
+*Special para-options*
++++<br>+++
+`*-t-*`
++++<br>+++
+`*-n-*`
++++<br>+++
+`*-i-*`
++++</p>+++
 
-| `*-t-*`
+The *para-options* work only _to the right_ of the option-argument separator (`--`).
 
-This para-option treats the next `WORD` in the `*_DESCRIPTION_*` as a title.
-That `WORD` is then styled as a title and is followed by a colon.
+The para-options are shorthand for linebreaks, indentation, and bold titles.
 
-| `*-n-*`
-
-This para-option inserts a newline followed by the arrow-width indentation (four spaces).
-
-| `*-i-*`
-
-This para-option is similar to the `-n-` para-option, but the indentation is doubled.
+* `-t-` — treats the next `WORD` in the `*_DESCRIPTION_*` as a title.
++
+The title is styled in bold (if the terminal coloring is available) and is followed by a colon.
+* `-n-` — inserts a newline followed by the arrow-width indentation (four spaces).
+* `-i-` — similar to the `-n-` para-option, but the indentation is doubled.
 
 |===
 
 [[func-cmd]]
 ==== Function `d{dus}cmd`
 
-The function `d{dus}cmd` is a wrapper around a single simple Bash command.
-For notes on usage within the Divine workflow, see the workflow <<divine-workflow-guide,guidelines>>.
+The function `d{dus}cmd` is a wrapper around a single *simple* Bash command.
+The main <<wkfl-main,section>> ties together the usage of the Divine workflow.
 
 [source,subs="verbatim,quotes,attributes"]
 ----
 *d{dus}cmd* [_options_] [----] *_CMD_*...
 ----
 
-Executes the command `*_CMD_*` as normal, then inspects its return code.
-If the return code is non-zero, prints a failure message (similar to the output of <<func-fail,`d__fail`>> in appearance), and then pops every item in the workflow context down to and including the latest notch (or root).
-The output is titled, by default, 'Command failed', and shows the command that has failed, along with the current context stack.
+The wrapper executes the command `*_CMD_*` as normal, then inspects its return code.
+If the return code is non-zero, it prints a failure message (similar to the output of the <<func-fail,`d{dus}fail`>> function in appearance), and then calls `<<func-context,d{dus}context>> lop`.
+The output is titled, by default, `Command failed`, and shows the command that has failed, along with the current context stack.
 
 The command `*_CMD_*` must be a single simple command, consisting of any number of ``WORD``s.
-Naturally, Bash will parse the arguments to this function they trickle down to the underlying command.
+Naturally, Bash will parse the call to the wrapper function before the underlying command.
 As such, here are some examples of what the `*_CMD_*` can and cannot contain:
 
-* Yes: Simple commands, including `test`, `[`, or `[[`.
-* Yes: Variable expansions, though keep in mind that they will be expanded before the actual command is interpreted.
-* Yes: Input redirections.
-* Maybe:  Output redirections. (They will affect this outer function which might just do exactly what is needed.)
-* *NO*: Operators `&&` and `||` (use <<func-require,`d__require`>>).
-* *NO*: Pipes (use <<func-pipe,`d__pipe`>>).
-* *NO*: Negation operator `!` (use the `--neg--` option).
-* *NO*: Constructs such as `if` or `case`.
-* *NO*: Arithmetic context.
+* Yes: The simple commands, e.g., `test`, `[`, or `[[`.
+* Yes: The variable expansions.
+* Yes: The input redirections.
+* Maybe: The output redirections.
++
+(These will affect the wrapper function, which might just do exactly what is needed.)
+* *NO*: The operators `&&` and `||`.
++
+The <<func-require,`d{dus}require`>> function provides the support for these.
+* *NO*: The pipe operator `|`.
++
+The <<func-pipe,`d{dus}pipe`>> function provides the support for this.
+* *NO*: The negation operator `!`.
++
+The `--neg--` option provides support for this.
+* *NO*: The advanced constructs such as `if`, or `case`, or the arithmetic context.
 
-Returns:
+The return codes are:
 
-* `0` — The `*_CMD_*` returned zero (after optional negation).
-* `1` — Otherwise.
+* `0` — The `*_CMD_*` returned zero (after the optional negation).
+* `1` — The `*_CMD_*` returned non-zero (after the optional negation).
 * `2` — Called without arguments.
 
-.The layout of the output of `d{dus}cmd` in case of failure (all optional parts included)
+.Output layout of `d{dus}cmd` in case of failure (all optional parts included)
 [source,subs="verbatim,quotes,attributes"]
 ----
 ==> *_TITLE_*: *_CMD_*
-        *_LABEL-0_*: *_WORD-0_*
-        *_LABEL-1_*: *_WORD-1_*
+        *_LABEL-0_*: '*_WORD-0_*'
+        *_LABEL-1_*: '*_WORD-1_*'
         ...
     Context: *_CONTEXT-0_*
              *_CONTEXT-1_*
@@ -3957,11 +3759,10 @@ Returns:
     Result: *_RSLT_*
 ----
 
-* `*_TITLE_*` — Short heading for the failure.
-Defaults to `Command failed`.
+* `*_TITLE_*` — A short heading.
 * `*_CMD_*` — The command that failed, with labels pasted in.
 * `*_LABEL_*` — _(optional)_ The list of labels and their disambiguations.
-Labels are created via corresponding options, described below.
+The labels are created via corresponding options, described below.
 * `*_CONTEXT_*` — The head of the context stack, which is about to be lopped off.
 The entire context block is omitted if the context stack is empty.
 * `*_CRCM_*` — _(optional)_ The description of circumstances of the command call, if provided by the caller.
@@ -3971,151 +3772,181 @@ The entire context block is omitted if the context stack is empty.
 [%noheader,cols="<.<a",stripes=none]
 |===
 
-| `*----*`
+| +++<p align="center">+++
+`*----*`
++++</p>+++
 
-Stops processing options for the 'outer' function, and reads the rest of the arguments as parts of the `*_CMD_*`.
+Stops processing options for the wrapper function, and reads the rest of the arguments as parts of the `*_CMD_*`.
 
-| `*--neg--*`
+| +++<p align="center">+++
+`*--neg--*`
++++</p>+++
 
-Negates the return code of the `*_CMD_*`, as if it is prepended with a `!` operator.
+Negates the return code of the `*_CMD_*`, as if it is prepended with the `!` operator.
 
-^.^h| Output suppression modes (one active at a time, last option wins)
+| +++<p align="center">+++
+*Output suppression modes*
++++<br>+++
+`*--sn--*` _(default)_
++++<br>+++
+`*--so--*`
++++<br>+++
+`*--se--*`
++++<br>+++
+`*--sb--*`
++++</p>+++
 
-| `*--sn--*`
+* `--sn--` — suppresses **n**either the `stdout` nor the `stderr` of the `*_CMD_*`, as is default.
+* `--so--` — suppresses the `std**o**ut` of the `*_CMD_*`.
+* `--se--` — suppresses the `std**e**rr` of the `*_CMD_*`.
+* `--sb--` — suppresses **b**oth the `stdout` and the `stderr` of the `*_CMD_*`.
 
-Suppresses neither `stdout` nor `stderr` of the `*_CMD_*`.
+These options are not combined and the last option given wins.
 
-| `*--so--*`
+| +++<p align="center">+++
+*Quiet options*
++++<br>+++
+`*--q--*`, `*--q…--*` _(repeatable)_
++++<br>+++
+`*--l--*`
++++</p>+++
 
-Suppresses `stdout` of the `*_CMD_*`.
+The *quiet options* designate the *quiet level* for the current call.
+The ``*_CMD_*``'s output (if any occurs and is not suppressed) is printed only if the <<opt-verbosity,global verbosity level>> is greater than or equal to the quiet level.
 
-| `*--se--*`
+By default, the quiet level does not affect the appearance of the failure output.
 
-_(default)_
-Suppresses `stderr` of the `*_CMD_*`.
+When the quiet options are read, left-to-right, the quiet level starts at zero:
 
-| `*--sb--*`
-
-Suppresses both `stdout` and `stderr` of the `*_CMD_*`.
-
-^.^h| Quiet options
-
-| *Quiet options* designate the *quiet level* for the current call.
-The non-suppressed output of the underlying command is printed only if the <<opt-verbose,global verbosity level>> is greater than or equal to the quiet level.
-
-Quiet options are read sequentially, left-to-right, and the quiet level starts at zero.
-If these options are not given at all, the default quiet level is also zero.
-
-Normally, the quiet level does not affect the failure output.
-
-| `*--q--*`, `*--q…--*`
-
-_(repeatable)_
-Increments the quiet level by one.
-
+* Each `--q--` option increments the quiet level by one.
++
 This particular option can be repeated within the hyphens, e.g., `--qqq--`.
-It should be noted, that only the first character is checked to be 'q', the others are simply counted.
+For efficiency, only the first character is checked to be `q`, the others are simply counted.
+* The `--l--` option sets the quiet level to zero.
 
-| `*--l--*`
-
-Sets the quiet level to zero.
+However, if none of the quiet options are given, the default quiet level is `0`.
 
 ^.^h| Semantics of failure
 
-| `*--opt--*`
+| +++<p align="center">+++
+`*--opt--*`
++++</p>+++
 
 Makes the `*_CMD_*` optional: if there is a failure, the head of the context stacked is not lopped off, and the failure output is styled less urgently.
 
 When a command is marked optional, its failure output is printed depending on the quiet level.
 
-| `*--alrt--* *_TITLE_*`
+| +++<p align="center">+++
+`*--alrt--* _TITLE_`
++++</p>+++
 
-Sets the custom title for the failure output.
+Sets a custom title for the failure output.
 
-| `*--crcm--* *_CRCM_*`
+| +++<p align="center">+++
+`*--crcm--* _CRCM_`
++++</p>+++
 
-Sets the custom circumstances description for the failure output.
+Sets a custom circumstances description for the failure output.
 
-| `*--else--* *_RSLT_*`
+| +++<p align="center">+++
+`*--else--* _RSLT_`
++++</p>+++
 
-Sets the custom consequences description for the failure output.
+Sets a custom consequences description for the failure output.
 
-^.^h| Label options (each must preceed the single `WORD` of the `*_CMD_*`)
+| +++<p align="center">+++
+*Label option*
++++<br>+++
+`**--**__LABEL__**--**`
++++</p>+++
 
-| `*--_LABEL_--*`
+The `**--**__LABEL__**--**` option must precede a single `WORD` of the `*_CMD_*`.
+The `_LABEL_` part should be an alphanumerical word.
 
-Normally d__fail outputs the offending `*_CMD_*` in its entirety, which can get quite lengthy.
-When a `WORD` of the `*_CMD_*` is prepended with a label option, the label is shown in the failure output instead of the actual `WORD`.
-Then, after `*_CMD_*` is printed, each label is also printed on its own line, accompanied by the `WORD` that it stands for.
-This is similar to footnotes.
+Normally the failure output prints the offending `*_CMD_*` in its entirety, which can get quite lengthy.
+Labeled ``WORD``s appear in the `*_CMD_*` as their labels, and the labels are spelled out below.
 
-| `*--#_NUM_--*`
+For example, the command `d__cmd [ --ZERO-- 0 -eq --ONE-- 1 ]` will produce the following failure output:
 
-A previously assigned label may be re-used if the `WORD` is repeated within the `*_CMD_*` multiple times.
-Labels are automatically numbered, starting from zero: use the label number prepended with a hash/pound `#`` to reference a previous label.
-Make sure that you assign such backreferences to ``WORD``s that are actually identical.
+[source,subs="verbatim,quotes,attributes"]
+----
+==> *Command failed*: [ *ZERO* -eq *ONE* ]
+        *ZERO*: '0'
+        *ONE*: '1'
+----
+
+| +++<p align="center">+++
+*Label backreference options*
++++<br>+++
+`**--#**__NUM__**--**`
++++</p>+++
+
+A previously assigned label may be re-used if the `WORD` it marks is used multiple times within the `*_CMD_*`.
+The labels are automatically numbered, starting from zero.
+The backreference consist of a hash/pound symbol (`#`), followed by the number of the previous label.
+The framework does _not_ check whether the ``WORD``s marked by the same label are actually identical.
 
 |===
 
 [[func-pipe]]
 ==== Function `d{dus}pipe`
 
-This function extends <<func-cmd,`d{dus}cmd`>>, and thus its reference applies fully wherever not overridden by this section.
+The `d{dus}pipe` function extends the <<func-cmd,`d{dus}cmd`>> function by adding the possibility to chain up to three commands in a continuous Bash pipe.
 
 [source,subs="verbatim,quotes,attributes"]
 ----
 *d{dus}pipe* [_options_] [----] *_CMD_*...
 ----
 
-The function `d{dus}pipe` extends `d{dus}cmd` by adding the possibility to chain up to three commands in a continuous Bash pipe.
-Note, that the actual pipe operator `|` cannot be used directly, because it would affect this function and not get passed down.
+The reference for the <<func-cmd,`d{dus}cmd`>> function applies fully wherever not overridden by this section.
+The actual pipe operator (`|`) cannot be used directly, because it would be parsed with the wrapper function.
 Instead, the special pipe option is added.
+When the `d{dus}pipe` function is used without the special options, it becomes functionally identical to the `d{dus}cmd` function.
 
-When this function is used without the special options, `d{dus}pipe` becomes functionally identical to `d{dus}cmd`.
-The intention of two different functions is to underscore semantics and to lighten up the load of parsing arguments in `d{dus}cmd`.
+If the `--so--` or the `--sb--` option is used, the `stdout` is only suppressed for the last command in the pipe.
 
-All `d{dus}cmd` options are supported.
-If the `--so--` or the `--sb--` option is used, `stdout` is only suppressed for the last command in the queue; otherwise it would defeat the pipe's purpose.
-
-.List of `d{dus}pipe` options (on top of those in `d{dus}cmd`)
+.List of `d{dus}pipe` options (on top of those in <<func-cmd,`d{dus}cmd`>>)
 [%noheader,cols="<.<a",stripes=none]
 |===
 
-| `*--p--*`, `*--P--*`, `*--pipe--*`
+| +++<p align="center">+++
+*Pipe option*
++++<br>+++
+`*--p--*`, `*--P--*`, `*--pipe--*`
++++</p>+++
 
-Inserts Bash's `\|` operator at that location.
-Only first two instances of this option are recognized.
+Inserts the Bash's pipe operator (`\|`) at that location.
+Only the first two instances of this option are recognized (a hard limit).
 
-| `*--ret__NUM__--*`
+| +++<p align="center">+++
+`**--ret**__NUM__**--**`
++++</p>+++
 
-Normally, the return code of the last command in the pipe is inspected to make judgement on whether the whole command ran successfully.
-To change which command's return code represents the success of the pipe, its number must be provided with this option.
 Commands in the pipe are numbered starting from zero, left to right.
+If this option is given, the `__NUM__` represents the number of the command that represents the success of the whole pipe.
+
+Without this option, the last command in the pipe is used.
 
 |===
 
 [[func-require]]
 ==== Function `d{dus}require`
 
-This function extends <<func-cmd,`d{dus}cmd`>>, and thus its reference applies fully wherever not overridden by this section.
+The `d{dus}pipe` function extends the <<func-cmd,`d{dus}cmd`>> function by adding the possibility to chain up to three commands with the `&&` and `||` operators.
 
 [source,subs="verbatim,quotes,attributes"]
 ----
 *d{dus}require* [_options_] [----] *_CMD_*...
 ----
 
-Firstly, `d{dus}require` changes semantics a little: while `d{dus}cmd` is intended to be used on commands that perform an action that produces side effects, this version is intended for checks/tests that ensure that certain requirements are met.
-As such, `d{dus}require` sets the title of potential `d{dus}fail` message to `Requirement failed` instead of the default `Command failed`.
-
-Secondly, `d{dus}require` extends `d{dus}cmd` by adding the possibility to chain up to three commands with Bash's `&&` and `||` operators.
-Note, that the actual and/or operators cannot be used directly, because they would affect this function and not get passed down.
+The reference for the <<func-cmd,`d{dus}cmd`>> function applies fully wherever not overridden by this section.
+The actual `&&` and `||` operators cannot be used directly, because they would be parsed with the wrapper function.
 Instead, the special options are added.
+When the `d{dus}require` function is used without the special options, it becomes functionally similar to the `d{dus}cmd` function.
 
-Otherwise, `d{dus}require` is functionally identical to `d{dus}cmd`.
-The intention of two different functions is to underscore semantics and to lighten up the load of parsing arguments in `d{dus}cmd`.
+The `d{dus}require` function changes semantics a little: while the `d{dus}cmd` function is intended to cause side effects, this version is intended for checks against certain requirements.
 
-All `d{dus}cmd` options are supported.
-The option `--neg--` applies to individual commands within the and/or chain; it has to be used for every negated requirement at any time before the start of the next requirement.
+The option `--neg--` applies to the individual commands within the and/or chain. It has to be used for every negated requirement, at any time before the start of the next requirement.
 
 .List of `d{dus}require` options (on top of those in `d{dus}cmd`)
 [%noheader,cols="<.<a",stripes=none]
@@ -4123,186 +3954,56 @@ The option `--neg--` applies to individual commands within the and/or chain; it 
 
 ^.^h| And/or options (only the first two are recognized)
 
-| `*--and--*`, `*--AND--*`
+| +++<p align="center">+++
+*And/or options*
++++<br>+++
+`*--and--*`, `*--AND--*`
++++<br>+++
+`*--or--*`, `*--OR--*`
++++</p>+++
 
-Inserts Bash's `&&` operator at that location.
-
-| `*--or--*`, `*--OR--*`
-
-Inserts Bash's `\|\|` operator at that location.
-
-|===
-
-[[func-dmd5]]
-==== `dmd5` function
-
-Function `dmd5` provides a cross-platform way of calculating an md5 checksum of a file or a string.
-
-It relies on at least one of the following utilities being available in the system: `md5sum` or `md5` or `openssl`.
-
-[source,subs="verbatim,quotes,attributes"]
-----
-*dmd5* [-s *_STRING_*] | [*_PATH_*]
-----
-
-* One checksum is calculated per call.
-* Either a string or a path to a file may be given.
-* It is up to you to ensure that path exists and is readable.
-* Checksum is printed to `stdout`.
-
-Returns zero on success and non-zero if something goes wrong.
-
-==== Function `d{dus}stash`
-
-Function `d{dus}stash` is so important that it deserved its <<stash-main,own section>>.
-
-[[func-push-backup]]
-==== Function `d__push_backup`
-
-The function `d{dus}push_backup` vacates the given path by pushing whatever exists at it to a backup location.
-
-[source,subs="verbatim,quotes,attributes"]
-----
-*d{dus}push_backup* [--] *_ORIG_PATH_* [*_BACKUP_PATH_*]
-----
-
-This function ensures that the `*_ORIG_PATH_*` becomes empty, and if anything exists there currently, it is backed up.
-Thus, if the `*_ORIG_PATH_*` sits empty, a success code is immediately returned.
-
-For the backup path, the first available strategy is employed:
-
-* If a BACKUP_PATH is given, it is used.
-If it turns out unusable, further strategies are not tried; an error code is returned instead.
-* If called from a deployment, the backup is placed into <<indct-dpl-backup-dir,`$D__DPL_BACKUP_DIR`>>, and the backup file name is generated by concatenating two parts:
-** the md5 checksum of the `*_ORIG_PATH_*`;
-** the suffix `.bak`.
-* If none of the above works, an error code is returned.
-
-If the generated backup path happens to be occupied, it is understood to be a previously made backup.
-Previous backups are never overwritten.
-Instead, this function repeatedly appends an incrementing numerical suffix (`-1`, `-2`, etc.) to the backup file name until it finds a path that is not yet occupied, and that path is then used.
-The suffixes are hard capped at 1000.
-
-This function always ensures the existence of the directory that is the immediate parent of the `*_ORIG_PATH_*` and of the generated backup path.
-
-This function is intended to be used in conjunction with <<func-pop-backup,`d__pop_backup`>>.
-
-Returns:
-
-* `0` — The `*_ORIG_PATH_*` has been made empty; and if anything existed there, it has been backed up.
-* `1` — The `*_ORIG_PATH_*` exists, but is inaccessible.
-* `2` — The backup path, whatever it is, is inaccessible or invalid.
-* `3` — Other unexpected error.
-
-The function `d__push_backup` does not have any supported options.
-
-[[func-pop-backup]]
-==== Function `d__pop_backup`
-
-The function `d{dus}pop_backup` restores backup of the given path to its original location.
-Whatever pre-exists at the original location is, in turn, backed up by appending a suffix.
-
-[source,subs="verbatim,quotes,attributes"]
-----
-*d{dus}pop_backup* [-de]… [--] *_ORIG_PATH_* [*_BACKUP_PATH_*]
-----
-
-This function ensures that the latest backup is moved back to the `*_ORIG_PATH_*`, and if anything exists there currently, it is, itself, backed up.
-Thus, if there are no backups at all, nothing is done and a success code is returned.
-
-For the backup path, the first available strategy is employed:
-
-* If a `*_BACKUP_PATH_*` is given, it is used.
-If it turns out unusable, further strategies are not tried; an error code is returned instead.
-* If called from a deployment, the backup is placed into <<indct-dpl-backup-dir,`$D__DPL_BACKUP_DIR`>>, and the backup file name is generated by concatenating two parts:
-** the md5 checksum of the `*_ORIG_PATH_*`;
-** the suffix `.bak`.
-* If none of the above works, an error code is returned.
-
-To find the latest backup, this function first checks the generated backup path, then repeatedly appends an incrementing numerical suffix (`-1`, `-2`, etc.) to the backup file name.
-As soon as it hits a path that does not exist, the previous path is understood to be the latest backup.
-The suffixes are hard capped at 1000.
-
-To back up whatever pre-exists at the `*_ORIG_PATH_*`, the suffix `.bak` is appended to the `*_ORIG_PATH_*`.
-If that path happens to be occupied, the same routine of incrementing numbers is applied.
-
-This function always ensures the existence of the directory that is the immediate parent of the `*_ORIG_PATH_*`.
-
-This function is intended to be used in conjunction with <<func-push-backup,`d__push_backup`>>.
-
-Returns:
-
-* `0` — The backup has been popped successfully, according to the options.
-* `1` — The `*_ORIG_PATH_*` is inaccessible.
-* `2` — The backup path, whatever it is, is inaccessible or invalid.
-* `3` — Other unexpected error.
-
-.List of `d{dus}pop_backup` options
-[%noheader,cols="<.<a",stripes=none]
-|===
-
-| `*-e*`, `*--evict*`
-
-This option makes it an additional priority to ensure that anything that pre-exists at the `*_ORIG_PATH_*` is no longer there by the time this function successfully returns.
-This means that even if there is no backup to pop, the `*_ORIG_PATH_*` still gets vacated.
-
-| `*-d*`, `*--dispose*`
-
-With this option the function treats whatever pre-exists at the `*_ORIG_PATH_*` as disposable.
-In this mode, no backups of the `*_ORIG_PATH_*` are made.
+* `--and--` — inserts the `&&` operator at that location.
+* `--or--` — inserts the `\|\|` operator at that location.
 
 |===
 
-[[func-os-pkgmgr]]
-==== Function `d__os_pkgmgr`
-
-Function `d__os_pkgmgr` is a thin wrapper around system package manager.
-The idea is to be able to install system packages without checking for current OS.
-On OS's that are not yet supported, this function does nothing and returns non-zero.
-
-[source,subs="verbatim,quotes,attributes"]
-----
-*d__os_pkgmgr* *update*|*check*|*install*|*remove* [*_PKG_NAME_*]
-----
-
-Launches one of the four routines, which are expected of any package manager out there.
-Second argument (`*_PKG_NAME_*`), the name of single package, is relayed to the underlying package manager verbatim.
-User prompts (except sudo password) are suppressed.
-
-The first argument must be one of the four:
-
-* `update` — updates all installed packages (other arguments are ignored).
-* `check` — checks whether the provided package is installed.
-Returns zero/non-zero appropriately.
-* `install` — installs the provided package.
-* `remove` — uninstalls the provided package.
-
-[[stash]]
+[[stash-main]]
 === Stash
 
-_Divine.dotfiles_ provides a persistent key-value storage/retrieval system.
-It is based in the file system, i.e., all data is stored in files.
+_Divine.dotfiles_ provides a file-based key-value storage/retrieval system called the *stash*.
 
-[#stash-types]#There are three levels of stashing system#:
+[[stash-levels]]
+There are three levels of stashing system:
 
-* *Deployment stash* — exclusive to current deployment on current machine.
+* The *deployment stash* — exclusive to the current deployment on the current machine.
 This is the default.
 +
-Stored in `state/stash/*_DPL-NAME_*/.stash.cfg`.
-* *Root stash* — shared by all deployments on current machine.
+Stored in `<<fmwk-state,state>>/stash/*_DPL-NAME_*/.stash.cfg`.
+* The *root stash* — shared by all deployments on the current machine.
 +
-Stored in `state/stash/.stash.cfg`.
-* *Grail stash* — shared by all deployments across all machines that use the same <<fmwk-grail,Grail>>.
+Stored in `<<fmwk-state,state>>/stash/.stash.cfg`.
+* The *Grail stash* — shared by all deployments across all machines that use the same <<fmwk-grail,Grail>>.
 +
-Stored in `grail/.stash.cfg`.
+Stored in `<<fmwk-grail,grail>>/.stash.cfg`.
 
-Rules of key-value store are:
+[.note]
+[%noheader,cols="<.<a"]
+|===
+| For the curious:
 
-* Keys must consist of: alphanumeric characters, underscore (`_`), and hyphen (`-`).
-* Values must not exceed single line of text, but are otherwise unrestricted, and may be empty.
-* Multiple instances of a key are allowed, values may be duplicate.
+* The records of attaching third-party bundles are stored in the <<stash-levels,Grail stash>>.
+* The records of installing the optional framework dependencies are stored in the <<stash-levels,root stash>>.
+|===
 
-Stashing is accessible from within the deployments via the `d{dus}stash` function.
+The rules of the key-value store are:
+
+* The keys must consist of:
+** alphanumeric characters;
+** underscores (`_`) and hyphens (`-`).
+* The values must not exceed single line of text, but are otherwise unrestricted, and may be empty.
+* Multiple instances of a key are allowed, the values may be duplicate.
+
+The stashing system is accessible via the `d{dus}stash` function.
 
 [source,subs="verbatim,quotes,attributes"]
 ----
@@ -4317,53 +4018,53 @@ Depending on first argument, usage is as follows.
 
 | `d{dus}stash *ready*`
 
-(_default task_) Checks whether the stashing system on selected <<stash-types,level>> is primed and ready.
-By default, prints loud error messages if something is critically wrong with the stash.
+(_default task_)
+Checks whether the stashing system is primed and ready on the selected <<stash-levels,level>>.
+By default, the stashing system prints a loud error message if something is critically wrong with the stash.
 
-Returns `0` if stash is ready, or `2` if not.
+Returns `0` if the stash is ready, `2` if not.
 
 | `d{dus}stash *has* *_KEY_* [*_VALUE_*]`
 
-If `*_VALUE_*` is not given: checks whether the stash contains at least one `*_KEY_*` with any value.
-
-If `*_VALUE_*` is given: checks whether the stash contains at least one `*_KEY_*` that is set to `*_VALUE_*`.
+* If the `*_VALUE_*` is not given: checks whether the stash contains at least one `*_KEY_*` with any value.
+* If the `*_VALUE_*` is given: checks whether the stash contains at least one `*_KEY_*` that is set to that `*_VALUE_*`.
 
 Returns `0` if so, or `1` otherwise.
 
 | `d{dus}stash *set* *_KEY_* [*_VALUE_*]`
 
-Ensures that the stash contains a _single_ instance of `*_KEY_*`, and that it is set to `*_VALUE_*`.
+Ensures that the stash contains a _single_ instance of the `*_KEY_*`, and that it is set to the `*_VALUE_*`.
 
 Returns `0` on success, or `1` otherwise.
 
 | `d{dus}stash *add* *_KEY_* [*_VALUE_*]`
 
-Adds one instance of `*_KEY_*` and sets it to `*_VALUE_*`, regardless of possibly pre-existing instances of `*_KEY_*`.
+Adds one instance of the `*_KEY_*` and sets it to the `*_VALUE_*`, regardless of the possibly pre-existing instances of the `*_KEY_*`.
 
 Returns `0` on success, or `1` otherwise.
 
 | `d{dus}stash *get* *_KEY_*`
 
-Prints the value of the first instance of `*_KEY_*` to `stdout`.
+Prints the value of the first instance of the `*_KEY_*` to the `stdout`.
 
 Returns `0` on success (even if nothing was printed), or `1` otherwise.
 
 | `d{dus}stash *list* *_KEY_*`
 
-Prints the value of each `*_KEY_*` on a new line to `stdout`.
+Prints each value of the `*_KEY_*` on a new line to the `stdout`.
 
 Returns `0` on success (even if nothing was printed), or `1` otherwise.
 
 | `d{dus}stash *unset* *_KEY_* [*_VALUE_*]`
 
-If `*_VALUE_*` is not given: removes all instances of `*_KEY_*`.
-If `*_VALUE_*` is given: removes each instance of `*_KEY_*` that is set to `*_VALUE_*`.
+* If the `*_VALUE_*` is not given: removes all instances of the `*_KEY_*`.
+* If the `*_VALUE_*` is given: removes each instance of the `*_KEY_*` that is set to the `*_VALUE_*`.
 
 Returns `0` on success (even if nothing was removed), or `1` otherwise.
 
 | `d{dus}stash *list-keys*`
 
-Prints each `*_KEY_*` currently in the stash on a new line to `stdout`.
+Prints each `*_KEY_*` currently in the stash on a new line to the `stdout`.
 Possible duplicate keys are _not_ pruned.
 
 Returns `0` on success (even if nothing was printed), or `1` otherwise.
@@ -4372,976 +4073,327 @@ Returns `0` on success (even if nothing was printed), or `1` otherwise.
 
 Clears all records from this stash.
 
-| If called with an unsupported routine name, the function returns `3`.
+| If called with an unsupported routine name, the function prints an error and returns `3`.
 
 |===
-
-Below is the list of `d{dus}stash` options.
 
 .List of `d{dus}stash` options
 [%noheader,cols="<.<a",stripes=none]
 |===
 
-| `*-s*`, `*--skip-checks*`
+| +++<p align="center">+++
+`*-s*`, `*--skip-checks*`
++++</p>+++
 
-Without this option, every invocation of `d{dus}stash` (with any arguments) begins with stash readiness check.
-If the function is called multiple times within a deployment, such checks become redundant.
-It is recommended that after initial `d{dus}stash ready`, this option is then included with any subsequent invocations, to forego readiness checks.
+By default, every invocation of the `d{dus}stash` function (with any arguments) begins with the stash readiness check.
+If the function is called multiple times on the same <<stash-levels,level>>, such checks become redundant.
+It is recommended that after the initial call to `d{dus}stash ready`, this option is included with any subsequent invocations.
 
-| `*-q*`, `*--quiet*`
+| +++<p align="center">+++
+`*-q*`, `*--quiet*`
++++</p>+++
 
-Without this option, any error during the stash readiness checks triggers an error message that always appears.
-This option causes such error messages to instead honor the <<opt-verbose,global verbosity level>>.
-This option is intended to be included with readiness checks in cases where not using stash is also a viable option.
+By default, any inconsistency during the stash readiness checks triggers a loud error message.
+The `--quiet` option directs to instead honor the <<opt-verbosity,global verbosity level>>.
 
-^.^h| Stash <<stash-types,level>> (one active at a time, last option wins)
+This option is intended to be included with the readiness checks in cases where not using the stash is also a viable option.
 
-| `*-d*`, `*--dpl*`
+| +++<p align="center">+++
+*Stash <<stash-levels,level>> options*
++++<br>+++
+`*--d*`, `*--dpl*` _(default)_
++++<br>+++
+`*--r*`, `*--root*`
++++<br>+++
+`*--g*`, `*--grail*`
++++</p>+++
 
-_(default)_ Directs to work with the <<stash-types,deployment stash>>
+These options are not combined and the last option given wins.
 
-| `*-r*`, `*--root*`
-
-Directs to work with the <<stash-types,root stash>> instead of default deployment stash.
-
-| `*-g*`, `*--grail*`
-
-Directs to work with the <<stash-types,Grail stash>> instead of default deployment stash.
-
-|===
-
-[.note]
-[%noheader,cols="<.<a"]
-|===
-| Records of attaching third-party bundles are stored in <<stash-types,Grail stash>>.
-
-Records of installing optional framework dependencies are stored in <<stash-types,root stash>>.
-|===
-
-[[generic-queue]]
-=== Generic queue
-
-Whenever your deployment performs a series of similar actions, — e.g., symlinks a bunch of files — you are faced with several routine tasks:
-
-* Write iteration logic.
-* Tie the return codes of subtasks into a single informative code.
-
-_Divine.dotfiles_ offers a mechanism called *queue*, which relieves such pain.
-To use it:
-
-. Populate a specially named array with one string for each queue item.
-. Implement logic to be applied to a single item.
-. Delegate your deployment's <<func-primaries,primaries>> to built-in helpers.
-
-This kind of deployment is best demonstrated with an example:
-
-.Deployment template for generic queue
-[source,bash]
-----
-# Delegate primaries to queue helpers. Make sure helper is called last.
-d_dpl_check()    { populate_queue;  d__queue_check;    }
-d_dpl_install()  {                  d__queue_install;  }
-d_dpl_remove()   {                  d__queue_remove;   }
-
-# This function is not built-in, but is the recommended way of organizing logic
-populate_queue() { D_QUEUE_MAIN=( alpha bravo charlie ); }
-
-# Implement mini-primaries for a single queue item
-d_item_check()    { :; }
-d_item_install()  { :; }
-d_item_remove()   { :; }
-----
-
-==== Generic queue set-up
-
-Following Bash arrays should be populated before any of the built-in helpers are called:
-
-.Variables required to set up generic queue
-[%noheader,cols="<.<a",stripes=none]
-|===
-
-| [#var-queue-main]#`*D_QUEUE_MAIN*`#
-
-Each member of this array defines a queue item.
-
-Members of this array are simple strings.
-In generic queues, the framework uses the strings themselves only for debug messages.
+* The `--dpl` option directs to work with the <<stash-levels,deployment stash>>.
+* The `--root` option directs to work with the <<stash-levels,root stash>>.
+* The `--grail` option Directs to work with the <<stash-levels,Grail stash>>.
 
 |===
 
-The queue arrays must be uninterrupted.
-Failing that, the queue will fail utterly and miserably.
-You have been warned.
-
-==== Generic queue hooks
-
-Following built-in functions may be implemented to provide queue logic (all are optional).
-The framework unsets every queue hook as soon as it is used up.
-
-.Generic queue hooks
-[%noheader,cols="<.<a",stripes=none]
-|===
-
-^.^h| Mini-primaries
-
-| [#func-queue-item-check]#`*d_item_check*`#
-
-This function is called once for every queue item.
-It is similar to its <<func-dpl-check,deployment-level cousin>>, `d_dpl_check`.
-
-Supported return codes:
-
-* `*0*` — *'Unknown'*: [.gray]##_(default)_## no reliable way to tell whether this queue item is installed or not.
-* `*1*` — *'Installed'*: as it stands, intended goal of installing this queue item is entirely achieved.
-* `*2*` — *'Not installed'*: as it stands, intended goal of installing this queue item is entirely not achieved.
-* `*3*` — *'Invalid'*: input for this queue item prevents it from being processed correctly.
-
-| [#func-queue-item-install]#`*d_item_install*`#
-
-This function is called no more than once for every queue item.
-It is similar to its <<func-dpl-install,deployment-level cousin>>, `d_dpl_install`.
-
-Supported return codes:
-
-* `*0*` — *'Installed successfully'*: [.gray]##_(default)_## intended goal of installing this queue item is entirely achieved.
-* `*1*` — *'Failed to install'*: intended goal of installing this deployment is not entirely achieved due to error.
-* `*2*` — *'Item turned out to be invalid'*: input for this queue item prevents it from being installed correctly.
-* `*3*` — *'Installed successfully'* and also abort further queue installation.
-* `*4*` — *'Failed to install'* and also abort further queue installation.
-
-| [#func-queue-item-remove]#`*d_item_remove*`#
-
-This function is called no more than once for every queue item.
-It is similar to its <<func-dpl-remove,deployment-level cousin>>, `d_dpl_remove`.
-
-Supported return codes:
-
-* `*0*` — *'Uninstalled successfully'*: [.gray]##_(default)_## effects of previously installing this queue item are entirely reversed.
-* `*1*` — *'Failed to uninstall'*: effects of previously installing this queue item are not entirely reversed due to error.
-* `*2*` — *'Item turned out to be invalid'*: input for this queue item prevents it from being uninstalled correctly.
-* `*3*` — *'Uninstalled successfully'* and also abort further queue uninstallation.
-* `*4*` — *'Failed to uninstall'* and also abort further queue uninstallation.
-
-^.^h| Other queue hooks
-
-| `*d_queue_pre_check*`
-
-This function is called once, before the queue is checked.
-Supported return codes:
-
-* `*0*` — *'Proceed as normal'*
-* `*_other_*` — *'Return this check code without checking'*
-
-| `*d_queue_post_check*`
-
-This function is called once, after the queue is entirelly checked.
-Expect `$D{dus}QUEUE_RETURN_CODE` variable to be populated with the code that is currently set to be returned by the check primary.
-Supported return codes:
-
-* `*0*` — *'Proceed as normal'*
-* *_other_* — *'Return this check code instead'* _(combined check code of the queue is ignored)_
-
-| `*d_queue_pre_install*`
-
-This function is called once, before the queue is installed.
-Supported return codes:
-
-* `*0*` — *'Proceed as normal'*
-* `*_other_*` — *'Return this install code without installing'*
-
-| `*d_queue_post_install*`
-
-This function is called once, after the queue is entirelly installed.
-Expect `$D{dus}QUEUE_RETURN_CODE` variable to be populated with the code that is currently set to be returned by the install primary.
-Supported return codes:
-
-* `*0*` — *'Proceed as normal'*
-* *_other_* — *'Return this install code instead'* _(combined install code of the queue is ignored)_
-
-| `*d_queue_pre_remove*`
-
-This function is called once, before the queue is removed.
-Supported return codes:
-
-* `*0*` — *'Proceed as normal'*
-* `*_other_*` — *'Return this remove code without removing'*
-
-| `*d_queue_post_remove*`
-
-This function is called once, after the queue is entirelly removed.
-Expect `$D{dus}QUEUE_RETURN_CODE` variable to be populated with the code that is currently set to be returned by the remove primary.
-Supported return codes:
-
-* `*0*` — *'Proceed as normal'*
-* *_other_* — *'Return this remove code instead'* _(combined remove code of the queue is ignored)_
-
-|===
-
-==== Generic queue special variables
-
-Following built-in variables are available/recognized during processing of each queue item:
-
-.Generic queue special variables
-[%noheader,cols="<.<a",stripes=none]
-|===
-
-| `*D{dus}ITEM_NUM*`
-
-Index of current item in `*D_QUEUE_MAIN*`.
-This index is helpful if you keep multiple arrays of related queue data.
-
-| `*D{dus}ITEM_TITLE*`
-
-Content of `*D_QUEUE_MAIN*` for current item.
-
-| `*D{dus}ITEM_IS_FORCED*`
-
-By default, the framework does *not*:
-
-* re-install queue items that appear already installed;
-* uninstall queue items that appear already not installed;
-* process queue items that appear installed by means other than this framework.
-
-The `--force` option of the intervention utility overrules such considerations.
-
-This variable is set to `true` if installation/removal is being forced, i.e., it would not have been initiated if not for the `--force` option.
-You are left to decide on whether to treat such cases specially.
-
-| `*D{dus}ITEM_STASH_KEY*`
-
-`*D{dus}ITEM_STASH_VALUE*`
-
-`*D{dus}ITEM_STASH_FLAG*`
-
-Stash key and stash value for current item.
-The third variable is `true` if stash record exists, `false` if stash record does not exist, and not set if stash is not used for this item.
-
-[.note]
-[%noheader,cols="<.<a"]
-!===
-! Queue mechanism uses stash to keep persistent records of (un)installing queue items.
-Ideally, there is no reason for you to know this or use these variables.
-!===
-
-| `*D{dus}QUEUE_RETURN_CODE*`
-
-Within queue post-processing hooks, this variable is populated with the code that is set to be returned by the corresponding <<func-primaries,primary>>.
-Changing this variable has no effect — use the hook's return code instead.
-
-| `*D{dus}ITEM_RETURN_CODE*`
-
-This variable is only relevant for <<lnqe-main,link>> and <<cpqe-main,copy>> queue variations.
-Within queue _item_ post-processing hooks, this variable is populated with the code that is set to be returned by the corresponding mini-primary.
-Changing this variable has no effect — use the hook's return code instead.
-
-|===
-
-[[queue-mnf]]
-==== Queue manifests
-
-<<var-queue-main,Contents>> of the queue, whatever they are, sound like a perfect candidate for separation from deployment logic.
-Queue manifests to the resqueue.
-
-A *queue manifest* is a text file, which is — by default — located in the same directory as the deployment file and named the same, except for exchanging `.dpl.sh` suffix for `.dpl.que`.
-Unlike with <<assets-mnf,asset manifests>>, you are free to customize the location/name of your queue manifest by re-assigning <<indct-dpl-que-path,`D__DPL_QUE_PATH`>> variable *at the top level* of your deployment.
-
-Queue manifests follow the general <<mnf-syntax,manifest syntax>>.
-Only the key `os` is recognized within queue manifests.
-
-[.note]
-[%noheader,cols="<.<a"]
-|===
-| A suggested way of using queue manifests is:
-
-. Provide a sample queue manifest of some entries in whatever form.
-. Declare the queue manifest an asset, by listing it in your <<assets-mnf,asset manifest>>.
-. Within the deployment, customize the <<indct-dpl-que-path,`D__DPL_QUE_PATH`>> variable to point to asset copy within <<fmwk-grail,the Grail>>, e.g.:
-+
-[source,bash]
-----
-D__DPL_QUE_PATH="$D__DPL_ASSET_DIR/$D_DPL_NAME.dpl.que"
-----
-|===
-
-[[link-queue]]
-=== Link queue
-
-A common use case of queues is creating symlinks that point to deployment's assets.
-For example, one might want to:
-
-* create symlinks located at `~/.bashrc` and `~/.zshrc`;
-* point them at custom assets stored in <<fmwk-grail,the Grail>>;
-* store original files as backups and restore them upon uninstallation.
-
-For such purposes, _Divine.dotfiles_ provides a partially implemented version of <<queue-main,generic queue>> called *link queue*.
-To use it:
-
-. Populate a few specially named arrays with necessary paths.
-. Delegate your deployment's <<func-primaries,primaries>> to built-in helpers.
-
-This kind of deployment is best demonstrated with an example:
-
-.Deployment template for link queue
-[source,bash]
-----
-# Delegate primaries to link queue helpers. Make sure helper is called last.
-d_dpl_check()    { populate_link_queue; d__link_queue_check;    }
-d_dpl_install()  {                      d__link_queue_install;  }
-d_dpl_remove()   {                      d__link_queue_remove;   }
-
-# This function is not built-in, but is the recommended way of organizing logic
-populate_link_queue() {
-  local src="$D__DPL_ASSET_DIR" dst=~
-  D_QUEUE_MAIN=(            .bashrc        .zshrc )
-  D_QUEUE_ASSETS=( "$src/.bashrc" "$src/.zshrc" )
-  D_QUEUE_TARGETS=( $dst/.bashrc   $dst/.zshrc  )
-}
-----
-
-==== Link queue set-up
-
-Following Bash arrays should be populated before any of the built-in helpers are called.
-Note, that you can <<link-queue-asset-automation,automate>> this process.
-
-.Variables required to set up link queue
-[%noheader,cols="<.<a",stripes=none]
-|===
-
-| `*D_QUEUE_MAIN*`
-
-This variable is still the main definition of the queue.
-In the context of link queue, for each absolute path in `*D_QUEUE_ASSETS*`, this array must contain a shortened relative version, resolvable from the asset directory.
-
-| `*D_QUEUE_ASSETS*`
-
-Each member of this array is an absolute path to which a symlink should be maintained.
-
-| `*D_QUEUE_TARGETS*`
-
-For each path in `*D_QUEUE_ASSETS*`, this array must contain the intended absolute path to a symlink, which will point to the respective asset.
-
-|===
-
-The queue arrays must be uninterrupted and have the same number of elements.
-Failing that, the queue will fail utterly and miserably.
-You have been warned.
-
-==== Link queue hooks
-
-Following built-in functions may be implemented to provide queue logic (all are optional).
-The framework unsets every link queue hook as soon as it is used up.
-
-.Link queue hooks
-[%noheader,cols="<.<a",stripes=none]
-|===
-
-^.^h| Mini-primary hooks
-
-| `*d_link_item_pre_check*`
-
-This function is called once, before the symlink is <<func-queue-item-check,checked>>.
-Supported return codes:
-
-* `*0*` — *'Proceed as normal'*
-* `*_other_*` — *'Return this item check code without checking'*
-
-| `*d_link_item_post_check*`
-
-This function is called once, after the symlink is <<func-queue-item-check,checked>>.
-Expect `$D{dus}ITEM_RETURN_CODE` variable to be populated with the code that is currently set to be returned by the check mini-primary.
-Supported return codes:
-
-* `*0*` — *'Proceed as normal'*
-* *_other_* — *'Return this item check code instead'* _(check code of the link queue item is ignored)_
-
-| `*d_link_item_pre_install*`
-
-This function is called once, before the symlink is <<func-queue-item-install,installed>>.
-Supported return codes:
-
-* `*0*` — *'Proceed as normal'*
-* `*_other_*` — *'Return this item install code without installing'*
-
-| `*d_link_item_post_install*`
-
-This function is called once, after the symlink is <<func-queue-item-install,installed>>.
-Expect `$D{dus}ITEM_RETURN_CODE` variable to be populated with the code that is currently set to be returned by the install mini-primary.
-Supported return codes:
-
-* `*0*` — *'Proceed as normal'*
-* *_other_* — *'Return this item install code instead'* _(install code of the link queue item is ignored)_
-
-| `*d_link_item_pre_remove*`
-
-This function is called once, before the symlink is <<func-queue-item-remove,uninstalled>>.
-Supported return codes:
-
-* `*0*` — *'Proceed as normal'*
-* `*_other_*` — *'Return this item remove code without removing'*
-
-| `*d_link_item_post_remove*`
-
-This function is called once, after the symlink is <<func-queue-item-remove,uninstalled>>.
-Expect `$D{dus}ITEM_RETURN_CODE` variable to be populated with the code that is currently set to be returned by the remove mini-primary.
-Supported return codes:
-
-* `*0*` — *'Proceed as normal'*
-* *_other_* — *'Return this item remove code instead'* _(remove code of the link queue item is ignored)_
-
-^.^h| Overall queue hooks
-
-| `*d_link_queue_pre_check*`
-
-This function is called once, before the link queue is checked.
-Supported return codes:
-
-* `*0*` — *'Proceed as normal'*
-* `*_other_*` — *'Return this check code without checking'*
-
-| `*d_link_queue_post_check*`
-
-This function is called once, after the link queue is entirelly checked.
-Expect `$D{dus}QUEUE_RETURN_CODE` variable to be populated with the code that is currently set to be returned by the check primary.
-Supported return codes:
-
-* `*0*` — *'Proceed as normal'*
-* *_other_* — *'Return this check code instead'* _(combined check code of the link queue is ignored)_
-
-| `*d_link_queue_pre_install*`
-
-This function is called once, before the link queue is installed.
-Supported return codes:
-
-* `*0*` — *'Proceed as normal'*
-* `*_other_*` — *'Return this install code without installing'*
-
-| `*d_link_queue_post_install*`
-
-This function is called once, after the link queue is entirelly installed.
-Expect `$D{dus}QUEUE_RETURN_CODE` variable to be populated with the code that is currently set to be returned by the install primary.
-Supported return codes:
-
-* `*0*` — *'Proceed as normal'*
-* *_other_* — *'Return this install code instead'* _(combined install code of the link queue is ignored)_
-
-| `*d_link_queue_pre_remove*`
-
-This function is called once, before the link queue is removed.
-Supported return codes:
-
-* `*0*` — *'Proceed as normal'*
-* `*_other_*` — *'Return this remove code without removing'*
-
-| `*d_link_queue_post_remove*`
-
-This function is called once, after the link queue is entirelly removed.
-Expect `$D{dus}QUEUE_RETURN_CODE` variable to be populated with the code that is currently set to be returned by the remove primary.
-Supported return codes:
-
-* `*0*` — *'Proceed as normal'*
-* *_other_* — *'Return this remove code instead'* _(combined remove code of the link queue is ignored)_
-
-|===
-
-[[link-queue-asset-automation]]
-==== Link queue asset automation
-
-So, you have your list of assets in a <<assets-mnf,manifest>>, and you know where to symlink them to.
-Why bother with manually populating arrays?
-
-No need.
-
-_Divine.dotfiles_ provides two major automation avenues for link queue arrays:
-
-* Arrays `*D_QUEUE_MAIN*` and `*D_QUEUE_ASSETS*` are both <<assets-arrays,automatically populated>> when the <<assets-mnf,asset manifest>> is processed, which happens immediately before your deployment file is sourced.
-* Array `*D_QUEUE_TARGETS*` can be automatically populated if all your assets are intended to go into one target directory.
-+
-For that to occur, put the target directory into `*D_QUEUE_TARGET_DIR*` variable before any of the built-in helpers are called.
-All your assets will be symlinked into the target directory, with relative paths preserved.
-+
-Keep in mind that this does rely on `*D_QUEUE_MAIN*` to contain relative paths, as is the requirement for link queues.
-
-[[link-queue-cross-platform-overrides]]
-==== Link queue cross-platform overrides
-
-Cross-platformness, you say?
-Your assets go into different target directories on different platforms?
-No worries.
-
-In _Divine.dotfiles_, every OS adapter carries an override mechanism for both `*D_QUEUE_TARGET_DIR*` and `*D_QUEUE_TARGETS*`.
-The rules are simple: append the handle of the supported OS to the variable name in all capitals like this:
-
-[source,bash]
-----
-D_QUEUE_TARGET_DIR=/generic/path
-D_QUEUE_TARGET_DIR_MACOS=/path/on/macos
-D_QUEUE_TARGET_DIR_FEDORA=/path/on/fedora
-D_QUEUE_TARGET_DIR_WSL=/path/on/wsl
-----
-
-[.note]
-[%noheader,cols="<.<a"]
-|===
-| The OS handles are matched against both  <<indct-os-family,`$D\__OS_FAMILY`>> and <<indct-os-distro,`$D__OS_DISTRO`>> built-in variables.
-A match against distro overrules a match against family, because such is life.
-|===
-
-[[copy-queue]]
-=== Copy queue
-
-Another common use case of queues is copying files into the system.
-For example, one might want to:
-
-* copy an assortment of font files into the system's font directory;
-* not overwrite existing files.
-
-For such purposes, _Divine.dotfiles_ provides a partially implemented version of <<queue-main,generic queue>> called *copy queue*.
-To use it:
-
-. Populate a few specially named arrays with necessary paths.
-. Delegate your deployment's <<func-primaries,primaries>> to built-in helpers.
-
-[.note]
-[%noheader,cols="<.<a"]
-|===
-| Copy queue does not touch pre-existing files:
-
-* If a file by that name already exists at destination — no copying is done.
-* Upon uninstallation, a file is only erased if there is a record of it previously being copied into that location.
-
-If you want to actually substitute existing files (while backing them up), prefer the <<lnqe-main,link queue>>.
-|===
-
-This kind of deployment is best demonstrated with an example:
-
-.Deployment template for copy queue
-[source,bash]
-----
-# Delegate primaries to copy queue helpers. Make sure helper is called last.
-d_dpl_check()    { populate_copy_queue; d__copy_queue_check;    }
-d_dpl_install()  {                      d__copy_queue_install;  }
-d_dpl_remove()   {                      d__copy_queue_remove;   }
-
-# This function is not built-in, but is the recommended way of organizing logic
-populate_copy_queue() {
-  local src="$D__DPL_ASSET_DIR" dst=/usr/share/fonts
-  D_QUEUE_MAIN=(            font1.ttf        font2.ttf  )
-  D_QUEUE_ASSETS=( "$src/font1.ttf" "$src/font2.ttf" )
-  D_QUEUE_TARGETS=( $dst/font1.ttf   $dst/font2.ttf  )
-}
-----
-
-==== Copy queue set-up
-
-Following Bash arrays should be populated before any of the built-in helpers are called.
-Note, that you can <<copy-queue-asset-automation,automate>> this process.
-
-.Variables required to set up copy queue
-[%noheader,cols="<.<a",stripes=none]
-|===
-
-| `*D_QUEUE_MAIN*`
-
-This variable is still the main definition of the queue.
-In the context of copy queue, for each absolute path in `*D_QUEUE_ASSETS*`, this array must contain a shortened relative version, resolvable from the asset directory.
-
-| `*D_QUEUE_ASSETS*`
-
-Each member of this array is an absolute path to file that is to be copied.
-
-| `*D_QUEUE_TARGETS*`
-
-For each path in `*D_QUEUE_ASSETS*`, this array must contain the destination absolute path for copying.
-
-|===
-
-The queue arrays must be uninterrupted and have the same number of elements.
-Failing that, the queue will fail utterly and miserably.
-You have been warned.
-
-==== Copy queue hooks
-
-Following built-in functions may be implemented to provide queue logic (all are optional).
-The framework unsets every copy queue hook as soon as it is used up.
-
-.Copy queue hooks
-[%noheader,cols="<.<a",stripes=none]
-|===
-
-^.^h| Mini-primary hooks
-
-| `*d_copy_item_pre_check*`
-
-This function is called once, before the copy is <<func-queue-item-check,checked>>.
-Supported return codes:
-
-* `*0*` — *'Proceed as normal'*
-* `*_other_*` — *'Return this item check code without checking'*
-
-| `*d_copy_item_post_check*`
-
-This function is called once, after the copy is <<func-queue-item-check,checked>>.
-Expect `$D{dus}ITEM_RETURN_CODE` variable to be populated with the code that is currently set to be returned by the check mini-primary.
-Supported return codes:
-
-* `*0*` — *'Proceed as normal'*
-* *_other_* — *'Return this check code instead'* _(check code of the copy queue item is ignored)_
-
-| `*d_copy_item_pre_install*`
-
-This function is called once, before the copy is <<func-queue-item-install,installed>>.
-Supported return codes:
-
-* `*0*` — *'Proceed as normal'*
-* `*_other_*` — *'Return this item install code without installing'*
-
-| `*d_copy_item_post_install*`
-
-This function is called once, after the copy is <<func-queue-item-install,installed>>.
-Expect `$D{dus}ITEM_RETURN_CODE` variable to be populated with the code that is currently set to be returned by the install mini-primary.
-Supported return codes:
-
-* `*0*` — *'Proceed as normal'*
-* *_other_* — *'Return this install code instead'* _(install code of the copy queue item is ignored)_
-
-| `*d_copy_item_pre_remove*`
-
-This function is called once, before the copy is <<func-queue-item-remove,uninstalled>>.
-Supported return codes:
-
-* `*0*` — *'Proceed as normal'*
-* `*_other_*` — *'Return this item remove code without removing'*
-
-| `*d_copy_item_post_remove*`
-
-This function is called once, after the copy is <<func-queue-item-remove,uninstalled>>.
-Expect `$D{dus}ITEM_RETURN_CODE` variable to be populated with the code that is currently set to be returned by the remove mini-primary.
-Supported return codes:
-
-* `*0*` — *'Proceed as normal'*
-* *_other_* — *'Return this remove code instead'* _(remove code of the copy queue item is ignored)_
-
-^.^h| Overall queue hooks
-
-| `*d_copy_queue_pre_check*`
-
-This function is called once, before the copy queue is checked.
-Supported return codes:
-
-* `*0*` — *'Proceed as normal'*
-* `*_other_*` — *'Return this check code without checking'*
-
-| `*d_copy_queue_post_check*`
-
-This function is called once, after the copy queue is entirelly checked.
-Expect `$D{dus}QUEUE_RETURN_CODE` variable to be populated with the code that is currently set to be returned by the check primary.
-Supported return codes:
-
-* `*0*` — *'Proceed as normal'*
-* *_other_* — *'Return this check code instead'* _(combined check code of the copy queue is ignored)_
-
-| `*d_copy_queue_pre_install*`
-
-This function is called once, before the copy queue is installed.
-Supported return codes:
-
-* `*0*` — *'Proceed as normal'*
-* `*_other_*` — *'Return this install code without installing'*
-
-| `*d_copy_queue_post_install*`
-
-This function is called once, after the copy queue is entirelly installed.
-Expect `$D{dus}QUEUE_RETURN_CODE` variable to be populated with the code that is currently set to be returned by the install primary.
-Supported return codes:
-
-* `*0*` — *'Proceed as normal'*
-* *_other_* — *'Return this install code instead'* _(combined install code of the copy queue is ignored)_
-
-| `*d_copy_queue_pre_remove*`
-
-This function is called once, before the copy queue is removed.
-Supported return codes:
-
-* `*0*` — *'Proceed as normal'*
-* `*_other_*` — *'Return this remove code without removing'*
-
-| `*d_copy_queue_post_remove*`
-
-This function is called once, after the copy queue is entirelly removed.
-Expect `$D{dus}QUEUE_RETURN_CODE` variable to be populated with the code that is currently set to be returned by the remove primary.
-Supported return codes:
-
-* `*0*` — *'Proceed as normal'*
-* *_other_* — *'Return this remove code instead'* _(combined remove code of the copy queue is ignored)_
-
-|===
-
-[[copy-queue-asset-automation]]
-==== Copy queue asset automation
-
-So, you have your list of assets in a <<assets-mnf,manifest>>, and you know where to copy them to.
-Why bother with manually populating arrays?
-
-No need.
-
-_Divine.dotfiles_ provides two major automation avenues for copy queue arrays:
-
-* Arrays `*D_QUEUE_MAIN*` and `*D_QUEUE_ASSETS*` are both <<asset-arrays,automatically populated>> when the <<assets-mnf,asset manifest>> is processed, which happens immediately before your deployment file is sourced.
-* Array `*D_QUEUE_TARGETS*` can be automatically populated if all your assets are intended to go into one target directory.
-+
-For that to occur, put the target directory into `*D_QUEUE_TARGET_DIR*` variable before any of the built-in helpers are called.
-All your assets will be copied into the target directory, with relative paths preserved.
-+
-Keep in mind that this does rely on `*D_QUEUE_MAIN*` to contain relative paths, as is the requirement for copy queues.
-
-[[copy-queue-cross-platform-overrides]]
-==== Copy queue cross-platform overrides
-
-Cross-platformness, you say?
-Your assets go into different target directories on different platforms?
-No worries.
-
-In _Divine.dotfiles_, every OS adapter carries an override mechanism for both `*D_QUEUE_TARGET_DIR*` and `*D_QUEUE_TARGETS*`.
-The rules are simple: append the handle of the supported OS to the variable name in all capitals like this:
-
-[source,bash]
-----
-D_QUEUE_TARGET_DIR=/generic/path
-D_QUEUE_TARGET_DIR_MACOS=/path/on/macos
-D_QUEUE_TARGET_DIR_FEDORA=/path/on/fedora
-D_QUEUE_TARGET_DIR_WSL=/path/on/wsl
-----
-
-[.note]
-[%noheader,cols="<.<a"]
-|===
-| The OS handles are matched against both  <<indct-os-family,`$D\__OS_FAMILY`>> and <<indct-os-distro,`$D__OS_DISTRO`>> built-in variables.
-A match against distro overrules a match against family, because such is life.
-|===
-
-[[mltsk-main]]
-=== Multitask
-
-What if a deployment carries out an assortment of _dissimilar_ tasks?
-Tying up various return codes to integrate with _Divine.dotfiles_ would be tedious.
-
-*Multitask* helpers will take up that task.
-To use them:
-
-. Populate a specially named array with one string for each task.
-. Implement sub-primaries for the tasks, as if each one was a deployment of its own.
-. Delegate your deployment's <<func-primaries,primaries>> to built-in helpers.
-
-This kind of deployment is best demonstrated with an example:
-
-.Deployment template for multitasking
-[source,bash]
-----
-# Delegate primaries to multitask helpers. Make sure helper is called last.
-d_dpl_check()    { assemble_tasks;  d__mltsk_check;   }
-d_dpl_install()  {                  d__mltsk_install; }
-d_dpl_remove()   {                  d__mltsk_remove;  }
-
-# This function is not built-in, but is the recommended way of organizing logic
-assemble_tasks() {  D_MLTSK_MAIN=( eat pray love );  }
-
-# Implement sub-primaries for each task, following guidelines for primaries
-
-d_eat_check()     { :; }
-d_eat_install()   { :; }
-d_eat_remove()    { :; }
-
-d_pray_check()    { :; }
-d_pray_install()  { :; }
-d_pray_remove()   { :; }
-
-d_love_check()    { :; }
-d_love_install()  { :; }
-d_love_remove()   { :; }
-----
-
-==== Multitask set-up
-
-Following Bash arrays should be populated before any of the built-in helpers are called:
-
-.Variables required to set up multitask deployment
-[%noheader,cols="<.<a",stripes=none]
-|===
-
-| [#var-multitask-names]#`*D_MLTSK_MAIN*`#
-
-Each member of this array defines a task.
-
-Members of this array are strings, and are used in forming names of sub-primaries, which you then have to implement:
+[[func-dmd5]]
+=== Function `dmd5`
+
+The framework exstensively uses the https://en.wikipedia.org/wiki/MD5[MD5] checksums to indirectly compare files and strings.
+The `dmd5` function provides a cross-platform way of calculating an the MD5 checksums.
+Under the hood it uses the first utility found: `md5sum`, `md5`, or `openssl`.
 
 [source,subs="verbatim,quotes,attributes"]
 ----
-          d{us}**__TASK__**{us}check
-*_TASK_*  =>  d{us}**__TASK__**{us}install
-          d{us}**__TASK__**{us}remove
+*dmd5* [-s *_STRING_*] | [*_PATH_*]
 ----
 
-|===
+* One checksum is calculated per call.
+* Either a string or a path to a file may be given.
+* It is up to the caller to ensure that the path exists and is readable.
+* The checksum is printed to the `stdout`.
 
-The multitask array must be uninterrupted.
-Failing that, the deployment will fail utterly and miserably.
-You have been warned.
+The `dmd5` function returns zero on success and non-zero if something goes wrong.
 
-==== Multitask hooks
+[[bckp-main]]
+=== Backups
 
-Following built-in functions may be implemented to provide task logic (all are optional):
+The framework adheres to the <<fmwk-zero-data-loss,zero data loss>> and the <<fmwk-reversibility,reversibility>> policies.
+To assist in that, the framework provides two functions that facilitate <<func-push-backup,backing up>> and <<func-pop-backup,restoring>> files.
 
-.Multitask hooks
+[[func-push-backup]]
+==== Function `d__push_backup`
+
+The function `d{dus}push_backup` vacates the given path by pushing whatever exists at it to a backup location.
+
+[source,subs="verbatim,quotes,attributes"]
+----
+*d{dus}push_backup* [--] *_ORIG_PATH_* [*_BACKUP_PATH_*]
+----
+
+The emptying of the `*_ORIG_PATH_*` is a priority; if it sits empty, a success code is immediately returned.
+
+For the backup path, the first available strategy is employed:
+
+* If a `*_BACKUP_PATH_*` is given, it is used.
+If it turns out unusable, an error code is returned, without attempting other strategies.
+* If called from a deployment, the backup path is generated in the <<indct-dpl-backup-dir,`$D__DPL_BACKUP_DIR`>> directory, and named by concatenating:
+** the MD5 <<func-dmd5,checksum>> of the `*_ORIG_PATH_*`;
+** the `.bak` suffix.
+* If none of the above works, an error code is returned.
+
+If the generated backup path happens to be occupied, it is interpreted as a previously made backup.
+Previous backups are never overwritten.
+Instead, this function repeatedly appends an incrementing numerical suffix (`-1`, `-2`, etc.) to the backup's name until it finds a path that is not yet occupied.
+These numerical suffixes are hard capped at 1000.
+
+The `d{dus}push_backup` function always ensures the existence of the directory that is the immediate parent of the `*_ORIG_PATH_*` and of the generated backup path.
+
+The `d{dus}push_backup` function is intended to be used in conjunction with the <<func-pop-backup,`d{dus}pop_backup`>> function.
+
+The return codes are:
+
+* `0` — The `*_ORIG_PATH_*` has been made empty; and if anything existed there, it has been backed up.
+* `1` — The `*_ORIG_PATH_*` exists, but is inaccessible.
+* `2` — The backup path, whatever it is, is inaccessible or invalid.
+* `3` — Other unexpected error.
+
+.List of `d{dus}push_backup` options
 [%noheader,cols="<.<a",stripes=none]
 |===
 
-^.^h| Sub-primaries
+| +++<p align="center">+++
+`*-k*`, `*--keep-original*`
++++</p>+++
 
-| [#func-task-check]#`*d{us}__TASK__{us}check*`#
-
-See the guidelines to the <<func-dpl-check,deployment-level sibling>>, `d_dpl_check`.
-
-| [#func-task-install]#`*d{us}__TASK__{us}install*`#
-
-See the guidelines to the <<func-dpl-install,deployment-level sibling>>, `d_dpl_install`.
-
-| [#func-task-remove]#`*d{us}__TASK__{us}remove*`#
-
-See the guidelines to the <<func-dpl-remove,deployment-level sibling>>, `d_dpl_remove`.
+Directs to not vacate the `*_ORIG_PATH_*`.
+If something exists at that location, it is backed up.
+Otherwise, nothing is done.
 
 |===
 
-[[queue-split]]
-==== Split queue
+[[func-pop-backup]]
+==== Function `d__pop_backup`
 
-Eventually, you will want to include more than one queue in your multitask deployment.
-And therein lies a _gotcha_.
+The function `d{dus}pop_backup` restores the latest backup of the given path to its original location.
+Whatever pre-exists at the original location is, in turn, backed up by appending the `.bak` suffix in-place.
 
-All queues share the same internal mechanism.
-Care must be taken to employ this mechanism multiple times within single deployment.
-Specifically, the queue must be *split* by calling internal function `*d__queue_split*`.
-
-This is best illustrated with an example:
-
-.Deployment template for multitasking with split queue
-[source,bash,subs="verbatim,quotes,attributes"]
+[source,subs="verbatim,quotes,attributes"]
 ----
-# Delegate primaries to multitask helpers. Make sure helper is called last.
-d_dpl_check()    { assemble_tasks;  d{dus}mltsk_check;   }
-d_dpl_install()  {                  d{dus}mltsk_install; }
-d_dpl_remove()   {                  d{dus}mltsk_remove;  }
-
-# This function is not built-in, but is the recommended way of organizing logic
-assemble_tasks() {  D_MLTSK_MAIN=( queue1 queue2 queue3 ); }
-
-# In this case all three tasks contain a queue
-
-d_queue1_check()    { populate_copy_queue;    d{dus}copy_queue_check;    }
-d_queue1_install()  {                         d{dus}copy_queue_install;  }
-d_queue1_remove()   {                         d{dus}copy_queue_remove;   }
-
-d_queue2_check()    { populate_link_queue;    d{dus}link_queue_check;    }
-d_queue2_install()  {                         d{dus}link_queue_install;  }
-d_queue2_remove()   {                         d{dus}link_queue_remove;   }
-
-d_queue3_check()    { populate_generic_queue; d{dus}queue_check;         }
-d_queue3_install()  {                         d{dus}queue_install;       }
-d_queue3_remove()   {                         d{dus}queue_remove;        }
-
-
-populate_copy_queue() {
-  # Populate the first queue normally (arrays specific to copy queue omitted)
-  D_QUEUE_MAIN=( some copy tasks )
-}
-
-populate_link_queue() {
-  # In subsequent queues, call this built-in function first
-  d{dus}queue_split
-
-  # Then {as}append{as} to the queue array (arrays specific to link queue omitted)
-  D_QUEUE_MAIN+=( add link jobs )
-}
-
-populate_generic_queue() {
-  d{dus}queue_split
-
-  D_QUEUE_MAIN+=( generic queue work )
-}
+*d{dus}pop_backup* [-dep]… [--] *_ORIG_PATH_* [*_BACKUP_PATH_*]
 ----
 
-[.note]
-[%noheader,cols="<.<a"]
+If there are no backups at all, nothing is done and a success code is returned.
+
+For the backup path, the first available strategy is employed:
+
+* If a `*_BACKUP_PATH_*` is given, it is used.
+If it turns out unusable, an error code is returned, without attempting other strategies.
+* If called from a deployment, the backup path is generated in the <<indct-dpl-backup-dir,`$D__DPL_BACKUP_DIR`>> directory, and named by concatenating:
+** the MD5 <<func-dmd5,checksum>> of the `*_ORIG_PATH_*`;
+** the `.bak` suffix.
+* If none of the above works, an error code is returned.
+
+To find the latest backup, this function first checks the generated backup path, then repeatedly appends an incrementing numerical suffix (`-1`, `-2`, etc.).
+As soon as it hits a path that does not exist, the previous path is interpreted as the latest backup.
+These numerical suffixes are hard capped at 1000.
+
+To back up whatever pre-exists at the `*_ORIG_PATH_*`, the `.bak` suffix is appended to the `*_ORIG_PATH_*`.
+If that path happens to be occupied, the same routine of incrementing numbers is applied.
+
+The `d{dus}pop_backup` function is intended to be used in conjunction with the <<func-push-backup,`d{dus}push_backup`>> function.
+
+The return codes are:
+
+* `0` — The backup has been popped successfully, according to the options.
+* `1` — The `*_ORIG_PATH_*` is inaccessible.
+* `2` — The backup path, whatever it is, is inaccessible or invalid.
+* `3` — Other unexpected error.
+
+.List of `d{dus}pop_backup` options
+[%noheader,cols="<.<a",stripes=none]
 |===
-| If you use <<assets-mnf,asset manifests>>, you may <<assets-mnf-split,split your queue>> directly within the asset manifest file.
+
+| +++<p align="center">+++
+`*-e*`, `*--evict*`
++++</p>+++
+
+This option makes it an additional priority to ensure that anything that pre-exists at the `*_ORIG_PATH_*` is no longer there by the time this function successfully returns.
+This means that even if there is no backup to pop, the `*_ORIG_PATH_*` still gets vacated.
+
+| +++<p align="center">+++
+`*-d*`, `*--dispose*`
++++</p>+++
+
+With this option, the function treats whatever pre-exists at the `*_ORIG_PATH_*` as disposable.
+In this mode, no backups of the `*_ORIG_PATH_*` are made.
+
+| +++<p align="center">+++
+`*-p*`, `*--precise*`
++++</p>+++
+
+Directs to skip the motions of looking up the latest backup version by appending the suffixes.
+Instead, the backup location is used either precisely or not at all.
+
 |===
+
+[[func-os-pkgmgr]]
+=== Function `d__os_pkgmgr`
+
+The `d__os_pkgmgr` function is a thin wrapper around the OS package manager.
+The idea is to be able to install universally available system packages on any supported OS.
+On OS's that are not yet supported, this function does nothing and returns non-zero.
+
+[source,subs="verbatim,quotes,attributes"]
+----
+*d__os_pkgmgr* *update*|*has*|*check*|*install*|*remove* [*_PKG_NAME_*]
+----
+
+Launches one of the five routines, which are expected of any package manager out there:
+
+* `update` — updates all installed packages (other arguments are ignored).
+* `has` — checks whether the provided package is available from that package manager.
+* `check` — checks whether the provided package is installed; returns zero/non-zero appropriately.
+* `install` — installs the provided package.
+* `remove` — uninstalls the provided package.
+
+The `*_PKG_NAME_*` argument is the name of a single package; it is relayed to the underlying package manager verbatim.
+User prompts (except the prompt for sudo password) are suppressed/skipped.
 
 == Ways to contribute
 
-You are free to contribute to _Divine.dotfiles_ in any way you deem beneficial.
+You are welcome to contribute to _Divine.dotfiles_ in any way you deem beneficial.
 This section is periodically updated to state the most sought after avenues of improvement.
 
 [[cntrb-os-support]]
 === Contributing OS support
 
-One of the main goals of this framework is *portability*.
+One of the main goals of _Divine.dotfiles_ is *portability*.
 
-In _Divine.dotfiles_, the code that supports particular operating systems is isolated within special files called *adapters*.
-An OS distribution adapter allows the framework to interact with that OS and with its built-in package manager.
+In _Divine.dotfiles_, the code that supports a particular OS distribution is concentrated in two locations:
 
-* An adapter is a Bash script with special functions implemented.
-* Adapter template and guidelines are located in `lib/templates/adapters/distro.add.sh`.
-* Active adapters are put into `lib/adapters/distro/`.
+* The detection mechanism in the file at `<<fmwk-lib,lib>>/procedures/detect-os.pcd.sh`.
++
+In that file, search for the `\<<CONTRIBUTE HERE>>` line.
+* The special files called *adapters*, located at `<<fmwk-lib,lib>>/adapters/distro/`.
++
+To start the work on your own adapter, get the template at `<<fmwk-lib,lib>>/templates/adapters/distro.add.sh`.
 
 Adapters for all OS distributions out there will be welcomed with open arms.
 
 [[divine-bundles]]
 == Divine bundles
 
-Divine deployments are deployments developed and distributed along with _Divine.dotfiles_.
+The *Divine bundles* of deployments are developed and distributed along with _Divine.dotfiles_.
 Apart from being useful by themselves, they serve as an illustration of the framework's mechanisms put to good use.
 
-.List of Divine deployments
+.List of Divine bundles
 [%noheader,cols="<.<a",stripes=none]
 |===
 
-| https://github.com/no-simpler/divine-bundle-essentials[Essentials] _(fully functional and documented)_
+| +++<p align="center">+++
+`*https://github.com/no-simpler/divine-bundle-essentials[Essentials]*`
++++</p>+++
 
-A bundle of core deployments, mostly centered around 'classic' dotfiles.
+A bundle of core deployments, mostly centered around the 'classic' dotfiles.
 
-| https://github.com/no-simpler/divine-bundle-gpg-primer[GnuPG best practices] _(fully functional on macOS, not yet fully documented)_
+|===
+
+=== Divine bundles in development
+
+The following bundles are not yet in a satisfactory state for publishing.
+Still, these are functional to the described extent.
+
+.List of Divine bundles in development
+[%noheader,cols="<.<a",stripes=none]
+|===
+
+| +++<p align="center">+++
+`*https://github.com/no-simpler/divine-bundle-gpg-primer[GnuPG best practices]*`
++++</p>+++
+
+_(fully functional on macOS, not yet fully documented)_
 
 Automates adherence to best security practices in regards to https://www.gnupg.org[GnuPG].
 
-| https://github.com/no-simpler/divine-bundle-ssh-primer[SSH key handling] _(fully functional on macOS, not yet fully documented)_
+| +++<p align="center">+++
+`*https://github.com/no-simpler/divine-bundle-ssh-primer[SSH key handling]*`
++++</p>+++
+
+_(fully functional on macOS, not yet fully documented)_
 
 Automates secure stashing and retrieval of SSH secret keys.
 
-| https://github.com/no-simpler/divine-bundle-fonts[Fonts collection] _(fully functional on macOS & Ubuntu, not yet fully documented)_
+| +++<p align="center">+++
+`*https://github.com/no-simpler/divine-bundle-fonts[Fonts collection]*`
++++</p>+++
+
+_(fully functional on macOS & Ubuntu, not yet fully documented)_
 
 Maintains a collection of personal font files across machines.
 
 ^.^h| macOS-specific deployments
 
-| https://github.com/no-simpler/divine-bundle-macos-local-server[Local development server] _(fully functional on macOS, not yet fully documented)_
+| +++<p align="center">+++
+`*https://github.com/no-simpler/divine-bundle-macos-local-server[Local development server]*`
++++</p>+++
+
+_(fully functional on macOS, not yet fully documented)_
 
 Maintains a local development server on macOS.
 For the most part, it automates instructions from https://getgrav.org/blog/macos-mojave-apache-multiple-php-versions[this article].
 
-| https://github.com/no-simpler/divine-bundle-macos-tilde-switch[Tilde-switch] _(fully functional on macOS, not yet fully documented)_
+| +++<p align="center">+++
+`*https://github.com/no-simpler/divine-bundle-macos-tilde-switch[Tilde-switch]*`
++++</p>+++
 
-Programmatically switches keys tilde `~` and plus-minus `±` on a MacBook's built-in physical keyboard.
+_(fully functional on macOS, not yet fully documented)_
+
+Programmatically switches the keys tilde `~` and plus-minus `±` on a MacBook's built-in physical keyboard.
 
 ^.^h| App-specific configuration deployments
 
-| https://github.com/no-simpler/divine-bundle-config-vscode[Visual Studio Code] _(fully functional on macOS, not yet fully documented)_
+| +++<p align="center">+++
+`*https://github.com/no-simpler/divine-bundle-config-vscode[Visual Studio Code]*`
++++</p>+++
+
+_(fully functional on macOS, not yet fully documented)_
 
 Maintains configuration for https://code.visualstudio.com[VS Code].
 
-| https://github.com/no-simpler/divine-bundle-config-hyperjs[Hyper.js] _(fully functional on macOS, not yet fully documented)_
+| +++<p align="center">+++
+`*https://github.com/no-simpler/divine-bundle-config-hyperjs[Hyper.js]*`
++++</p>+++
+
+_(fully functional on macOS, not yet fully documented)_
 
 Maintains configuration for https://hyper.is[Hyper] terminal.
 
-| https://github.com/no-simpler/divine-bundle-config-transmissionbt[Transmission BT] _(fully functional on macOS, not yet fully documented)_
+| +++<p align="center">+++
+`*https://github.com/no-simpler/divine-bundle-config-transmissionbt[Transmission BT]*`
++++</p>+++
+
+_(fully functional on macOS, not yet fully documented)_
 
 Maintains configuration for https://transmissionbt.com[Transmission].
 

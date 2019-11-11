@@ -2,8 +2,8 @@
 #:title:        Divine Bash utils: workflow
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.31
-#:revremark:    React to --obliterate in key framework mechanisms
+#:revdate:      2019.11.11
+#:revremark:    Update readme for D.d v2, pt. 8
 #:created_at:   2019.09.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -13,7 +13,7 @@
 #
 ## Summary of functions in this file:
 #>  d__announce [-!dsvx] [--] DESCRIPTION...
-#>  d__context [-lnq]... [-t TITLE] [--] push|pop|notch|lop DESCRIPTION...
+#>  d__context [-!dlnqsvx]... [-t TITLE] [--] push|pop|notch|lop DESCRIPTION...
 #>  d__notify [-!1cdhlnqsuvx] [-t TITLE] [--] [DESCRIPTION...]
 #>  d__prompt [-!1bchknqsvxy] [-p PROMPT] [-a ANSWER] [-t TITLE] [--] \
 #.    [DESCRIPTION...]
@@ -81,7 +81,7 @@ d__announce()
     "$clr$BOLD D.d >$NORMAL$clr" "${args[*]}" "$BOLD> $NORMAL"
 }
 
-#>  d__context [-lnq]... [-t TITLE] [--] push|pop|notch|lop DESCRIPTION...
+#>  d__context [-!dlnqsvx]... [-t TITLE] [--] push|pop|notch|lop DESCRIPTION...
 #
 ## Manipulates Divine workflow context stack.
 #
