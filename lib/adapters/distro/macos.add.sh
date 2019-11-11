@@ -2,8 +2,8 @@
 #:title:        Divine.dotfiles macOS adapter
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.27
-#:revremark:    Add 'has' command to d__os_pkgmgr wrapper
+#:revdate:      2019.11.11
+#:revremark:    Rename queue arrays
 #:created_at:   2019.06.04
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -50,13 +50,13 @@ d__detect_os_pkgmgr()
   }
 }
 
-# Implement overriding mechanism for $D_DPL_TARGET_PATHS and $D_DPL_TARGET_DIR
+# Implement overriding mechanism for $D_QUEUE_TARGETS and $D_QUEUE_TARGET_DIR
 d__override_dpl_targets_for_os_distro()
 {
-  if [ ${#D_DPL_TARGET_PATHS_MACOS[@]} -gt 1 -o -n "$D_DPL_TARGET_PATHS_MACOS" ]
-  then D_DPL_TARGET_PATHS=( "${D_DPL_TARGET_PATHS_MACOS[@]}" ); fi
-  if [ -n "$D_DPL_TARGET_DIR_MACOS" ]
-  then D_DPL_TARGET_DIR="$D_DPL_TARGET_DIR_MACOS"; fi
+  if [ ${#D_QUEUE_TARGETS_MACOS[@]} -gt 1 -o -n "$D_QUEUE_TARGETS_MACOS" ]
+  then D_QUEUE_TARGETS=( "${D_QUEUE_TARGETS_MACOS[@]}" ); fi
+  if [ -n "$D_QUEUE_TARGET_DIR_MACOS" ]
+  then D_QUEUE_TARGET_DIR="$D_QUEUE_TARGET_DIR_MACOS"; fi
 }
 
 # Implement helper that offers to install Homebrew, and does it if user agrees

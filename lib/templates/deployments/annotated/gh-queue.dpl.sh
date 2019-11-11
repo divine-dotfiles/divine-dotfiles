@@ -14,9 +14,9 @@ D_DPL_WARNING=
 ## Copy-queue is a queue ('queue.dpl.sh') with some actions pre-implemented.
 #
 ## Variables to fill:
-#.  $D_DPL_ASSET_PATHS    - This array must contain paths to every asset that 
+#.  $D_QUEUE_ASSETS    - This array must contain paths to every asset that 
 #.                          is to be copied into the system.
-#.  $D_DPL_TARGET_PATHS   - This array must contain corresponding 'target' 
+#.  $D_QUEUE_TARGETS   - This array must contain corresponding 'target' 
 #.                          paths that are to be copy destinations.
 #. Framework has ways of auto-populating these arrays: see notes on automation 
 #. below.
@@ -48,12 +48,12 @@ D_DPL_WARNING=
 
 ## Notes on automation:
 #
-## Framework provides a way to auto-populate asset paths ($D_DPL_ASSET_PATHS):
+## Framework provides a way to auto-populate asset paths ($D_QUEUE_ASSETS):
 #.  * Asset manifest (see 'dpl-filename.dpl.mnf' template for reference)
 #
-## Target paths ($D_DPL_TARGET_PATHS) can be populated manually. OS-specific 
+## Target paths ($D_QUEUE_TARGETS) can be populated manually. OS-specific 
 #. overrides for this array are given by suffixing system handle in uppercase 
-#. to variable name, e.g., $D_DPL_TARGET_PATHS_BSD. Browse 'lib/adapters' for 
+#. to variable name, e.g., $D_QUEUE_TARGETS_BSD. Browse 'lib/adapters' for 
 #. supported system handles.
 #
 ## Perhaps a more convenient way of generating target paths is available when 
@@ -62,8 +62,8 @@ D_DPL_WARNING=
 #. providing path to target parent directory is enough for framework to figure 
 #. out the rest.
 #
-## Target directory is provided in $D_DPL_TARGET_DIR variable. It is overridden 
-#. for particular OS in the same manner as above, e.g., $D_DPL_TARGET_DIR_WSL.
+## Target directory is provided in $D_QUEUE_TARGET_DIR variable. It is overridden 
+#. for particular OS in the same manner as above, e.g., $D_QUEUE_TARGET_DIR_WSL.
 #
 
 ## Framework provides three primary helpers. If queue is the only part of the 

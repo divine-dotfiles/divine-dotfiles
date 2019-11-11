@@ -2,8 +2,8 @@
 #:title:        Divine.dotfiles BSD adapter
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.14
-#:revremark:    Implement robust dependency loading system
+#:revdate:      2019.11.11
+#:revremark:    Rename queue arrays
 #:created_at:   2019.06.04
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -17,11 +17,11 @@
 # Marker and dependencies
 readonly D__ADF_BSD=loaded
 
-# Implement overriding mechanism for $D_DPL_TARGET_PATHS and $D_DPL_TARGET_DIR
+# Implement overriding mechanism for $D_QUEUE_TARGETS and $D_QUEUE_TARGET_DIR
 d__override_dpl_targets_for_os_family()
 {
-  if [ ${#D_DPL_TARGET_PATHS_BSD[@]} -gt 1 -o -n "$D_DPL_TARGET_PATHS_BSD" ]
-  then D_DPL_TARGET_PATHS=( "${D_DPL_TARGET_PATHS_BSD[@]}" ); fi
-  if [ -n "$D_DPL_TARGET_DIR_BSD" ]
-  then D_DPL_TARGET_DIR="$D_DPL_TARGET_DIR_BSD"; fi
+  if [ ${#D_QUEUE_TARGETS_BSD[@]} -gt 1 -o -n "$D_QUEUE_TARGETS_BSD" ]
+  then D_QUEUE_TARGETS=( "${D_QUEUE_TARGETS_BSD[@]}" ); fi
+  if [ -n "$D_QUEUE_TARGET_DIR_BSD" ]
+  then D_QUEUE_TARGET_DIR="$D_QUEUE_TARGET_DIR_BSD"; fi
 }

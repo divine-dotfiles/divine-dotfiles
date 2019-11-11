@@ -2,8 +2,8 @@
 #:title:        Divine Bash deployment helpers: gh-queue
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.08
-#:revremark:    Update readme for D.d v2, pt. 7
+#:revdate:      2019.11.11
+#:revremark:    Rename queue arrays
 #:created_at:   2019.10.10
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -65,12 +65,12 @@ d__gh_queue_pre_check()
 
   # Ensure the required arrays are continuous at the given section
   local d__i; for ((d__i=$D__QUEUE_SECTMIN;d__i<$D__QUEUE_SECTMAX;++d__i)); do
-    if [ -z ${D_DPL_TARGET_PATHS[$d__i]+isset} ]; then
-      if [ -n "$D_DPL_TARGET_DIR" ]; then
-        D_DPL_TARGET_PATHS[$d__i]="$D_DPL_TARGET_DIR/${D_QUEUE_MAIN[$d__i]}"
+    if [ -z ${D_QUEUE_TARGETS[$d__i]+isset} ]; then
+      if [ -n "$D_QUEUE_TARGET_DIR" ]; then
+        D_QUEUE_TARGETS[$d__i]="$D_QUEUE_TARGET_DIR/${D_QUEUE_MAIN[$d__i]}"
       else
         d__notify -lxht 'Github-queue failed' -- \
-          'Array $D_DPL_TARGET_PATHS is not continuous in the given section'
+          'Array $D_QUEUE_TARGETS is not continuous in the given section'
         return 1
       fi
     fi
@@ -93,7 +93,7 @@ d__gh_item_check()
 {
   # Init storage variables; switch context
   local d__gqei="$D__ITEM_NUM" d__gqen="$D__ITEM_NAME" d__gqrtc d__gqer=()
-  local d__gqet="${D_DPL_TARGET_PATHS[$d__gqei]}"
+  local d__gqet="${D_QUEUE_TARGETS[$d__gqei]}"
   local d__gqeb="$D__DPL_BACKUP_DIR/$d__gqesk"
   local d__gqesk="gh_$( dmd5 -s "$d__gqet" )"
   d__context -- push "Checking if cloned to: '$d__gqet'"
@@ -163,7 +163,7 @@ d__gh_item_install()
 {
   # Init storage variables; switch context
   local d__gqei="$D__ITEM_NUM" d__gqen="$D__ITEM_NAME" d__gqrtc
-  local d__gqet="${D_DPL_TARGET_PATHS[$d__gqei]}"
+  local d__gqet="${D_QUEUE_TARGETS[$d__gqei]}"
   local d__gqesk="gh_$( dmd5 -s "$d__gqet" )"
   local d__gqeb="$D__DPL_BACKUP_DIR/$d__gqesk"
   d__context -- push "Retrieving a Github repo to: '$d__gqet'"
@@ -222,7 +222,7 @@ d__gh_item_remove()
 {
   # Init storage variables; switch context
   local d__gqei="$D__ITEM_NUM" d__gqen="$D__ITEM_NAME" d__gqrtc d__gqeo
-  local d__gqet="${D_DPL_TARGET_PATHS[$d__gqei]}"
+  local d__gqet="${D_QUEUE_TARGETS[$d__gqei]}"
   local d__gqesk="gh_$( dmd5 -s "$d__gqet" )"
   local d__gqeb="$D__DPL_BACKUP_DIR/$d__gqesk"
   d__context -- push "Removing Github repo at: '$d__gqet'"

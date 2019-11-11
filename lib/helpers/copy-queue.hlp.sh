@@ -2,8 +2,8 @@
 #:title:        Divine Bash deployment helpers: copy-queue
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.08
-#:revremark:    Update readme for D.d v2, pt. 7
+#:revdate:      2019.11.11
+#:revremark:    Rename queue arrays
 #:created_at:   2019.05.23
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -62,17 +62,17 @@ d__copy_queue_pre_check()
 
   # Ensure the required arrays are continuous at the given section
   local d__i; for ((d__i=$D__QUEUE_SECTMIN;d__i<$D__QUEUE_SECTMAX;++d__i)); do
-    if [ -z ${D_DPL_ASSET_PATHS[$d__i]+isset} ]; then
+    if [ -z ${D_QUEUE_ASSETS[$d__i]+isset} ]; then
       d__notify -lxht 'Copy-queue failed' -- \
-        'Array $D_DPL_ASSET_PATHS is not continuous in the given section'
+        'Array $D_QUEUE_ASSETS is not continuous in the given section'
       return 1
     fi
-    if [ -z ${D_DPL_TARGET_PATHS[$d__i]+isset} ]; then
-      if [ -n "$D_DPL_TARGET_DIR" ]; then
-        D_DPL_TARGET_PATHS[$d__i]="$D_DPL_TARGET_DIR/${D_QUEUE_MAIN[$d__i]}"
+    if [ -z ${D_QUEUE_TARGETS[$d__i]+isset} ]; then
+      if [ -n "$D_QUEUE_TARGET_DIR" ]; then
+        D_QUEUE_TARGETS[$d__i]="$D_QUEUE_TARGET_DIR/${D_QUEUE_MAIN[$d__i]}"
       else
         d__notify -lxht 'Copy-queue failed' -- \
-          'Array $D_DPL_TARGET_PATHS is not continuous in the given section'
+          'Array $D_QUEUE_TARGETS is not continuous in the given section'
         return 1
       fi
     fi
@@ -95,8 +95,8 @@ d__copy_item_check()
 {
   # Init storage variables; switch context
   local d__cqei="$D__ITEM_NUM" d__cqrtc= d__cqer=()
-  local d__cqea="${D_DPL_ASSET_PATHS[$d__cqei]}"
-  local d__cqet="${D_DPL_TARGET_PATHS[$d__cqei]}"
+  local d__cqea="${D_QUEUE_ASSETS[$d__cqei]}"
+  local d__cqet="${D_QUEUE_TARGETS[$d__cqei]}"
   local d__cqesk="copy_$( dmd5 -s "$d__cqet" )"
   local d__cqeb="$D__DPL_BACKUP_DIR/$d__cqesk"
   local d__cqexct=false
@@ -175,8 +175,8 @@ d__copy_item_install()
 {
   # Init storage variables; switch context
   local d__cqei="$D__ITEM_NUM" d__cqrtc d__cqcmd
-  local d__cqea="${D_DPL_ASSET_PATHS[$d__cqei]}"
-  local d__cqet="${D_DPL_TARGET_PATHS[$d__cqei]}"
+  local d__cqea="${D_QUEUE_ASSETS[$d__cqei]}"
+  local d__cqet="${D_QUEUE_TARGETS[$d__cqei]}"
   local d__cqesk="copy_$( dmd5 -s "$d__cqet" )"
   local d__cqeb="$D__DPL_BACKUP_DIR/$d__cqesk"
   d__context -- push "Installing a copy to: '$d__cqet'"
@@ -235,7 +235,7 @@ d__copy_item_remove()
 {
   # Init storage variables; switch context
   local d__cqei="$D__ITEM_NUM" d__cqrtc d__cqeo
-  local d__cqet="${D_DPL_TARGET_PATHS[$d__cqei]}"
+  local d__cqet="${D_QUEUE_TARGETS[$d__cqei]}"
   local d__cqesk="copy_$( dmd5 -s "$d__cqet" )"
   local d__cqeb="$D__DPL_BACKUP_DIR/$d__cqesk"
   d__context -- push "Undoing copying to: '$d__cqet'"

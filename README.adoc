@@ -1,8 +1,8 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revdate: 2019.11.08
-:revremark: Update readme for D.d v2, pt. 7
+:revdate: 2019.11.11
+:revremark: Rename queue arrays
 :doctype: article
 // Visual
 :toc: macro
@@ -2250,7 +2250,7 @@ img2.jpg            #. into the root of the asset directory.
 
 Whenever the framework processes an _existing_ asset manifest, it automatically _clears_ and then populates two global arrays:
 
-* `*D_DPL_ASSET_PATHS*` — absolute paths to the assets within the deployment's <<indct-dpl-asset-dir,asset directory>>.
+* `*D_QUEUE_ASSETS*` — absolute paths to the assets within the deployment's <<indct-dpl-asset-dir,asset directory>>.
 * `*D_QUEUE_MAIN*` — for each absolute path in the previous array, this one will contain its relative version.
 
 These arrays coincide with the arrays used by the <<queue-main,queues>>, especially the <<lnqe-main,link-queue>> and <<cpqe-main,copy-queue>> variants.
@@ -2864,7 +2864,7 @@ The order is significant here, because the queues supersede each other.
 +
 --
 ** <<queue-determinant,`D_QUEUE_MAIN`>> — populated with the relative paths to the assets.
-** <<spcqe-main,`D_DPL_ASSET_PATHS`>> — populated with the absolute versions thereof.
+** <<spcqe-main,`D_QUEUE_ASSETS`>> — populated with the absolute versions thereof.
 This array is used by the <<cpqe-main,copy-queue>> and the <<lnqe-main,link-queue>> variations.
 --
 +
@@ -2880,21 +2880,25 @@ Both types of auto-queues support <<queue-split,splitting>> the queue (via the m
 
 A queue is *auto-targeted* when:
 
-* The special variable `*D_DPL_TARGET_DIR*` is set to a path to some target directory.
+* The special variable `*D_QUEUE_TARGET_DIR*` is set to a path to some target directory.
 * The queue <<queue-determinant,determinant>> `D_QUEUE_MAIN` is filled with some relative paths.
-(This happens, for example, when an <<queue-auto-amnf,auto-queue>> is built from the <<assets-mnf,asset manifest>>.)
 
-The *auto-targeting* simply creates the `*D_DPL_TARGET_PATHS*` array, in which every relative path from the `D_QUEUE_MAIN` array is prepended with the `D_DPL_TARGET_DIR` directory path.
+(The auto-targeting works well with an <<queue-auto-amnf,auto-queue>> built from the <<assets-mnf,asset manifest>>.)
 
-The auto-targeting can be used for the <<spcqe-main,specialized queues>>, which make use of the `D_DPL_TARGET_PATHS` array.
-Naturally, the auto-targeting only works when all the relarive targets are huddled in the same directory.
+The *auto-targeting* simply creates the `*D_QUEUE_TARGETS*` array, in which every relative path from the `D_QUEUE_MAIN` array is prepended with the `D_QUEUE_TARGET_DIR` directory path.
 
-Different target directories can be given for the different operating systems by appending the `{us}**_OS_**` suffix to the name of the variable.
+The auto-targeting can be used for the <<spcqe-main,specialized queues>>, which make use of the `D_QUEUE_TARGETS` array.
+Naturally, the auto-targeting only works when all the relarive targets are grouped in the same directory.
+
+Different targets can be given for the different operating systems by appending the `{us}**_OS_**` suffix to the name of the variable.
  The `*_OS_*` is the name of the OS <<indct-or-family,family>> or <<indct-or-distro,distro>> in all caps.
+ This works for both the `D_QUEUE_TARGETS` and the `D_QUEUE_TARGET_DIR` variables.
  For example:
 
-* For the `bsd` OS family, assign to the variable `D_DPL_TARGET_PATHS_BSD`.
-* For the `debian` distribution, assign to the variable `D_DPL_TARGET_PATHS_DEBIAN`
+* On the `bsd` OS family, the overriding variable for the targers is named `D_QUEUE_TARGETS_BSD`.
+* On the `debian` distribution, the overriding variable for the target directory is named `D_QUEUE_TARGET_DIR_DEBIAN`
+
+The distribution override takes precedence over the OS family override.
 
 [[spcqe-main]]
 == Specialized queues
@@ -2924,8 +2928,8 @@ To assemble a copy-queue within a deployment (or a <<mltsk-main,task>>):
 Any names may be used for the copy-queue items.
 An obvious (and the recommended) choice — is the relative paths to the assets.
 * For each index in the determinant array, populate the following special arrays:
-** `*D_DPL_ASSET_PATHS*` — the absolute paths to the assets.
-** `*D_DPL_TARGET_PATHS*` — the absolute paths to the destinations.
+** `*D_QUEUE_ASSETS*` — the absolute paths to the assets.
+** `*D_QUEUE_TARGETS*` — the absolute paths to the destinations.
 * Call the copy-queue helper primaries as the last commands of the deployment's (or task's) <<func-primaries,primary functions>>, e.g.:
 +
 [source,bash]
@@ -2984,8 +2988,8 @@ To assemble a link-queue within a deployment (or a <<mltsk-main,task>>):
 Any names may be used for the link-queue items.
 An obvious (and the recommended) choice — is the relative paths to the assets.
 * For each index in the determinant array, populate the following special arrays:
-** `*D_DPL_ASSET_PATHS*` — the absolute paths to the assets.
-** `*D_DPL_TARGET_PATHS*` — the absolute paths to the symlink locations.
+** `*D_QUEUE_ASSETS*` — the absolute paths to the assets.
+** `*D_QUEUE_TARGETS*` — the absolute paths to the symlink locations.
 * Call the link-queue helper primaries as the last commands of the deployment's (or task's) <<func-primaries,primary functions>>, e.g.:
 +
 [source,bash]
@@ -3019,7 +3023,7 @@ To assemble a Github-queue within a deployment (or a <<mltsk-main,task>>):
 Any names may be used for the Github-queue items.
 An obvious (and the recommended) choice — is the Github repository handles (`username/repository`).
 * For each index in the determinant array, populate the following special arrays:
-** `*D_DPL_TARGET_PATHS*` — the absolute paths to the repository destinations.
+** `*D_QUEUE_TARGETS*` — the absolute paths to the repository destinations.
 * Call the Github-queue helper primaries as the last commands of the deployment's (or task's) <<func-primaries,primary functions>>, e.g.:
 +
 [source,bash]
@@ -3046,14 +3050,16 @@ _Divine.dotfiles_ offers mechanisms that facilitate creation of better, stronger
 
 _Divine.dotfiles_ uses a system of prefixes to gradually separate the framework's inner workings.
 
-* The single-underscore prefixes are for entities to be implemented by the user:
-** `**D{us}**NAME` — variables to be assigned by the user (e.g., the <<dpls-metadata,metadata>> or the <<addst-main,add-statuses>>).
-** `**d{us}**name` — functions to be implemented by the user (e.g., the <<func-primaries,primary functions>>).
-* The double-underscore prefixes are for entities to be accessed by the user:
-** `**D{dus}**NAME` — variables to be read by the user.
-** `**d{dus}**name` — functions to be called by the user.
+* The single-underscore prefixes are for entities to be implemented by a deployment:
+** `**D{us}**NAME` — the variables to be assigned, e.g., the <<dpls-metadata,metadata>> and the <<addst-main,add-statuses>>.
+** `**d{us}**name` — the functions to be implemented, e.g., the <<func-primaries,primary functions>>.
+* The double-underscore prefixes are for entities to be accessed by a deployment:
+** `**D{dus}**NAME` — the variables to be read, e.g., the <<indct-main,indicators>>.
+** `**d{dus}**name` — the functions to be called, e.g., the <<stash,`d__stash`>> function.
 * The triple-underscore prefixes are for entities that are strictly internal:
-** `**d{dus}{us}**name` — functions to be called internally.
+** `**d{dus}{us}**name` — the functions that the framework uses for logic encapsulation.
+
+To stay on the safe side, the <<deployments,deployment>> code needs to stay away from identifiers that start with the letter `d`/`D` followed by an underscore, unless a framework mechanism is being employed.
 
 [[divine-workflow]]
 === Divine workflow
@@ -4687,8 +4693,8 @@ d_dpl_remove()   {                      d__link_queue_remove;   }
 populate_link_queue() {
   local src="$D__DPL_ASSET_DIR" dst=~
   D_QUEUE_MAIN=(            .bashrc        .zshrc )
-  D_DPL_ASSET_PATHS=( "$src/.bashrc" "$src/.zshrc" )
-  D_DPL_TARGET_PATHS=( $dst/.bashrc   $dst/.zshrc  )
+  D_QUEUE_ASSETS=( "$src/.bashrc" "$src/.zshrc" )
+  D_QUEUE_TARGETS=( $dst/.bashrc   $dst/.zshrc  )
 }
 ----
 
@@ -4704,15 +4710,15 @@ Note, that you can <<link-queue-asset-automation,automate>> this process.
 | `*D_QUEUE_MAIN*`
 
 This variable is still the main definition of the queue.
-In the context of link queue, for each absolute path in `*D_DPL_ASSET_PATHS*`, this array must contain a shortened relative version, resolvable from the asset directory.
+In the context of link queue, for each absolute path in `*D_QUEUE_ASSETS*`, this array must contain a shortened relative version, resolvable from the asset directory.
 
-| `*D_DPL_ASSET_PATHS*`
+| `*D_QUEUE_ASSETS*`
 
 Each member of this array is an absolute path to which a symlink should be maintained.
 
-| `*D_DPL_TARGET_PATHS*`
+| `*D_QUEUE_TARGETS*`
 
-For each path in `*D_DPL_ASSET_PATHS*`, this array must contain the intended absolute path to a symlink, which will point to the respective asset.
+For each path in `*D_QUEUE_ASSETS*`, this array must contain the intended absolute path to a symlink, which will point to the respective asset.
 
 |===
 
@@ -4847,10 +4853,10 @@ No need.
 
 _Divine.dotfiles_ provides two major automation avenues for link queue arrays:
 
-* Arrays `*D_QUEUE_MAIN*` and `*D_DPL_ASSET_PATHS*` are both <<assets-arrays,automatically populated>> when the <<assets-mnf,asset manifest>> is processed, which happens immediately before your deployment file is sourced.
-* Array `*D_DPL_TARGET_PATHS*` can be automatically populated if all your assets are intended to go into one target directory.
+* Arrays `*D_QUEUE_MAIN*` and `*D_QUEUE_ASSETS*` are both <<assets-arrays,automatically populated>> when the <<assets-mnf,asset manifest>> is processed, which happens immediately before your deployment file is sourced.
+* Array `*D_QUEUE_TARGETS*` can be automatically populated if all your assets are intended to go into one target directory.
 +
-For that to occur, put the target directory into `*D_DPL_TARGET_DIR*` variable before any of the built-in helpers are called.
+For that to occur, put the target directory into `*D_QUEUE_TARGET_DIR*` variable before any of the built-in helpers are called.
 All your assets will be symlinked into the target directory, with relative paths preserved.
 +
 Keep in mind that this does rely on `*D_QUEUE_MAIN*` to contain relative paths, as is the requirement for link queues.
@@ -4862,15 +4868,15 @@ Cross-platformness, you say?
 Your assets go into different target directories on different platforms?
 No worries.
 
-In _Divine.dotfiles_, every OS adapter carries an override mechanism for both `*D_DPL_TARGET_DIR*` and `*D_DPL_TARGET_PATHS*`.
+In _Divine.dotfiles_, every OS adapter carries an override mechanism for both `*D_QUEUE_TARGET_DIR*` and `*D_QUEUE_TARGETS*`.
 The rules are simple: append the handle of the supported OS to the variable name in all capitals like this:
 
 [source,bash]
 ----
-D_DPL_TARGET_DIR=/generic/path
-D_DPL_TARGET_DIR_MACOS=/path/on/macos
-D_DPL_TARGET_DIR_FEDORA=/path/on/fedora
-D_DPL_TARGET_DIR_WSL=/path/on/wsl
+D_QUEUE_TARGET_DIR=/generic/path
+D_QUEUE_TARGET_DIR_MACOS=/path/on/macos
+D_QUEUE_TARGET_DIR_FEDORA=/path/on/fedora
+D_QUEUE_TARGET_DIR_WSL=/path/on/wsl
 ----
 
 [.note]
@@ -4920,8 +4926,8 @@ d_dpl_remove()   {                      d__copy_queue_remove;   }
 populate_copy_queue() {
   local src="$D__DPL_ASSET_DIR" dst=/usr/share/fonts
   D_QUEUE_MAIN=(            font1.ttf        font2.ttf  )
-  D_DPL_ASSET_PATHS=( "$src/font1.ttf" "$src/font2.ttf" )
-  D_DPL_TARGET_PATHS=( $dst/font1.ttf   $dst/font2.ttf  )
+  D_QUEUE_ASSETS=( "$src/font1.ttf" "$src/font2.ttf" )
+  D_QUEUE_TARGETS=( $dst/font1.ttf   $dst/font2.ttf  )
 }
 ----
 
@@ -4937,15 +4943,15 @@ Note, that you can <<copy-queue-asset-automation,automate>> this process.
 | `*D_QUEUE_MAIN*`
 
 This variable is still the main definition of the queue.
-In the context of copy queue, for each absolute path in `*D_DPL_ASSET_PATHS*`, this array must contain a shortened relative version, resolvable from the asset directory.
+In the context of copy queue, for each absolute path in `*D_QUEUE_ASSETS*`, this array must contain a shortened relative version, resolvable from the asset directory.
 
-| `*D_DPL_ASSET_PATHS*`
+| `*D_QUEUE_ASSETS*`
 
 Each member of this array is an absolute path to file that is to be copied.
 
-| `*D_DPL_TARGET_PATHS*`
+| `*D_QUEUE_TARGETS*`
 
-For each path in `*D_DPL_ASSET_PATHS*`, this array must contain the destination absolute path for copying.
+For each path in `*D_QUEUE_ASSETS*`, this array must contain the destination absolute path for copying.
 
 |===
 
@@ -5080,10 +5086,10 @@ No need.
 
 _Divine.dotfiles_ provides two major automation avenues for copy queue arrays:
 
-* Arrays `*D_QUEUE_MAIN*` and `*D_DPL_ASSET_PATHS*` are both <<asset-arrays,automatically populated>> when the <<assets-mnf,asset manifest>> is processed, which happens immediately before your deployment file is sourced.
-* Array `*D_DPL_TARGET_PATHS*` can be automatically populated if all your assets are intended to go into one target directory.
+* Arrays `*D_QUEUE_MAIN*` and `*D_QUEUE_ASSETS*` are both <<asset-arrays,automatically populated>> when the <<assets-mnf,asset manifest>> is processed, which happens immediately before your deployment file is sourced.
+* Array `*D_QUEUE_TARGETS*` can be automatically populated if all your assets are intended to go into one target directory.
 +
-For that to occur, put the target directory into `*D_DPL_TARGET_DIR*` variable before any of the built-in helpers are called.
+For that to occur, put the target directory into `*D_QUEUE_TARGET_DIR*` variable before any of the built-in helpers are called.
 All your assets will be copied into the target directory, with relative paths preserved.
 +
 Keep in mind that this does rely on `*D_QUEUE_MAIN*` to contain relative paths, as is the requirement for copy queues.
@@ -5095,15 +5101,15 @@ Cross-platformness, you say?
 Your assets go into different target directories on different platforms?
 No worries.
 
-In _Divine.dotfiles_, every OS adapter carries an override mechanism for both `*D_DPL_TARGET_DIR*` and `*D_DPL_TARGET_PATHS*`.
+In _Divine.dotfiles_, every OS adapter carries an override mechanism for both `*D_QUEUE_TARGET_DIR*` and `*D_QUEUE_TARGETS*`.
 The rules are simple: append the handle of the supported OS to the variable name in all capitals like this:
 
 [source,bash]
 ----
-D_DPL_TARGET_DIR=/generic/path
-D_DPL_TARGET_DIR_MACOS=/path/on/macos
-D_DPL_TARGET_DIR_FEDORA=/path/on/fedora
-D_DPL_TARGET_DIR_WSL=/path/on/wsl
+D_QUEUE_TARGET_DIR=/generic/path
+D_QUEUE_TARGET_DIR_MACOS=/path/on/macos
+D_QUEUE_TARGET_DIR_FEDORA=/path/on/fedora
+D_QUEUE_TARGET_DIR_WSL=/path/on/wsl
 ----
 
 [.note]

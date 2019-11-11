@@ -55,7 +55,7 @@ D_DPL_WARNING=
 ## Framework provides ways to auto-populate queue array ($D_QUEUE_MAIN). 
 #. First method that works wins:
 #.  * Queue manifest (see 'dpl-filename.dpl.que' template for reference)
-#.  * $D_DPL_ASSET_PATHS    - If this variable is set, it is auto-copied into 
+#.  * $D_QUEUE_ASSETS    - If this variable is set, it is auto-copied into 
 #.                            the queue
 #
 

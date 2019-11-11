@@ -2,8 +2,8 @@
 #:title:        Divine.dotfiles template OS distro adapter
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.27
-#:revremark:    Add 'has' command to d__os_pkgmgr wrapper
+#:revdate:      2019.11.11
+#:revremark:    Rename queue arrays
 #:created_at:   2019.06.04
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -121,7 +121,7 @@ d__detect_os_pkgmgr()
 
 #>  d__override_dpl_targets_for_os_distro
 #
-## Overriding mechanism for $D_DPL_TARGET_PATHS and $D_DPL_TARGET_DIR.
+## Overriding mechanism for $D_QUEUE_TARGETS and $D_QUEUE_TARGET_DIR.
 #
 ## Provides a way for deployments to override target paths used by the 
 #. framework's queue helpers.
@@ -130,16 +130,16 @@ d__detect_os_pkgmgr()
 #. is populated and, if so, override the main variable.
 #
 ## The overriding naming pattern is as such:
-#.  D_DPL_TARGET_PATHS    is overridden by    D_DPL_TARGET_PATHS_***
-#.  D_DPL_TARGET_DIR      is overridden by    D_DPL_TARGET_DIR_***
+#.  D_QUEUE_TARGETS    is overridden by    D_QUEUE_TARGETS_***
+#.  D_QUEUE_TARGET_DIR      is overridden by    D_QUEUE_TARGET_DIR_***
 #. where '***' stands fot the value of the $D__OS_DISTRO variable in all caps.
 #
 # Below is an example implementation for the Ubuntu distribution.
 #
 d__override_dpl_targets_for_os_distro()
 {
-  if [ ${#D_DPL_TARGET_PATHS_UBUNTU[@]} -gt 1 -o -n "$D_DPL_TARGET_PATHS_UBUNTU" ]
-  then D_DPL_TARGET_PATHS=( "${D_DPL_TARGET_PATHS_UBUNTU[@]}" ); fi
-  if [ -n "$D_DPL_TARGET_DIR_UBUNTU" ]
-  then D_DPL_TARGET_DIR="$D_DPL_TARGET_DIR_UBUNTU"; fi
+  if [ ${#D_QUEUE_TARGETS_UBUNTU[@]} -gt 1 -o -n "$D_QUEUE_TARGETS_UBUNTU" ]
+  then D_QUEUE_TARGETS=( "${D_QUEUE_TARGETS_UBUNTU[@]}" ); fi
+  if [ -n "$D_QUEUE_TARGET_DIR_UBUNTU" ]
+  then D_QUEUE_TARGET_DIR="$D_QUEUE_TARGET_DIR_UBUNTU"; fi
 }
