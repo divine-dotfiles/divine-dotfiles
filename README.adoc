@@ -2,7 +2,7 @@
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
 :revdate: 2019.11.12
-:revremark: Update readme for D.d v2, pt. 9
+:revremark: Update readme for D.d v2, pt. 10
 :doctype: article
 // Visual
 :toc: macro
@@ -62,7 +62,7 @@ The goals of _Divine.dotfiles_ are:
 The <<iutil-main,intervention utility>> `di` is a practical tool for handling any number of deployments.
 * The *cross-platformness* within the Unix-like airspace.
 +
-The built-in OS detection mechanisms facilitate writing portable deployments.
+The built-in OS detection mechanism facilitates writing portable deployments.
 * The promotion of *standards* and *best practices*.
 +
 The deployment ecosystem is designed with distribution and pluggability in mind.
@@ -87,7 +87,7 @@ d_dpl_install() {
 }
 
 d_dpl_remove() {
-  rm -f -- ~/bin/cmd
+  rm -f ~/bin/cmd
 }
 ----
 
@@ -101,7 +101,7 @@ And here is what working with it looks like:
 
 Dead simple.
 One wouldn't need a framework for that.
-But wait, there's _(hopefully)_ more.
+But there's more.
 
 [[fmwk-features]]
 === Framework features
@@ -615,7 +615,7 @@ Once the bundle is fully installed, and the shell reloaded, _voilà_:
 All of the above is controlled and customized through key configuration files located under the <<fmwk-grail,Grail directory>> at `~/.divine/grail/assets/`.
 
 .Overview of asset directories for the bundle `essentials`
-[%noheader,cols="<.<a,<.<a",stripes=none]
+[%noheader,cols="<.<a",stripes=none]
 |===
 
 | +++<p align="center">+++
