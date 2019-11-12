@@ -1,8 +1,8 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revdate: 2019.11.11
-:revremark: Update readme for D.d v2, pt. 8
+:revdate: 2019.11.12
+:revremark: Update readme for D.d v2, pt. 9
 :doctype: article
 // Visual
 :toc: macro
@@ -52,22 +52,22 @@ _Divine.dotfiles_ leverages *deployments*.
 
 A deployment is a Bash script with three specially named functions: one to *check*, another to *install*, third to *remove*.
 No assumptions are made about what a deployment does for a living.
-Return codes are used to communicate status back to the framework.
+The return codes are used to communicate status back to the framework.
 As such, authoring a deployment is akin to implementing an interface.
 
 The goals of _Divine.dotfiles_ are:
 
-* *Automation* of setting-up any system that runs Bash.
+* The *automation* of setting-up any system that runs Bash.
 +
 The <<iutil-main,intervention utility>> `di` is a practical tool for handling any number of deployments.
-* *Cross-platformness* within the Unix-like airspace.
+* The *cross-platformness* within the Unix-like airspace.
 +
-Built-in OS detection mechanisms facilitate writing portable deployments.
-* Promotion of *standards* and *best practices*.
+The built-in OS detection mechanisms facilitate writing portable deployments.
+* The promotion of *standards* and *best practices*.
 +
-Ecosystem of deployments is designed with distribution and pluggability in mind.
+The deployment ecosystem is designed with distribution and pluggability in mind.
 
-<<divine-bundles,*Divine bundles*>> of deployments (distributed separately) strive to exemplify what a good deployment should look like.
+The <<divine-bundles,*Divine bundles*>> of deployments (distributed separately) strive to exemplify what a good deployment should look like.
 
 === Example deployment
 
@@ -99,9 +99,9 @@ And here is what working with it looks like:
 </p>
 ++++
 
-Dead simple, right?
+Dead simple.
 One wouldn't need a framework for that.
-But wait, there's [.small]#_(hopefully)_# more.
+But wait, there's _(hopefully)_ more.
 
 [[fmwk-features]]
 === Framework features
@@ -116,37 +116,35 @@ A special kind of deployments, the <<dfls-main,*Divinefiles*>> maintain a stable
 
 | +++<p align="center">+++<<fmwk-grail,*The Grail directory*>>+++</p>+++
 
-A centralized storage for personal deployments and assets (e.g., config files).
-On a new machine — the Grail can be <<rtn-plug,plugged in>> from a repo or a local dir with one command.
+The centralized, <<rtn-plug,pluggable>> storage for the personal deployments and assets (e.g., the config files).
 
 | +++<p align="center">+++<<mtdt-priority,*Priorities*>>+++</p>+++
 
-Deployments are always ordered by their numerical priority, and the order is automatically reversed for removal.
+The deployments are ordered by their numerical priority, and the order is automatically reversed for the removal.
 
 | +++<p align="center">+++<<mtdt-groups,*Groups*>>+++</p>+++
 
-Deployments support basic grouping via single-character <<mtdt-flags,flags>>.
+The deployments support basic grouping via <<mtdt-flags,flags>>.
 
 | +++<p align="center">+++<<indct-os,*Cross-platformness*>>+++</p>+++
 
-Built-in OS detection mechanism allows to adapt to a growing <<fmwk-os-support,list>> of supported OS distributions and families.
+The built-in OS detection mechanism allows to adapt to the growing <<fmwk-os-support,list>> of supported OS distributions.
 
 | +++<p align="center">+++<<rtn-attach,*Third-party deployments (bundles)*>>+++</p>+++
 
-Github repositories containing deployments are treated as bundles that can be attached with one command.
-One example is the https://github.com/no-simpler/divine-bundle-essentials[`essentials`] bundle.
+The Github repositories containing deployments are treated as bundles that can be attached with one command, e.g., the https://github.com/no-simpler/divine-bundle-essentials[`essentials`] bundle.
 
 | +++<p align="center">+++<<stash-main,*Stash*>>+++</p>+++
 
-Deployments have access to a persistent key-value store, which can be used to remember statuses between invocations.
+The deployments have access to a persistent key-value store, which can be used to remember statuses between invocations.
 
 | +++<p align="center">+++<<assets-main,*Assets*>>+++</p>+++
 
-The notion of assets provides a way to separate static logic from dynamic content.
+The assets provide a way to separate static logic from dynamic content.
 
 | +++<p align="center">+++*<<queue-main,Queues>> and <<mltsk-main,multitasking>>*+++</p>+++
 
-An assortment of helper functions streamline basic tasks, such as queues and multitasking.
+An assortment of helper functions streamline repetitive tasks.
 
 |===
 
@@ -614,42 +612,66 @@ Once the bundle is fully installed, and the shell reloaded, _voilà_:
 * Opinionated configs are plugged in for Git, Vim, Bash, and Zsh.
 * Pre-existing files and installations are safely backed up or re-used.
 
-All of the above is controlled and customized through key configuration files located in the <<fmwk-grail,Grail directory>> at `~/.divine/grail/assets/`.
+All of the above is controlled and customized through key configuration files located under the <<fmwk-grail,Grail directory>> at `~/.divine/grail/assets/`.
 
 .Overview of asset directories for the bundle `essentials`
 [%noheader,cols="<.<a,<.<a",stripes=none]
 |===
 
-| `*bash-it*/` *&dagger;*
-| Custom assets for the https://github.com/Bash-it/bash-it[Bash-it] shell framework.
+| +++<p align="center">+++
+`*bash-it*/` *&dagger;*
++++</p>+++
 
-| `*brewfile*/` *&dagger;*
-| The https://github.com/Homebrew/homebrew-bundle[Brewfile], maintained on macOS.
+Custom assets for the https://github.com/Bash-it/bash-it[Bash-it] shell framework.
 
-| `*config-git*/`
-| Global configuration for Git.
+| +++<p align="center">+++
+`*brewfile*/` *&dagger;*
++++</p>+++
 
-| `*config-shell*/`
-| Startup scripts (https://en.wikipedia.org/wiki/Run_commands[runcoms]) for Bash and Zsh.
+The https://github.com/Homebrew/homebrew-bundle[Brewfile], maintained on macOS.
 
-| `*config-vim*/`
-| Global configuration for Vim.
+| +++<p align="center">+++
+`*config-git*/`
++++</p>+++
 
-| `*home-dirs*/` *&dagger;*
-| The file `*home-dirs.cfg*` defines a sub-directory tree, to be maintained under the home directory.
+Global configuration for Git.
 
-| `*oh-my-zsh*/` *&dagger;*
-| Custom assets for the https://ohmyz.sh[oh-my-zsh] shell framework.
+| +++<p align="center">+++
+`*config-shell*/`
++++</p>+++
 
-| `*portable-bin*/`
-| Container for personal executables (maintained on `$PATH`).
+Startup scripts (https://en.wikipedia.org/wiki/Run_commands[runcoms]) for Bash and Zsh.
+
+| +++<p align="center">+++
+`*config-vim*/`
++++</p>+++
+
+Global configuration for Vim.
+
+| +++<p align="center">+++
+`*home-dirs*/` *&dagger;*
++++</p>+++
+
+The file `*home-dirs.cfg*` defines a sub-directory tree to be maintained under the home directory.
+
+| +++<p align="center">+++
+`*oh-my-zsh*/` *&dagger;*
++++</p>+++
+
+Custom assets for the https://ohmyz.sh[oh-my-zsh] shell framework.
+
+| +++<p align="center">+++
+`*portable-bin*/`
++++</p>+++
+
+Container for the personal executables (this directory is maintained on the `$PATH`)
 
 |===
 
 [.note]
 [%noheader,cols="<.<a"]
 |===
-| The dagger *&dagger;* mark meaning: in order for the modifications in that asset directory to take effect, the deployment must be (re-)installed.
+| The dagger mark (*&dagger;*) meaning: in order for the modifications in that asset directory to take effect, the deployment must be (re-)installed.
 |===
 
 ==== Cleaning up
@@ -734,7 +756,7 @@ The first non-option argument, `*_ROUTINE_*`, can be any of the following:
 [[iutil-arg-parsing]]
 === Options and arguments
 
-The intervention routines, and the _Divine.dotfiles_ overall, use a familiar set of rules for taking options and arguments:
+The intervention routines, and the _Divine.dotfiles_ overall, use a familiar set of rules for parsing <<rtn-primaries-opts,options>> and <<rtn-primaries-args,arguments>>:
 
 * The options and arguments are read left-to-right, word by word, separated by any unescaped whitespace.
 +
@@ -4266,18 +4288,18 @@ On OS's that are not yet supported, this function does nothing and returns non-z
 
 [source,subs="verbatim,quotes,attributes"]
 ----
-*d__os_pkgmgr* *update*|*has*|*check*|*install*|*remove* [*_PKG_NAME_*]
+*d__os_pkgmgr* *update*|*has*|*check*|*install*|*remove* [*_PKG-NAME_*]
 ----
 
 Launches one of the five routines, which are expected of any package manager out there:
 
 * `update` — updates all installed packages (other arguments are ignored).
-* `has` — checks whether the provided package is available from that package manager.
-* `check` — checks whether the provided package is installed; returns zero/non-zero appropriately.
-* `install` — installs the provided package.
-* `remove` — uninstalls the provided package.
+* `has` — checks whether the `*_PKG-NAME_*` is available from that package manager.
+* `check` — checks whether the `*_PKG-NAME_*` is installed; returns zero/non-zero appropriately.
+* `install` — installs the `*_PKG-NAME_*`.
+* `remove` — uninstalls the `*_PKG-NAME_*`.
 
-The `*_PKG_NAME_*` argument is the name of a single package; it is relayed to the underlying package manager verbatim.
+The `*_PKG-NAME_*` argument is the name of a single package; it is relayed to the underlying package manager verbatim.
 User prompts (except the prompt for sudo password) are suppressed/skipped.
 
 == Ways to contribute
