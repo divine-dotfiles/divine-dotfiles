@@ -1,8 +1,8 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revdate: 2019.11.12
-:revremark: Update readme for D.d v2, pt. 10
+:revdate: 2019.11.15
+:revremark: Improve joy ride wording in readme
 :doctype: article
 // Visual
 :toc: macro
@@ -266,7 +266,7 @@ _(The script file is, of course, maintained by the framework.)_
 
 | [[fmwk-shortcut]]+++<p align="center">+++#`_A{us}DIR{us}ON{us}$PATH_/*di*`#+++</p>+++
 
-The shortcut command: a symlink to the framework's <<fmwk-script,main script>>.
+The shortcut command: a symlink to the framework's <<fmwk-script,main script>>, `intervene.sh`.
 This symlink is normally created automatically, during the framework installation.
 
 |===
@@ -276,8 +276,8 @@ This symlink is normally created automatically, during the framework installatio
 === System requirements
 
 [[fmwk-os-support]]
-* https://en.wikipedia.org/wiki/Unix-like[Unix-like OS].
-Following OS distributions are openly supported:
+* A https://en.wikipedia.org/wiki/Unix-like[Unix-like OS].
+The following OS distributions are openly supported:
 +
 --
 ** *Debian*
@@ -300,7 +300,7 @@ The framework will work on other operating systems too, but without the support 
 [.note]
 [%noheader,cols="<.<a"]
 |===
-| Git is not a hard requirement, but it is not flaccid either.
+| Git is not a hard requirement, but it is not a flaccid one either.
 _Divine.dotfiles_ can be installed without Git.
 However, the framework will then proceed to vex the user with suggestions to auto-install it, until some day the `y` key is finally pressed.
 |===
@@ -322,7 +322,7 @@ P; exit 2; }; chmod +x \$TMP && \$TMP \"\$@\"; RC=\$?; rm -f \$TMP; ((RC)) && \
 exit 3 || exit 0" bash
 ----
 
-Equivalently, the framework can be installed from a local copy of this repository (located outside of the installation path) by running this command:
+Equivalently, the framework can be installed from a local copy of this repository (located _not_ at the installation path) by running this command:
 
 [source,bash]
 ----
@@ -336,7 +336,7 @@ Equivalently, the framework can be installed from a local copy of this repositor
 
 * Optional dependencies — such as Git — will be offered, unless installed already.
 * This repository will be cloned/downloaded.
-* Optionally, one symlink (<<fmwk-shortcut,`di`>>) to the framework's main script will be created on `$PATH`.
+* Optionally, the symlink (<<fmwk-shortcut,`di`>>) to the framework's main script will be created on `$PATH`.
 * The zero data loss <<fmwk-zero-data-loss,policy>> will be in effect, as normal.
 
 The script will <<fmwk-interactivity,prompt>> for every major life decision.
@@ -567,7 +567,16 @@ As established before, _Divine.dotfiles_ is intended as an <<fmwk-interactivity,
 [[fmwk-joy-ride]]
 === Joy ride
 
-The following single shell command provides a removable introductory experience of the framework and deployments.
+The following single shell command:
+
+* <<fmwk-install,installs>> the framework;
+* <<rtn-attach,attaches>> the https://github.com/no-simpler/divine-bundle-essentials[`*essentials*`] bundle of Divine deployments (distributed separately);
+* <<rtn-install,installs>> the attached deployments.
+
+All three commands *skip* the trivial <<fmwk-interactivity,prompts>> (e.g., 'Are you sure?').
+
+The *result* of the installation is summarized in the <<fmwk-joy-ride-sum,next section>>.
+The *undo* command is also <<fmwk-joy-ride-undo,provided>>.
 
 [source,bash]
 ----
@@ -583,36 +592,26 @@ exit 3 || exit 0" bash --yes \
 && ~/.divine/intervene.sh install --yes
 ----
 
-[.note]
-[%noheader,cols="<.<a"]
-|===
-| The joy-ride command is three-pronged:
+Both the framework and deployments <<fmwk-zero-data-loss,do not overwrite>> pre-existing files on the system without backing them up.
+Everything that is backed up is <<fmwk-reversibility,automatically restored>> upon removal.
 
-* The framework will be <<fmwk-install,installed>>.
-* The https://github.com/no-simpler/divine-bundle-essentials[`essentials`] bundle of Divine deployments will be attached to the freshly minted <<fmwk-grail,Grail directory>>.
-* All bundled deployments will be installed.
+After all installations are successful, it might be necessary to *reload the shell* (or even re-log into the system on macOS).
+This depends on whether the default shell has been changed.
 
-No framework <<fmwk-interactivity,prompts>> will be issued.
-|===
-
-As stated before, both the Divine framework and deployments <<fmwk-zero-data-loss,do not overwrite>> pre-existing files on the system without backing them up.
-Everything that is backed up is <<fmwk-reversibility,automatically restored>> upon the removal of deployments.
-
-After all installations are successful, it is necessary to *reload the shell/terminal* (or re-log into the system on macOS).
-
+[[fmwk-joy-ride-sum]]
 ==== What it does
 
 Once the bundle is fully installed, and the shell reloaded, _voilà_:
 
 * https://sourceforge.net/projects/zsh[Zsh] is the default shell.
-* Zsh is supercharged with https://github.com/zsh-users/zsh-completions[completions], https://github.com/zsh-users/zsh-syntax-highlighting[syntax highlighting], and https://github.com/zsh-users/zsh-autosuggestions[auto-suggestions].
+* Zsh is augmented with https://github.com/zsh-users/zsh-completions[completions], https://github.com/zsh-users/zsh-syntax-highlighting[syntax highlighting], and https://github.com/zsh-users/zsh-autosuggestions[auto-suggestions].
 * Basic necessities, such as https://git-scm.com[Git], https://www.vim.org[Vim], and https://gnupg.org[GnuPG] are available.
 * Both https://ohmyz.sh[oh-my-zsh] and https://github.com/Bash-it/bash-it[Bash-it] frameworks are installed and loaded.
 * A minimalistic theme for both shell frameworks is active.
 * Opinionated configs are plugged in for Git, Vim, Bash, and Zsh.
-* Pre-existing files and installations are safely backed up or re-used.
+* Any pre-existing files that have gotten in the way are safely backed up or re-used.
 
-All of the above is controlled and customized through key configuration files located under the <<fmwk-grail,Grail directory>> at `~/.divine/grail/assets/`.
+All of the above is controlled and customized through the key configuration files, which are located at `<<fmwk-grail,grail>>/assets/`.
 
 .Overview of asset directories for the bundle `essentials`
 [%noheader,cols="<.<a",stripes=none]
@@ -634,19 +633,19 @@ The https://github.com/Homebrew/homebrew-bundle[Brewfile], maintained on macOS.
 `*config-git*/`
 +++</p>+++
 
-Global configuration for Git.
+The global configuration for Git.
 
 | +++<p align="center">+++
 `*config-shell*/`
 +++</p>+++
 
-Startup scripts (https://en.wikipedia.org/wiki/Run_commands[runcoms]) for Bash and Zsh.
+The startup scripts (https://en.wikipedia.org/wiki/Run_commands[runcoms]) for Bash and Zsh.
 
 | +++<p align="center">+++
 `*config-vim*/`
 +++</p>+++
 
-Global configuration for Vim.
+The global configuration for Vim.
 
 | +++<p align="center">+++
 `*home-dirs*/` *&dagger;*
@@ -664,7 +663,7 @@ Custom assets for the https://ohmyz.sh[oh-my-zsh] shell framework.
 `*portable-bin*/`
 +++</p>+++
 
-Container for the personal executables (this directory is maintained on the `$PATH`)
+The container for the personal executables (this directory is maintained on the `$PATH`).
 
 |===
 
@@ -674,9 +673,18 @@ Container for the personal executables (this directory is maintained on the `$PA
 | The dagger mark (*&dagger;*) meaning: in order for the modifications in that asset directory to take effect, the deployment must be (re-)installed.
 |===
 
-==== Cleaning up
+[[fmwk-joy-ride-undo]]
+==== Undoing the joy ride
 
-The following single shell command methodically undoes all of the <<fmwk-joy-ride,joy ride>> installation:
+The following single shell command methodically undoes the <<fmwk-joy-ride,joy ride>> installation:
+
+* <<rtn-remove,removes>> (uninstalls) the attached deployments.
+* <<rtn-detach,detaches>> the https://github.com/no-simpler/divine-bundle-essentials[`*essentials*`] bundle;
+* <<fmwk-uninstall,uninstalls>> the framework;
+
+All three commands *skip* the trivial <<fmwk-interactivity,prompts>> (e.g., 'Are you sure?').
+The original state of the system (before the installation) is <<fmwk-reversibility,restored>>.
+However, <<opt-obliterate,no copies>> of the framework's assets are kept.
 
 [source,bash]
 ----
@@ -692,20 +700,8 @@ f \$TMP; exit 2; }; chmod +x \$TMP && \$TMP \"\$@\"; RC=\$?; rm -f \$TMP; ((RC\
 )) && exit 3 || exit 0" bash --yes --obliterate
 ----
 
-[.note]
-[%noheader,cols="<.<a"]
-|===
-| The reverse joy-ride command is also three-pronged:
-
-* All bundled deployments will be uninstalled, without keeping backups of their assets.
-* The https://github.com/no-simpler/divine-bundle-essentials[`essentials`] bundle of Divine deployments will be detached (deleted).
-* The framework will be <<fmwk-uninstall,uninstalled>>, without keeping a backup copy.
-
-No framework <<fmwk-interactivity,prompts>> will be issued.
-|===
-
-After the 'undo' steps have successfully run, there is no trace of _Divine.dotfiles_ on the system.
-[.small]#_(Sigh.)_#
+After the undo steps have successfully run, there is no trace of _Divine.dotfiles_ on the system.
+_(Sigh.)_
 
 == Usage
 
@@ -713,7 +709,7 @@ After the 'undo' steps have successfully run, there is no trace of _Divine.dotfi
 === Divine intervention utility `di`
 
 _Divine.dotfiles_ provides a command line interface via *Divine intervention utility `di`*.
-(Invoking the shortcut <<fmwk-shortcut,`di`>> is equivalent to executing the framework's main script, <<fmwk-script,`intervene.sh`>>.)
+(Invoking the shortcut <<fmwk-shortcut,`di`>> is equivalent to executing the framework's <<fmwk-script,main script>>, `intervene.sh`.)
 
 [source,subs="verbatim,quotes,attributes"]
 ----
