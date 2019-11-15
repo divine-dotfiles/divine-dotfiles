@@ -1,0 +1,19 @@
+* [`*main*`] Re-write 90% of the framework's code and reference.
+* [`*main*`] Streamline the internal API; systematize the names of special variables and functions.
+* [`*main*`] Implement the debug output system with runtime context and multi-level verbosity.
+* [`*feature*`] Push and pop backups of files with `d\__push_backup` and `d__pop_backup`.
+* [`*feature*`] Inject textual chunks into files with `inject` deployment helpers.
+* [`*feature*`] List all stashed keys with `d__stash list-keys`.
+* [`*feature*`] Check whether the stash contains a key with a particular value with `d__stash has _KEY_ _VALUE_`.
+* [`*feature*`] Install/remove primaries can now access return code of their check primary in `D__DPL_CHECK_CODE`.
+* [`*other*`] Implement a more robust internal dependency system.
+* [`*other*`] Implement the Divine workflow system along with its functions:
+** `*d__context*` — workflow context handler.
+** `*d__notify*` — debug printer.
+** `*d__prompt*` — user prompt mechanism.
+** `*d__fail*` — failure mechanism.
+** `*d\__cmd*`, `*d\__pipe*`, `*d\__require*` — simple command wrappers.
+* [`*other*`] Demote `dmd5.utl.sh` to a small helper implemented during the initialization.
+* [`*other*`] Delete `dtrim.utl.sh` completely; replace with ad-hoc trimming via shell tools.
+* [`*other*`] Delete `dln.utl.sh` and `dmv.utl.sh` completely.
+* [`*other*`] Ditch revision numbers from all source files.

@@ -23,29 +23,29 @@ D_DPL_WARNING=
 #.  * Executed during checking:
 #.      d_queue_pre_check         - Executed once, early, before 
 #.                                            checking begins
-#.      d_queue_item_pre_check   - Executed for every queue item, 
+#.      d_item_pre_check   - Executed for every queue item, 
 #.                                            before checking it
-#.      d_queue_item_check   - Executed for every queue item,
+#.      d_item_check   - Executed for every queue item,
 #.                                            to check it
 #.      d_queue_post_check        - Executed once, after all queue 
 #.                                            items are checked
 #.  * Executed during installation:
-#.      d_queue_item_install        - Executed for every queue item,
+#.      d_item_install        - Executed for every queue item,
 #.                                            to install it
 #.  * Executed during removal:
-#.      d_queue_item_remove         - Executed for every queue item,
+#.      d_item_remove         - Executed for every queue item,
 #.                                            to remove it. On removal, queue 
 #.                                            is processed in reverse order.
 #
 ## Variables to take advantage of (maintained by queue helpers):
-#.  $D__QUEUE_ITEM_NUM         - Index of current item in $D_QUEUE_MAIN
-#.  $D__QUEUE_ITEM_TITLE       - Content of $D_QUEUE_MAIN for current item
-#.  $D__QUEUE_ITEM_STASH_KEY   - Stash key for current item
-#.  $D__QUEUE_ITEM_STASH_VALUE - Stash value for current item
-#.  $D__QUEUE_ITEM_STASH_FLAG  - 'true' if stash record exists
+#.  $D__ITEM_NUM         - Index of current item in $D_QUEUE_MAIN
+#.  $D__ITEM_NAME       - Content of $D_QUEUE_MAIN for current item
+#.  $D__ITEM_STASH_KEY   - Stash key for current item
+#.  $D__ITEM_STASH_VALUE - Stash value for current item
+#.  $D__ITEM_STASH_FLAG  - 'true' if stash record exists
 #.                            'false' if stash record does not exist
 #.                            unset if stash is not used for this
-#.  $D__QUEUE_ITEM_IS_FORCED   - This variable is set to 'true' if installation/
+#.  $D__ITEM_IS_FORCED   - This variable is set to 'true' if installation/
 #.                            removal is being forced, i.e., it would not have 
 #.                            been initiated if not for force option.
 #
@@ -55,7 +55,7 @@ D_DPL_WARNING=
 ## Framework provides ways to auto-populate queue array ($D_QUEUE_MAIN). 
 #. First method that works wins:
 #.  * Queue manifest (see 'dpl-filename.dpl.que' template for reference)
-#.  * $D_DPL_ASSET_PATHS    - If this variable is set, it is auto-copied into 
+#.  * $D_QUEUE_ASSETS    - If this variable is set, it is auto-copied into 
 #.                            the queue
 #
 
@@ -81,7 +81,7 @@ d_queue_pre_check()
   :
 }
 
-#>  d_queue_item_pre_check
+#>  d_item_pre_check
 #
 ## Gives user a chance to set custom stash key for queue item. Also, can signal 
 #. to not use stashing at all for current item.
@@ -89,22 +89,22 @@ d_queue_pre_check()
 ## This function is called once for every queue item
 #
 ## Uses in global scope:
-#.  $D__QUEUE_ITEM_NUM     - Index of current item in $D_QUEUE_MAIN
-#.  $D__QUEUE_ITEM_TITLE   - Content of $D_QUEUE_MAIN for current item
+#.  $D__ITEM_NUM     - Index of current item in $D_QUEUE_MAIN
+#.  $D__ITEM_NAME   - Content of $D_QUEUE_MAIN for current item
 #
 ## Provides into global scope:
-#.  $D__QUEUE_ITEM_STASH_KEY   - Assign custom stash key to this global variable
+#.  $D__ITEM_STASH_KEY   - Assign custom stash key to this global variable
 #
 ## Returns:
 #.  0 - Normal return code, is ignored
 #.  1 - Disables storing installation records in stash for current item
 #
-d_queue_item_pre_check()
+d_item_pre_check()
 {
   :
 }
 
-#>  d_queue_item_check
+#>  d_item_check
 #
 ## Return code of this function signals whether current queue item is to be 
 #. considered installed, not installed, of unknown status, or completely 
@@ -113,10 +113,10 @@ d_queue_item_pre_check()
 ## This function is called once for every queue item
 #
 ## Uses in global scope:
-#.  $D__QUEUE_ITEM_NUM         - Index of current item in $D_QUEUE_MAIN
-#.  $D__QUEUE_ITEM_TITLE       - Content of $D_QUEUE_MAIN for current item
-#.  $D__QUEUE_ITEM_STASH_KEY   - Stash key for current item
-#.  $D__QUEUE_ITEM_STASH_VALUE - Stash value for current item
+#.  $D__ITEM_NUM         - Index of current item in $D_QUEUE_MAIN
+#.  $D__ITEM_NAME       - Content of $D_QUEUE_MAIN for current item
+#.  $D__ITEM_STASH_KEY   - Stash key for current item
+#.  $D__ITEM_STASH_VALUE - Stash value for current item
 #
 ## Returns:
 #.  0 - Unknown (no way to tell whether item is installed or not)
@@ -124,7 +124,7 @@ d_queue_item_pre_check()
 #.  2 - Not installed
 #.  3 - Invalid (should not be touched at all)
 #
-d_queue_item_check()
+d_item_check()
 {
   :
 }
@@ -145,18 +145,18 @@ d_queue_post_check()
   :
 }
 
-#>  d_queue_item_install
+#>  d_item_install
 #
 ## Installs current queue item
 #
 ## This function is called once for every queue item
 #
 ## Uses in global scope:
-#.  $D__QUEUE_ITEM_NUM         - Index of current item in $D_QUEUE_MAIN
-#.  $D__QUEUE_ITEM_TITLE       - Content of $D_QUEUE_MAIN for current item
-#.  $D__QUEUE_ITEM_STASH_KEY   - Stash key for current item
-#.  $D__QUEUE_ITEM_STASH_VALUE - Stash value for current item
-#.  $D__QUEUE_ITEM_IS_FORCED   - This variable is set to 'true' if this function 
+#.  $D__ITEM_NUM         - Index of current item in $D_QUEUE_MAIN
+#.  $D__ITEM_NAME       - Content of $D_QUEUE_MAIN for current item
+#.  $D__ITEM_STASH_KEY   - Stash key for current item
+#.  $D__ITEM_STASH_VALUE - Stash value for current item
+#.  $D__ITEM_IS_FORCED   - This variable is set to 'true' if this function 
 #.                            would not have been called for current item if 
 #.                            not for '--force' option; otherwise 'false'
 #
@@ -167,23 +167,23 @@ d_queue_post_check()
 #.  3 - Installed successfully, also abort further queue processing
 #.  4 - Failed to install, also abort further queue processing
 #
-d_queue_item_install()
+d_item_install()
 {
   :
 }
 
-#>  d_queue_item_remove
+#>  d_item_remove
 #
 ## Removes current queue item
 #
 ## This function is called once for every queue item
 #
 ## Uses in global scope:
-#.  $D__QUEUE_ITEM_NUM         - Index of current item in $D_QUEUE_MAIN
-#.  $D__QUEUE_ITEM_TITLE       - Content of $D_QUEUE_MAIN for current item
-#.  $D__QUEUE_ITEM_STASH_KEY   - Stash key for current item
-#.  $D__QUEUE_ITEM_STASH_VALUE - Stash value for current item
-#.  $D__QUEUE_ITEM_IS_FORCED   - This variable is set to 'true' if this function 
+#.  $D__ITEM_NUM         - Index of current item in $D_QUEUE_MAIN
+#.  $D__ITEM_NAME       - Content of $D_QUEUE_MAIN for current item
+#.  $D__ITEM_STASH_KEY   - Stash key for current item
+#.  $D__ITEM_STASH_VALUE - Stash value for current item
+#.  $D__ITEM_IS_FORCED   - This variable is set to 'true' if this function 
 #.                            would not have been called for current item if 
 #.                            not for '--force' option; otherwise 'false'
 #
@@ -194,7 +194,7 @@ d_queue_item_install()
 #.  3 - Removed successfully, also abort further queue processing
 #.  4 - Failed to remove, also abort further queue processing
 #
-d_queue_item_remove()
+d_item_remove()
 {
   :
 }

@@ -2,9 +2,8 @@
 #:title:        Divine Bash deployment helpers: queue
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    38
-#:revdate:      2019.09.03
-#:revremark:    Modify stashing pattern
+#:revdate:      2019.11.08
+#:revremark:    Update readme for D.d v2, pt. 7
 #:created_at:   2019.06.10
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -12,812 +11,833 @@
 ## Helper functions for deployments based on template 'queue.dpl.sh'
 #
 
+# Marker and dependencies
+readonly D__HLP_QUEUE=loaded
+d__load util workflow
+
 d__queue_check()
 {
-  # Initialize or increment section number
-  if [ -z ${D__QUEUE_SECTNUM[0]+isset} ]; then
-    D__QUEUE_SECTNUM[0]=0
-  else
-    (( ++D__QUEUE_SECTNUM[0] ))
-  fi
+  # Initialize or increment section number; switch context
+  if [ -z ${D__QUEUE_SECTNUM[0]+isset} ]; then D__QUEUE_SECTNUM[0]=0
+  else ((++D__QUEUE_SECTNUM[0])); fi; local d__qsi=${D__QUEUE_SECTNUM[0]}
+  d__context -- notch
+  d__context -- push "Checking queue within deployment" \
+    "(queue section #$((d__qsi+1)))"
 
-  # If this queue section is task in a multitask, mark the task as queue
-  if [[ $D__MULTITASK_TASKNUM =~ ^[0-9]+$ ]]; then
-    D__MULTITASK_TASK_IS_QUEUE=$D__MULTITASK_TASKNUM    
-  fi
+  # If case this queue section is a task in a multitask, mark the task as queue
+  D__TASK_IS_QUEUE=true
 
-  # Calculate section edges
-  local secnum=${D__QUEUE_SECTNUM[0]}
+  # Calculate low edge of queue section
+  if [ $d__qsi -eq 0 ]; then D__QUEUE_SECTMIN=0
+  elif [[ ${D__QUEUE_SPLIT_POINTS[$d__qsi-1]} =~ ^[0-9]+$ ]]
+  then D__QUEUE_SECTMIN=${D__QUEUE_SPLIT_POINTS[$d__qsi-1]}
+  else D__QUEUE_SECTMIN=${#D_QUEUE_MAIN[@]}; fi
 
-  # Calculate low edge
-  if [ $secnum -eq 0 ]; then D__QUEUE_SECTMIN=0
-  elif [[ ${D__QUEUE_SPLIT_POINTS[$secnum-1]} =~ ^[0-9]+$ ]]; then
-    D__QUEUE_SECTMIN=${D__QUEUE_SPLIT_POINTS[$secnum-1]}
-  else
-    D__QUEUE_SECTMIN=${#D_QUEUE_MAIN[@]}
-  fi
+  # Calculate high edge of queue section
+  if [[ ${D__QUEUE_SPLIT_POINTS[$d__qsi]} =~ ^[0-9]+$ ]]
+  then D__QUEUE_SECTMAX=${D__QUEUE_SPLIT_POINTS[$d__qsi]}
+  else D__QUEUE_SECTMAX=${#D_QUEUE_MAIN[@]}; fi
 
-  # Calculate high edge
-  if [[ ${D__QUEUE_SPLIT_POINTS[$secnum]} =~ ^[0-9]+$ ]]; then
-    D__QUEUE_SECTMAX=${D__QUEUE_SPLIT_POINTS[$secnum]}
-  else
-    D__QUEUE_SECTMAX=${#D_QUEUE_MAIN[@]}
-  fi
-
-  # Rely on stashing
-  dstash ready || return 3
-
-  # Storage variable
-  local return_code_hook
-
-  # Check if queue pre-processing hook is implemented
-  if declare -f d_queue_pre_check &>/dev/null; then
-    
-    # Launch pre-processing hook, store return code
-    d_queue_pre_check; return_code_hook=$?
-
-    # Unset the hook to prevent it from polluting other queues
-    unset -f d_queue_pre_check
-
-    # Check if returned code is non-zero
-    if [ $return_code_hook -ne 0 ]; then
-
-      # Announce and return
-      dprint_debug \
-        "Queue pre-check hook forces early return with code $return_code_hook"
-      return $return_code_hook
-
-    fi
-
-  fi
-
-  # Announce checking
-  dprint_debug -n \
-    "Checking queue items $D__QUEUE_SECTMIN-$D__QUEUE_SECTMAX" \
-    "(queue section #$secnum)"
-
-  # Check if deployment's main queue is empty
-  if ! [ ${#D_QUEUE_MAIN[@]} -ge $D__QUEUE_SECTMAX ]; then
-    dprint_debug 'Main queue section is not filled ($D_QUEUE_MAIN)'
+  # Cut-off checks for number of items and continuity
+  local d__qsl=$D__QUEUE_SECTMIN d__qsr=$D__QUEUE_SECTMAX
+  d__context -- push "Checking queue items $((d__qsl+1))-$((d__qsr))"
+  if ((d__qsl==d__qsr))
+  then d__fail -- 'Empty queue section given'; return 3
+  elif ((d__qsl>d__qsr))
+  then d__fail -t 'Queue failed' -- 'Illegal queue section given'; return 3; fi
+  local d__i; for ((d__i=$d__qsl;d__i<$d__qsr;++d__i)); do
+    [ -z ${D_QUEUE_MAIN[$d__i]+isset} ] || continue
+    d__fail -t 'Queue failed' -- \
+      'Array $D_QUEUE_MAIN is not continuous in the given section'
     return 3
-  fi
-
-  # Storage and status variables
-  local all_installed=true all_not_installed=true all_unknown=true
-  local good_items_exist=false some_installed=false should_prompt_again=false
-  local item_stash_key
-
-  # Global storage variables
-  D_DPL_INSTALLED_BY_USER_OR_OS=true
-
-  # If necessary functions are not implemented: implement a dummy
-  if ! declare -f d_queue_item_pre_check &>/dev/null; then
-    d_queue_item_pre_check() { :; }
-  fi
-  if ! declare -f d_queue_item_check &>/dev/null; then
-    d_queue_item_check() { :; }
-  fi
-
-  # Iterate over items in deployment's main queue
-  for (( D__QUEUE_ITEM_NUM=$D__QUEUE_SECTMIN; \
-    D__QUEUE_ITEM_NUM<$D__QUEUE_SECTMAX; \
-    D__QUEUE_ITEM_NUM++ )); do
-
-    # Prepare global variables
-    D__QUEUE_ITEM_TITLE="${D_QUEUE_MAIN[$D__QUEUE_ITEM_NUM]}"
-    D__QUEUE_ITEM_STASH_KEY=
-    D__QUEUE_ITEM_STASH_VALUE=
-    
-    # Allow user a chance to set stash key
-    d_queue_item_pre_check
-
-    # Check if function returned 'no stash' signal
-    if [ $? -eq 1 ]; then
-
-      # Report and otherwise do nothing
-      # dprint_debug "(Not using stash for item: $D__QUEUE_ITEM_TITLE)"
-      :
-
-    else
-
-      # Set flag
-      d__queue_item_status set uses_stash
-
-      # If stash key is empty, generate one
-      [ -z "$D__QUEUE_ITEM_STASH_KEY" ] \
-        && D__QUEUE_ITEM_STASH_KEY="item_$( dmd5 -s "$D__QUEUE_ITEM_TITLE" )"
-
-      # Validate stash key
-      if ! d__stash_validate_key "$D__QUEUE_ITEM_STASH_KEY"; then
-
-        # Set flag, report error, and skip item
-        d__queue_item_status set is_invalid
-        d__queue_item_dprint_debug 'Not checked' \
-          -n "Bad stash key: '$D__QUEUE_ITEM_STASH_KEY'"
-        continue
-
-      fi
-
-    fi
-
-    # Check stashing is not used for this item
-    if ! d__queue_item_status uses_stash; then
-
-      # Not using stash
-      unset D__QUEUE_ITEM_STASH_FLAG
-
-      # Check if item is installed
-      d_queue_item_check; case $? in
-        0)  # Item status is unknown
-            d__queue_item_status set can_be_installed
-            d__queue_item_status set can_be_removed
-            all_installed=false
-            all_not_installed=false
-            d__queue_item_dprint_debug 'Unknown' '(stash disabled)'
-            ;;
-        1)  # Item is installed
-            d__queue_item_status set can_be_removed
-            some_installed=true
-            all_not_installed=false
-            all_unknown=false
-            D_DPL_INSTALLED_BY_USER_OR_OS=false
-            d__queue_item_dprint_debug 'Installed' '(stash disabled)'
-            ;;
-        2)  # Item is not installed
-            d__queue_item_status set can_be_installed
-            all_installed=false
-            all_unknown=false
-            d__queue_item_dprint_debug 'Not installed' '(stash disabled)'
-            ;;
-        3)  # Bad item: set flag, report error, and skip item
-            d__queue_item_status set is_invalid
-            should_prompt_again=true
-            d__queue_item_dprint_debug 'Invalid' '(stash disabled)'
-            continue
-            ;;
-      esac
-    
-    elif dstash -s has "$D__QUEUE_ITEM_STASH_KEY"; then
-
-      # Record of installation exists
-      D__QUEUE_ITEM_STASH_FLAG=true
-
-      # Populate stash value
-      D__QUEUE_ITEM_STASH_VALUE="$( dstash -s get "$D__QUEUE_ITEM_STASH_KEY" )"
-
-      # Check if item is installed as advertised
-      d_queue_item_check; case $? in
-        0)  # Item recorded but status is unknown: assume installed
-            d__queue_item_status set can_be_removed
-            some_installed=true
-            all_not_installed=false
-            all_unknown=false
-            D_DPL_INSTALLED_BY_USER_OR_OS=false
-            d__queue_item_dprint_debug 'Unknown' '(record exists)'
-            ;;
-        1)  # Item recorded and installed
-            d__queue_item_status set can_be_removed
-            some_installed=true
-            all_not_installed=false
-            all_unknown=false
-            D_DPL_INSTALLED_BY_USER_OR_OS=false
-            d__queue_item_dprint_debug 'Installed'
-            ;;
-        2)  # Item recorded but not installed
-            d__queue_item_status set can_be_installed
-            all_installed=false
-            all_unknown=false
-            should_prompt_again=true
-            d__queue_item_dprint_debug 'Not installed' \
-              '(removed by user or OS)'
-            ;;
-        3)  # Bad item: set flag, report error, and skip item
-            d__queue_item_status set is_invalid
-            should_prompt_again=true
-            d__queue_item_dprint_debug 'Invalid' '(record exists)'
-            continue
-            ;;
-      esac
-
-    else
-
-      # No record of installation
-      D__QUEUE_ITEM_STASH_FLAG=false
-
-      # Check if item is nevertheless installed
-      d_queue_item_check; case $? in
-        0)  # Item is not recorded and status is unknown: assume not installed
-            d__queue_item_status set can_be_installed
-            all_installed=false
-            all_unknown=false
-            d__queue_item_dprint_debug 'Unknown' '(no record)'
-            ;;
-        1)  # Item is not recorded but is installed
-            some_installed=true
-            all_not_installed=false
-            all_unknown=false
-            d__queue_item_dprint_debug 'Installed' '(by user or OS)'
-            ;;
-        2)  # Item is not recorded and not installed
-            d__queue_item_status set can_be_installed
-            all_installed=false
-            all_unknown=false
-            d__queue_item_dprint_debug 'Not installed'
-            ;;
-        3)  # Bad item: set flag, report error, and skip item
-            d__queue_item_status set is_invalid
-            should_prompt_again=true
-            d__queue_item_dprint_debug 'Invalid' '(no record)'
-            continue
-            ;;
-      esac
-
-    fi
-
-    # If made it to here, current item is deemed okay-ish
-    good_items_exist=true
-
-    # Also, save stash key for later
-    D__QUEUE_STASH_KEYS[$D__QUEUE_ITEM_NUM]="$D__QUEUE_ITEM_STASH_KEY"
-
-  # Done iterating over items in deployment's main queue
   done
 
-  # Unset the hooks to prevent them from polluting other queues
-  unset -f d_queue_item_pre_check d_queue_item_check
-
-  # Storage variable
-  local return_code_main
-
-  # Check if additional user prompt is warranted
-  if $should_prompt_again; then
-    D_DPL_NEEDS_ANOTHER_PROMPT=true
-    D_DPL_NEEDS_ANOTHER_WARNING='Irregularities detected with this deployment'
+  # Run queue pre-processing, if implemented
+  local d__qrtc d__tmp; if declare -f d_queue_pre_check &>/dev/null; then
+    unset D_ADDST_QUEUE_CHECK_CODE
+    d_queue_pre_check; d__tmp=$?; unset -f d_queue_pre_check
+    if (($d__tmp)); then
+      d__notify -qh -- "Queue's pre-check hook declares it irrelevant"
+      d__context -- lop; return 3
+    elif [[ $D_ADDST_QUEUE_CHECK_CODE =~ ^[0-9]+$ ]]; then
+      d__notify -qh -- "Queue's pre-check hook forces" \
+        "check code '$D_ADDST_QUEUE_CHECK_CODE'"
+      d__context -- lop; return $D_ADDST_QUEUE_CHECK_CODE
+    fi
   fi
 
-  # Devise return code
-  if ! $good_items_exist; then
-    dprint_debug 'Not a single good queue item provided'
-    return_code_main=3
-  elif $all_installed; then return_code_main=1
-  elif $all_not_installed; then return_code_main=2
-  elif $all_unknown; then return_code_main=0
-  elif $some_installed; then return_code_main=4
-  else return_code_main=2; fi
+  # Storage variables
+  local d__qei d__qen d__qas d__qss d__qeplq d__qertc d__qeh d__qeflg
+  local d__qas_a=() d__qas_r=() d__qas_w=() d__qas_c=()
+  local d__qas_h=false d__qas_p=false
 
-  # Check if queue post-processing hook is implemented
-  if declare -f d_queue_post_check &>/dev/null; then
-    
-    # Launch post-processing hook, store return code
-    D__QUEUE_RETURN_CODE=$return_code_main
-    d_queue_post_check; return_code_hook=$?
-    unset D__QUEUE_RETURN_CODE
+  # Initialize/reset status variables
+  d__qas=( true true true true true true true true true true )
+  d__qss=( false false false false false false false false false false )
 
-    # Unset the hook to prevent it from polluting other queues
-    unset -f d_queue_post_check
+  # Implement dummy primary and hooks if necessary
+  if ! declare -f d_item_check &>/dev/null; then d_item_check() { :; }; fi
+  if ! declare -f d_item_pre_check &>/dev/null
+  then d_item_pre_check() { :; }; fi
+  if ! declare -f d_item_post_check &>/dev/null
+  then d_item_post_check() { :; }; fi
 
-    # Check if returned code is non-zero
-    if [ $return_code_hook -ne 0 ]; then
+  # Iterate over numbers of item names
+  for ((d__qei=$d__qsl;d__qei<$d__qsr;++d__qei)); do
 
-      # Announce and return
-      dprint_debug \
-        "Queue post-check hook forces return with code $return_code_hook"
-      return $return_code_hook
+    # Extract number, name; switch context
+    d__qen="${D_QUEUE_MAIN[$d__qei]}"
+    d__qeflg="${D__QUEUE_FLAGS[$d__qei]}"
+    d__context -- push \
+      "Checking item '$d__qen' (#$((d__qei+1)) of ${#D_QUEUE_MAIN[@]})"
 
+    # Initialize marker var; clear add-statuses
+    unset D_ADDST_QUEUE_HALT D_ADDST_ITEM_CHECK_CODE
+    unset D_ADDST_HALT D_ADDST_PROMPT
+    unset D_ADDST_ATTENTION D_ADDST_HELP D_ADDST_WARNING D_ADDST_CRITICAL
+
+    # Expose additional variables to the item
+    D__ITEM_NUM="$d__qei" D__ITEM_NAME="$d__qen" D__ITEM_FLAGS="$d__qeflg"
+
+    # Run item pre-processing, if implemented
+    unset D_ADDST_ITEM_FLAGS; d__qertc=0 d__qeh=false; d_item_pre_check
+    if (($?)); then
+      d__notify -qh -- "Queue item's pre-check hook declares it irrelevant"
+      d__qertc=3 d__qeh=true
+    elif [[ $D_ADDST_ITEM_CHECK_CODE =~ ^[0-9]+$ ]]; then
+      d__notify -qh -- "Queue item's pre-check hook forces" \
+        "check code '$D_ADDST_ITEM_CHECK_CODE'"
+      d__qertc="$D_ADDST_ITEM_CHECK_CODE" d__qeh=true
+    fi
+    if [ "$D_ADDST_QUEUE_HALT" = true ]; then d__qeh=true
+      d__notify -qh -- "Queue item's pre-check hook forces queue halting"
+    fi
+    if ! [ -z ${D_ADDST_ITEM_FLAGS+isset} ]; then
+      d__qeflg+="$D_ADDST_ITEM_FLAGS" D__ITEM_FLAGS+="$D_ADDST_ITEM_FLAGS"
+      D__QUEUE_FLAGS[$d__qei]+="$D_ADDST_ITEM_FLAGS"
     fi
 
+    # Get return code of d_dpl_check, or fall back to zero
+    if ! $d__qeh; then unset D_ADDST_ITEM_FLAGS; d_item_check; d__qertc=$?
+      if [ "$D_ADDST_QUEUE_HALT" = true ]; then d__qeh=true
+        d__notify -qh -- "Queue item's checking forces queue halting"
+      fi
+      if ! [ -z ${D_ADDST_ITEM_FLAGS+isset} ]; then
+        d__qeflg+="$D_ADDST_ITEM_FLAGS" D__ITEM_FLAGS+="$D_ADDST_ITEM_FLAGS"
+        D__QUEUE_FLAGS[$d__qei]+="$D_ADDST_ITEM_FLAGS"
+      fi
+    fi
+
+    # Run item post-processing, if implemented
+    if ! $d__qeh; then unset D_ADDST_ITEM_FLAGS
+      D__ITEM_CHECK_CODE="$d__qertc"; d_item_post_check
+      if (($?)); then
+        d__notify -qh -- \
+          "Queue item's post-check hook declares it irrelevant" \
+          "instead of actual code '$d__qertc'"
+        d__qertc=3
+      elif [[ $D_ADDST_ITEM_CHECK_CODE =~ ^[0-9]+$ ]]; then
+        d__notify -qh -- "Queue item's post-check hook forces" \
+          "check code '$D_ADDST_ITEM_CHECK_CODE'" \
+          "instead of actual code '$d__qertc'"
+        d__qertc="$D_ADDST_ITEM_CHECK_CODE"
+      fi
+      if [ "$D_ADDST_QUEUE_HALT" = true ]; then
+        d__notify -qh -- "Queue item's post-check hook forces queue halting"
+      fi
+      if ! [ -z ${D_ADDST_ITEM_FLAGS+isset} ]; then
+        d__qeflg+="$D_ADDST_ITEM_FLAGS" D__ITEM_FLAGS+="$D_ADDST_ITEM_FLAGS"
+        D__QUEUE_FLAGS[$d__qei]+="$D_ADDST_ITEM_FLAGS"
+      fi
+    fi
+
+    # Store return code
+    D__QUEUE_CHECK_CODES[$d__qei]=$d__qertc
+
+    # Catch add-statuses
+    if ((${#D_ADDST_ATTENTION[@]}))
+    then for d__i in "${D_ADDST_ATTENTION[@]}"; do d__qas_a+="$d__i"; done; fi
+    if ((${#D_ADDST_HELP[@]}))
+    then for d__i in "${D_ADDST_HELP[@]}"; do d__qas_r+="$d__i"; done; fi
+    if ((${#D_ADDST_WARNING[@]}))
+    then for d__i in "${D_ADDST_WARNING[@]}"; do d__qas_w+="$d__i"; done; fi
+    if ((${#D_ADDST_CRITICAL[@]}))
+    then for d__i in "${D_ADDST_CRITICAL[@]}"; do d__qas_c+="$d__i"; done; fi
+    if [ "$D_ADDST_HALT" = true ]; then d__qas_h=true; fi
+    if [ "$D_ADDST_PROMPT" = true ]; then d__qas_p=true; fi
+
+    # Inspect return code; set statuses accordingly
+    case $d__qertc in
+      1)  for d__i in 0 2 3 4 5 6 7 8 9; do d__qas[$d__i]=false; done
+          d__qss[1]=true;;
+      2)  for d__i in 0 1 3 4 5 6 7 8 9; do d__qas[$d__i]=false; done
+          d__qss[2]=true;;
+      3)  for d__i in 0 1 2 4 5 6 7 8 9; do d__qas[$d__i]=false; done
+          d__qss[3]=true;;
+      4)  for d__i in 0 1 2 3 5 6 7 8 9; do d__qas[$d__i]=false; done
+          d__qss[4]=true;;
+      5)  for d__i in 0 1 2 3 4 6 7 8 9; do d__qas[$d__i]=false; done
+          d__qss[5]=true;;
+      6)  for d__i in 0 1 2 3 4 5 7 8 9; do d__qas[$d__i]=false; done
+          d__qss[6]=true;;
+      7)  for d__i in 0 1 2 3 4 5 6 8 9; do d__qas[$d__i]=false; done
+          d__qss[7]=true;;
+      8)  for d__i in 0 1 2 3 4 5 6 7 9; do d__qas[$d__i]=false; done
+          d__qss[8]=true;;
+      9)  for d__i in 0 1 2 3 4 5 6 7 8; do d__qas[$d__i]=false; done
+          d__qss[9]=true;;
+      *)  for d__i in 1 2 3 4 5 6 7 8 9; do d__qas[$d__i]=false; done
+          d__qss[0]=true;;
+    esac
+
+    # If in check routine and being verbose, print status
+    if [ "$D__REQ_ROUTINE" = check -a "$D__OPT_VERBOSITY" -gt 0 ]; then
+      d__qeplq="Item '$d__qen' (#$((d__qei+1)) of ${#D_QUEUE_MAIN[@]})"
+      d__qeplq+="$NORMAL"; case $d__qertc in
+        1)  printf >&2 '%s %s\n' "$D__INTRO_QCH_1" "$d__qeplq";;
+        2)  printf >&2 '%s %s\n' "$D__INTRO_QCH_2" "$d__qeplq";;
+        3)  printf >&2 '%s %s\n' "$D__INTRO_QCH_3" "$d__qeplq";;
+        4)  printf >&2 '%s %s\n' "$D__INTRO_QCH_4" "$d__qeplq";;
+        5)  printf >&2 '%s %s\n' "$D__INTRO_QCH_5" "$d__qeplq";;
+        6)  printf >&2 '%s %s\n' "$D__INTRO_QCH_6" "$d__qeplq";;
+        7)  printf >&2 '%s %s\n' "$D__INTRO_QCH_7" "$d__qeplq";;
+        8)  printf >&2 '%s %s\n' "$D__INTRO_QCH_8" "$d__qeplq";;
+        9)  printf >&2 '%s %s\n' "$D__INTRO_QCH_9" "$d__qeplq";;
+        *)  printf >&2 '%s %s\n' "$D__INTRO_QCH_0" "$d__qeplq";;
+      esac
+    fi
+
+    # Process potential queue halting
+    if [ "$D_ADDST_QUEUE_HALT" = true ]
+    then D__QUEUE_CAP_NUMS[$d__qsi]=$((d__qei+1)); d__context -- pop; break; fi
+
+    d__context -- pop
+
+  # Done iterating over numbers of item names
+  done; unset -f d_item_check d_item_pre_check d_item_post_check
+
+  # Switch context
+  d__context -- push 'Reconciling check status of items'
+
+  # Pass on add-statuses
+  unset D_ADDST_ATTENTION D_ADDST_HELP D_ADDST_WARNING D_ADDST_CRITICAL
+  ((${#d__qas_a[@]})) && D_ADDST_ATTENTION=("${d__qas_a[@]}")
+  ((${#d__qas_r[@]})) && D_ADDST_HELP=("${d__qas_r[@]}")
+  ((${#d__qas_w[@]})) && D_ADDST_WARNING=("${d__qas_w[@]}")
+  ((${#d__qas_c[@]})) && D_ADDST_CRITICAL=("${d__qas_c[@]}")
+  unset D_ADDST_HALT; $d__qas_h && D_ADDST_HALT=true
+  unset D_ADDST_PROMPT; $d__qas_p && D_ADDST_PROMPT=true
+
+  # Combine check codes
+  d___reconcile_item_check_codes; d__qrtc=$?
+  d__context -- pop "Settled on queue check code '$d__qrtc'"
+
+  # Run queue post-processing, if implemented
+  if declare -f d_queue_post_check &>/dev/null; then
+    unset D_ADDST_QUEUE_CHECK_CODE; D__QUEUE_CHECK_CODE="$d__qrtc"
+    d_queue_post_check; d__tmp=$?; unset -f d_queue_post_check
+    if (($d__tmp)); then
+      d__notify -qh -- "Queue's post-check hook declares it irrelevant"
+      d__context -- lop; return 3
+    elif [[ $D_ADDST_QUEUE_CHECK_CODE =~ ^[0-9]+$ ]]; then
+      d__notify -qh -- "Queue's post-check hook forces" \
+        "check code '$D_ADDST_QUEUE_CHECK_CODE'" \
+        "instead of actual code '$d__qrtc'"
+      d__context -- lop; return $D_ADDST_QUEUE_CHECK_CODE
+    fi
   fi
 
-  # Return
-  return $return_code_main
+  d__context -- lop; return $d__qrtc
 }
 
 d__queue_install()
 {
-  # Initialize or increment section number
-  if [ -z ${D__QUEUE_SECTNUM[1]+isset} ]; then
-    D__QUEUE_SECTNUM[1]=0
-  else
-    (( ++D__QUEUE_SECTNUM[1] ))
-  fi
+  # Initialize or increment section number; switch context
+  if [ -z ${D__QUEUE_SECTNUM[1]+isset} ]; then D__QUEUE_SECTNUM[1]=0
+  else ((++D__QUEUE_SECTNUM[1])); fi; local d__qsi=${D__QUEUE_SECTNUM[1]}
+  d__context -- notch
+  d__context -- push "Installing queue within deployment" \
+    "(queue section #$((d__qsi+1)) of $((${#D__QUEUE_SPLIT_POINTS[@]}+1)))"
 
-  # Calculate section edges
-  local secnum=${D__QUEUE_SECTNUM[1]}
+  # Calculate low edge of queue section
+  if [ $d__qsi -eq 0 ]; then D__QUEUE_SECTMIN=0
+  elif [[ ${D__QUEUE_SPLIT_POINTS[$d__qsi-1]} =~ ^[0-9]+$ ]]
+  then D__QUEUE_SECTMIN=${D__QUEUE_SPLIT_POINTS[$d__qsi-1]}
+  else D__QUEUE_SECTMIN=${#D_QUEUE_MAIN[@]}; fi
 
-  # Calculate low edge
-  if [ $secnum -eq 0 ]; then D__QUEUE_SECTMIN=0
-  elif [[ ${D__QUEUE_SPLIT_POINTS[$secnum-1]} =~ ^[0-9]+$ ]]; then
-    D__QUEUE_SECTMIN=${D__QUEUE_SPLIT_POINTS[$secnum-1]}
-  else
-    D__QUEUE_SECTMIN=${#D_QUEUE_MAIN[@]}
-  fi
+  # Calculate high edge of queue section
+  if [[ ${D__QUEUE_SPLIT_POINTS[$d__qsi]} =~ ^[0-9]+$ ]]
+  then D__QUEUE_SECTMAX=${D__QUEUE_SPLIT_POINTS[$d__qsi]}
+  else D__QUEUE_SECTMAX=${#D_QUEUE_MAIN[@]}; fi
 
-  # Calculate high edge
-  if [[ ${D__QUEUE_SPLIT_POINTS[$secnum]} =~ ^[0-9]+$ ]]; then
-    D__QUEUE_SECTMAX=${D__QUEUE_SPLIT_POINTS[$secnum]}
-  else
-    D__QUEUE_SECTMAX=${#D_QUEUE_MAIN[@]}
-  fi
+  # Switch context
+  local d__qsl=$D__QUEUE_SECTMIN d__qsr=$D__QUEUE_SECTMAX
+  d__context -- push "Installing queue items $((d__qsl+1))-$((d__qsr))"
 
-  # Storage variable
-  local return_code_hook
-
-  # Check if queue pre-processing hook is implemented
-  if declare -f d_queue_pre_install &>/dev/null; then
-    
-    # Launch pre-processing hook, store return code
-    d_queue_pre_install; return_code_hook=$?
-
-    # Unset the hook to prevent it from polluting other queues
-    unset -f d_queue_pre_install
-
-    # Check if returned code is non-zero
-    if [ $return_code_hook -ne 0 ]; then
-
-      # Announce and return
-      dprint_debug \
-        "Queue pre-install hook forces early return with code $return_code_hook"
-      return $return_code_hook
-
+  # Run queue pre-processing, if implemented
+  local d__qrtc d__tmp; if declare -f d_queue_pre_install &>/dev/null; then
+    unset D_ADDST_QUEUE_INSTALL_CODE
+    d_queue_pre_install; d__tmp=$?; unset -f d_queue_pre_install
+    if (($d__tmp)); then
+      d__notify -qh -- "Queue's pre-install hook declares it rejected"
+      d__context -- lop; return 2
+    elif [[ $D_ADDST_QUEUE_INSTALL_CODE =~ ^[0-9]+$ ]]; then
+      d__notify -qh -- "Queue's pre-install hook forces" \
+        "install code '$D_ADDST_QUEUE_INSTALL_CODE'"
+      d__context -- lop; return $D_ADDST_QUEUE_INSTALL_CODE
     fi
-
   fi
 
-  # Announce installing
-  dprint_debug -n \
-    "Installing queue items $D__QUEUE_SECTMIN-$D__QUEUE_SECTMAX" \
-    "(queue section #$secnum)"
+  # Storage variables
+  local d__qei d__qecap d__qen d__qertc d__qas d__qss d__i d__qeh d__qeflg
+  local d__qas_a=() d__qas_r=() d__qas_w=() d__qas_c=() d__qas_h=false
+  local d__qeplq d__qedfac d__qefrcd d__qecc d__qeok d__qeocc d__qeof
 
-  # Storage and status variables
-  local all_newly_installed=true all_already_installed=true all_failed=true
-  local good_items_exist=false some_failed=false early_exit=false
-  local exit_code
+  # Initialize/reset status variables
+  d__qas=( true true true true ) d__qss=( false false false false )
+  if [ -z ${D__QUEUE_CAP_NUMS[$d__qsi]+isset} ]; then d__qecap=$d__qsr
+  else d__qecap="${D__QUEUE_CAP_NUMS[$d__qsi]}"; fi
 
-  # If necessary functions are not implemented: implement a dummy
-  if ! declare -f d_queue_item_install &>/dev/null; then
-    d_queue_item_install() { :; }
-  fi
+  # Implement dummy primary and hooks if necessary
+  if ! declare -f d_item_install &>/dev/null; then d_item_install() { :; }; fi
+  if ! declare -f d_item_pre_install &>/dev/null
+  then d_item_pre_install() { :; }; fi
+  if ! declare -f d_item_post_install &>/dev/null
+  then d_item_post_install() { :; }; fi
 
-  # Iterate over items in deployment's main queue
-  for (( D__QUEUE_ITEM_NUM=$D__QUEUE_SECTMIN; \
-    D__QUEUE_ITEM_NUM<$D__QUEUE_SECTMAX; \
-    D__QUEUE_ITEM_NUM++ )); do
+  # Iterate over numbers of item names
+  for ((d__qei=$d__qsl;d__qei<$d__qecap;++d__qei)); do
 
-    # If queue item is invalid: skip silently
-    if d__queue_item_status is_invalid; then continue; fi
+    # Extract number, name, and check code; compose item name; switch context
+    d__qen="${D_QUEUE_MAIN[$d__qei]}"
+    d__qecc="${D__QUEUE_CHECK_CODES[$d__qei]}"
+    d__qeflg="${D__QUEUE_FLAGS[$d__qei]}"
+    d__qeplq="'$d__qen' (#$((d__qei+1)) of ${#D_QUEUE_MAIN[@]})"
+    d__context -- push "Installing item $d__qeplq"
+    d__qeplq="Item $d__qeplq$NORMAL"
 
-    # Prepare global variables
-    D__QUEUE_ITEM_TITLE="${D_QUEUE_MAIN[$D__QUEUE_ITEM_NUM]}"
-    D__QUEUE_ITEM_IS_FORCED=false
-    if d__queue_item_status uses_stash; then
-      D__QUEUE_ITEM_STASH_KEY="${D__QUEUE_STASH_KEYS[$D__QUEUE_ITEM_NUM]}"
-      if dstash -s has "$D__QUEUE_ITEM_STASH_KEY"; then
-        D__QUEUE_ITEM_STASH_FLAG=true
-        D__QUEUE_ITEM_STASH_VALUE="$( dstash -s get \
-          "$D__QUEUE_ITEM_STASH_KEY" )"
-      else
-        D__QUEUE_ITEM_STASH_FLAG=false
-        D__QUEUE_ITEM_STASH_VALUE=
+    # Pre-set statuses; conditionally print intro; inspect check code
+    d__qedfac=false d__qefrcd=false d__qeok=true
+    case $d__qecc in
+      1)  # Fully installed
+          if $D__OPT_FORCE; then d__qefrcd=true
+            printf >&2 '%s %s\n' "$D__INTRO_QIN_N" "$d__qeplq"
+            d__notify -l! -- \
+              "Item '$d__qen' appears to be already installed"
+          else d__qeok=false
+            (($D__OPT_VERBOSITY)) \
+              && printf >&2 '%s %s\n' "$D__INTRO_QIN_A" "$d__qeplq"
+          fi;;
+      2)  # Fully not installed
+          :;;
+      3)  # Irrelevant or invalid
+          (($D__OPT_VERBOSITY)) \
+            && printf >&2 '%s %s\n' "$D__INTRO_QCH_3" "$d__qeplq"
+          d__qeok=false;;
+      4)  # Partly installed
+          printf >&2 '%s %s\n' "$D__INTRO_QIN_N" "$d__qeplq"
+          d__notify -l! -- "Item '$d__qen' appears to be partly installed"
+          d__qedfac=true; if $D__OPT_FORCE; then d__qefrcd=true; fi;;
+      5)  # Likely installed (unknown)
+          printf >&2 '%s %s\n' "$D__INTRO_QIN_N" "$d__qeplq"
+          d__notify -l! -- \
+            "Item '$d__qen' is recorded as previously installed" \
+            -n- 'but there is no way to confirm that it is indeed installed'
+          if $D__OPT_FORCE; then d__qefrcd=true
+          else d__qeok=false
+            d__notify -l! -- 'Re-try with --force to overcome'
+            printf >&2 '%s %s\n' "$D__INTRO_QCH_5" "$d__qeplq"
+          fi;;
+      6)  # Manually removed (tinkered with)
+          printf >&2 '%s %s\n' "$D__INTRO_QIN_N" "$d__qeplq"
+          d__notify -lx -- \
+            "Item '$d__qen' is recorded as previously installed" \
+            -n- "but does $BOLDnot$NORMAL appear to be installed right now" \
+            -n- '(which may be due to manual tinkering)'
+          if $D__OPT_FORCE; then d__qefrcd=true
+          else d__qeok=false
+            d__notify -l! -- 'Re-try with --force to overcome'
+            printf >&2 '%s %s\n' "$D__INTRO_QIN_S" "$d__qeplq"
+          fi;;
+      7)  # Fully installed by user or OS
+          d__msg=( "Item '$d__qen' appears to be fully installed" \
+            'by means other than installing this deployment' )
+          if $D__OPT_FORCE; then d__qefrcd=true
+            printf >&2 '%s %s\n' "$D__INTRO_QIN_N" "$d__qeplq"
+            d__notify -l! -- "${d__msg[@]}"
+          else d__qeok=false
+            if (($D__OPT_VERBOSITY)); then
+              printf >&2 '%s %s\n' "$D__INTRO_QIN_N" "$d__qeplq"
+              d__notify -q! -- "${d__msg[@]}"
+              d__notify -q! -- 'Re-try with --force to overcome'
+              printf >&2 '%s %s\n' "$D__INTRO_QCH_7" "$d__qeplq"
+            fi
+          fi;;
+      8)  # Partly installed by user or OS
+          printf >&2 '%s %s\n' "$D__INTRO_QIN_N" "$d__qeplq"
+          d__notify -l! -- "Item '$d__qen' appears to be partly installed" \
+            'by means other than installing this deployment'
+          d__qedfac=true; if $D__OPT_FORCE; then d__qefrcd=true; fi;;
+      9)  # Likely not installed (unknown)
+          printf >&2 '%s %s\n' "$D__INTRO_QIN_N" "$d__qeplq"
+          d__notify -l! -- "Item '$d__qen' is $BOLDnot$NORMAL recorded" \
+            'as previously installed' -n- 'but there is no way to confirm' \
+            "that it is indeed $BOLDnot$NORMAL installed"
+          if $D__OPT_FORCE; then d__qefrcd=true
+          else d__qeok=false
+            d__notify -l! -- 'Re-try with --force to overcome'
+            printf >&2 '%s %s\n' "$D__INTRO_QCH_9" "$d__qeplq"
+          fi;;
+      *)  # Truly unknown
+          :;;
+    esac
+
+    # If forcing, print a forceful intro
+    $d__qeok && $d__qefrcd \
+      && printf >&2 '%s %s\n' "$D__INTRO_QIN_F" "$d__qeplq"
+
+    # Re-prompt if action differs depending on force or if forcing
+    if $d__qeok && ( $d__qedfac || $d__qefrcd ); then
+      if $d__qedfac; then printf >&2 '%s %s\n' "$D__INTRO_ATTNT" \
+        'In this status, installation may differ with and without --force'; fi
+      if $d__qefrcd; then printf >&2 '%s ' "$D__INTRO_CNF_U"
+      else printf >&2 '%s ' "$D__INTRO_CNF_N"; fi
+      if ! d__prompt -b; then
+        printf >&2 '%s %s\n' "$D__INTRO_QIN_S" "$d__qeplq"; d__qeok=false
       fi
-    else
-      unset D__QUEUE_ITEM_STASH_KEY
-      unset D__QUEUE_ITEM_STASH_FLAG
-      unset D__QUEUE_ITEM_STASH_VALUE
     fi
 
-    # Perform an action based on options available
-    if d__queue_item_status can_be_installed; then
+    # Shared cut-off for skipping current item
+    $d__qeok || continue
 
-      # Item is considered not installed: install it
-      d_queue_item_install; exit_code=$?; case $exit_code in
-        0|3)  # Installed successfully
-              all_already_installed=false
-              all_failed=false
-              dstash -s set "$D__QUEUE_ITEM_STASH_KEY" \
-                "$D__QUEUE_ITEM_STASH_VALUE"
-              d__queue_item_dprint_debug 'Installed'
-              ;;
-        1|4)  # Failed to install
-              all_newly_installed=false
-              all_already_installed=false
-              some_failed=true
-              d__queue_item_dprint_debug 'Failed to install'
-              ;;
-        2)    # Item found to be invalid during installation
-              d__queue_item_dprint_debug 'Invalid'
-              continue
-              ;;
+    # Initialize marker var; clear add-statuses
+    unset D_ADDST_QUEUE_HALT D_ADDST_HALT D_ADDST_ITEM_INSTALL_CODE
+    unset D_ADDST_ATTENTION D_ADDST_HELP D_ADDST_WARNING D_ADDST_CRITICAL
+
+    # Expose additional variables to the item
+    D__ITEM_NUM="$d__qei" D__ITEM_NAME="$d__qen" D__ITEM_FLAGS="$d__qeflg"
+    D__ITEM_CHECK_CODE="$d__qecc" D__ITEM_IS_FORCED="$d__qefrcd"
+    d__qeocc="$D__DPL_CHECK_CODE" d__qeof="$D__DPL_IS_FORCED"
+    D__DPL_CHECK_CODE="$d__qecc" D__DPL_IS_FORCED="$d__qefrcd"
+
+    # Run item pre-processing, if implemented
+    unset D_ADDST_ITEM_FLAGS; d__qertc=0 d__qeh=false; d_item_pre_install
+    if (($?)); then
+      d__notify -qh -- "Queue item's pre-install hook declares it rejected"
+      d__qertc=2 d__qeh=true
+    elif [[ $D_ADDST_ITEM_INSTALL_CODE =~ ^[0-9]+$ ]]; then
+      d__notify -qh -- "Queue item's pre-install hook forces" \
+        "install code '$D_ADDST_ITEM_INSTALL_CODE'"
+      d__qertc="$D_ADDST_ITEM_INSTALL_CODE" d__qeh=true
+    fi
+    if [ "$D_ADDST_QUEUE_HALT" = true ]; then d__qeh=true
+      d__notify -qh -- "Queue item's pre-install hook forces queue halting"
+    fi
+    if ! [ -z ${D_ADDST_ITEM_FLAGS+isset} ]; then
+      d__qeflg+="$D_ADDST_ITEM_FLAGS" D__ITEM_FLAGS+="$D_ADDST_ITEM_FLAGS"
+      D__QUEUE_FLAGS[$d__qei]+="$D_ADDST_ITEM_FLAGS"
+    fi
+
+    # Get return code of d_dpl_install, or fall back to zero
+    if ! $d__qeh; then unset D_ADDST_ITEM_FLAGS; d_item_install; d__qertc=$?
+      if [ "$D_ADDST_QUEUE_HALT" = true ]; then d__qeh=true
+        d__notify -qh -- "Queue item's installation forces queue halting"
+      fi
+      if ! [ -z ${D_ADDST_ITEM_FLAGS+isset} ]; then
+        d__qeflg+="$D_ADDST_ITEM_FLAGS" D__ITEM_FLAGS+="$D_ADDST_ITEM_FLAGS"
+        D__QUEUE_FLAGS[$d__qei]+="$D_ADDST_ITEM_FLAGS"
+      fi
+    fi
+
+    # Run item post-processing, if implemented
+    if ! $d__qeh; then unset D_ADDST_ITEM_FLAGS
+      D__ITEM_INSTALL_CODE="$d__qertc"; d_item_post_install
+      if (($?)); then
+        d__notify -qh -- \
+          "Queue item's post-install hook declares it rejected" \
+          "instead of actual code '$d__qertc'"
+        d__qertc=2
+      elif [[ $D_ADDST_ITEM_INSTALL_CODE =~ ^[0-9]+$ ]]; then
+        d__notify -qh -- "Queue item's post-install hook forces" \
+          "install code '$D_ADDST_ITEM_INSTALL_CODE'" \
+          "instead of actual code '$d__qertc'"
+        d__qertc="$D_ADDST_ITEM_INSTALL_CODE"
+      fi
+      if [ "$D_ADDST_QUEUE_HALT" = true ]; then
+        d__notify -qh -- "Queue item's post-install hook forces queue halting"
+      fi
+      if ! [ -z ${D_ADDST_ITEM_FLAGS+isset} ]; then
+        d__qeflg+="$D_ADDST_ITEM_FLAGS" D__ITEM_FLAGS+="$D_ADDST_ITEM_FLAGS"
+        D__QUEUE_FLAGS[$d__qei]+="$D_ADDST_ITEM_FLAGS"
+      fi
+    fi
+
+    # Store return code
+    D__QUEUE_INSTALL_CODES[$d__qei]=$d__qertc
+
+    # Restore overwritten deployment-level variables
+    D__DPL_CHECK_CODE="$d__qeocc" D__DPL_IS_FORCED="$d__qeof"
+
+    # Catch add-statuses
+    if ((${#D_ADDST_ATTENTION[@]}))
+    then for d__i in "${D_ADDST_ATTENTION[@]}"; do d__qas_a+="$d__i"; done; fi
+    if ((${#D_ADDST_HELP[@]}))
+    then for d__i in "${D_ADDST_HELP[@]}"; do d__qas_r+="$d__i"; done; fi
+    if ((${#D_ADDST_WARNING[@]}))
+    then for d__i in "${D_ADDST_WARNING[@]}"; do d__qas_w+="$d__i"; done; fi
+    if ((${#D_ADDST_CRITICAL[@]}))
+    then for d__i in "${D_ADDST_CRITICAL[@]}"; do d__qas_c+="$d__i"; done; fi
+    if [ "$D_ADDST_HALT" = true ]; then d__qas_h=true; fi
+
+    # Inspect return code; set statuses accordingly
+    case $d__qertc in
+      1)  for d__i in 0 2 3; do d__qas[$d__i]=false; done; d__qss[1]=true;;
+      2)  for d__i in 0 1 3; do d__qas[$d__i]=false; done; d__qss[2]=true;;
+      3)  for d__i in 0 1 2; do d__qas[$d__i]=false; done; d__qss[3]=true;;
+      *)  for d__i in 1 2 3; do d__qas[$d__i]=false; done; d__qss[0]=true;;
+    esac
+
+    # If in there has been some output, print status
+    if (($D__OPT_VERBOSITY)) || $d__qefrcd || $d__qedfac; then
+      case $d__qertc in
+        1)  printf >&2 '%s %s\n' "$D__INTRO_QIN_1" "$d__qeplq";;
+        2)  printf >&2 '%s %s\n' "$D__INTRO_QIN_2" "$d__qeplq";;
+        3)  printf >&2 '%s %s\n' "$D__INTRO_QIN_3" "$d__qeplq";;
+        *)  printf >&2 '%s %s\n' "$D__INTRO_QIN_0" "$d__qeplq";;
       esac
-
-      # Check if early exit was requested and item is not last
-      if [ $exit_code -eq 3 -o $exit_code -eq 4 ] \
-        && (( D__QUEUE_ITEM_NUM < ( ${#D_QUEUE_MAIN[@]} - 1 ) ))
-      then
-        early_exit=true
-      fi
-
-    elif $D__OPT_FORCE; then
-
-      # Set marker in global variable
-      D__QUEUE_ITEM_IS_FORCED=true
-
-      # Item is considered already installed, but user forces installation
-      d_queue_item_install; exit_code=$?; case $exit_code in
-        0|3)  # Re-installed successfully
-              all_newly_installed=false
-              all_failed=false
-              dstash -s set "$D__QUEUE_ITEM_STASH_KEY" \
-                "$D__QUEUE_ITEM_STASH_VALUE"
-              d__queue_item_dprint_debug 'Force-installed'
-              ;;
-        1|4)  # Failed to re-install
-              all_newly_installed=false
-              all_already_installed=false
-              some_failed=true
-              d__queue_item_dprint_debug 'Failed to force-install'
-              ;;
-        2)    # Item found to be invalid during installation
-              d__queue_item_dprint_debug 'Invalid'
-              continue
-              ;;
-      esac
-
-      # Check if early exit was requested and item is not last
-      if [ $exit_code -eq 3 -o $exit_code -eq 4 ] \
-        && (( D__QUEUE_ITEM_NUM < ( ${#D_QUEUE_MAIN[@]} - 1 ) ))
-      then
-        early_exit=true
-      fi
-
-    else
-
-      # Item is considered already installed, and that's the end of it
-      all_newly_installed=false
-      all_failed=false
-      d__queue_item_dprint_debug 'Already installed'
-    
     fi
 
-    # If made it to here, current item is deemed okay-ish
-    good_items_exist=true
+    # Process potential queue halting
+    if [ "$D_ADDST_QUEUE_HALT" = true ]; then d__context -- pop; break; fi
 
-    # If early exit is requested, break the cycle
-    $early_exit && break
-  
-  # Done iterating over items in deployment's main queue
-  done
+    d__context -- pop
 
-  # Unset the hook to prevent it from polluting other queues
-  unset -f d_queue_item_install
+  # Done iterating over numbers of item names
+  done; unset -f d_item_install d_item_pre_install d_item_post_install
 
-  # Check if early exit occurred
-  if $early_exit; then
-    dprint_skip 'Installation halted before all items were processed'
-  fi
+  # Switch context
+  d__context -- push 'Reconciling install status of items'
 
-  # Storage variable
-  local return_code_main
+  # Pass on add-statuses
+  unset D_ADDST_ATTENTION D_ADDST_HELP D_ADDST_WARNING D_ADDST_CRITICAL
+  ((${#d__qas_a[@]})) && D_ADDST_ATTENTION=("${d__qas_a[@]}")
+  ((${#d__qas_r[@]})) && D_ADDST_HELP=("${d__qas_r[@]}")
+  ((${#d__qas_w[@]})) && D_ADDST_WARNING=("${d__qas_w[@]}")
+  ((${#d__qas_c[@]})) && D_ADDST_CRITICAL=("${d__qas_c[@]}")
+  unset D_ADDST_HALT; $d__qas_h && D_ADDST_HALT=true
 
-  # Devise return code
-  if ! $good_items_exist; then
-    dprint_debug 'Not a single queue item valid for installation'
-    return_code_main=2
-  elif $all_newly_installed; then return_code_main=0
-  elif $all_already_installed; then
-    dprint_skip 'All items already installed'
-    return_code_main=0
-  elif $all_failed; then
-    dprint_failure 'All items failed to install'
-    return_code_main=1
-  elif $some_failed; then
-    dprint_failure 'Some items failed to install'
-    return_code_main=1
-  else
-    dprint_skip 'Some items already installed'
-    return_code_main=0
-  fi
+  # Combine status codes
+  d___reconcile_item_insrmv_codes; d__qrtc=$?
+  d__context -- pop "Settled on queue install code '$d__qrtc'"
 
-  # Check if queue post-processing hook is implemented
+  # Run queue post-processing, if implemented
   if declare -f d_queue_post_install &>/dev/null; then
-    
-    # Launch post-processing hook, store return code
-    D__QUEUE_RETURN_CODE=$return_code_main
-    d_queue_post_install; return_code_hook=$?
-    unset D__QUEUE_RETURN_CODE
-
-    # Unset the hook to prevent it from polluting other queues
-    unset -f d_queue_post_install
-
-    # Check if returned code is non-zero
-    if [ $return_code_hook -ne 0 ]; then
-
-      # Announce and return
-      dprint_debug \
-        "Queue post-install hook forces return with code $return_code_hook"
-      return $return_code_hook
-
+    unset D_ADDST_QUEUE_INSTALL_CODE; D__QUEUE_INSTALL_CODE="$d__qrtc"
+    d_queue_post_install; d__tmp=$?; unset -f d_queue_post_install
+    if (($d__tmp)); then
+      d__notify -qh -- "Queue's post-install hook declares it rejected"
+      d__context -- lop; return 2
+    elif [[ $D_ADDST_QUEUE_INSTALL_CODE =~ ^[0-9]+$ ]]; then
+      d__notify -qh -- "Queue's post-install hook forces" \
+        "install code '$D_ADDST_QUEUE_INSTALL_CODE'" \
+        "instead of actual code '$d__qrtc'"
+      d__context -- lop; return $D_ADDST_QUEUE_INSTALL_CODE
     fi
-
   fi
 
-  # Return
-  return $return_code_main
+  d__context -- lop; return $d__qrtc
 }
 
 d__queue_remove()
 {
-  # Initialize or decrement section number (reverse order)
-  if [ -z ${D__QUEUE_SECTNUM[1]+isset} ]; then
-    D__QUEUE_SECTNUM[1]="${#D__QUEUE_SPLIT_POINTS[@]}"
-  else
-    (( --D__QUEUE_SECTNUM[1] ))
-  fi
+  # Initialize or decrement section number; switch context
+  if [ -z ${D__QUEUE_SECTNUM[1]+isset} ]
+  then D__QUEUE_SECTNUM[1]=${#D__QUEUE_SPLIT_POINTS[@]}
+  else ((--D__QUEUE_SECTNUM[1])); fi; local d__qsi=${D__QUEUE_SECTNUM[1]}
+  d__context -- notch
+  d__context -- push "Removing queue within deployment" \
+    "(queue section #$((d__qsi+1)) of $((${#D__QUEUE_SPLIT_POINTS[@]}+1)))"
 
-  # Calculate section edges
-  local secnum=${D__QUEUE_SECTNUM[1]}
+  # Calculate low edge of queue section
+  if [ $d__qsi -eq 0 ]; then D__QUEUE_SECTMIN=0
+  elif [[ ${D__QUEUE_SPLIT_POINTS[$d__qsi-1]} =~ ^[0-9]+$ ]]
+  then D__QUEUE_SECTMIN=${D__QUEUE_SPLIT_POINTS[$d__qsi-1]}
+  else D__QUEUE_SECTMIN=${#D_QUEUE_MAIN[@]}; fi
 
-  # Calculate low edge
-  if [ $secnum -eq 0 ]; then D__QUEUE_SECTMIN=0
-  elif [[ ${D__QUEUE_SPLIT_POINTS[$secnum-1]} =~ ^[0-9]+$ ]]; then
-    D__QUEUE_SECTMIN=${D__QUEUE_SPLIT_POINTS[$secnum-1]}
-  else
-    D__QUEUE_SECTMIN=${#D_QUEUE_MAIN[@]}
-  fi
+  # Calculate high edge of queue section
+  if [[ ${D__QUEUE_SPLIT_POINTS[$d__qsi]} =~ ^[0-9]+$ ]]
+  then D__QUEUE_SECTMAX=${D__QUEUE_SPLIT_POINTS[$d__qsi]}
+  else D__QUEUE_SECTMAX=${#D_QUEUE_MAIN[@]}; fi
 
-  # Calculate high edge
-  if [[ ${D__QUEUE_SPLIT_POINTS[$secnum]} =~ ^[0-9]+$ ]]; then
-    D__QUEUE_SECTMAX=${D__QUEUE_SPLIT_POINTS[$secnum]}
-  else
-    D__QUEUE_SECTMAX=${#D_QUEUE_MAIN[@]}
-  fi
+  # Switch context
+  local d__qsl=$D__QUEUE_SECTMIN d__qsr=$D__QUEUE_SECTMAX
+  d__context -- push "Removing queue items $((d__qsl+1))-$((d__qsr))"
 
-  # Storage variable
-  local return_code_hook
-
-  # Check if queue pre-processing hook is implemented
-  if declare -f d_queue_pre_remove &>/dev/null; then
-    
-    # Launch pre-processing hook, store return code
-    d_queue_pre_remove; return_code_hook=$?
-
-    # Unset the hook to prevent it from polluting other queues
-    unset -f d_queue_pre_remove
-
-    # Check if returned code is non-zero
-    if [ $return_code_hook -ne 0 ]; then
-
-      # Announce and return
-      dprint_debug \
-        "Queue pre-remove hook forces early return with code $return_code_hook"
-      return $return_code_hook
-
+  # Run queue pre-processing, if implemented
+  local d__qrtc d__tmp; if declare -f d_queue_pre_remove &>/dev/null; then
+    unset D_ADDST_QUEUE_REMOVE_CODE
+    d_queue_pre_remove; d__tmp=$?; unset -f d_queue_pre_remove
+    if (($d__tmp)); then
+      d__notify -qh -- "Queue's pre-remove hook declares it rejected"
+      d__context -- lop; return 2
+    elif [[ $D_ADDST_QUEUE_REMOVE_CODE =~ ^[0-9]+$ ]]; then
+      d__notify -qh -- "Queue's pre-remove hook forces" \
+        "remove code '$D_ADDST_QUEUE_REMOVE_CODE'"
+      d__context -- lop; return $D_ADDST_QUEUE_REMOVE_CODE
     fi
-
   fi
 
-  # Announce removing
-  dprint_debug -n \
-    "Removing queue items $D__QUEUE_SECTMIN-$D__QUEUE_SECTMAX" \
-    "(queue section #$secnum)"
+  # Storage variables
+  local d__qei d__qecap d__qen d__qertc d__qas d__qss d__i d__qeh d__qeflg
+  local d__qas_a=() d__qas_r=() d__qas_w=() d__qas_c=() d__qas_h=false
+  local d__qeplq d__qeabn d__qefrcd d__qecc d__qeok d__qeocc d__qeof
 
-  # Storage and status variables
-  local all_newly_removed=true all_already_removed=true all_failed=true
-  local good_items_exist=false some_failed=false early_exit=false
-  local exit_code
+  # Initialize/reset status variables
+  d__qas=( true true true true ) d__qss=( false false false false )
+  if [ -z ${D__QUEUE_CAP_NUMS[$d__qsi]+isset} ]; then d__qecap=$d__qsr
+  else d__qecap="${D__QUEUE_CAP_NUMS[$d__qsi]}"; fi
 
-  # If necessary functions are not implemented: implement a dummy
-  if ! declare -f d_queue_item_remove &>/dev/null; then
-    d_queue_item_remove() { :; }
-  fi
+  # Implement dummy primary and hooks if necessary
+  if ! declare -f d_item_remove &>/dev/null; then d_item_remove() { :; }; fi
+  if ! declare -f d_item_pre_remove &>/dev/null
+  then d_item_pre_remove() { :; }; fi
+  if ! declare -f d_item_post_remove &>/dev/null
+  then d_item_post_remove() { :; }; fi
 
-  # Iterate over items in deployment's main queue (in reverse order)
-  for (( D__QUEUE_ITEM_NUM=$D__QUEUE_SECTMAX-1; \
-    D__QUEUE_ITEM_NUM>=$D__QUEUE_SECTMIN; \
-    D__QUEUE_ITEM_NUM-- )); do
+  # Iterate over numbers of item names
+  for ((d__qei=$d__qecap-1;d__qei>=$d__qsl;--d__qei)); do
 
-    # If queue item is invalid: skip silently
-    if d__queue_item_status is_invalid; then continue; fi
+    # Extract number, name, and check code; compose item name; switch context
+    d__qen="${D_QUEUE_MAIN[$d__qei]}"
+    d__qecc="${D__QUEUE_CHECK_CODES[$d__qei]}"
+    d__qeflg="${D__QUEUE_FLAGS[$d__qei]}"
+    d__qeplq="'$d__qen' (#$((d__qei+1)) of ${#D_QUEUE_MAIN[@]})"
+    d__context -- push "Removing item $d__qeplq"
+    d__qeplq="Item $d__qeplq$NORMAL"
 
-    # Prepare global variables
-    D__QUEUE_ITEM_TITLE="${D_QUEUE_MAIN[$D__QUEUE_ITEM_NUM]}"
-    D__QUEUE_ITEM_IS_FORCED=false
-    if d__queue_item_status uses_stash; then
-      D__QUEUE_ITEM_STASH_KEY="${D__QUEUE_STASH_KEYS[$D__QUEUE_ITEM_NUM]}"
-      if dstash -s has "$D__QUEUE_ITEM_STASH_KEY"; then
-        D__QUEUE_ITEM_STASH_FLAG=true
-        D__QUEUE_ITEM_STASH_VALUE="$( dstash -s get \
-          "$D__QUEUE_ITEM_STASH_KEY" )"
-      else
-        D__QUEUE_ITEM_STASH_FLAG=false
-        D__QUEUE_ITEM_STASH_VALUE=
+    # Pre-set statuses; conditionally print intro; inspect check code
+    d__qeabn=false d__qefrcd=false d__qeok=true
+    case $d__qecc in
+      1)  # Fully installed
+          :;;
+      2)  # Fully not installed
+          if $D__OPT_FORCE; then d__qefrcd=true
+            printf >&2 '%s %s\n' "$D__INTRO_QRM_N" "$d__qeplq"
+            d__notify -l! -- \
+              "Item '$d__qen' appears to be already not installed"
+          else d__qeok=false
+            (($D__OPT_VERBOSITY)) \
+              && printf >&2 '%s %s\n' "$D__INTRO_QRM_A" "$d__qeplq"
+          fi;;
+      3)  # Irrelevant or invalid
+          (($D__OPT_VERBOSITY)) \
+            && printf >&2 '%s %s\n' "$D__INTRO_QCH_3" "$d__qeplq"
+          d__qeok=false;;
+      4)  # Partly installed
+          printf >&2 '%s %s\n' "$D__INTRO_QRM_N" "$d__qeplq"
+          d__notify -l! -- \
+            "Item '$d__qen' appears to be only partly installed"
+          d__qeabn=true;;
+      5)  # Likely installed (unknown)
+          printf >&2 '%s %s\n' "$D__INTRO_QRM_N" "$d__qeplq"
+          d__notify -l! -- \
+            "Item '$d__qen' is recorded as previously installed" \
+            -n- 'but there is no way to confirm that it is indeed installed'
+          if $D__OPT_FORCE; then d__qefrcd=true
+          else d__qeok=false
+            d__notify -l! -- 'Re-try with --force to overcome'
+            printf >&2 '%s %s\n' "$D__INTRO_QCH_5" "$d__qeplq"
+          fi;;
+      6)  # Manually removed (tinkered with)
+          printf >&2 '%s %s\n' "$D__INTRO_QRM_N" "$d__qeplq"
+          d__notify -lx -- \
+            "Item '$d__qen' is recorded as previously installed" \
+            -n- "but does $BOLDnot$NORMAL appear to be installed right now" \
+            -n- '(which may be due to manual tinkering)'
+          if $D__OPT_FORCE; then d__qefrcd=true
+          else d__qeok=false
+            d__notify -l! -- 'Re-try with --force to overcome'
+            printf >&2 '%s %s\n' "$D__INTRO_QRM_S" "$d__qeplq"
+          fi;;
+      7)  # Fully installed by user or OS
+          printf >&2 '%s %s\n' "$D__INTRO_QRM_N" "$d__qeplq"
+          d__notify -l! -- "Item '$d__qen' appears to be fully installed" \
+            'by means other than installing this deployment'
+          if $D__OPT_FORCE; then d__qefrcd=true
+          else d__qeok=false
+            d__notify -l! -- 'Re-try with --force to overcome'
+            printf >&2 '%s %s\n' "$D__INTRO_QCH_7" "$d__qeplq"
+          fi;;
+      8)  # Partly installed by user or OS
+          printf >&2 '%s %s\n' "$D__INTRO_QRM_N" "$d__qeplq"
+          d__notify -l! -- "Item '$d__qen' appears to be partly installed" \
+            'by means other than installing this deployment'
+          if $D__OPT_FORCE; then d__qefrcd=true
+          else d__qeok=false
+            d__notify -l! -- 'Re-try with --force to overcome'
+            printf >&2 '%s %s\n' "$D__INTRO_QCH_8" "$d__qeplq"
+          fi;;
+      9)  # Likely not installed (unknown)
+          printf >&2 '%s %s\n' "$D__INTRO_QRM_N" "$d__qeplq"
+          d__notify -l! -- "Item '$d__qen' is $BOLDnot$NORMAL recorded" \
+            'as previously installed' -n- 'but there is no way to confirm' \
+            "that it is indeed $BOLDnot$NORMAL installed"
+          if $D__OPT_FORCE; then d__qefrcd=true
+          else d__qeok=false
+            d__notify -l! -- 'Re-try with --force to overcome'
+            printf >&2 '%s %s\n' "$D__INTRO_QCH_9" "$d__qeplq"
+          fi;;
+      *)  # Truly unknown
+          :;;
+    esac
+
+    # If forcing, print a forceful intro and re-prompt
+    if $d__qeok && $d__qefrcd; then
+      printf >&2 '%s %s\n' "$D__INTRO_QRM_F" "$d__qeplq"
+      printf >&2 '%s ' "$D__INTRO_CNF_U"
+      if ! d__prompt -b; then
+        printf >&2 '%s %s\n' "$D__INTRO_QRM_S" "$d__qeplq"; d__qeok=false
       fi
-    else
-      unset D__QUEUE_ITEM_STASH_KEY
-      unset D__QUEUE_ITEM_STASH_FLAG
-      unset D__QUEUE_ITEM_STASH_VALUE
     fi
 
-    # Perform an action based on options available
-    if d__queue_item_status can_be_removed; then
+    # Shared cut-off for skipping current item
+    $d__qeok || continue
 
-      # Item is considered installed: remove it
-      d_queue_item_remove; exit_code=$?; case $exit_code in
-        0|3)  # Removed successfully
-              all_already_removed=false
-              all_failed=false
-              dstash -s unset "$D__QUEUE_ITEM_STASH_KEY"
-              d__queue_item_dprint_debug 'Removed'
-              ;;
-        1|4)  # Failed to remove
-              all_newly_removed=false
-              all_already_removed=false
-              some_failed=true
-              d__queue_item_dprint_debug 'Failed to remove'
-              ;;
-        2)    # Item found to be invalid during installation
-              d__queue_item_dprint_debug 'Invalid'
-              continue
-              ;;
+    # Initialize marker var; clear add-statuses
+    unset D_ADDST_QUEUE_HALT D_ADDST_HALT D_ADDST_ITEM_REMOVE_CODE
+    unset D_ADDST_ATTENTION D_ADDST_HELP D_ADDST_WARNING D_ADDST_CRITICAL
+
+    # Expose additional variables to the item
+    D__ITEM_NUM="$d__qei" D__ITEM_NAME="$d__qen" D__ITEM_FLAGS="$d__qeflg"
+    D__ITEM_CHECK_CODE="$d__qecc" D__ITEM_IS_FORCED="$d__qefrcd"
+    d__qeocc="$D__DPL_CHECK_CODE" d__qeof="$D__DPL_IS_FORCED"
+    D__DPL_CHECK_CODE="$d__qecc" D__DPL_IS_FORCED="$d__qefrcd"
+
+    # Run item pre-processing, if implemented
+    unset D_ADDST_ITEM_FLAGS; d__qertc=0 d__qeh=false; d_item_pre_remove
+    if (($?)); then
+      d__notify -qh -- "Queue item's pre-remove hook declares it rejected"
+      d__qertc=2 d__qeh=true
+    elif [[ $D_ADDST_ITEM_REMOVE_CODE =~ ^[0-9]+$ ]]; then
+      d__notify -qh -- "Queue item's pre-remove hook forces" \
+        "remove code '$D_ADDST_ITEM_REMOVE_CODE'"
+      d__qertc="$D_ADDST_ITEM_REMOVE_CODE" d__qeh=true
+    fi
+    if [ "$D_ADDST_QUEUE_HALT" = true ]; then d__qeh=true
+      d__notify -qh -- "Queue item's pre-remove hook forces queue halting"
+    fi
+    if ! [ -z ${D_ADDST_ITEM_FLAGS+isset} ]; then
+      d__qeflg+="$D_ADDST_ITEM_FLAGS" D__ITEM_FLAGS+="$D_ADDST_ITEM_FLAGS"
+      D__QUEUE_FLAGS[$d__qei]+="$D_ADDST_ITEM_FLAGS"
+    fi
+
+    # Get return code of d_dpl_remove, or fall back to zero
+    if ! $d__qeh; then unset D_ADDST_ITEM_FLAGS; d_item_remove; d__qertc=$?
+      if [ "$D_ADDST_QUEUE_HALT" = true ]; then d__qeh=true
+        d__notify -qh -- "Queue item's removing forces queue halting"
+      fi
+      if ! [ -z ${D_ADDST_ITEM_FLAGS+isset} ]; then
+        d__qeflg+="$D_ADDST_ITEM_FLAGS" D__ITEM_FLAGS+="$D_ADDST_ITEM_FLAGS"
+        D__QUEUE_FLAGS[$d__qei]+="$D_ADDST_ITEM_FLAGS"
+      fi
+    fi
+
+    # Run item post-processing, if implemented
+    if ! $d__qeh; then unset D_ADDST_ITEM_FLAGS
+      D__ITEM_INSTALL_CODE="$d__qertc"; d_item_post_remove
+      if (($?)); then
+        d__notify -qh -- "Queue item's post-remove hook declares it rejected" \
+          "instead of actual code '$d__qertc'"
+        d__qertc=2
+      elif [[ $D_ADDST_ITEM_REMOVE_CODE =~ ^[0-9]+$ ]]; then
+        d__notify -qh -- "Queue item's post-remove hook forces" \
+          "remove code '$D_ADDST_ITEM_REMOVE_CODE'" \
+          "instead of actual code '$d__qertc'"
+        d__qertc="$D_ADDST_ITEM_REMOVE_CODE"
+      fi
+      if [ "$D_ADDST_QUEUE_HALT" = true ]; then
+        d__notify -qh -- "Queue item's post-remove hook forces queue halting"
+      fi
+      if ! [ -z ${D_ADDST_ITEM_FLAGS+isset} ]; then
+        d__qeflg+="$D_ADDST_ITEM_FLAGS" D__ITEM_FLAGS+="$D_ADDST_ITEM_FLAGS"
+        D__QUEUE_FLAGS[$d__qei]+="$D_ADDST_ITEM_FLAGS"
+      fi
+    fi
+
+    # Store return code
+    D__QUEUE_REMOVE_CODES[$d__qei]=$d__qertc
+
+    # Restore overwritten deployment-level variables
+    D__DPL_CHECK_CODE="$d__qeocc" D__DPL_IS_FORCED="$d__qeof"
+
+    # Catch add-statuses
+    if ((${#D_ADDST_ATTENTION[@]}))
+    then for d__i in "${D_ADDST_ATTENTION[@]}"; do d__qas_a+="$d__i"; done; fi
+    if ((${#D_ADDST_HELP[@]}))
+    then for d__i in "${D_ADDST_HELP[@]}"; do d__qas_r+="$d__i"; done; fi
+    if ((${#D_ADDST_WARNING[@]}))
+    then for d__i in "${D_ADDST_WARNING[@]}"; do d__qas_w+="$d__i"; done; fi
+    if ((${#D_ADDST_CRITICAL[@]}))
+    then for d__i in "${D_ADDST_CRITICAL[@]}"; do d__qas_c+="$d__i"; done; fi
+    if [ "$D_ADDST_HALT" = true ]; then d__qas_h=true; fi
+
+    # Inspect return code; set statuses accordingly
+    case $d__qertc in
+      1)  for d__i in 0 2 3; do d__qas[$d__i]=false; done; d__qss[1]=true;;
+      2)  for d__i in 0 1 3; do d__qas[$d__i]=false; done; d__qss[2]=true;;
+      3)  for d__i in 0 1 2; do d__qas[$d__i]=false; done; d__qss[3]=true;;
+      *)  for d__i in 1 2 3; do d__qas[$d__i]=false; done; d__qss[0]=true;;
+    esac
+
+    # If in there has been some output, print status
+    if (($D__OPT_VERBOSITY)) || $d__qefrcd || $d__qeabn; then
+      case $d__qertc in
+        1)  printf >&2 '%s %s\n' "$D__INTRO_QRM_1" "$d__qeplq";;
+        2)  printf >&2 '%s %s\n' "$D__INTRO_QRM_2" "$d__qeplq";;
+        3)  printf >&2 '%s %s\n' "$D__INTRO_QRM_3" "$d__qeplq";;
+        *)  printf >&2 '%s %s\n' "$D__INTRO_QRM_0" "$d__qeplq";;
       esac
-
-      # Check if early exit was requested and item is not last
-      if [ $exit_code -eq 3 -o $exit_code -eq 4 ] \
-        && (( D__QUEUE_ITEM_NUM > 0 ))
-      then
-        early_exit=true
-      fi
-
-    elif $D__OPT_FORCE; then
-
-      # Set marker in global variable
-      D__QUEUE_ITEM_IS_FORCED=true
-
-      # Item is considered already not installed, but user forces removal
-      d_queue_item_remove; exit_code=$?; case $exit_code in
-        0|3)  # Re-removed successfully
-              all_newly_removed=false
-              all_failed=false
-              dstash -s unset "$D__QUEUE_ITEM_STASH_KEY"
-              d__queue_item_dprint_debug 'Force-removed'
-              ;;
-        1|4)  # Failed to re-remove
-              all_newly_removed=false
-              all_already_removed=false
-              some_failed=true
-              d__queue_item_dprint_debug 'Failed to force-remove'
-              ;;
-        2)    # Item found to be invalid during removal
-              d__queue_item_dprint_debug 'Invalid'
-              continue
-              ;;
-      esac
-
-      # Check if early exit was requested and item is not last
-      if [ $exit_code -eq 3 -o $exit_code -eq 4 ] \
-        && (( D__QUEUE_ITEM_NUM > 0 ))
-      then
-        early_exit=true
-      fi
-
-    else
-
-      # Item is considered already not installed, and that's the end of it
-      all_newly_removed=false
-      all_failed=false
-      d__queue_item_dprint_debug 'Already not installed'
-    
     fi
 
-    # If made it to here, current item is deemed okay-ish
-    good_items_exist=true
+    # Process potential queue halting
+    if [ "$D_ADDST_QUEUE_HALT" = true ]; then d__context -- pop; break; fi
 
-    # If early exit is requested, break the cycle
-    $early_exit && break
-  
-  # Done iterating over items in deployment's main queue
-  done
+    d__context -- pop
 
-  # Unset the hook to prevent it from polluting other queues
-  unset -f d_queue_item_remove
+  # Done iterating over numbers of item names
+  done; unset -f d_item_remove d_item_pre_remove d_item_post_remove
 
-  # Check if early exit occurred
-  if $early_exit; then
-    dprint_skip 'Removal halted before all items were processed'
-  fi
+  # Switch context
+  d__context -- push 'Reconciling remove status of items'
 
-  # Storage variable
-  local return_code_main
+  # Pass on add-statuses
+  unset D_ADDST_ATTENTION D_ADDST_HELP D_ADDST_WARNING D_ADDST_CRITICAL
+  ((${#d__qas_a[@]})) && D_ADDST_ATTENTION=("${d__qas_a[@]}")
+  ((${#d__qas_r[@]})) && D_ADDST_HELP=("${d__qas_r[@]}")
+  ((${#d__qas_w[@]})) && D_ADDST_WARNING=("${d__qas_w[@]}")
+  ((${#d__qas_c[@]})) && D_ADDST_CRITICAL=("${d__qas_c[@]}")
+  unset D_ADDST_HALT; $d__qas_h && D_ADDST_HALT=true
 
-  # Devise return code
-  if ! $good_items_exist; then
-    dprint_debug 'Not a single queue item valid for removal'
-    return_code_main=2
-  elif $all_newly_removed; then return_code_main=0
-  elif $all_already_removed; then
-    dprint_skip 'All items already removed'
-    return_code_main=0
-  elif $all_failed; then
-    dprint_failure 'All items failed to remove'
-    return_code_main=1
-  elif $some_failed; then
-    dprint_failure 'Some items failed to remove'
-    return_code_main=1
-  else
-    dprint_skip 'Some items already removed'
-    return_code_main=0
-  fi
+  # Combine status codes
+  d___reconcile_item_insrmv_codes; d__qrtc=$?
+  d__context -- pop "Settled on queue remove code '$d__qrtc'"
 
-  # Check if queue post-processing hook is implemented
+  # Run queue post-processing, if implemented
   if declare -f d_queue_post_remove &>/dev/null; then
-    
-    # Launch post-processing hook, store return code
-    D__QUEUE_RETURN_CODE=$return_code_main
-    d_queue_post_remove; return_code_hook=$?
-    unset D__QUEUE_RETURN_CODE
-
-    # Unset the hook to prevent it from polluting other queues
-    unset -f d_queue_post_remove
-
-    # Check if returned code is non-zero
-    if [ $return_code_hook -ne 0 ]; then
-
-      # Announce and return
-      dprint_debug \
-        "Queue post-remove hook forces return with code $return_code_hook"
-      return $return_code_hook
-
+    unset D_ADDST_QUEUE_REMOVE_CODE; D__QUEUE_REMOVE_CODE="$d__qrtc"
+    d_queue_post_remove; d__tmp=$?; unset -f d_queue_post_remove
+    if (($d__tmp)); then
+      d__notify -qh -- "Queue's post-remove hook declares it rejected"
+      d__context -- lop; return 2
+    elif [[ $D_ADDST_QUEUE_REMOVE_CODE =~ ^[0-9]+$ ]]; then
+      d__notify -qh -- "Queue's post-remove hook forces" \
+        "remove code '$D_ADDST_QUEUE_REMOVE_CODE'" \
+        "instead of actual code '$d__qrtc'"
+      d__context -- lop; return $D_ADDST_QUEUE_REMOVE_CODE
     fi
-
   fi
 
-  # Return
-  return $return_code_main
-}
-
-#>  d__queue_item_status [ set FLAG ] | FLAG
-#
-## Convenience wrapper for storing pre-defined boolean flags in global array
-#
-d__queue_item_status()
-{
-  # Check if first argument is the word 'set'
-  if [ "$1" = set ]; then
-
-    # Setting flag: ditch first arg and add necessary flag
-    shift; case $1 in
-      is_invalid)         D__QUEUE_FLAGS[$D__QUEUE_ITEM_NUM]+='x';;
-      uses_stash)         D__QUEUE_FLAGS[$D__QUEUE_ITEM_NUM]+='s';;
-      can_be_installed)   D__QUEUE_FLAGS[$D__QUEUE_ITEM_NUM]+='i';;
-      can_be_removed)     D__QUEUE_FLAGS[$D__QUEUE_ITEM_NUM]+='r';;
-      *)                  return 1;;
-    esac
-
-  else
-
-    # Checking flag: return 0/1 based on presence of requested flag
-    case $1 in
-      is_invalid)         [[ ${D__QUEUE_FLAGS[$D__QUEUE_ITEM_NUM]} == *x* ]];;
-      uses_stash)         [[ ${D__QUEUE_FLAGS[$D__QUEUE_ITEM_NUM]} == *s* ]];;
-      can_be_installed)   [[ ${D__QUEUE_FLAGS[$D__QUEUE_ITEM_NUM]} == *i* ]];;
-      can_be_removed)     [[ ${D__QUEUE_FLAGS[$D__QUEUE_ITEM_NUM]} == *r* ]];;
-      *)                  return 1;;
-    esac
-
-  fi
-}
-
-#>  d__queue_item_dprint_debug TITLE [CHUNK]...
-#
-## Tiny helper that unifies debug message format for queue items
-#
-d__queue_item_dprint_debug()
-{
-  local width=24
-  local title="$1"; shift
-  if [ ${#title} -le $width ]; then
-    title="$( printf "%-${width}s" "$title" )"
-  fi
-  dprint_debug "${title:0:$width}: $D__QUEUE_ITEM_TITLE" "$@"
+  d__context -- lop; return $d__qrtc
 }
 
 #>  d__queue_split [POSITION]
@@ -829,21 +849,69 @@ d__queue_item_dprint_debug()
 #
 d__queue_split()
 {
-  # Grab argument
-  local position="$1"; shift
+  local pos; if ! [[ $1 =~ ^[0-9]+$ ]] || [ $1 -gt ${#D_QUEUE_MAIN[@]} ]
+  then pos=${#D_QUEUE_MAIN[@]}; else pos=$1; fi
+  D__QUEUE_SPLIT_POINTS+=($pos)
+}
 
-  # Check if argument is not numeric or if it is out of bounds
-  if ! [[ $position =~ ^[0-9]+$ ]] || [ $position -gt ${#D_QUEUE_MAIN[@]} ]
-  then
-
-    # Make position the current length of the main queue
-    position=${#D_QUEUE_MAIN[@]}
-
-  fi
-
-  # Add separation point
-  D__QUEUE_SPLIT_POINTS+=( $position )
-
-  # Return success
+#>  d___reconcile_item_check_codes
+#
+## INTERNAL USE ONLY
+#
+## Tool that analyzes multiple check codes and combines them into one.
+#
+## Local variables that need to be set in the calling context:
+#>  $d__qas     - Array of all-statuses.
+#>  $d__qss     - Array of some-statuses.
+#
+## Returns:
+#.  The resulting combined code.
+#
+d___reconcile_item_check_codes()
+{
+  local i c=0; for ((i=0;i<10;++i)); do ${d__qas[$i]} && return $i; done
+  for i in 0 1 2 4 5 6 7 8 9; do ${d__qss[$i]} && ((++c)); done
+  case $c in
+    1)  for i in 0 1 2 4 5 6 7 8 9; do ${d__qss[$i]} && return $i; done;;
+    2)  if ${d__qss[1]}; then
+          ${d__qss[2]} && return 4
+          ${d__qss[4]} && return 4
+          ${d__qss[5]} && return 5
+          ${d__qss[7]} && return 1
+          ${d__qss[8]} && return 4
+        elif ${d__qss[2]}; then
+          ${d__qss[4]} && return 4
+          ${d__qss[7]} && return 8
+          ${d__qss[8]} && return 8
+          ${d__qss[9]} && return 9
+        elif ${d__qss[4]}; then
+          ${d__qss[7]} && return 4
+          ${d__qss[8]} && return 4
+        elif ${d__qss[7]}; then
+          ${d__qss[8]} && return 8
+        fi;;
+    3)  if ${d__qss[2]} && ${d__qss[7]} && ${d__qss[8]}; then return 8; fi;;
+  esac
+  if ! ( ${d__qss[0]} || ${d__qss[5]} || ${d__qss[6]} || ${d__qss[9]} )
+  then return 4; fi
   return 0
+}
+
+#>  d___reconcile_item_insrmv_codes
+#
+## INTERNAL USE ONLY
+#
+## Tool that analyzes multiple install/remove codes and combines them into one.
+#
+## Local variables that need to be set in the calling context:
+#>  $d__qas     - Array of all-statuses.
+#>  $d__qss     - Array of some-statuses.
+#
+## Returns:
+#.  The resulting combined code.
+#
+d___reconcile_item_insrmv_codes()
+{
+  local i; for ((i=0;i<4;++i)); do ${d__qas[$i]} && return $i; done
+  ${d__qss[1]} && return 1 || return 3
 }

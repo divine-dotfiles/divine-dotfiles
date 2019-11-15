@@ -2,670 +2,347 @@
 #:title:        Divine Bash routine: plug
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revnumber:    15
-#:revdate:      2019.08.28
-#:revremark:    Silence calls to mv -n
+#:revdate:      2019.10.31
+#:revremark:    React to --obliterate in key framework mechanisms
 #:created_at:   2019.06.26
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
 #
-## This file is intended to be sourced from framework's main script
+## This file is intended to be sourced from framework's main script.
 #
 ## Replaces current Grail directory with one cloned from provided git repo or 
-#. one copied from provided directory path
+#. one copied from provided directory path.
 #
 
-#>  d__perform_plug_routine
+# Marker and dependencies
+readonly D__RTN_PLUG=loaded
+d__load util workflow
+d__load util github
+d__load util backup
+d__load util scan
+d__load procedure offer-gh
+d__load procedure check-gh
+
+#>  d__rtn_plug
 #
-## Performs plugging routine
+## Performs plugging routine.
 #
-## Returns:
-#.  0 - Routine performed, Grail dir replaced
-#.  1 - Otherwise
-#
-d__perform_plug_routine()
+d__rtn_plug()
 {
-  # Print empty line for visual separation
+  # Check if any tasks were found
+  if [ ${#D__REQ_ARGS[@]} -eq 0 ]; then
+    d__notify -lst 'Nothing to do' -- 'Replacement Grail not provided'
+    exit 0
+  fi
+
+  if $D__OPT_OBLITERATE && [ "$D__OPT_ANSWER" != false ]
+  then d__confirm_obliteration; fi
+
+  # Print a separating empty line, switch context
   printf >&2 '\n'
+  d__context -- notch
+  d__context -- push "Performing 'plug' routine"
 
   # Announce beginning
   if [ "$D__OPT_ANSWER" = false ]; then
-    dprint_plaque -pcw "$WHITE" "$D__CONST_PLAQUE_WIDTH" \
-      -- "'Plugging' Grail directory"
+    d__announce -s -- "'Plugging' Grail directory"
   else
-    dprint_plaque -pcw "$GREEN" "$D__CONST_PLAQUE_WIDTH" \
-      -- 'Plugging Grail directory'
+    d__announce -v -- 'Plugging Grail directory'
   fi
 
-  # Initialize global status variables
-  GIT_AVAILABLE=true
-  GITHUB_AVAILABLE=true
+  # Storage & status variables
+  local parg pplq pdst ptmp algd=false ppcs pdcs
 
-  # Unless just linking: check if git is available and offer to install it
-  if ! $D__OPT_PLUG_LINK; then
+  # Do the deed
+  d___plug_candidate
+  case $? in
+    0)  algd=true;;
+    1)  printf >&2 '%s %s\n' "$D__INTRO_PLG_S" "$pplq";;
+    2)  printf >&2 '%s %s\n' "$D__INTRO_PLG_1" "$pplq";;
+  esac
 
-    # Check if git is available
-    if ! git --version &>/dev/null; then
-
-      # Inform of the issue
-      dprint_debug 'Failed to detect git' \
-        -n 'Repository cloning will not be available'
-      GIT_AVAILABLE=false
-
-      # Check of curl/wget+tar are available (for downloading Github tarballs)
-      if ! curl --version &>/dev/null && ! wget --version &>/dev/null; then
-        dprint_debug 'Failed to detect neither curl nor wget' \
-          -n 'Github repositories will not be available'
-        GITHUB_AVAILABLE=false
-      elif ! tar --version &>/dev/null; then
-        dprint_debug 'Failed to detect tar' \
-          -n 'Github repositories will not be available'
-        GITHUB_AVAILABLE=false
-      fi
-
-    fi
-
-  fi
-
-  # Path to Grail replacement is first argument passed to the script
-  local grail_arg="${D__REQ_ARGS[0]}"
-
-  # Status variable
-  local all_good=true
-
-  if [ -n "$grail_arg" ]; then
-
-    # Print newline as visual separator
-    printf >&2 '\n'
-
-    # Announce start
-    dprint_ode "${D__ODE_NORMAL[@]}" -c "$YELLOW" -- \
-      '>>>' 'Plugging' ':' "$grail_arg"
-
-    # Process each argument sequentially until the first hit
-    if $D__OPT_PLUG_LINK; then
-      d__plug_local_dir "$grail_arg" \
-        || all_good=false
-    else
-      d__plug_github_repo "$grail_arg" \
-        || d__plug_local_repo "$grail_arg" \
-        || d__plug_local_dir "$grail_arg" \
-        || all_good=false
-    fi
-    
-    # Report and set status
-    if $all_good; then
-      dprint_ode "${D__ODE_NORMAL[@]}" -c "$GREEN" -- \
-        'vvv' 'Plugged' ':' "$grail_arg"
-    else
-      dprint_ode "${D__ODE_NORMAL[@]}" -c "$RED" -- \
-        'xxx' 'Failed to plug' ':' "$grail_arg"
-    fi
-
-  else
-
-    # Script's first arg is empty
-    dprint_plaque -pcw "$WHITE" "$D__CONST_PLAQUE_WIDTH" -- 'Nothing to do'
-    return 1
-
+  # If plugging succeeded, sync bundles and process asset manifests
+  if $algd; then
+    d__load procedure sync-bundles
+    d__load procedure assemble
+    d__load procedure process-all-assets
   fi
 
   # Announce routine completion
   printf >&2 '\n'
-  if [ "$D__OPT_ANSWER" = false ]; then
-    dprint_plaque -pcw "$WHITE" "$D__CONST_PLAQUE_WIDTH" \
-      -- "'Plugged' Grail directory"
-    return 1
-  elif $all_good; then
-    dprint_plaque -pcw "$GREEN" "$D__CONST_PLAQUE_WIDTH" \
-      -- 'Successfully plugged Grail directory'
-    return 0
+  if [ "$D__OPT_ANSWER" = false ]
+  then d__announce -s -- "'Plugged' Grail directory"; return 0
+  elif $algd; then
+    d__announce -v -- 'Successfully plugged Grail directory'; return 0
   else
-    dprint_plaque -pcw "$RED" "$D__CONST_PLAQUE_WIDTH" \
-      -- 'Failed to plug Grail directory'
-    return 1
+    d__announce -x -- 'Failed to plug Grail directory'; return 1
   fi
 }
 
-#>  d__plug_github_repo
-#
-## Attempts to interpret single argument as name of Github repository and pull 
-#. it in. Accepts only full 'user/repo' form.
-#
-## Returns:
-#.  0 - Successfully pulled in deployment repository
-#.  1 - Otherwise
-#
-d__plug_github_repo()
+d___plug_candidate()
 {
-  # In previously deteced that both git and tar are unavailable: skip
-  $GITHUB_AVAILABLE || return 1
+  # Print a separating empty line; compose task name
+  printf >&2 '\n'; pplq="Grail candidate '$BOLD$parg$NORMAL'"
 
-  # Extract argument
-  local repo_arg="$1"
+  # Early exit for dry runs
+  if [ "$D__OPT_ANSWER" = false ]; then return 1; fi
 
-  # Storage variables
-  local user_repo
+  # Print intro
+  printf >&2 '%s %s\n' "$D__INTRO_PLG_N" "$pplq"
 
-  # Accept one pattern: 'username/repo'
-  if [[ $repo_arg =~ ^[0-9A-Za-z_.-]+/[0-9A-Za-z_.-]+$ ]]; then
-    user_repo="$repo_arg"
-  else
-    # Other patterns are not checked against Github
-    dprint_debug "Not a valid Github repository handle: $repo_arg"
-    return 1
-  fi
-
-  # Announce start
-  dprint_debug 'Interpreting as Github repository'
-
-  # Construct temporary destination path
-  local temp_dest="$( mktemp -d )"
-
-  # Construct permanent destination
-  local perm_dest="$D__DIR_GRAIL"
-
-  # First, attempt to check existense of repository using git
-  if $GIT_AVAILABLE; then
-
-    if git ls-remote "https://github.com/${user_repo}.git" -q &>/dev/null; then
-
-      # Both git and remote repo are available
-
-      # Prompt user about the plug
-      dprompt --bare --answer "$D__OPT_ANSWER" --prompt 'Clone it?' -- \
-        "Detected ${BOLD}Github repository${NORMAL} at:" \
-        -i "https://github.com/${user_repo}" || return 1
-
-      # Make shallow clone of repository
-      git clone --depth=1 "https://github.com/${user_repo}.git" \
-        "$temp_dest" &>/dev/null \
-        || {
-          # Announce failure to clone
-          dprint_debug 'Failed to clone repository at:' \
-            -i "https://github.com/${user_repo}" \
-            -n 'to temporary directory at:' -i "$temp_dest"
-          # Try to clean up
-          rm -rf -- "$temp_dest"
-          # Return
-          return 1
-        }
-      
-    else
-
-      # Repo does not exist
-      dprint_debug 'Non-existent repository at:' \
-        -i "https://github.com/${user_repo}"
-      return 1
-    
-    fi
-
-  else
-
-    # Not cloning repository, download instead
-
-    # Attempt curl and Github API
-    if grep -q 200 < <( curl -I "https://api.github.com/repos/${user_repo}" \
-      2>/dev/null | head -1 ); then
-
-      # Both curl and remote repo are available
-
-      # Prompt user about the plug
-      dprompt --bare --answer "$D__OPT_ANSWER" --prompt 'Download it?' \
-        -- "Detected ${BOLD}Github repository${NORMAL} (tarball) at:" \
-        -i "https://github.com/${user_repo}" || return 1
-
-      # Download and untar in one fell swoop
-      curl -sL "https://api.github.com/repos/${user_repo}/tarball" \
-        | tar --strip-components=1 -C "$temp_dest" -xzf -
-      
-      # Check status
-      [ $? -eq 0 ] || {
-        # Announce failure to download
-        dprint_debug \
-          'Failed to download (curl) or extract tarball repository at:' \
-          -i "https://api.github.com/repos/${user_repo}/tarball" \
-          -n 'to temporary directory at:' -i "$temp_dest"
-        # Try to clean up
-        rm -rf -- "$temp_dest"
-        # Return
-        return 1
-      }
-    
-    # Attempt wget and Github API
-    elif grep -q 200 < <( wget -q --spider --server-response \
-      "https://api.github.com/repos/${user_repo}" 2>&1 | head -1 ); then
-
-      # Both wget and remote repo are available
-
-      # Prompt user about the plug
-      dprompt --bare --answer "$D__OPT_ANSWER" --prompt 'Download it?' \
-        -- "Detected ${BOLD}Github repository${NORMAL} (tarball) at:" \
-        -i "https://github.com/${user_repo}" || return 1
-
-      # Download and untar in one fell swoop
-      wget -qO - "https://api.github.com/repos/${user_repo}/tarball" \
-        | tar --strip-components=1 -C "$temp_dest" -xzf -
-      
-      # Check status
-      [ $? -eq 0 ] || {
-        # Announce failure to download
-        dprint_debug \
-          'Failed to download (wget) or extract tarball repository at:' \
-          -i "https://api.github.com/repos/${user_repo}/tarball" \
-          -n 'to temporary directory at:' -i "$temp_dest"
-        # Try to clean up
-        rm -rf -- "$temp_dest"
-        # Return
-        return 1
-      }
-      
-    else
-
-      # Repo does not exist
-      dprint_debug 'Non-existent repository at:' \
-        -i "https://github.com/${user_repo}"
-      return 1
-
-    fi
-  
-  fi
-
-  # Prompt user for possible clobbering, and clobber if required, run checks
-  d__run_pre_plug_checks "$perm_dest" "$temp_dest" \
-    "https://github.com/${user_repo}" \
-    || { rm -rf -- "$temp_dest"; return 1; }
-
-  # Finally, move cloned repository to intended location
-  mv -n -- "$temp_dest" "$perm_dest" &>/dev/null || {
-    # Announce failure to move
-    dprint_debug 'Failed to move deployments from temporary location at:' \
-      -i "$temp_dest" -n 'to intended location at:' -i "$perm_dest"
-    # Try to clean up
-    rm -rf -- "$temp_dest"
-    # Return
-    return 1
-  }
-
-  # Put bundles directory to order
-  if ! d__sync_dpl_repos; then
-
-    # Announce failure
-    dprint_failure 'Failed to match deployment repositories at:' \
-      -i "$D__DIR_BUNDLES" -n 'with newly plugged Grail directory'
-
-  fi
-
-  # Scan main directories for deployments
-  d__scan_for_dpl_files --fmwk-dir "$D__DIR_DPLS" "$D__DIR_BUNDLES"
-
-  # Validate deployments
-  if d__validate_detected_dpls --fmwk-dir; then
-
-    # Also, prepare any of the possible assets
-    d__process_all_asset_manifests_in_dpl_dirs
-
-  else
-
-    # Announce failure
-    dprint_failure 'Illegal state of deployment directories'
-
-  fi
-
-  # All done: announce and return
-  dprint_debug 'Successfully plugged Github-hosted Grail directory from:' \
-    -i "https://github.com/${user_repo}" \
-    -n 'to intended location at:' -i "$perm_dest"
-  return 0
-}
-
-#>  d__plug_local_repo
-#
-## Attempts to interpret single argument as path to local git repository and 
-#. pull it in. Accepts any resolvable path to directory containing git repo.
-#
-## Returns:
-#.  0 - Successfully pulled in deployment repository
-#.  1 - Otherwise
-#
-d__plug_local_repo()
-{
-  # If it has been detected that git is unavailable: skip
-  $GIT_AVAILABLE || return 1
-
-  # Extract argument
-  local repo_arg="$1"
-
-  # Check if argument is a directory
-  [ -d "$repo_arg" ] || return 1
-
-  # Announce start
-  dprint_debug 'Interpreting as local repository'
-
-  # Construct full path to directory
-  local repo_path="$( cd -- "$repo_arg" && pwd -P || exit $? )"
-
-  # Check if directory was accessible
-  if [ $? -ne 0 ]; then
-    dprint_debug 'Failed to access local repository at:' -i "$repo_path"
-    return 1
-  fi
-
-  # Construct temporary destination path
-  local temp_dest="$( mktemp -d )"
-
-  # Construct permanent destination
-  local perm_dest="$D__DIR_GRAIL"
-
-  # First, attempt to check existense of repository using git
-  if git ls-remote "$repo_path" -q &>/dev/null; then
-
-    # Both git and local repo are available
-
-    # Prompt user about the plug
-    dprompt --bare --answer "$D__OPT_ANSWER" --prompt 'Clone it?' -- \
-      "Detected ${BOLD}local git repository${NORMAL} at:" -i "$repo_path" \
-        || return 1
-
-    # Make shallow clone of repository
-    git clone --depth=1 "$repo_path" "$temp_dest" &>/dev/null \
-      || {
-        # Announce failure to clone
-        dprint_debug 'Failed to clone repository at:' -i "$repo_path" \
-          -n 'to temporary directory at:' -i "$temp_dest"
-        # Try to clean up
-        rm -rf -- "$temp_dest"
-        # Return
-        return 1
-      }
-    
-    # Prompt user for possible clobbering, and clobber if required, run checks
-    d__run_pre_plug_checks "$perm_dest" "$temp_dest" "$repo_path" \
-      || { rm -rf -- "$temp_dest"; return 1; }
-
-    # Finally, move cloned repository to intended location
-    mv -n -- "$temp_dest" "$perm_dest" &>/dev/null || {
-      # Announce failure to move
-      dprint_debug 'Failed to move deployments from temporary location at:' \
-        -i "$temp_dest" -n 'to intended location at:' -i "$perm_dest"
-      # Try to clean up
-      rm -rf -- "$temp_dest"
-      # Return
-      return 1
-    }
-
-    # Put bundles directory to order
-    if ! d__sync_dpl_repos; then
-
-      # Announce failure
-      dprint_failure 'Failed to match deployment repositories at:' \
-        -i "$D__DIR_BUNDLES" -n 'with newly plugged Grail directory'
-
-    fi
-
-    # Scan main directories for deployments
-    d__scan_for_dpl_files --fmwk-dir "$D__DIR_DPLS" "$D__DIR_BUNDLES"
-
-    # Validate deployments
-    if d__validate_detected_dpls --fmwk-dir; then
-
-      # Also, prepare any of the possible assets
-      d__process_all_asset_manifests_in_dpl_dirs
-
-    else
-
-      # Announce failure
-      dprint_failure 'Illegal state of deployment directories'
-      
-    fi
-
-    # All done: announce and return
-    dprint_debug \
-      'Successfully plugged local git-controlled Grail directory from:' \
-      -i "$repo_path" -n 'to intended location at:' -i "$perm_dest"
-    return 0
-    
-  else
-
-    # Directory is not a git repo
-    dprint_debug 'Not a git repository at:' -i "$repo_path"
-    return 1
-
-  fi
-}
-
-#>  d__plug_local_dir
-#
-## Attempts to interpret single argument as path to local Grail directory and 
-#. pull (or link) it in
-#
-## Returns:
-#.  0 - Successfully pulled in deployment directory
-#.  1 - Otherwise
-#
-d__plug_local_dir()
-{
-  # Extract argument
-  local dir_arg="$1"
-
-  # Check if argument is a directory
-  [ -d "$dir_arg" ] || return 1
-
-  # Announce start
-  dprint_debug 'Interpreting as local directory'
-
-  # Construct full path to directory
-  local dir_path="$( cd -- "$dir_arg" && pwd -P || exit $? )"
-
-  # Check if directory was accessible
-  if [ $? -ne 0 ]; then
-    dprint_debug 'Failed to access local directory at:' -i "$dir_path"
-    return 1
-  fi
-
-  # Construct permanent destination
-  local perm_dest="$D__DIR_GRAIL"
-
-  # Prompt user about the plug
-  local prompt; $D__OPT_PLUG_LINK && prompt='Link it?' || prompt='Copy it?'
-  dprompt --bare --answer "$D__OPT_ANSWER" --prompt "$prompt" -- \
-    "Detected ${BOLD}local directory${NORMAL} at:" -i "$dir_path" \
-      || return 1
-
-  # Prompt user for possible clobbering, and clobber if required, run checks
-  d__run_pre_plug_checks "$perm_dest" "$dir_path" "$dir_path" \
-    || return 1
-
-  # Finally, link/copy directory to intended location
+  # Try methods until first success
   if $D__OPT_PLUG_LINK; then
-    dln -- "$dir_path" "$perm_dest" || {
-      # Announce failure to link
-      dprint_debug 'Failed to link local Grail directory at:' \
-        -i "$dir_path" -n 'to intended location at:' -i "$perm_dest"
-      # Return
-      return 1
-    }
+    d___plug_local_dir; case $? in 0) return 0;; 1) :;; 2) return 2;; esac
   else
-    cp -Rn -- "$dir_path" "$perm_dest" || {
-      # Announce failure to copy
-      dprint_debug 'Failed to copy local Grail directory at:' \
-        -i "$dir_path" -n 'to intended location at:' -i "$perm_dest"
-      # Return
-      return 1
-    }
+    d___plug_github_repo; case $? in 0) return 0;; 1) :;; 2) return 2;; esac
+    d___plug_local_repo; case $? in 0) return 0;; 1) :;; 2) return 2;; esac
+    d___plug_local_dir; case $? in 0) return 0;; 1) :;; 2) return 2;; esac
+  fi
+  return 1
+}
+
+d___plug_github_repo()
+{
+  # Cut-off check for Github methods
+  if [ -z "$D__GH_METHOD" ]; then
+    d__notify -ls -- 'Unable to interact with Github'
+    return 1
   fi
 
-  # Put bundles directory to order
-  if ! d__sync_dpl_repos; then
-
-    # Announce failure
-    dprint_failure 'Failed to match deployment repositories at:' \
-      -i "$D__DIR_BUNDLES" -n 'with newly plugged Grail directory'
-
-  fi
-
-  # Scan main directories for deployments
-  d__scan_for_dpl_files --fmwk-dir "$D__DIR_DPLS" "$D__DIR_BUNDLES"
-
-  # Validate deployments
-  if d__validate_detected_dpls --fmwk-dir; then
-
-    # Also, prepare any of the possible assets
-    d__process_all_asset_manifests_in_dpl_dirs
-
+  # Accept one of two patterns: 'builtin_repo_name' and 'username/repo'
+  if [[ $parg =~ ^[0-9A-Za-z_.-]+$ ]]
+  then parg="no-simpler/divine-bundle-$parg"
+  elif [[ $parg =~ ^[0-9A-Za-z_.-]+/[0-9A-Za-z_.-]+$ ]]; then :
   else
-
-    # Announce failure
-    dprint_failure 'Illegal state of deployment directories'
-    
+    d__notify -ls -- 'Not a valid Github repository handle'
+    return 1
   fi
 
-  # Also, prepare any of the possible assets
-  d__process_all_asset_manifests_in_dpl_dirs
+  # Ensure that the remote repository exists
+  if ! d___gh_repo_exists "$parg"; then
+    d__notify -ls -- 'Not an existing Github repository'
+    return 1
+  fi
 
-  # All done: announce and return
-  dprint_debug 'Successfully plugged local Grail directory at:' \
-    -i "$dir_path" -n 'to intended location at:' -i "$perm_dest"
+  # Announce; compose destination path; print location
+  pdst="$D__DIR_GRAIL"
+  d__notify -l! -- 'Interpreting as Github repository' \
+    -i- -t- 'Repo URL' "https://github.com/$parg"
+
+  # Prompt for user's approval
+  printf >&2 '%s ' "$D__INTRO_CNF_N"
+  local ghm='Clone'; [ $D__GH_METHOD = g ] || ghm='Download'
+  if ! d__prompt -p "$ghm and plug?"; then return 1; fi
+
+  # Pull the repository into the temporary directory
+  ptmp="$(mktemp -d)"; case $D__GH_METHOD in
+    g)  d___clone_gh_repo "$parg" "$ptmp";;
+    c)  d___curl_gh_repo "$parg" "$ptmp";;
+    w)  d___wget_gh_repo "$parg" "$ptmp";;
+  esac
+  if (($?)); then
+    printf >&2 '%s %s\n' "$D__INTRO_PLG_1" "$pplq"
+    rm -rf -- "$ptmp"; return 2
+  fi
+
+  # Calculate number of deployments within the bundle
+  D__EXT_DF_COUNT=0 D__EXT_DPL_COUNT=0
+  d__scan_for_divinefiles --external "$ptmp" &>/dev/null
+  d__scan_for_dpl_files --external "$ptmp" &>/dev/null
+
+  # Compose success string
+  ppcs="$D__EXT_DF_COUNT Divinefile"; [ $D__EXT_DF_COUNT -eq 1 ] || ppcs+='s'
+  pdcs="$D__EXT_DPL_COUNT deployment"; [ $D__EXT_DPL_COUNT -eq 1 ] || pdcs+='s'
+  d__notify -l! -- "Grail candidate contains $ppcs and $pdcs"
+
+  # Back up or erase previous Grail directory
+  if $D__OPT_OBLITERATE; then
+    if ! rm -rf -- "$pdst" &>/dev/null; then
+      d__notify -lx -- "Failed to erase old Grail directory"
+      printf >&2 '%s %s\n' "$D__INTRO_PLG_1" "$pplq"
+      rm -rf -- "$ptmp"; return 2
+    fi
+  else
+    if ! d__push_backup -- "$pdst" "$pdst.bak"; then
+      d__notify -lx -- "Failed to back up old Grail directory"
+      printf >&2 '%s %s\n' "$D__INTRO_PLG_1" "$pplq"
+      rm -rf -- "$ptmp"; return 2
+    fi
+  fi
+
+  # Move the retrieved Grail candidate into place
+  if ! mv -n -- "$ptmp" "$pdst"; then
+    d__notify -lx -- "Failed to move Grail candidate into place"
+    printf >&2 '%s %s\n' "$D__INTRO_PLG_1" "$pplq"
+    rm -rf -- "$ptmp"; return 2
+  fi
+
+  # Report success
+  printf >&2 '%s %s\n' "$D__INTRO_PLG_0" "$pplq"
   return 0
 }
 
-#>  d__run_pre_plug_checks CLOBBER_PATH EXT_PATH SRC_ADDR
+d___plug_local_repo()
+{
+  # Cut-off check for Github methods
+  if ! [ "$D__GH_METHOD" = g ]; then
+    d__notify -ls -- 'Unable to interact with Git repositories'
+    return 1
+  fi
+
+  # Ensure that the repository exists
+  if ! git ls-remote "$parg" -q &>/dev/null; then
+    d__notify -ls -- 'Not an existing Git repository'
+    return 1
+  fi
+
+  # Announce; compose paths; print location
+  parg="$( cd -- "$parg" &>/dev/null && pwd -P || exit $? )"
+  if (($?)); then
+    d__notify -ls -- 'Not an accessible directory'
+    return 1
+  fi
+  pdst="$D__DIR_GRAIL"
+  d__notify -l! -- 'Interpreting as Git repository' \
+    -i- -t- 'Repo path' "$parg"
+
+  # Prompt for user's approval
+  printf >&2 '%s ' "$D__INTRO_CNF_N"
+  if ! d__prompt -p 'Clone and plug?'; then return 1; fi
+
+  # Pull the repository into the temporary directory
+  ptmp="$(mktemp -d)"
+  if ! d___clone_git_repo "$parg" "$ptmp"; then
+    printf >&2 '%s %s\n' "$D__INTRO_PLG_1" "$pplq"
+    rm -rf -- "$ptmp"; return 2
+  fi
+
+  # Calculate number of deployments within the bundle
+  D__EXT_DF_COUNT=0 D__EXT_DPL_COUNT=0
+  d__scan_for_divinefiles --external "$ptmp" &>/dev/null
+  d__scan_for_dpl_files --external "$ptmp" &>/dev/null
+
+  # Compose success string
+  ppcs="$D__EXT_DF_COUNT Divinefile"; [ $D__EXT_DF_COUNT -eq 1 ] || ppcs+='s'
+  pdcs="$D__EXT_DPL_COUNT deployment"; [ $D__EXT_DPL_COUNT -eq 1 ] || pdcs+='s'
+  d__notify -l! -- "Grail candidate contains $ppcs and $pdcs"
+
+  # Back up or erase previous Grail directory
+  if $D__OPT_OBLITERATE; then
+    if ! rm -rf -- "$pdst" &>/dev/null; then
+      d__notify -lx -- "Failed to erase old Grail directory"
+      printf >&2 '%s %s\n' "$D__INTRO_PLG_1" "$pplq"
+      rm -rf -- "$ptmp"; return 2
+    fi
+  else
+    if ! d__push_backup -- "$pdst" "$pdst.bak"; then
+      d__notify -lx -- "Failed to back up old Grail directory"
+      printf >&2 '%s %s\n' "$D__INTRO_PLG_1" "$pplq"
+      rm -rf -- "$ptmp"; return 2
+    fi
+  fi
+
+  # Move the retrieved Grail candidate into place
+  if ! mv -n -- "$ptmp" "$pdst"; then
+    d__notify -lx -- "Failed to move Grail candidate into place"
+    printf >&2 '%s %s\n' "$D__INTRO_PLG_1" "$pplq"
+    rm -rf -- "$ptmp"; return 2
+  fi
+
+  # Report success
+  printf >&2 '%s %s\n' "$D__INTRO_PLG_0" "$pplq"
+  return 0
+}
+
+d___plug_local_dir()
+{
+  # Ensure that the directory exists
+  if ! [ -d "$parg" ]; then
+    d__notify -ls -- 'Not a local directory'
+    return 1
+  fi
+
+  # Announce; compose paths; print location
+  parg="$( cd -- "$parg" &>/dev/null && pwd -P || exit $? )"
+  if (($?)); then
+    d__notify -ls -- 'Not an accessible directory'
+    return 1
+  fi
+  pdst="$D__DIR_GRAIL"
+  d__notify -l! -- 'Interpreting as local directory' \
+    -i- -t- 'Dir path' "$parg"
+
+  # Prompt for user's approval
+  printf >&2 '%s ' "$D__INTRO_CNF_N"
+  local ldm='Plug a copy?'; $D__OPT_PLUG_LINK && ldm='Plug via symlink?'
+  if ! d__prompt -p "$ldm"; then return 1; fi
+
+  # Calculate number of deployments within the bundle
+  D__EXT_DF_COUNT=0 D__EXT_DPL_COUNT=0
+  d__scan_for_divinefiles --external "$parg" &>/dev/null
+  d__scan_for_dpl_files --external "$parg" &>/dev/null
+
+  # Compose success string
+  ppcs="$D__EXT_DF_COUNT Divinefile"; [ $D__EXT_DF_COUNT -eq 1 ] || ppcs+='s'
+  pdcs="$D__EXT_DPL_COUNT deployment"; [ $D__EXT_DPL_COUNT -eq 1 ] || pdcs+='s'
+  d__notify -l! -- "Grail candidate contains $ppcs and $pdcs"
+
+  # Back up or erase previous Grail directory
+  if $D__OPT_OBLITERATE; then
+    if ! rm -rf -- "$pdst" &>/dev/null; then
+      d__notify -lx -- "Failed to erase old Grail directory"
+      printf >&2 '%s %s\n' "$D__INTRO_PLG_1" "$pplq"
+      rm -rf -- "$ptmp"; return 2
+    fi
+  else
+    if ! d__push_backup -- "$pdst" "$pdst.bak"; then
+      d__notify -lx -- "Failed to back up old Grail directory"
+      printf >&2 '%s %s\n' "$D__INTRO_PLG_1" "$pplq"
+      rm -rf -- "$ptmp"; return 2
+    fi
+  fi
+
+  # Plug with appropriate method
+  if $D__OPT_PLUG_LINK; then
+    if ! ln -s -- "$parg" "$pdst"; then
+      d__notify -lx -- "Failed to symlink Grail candidate into place"
+      printf >&2 '%s %s\n' "$D__INTRO_PLG_1" "$pplq"
+      return 2
+  else
+    if ! cp -Rn -- "$parg" "$pdst"; then
+      d__notify -lx -- "Failed to copy Grail candidate into place"
+      printf >&2 '%s %s\n' "$D__INTRO_PLG_1" "$pplq"
+      return 2
+    fi
+  fi
+
+  # Report success
+  printf >&2 '%s %s\n' "$D__INTRO_PLG_0" "$pplq"
+  return 0
+}
+
+#>  d___clone_git_repo REPO_SRC REPO_PATH
 #
-## Checks whether EXT_PATH contains any deployments, and whether those 
-#. deployments are valid and merge-able
+## INTERNAL USE ONLY
 #
-## Prompts user whether they indeed want to clobber (pre-erase) path that 
-#. already exists. Given positive answer, proceeds with removal, and returns 
-#. non-zero on failure.
+## Makes a shallow clone using Git of the Git repository at REPO_SRC into the 
+#. empty/non-existent directory REPO_PATH.
 #
 ## Returns:
-#.  0 - Checks succeeded, user agreed
-#.  1 - Otherwise
+#.  0 - Successfully cloned.
+#.  1 - Otherwise.
 #
-d__run_pre_plug_checks()
+d___clone_git_repo()
 {
-  # Extract clobber path, external path, and source address
-  local clobber_path="$1"; shift
-  local ext_path="$1"; shift
-  local src_addr="$1"; shift
-
-  # Survey deployments in external dir
-  d__scan_for_dpl_files --ext-dir "$ext_path/dpls"
-
-  # Check return code
-  case $? in
-    0)  # Some deployments collected: all good
-        :;;
-    1)  # Zero deployments detected in ext dir: this is normal, announce only
-        dprint_debug \
-          'No deployments detected in Grail directory obtained from:' \
-          -i "$src_addr"
-        ;;
-    2)  # At least one deployment file has reserved delimiter in its path
-        local list_of_illegal_dpls=() illegal_dpl
-        for illegal_dpl in "${D__LIST_OF_ILLEGAL_DPL_PATHS[@]}"; do
-          list_of_illegal_dpls+=( -i "$illegal_dpl" )
-        done
-        dprint_debug \
-          "Illegal deployments detected at:" "${list_of_illegal_dpls[@]}" \
-          -n "String '$D__CONST_DELIMITER' is reserved internal path delimiter"
-        return 1
-        ;;
-    *)  # Unsopported code
-        :;;
-  esac
-  
-  # Check if external Grail directory contains valid deployments
-  if ! d__validate_detected_dpls --ext-dir "$ext_path/"; then
-
-    # Prompt user
-    if ! dprompt --bare --prompt 'Proceed?' --answer "$D__OPT_ANSWER" -- \
-      'Grail directory obtained from:' -i "$src_addr" \
-      -n 'contains invalid deployments (reserved or duplicate names)'
-    then
-      dprint_debug 'Refused to plug Grail directory with invalid deployments'
-      return 1
-    fi
-
-  fi
-
-  # Check if clobber path exists
-  if [ -e "$clobber_path" ]; then
-
-    # Detect type of existing entity
-    local clobber_type
-    [ -d "$clobber_path" ] && clobber_type='directory' || clobber_type='file'
-    [ -L "$clobber_path" ] && clobber_type="symlinked $clobber_type"
-
-    # Compose prompt description
-    local prompt_desc=()
-
-    # Warning about clobbering
-    prompt_desc+=( "A $clobber_type already exists at:" -i "$clobber_path" )
-
-    # Further warning for directories
-    if [ -d "$clobber_path" ]; then
-
-      # Warn about directories being erased, not merged
-      prompt_desc+=( -n "${BOLD}${YELLOW}${REVERSE} Warning! ${NORMAL}" )
-      prompt_desc+=( \
-        'Directories are not merged. They are erased completely.' \
-      )
-
-      # Warn about reprecussions for user data
-      if [ -L "$clobber_path" ]; then
-        prompt_desc+=( \
-          -n "${BOLD}Current Grail directory will be unlinked!${NORMAL}" \
-        )
-      else
-        prompt_desc+=( \
-          -n "${BOLD}Current Grail directory will be erased!${NORMAL}" \
-        )
-      fi
-
-    fi
-
-    if dprompt --bare --prompt 'Pre-erase?' --answer "$answer" -- \
-      "${prompt_desc[@]}"; then
-
-      # Attempt to remove pre-existing file/dir
-      rm -rf -- "$clobber_path" || {
-        dprint_debug "Failed to erase existing $clobber_type at:" \
-          -i "$clobber_path"
-        return 1
-      }
-
-      # Pre-erased successfully
-
-    else
-
-      # Refused to erase
-      dprint_debug "Refused to erase existing $clobber_type at:" \
-        -i "$clobber_path"
-      return 1
-    
-    fi
-
-  else
-
-    # Path does not exist
-
-    # Make sure parent path exists and is a directory though
-    local parent_path="$( dirname -- "$clobber_path" )"
-    if [ ! -d "$parent_path" ]; then
-      mkdir -p -- "$parent_path" || {
-        dprint_debug 'Failed to create destination directory at:' \
-          -i "$parent_path"
-        return 1
-      }
-    fi
-
-    # All good
-  
-  fi
-
-  # Finally, if made it here, return success
+  d__context -- notch
+  d__context -- push "Cloning Git repository: $1"
+  d__context -- push "Cloning into: $2"
+  d__cmd --qq-- git clone --depth=1 --REPO_SRC-- "$1" \
+    --REPO_PATH-- "$2" --else-- 'Failed to clone' || return 1
+  d__context -- pop
+  d__context -t 'Done' -- pop 'Successfully cloned Git repository'
+  d__context -- lop
   return 0
 }
 
-d__perform_plug_routine
+d__rtn_plug

@@ -14,9 +14,9 @@ D_DPL_WARNING=
 ## Link-queue is a queue ('queue.dpl.sh') with some actions pre-implemented.
 #
 ## Variables to fill:
-#.  $D_DPL_ASSET_PATHS    - This array must contain paths to every asset that 
+#.  $D_QUEUE_ASSETS    - This array must contain paths to every asset that 
 #.                          is to be 'plugged in' using symlinks.
-#.  $D_DPL_TARGET_PATHS   - This array must contain corresponding 'target' 
+#.  $D_QUEUE_TARGETS   - This array must contain corresponding 'target' 
 #.                          paths that are to be replaced by symlinks.
 #. Framework has ways of auto-populating these arrays: see notes on automation 
 #. below.
@@ -26,16 +26,16 @@ D_DPL_WARNING=
 #.      d_link_queue_pre_check   - Custom queue pre-processing
 #.      d_link_queue_post_check  - Custom queue post-processing
 #.  * Executed during installation:
-#.      d_link_queue_item_pre_install  - Pre-installation actions for each item
+#.      d_link_item_pre_install  - Pre-installation actions for each item
 #.  * Executed during removal:
-#.      d_link_queue_item_pre_remove   - Pre-removal actions for each item
+#.      d_link_item_pre_remove   - Pre-removal actions for each item
 #
 ## Variables to take advantage of (maintained by queue helpers):
-#.  $D__QUEUE_ITEM_NUM         - Index of current item in $D_QUEUE_MAIN
-#.  $D__QUEUE_ITEM_TITLE       - Content of $D_QUEUE_MAIN for current item
-#.  $D__QUEUE_ITEM_STASH_KEY   - Stash key for current item
-#.  $D__QUEUE_ITEM_STASH_VALUE - Stash value for current item
-#.  $D__QUEUE_ITEM_IS_FORCED   - This variable is set to 'true' if installation/
+#.  $D__ITEM_NUM         - Index of current item in $D_QUEUE_MAIN
+#.  $D__ITEM_NAME       - Content of $D_QUEUE_MAIN for current item
+#.  $D__ITEM_STASH_KEY   - Stash key for current item
+#.  $D__ITEM_STASH_VALUE - Stash value for current item
+#.  $D__ITEM_IS_FORCED   - This variable is set to 'true' if installation/
 #.                            removal is being forced, i.e., it would not have 
 #.                            been initiated if not for force option.
 #.  $asset_path             - Local variable that is populated with path to 
@@ -48,12 +48,12 @@ D_DPL_WARNING=
 
 ## Notes on automation:
 #
-## Framework provides a way to auto-populate asset paths ($D_DPL_ASSET_PATHS):
+## Framework provides a way to auto-populate asset paths ($D_QUEUE_ASSETS):
 #.  * Asset manifest (see 'dpl-filename.dpl.mnf' template for reference)
 #
-## Target paths ($D_DPL_TARGET_PATHS) can be populated manually. OS-specific 
+## Target paths ($D_QUEUE_TARGETS) can be populated manually. OS-specific 
 #. overrides for this array are given by suffixing system handle in uppercase 
-#. to variable name, e.g., $D_DPL_TARGET_PATHS_BSD. Browse 'lib/adapters' for 
+#. to variable name, e.g., $D_QUEUE_TARGETS_BSD. Browse 'lib/adapters' for 
 #. supported system handles.
 #
 ## Perhaps a more convenient way of generating target paths is available when 
@@ -62,8 +62,8 @@ D_DPL_WARNING=
 #. providing path to target parent directory is enough for framework to figure 
 #. out the rest.
 #
-## Target directory is provided in $D_DPL_TARGET_DIR variable. It is overridden 
-#. for particular OS in the same manner as above, e.g., $D_DPL_TARGET_DIR_WSL.
+## Target directory is provided in $D_QUEUE_TARGET_DIR variable. It is overridden 
+#. for particular OS in the same manner as above, e.g., $D_QUEUE_TARGET_DIR_WSL.
 #
 
 ## Framework provides three primary helpers. If queue is the only part of the 
@@ -104,7 +104,7 @@ d_link_queue_post_check()
   :
 }
 
-#>  d_link_queue_item_pre_install
+#>  d_link_item_pre_install
 #
 ## Performs custom actions before current item is installed
 #
@@ -114,12 +114,12 @@ d_link_queue_post_check()
 #.  0 - Ready for installation
 #.  1 - Otherwise: mark this item as invalid
 #
-d_link_queue_item_pre_install()
+d_link_item_pre_install()
 {
   :
 }
 
-#>  d_link_queue_item_pre_remove
+#>  d_link_item_pre_remove
 #
 ## Performs custom actions before current item is removed
 #
@@ -129,7 +129,7 @@ d_link_queue_item_pre_install()
 #.  0 - Ready for removal
 #.  1 - Otherwise: mark this item as invalid
 #
-d_link_queue_item_pre_remove()
+d_link_item_pre_remove()
 {
   :
 }
