@@ -2,7 +2,7 @@
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
 :revdate: 2019.11.15
-:revremark: Tweak the joy ride improvements in readme
+:revremark: Tweak wording on backups in readme
 :doctype: article
 // Visual
 :toc: macro
@@ -177,9 +177,9 @@ The so-called *urgent prompts* — saved for potentially messy situations — ig
 All framework components avoid deleting or clobbering any data that is not proven as recoverable.
 Instead, whenever files need to be replaced or removed, they are pushed to a backup location.
 
-For the deployment-specific overwrites, the backups are sent into the <<fmwk-state,state directory>>.
+The deployment-specific backups are sent into the <<fmwk-state,state directory>>.
 Other backups are created in place, by appending the `.bak` suffix.
-Whenever multiple backups stack up, an incrementing counter is added, e.g., `_NAME_.bak-17`.
+Whenever multiple backups stack up, an incrementing counter is added, e.g., `_<name>_.bak-17`.
 
 The <<opt-obliterate,`--obliterate`>> option is available to suppress this behavior.
 
