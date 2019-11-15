@@ -2,7 +2,7 @@
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
 :revdate: 2019.11.15
-:revremark: Improve joy ride wording in readme
+:revremark: Tweak the joy ride improvements in readme
 :doctype: article
 // Visual
 :toc: macro
@@ -567,7 +567,7 @@ As established before, _Divine.dotfiles_ is intended as an <<fmwk-interactivity,
 [[fmwk-joy-ride]]
 === Joy ride
 
-The following single shell command:
+The following single shell command provides the <<fmwk-joy-ride-sum,introductory experience>> of the framework and deployments:
 
 * <<fmwk-install,installs>> the framework;
 * <<rtn-attach,attaches>> the https://github.com/no-simpler/divine-bundle-essentials[`*essentials*`] bundle of Divine deployments (distributed separately);
@@ -575,8 +575,7 @@ The following single shell command:
 
 All three commands *skip* the trivial <<fmwk-interactivity,prompts>> (e.g., 'Are you sure?').
 
-The *result* of the installation is summarized in the <<fmwk-joy-ride-sum,next section>>.
-The *undo* command is also <<fmwk-joy-ride-undo,provided>>.
+The *undo* command is provided in the <<fmwk-joy-ride-undo,following section>>.
 
 [source,bash]
 ----
@@ -678,11 +677,12 @@ The container for the personal executables (this directory is maintained on the 
 
 The following single shell command methodically undoes the <<fmwk-joy-ride,joy ride>> installation:
 
-* <<rtn-remove,removes>> (uninstalls) the attached deployments.
+* <<rtn-remove,removes>> (uninstalls) the attached deployments;
 * <<rtn-detach,detaches>> the https://github.com/no-simpler/divine-bundle-essentials[`*essentials*`] bundle;
-* <<fmwk-uninstall,uninstalls>> the framework;
+* <<fmwk-uninstall,uninstalls>> the framework.
 
 All three commands *skip* the trivial <<fmwk-interactivity,prompts>> (e.g., 'Are you sure?').
+
 The original state of the system (before the installation) is <<fmwk-reversibility,restored>>.
 However, <<opt-obliterate,no copies>> of the framework's assets are kept.
 
