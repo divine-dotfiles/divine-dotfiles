@@ -2,8 +2,8 @@
 #:title:        Divine Bash utils: manifests
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.31
-#:revremark:    Separate OS names with whitespace in manifests, instead of vbar
+#:revdate:      2019.11.16
+#:revremark:    Output effective manifest content on -vvvv
 #:created_at:   2019.05.30
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -287,6 +287,31 @@ d__process_manifest()
   D__MANIFEST_ENDSPLIT="$splt"
 
   $D__RESTORE_CASE_SENSITIVITY
+
+  # In a very verbose mode, print the parsed manifest
+  if [ $D__OPT_VERBOSITY -ge 4 ]; then
+
+    # Compile debug output in an array
+    local out_lna=( "Completed processing manifest at: $mnfp" \
+      -n- "Effective content:" )
+
+    # Iterate over manifest lines
+    for ((ii=0;ii<${#D__MANIFEST_LINES[@]};++ii)); do
+      if [ "${D__MANIFEST_SPLITS[$ii]}" = true ]
+      then out_lna+=( -i- "(queue: split)" ); fi
+      out_lna+=( -i- "(${D__MANIFEST_LINE_FLAGS[$ii]})" )
+      if [ -n "${D__MANIFEST_LINE_PRFXS[$ii]}" ]
+      then out_lna+=( "(prefix: ${D__MANIFEST_LINE_PRFXS[$ii]})" ); fi
+      if [ -n "${D__MANIFEST_LINE_PRTYS[$ii]}" ]
+      then out_lna+=( "(priority: ${D__MANIFEST_LINE_PRTYS[$ii]})" ); fi
+    done
+    if [ "$D__MANIFEST_ENDSPLIT" = true ]
+    then out_lna+=( -i- "(queue: split)" ); fi
+
+    # Print the effective content
+    d__notify -- "${out_lna[@]}"
+
+  fi
 
   d__context -- lop; return 0
 }
