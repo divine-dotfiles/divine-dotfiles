@@ -2,8 +2,8 @@
 #:title:        Divine Bash deployment helpers: link-queue
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.29
-#:revremark:    Further improve wording of injection delimiters
+#:revdate:      2019.11.18
+#:revremark:    Inject and eject the same configuration of newline characters
 #:created_at:   2019.10.28
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -61,8 +61,8 @@ d__inject_check()
     if [[ $lbf = "$njcmt>>>>>>>>>>BEGIN BLOCK: DEPLOYMENT '$D_DPL_NAME'" ]]
     then
       while IFS= read -r lbf || [ -n "$lbf" ]; do case $lbf in
-        "${njcmt}CREATED AUTOMATICALLY; DO NOT MODIFY THIS BLOCK") continue;;
-        "${njcmt}<<<<<<<<<<<<END BLOCK: DEPLOYMENT '$D_DPL_NAME'") break;;
+        "$njcmt CREATED AUTOMATICALLY; DO NOT MODIFY THIS BLOCK") continue;;
+        "$njcmt<<<<<<<<<<<<END BLOCK: DEPLOYMENT '$D_DPL_NAME'") break;;
         *) printf '%s\n' "$lbf";;
       esac; done; njexs=true
     fi
@@ -219,31 +219,33 @@ d__inject_install()
   fi
 
   # Create proxy; copy existing file, sans pre-existing injection; push backup
+  unset ltbf
   if $njexs; then njtmp="$(mktemp)"
     while IFS= read -r lbf || [ -n "$lbf" ]; do
       if [[ $lbf = "$njcmt>>>>>>>>>>BEGIN BLOCK: DEPLOYMENT '$D_DPL_NAME'" ]]
       then
-        while IFS= read -r lbf || [ -n "$lbf" ]; do case $lbf in
-          "${njcmt}<<<<<<<<<<<<END BLOCK: DEPLOYMENT '$D_DPL_NAME'")
-            IFS= read -r lbf; read -r ltbf <<<"$lbf"
-            if [ -n "$ltbf" ]; then printf '%s\n' "$lbf"; fi
-            break;;
-        esac; done; continue
+        while IFS= read -r lbf || [ -n "$lbf" ]; do
+          if [[ $lbf = \
+            "$njcmt<<<<<<<<<<<<END BLOCK: DEPLOYMENT '$D_DPL_NAME'" ]]
+          then break; fi
+        done
+      else
+        [ -z ${ltbf+isset} ] || printf '%s\n' "$ltbf"; ltbf="$lbf"
       fi
-      printf '%s\n' "$lbf"
     done <"$njtp" >$njtmp
+    [ -z ${ltbf+isset} ] || printf >>$njtmp '%s' "$ltbf"
     if ! d__cmd d__push_backup -- --TARGET_PATH-- "$njtp" \
       --else-- 'Refusing to inject'
     then rm -f -- $njtmp; return 2; fi
   else njtmp="$njtp"; fi
 
   # Append new block at the end
-  printf >>$njtmp '%s\n%s\n' \
+  printf >>$njtmp '\n%s\n%s\n' \
     "$njcmt>>>>>>>>>>BEGIN BLOCK: DEPLOYMENT '$D_DPL_NAME'" \
-    "${njcmt}CREATED AUTOMATICALLY; DO NOT MODIFY THIS BLOCK"
+    "$njcmt CREATED AUTOMATICALLY; DO NOT MODIFY THIS BLOCK"
   cat "$njsp" >>$njtmp
-  printf >>$njtmp '%s\n\n' \
-    "${njcmt}<<<<<<<<<<<<END BLOCK: DEPLOYMENT '$D_DPL_NAME'"
+  printf >>$njtmp '%s' \
+    "$njcmt<<<<<<<<<<<<END BLOCK: DEPLOYMENT '$D_DPL_NAME'"
 
   # Move proxy into place
   if $njexs && ! d__cmd mv -n -- --TEMP_PATH-- $njtmp --TARGET_PATH-- "$njtp" \
@@ -357,19 +359,21 @@ d__inject_remove()
   fi
 
   # Create proxy; copy existing file, sans pre-existing injection; move
+  unset ltbf
   if $njexs; then njtmp="$(mktemp)"
     while IFS= read -r lbf || [ -n "$lbf" ]; do
       if [[ $lbf = "$njcmt>>>>>>>>>>BEGIN BLOCK: DEPLOYMENT '$D_DPL_NAME'" ]]
       then
-        while IFS= read -r lbf || [ -n "$lbf" ]; do case $lbf in
-          "${njcmt}<<<<<<<<<<<<END BLOCK: DEPLOYMENT '$D_DPL_NAME'")
-            IFS= read -r lbf; read -r ltbf <<<"$lbf"
-            if [ -n "$ltbf" ]; then printf '%s\n' "$lbf"; fi
-            break;;
-        esac; done; continue
+        while IFS= read -r lbf || [ -n "$lbf" ]; do
+          if [[ $lbf = \
+            "$njcmt<<<<<<<<<<<<END BLOCK: DEPLOYMENT '$D_DPL_NAME'" ]]
+          then break; fi
+        done
+      else
+        [ -z ${ltbf+isset} ] || printf '%s\n' "$ltbf"; ltbf="$lbf"
       fi
-      printf '%s\n' "$lbf"
     done <"$njtp" >$njtmp
+    [ -z ${ltbf+isset} ] || printf >>$njtmp '%s' "$ltbf"
     if ! d__cmd mv -f -- --TEMP_PATH-- $njtmp --TARGET_PATH-- "$njtp" \
       --else-- 'Failed to remove injection'
     then rm -f -- $njtmp; return 2; fi
