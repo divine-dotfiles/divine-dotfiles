@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: install
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.08
-#:revremark:    Update readme for D.d v2, pt. 7
+#:revdate:      2019.11.18
+#:revremark:    Exit sub-shell instead of continuing from within
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -392,7 +392,7 @@ d___install_dpls()
         d__notify -lx -- 'Failed to process deployment assets'
         printf >&2 '%s %s\n' "$D__INTRO_INS_S" "$d__plq"
         d__notify -qqq -- 'Exiting sub-shell'
-        continue
+        exit
       fi
 
       # Print debug message
@@ -421,13 +421,13 @@ d___install_dpls()
                 "Deployment '$d__dpl_n' appears to be already installed"
             else
               printf >&2 '%s %s\n' "$D__INTRO_INS_A" "$d__plq"
-              d__notify -qqq -- 'Exiting sub-shell'; continue
+              d__notify -qqq -- 'Exiting sub-shell'; exit
             fi;;
         2)  # Fully not installed
             :;;
         3)  # Irrelevant or invalid
             printf >&2 '%s %s\n' "$D__INTRO_CHK_3" "$d__plq"
-            d__notify -qqq -- 'Exiting sub-shell'; continue;;
+            d__notify -qqq -- 'Exiting sub-shell'; exit;;
         4)  # Partly installed
             d__notify -l! -- \
               "Deployment '$d__dpl_n' appears to be partly installed"
@@ -440,7 +440,7 @@ d___install_dpls()
             else
               d__notify -l! -- 'Re-try with --force to overcome'
               printf >&2 '%s %s\n' "$D__INTRO_CHK_5" "$d__plq"
-              d__notify -qqq -- 'Exiting sub-shell'; continue
+              d__notify -qqq -- 'Exiting sub-shell'; exit
             fi;;
         6)  # Manually removed (tinkered with)
             d__notify -lx -- \
@@ -451,7 +451,7 @@ d___install_dpls()
             else
               d__notify -l! -- 'Re-try with --force to overcome'
               printf >&2 '%s %s\n' "$D__INTRO_INS_S" "$d__plq"
-              d__notify -qqq -- 'Exiting sub-shell'; continue
+              d__notify -qqq -- 'Exiting sub-shell'; exit
             fi;;
         7)  # Fully installed by user or OS
             d__msg=( "Deployment '$d__dpl_n' appears to be fully installed" \
@@ -461,7 +461,7 @@ d___install_dpls()
             else d__notify -q! -- "${d__msg[@]}"
               d__notify -q! -- 'Re-try with --force to overcome'
               printf >&2 '%s %s\n' "$D__INTRO_CHK_7" "$d__plq"
-              d__notify -qqq -- 'Exiting sub-shell'; continue
+              d__notify -qqq -- 'Exiting sub-shell'; exit
             fi;;
         8)  # Partly installed by user or OS
             d__notify -l! -- \
@@ -477,7 +477,7 @@ d___install_dpls()
             else
               d__notify -l! -- 'Re-try with --force to overcome'
               printf >&2 '%s %s\n' "$D__INTRO_CHK_9" "$d__plq"
-              d__notify -qqq -- 'Exiting sub-shell'; continue
+              d__notify -qqq -- 'Exiting sub-shell'; exit
             fi;;
         *)  # Truly unknown
             :;;
@@ -526,7 +526,7 @@ d___install_dpls()
         else printf >&2 '%s ' "$D__INTRO_CNF_N"; fi
         if ! d__prompt -b; then
           printf >&2 '%s %s\n' "$D__INTRO_INS_S" "$d__plq"
-          d__notify -qqq -- 'Exiting sub-shell'; continue
+          d__notify -qqq -- 'Exiting sub-shell'; exit
         fi
       fi
 
