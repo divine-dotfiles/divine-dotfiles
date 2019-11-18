@@ -1,2 +1,3 @@
 * [**`appearance`**] Dim the entire SHA remark in the version output.
-* [**`fix`**] Re-arrange newline injection in the `inject` helper.
+* [**`fix`**] Ensure an injection via the `inject` helpers starts at its own line.
+* [**`other`**] Inject and eject the same configuration of newline characters with the `inject` helpers.
