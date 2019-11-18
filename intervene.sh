@@ -2,8 +2,8 @@
 #:title:        Divine Bash script: intervene
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.31
-#:revremark:    Add more routine name synonyms, pt.2
+#:revdate:      2019.11.18
+#:revremark:    Fix --help and --version options
 #:created_at:   2018.03.25
 
 ## Launches the Divine intervention
@@ -115,8 +115,10 @@ d__parse_arguments()
     *)  [ -n "$arg" ] && args+=("$arg");;
   esac; done
 
-  # If there are request errors already, cement the routine
-  if ((${#erra[@]})); then readonly D__REQ_ROUTINE=usage; fi
+  ## If routine options are given, or if there are request errors already,
+  #. cement the routine
+  if [ -n "$rtn" ]; then readonly D__REQ_ROUTINE="$rtn"
+  elif ((${#erra[@]})); then readonly D__REQ_ROUTINE=usage; fi
 
   # Freeze some variables
   readonly D__REQ_BUNDLES

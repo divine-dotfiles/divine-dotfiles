@@ -2,8 +2,8 @@
 #:title:        Divine Bash utils: stash
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.29
-#:revremark:    Implement inject helper
+#:revdate:      2019.11.18
+#:revremark:    Fix breaking with read on first occurrence
 #:created_at:   2019.05.15
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -384,7 +384,9 @@ d___stash_list()
   local found=false left right
 
   # Iterate over grep results, break on first '=', print the right part
-  while IFS='=' read -r left right; do printf '%s\n' "$right"; found=true
+  while read -r left; do
+    IFS='=' read -r left right <<<"$left "
+    printf '%s\n' "${right::${#right}-1}"; found=true
   done < <( grep ^"$dkey"= -- "$stash_filepath" 2>/dev/null )
 
   # Return based on whether at least one result was there

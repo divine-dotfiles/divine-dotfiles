@@ -2,8 +2,8 @@
 #:title:        Divine Bash utils: assets
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.11
-#:revremark:    Rename queue arrays
+#:revdate:      2019.11.15
+#:revremark:    Diversify not-found output of asset processing
 #:created_at:   2019.10.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -137,7 +137,7 @@ d___process_asset()
   else
     # Asset not provided: if its not optional, mark failure
     if ! $flgo
-    then erra+=( -i- "- required asset not provided: '$p_ptn'" ); fi
+    then erra+=( -i- "- required concrete asset not provided: '$p_ptn'" ); fi
   fi
 
   # If pushing onto asset arrays but NOT limited to provided, push now
@@ -174,7 +174,7 @@ d___process_asset_r()
 
   # Post-check for non-optional assets
   if ! $flgo && ! $prvd
-  then erra+=( -i- "- required asset not provided: '$p_ptn'" ); fi
+  then erra+=( -i- "- required RegEx asset not provided: '$p_ptn'" ); fi
 
   # If pushing onto asset arrays but NOT limited to provided, push now
   if ! $flgn && ! $flgp; then
@@ -207,8 +207,10 @@ d___process_asset_d()
       D_QUEUE_ASSETS+=("$p_ori")
       D__QUEUE_FLAGS+=("$p_flgs")
     fi
-  elif ! $flgo
-  then erra+=( -i- "- required asset not provided: '$p_ptn'" ); fi
+  elif ! $flgo; then
+    erra+=( -i- \
+      "- required concrete asset not provided in dpl dir: '$p_ptn'" )
+  fi
 }
 
 d___process_asset_dr()
@@ -234,8 +236,10 @@ d___process_asset_dr()
   fi
 
   # Post-check for non-optional assets
-  if ! $flgo && ! $prvd
-  then erra+=( -i- "- required asset not provided: '$p_ptn'" ); fi
+  if ! $flgo && ! $prvd; then
+    erra+=( -i- \
+      "- required RegEx asset not provided in dpl dir: '$p_ptn'" )
+  fi
 }
 
 #>  d___copy_asset

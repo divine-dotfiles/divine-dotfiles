@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: check
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.08
-#:revremark:    Update readme for D.d v2, pt. 7
+#:revdate:      2019.11.18
+#:revremark:    Exit sub-shell instead of continuing from within
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -281,7 +281,7 @@ d___check_dpls()
         d__notify -lx -- 'Failed to process deployment assets'
         printf >&2 '%s %s\n' "$D__INTRO_CHK_S" "$d__plq"
         d__notify -qqq -- 'Exiting sub-shell'
-        continue
+        exit
       fi
 
       # Print debug message

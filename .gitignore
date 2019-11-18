@@ -6,7 +6,7 @@
 !/intervene.sh
 !/LICENSE
 !/README.adoc
-!/RELEASE.adoc
+!/RELEASE.md
 
 # Keep lib directory with all of its content
 !/lib/
