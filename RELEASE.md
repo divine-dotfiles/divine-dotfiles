@@ -1,0 +1,1 @@
+* [**`fix`**] Prevent files in the bundles directory from being unnecessarily interpreted as unrecorded bundles.
