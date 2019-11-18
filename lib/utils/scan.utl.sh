@@ -2,8 +2,8 @@
 #:title:        Divine Bash utils: scan
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.26
-#:revremark:    Tweak styling of dpl filtering output
+#:revdate:      2019.11.18
+#:revremark:    Fix breaking with read on first occurrence
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -301,9 +301,10 @@ d__scan_for_dpl_files()
         ((ii--)) || break; [[ $dpll = D_DPL_* ]] || continue
         case ${dpll:6} in NAME=*) jj=0;; DESC=*) jj=1;; PRIORITY=*) jj=2;;
           FLAGS=*) jj=3;; WARNING=*) jj=4;; *) continue;; esac
-        IFS='=' read -r tmp vlu <<<"$dpll"
-        [[ $vlu = \'*\' || $vlu = \"*\" ]] \
-          && read -r vlu <<<"${vlu:1:${#vlu}-2}"
+        IFS='=' read -r tmp vlu <<<"$dpll "
+        if [[ $vlu = \'*\'\  || $vlu = \"*\"\  ]]
+        then read -r vlu <<<"${vlu:1:${#vlu}-3}"
+        else read -r vlu <<<"$vlu"; fi
         [ -n "$vlu" ] && mtdt[$jj]="$vlu"
       done < "$d__dpl_p"
 

@@ -2,8 +2,8 @@
 #:title:        Divine Bash utils: manifests
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.16
-#:revremark:    Output effective manifest content on -vvvv
+#:revdate:      2019.11.18
+#:revremark:    Fix breaking with read on first occurrence
 #:created_at:   2019.05.30
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -111,7 +111,7 @@ d__process_manifest()
       bfrb="$bfr"
 
       # Break line on first occurence of comment symbol
-      IFS='#' read -r chnk tmp <<<"$bfr"
+      IFS='#' read -r chnk tmp <<<"$bfr "
 
       # Repeat until last character before split is not '\'
       while [[ chnk = *\\ ]]; do
@@ -119,7 +119,7 @@ d__process_manifest()
         # Check if right part contains another comment symbol
         if [[ $tmp = *\#* ]]; then
           # Re-split right part on comment symbol; re-attach amputated parts
-          IFS='#' read -r tmpl tmpr <<<"$tmp"
+          IFS='#' read -r tmpl tmpr <<<"$tmp "
           chnk="${chnk:0:${#chnk}-1}#$tmpl" tmp="$tmpr"
         else
           # Not a proper commented line: restore original buffer and break
@@ -144,7 +144,7 @@ d__process_manifest()
       # Shift away opening parenthesis
       bfr="${bfr:1:${#bfr}}"
       # Break line on first occurence of closing parenthesis
-      IFS=')' read -r chnk tmp <<<"$bfr"
+      IFS=')' read -r chnk tmp <<<"$bfr "
 
       # Repeat until last character before split is not '\'
       while [[ chnk = *\\ ]]; do
@@ -152,7 +152,7 @@ d__process_manifest()
         # Check if right part contains another closing parenthesis
         if [[ $tmp = *\)* ]]; then
           # Re-split right part on closing ')'; re-attach amputated parts
-          IFS=')' read -r tmpl tmpr <<<"$tmp"
+          IFS=')' read -r tmpl tmpr <<<"$tmp "
           chnk="${chnk:0:${#chnk}-1})$tmpl" tmp="$tmpr"
         else
           # Not a proper key-value: restore original buffer and break loops
@@ -171,7 +171,7 @@ d__process_manifest()
       if [[ $chnk = *:* ]]; then
 
         # Split on first occurrence of separator
-        IFS=: read -r ky vl <<<"$chnk"
+        IFS=: read -r ky vl <<<"$chnk "
         # Clear whitespace from edges of key and value
         read -r ky <<<"$ky"; read -r vl <<<"$vl"
 
@@ -302,8 +302,9 @@ d__process_manifest()
       out_lna+=( -i- "(${D__MANIFEST_LINE_FLAGS[$ii]})" )
       if [ -n "${D__MANIFEST_LINE_PRFXS[$ii]}" ]
       then out_lna+=( "(prefix: ${D__MANIFEST_LINE_PRFXS[$ii]})" ); fi
-      if [ -n "${D__MANIFEST_LINE_PRTYS[$ii]}" ]
+      if [ "${D__MANIFEST_LINE_PRTYS[$ii]}" != "$D__CONST_DEF_PRIORITY" ]
       then out_lna+=( "(priority: ${D__MANIFEST_LINE_PRTYS[$ii]})" ); fi
+      out_lna+=( "${D__MANIFEST_LINES[$ii]}" )
     done
     if [ "$D__MANIFEST_ENDSPLIT" = true ]
     then out_lna+=( -i- "(queue: split)" ); fi
