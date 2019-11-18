@@ -1,0 +1,1 @@
+* [**`appearance`**] Dim the entire SHA remark in the version output.

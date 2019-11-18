@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: version
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.16
-#:revremark:    Prioritize arg parsing in main scripts
+#:revdate:      2019.11.18
+#:revremark:    Dim the entire SHA remark in the version output
 #:created_at:   2018.03.25
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -39,7 +39,7 @@ d__rtn_version()
     commit_sha="$( git rev-parse --short HEAD 2>/dev/null )"
     popd &>/dev/null
   fi
-  [ -n "$commit_sha" ] && commit_sha=" ($DIM$commit_sha$NORMAL)"
+  [ -n "$commit_sha" ] && commit_sha=" $DIM($commit_sha)$NORMAL"
 
   local version_msg; read -r -d '' version_msg << EOF
 ${BOLD}${D__FMWK_NAME} ${D__FMWK_VERSION}${NORMAL}${commit_sha}
