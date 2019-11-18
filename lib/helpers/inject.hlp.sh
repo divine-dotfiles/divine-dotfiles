@@ -2,8 +2,8 @@
 #:title:        Divine Bash deployment helpers: link-queue
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.29
-#:revremark:    Further improve wording of injection delimiters
+#:revdate:      2019.11.18
+#:revremark:    Re-arrange newlines in inject helper
 #:created_at:   2019.10.28
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -62,7 +62,7 @@ d__inject_check()
     then
       while IFS= read -r lbf || [ -n "$lbf" ]; do case $lbf in
         "${njcmt}CREATED AUTOMATICALLY; DO NOT MODIFY THIS BLOCK") continue;;
-        "${njcmt}<<<<<<<<<<<<END BLOCK: DEPLOYMENT '$D_DPL_NAME'") break;;
+        "$njcmt<<<<<<<<<<<<END BLOCK: DEPLOYMENT '$D_DPL_NAME'") break;;
         *) printf '%s\n' "$lbf";;
       esac; done; njexs=true
     fi
@@ -223,12 +223,11 @@ d__inject_install()
     while IFS= read -r lbf || [ -n "$lbf" ]; do
       if [[ $lbf = "$njcmt>>>>>>>>>>BEGIN BLOCK: DEPLOYMENT '$D_DPL_NAME'" ]]
       then
-        while IFS= read -r lbf || [ -n "$lbf" ]; do case $lbf in
-          "${njcmt}<<<<<<<<<<<<END BLOCK: DEPLOYMENT '$D_DPL_NAME'")
-            IFS= read -r lbf; read -r ltbf <<<"$lbf"
-            if [ -n "$ltbf" ]; then printf '%s\n' "$lbf"; fi
-            break;;
-        esac; done; continue
+        while IFS= read -r lbf || [ -n "$lbf" ]; do
+          if [[ $lbf = \
+            "$njcmt<<<<<<<<<<<<END BLOCK: DEPLOYMENT '$D_DPL_NAME'" ]]
+          then break; fi
+        done; continue
       fi
       printf '%s\n' "$lbf"
     done <"$njtp" >$njtmp
@@ -238,11 +237,11 @@ d__inject_install()
   else njtmp="$njtp"; fi
 
   # Append new block at the end
-  printf >>$njtmp '%s\n%s\n' \
+  printf >>$njtmp '\n%s\n%s\n' \
     "$njcmt>>>>>>>>>>BEGIN BLOCK: DEPLOYMENT '$D_DPL_NAME'" \
     "${njcmt}CREATED AUTOMATICALLY; DO NOT MODIFY THIS BLOCK"
   cat "$njsp" >>$njtmp
-  printf >>$njtmp '%s\n\n' \
+  printf >>$njtmp '%s\n' \
     "${njcmt}<<<<<<<<<<<<END BLOCK: DEPLOYMENT '$D_DPL_NAME'"
 
   # Move proxy into place
@@ -361,12 +360,11 @@ d__inject_remove()
     while IFS= read -r lbf || [ -n "$lbf" ]; do
       if [[ $lbf = "$njcmt>>>>>>>>>>BEGIN BLOCK: DEPLOYMENT '$D_DPL_NAME'" ]]
       then
-        while IFS= read -r lbf || [ -n "$lbf" ]; do case $lbf in
-          "${njcmt}<<<<<<<<<<<<END BLOCK: DEPLOYMENT '$D_DPL_NAME'")
-            IFS= read -r lbf; read -r ltbf <<<"$lbf"
-            if [ -n "$ltbf" ]; then printf '%s\n' "$lbf"; fi
-            break;;
-        esac; done; continue
+        while IFS= read -r lbf || [ -n "$lbf" ]; do
+          if [[ $lbf = \
+            "$njcmt<<<<<<<<<<<<END BLOCK: DEPLOYMENT '$D_DPL_NAME'" ]]
+          then break; fi
+        done; continue
       fi
       printf '%s\n' "$lbf"
     done <"$njtp" >$njtmp
