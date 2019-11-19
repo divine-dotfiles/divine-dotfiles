@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.11.19
-#:revremark:    Bring templates up to speed; improve mtdt parsing
+#:revremark:    Introduce OS filtering via D_DPL_OS metadatum
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -268,6 +268,9 @@ d__scan_for_dpl_files()
   local dpll ii jj tmp vlu mtdt algd=true dpl_relpath dpl_showpath d__dpl_b
   local dpl_name_taken dpl_names=() dpl_name_paths=() dpl_bad_names=()
   local dpl_name_counts=() dpl_name_dupls=() dpl_bad dpl_count=0
+  local d__curos="$D__OS_FAMILY"
+  if [ -n "$D__OS_DISTRO" -a "$D__OS_DISTRO" != "$D__OS_FAMILY" ]
+  then d__curos+=" ($D__OS_DISTRO)"; fi
 
   $D__DISABLE_CASE_SENSITIVITY
 
@@ -301,7 +304,7 @@ d__scan_for_dpl_files()
         [ -z "$dpll" ] && continue; [[ $dpll = \#* ]] && continue
         [[ $dpll = D_DPL_* ]] || break
         case ${dpll:6} in NAME=*) jj=0;; DESC=*) jj=1;; PRIORITY=*) jj=2;;
-          FLAGS=*) jj=3;; WARNING=*) jj=4;; *) break;; esac
+          FLAGS=*) jj=3;; WARNING=*) jj=4;; OS=*) jj=5;; *) break;; esac
         IFS='=' read -r tmp vlu <<<"$dpll "
         if [[ $vlu = \'*\'\  || $vlu = \"*\"\  ]]
         then read -r vlu <<<"${vlu:1:${#vlu}-3}"
@@ -314,6 +317,13 @@ d__scan_for_dpl_files()
       if [ -z "$d__dpl_n" ]; then
         d__dpl_n="$( basename -- "$d__dpl_p" )"
         d__dpl_n=${d__dpl_n%$D__SUFFIX_DPL_SH}
+      fi
+
+      # Process deployment os's
+      if ! d___check_deployment_os; then
+        d__context -qst 'Skipping' -- pop \
+          "Deployment '$d__dpl_n' does not support the current OS: $d__curos"
+        continue
       fi
 
       # Store data for later check against duplicate names
@@ -559,4 +569,65 @@ d__merge_ext_into_int()
   D__EXT_DPL_NAMES=() D__EXT_DPL_NAME_PATHS=()
   D__EXT_DPL_COUNT=0 D__EXT_DF_COUNT=0 D__EXT_PKG_COUNT=0
   d__context -- lop; return 0
+}
+
+d___check_deployment_os()
+{
+  # Extract the value of the D_DPL_OS pseudo-variable
+  local osstr="${mtdt[5]}"
+
+  # Strip the parentheses, if any
+  [[ $osstr = \(*\) ]] && read -r osstr <<<"${osstr:1:${#osstr}-2}"
+
+  # If value is empty, all OS's are allowed
+  if [ -z "$osstr" ]; then return 0; fi
+
+  # Check if the list of OS's starts with '!'
+  if [[ $osstr = '!'* ]]; then
+
+    # Negated list
+    # Strip the '!' and re-trim the list
+    read -r osstr <<<"${osstr:1:${#osstr}}"
+    # If value is empty, all OS's are allowed
+    if [ -z "$osstr" ]; then return 0; fi
+    # Read value as whitespace-separated list of negated OS's
+    read -r -a osa <<<"$osstr"
+
+    # Iterate over list of negated OS's
+    for osstr in "${osa[@]}"; do
+      # If value is either 'all' or 'any', all OS's are negated
+      # If current OS name from the list matches detected OS, it is negated
+      case $osstr in
+        all|any) return 1;;
+        "$D__OS_FAMILY"|"\"$D__OS_FAMILY\""|"'$D__OS_FAMILY'") return 1;;
+        "$D__OS_DISTRO"|"\"$D__OS_DISTRO\""|"'$D__OS_DISTRO'") return 1;;
+      esac
+    # Done iterating over list of relevant OS's
+    done
+
+    # Default answer
+    return 0
+
+  else
+
+    # Normal list, does not start with '!'
+    # Read value as whitespace-separated list of relevant OS's
+    read -r -a osa <<<"$osstr"
+
+    # Iterate over list of relevant OS's
+    for osstr in "${osa[@]}"; do
+      # If value is either 'all' or 'any', all OS's are allowed
+      # If current OS name from the list matches detected OS, it is allowed
+      case $osstr in
+        all|any) return 0;;
+        "$D__OS_FAMILY"|"\"$D__OS_FAMILY\""|"'$D__OS_FAMILY'") return 0;;
+        "$D__OS_DISTRO"|"\"$D__OS_DISTRO\""|"'$D__OS_DISTRO'") return 0;;
+      esac
+    # Done iterating over list of relevant OS's
+    done
+
+    # Default answer
+    return 1
+
+  fi
 }
