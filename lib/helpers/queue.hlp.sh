@@ -2,8 +2,8 @@
 #:title:        Divine Bash deployment helpers: queue
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.08
-#:revremark:    Update readme for D.d v2, pt. 7
+#:revdate:      2019.11.19
+#:revremark:    Stub queue targeting function
 #:created_at:   2019.06.10
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -840,20 +840,6 @@ d__queue_remove()
   d__context -- lop; return $d__qrtc
 }
 
-#>  d__queue_split [POSITION]
-#
-## Adds a separation point into the queue either at current length (to continue 
-#. populating the next section of the queue), or at a given length. Queue 
-#. helpers process first available queue segment and move to the next one only 
-#. on next iteration.
-#
-d__queue_split()
-{
-  local pos; if ! [[ $1 =~ ^[0-9]+$ ]] || [ $1 -gt ${#D_QUEUE_MAIN[@]} ]
-  then pos=${#D_QUEUE_MAIN[@]}; else pos=$1; fi
-  D__QUEUE_SPLIT_POINTS+=($pos)
-}
-
 #>  d___reconcile_item_check_codes
 #
 ## INTERNAL USE ONLY
@@ -914,4 +900,78 @@ d___reconcile_item_insrmv_codes()
 {
   local i; for ((i=0;i<4;++i)); do ${d__qas[$i]} && return $i; done
   ${d__qss[1]} && return 1 || return 3
+}
+
+#>  d__queue_split [POSITION]
+#
+## Adds a separation point into the queue either at current length (to continue 
+#. populating the next section of the queue), or at a given length. Queue 
+#. helpers process first available queue segment and move to the next one only 
+#. on next iteration.
+#
+d__queue_split()
+{
+  local pos; if ! [[ $1 =~ ^[0-9]+$ ]] || [ $1 -gt ${#D_QUEUE_MAIN[@]} ]
+  then pos=${#D_QUEUE_MAIN[@]}; else pos=$1; fi
+  D__QUEUE_SPLIT_POINTS+=($pos)
+}
+
+#>  d__queue_target [--section SECTNUM] [--] TARGET_DIR
+#
+## Interprets the queue determinant $D_QUEUE_MAIN as array of relative paths. 
+#. Populates the array $D_QUEUE_TARGETS with the absolute versions of those 
+#. paths, with the TARGET_DIR path prepended. The TARGET_DIR value is assumed 
+#. to be an absolute path to a directory (not necessarily an existing one). If 
+#. the SECTNUM is given, operates on that section of the queue; otherwise, 
+#. operates on the latest section.
+#
+d__queue_target()
+{
+  # Pluck out options, round up arguments
+  local args=() arg i tgtd sectnum qsl qsr
+  while (($#)); do arg="$1"; shift; case $arg in
+    -*) case ${arg:1} in
+          -)  args+=("$@"); break;;
+          s|-section) if (($#)); then sectnum="$1"; shift; fi;;
+          '') :;;
+          -*) :;;
+          *)  for ((i=1;i<${#arg};++i)); do case ${arg:i:1} in
+                s)  if (($#)); then sectnum="$1"; shift; fi;;
+                *)  :;;
+              esac; done;;
+        esac;;
+    *)  args+=("$arg");;
+  esac; done
+
+  # Extract and validate mission parameters
+  if ! ((${#args[@]})); then
+    d__notify -lx -- "$FUNCNAME: called without an argument"
+    return 1
+  elif [ -z "${args[0]}" ]; then
+    d__notify -lx -- "$FUNCNAME: called without an empty argument"
+    return 1
+  fi
+  tgtd="${args[0]}"
+  if [ -z "$sectnum" ]; then sectnum=${#D__QUEUE_SPLIT_POINTS[@]}; fi
+  if ! [[ $sectnum =~ ^[0-9]+$ ]]; then
+    d__notify -lx -- "$FUNCNAME: invalid section number '$sectnum'"
+    return 1
+  elif [ $sectnum -gt ${#D__QUEUE_SPLIT_POINTS[@]} ]; then
+    d__notify -lx -- "$FUNCNAME: section number '$sectnum' is out of range"
+    return 1
+  fi
+
+  # Calculate low edge of queue section
+  if [ $sectnum -eq 0 ]; then qsl=0
+  elif [[ ${D__QUEUE_SPLIT_POINTS[$sectnum-1]} =~ ^[0-9]+$ ]]
+  then qsl=${D__QUEUE_SPLIT_POINTS[$sectnum-1]}
+  else qsl=${#D_QUEUE_MAIN[@]}; fi
+
+  # Calculate high edge of queue section
+  if [[ ${D__QUEUE_SPLIT_POINTS[$sectnum]} =~ ^[0-9]+$ ]]
+  then qsr=${D__QUEUE_SPLIT_POINTS[$sectnum]}
+  else qsr=${#D_QUEUE_MAIN[@]}; fi
+
+  # Ensure queue determinant continuity on selected section
+
 }
