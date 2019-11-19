@@ -2,8 +2,8 @@
 #:title:        Divine Bash procedure: init-vars
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.18
-#:revremark:    Clear release notes; kick off 2.0.2+dev
+#:revdate:      2019.11.19
+#:revremark:    Stub queue targeting function
 #:created_at:   2019.10.11
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -83,6 +83,9 @@ d__populate_globals()
   # Commands to play with 'nullglob' (zero glob results) Bash option
   readonly D__ENABLE_NULLGLOB='shopt -s nullglob'
   readonly D__RESTORE_NULLGLOB="$( shopt -p nullglob )"
+
+  # Queue section splits
+  D__QUEUE_SPLIT_POINTS=()
 
   return 0
 }

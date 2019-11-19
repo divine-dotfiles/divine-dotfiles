@@ -1,8 +1,8 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revdate: 2019.11.15
-:revremark: Update status on macos-local-server bundle
+:revdate: 2019.11.19
+:revremark: Bring templates up to speed; improve mtdt parsing
 :doctype: article
 // Visual
 :toc: macro
@@ -1315,8 +1315,8 @@ This code is assumed if the `d_dpl_check` function is not implemented.
 ** `*4*` — _'Partly installed'_.
 ** `*5*` — _'Likely installed (unknown)'_.
 ** `*6*` — _'Manually removed (tinkered with)'_.
-** `*7*` — _'Fully installed by user or OS'_.
-** `*8*` — _'Partly installed by user or OS'_.
+** `*7*` — _'Fully installed (by user or OS)'_.
+** `*8*` — _'Partly installed (by user or OS)'_.
 ** `*9*` — _'Likely not installed (unknown)'_.
 
 Some additional instructions can be passed to the framework via the <<addst-main,add-status>> variables and the deployment <<dpls-metadata,metadata>>.
@@ -1364,7 +1364,8 @@ Some additional instructions can be passed to the framework via the <<addst-main
 
 *Deployment metadata* pose as definitions of Bash global variables and alter deployment's appearance and behavior.
 In reality, the metadata 'assignments' are read from the file _before_ the Bash interpreter sources it.
-In the interests of optimization, *the metadata must be contained in the first 20 non-empty lines of the deployment script*.
+The metadata may be given in any order and disjointly.
+However, *the metadata must precede all other _code_ of the deployment script*.
 
 * `<<mtdt-name-and-desc,*D_DPL_NAME*>>=_NAME_`
 +
@@ -1398,12 +1399,12 @@ D_DPL_WARNING="A warning message"
 
 The following syntax limitations are imposed upon metadata:
 
-* As mentioned above, only the first 20 lines of the deployment script are scanned for metadata.
+* As mentioned above, the metadata must precede all other non-whitespace, non-commented lines of the deployment script.
 * No more than one 'assignment' must be written per line, without line continuation.
-* Bash substitutions, as well as comments, should be avoided.
+* No Bash substitutions or comments are allowed.
 * In keeping with the Bash syntax, no whitespace is allowed around the `=`.
 * A pair of matching quotes around the value is allowed.
-Such pair of quotes us stripped in processing.
+Such pair of quotes is stripped in processing.
 
 [[mtdt-name-and-desc]]
 ==== Deployment name and description
@@ -1621,7 +1622,7 @@ Bring up to date
 | Clear stash
 
 | `*7*`
-| 'Fully installed by user or OS'
+| 'Fully installed (by user or OS)'
 | *Yes*
 | No
 | *Yes*
@@ -1631,7 +1632,7 @@ Bring up to date
 | Uninstall; pop backup
 
 | `*8*`
-| 'Partly installed by user or OS'
+| 'Partly installed (by user or OS)'
 | *Yes*
 | No
 | **Par**tly
@@ -2896,27 +2897,44 @@ Both types of auto-queues support <<queue-split,splitting>> the queue (via the m
 [[queue-auto-targeting]]
 ==== Queue auto-targeting
 
-A queue is *auto-targeted* when:
+When the queue section operates in the single *target directory*, the `*D_QUEUE_TARGETS*` array — which is used by all <<spcqe-main,specialized queues>> — may be automatically populated.
+Such queue *auto-targeting* requires:
 
-* The special variable `*D_QUEUE_TARGET_DIR*` is set to a path to some target directory.
-* The queue <<queue-determinant,determinant>> `D_QUEUE_MAIN` is filled with some relative paths.
+* The single target directory for all queue items must be known.
+It may not exist yet.
+* The queue <<queue-determinant,determinant>> `D_QUEUE_MAIN` must be filled with relative file paths.
 
 (The auto-targeting works well with an <<queue-auto-amnf,auto-queue>> built from the <<assets-mnf,asset manifest>>.)
 
-The *auto-targeting* simply creates the `*D_QUEUE_TARGETS*` array, in which every relative path from the `D_QUEUE_MAIN` array is prepended with the `D_QUEUE_TARGET_DIR` directory path.
+The *auto-targeting* simply populates the `*D_QUEUE_TARGETS*` array at the given queue section, with relative paths from the `D_QUEUE_MAIN` array, prepended by the target directory path.
 
-The auto-targeting can be used for the <<spcqe-main,specialized queues>>, which make use of the `D_QUEUE_TARGETS` array.
-Naturally, the auto-targeting only works when all the relarive targets are grouped in the same directory.
+The auto-targeting of a queue section must be initiated explicitly by calling the `d__queue_target` function:
 
-Different targets can be given for the different operating systems by appending the `{us}**_OS_**` suffix to the name of the variable.
- The `*_OS_*` is the name of the OS <<indct-or-family,family>> or <<indct-or-distro,distro>> in all caps.
- This works for both the `D_QUEUE_TARGETS` and the `D_QUEUE_TARGET_DIR` variables.
- For example:
+[source,bash]
+----
+D_QUEUE_MAIN=( 'rel/path0' 'rel/path1' 'rel/path2' )  # Initialize the queue
 
-* On the `bsd` OS family, the overriding variable for the targers is named `D_QUEUE_TARGETS_BSD`.
-* On the `debian` distribution, the overriding variable for the target directory is named `D_QUEUE_TARGET_DIR_DEBIAN`
+d__queue_target '/target/dir'  # Without options, whole queue is auto-targeted
 
-The distribution override takes precedence over the OS family override.
+## This effectively populates the target array as such:
+#>  D_QUEUE_TARGETS=( \
+#>    /target/dir/rel/path0 \
+#>    /target/dir/rel/path1 \
+#>    /target/dir/rel/path2 \
+#>  )
+#
+----
+
+The `d__queue_target` function supports the following arguments:
+
+[source,subs="verbatim,quotes,attributes"]
+----
+*d{dus}queue_target* [-s|--section *_SECTNUM_*] [--] *_TARGET_DIR_*
+----
+
+The `*_TARGET_DIR_*` must be non-empty; trailing slashes in it are ignored.
+If the `--section` option is given, its `*_SECTNUM_*` argument must the zero-based number of the queue section that is to be auto-targeted.
+Without the `--section` option, the whole queue is affected.
 
 [[spcqe-main]]
 == Specialized queues
@@ -3038,8 +3056,7 @@ The <<stash-main,stashing>> system is used to track the installations of the Git
 To assemble a Github-queue within a deployment (or a <<mltsk-main,task>>):
 
 * Set the queue <<queue-determinant,*determinant*>>, `*D_QUEUE_MAIN*`.
-Any names may be used for the Github-queue items.
-An obvious (and the recommended) choice — is the Github repository handles (`username/repository`).
+The names of the Github-queue items must be the Github repository handles (`username/repository`).
 * For each index in the determinant array, populate the following special arrays:
 ** `*D_QUEUE_TARGETS*` — the absolute paths to the repository destinations.
 * Call the Github-queue helper primaries as the last commands of the deployment's (or task's) <<func-primaries,primary functions>>, e.g.:
@@ -4313,9 +4330,9 @@ In _Divine.dotfiles_, the code that supports a particular OS distribution is con
 * The detection mechanism in the file at `<<fmwk-lib,lib>>/procedures/detect-os.pcd.sh`.
 +
 In that file, search for the `\<<CONTRIBUTE HERE>>` line.
-* The special files called *adapters*, located at `<<fmwk-lib,lib>>/adapters/distro/`.
+* The special files called *adapters*, located at `<<fmwk-lib,lib>>/adapters/`.
 +
-To start the work on your own adapter, get the template at `<<fmwk-lib,lib>>/templates/adapters/distro.add.sh`.
+To start the work on your own adapter, get the template at `<<fmwk-lib,lib>>/templates/adapters/distro.adp.sh`.
 
 Adapters for all OS distributions out there will be welcomed with open arms.
 

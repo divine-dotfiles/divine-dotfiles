@@ -1,53 +1,18 @@
 #:title:        Queue manifest annotated template
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.08
-#:revremark:    Update readme for D.d v2, pt. 7
+#:revdate:      2019.11.19
+#:revremark:    Bring templates up to speed; improve mtdt parsing
 #:created_at:   2019.08.06
 
-## This is an annotated example of a queue manifest. It is simply a list of 
-#. entries to be put in deployment's queue array ($D_QUEUE_MAIN).
+## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
 #
-## Queue manifest must be placed next to deployment file and named identically, 
-#. except for changing suffix from '*.dpl.sh' to '*.dpl.que'. Alternatively, 
-#. full path to manifest file may be provided in the root of deployment file by 
-#. assigning it to global variable $D__DPL_QUE_PATH.
+## This is an annotated example of a queue manifest.
 #
-## Queue entries are arbitrary strings that show up in debug messages. One 
-#. entry is written per line.
+## A queue manifest is a list of entries to be put into the deployment's queue 
+#. determinant array ($D_QUEUE_MAIN).
 #
-## Lines may be made exclusive to particular OS family or distro. List of them 
-#. may be provided by separating with vartical bars:
-#>    (os: debian)      item1
-#>    (os: macos|bsd)   item2
-#>    (os: all)         item3   # 'all'/'any' are reserved to denote any OS
-#
-## NOTE: OS name is matched against $D__OS_FAMILY and $D__OS_DISTRO variables. 
-#. Single match against any of the two is sufficient. For reference and list of 
-#. supported OS's, browse through OS adapters in lib/adapters.
-#
-## All parenthesized key-values, when they appear on a line without an item, 
-#. come into effect until the end of the file, or until another value is 
-#. assigned to the same key:
-#>    ( os : macos )      ## This will remain in effect until end of file or 
-#>                        #. until overridden
-#
-## Hash/pound symbol ('#') comments out the rest of the line. A line may be 
-#. 'glued' to the next by terminating it with a backslash ('\'):
-#>    (os: fedora) \      ## This is a single logical line
-#>    multiline-item\     #. spanning three actual lines
-#>    -name               #. (yes, even with comments attached like this)
-#
-## Whitespace rules in general are fairly permissive:
-#.  * Whitespace within item names is not touched, at the edges - trimmed
-#.  * Whitespace between keywords and separators is optional
-#
-## Within a key-value parentheses, a literal closing parenthesis must be 
-#. escaped with a backslash. Same goes for comment-creating hash/pound.
-#
-## If a line starts with a backslash, exactly one backslash will be removed at 
-#. the start. To end a line with a literal backslash, every literal backslash 
-#. *at the end of the line* must be doubled.
+## For the full reference, see the README file of the framework.
 #
 
 # Below are examples of regular queue items:
@@ -55,7 +20,7 @@ wake_up
 do_stuff
 hit_sack
 
-(os: linux|macos)   # Lines below are only considered on Linux or macOS
+(os: linux wsl)   # Lines below are only added on Linux or WSL
 wake_up_linuxy
-do_stuff_all_gnu_like
+do_stuff_gnu_like
 hit_sack_torvaldsy

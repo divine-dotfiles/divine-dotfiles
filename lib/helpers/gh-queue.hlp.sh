@@ -2,8 +2,8 @@
 #:title:        Divine Bash deployment helpers: gh-queue
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.11
-#:revremark:    Rename queue arrays
+#:revdate:      2019.11.19
+#:revremark:    Phase out old queue auto-targeting
 #:created_at:   2019.10.10
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -55,24 +55,18 @@ d__gh_queue_remove()
 
 d__gh_queue_pre_check()
 {
-  # Switch context; prepare stash; apply adapter overrides
+  # Switch context; prepare stash
   d__context -- push 'Preparing Github-queue for checking'
   d__stash -- ready || return 1
   if [ -z "$D__GH_METHOD" ]
   then d__notify -lx -- 'Unable to wotk with Github repositories'; return 1; fi
-  d__override_dpl_targets_for_os_family
-  d__override_dpl_targets_for_os_distro
 
   # Ensure the required arrays are continuous at the given section
   local d__i; for ((d__i=$D__QUEUE_SECTMIN;d__i<$D__QUEUE_SECTMAX;++d__i)); do
     if [ -z ${D_QUEUE_TARGETS[$d__i]+isset} ]; then
-      if [ -n "$D_QUEUE_TARGET_DIR" ]; then
-        D_QUEUE_TARGETS[$d__i]="$D_QUEUE_TARGET_DIR/${D_QUEUE_MAIN[$d__i]}"
-      else
-        d__notify -lxht 'Github-queue failed' -- \
-          'Array $D_QUEUE_TARGETS is not continuous in the given section'
-        return 1
-      fi
+      d__notify -lxht 'Github-queue failed' -- \
+        'Array $D_QUEUE_TARGETS is not continuous in the given section'
+      return 1
     fi
   done
 

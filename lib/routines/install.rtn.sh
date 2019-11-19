@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: install
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.18
-#:revremark:    Exit sub-shell instead of continuing from within
+#:revdate:      2019.11.19
+#:revremark:    Bring templates up to speed; improve mtdt parsing
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -453,7 +453,7 @@ d___install_dpls()
               printf >&2 '%s %s\n' "$D__INTRO_INS_S" "$d__plq"
               d__notify -qqq -- 'Exiting sub-shell'; exit
             fi;;
-        7)  # Fully installed by user or OS
+        7)  # Fully installed (by user or OS)
             d__msg=( "Deployment '$d__dpl_n' appears to be fully installed" \
               'by means other than installing this deployment' )
             if $D__OPT_FORCE; then d__notify -l! -- "${d__msg[@]}"
@@ -463,7 +463,7 @@ d___install_dpls()
               printf >&2 '%s %s\n' "$D__INTRO_CHK_7" "$d__plq"
               d__notify -qqq -- 'Exiting sub-shell'; exit
             fi;;
-        8)  # Partly installed by user or OS
+        8)  # Partly installed (by user or OS)
             d__notify -l! -- \
               "Deployment '$d__dpl_n' appears to be partly installed" \
               'by means other than installing this deployment'
