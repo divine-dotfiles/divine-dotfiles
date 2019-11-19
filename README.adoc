@@ -2,7 +2,7 @@
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
 :revdate: 2019.11.19
-:revremark: Phase out old queue auto-targeting
+:revremark: Describe the new queue auto-targeting
 :doctype: article
 // Visual
 :toc: macro
@@ -2896,27 +2896,44 @@ Both types of auto-queues support <<queue-split,splitting>> the queue (via the m
 [[queue-auto-targeting]]
 ==== Queue auto-targeting
 
-A queue is *auto-targeted* when:
+When the queue section operates in the single *target directory*, the `*D_QUEUE_TARGETS*` array — which is used by all <<spcqe-main,specialized queues>> — may be automatically populated.
+Such queue *auto-targeting* requires:
 
-* The special variable `*D_QUEUE_TARGET_DIR*` is set to a path to some target directory.
-* The queue <<queue-determinant,determinant>> `D_QUEUE_MAIN` is filled with some relative paths.
+* The single target directory for all queue items must be known.
+It may not exist yet.
+* The queue <<queue-determinant,determinant>> `D_QUEUE_MAIN` must be filled with relative file paths.
 
 (The auto-targeting works well with an <<queue-auto-amnf,auto-queue>> built from the <<assets-mnf,asset manifest>>.)
 
-The *auto-targeting* simply creates the `*D_QUEUE_TARGETS*` array, in which every relative path from the `D_QUEUE_MAIN` array is prepended with the `D_QUEUE_TARGET_DIR` directory path.
+The *auto-targeting* simply populates the `*D_QUEUE_TARGETS*` array at the given queue section, with relative paths from the `D_QUEUE_MAIN` array, prepended by the target directory path.
 
-The auto-targeting can be used for the <<spcqe-main,specialized queues>>, which make use of the `D_QUEUE_TARGETS` array.
-Naturally, the auto-targeting only works when all the relarive targets are grouped in the same directory.
+The auto-targeting of a queue section must be initiated explicitly by calling the `d__queue_target` function:
 
-Different targets can be given for the different operating systems by appending the `{us}**_OS_**` suffix to the name of the variable.
- The `*_OS_*` is the name of the OS <<indct-or-family,family>> or <<indct-or-distro,distro>> in all caps.
- This works for both the `D_QUEUE_TARGETS` and the `D_QUEUE_TARGET_DIR` variables.
- For example:
+[source,bash]
+----
+D_QUEUE_MAIN=( 'rel/path0' 'rel/path1' 'rel/path2' )  # Initialize the queue
 
-* On the `bsd` OS family, the overriding variable for the targers is named `D_QUEUE_TARGETS_BSD`.
-* On the `debian` distribution, the overriding variable for the target directory is named `D_QUEUE_TARGET_DIR_DEBIAN`
+d__queue_target '/target/dir'  # Without options, whole queue is auto-targeted
 
-The distribution override takes precedence over the OS family override.
+## This effectively populates the target array as such:
+#>  D_QUEUE_TARGETS=( \
+#>    /target/dir/rel/path0 \
+#>    /target/dir/rel/path1 \
+#>    /target/dir/rel/path2 \
+#>  )
+#
+----
+
+The `d__queue_target` function supports the following arguments:
+
+[source,subs="verbatim,quotes,attributes"]
+----
+*d{dus}queue_target* [-s|--section *_SECTNUM_*] [--] *_TARGET_DIR_*
+----
+
+The `*_TARGET_DIR_*` must be non-empty; trailing slashes in it are ignored.
+If the `--section` option is given, its `*_SECTNUM_*` argument must the zero-based number of the queue section that is to be auto-targeted.
+Without the `--section` option, the whole queue is affected.
 
 [[spcqe-main]]
 == Specialized queues
