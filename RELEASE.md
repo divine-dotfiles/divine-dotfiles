@@ -1,3 +1,5 @@
+* [**`api`**] Look for deployment metadata until the first non-whitespace, non-commented line of the deployment script.
+* [**`api`**] Make the queue auto-targeting explicit via calling the `d__queue_target` function.
+* [**`other`**] Rewrite included templates to accurately reflect the latest framework developments.
 * [**`other`**] In the debug output, make numbers of tasks and queue items zero-based, consistent with the Bash numbering.
-* [**`other`**] Make the queue auto-targeting explicit via calling the `d__queue_target` function.
 * [**`fix`**] Prevent files in the bundles directory from being unnecessarily interpreted as unrecorded bundles.
