@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.11.19
-#:revremark:    Stub queue targeting function
+#:revremark:    Make auto-targeting explicit via function
 #:created_at:   2019.06.10
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -17,35 +17,59 @@ d__load util workflow
 
 d__queue_check()
 {
+  # Ensure the queue split point array is continuous
+  local d__i; for ((d__i=0;d__i<${#D__QUEUE_SPLIT_POINTS[@]};++d__i)); do
+    [ -z ${D__QUEUE_SPLIT_POINTS[$d__i]+isset} ] || continue
+    d__notify -lxt 'Queue failed' -- \
+      'Array $D__QUEUE_SPLIT_POINTS is not continuous'
+    return 3
+  done
+
   # Initialize or increment section number; switch context
   if [ -z ${D__QUEUE_SECTNUM[0]+isset} ]; then D__QUEUE_SECTNUM[0]=0
   else ((++D__QUEUE_SECTNUM[0])); fi; local d__qsi=${D__QUEUE_SECTNUM[0]}
   d__context -- notch
   d__context -- push "Checking queue within deployment" \
-    "(queue section #$((d__qsi+1)))"
+    "(queue section #$d__qsi)"
 
   # If case this queue section is a task in a multitask, mark the task as queue
   D__TASK_IS_QUEUE=true
 
   # Calculate low edge of queue section
   if [ $d__qsi -eq 0 ]; then D__QUEUE_SECTMIN=0
-  elif [[ ${D__QUEUE_SPLIT_POINTS[$d__qsi-1]} =~ ^[0-9]+$ ]]
-  then D__QUEUE_SECTMIN=${D__QUEUE_SPLIT_POINTS[$d__qsi-1]}
-  else D__QUEUE_SECTMIN=${#D_QUEUE_MAIN[@]}; fi
+  elif [ -z ${D__QUEUE_SPLIT_POINTS[$d__qsi-1]+isset} ]; then
+    d__fail -t 'Queue failed' -- "Queue section is not defined"; return 3
+  else
+    if [[ ${D__QUEUE_SPLIT_POINTS[$d__qsi-1]} =~ ^[0-9]+$ ]]
+    then D__QUEUE_SECTMIN=${D__QUEUE_SPLIT_POINTS[$d__qsi-1]}
+    else
+      d__fail -t 'Queue failed' -- 'Invalid queue split point:' \
+        "'${D__QUEUE_SPLIT_POINTS[$d__qsi-1]}'"
+      return 3
+    fi
+  fi
 
   # Calculate high edge of queue section
-  if [[ ${D__QUEUE_SPLIT_POINTS[$d__qsi]} =~ ^[0-9]+$ ]]
-  then D__QUEUE_SECTMAX=${D__QUEUE_SPLIT_POINTS[$d__qsi]}
-  else D__QUEUE_SECTMAX=${#D_QUEUE_MAIN[@]}; fi
+  if [ -z ${D__QUEUE_SPLIT_POINTS[$d__qsi]+isset} ]
+  then D__QUEUE_SECTMAX=${#D_QUEUE_MAIN[@]}
+  else
+    if [[ ${D__QUEUE_SPLIT_POINTS[$d__qsi]} =~ ^[0-9]+$ ]]
+    then D__QUEUE_SECTMAX=${D__QUEUE_SPLIT_POINTS[$d__qsi]}
+    else
+      d__fail -t 'Queue failed' -- 'Invalid queue split point:' \
+        "'${D__QUEUE_SPLIT_POINTS[$d__qsi]}'"
+      return 3
+    fi
+  fi
 
   # Cut-off checks for number of items and continuity
   local d__qsl=$D__QUEUE_SECTMIN d__qsr=$D__QUEUE_SECTMAX
-  d__context -- push "Checking queue items $((d__qsl+1))-$((d__qsr))"
+  d__context -- push "Checking queue items $d__qsl-$((d__qsr-1))"
   if ((d__qsl==d__qsr))
-  then d__fail -- 'Empty queue section given'; return 3
+  then d__fail -t 'Queue failed' -- 'Empty queue section given'; return 3
   elif ((d__qsl>d__qsr))
-  then d__fail -t 'Queue failed' -- 'Illegal queue section given'; return 3; fi
-  local d__i; for ((d__i=$d__qsl;d__i<$d__qsr;++d__i)); do
+  then d__fail -t 'Queue failed' -- 'Invalid queue section given'; return 3; fi
+  for ((d__i=$d__qsl;d__i<$d__qsr;++d__i)); do
     [ -z ${D_QUEUE_MAIN[$d__i]+isset} ] || continue
     d__fail -t 'Queue failed' -- \
       'Array $D_QUEUE_MAIN is not continuous in the given section'
@@ -88,8 +112,7 @@ d__queue_check()
     # Extract number, name; switch context
     d__qen="${D_QUEUE_MAIN[$d__qei]}"
     d__qeflg="${D__QUEUE_FLAGS[$d__qei]}"
-    d__context -- push \
-      "Checking item '$d__qen' (#$((d__qei+1)) of ${#D_QUEUE_MAIN[@]})"
+    d__context -- push "Checking item #$d__qei '$d__qen'"
 
     # Initialize marker var; clear add-statuses
     unset D_ADDST_QUEUE_HALT D_ADDST_ITEM_CHECK_CODE
@@ -192,7 +215,7 @@ d__queue_check()
 
     # If in check routine and being verbose, print status
     if [ "$D__REQ_ROUTINE" = check -a "$D__OPT_VERBOSITY" -gt 0 ]; then
-      d__qeplq="Item '$d__qen' (#$((d__qei+1)) of ${#D_QUEUE_MAIN[@]})"
+      d__qeplq="Item #$d__qei '$d__qen'"
       d__qeplq+="$NORMAL"; case $d__qertc in
         1)  printf >&2 '%s %s\n' "$D__INTRO_QCH_1" "$d__qeplq";;
         2)  printf >&2 '%s %s\n' "$D__INTRO_QCH_2" "$d__qeplq";;
@@ -257,22 +280,20 @@ d__queue_install()
   else ((++D__QUEUE_SECTNUM[1])); fi; local d__qsi=${D__QUEUE_SECTNUM[1]}
   d__context -- notch
   d__context -- push "Installing queue within deployment" \
-    "(queue section #$((d__qsi+1)) of $((${#D__QUEUE_SPLIT_POINTS[@]}+1)))"
+    "(queue section #$d__qsi)"
 
   # Calculate low edge of queue section
   if [ $d__qsi -eq 0 ]; then D__QUEUE_SECTMIN=0
-  elif [[ ${D__QUEUE_SPLIT_POINTS[$d__qsi-1]} =~ ^[0-9]+$ ]]
-  then D__QUEUE_SECTMIN=${D__QUEUE_SPLIT_POINTS[$d__qsi-1]}
-  else D__QUEUE_SECTMIN=${#D_QUEUE_MAIN[@]}; fi
+  else D__QUEUE_SECTMIN=${D__QUEUE_SPLIT_POINTS[$d__qsi-1]}; fi
 
   # Calculate high edge of queue section
-  if [[ ${D__QUEUE_SPLIT_POINTS[$d__qsi]} =~ ^[0-9]+$ ]]
-  then D__QUEUE_SECTMAX=${D__QUEUE_SPLIT_POINTS[$d__qsi]}
-  else D__QUEUE_SECTMAX=${#D_QUEUE_MAIN[@]}; fi
+  if [[ -z ${D__QUEUE_SPLIT_POINTS[$d__qsi]+isset} ]]
+  then D__QUEUE_SECTMAX=${#D_QUEUE_MAIN[@]}
+  else D__QUEUE_SECTMAX=${D__QUEUE_SPLIT_POINTS[$d__qsi]}; fi
 
   # Switch context
   local d__qsl=$D__QUEUE_SECTMIN d__qsr=$D__QUEUE_SECTMAX
-  d__context -- push "Installing queue items $((d__qsl+1))-$((d__qsr))"
+  d__context -- push "Installing queue items $d__qsl-$((d__qsr-1))"
 
   # Run queue pre-processing, if implemented
   local d__qrtc d__tmp; if declare -f d_queue_pre_install &>/dev/null; then
@@ -295,8 +316,12 @@ d__queue_install()
 
   # Initialize/reset status variables
   d__qas=( true true true true ) d__qss=( false false false false )
-  if [ -z ${D__QUEUE_CAP_NUMS[$d__qsi]+isset} ]; then d__qecap=$d__qsr
-  else d__qecap="${D__QUEUE_CAP_NUMS[$d__qsi]}"; fi
+  if [ -z ${D__QUEUE_CAP_NUMS[$d__qsi]+isset} ]
+  then d__qecap=$d__qsr
+  else
+    d__qecap="${D__QUEUE_CAP_NUMS[$d__qsi]}"
+    d__notify -! -- "Not touching section elements #$d__qecap and above"
+  fi
 
   # Implement dummy primary and hooks if necessary
   if ! declare -f d_item_install &>/dev/null; then d_item_install() { :; }; fi
@@ -312,7 +337,7 @@ d__queue_install()
     d__qen="${D_QUEUE_MAIN[$d__qei]}"
     d__qecc="${D__QUEUE_CHECK_CODES[$d__qei]}"
     d__qeflg="${D__QUEUE_FLAGS[$d__qei]}"
-    d__qeplq="'$d__qen' (#$((d__qei+1)) of ${#D_QUEUE_MAIN[@]})"
+    d__qeplq="#$d__qei '$d__qen'"
     d__context -- push "Installing item $d__qeplq"
     d__qeplq="Item $d__qeplq$NORMAL"
 
@@ -556,22 +581,20 @@ d__queue_remove()
   else ((--D__QUEUE_SECTNUM[1])); fi; local d__qsi=${D__QUEUE_SECTNUM[1]}
   d__context -- notch
   d__context -- push "Removing queue within deployment" \
-    "(queue section #$((d__qsi+1)) of $((${#D__QUEUE_SPLIT_POINTS[@]}+1)))"
+    "(queue section #$d__qsi)"
 
   # Calculate low edge of queue section
   if [ $d__qsi -eq 0 ]; then D__QUEUE_SECTMIN=0
-  elif [[ ${D__QUEUE_SPLIT_POINTS[$d__qsi-1]} =~ ^[0-9]+$ ]]
-  then D__QUEUE_SECTMIN=${D__QUEUE_SPLIT_POINTS[$d__qsi-1]}
-  else D__QUEUE_SECTMIN=${#D_QUEUE_MAIN[@]}; fi
+  else D__QUEUE_SECTMIN=${D__QUEUE_SPLIT_POINTS[$d__qsi-1]}; fi
 
   # Calculate high edge of queue section
-  if [[ ${D__QUEUE_SPLIT_POINTS[$d__qsi]} =~ ^[0-9]+$ ]]
-  then D__QUEUE_SECTMAX=${D__QUEUE_SPLIT_POINTS[$d__qsi]}
-  else D__QUEUE_SECTMAX=${#D_QUEUE_MAIN[@]}; fi
+  if [[ -z ${D__QUEUE_SPLIT_POINTS[$d__qsi]+isset} ]]
+  then D__QUEUE_SECTMAX=${#D_QUEUE_MAIN[@]}
+  else D__QUEUE_SECTMAX=${D__QUEUE_SPLIT_POINTS[$d__qsi]}; fi
 
   # Switch context
   local d__qsl=$D__QUEUE_SECTMIN d__qsr=$D__QUEUE_SECTMAX
-  d__context -- push "Removing queue items $((d__qsl+1))-$((d__qsr))"
+  d__context -- push "Removing queue items $d__qsl-$((d__qsr-1))"
 
   # Run queue pre-processing, if implemented
   local d__qrtc d__tmp; if declare -f d_queue_pre_remove &>/dev/null; then
@@ -594,8 +617,12 @@ d__queue_remove()
 
   # Initialize/reset status variables
   d__qas=( true true true true ) d__qss=( false false false false )
-  if [ -z ${D__QUEUE_CAP_NUMS[$d__qsi]+isset} ]; then d__qecap=$d__qsr
-  else d__qecap="${D__QUEUE_CAP_NUMS[$d__qsi]}"; fi
+  if [ -z ${D__QUEUE_CAP_NUMS[$d__qsi]+isset} ]
+  then d__qecap=$d__qsr
+  else
+    d__qecap="${D__QUEUE_CAP_NUMS[$d__qsi]}"
+    d__notify -! -- "Not touching section elements #$d__qecap and above"
+  fi
 
   # Implement dummy primary and hooks if necessary
   if ! declare -f d_item_remove &>/dev/null; then d_item_remove() { :; }; fi
@@ -611,7 +638,7 @@ d__queue_remove()
     d__qen="${D_QUEUE_MAIN[$d__qei]}"
     d__qecc="${D__QUEUE_CHECK_CODES[$d__qei]}"
     d__qeflg="${D__QUEUE_FLAGS[$d__qei]}"
-    d__qeplq="'$d__qen' (#$((d__qei+1)) of ${#D_QUEUE_MAIN[@]})"
+    d__qeplq="#$d__qei '$d__qen'"
     d__context -- push "Removing item $d__qeplq"
     d__qeplq="Item $d__qeplq$NORMAL"
 
@@ -928,14 +955,14 @@ d__queue_split()
 d__queue_target()
 {
   # Pluck out options, round up arguments
-  local args=() arg i tgtd sectnum qsl qsr
+  local args=() arg tgtd sectnum qsl qsr ii plq; unset sectnum
   while (($#)); do arg="$1"; shift; case $arg in
     -*) case ${arg:1} in
           -)  args+=("$@"); break;;
           s|-section) if (($#)); then sectnum="$1"; shift; fi;;
           '') :;;
           -*) :;;
-          *)  for ((i=1;i<${#arg};++i)); do case ${arg:i:1} in
+          *)  for ((ii=1;ii<${#arg};++ii)); do case ${arg:ii:1} in
                 s)  if (($#)); then sectnum="$1"; shift; fi;;
                 *)  :;;
               esac; done;;
@@ -943,35 +970,101 @@ d__queue_target()
     *)  args+=("$arg");;
   esac; done
 
-  # Extract and validate mission parameters
+  # Extract and validate target directory
   if ! ((${#args[@]})); then
-    d__notify -lx -- "$FUNCNAME: called without an argument"
-    return 1
-  elif [ -z "${args[0]}" ]; then
-    d__notify -lx -- "$FUNCNAME: called without an empty argument"
+    d__notify -lxt 'Auto-targeting failed' -- \
+      "Called without the target directory"
     return 1
   fi
   tgtd="${args[0]}"
-  if [ -z "$sectnum" ]; then sectnum=${#D__QUEUE_SPLIT_POINTS[@]}; fi
-  if ! [[ $sectnum =~ ^[0-9]+$ ]]; then
-    d__notify -lx -- "$FUNCNAME: invalid section number '$sectnum'"
-    return 1
-  elif [ $sectnum -gt ${#D__QUEUE_SPLIT_POINTS[@]} ]; then
-    d__notify -lx -- "$FUNCNAME: section number '$sectnum' is out of range"
+  if [ -z "$tgtd" ]; then
+    d__notify -lxt 'Auto-targeting failed' -- \
+      "Called with an empty target directory"
     return 1
   fi
+  while [[ $tgtd = */ ]]; do tgtd="${tgtd%%/}"; done
 
-  # Calculate low edge of queue section
-  if [ $sectnum -eq 0 ]; then qsl=0
-  elif [[ ${D__QUEUE_SPLIT_POINTS[$sectnum-1]} =~ ^[0-9]+$ ]]
-  then qsl=${D__QUEUE_SPLIT_POINTS[$sectnum-1]}
-  else qsl=${#D_QUEUE_MAIN[@]}; fi
+  # Extract and validate section number, if any
+  if [ -z "${sectnum+isset}" ]; then
 
-  # Calculate high edge of queue section
-  if [[ ${D__QUEUE_SPLIT_POINTS[$sectnum]} =~ ^[0-9]+$ ]]
-  then qsr=${D__QUEUE_SPLIT_POINTS[$sectnum]}
-  else qsr=${#D_QUEUE_MAIN[@]}; fi
+    # No section number: work with entire queue
+    plq='queue' qsl=0 qsr=${#D_QUEUE_MAIN[@]}
 
-  # Ensure queue determinant continuity on selected section
+  else
 
+    # Section given
+    plq="queue section #$sectnum"
+
+    # Ensure the queue split point array is continuous
+    for ((ii=0;ii<${#D__QUEUE_SPLIT_POINTS[@]};++ii)); do
+      [ -z ${D__QUEUE_SPLIT_POINTS[$ii]+isset} ] || continue
+      d__notify -lxt 'Auto-targeting failed' -- \
+        'Array $D__QUEUE_SPLIT_POINTS is not continuous'
+      return 1
+    done
+
+    # Validate section number
+    if ! [[ $sectnum =~ ^[0-9]+$ ]]; then
+      d__notify -lxt 'Auto-targeting failed' -- \
+        "Invalid section number '$sectnum'"
+      return 1
+    fi
+
+    # Calculate low edge of queue section
+    if [ $sectnum -eq 0 ]; then qsl=0
+    elif [ -z ${D__QUEUE_SPLIT_POINTS[$sectnum-1]+isset} ]; then
+      d__notify -lxt 'Auto-targeting failed' -- \
+        "Queue section #$sectnum is not defined"
+      return 1
+    else
+      if [[ ${D__QUEUE_SPLIT_POINTS[$sectnum-1]} =~ ^[0-9]+$ ]]
+      then qsl=${D__QUEUE_SPLIT_POINTS[$sectnum-1]}
+      else
+        d__notify -lxt 'Auto-targeting failed' -- \
+          'Invalid queue split point:' \
+          "'${D__QUEUE_SPLIT_POINTS[$sectnum-1]}'"
+        return 1
+      fi
+    fi
+
+    # Calculate high edge of queue section
+    if [ -z ${D__QUEUE_SPLIT_POINTS[$sectnum]+isset} ]
+    then qsr=${#D_QUEUE_MAIN[@]}
+    else
+      if [[ ${D__QUEUE_SPLIT_POINTS[$sectnum]} =~ ^[0-9]+$ ]]
+      then qsr=${D__QUEUE_SPLIT_POINTS[$sectnum]}
+      else
+        d__notify -lxt 'Auto-targeting failed' -- \
+          'Invalid queue split point:' \
+          "'${D__QUEUE_SPLIT_POINTS[$sectnum]}'"
+        return 1
+      fi
+    fi
+  
+  # Done extracting and validating section limits
+  fi
+
+  # Cut-off checks for number of items and continuity
+  d__context -- notch
+  d__context -- push "Auto-targeting $plq items $qsl-$((qsr-1))"
+  d__context -- push "Target directory: $tgtd"
+  if ((qsl==qsr)); then
+    d__fail -t 'Auto-targeting failed' -- "Empty $plq given"
+    return 1
+  elif ((qsl>qsr)); then
+    d__fail -t 'Auto-targeting failed' -- "Invalid $plq given"
+    return 1
+  fi
+  for ((ii=$qsl;ii<$qsr;++ii)); do
+    [ -z ${D_QUEUE_MAIN[$ii]+isset} ] || continue
+    local errm=; [ -z ${sectnum+isset} ] || errm+=' in the given section'
+    d__fail -t 'Auto-targeting failed' -- \
+      "Array \$D_QUEUE_MAIN is not continuous$errm"
+    return 1
+  done
+
+  # Populate targets (I shaved my legs for THIS?)
+  for ((ii=$qsl;ii<$qsr;++ii))
+  do D_QUEUE_TARGETS[$ii]="$tgtd/${D_QUEUE_MAIN[$ii]}"; done
+  d__context -- lop; return 0
 }

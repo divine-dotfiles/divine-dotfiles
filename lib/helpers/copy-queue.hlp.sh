@@ -2,8 +2,8 @@
 #:title:        Divine Bash deployment helpers: copy-queue
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.11
-#:revremark:    Rename queue arrays
+#:revdate:      2019.11.19
+#:revremark:    Make auto-targeting explicit via function
 #:created_at:   2019.05.23
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -57,8 +57,6 @@ d__copy_queue_pre_check()
   # Switch context; prepare stash; apply adapter overrides
   d__context -- push 'Preparing copy-queue for checking'
   d__stash -- ready || return 1
-  d__override_dpl_targets_for_os_family
-  d__override_dpl_targets_for_os_distro
 
   # Ensure the required arrays are continuous at the given section
   local d__i; for ((d__i=$D__QUEUE_SECTMIN;d__i<$D__QUEUE_SECTMAX;++d__i)); do
@@ -68,13 +66,9 @@ d__copy_queue_pre_check()
       return 1
     fi
     if [ -z ${D_QUEUE_TARGETS[$d__i]+isset} ]; then
-      if [ -n "$D_QUEUE_TARGET_DIR" ]; then
-        D_QUEUE_TARGETS[$d__i]="$D_QUEUE_TARGET_DIR/${D_QUEUE_MAIN[$d__i]}"
-      else
-        d__notify -lxht 'Copy-queue failed' -- \
-          'Array $D_QUEUE_TARGETS is not continuous in the given section'
-        return 1
-      fi
+      d__notify -lxht 'Copy-queue failed' -- \
+        'Array $D_QUEUE_TARGETS is not continuous in the given section'
+      return 1
     fi
   done
 
