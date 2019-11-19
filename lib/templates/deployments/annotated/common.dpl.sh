@@ -2,8 +2,8 @@
 #:title:        Divine deployment annotated template
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.10
-#:revremark:    Fix minor typo
+#:revdate:      2019.11.19
+#:revremark:    Phase out old queue auto-targeting
 #:created_at:   2018.03.25
 
 ## This is a valid deployment script for Divine.dotfiles framework
@@ -25,11 +25,10 @@
 #.  $D__DPL_ASSET_DIR   - Absolute canonical path to directory alotted for 
 #.                        asset files of this deployment
 #.  $D__OS_FAMILY       - (read-only) Broad description of the current OS type. 
-#.                        Each file in 'lib/adapters/family' represents a 
-#.                        supported OS family. Empty, when not recognized.
+#.                        Always non-empty.
 #.  $D__OS_DISTRO       - (read-only) Best guess on the name of the current OS 
 #.                        distribution, without version. Each file in 'lib/
-#.                        adapters/distro represents a supported OS distro. 
+#.                        adapters represents a supported OS distro. 
 #.                        Empty, when not recognized.
 #.  $D__OS_PKGMGR       - (read-only) Name of the package management utility 
 #.                        available on current system. Normally coincides with 
@@ -41,7 +40,7 @@
 #.                          * [empty]     - Not recognized
 #
 ## NOTE: To add more recognized OS distributions or package managers, add 
-#. distro adapters to 'lib/adapters/distro'.
+#. distro adapters to 'lib/adapters'.
 #
 ## This template is valid as is, although in this form it does nothing
 #

@@ -2,8 +2,8 @@
 #:title:        Divine.dotfiles Fedora adapter
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.11
-#:revremark:    Rename queue arrays
+#:revdate:      2019.11.19
+#:revremark:    Phase out old queue auto-targeting
 #:created_at:   2019.06.04
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -11,7 +11,7 @@
 ## An adapter is a set of functions that, when implemented, allow framework to 
 #. support Fedora OS distribution
 #
-## For reference, see lib/templates/adapters/distro.add.sh
+## For reference, see lib/templates/adapters/distro.adp.sh
 #
 
 # Marker and dependencies
@@ -59,13 +59,4 @@ d__detect_os_pkgmgr()
     }
 
   fi
-}
-
-# Implement overriding mechanism for $D_QUEUE_TARGETS and $D_QUEUE_TARGET_DIR
-d__override_dpl_targets_for_os_distro()
-{
-  if [ ${#D_QUEUE_TARGETS_DEBIAN[@]} -gt 1 -o -n "$D_QUEUE_TARGETS_DEBIAN" ]
-  then D_QUEUE_TARGETS=( "${D_QUEUE_TARGETS_DEBIAN[@]}" ); fi
-  if [ -n "$D_QUEUE_TARGET_DIR_FEDORA" ]
-  then D_QUEUE_TARGET_DIR="$D_QUEUE_TARGET_DIR_FEDORA"; fi
 }

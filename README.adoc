@@ -1,8 +1,8 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revdate: 2019.11.15
-:revremark: Update status on macos-local-server bundle
+:revdate: 2019.11.19
+:revremark: Phase out old queue auto-targeting
 :doctype: article
 // Visual
 :toc: macro
@@ -4313,9 +4313,9 @@ In _Divine.dotfiles_, the code that supports a particular OS distribution is con
 * The detection mechanism in the file at `<<fmwk-lib,lib>>/procedures/detect-os.pcd.sh`.
 +
 In that file, search for the `\<<CONTRIBUTE HERE>>` line.
-* The special files called *adapters*, located at `<<fmwk-lib,lib>>/adapters/distro/`.
+* The special files called *adapters*, located at `<<fmwk-lib,lib>>/adapters/`.
 +
-To start the work on your own adapter, get the template at `<<fmwk-lib,lib>>/templates/adapters/distro.add.sh`.
+To start the work on your own adapter, get the template at `<<fmwk-lib,lib>>/templates/adapters/distro.adp.sh`.
 
 Adapters for all OS distributions out there will be welcomed with open arms.
 

@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.11.19
-#:revremark:    Make auto-targeting explicit via function
+#:revremark:    Phase out old queue auto-targeting
 #:created_at:   2019.10.10
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -55,7 +55,7 @@ d__gh_queue_remove()
 
 d__gh_queue_pre_check()
 {
-  # Switch context; prepare stash; apply adapter overrides
+  # Switch context; prepare stash
   d__context -- push 'Preparing Github-queue for checking'
   d__stash -- ready || return 1
   if [ -z "$D__GH_METHOD" ]

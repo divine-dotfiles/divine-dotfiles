@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.11.19
-#:revremark:    Make auto-targeting explicit via function
+#:revremark:    Phase out old queue auto-targeting
 #:created_at:   2019.05.23
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -54,7 +54,7 @@ d__copy_queue_remove()
 
 d__copy_queue_pre_check()
 {
-  # Switch context; prepare stash; apply adapter overrides
+  # Switch context; prepare stash
   d__context -- push 'Preparing copy-queue for checking'
   d__stash -- ready || return 1
 

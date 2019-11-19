@@ -2,8 +2,8 @@
 #:title:        Divine Bash script: intervene
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.18
-#:revremark:    Fix --help and --version options
+#:revdate:      2019.11.19
+#:revremark:    Phase out old queue auto-targeting
 #:created_at:   2018.03.25
 
 ## Launches the Divine intervention
@@ -323,8 +323,7 @@ d__whereami()
 #
 ## Arguments:
 #.  $1  - Type of script:
-#.          * 'distro-adapter'
-#.          * 'family-adapter'
+#.          * 'adapter'
 #.          * 'helper'
 #.          * 'procedure'
 #.          * 'routine'
@@ -342,8 +341,7 @@ d__load()
 
   # Perform different
   case $1 in
-    distro-adapter)   vr="D__ADD_$vr" path+="/adapters/distro/${2}.add.sh";;
-    family-adapter)   vr="D__ADF_$vr" path+="/adapters/family/${2}.adf.sh";;
+    adapter)          vr="D__ADD_$vr" path+="/adapters/${2}.adp.sh";;
     helper)           vr="D__HLP_$vr" path+="/helpers/${2}.hlp.sh";;
     procedure)        vr="D__PCD_$vr" path+="/procedures/${2}.pcd.sh";;
     routine)          vr="D__RTN_$vr" path+="/routines/${2}.rtn.sh";;
