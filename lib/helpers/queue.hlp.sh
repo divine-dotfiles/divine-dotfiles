@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.11.19
-#:revremark:    Make auto-targeting explicit via function
+#:revremark:    Bring templates up to speed; improve mtdt parsing
 #:created_at:   2019.06.10
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -384,7 +384,7 @@ d__queue_install()
             d__notify -l! -- 'Re-try with --force to overcome'
             printf >&2 '%s %s\n' "$D__INTRO_QIN_S" "$d__qeplq"
           fi;;
-      7)  # Fully installed by user or OS
+      7)  # Fully installed (by user or OS)
           d__msg=( "Item '$d__qen' appears to be fully installed" \
             'by means other than installing this deployment' )
           if $D__OPT_FORCE; then d__qefrcd=true
@@ -398,7 +398,7 @@ d__queue_install()
               printf >&2 '%s %s\n' "$D__INTRO_QCH_7" "$d__qeplq"
             fi
           fi;;
-      8)  # Partly installed by user or OS
+      8)  # Partly installed (by user or OS)
           printf >&2 '%s %s\n' "$D__INTRO_QIN_N" "$d__qeplq"
           d__notify -l! -- "Item '$d__qen' appears to be partly installed" \
             'by means other than installing this deployment'
@@ -686,7 +686,7 @@ d__queue_remove()
             d__notify -l! -- 'Re-try with --force to overcome'
             printf >&2 '%s %s\n' "$D__INTRO_QRM_S" "$d__qeplq"
           fi;;
-      7)  # Fully installed by user or OS
+      7)  # Fully installed (by user or OS)
           printf >&2 '%s %s\n' "$D__INTRO_QRM_N" "$d__qeplq"
           d__notify -l! -- "Item '$d__qen' appears to be fully installed" \
             'by means other than installing this deployment'
@@ -695,7 +695,7 @@ d__queue_remove()
             d__notify -l! -- 'Re-try with --force to overcome'
             printf >&2 '%s %s\n' "$D__INTRO_QCH_7" "$d__qeplq"
           fi;;
-      8)  # Partly installed by user or OS
+      8)  # Partly installed (by user or OS)
           printf >&2 '%s %s\n' "$D__INTRO_QRM_N" "$d__qeplq"
           d__notify -l! -- "Item '$d__qen' appears to be partly installed" \
             'by means other than installing this deployment'

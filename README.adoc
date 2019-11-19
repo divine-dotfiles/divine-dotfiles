@@ -2,7 +2,7 @@
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
 :revdate: 2019.11.19
-:revremark: Describe the new queue auto-targeting
+:revremark: Bring templates up to speed; improve mtdt parsing
 :doctype: article
 // Visual
 :toc: macro
@@ -1315,8 +1315,8 @@ This code is assumed if the `d_dpl_check` function is not implemented.
 ** `*4*` — _'Partly installed'_.
 ** `*5*` — _'Likely installed (unknown)'_.
 ** `*6*` — _'Manually removed (tinkered with)'_.
-** `*7*` — _'Fully installed by user or OS'_.
-** `*8*` — _'Partly installed by user or OS'_.
+** `*7*` — _'Fully installed (by user or OS)'_.
+** `*8*` — _'Partly installed (by user or OS)'_.
 ** `*9*` — _'Likely not installed (unknown)'_.
 
 Some additional instructions can be passed to the framework via the <<addst-main,add-status>> variables and the deployment <<dpls-metadata,metadata>>.
@@ -1364,7 +1364,8 @@ Some additional instructions can be passed to the framework via the <<addst-main
 
 *Deployment metadata* pose as definitions of Bash global variables and alter deployment's appearance and behavior.
 In reality, the metadata 'assignments' are read from the file _before_ the Bash interpreter sources it.
-In the interests of optimization, *the metadata must be contained in the first 20 non-empty lines of the deployment script*.
+The metadata may be given in any order and disjointly.
+However, *the metadata must precede all other _code_ of the deployment script*.
 
 * `<<mtdt-name-and-desc,*D_DPL_NAME*>>=_NAME_`
 +
@@ -1398,12 +1399,12 @@ D_DPL_WARNING="A warning message"
 
 The following syntax limitations are imposed upon metadata:
 
-* As mentioned above, only the first 20 lines of the deployment script are scanned for metadata.
+* As mentioned above, the metadata must precede all other non-whitespace, non-commented lines of the deployment script.
 * No more than one 'assignment' must be written per line, without line continuation.
-* Bash substitutions, as well as comments, should be avoided.
+* No Bash substitutions or comments are allowed.
 * In keeping with the Bash syntax, no whitespace is allowed around the `=`.
 * A pair of matching quotes around the value is allowed.
-Such pair of quotes us stripped in processing.
+Such pair of quotes is stripped in processing.
 
 [[mtdt-name-and-desc]]
 ==== Deployment name and description
@@ -1621,7 +1622,7 @@ Bring up to date
 | Clear stash
 
 | `*7*`
-| 'Fully installed by user or OS'
+| 'Fully installed (by user or OS)'
 | *Yes*
 | No
 | *Yes*
@@ -1631,7 +1632,7 @@ Bring up to date
 | Uninstall; pop backup
 
 | `*8*`
-| 'Partly installed by user or OS'
+| 'Partly installed (by user or OS)'
 | *Yes*
 | No
 | **Par**tly
@@ -3055,8 +3056,7 @@ The <<stash-main,stashing>> system is used to track the installations of the Git
 To assemble a Github-queue within a deployment (or a <<mltsk-main,task>>):
 
 * Set the queue <<queue-determinant,*determinant*>>, `*D_QUEUE_MAIN*`.
-Any names may be used for the Github-queue items.
-An obvious (and the recommended) choice — is the Github repository handles (`username/repository`).
+The names of the Github-queue items must be the Github repository handles (`username/repository`).
 * For each index in the determinant array, populate the following special arrays:
 ** `*D_QUEUE_TARGETS*` — the absolute paths to the repository destinations.
 * Call the Github-queue helper primaries as the last commands of the deployment's (or task's) <<func-primaries,primary functions>>, e.g.:

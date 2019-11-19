@@ -2,8 +2,8 @@
 #:title:        Divine Bash utils: scan
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.18
-#:revremark:    Fix breaking with read on first occurrence
+#:revdate:      2019.11.19
+#:revremark:    Bring templates up to speed; improve mtdt parsing
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -295,12 +295,13 @@ d__scan_for_dpl_files()
         d__context -- pop; algd=false; continue
       fi
 
-      # Look for metadata in the first few non-empty lines of the file
-      unset mtdt; ii=20
-      while read -r dpll || [[ -n "$dpll" ]]; do [ -z "$dpll" ] && continue
-        ((ii--)) || break; [[ $dpll = D_DPL_* ]] || continue
+      # Look for metadata in the first non-empty non-commented lines
+      unset mtdt
+      while read -r dpll || [[ -n "$dpll" ]]; do
+        [ -z "$dpll" ] && continue; [[ $dpll = \#* ]] && continue
+        [[ $dpll = D_DPL_* ]] || break
         case ${dpll:6} in NAME=*) jj=0;; DESC=*) jj=1;; PRIORITY=*) jj=2;;
-          FLAGS=*) jj=3;; WARNING=*) jj=4;; *) continue;; esac
+          FLAGS=*) jj=3;; WARNING=*) jj=4;; *) break;; esac
         IFS='=' read -r tmp vlu <<<"$dpll "
         if [[ $vlu = \'*\'\  || $vlu = \"*\"\  ]]
         then read -r vlu <<<"${vlu:1:${#vlu}-3}"
