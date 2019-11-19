@@ -2,14 +2,14 @@
 #:title:        Divine Bash procedure: detect-os
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.27
-#:revremark:    Add 'has' command to d__os_pkgmgr wrapper
+#:revdate:      2019.11.19
+#:revremark:    Phase out old queue auto-targeting
 #:created_at:   2019.03.15
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
 #
-## Search for <<CONTRIBUTE HERE>> to find the two portions of code that are 
-#. meant for extension, to support additional OS distributions.
+## Search for <<CONTRIBUTE HERE>> to find the portion of the code that is 
+#. intended for extension, to support additional OS distributions.
 #
 
 # Marker and dependencies
@@ -81,19 +81,9 @@ d__detect_os_family()
 
   $D__DISABLE_CASE_SENSITIVITY
 
-  ## The block of code below, until the next comment, must populate the local 
+  ## The block of code below, until the next comment, populates the local 
   #. variable d__os_family with the one-word handle for the current OS family. 
-  #. This handle is then used to locate and source the OS family adapter at 
-  #. lib/adapters/family/<OS_FAMILY>.adf.sh.
   #
-  ## If extending the framework with support for additional OS families, one 
-  #. should both modify the code block below and create the corresponding 
-  #. adapter.
-  #
-  ## For reference on adapters see lib/templates/adapters/family.adf.sh.
-  #
-
-  # <<CONTRIBUTE HERE>>
   case $D__OSTYPE in
     darwin*)  d__os_family=macos;;
     linux*)   if grep -Fqi -e microsoft -e wsl /proc/version 2>/dev/null
@@ -107,7 +97,6 @@ d__detect_os_family()
     mingw*)   d__os_family=msys;;
     *)        d__os_family=;;
   esac
-  # <<END OF CONTRIBUTION BLOCK>>
 
   $D__RESTORE_CASE_SENSITIVITY
   
@@ -117,8 +106,7 @@ d__detect_os_family()
     exit 1
   else readonly D__OS_FAMILY="$d__os_family"; fi
 
-  # Load adapter file; finish up
-  d__load family-adapter $D__OS_FAMILY
+  # Finish up
   d__context -qqvt 'Detected OS family' -- pop "'$BOLD$D__OS_FAMILY$NORMAL'"
   return 0
 }
@@ -171,13 +159,13 @@ d__detect_os_distro_and_pkgmgr()
   ## The block of code below, until the next comment, must populate the local 
   #. variable d__os_distro with the one-word handle for the current OS distro. 
   #. This handle is then used to locate and source the OS distro adapter at 
-  #. lib/adapters/distro/<OS_DISTRO>.add.sh.
+  #. lib/adapters/<OS_DISTRO>.adp.sh.
   #
   ## If extending the framework with support for additional OS distros, one 
   #. should both modify the code block below and create the corresponding 
   #. adapter.
   #
-  ## For reference on adapters see lib/templates/adapters/distro.add.sh.
+  ## For reference on adapters see lib/templates/adapters/distro.adp.sh.
   #
 
   # <<CONTRIBUTE HERE>>
@@ -207,7 +195,7 @@ d__detect_os_distro_and_pkgmgr()
   else readonly D__OS_DISTRO="$d__os_distro"; fi
 
   # Load adapter file
-  d__load distro-adapter $D__OS_DISTRO
+  d__load adapter $D__OS_DISTRO
 
   # Switch context
   d__context -qqvt 'Detected OS distribution' -- pop \

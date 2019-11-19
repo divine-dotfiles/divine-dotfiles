@@ -2,8 +2,8 @@
 #:title:        Divine Bash deployment helpers: reconcile
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.08
-#:revremark:    Update readme for D.d v2, pt. 7
+#:revdate:      2019.11.19
+#:revremark:    Bring templates up to speed; improve mtdt parsing
 #:created_at:   2019.06.18
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -62,8 +62,7 @@ d__mltsk_check()
     # Extract number, name; switch context
     d__mtn="${D_MLTSK_MAIN[$d__mti]}" d__mtf="d_${d__mtn}_check"
     d__mtbf="d_${d__mtn}_pre_check" d__mtaf="d_${d__mtn}_post_check"
-    d__context -- push \
-      "Checking task '$d__mtn' (#$((d__mti+1)) of ${#D_MLTSK_MAIN[@]})"
+    d__context -- push "Checking task #$d__mti '$d__mtn'"
 
     # Initialize marker var; clear add-statuses
     unset D__TASK_IS_QUEUE D_ADDST_MLTSK_HALT D_ADDST_TASK_CHECK_CODE
@@ -172,7 +171,7 @@ d__mltsk_check()
 
     # If in check routine and being verbose, print status
     if [ "$D__REQ_ROUTINE" = check -a "$D__OPT_VERBOSITY" -gt 0 ]; then
-      d__mtplq="Task '$d__mtn' (#$((d__mti+1)) of ${#D_MLTSK_MAIN[@]})"
+      d__mtplq="Task #$d__mti '$d__mtn'"
       d__mtplq+="$NORMAL"; case $d__mtrtc in
         1)  printf >&2 '%s %s\n' "$D__INTRO_QCH_1" "$d__mtplq";;
         2)  printf >&2 '%s %s\n' "$D__INTRO_QCH_2" "$d__mtplq";;
@@ -270,7 +269,7 @@ d__mltsk_install()
     d__mtbf="d_${d__mtn}_pre_install" d__mtaf="d_${d__mtn}_post_install"
     d__mtcc="${D__MLTSK_CHECK_CODES[$d__mti]}"
     d__mtflg="${D__MLTSK_FLAGS[$d__mti]}"
-    d__mtplq="'$d__mtn' (#$((d__mti+1)) of ${#D_MLTSK_MAIN[@]})"
+    d__mtplq="#$d__mti '$d__mtn'"
     d__context -- push "Installing task $d__mtplq"
     d__mtplq="Task $d__mtplq$NORMAL"
 
@@ -317,7 +316,7 @@ d__mltsk_install()
             d__notify -l! -- 'Re-try with --force to overcome'
             printf >&2 '%s %s\n' "$D__INTRO_QIN_S" "$d__mtplq"
           fi;;
-      7)  # Fully installed by user or OS
+      7)  # Fully installed (by user or OS)
           d__msg=( "Task '$d__mtn' appears to be fully installed" \
             'by means other than installing this deployment' )
           if $D__OPT_FORCE; then d__mtfrcd=true
@@ -331,7 +330,7 @@ d__mltsk_install()
               printf >&2 '%s %s\n' "$D__INTRO_QCH_7" "$d__mtplq"
             fi
           fi;;
-      8)  # Partly installed by user or OS
+      8)  # Partly installed (by user or OS)
           printf >&2 '%s %s\n' "$D__INTRO_QIN_N" "$d__mtplq"
           d__notify -l! -- "Task '$d__mtn' appears to be partly installed" \
             'by means other than installing this deployment'
@@ -545,7 +544,7 @@ d__mltsk_remove()
     d__mtbf="d_${d__mtn}_pre_remove" d__mtaf="d_${d__mtn}_post_remove"
     d__mtcc="${D__MLTSK_CHECK_CODES[$d__mti]}"
     d__mtflg="${D__MLTSK_FLAGS[$d__mti]}"
-    d__mtplq="'$d__mtn' (#$((d__mti+1)) of ${#D_MLTSK_MAIN[@]})"
+    d__mtplq="#$d__mti '$d__mtn'"
     d__context -- push "Removing task $d__mtplq"
     d__mtplq="Task $d__mtplq$NORMAL"
 
@@ -593,7 +592,7 @@ d__mltsk_remove()
             d__notify -l! -- 'Re-try with --force to overcome'
             printf >&2 '%s %s\n' "$D__INTRO_QRM_S" "$d__mtplq"
           fi;;
-      7)  # Fully installed by user or OS
+      7)  # Fully installed (by user or OS)
           printf >&2 '%s %s\n' "$D__INTRO_QRM_N" "$d__mtplq"
           d__notify -l! -- "Task '$d__mtn' appears to be fully installed" \
             'by means other than installing this deployment'
@@ -602,7 +601,7 @@ d__mltsk_remove()
             d__notify -l! -- 'Re-try with --force to overcome'
             printf >&2 '%s %s\n' "$D__INTRO_QCH_7" "$d__mtplq"
           fi;;
-      8)  # Partly installed by user or OS
+      8)  # Partly installed (by user or OS)
           printf >&2 '%s %s\n' "$D__INTRO_QRM_N" "$d__mtplq"
           d__notify -l! -- "Task '$d__mtn' appears to be partly installed" \
             'by means other than installing this deployment'

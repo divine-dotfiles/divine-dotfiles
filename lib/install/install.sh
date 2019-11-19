@@ -2,8 +2,8 @@
 #:title:        Divine.dotfiles fmwk install script
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.31
-#:revremark:    Plug the master branch back into (un)inst. scripts
+#:revdate:      2019.11.19
+#:revremark:    Phase out old queue auto-targeting
 #:created_at:   2019.07.22
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -176,8 +176,7 @@ d__whereto()
 #
 ## Arguments:
 #.  $1  - Type of script:
-#.          * 'distro-adapter'
-#.          * 'family-adapter'
+#.          * 'adapter'
 #.          * 'helper'
 #.          * 'procedure'
 #.          * 'routine'
@@ -196,8 +195,7 @@ d__load()
 
   # Perform different
   case $1 in
-    distro-adapter)   vr="D__ADD_$vr" url+="/adapters/distro/${2}.add.sh";;
-    family-adapter)   vr="D__ADF_$vr" url+="/adapters/family/${2}.adf.sh";;
+    adapter)          vr="D__ADD_$vr" url+="/adapters/${2}.adp.sh";;
     helper)           vr="D__HLP_$vr" url+="/helpers/${2}.hlp.sh";;
     procedure)        vr="D__PCD_$vr" url+="/procedures/${2}.pcd.sh";;
     routine)          vr="D__RTN_$vr" url+="/routines/${2}.rtn.sh";;

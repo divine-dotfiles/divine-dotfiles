@@ -2,8 +2,8 @@
 #:title:        Divine Bash procedure: sync-bundles
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.17
-#:revremark:    Split prep-gh in two
+#:revdate:      2019.11.18
+#:revremark:    Fix treatment of files in bundles dir
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -38,7 +38,7 @@ d__pcd_sync_bundles()
   d__context -- push 'Synchronizing bundles directory with Grail stash records'
 
   # Storage variables
-  local i j recba=() recb recc actba=() actb actc erra=()
+  local i j recba=() recb recc actba=() actb actc alta=() erra=()
 
   # Compile list of recorded bundles
   if d__stash -gs -- has attached_bundles; then
@@ -51,19 +51,9 @@ d__pcd_sync_bundles()
     d__fail -- "Path to bundles directory is occupied: '$D__DIR_BUNDLES'"
     exit 1
   elif [ -r "$D__DIR_BUNDLES" -a -d "$D__DIR_BUNDLES" ]; then
-    while IFS= read -r -d $'\0' actb; do
-      actba+=( "$actb" )
-      if ! [ -d "$actb" ]; then
-        erra+=( -i- "- path to potential bundle directory is occupied: $actb" )
-      fi
-    done < <( find "$D__DIR_BUNDLES" -mindepth 2 -maxdepth 2 -print0 )
+    while IFS= read -r -d $'\0' actb; do actba+=( "$actb" )
+    done < <( find "$D__DIR_BUNDLES" -mindepth 2 -maxdepth 2 -type d -print0 )
   fi; actc=${#actba[@]}
-
-  # Check for non-directories in bundles directory
-  if ((${#erra[@]})); then
-    d__fail -- 'Illegal state of bundles directory:' "${erra[@]}"
-    exit 1
-  fi
 
   # Cross-reference directories to records
   for ((j=0;j<$actc;++j)); do
@@ -75,13 +65,20 @@ d__pcd_sync_bundles()
   done
 
   # Report inconsistencies if they are present
-  for recb in "${recba[@]}"
-  do erra+=( -i- "- missing bundle '$recb'" ); done
+  for recb in "${recba[@]}"; do
+    alta+=( -i- "- missing bundle '$recb'" ) actb="$D__DIR_BUNDLES/$recb"
+    if [ -e "$actb" ]
+    then erra+=( -i- "- path to bundle directory is blocked: $actb" ); fi
+  done
+  if ((${#erra[@]})); then
+    d__fail -- 'Illegal state of bundles directory:' "${erra[@]}"
+    exit 1
+  fi
   for actb in "${actba[@]}"
-  do erra+=( -i- "- unrecorded bundle '$actb'" ); done
-  if [ ${#erra[@]} -eq 0 ]; then d__context -- lop; return 0; fi
+  do alta+=( -i- "- unrecorded bundle '$actb'" ); done
+  if [ ${#alta[@]} -eq 0 ]; then d__context -- lop; return 0; fi
   d__notify -l! -- 'Bundles directory is inconsistent' \
-    'with Grail stash records:' "${erra[@]}"
+    'with Grail stash records:' "${alta[@]}"
   if ((${#recba[@]})) && [ -z "$D__GH_METHOD" ]; then
     d__fail -- 'There is no way to retrieve missing bundles from Github'
     exit 1
