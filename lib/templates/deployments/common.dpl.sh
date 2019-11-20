@@ -2,8 +2,8 @@
 #:title:        Divine deployment annotated template
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.19
-#:revremark:    Bring templates up to speed; improve mtdt parsing
+#:revdate:      2019.11.20
+#:revremark:    Add D_DPL_OS to the dpl templates
 #:created_at:   2018.03.25
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -22,7 +22,7 @@
 #.  * Copy this template to anywhere under the 'grail/dpls' directory.
 #.  * Rename this template, e.g., 'my-dpl.dpl.sh'.
 #.  * Implement whichever parts you need (all are optional):
-#.    - Assign the metadata (name, description, priority, flags, warning).
+#.    - Assign the metadata (name, description, priority, flags, warning, OS).
 #.    - Implement the 'd_dpl_check'   function.
 #.    - Implement the 'd_dpl_install' function.
 #.    - Implement the 'd_dpl_remove'  function.
@@ -41,6 +41,7 @@ D_DPL_DESC='An example description'
 D_DPL_PRIORITY=1000
 D_DPL_FLAGS=r
 D_DPL_WARNING="Removing this deployment is dangerous"
+D_DPL_OS=( macos bsd )
 
 ## d_dpl_check
 #
