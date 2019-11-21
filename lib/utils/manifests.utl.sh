@@ -2,8 +2,8 @@
 #:title:        Divine Bash utils: manifests
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.18
-#:revremark:    Fix breaking with read on first occurrence
+#:revdate:      2019.11.19
+#:revremark:    Fix logic of manifest os key-value
 #:created_at:   2019.05.30
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -325,44 +325,41 @@ d___evaluate_key_os()
   # Check if the list of OS's starts with '!'
   if [[ $vl = '!'* ]]; then
 
+    # Negated list
     # Strip the '!' and re-trim the list
-    vl="${vl:1:${#vl}}"; read -r vl <<<"$vl"
-    ## If value is empty, all OS's are allowed (negation of empty 
-    #. list is not allowed)
+    read -r vl <<<"${vl:1:${#vl}}"
+    # If value is empty, all OS's are allowed
     if [ -z "$vl" ]; then cur_rel=true; return 0; fi
-    # Read value as whitespace-separated list of relevant OS's
+    # Read value as whitespace-separated list of negated OS's
     read -r -a vla <<<"$vl"
     # Set default value
     cur_rel=true
 
     # Iterate over list of negated OS's
     for vl in "${vla[@]}"; do
-      # Clear whitespace from edges of OS name
-      read -r vl <<<"$vl"
       # If value is either 'all' or 'any', all OS's are negated
-      case $vl in all|any) cur_rel=false; break;; esac
-      # If current OS name from the list matches detected OS, mark it
-      if [[ $vl = $D__OS_FAMILY || $vl = $D__OS_DISTRO ]]
-      then cur_rel=false; fi
+      # If current OS name from the list matches detected OS, it is negated
+      case $vl in
+        all|any|"$D__OS_FAMILY"|"$D__OS_DISTRO") cur_rel=false; return 0;;
+      esac
     # Done iterating over list of relevant OS's
     done
 
   else
 
-    # Normal list, does not start with '!': set default status
-    cur_rel=false
+    # Normal list, does not start with '!'
     # Read value as whitespace-separated list of relevant OS's
     read -r -a vla <<<"$vl"
+    # Set default status
+    cur_rel=false
 
     # Iterate over list of relevant OS's
     for vl in "${vla[@]}"; do
-      # Clear whitespace from edges of OS name
-      read -r vl <<<"$vl"
       # If value is either 'all' or 'any', all OS's are allowed
-      case $vl in all|any) cur_rel=true; break;; esac
-      # If current OS name from the list matches detected OS, mark it
-      if [[ $vl = $D__OS_FAMILY || $vl = $D__OS_DISTRO ]]
-      then cur_rel=true; break; fi
+      # If current OS name from the list matches detected OS, it is allowed
+      case $vl in
+        all|any|"$D__OS_FAMILY"|"$D__OS_DISTRO") cur_rel=true; return 0;;
+      esac
     # Done iterating over list of relevant OS's
     done
 

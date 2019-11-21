@@ -2,7 +2,7 @@
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
 :revdate: 2019.11.21
-:revremark: Batch rename dmd5 to d__md5
+:revremark: Describe the new OS metadatum
 :doctype: article
 // Visual
 :toc: macro
@@ -1364,7 +1364,7 @@ Some additional instructions can be passed to the framework via the <<addst-main
 
 *Deployment metadata* pose as definitions of Bash global variables and alter deployment's appearance and behavior.
 In reality, the metadata 'assignments' are read from the file _before_ the Bash interpreter sources it.
-The metadata may be given in any order and disjointly.
+The metadata are all optional; they may be given in any order and disjointly.
 However, *the metadata must precede all other _code_ of the deployment script*.
 
 * `<<mtdt-name-and-desc,*D_DPL_NAME*>>=_NAME_`
@@ -1385,6 +1385,10 @@ The single-character flags that cause special treatment.
 +
 The one-line cautionary message about this deployment.
 This message is printed to the user if and only if the <<mtdt-aa,always-prompt>> flag causes the appearance of an <<fmwk-upmt,urgent>> prompt.
+* `<<mtdt-os,*D_DPL_OS*>>=( _OS LIST_ )`
++
+The value of this pseudo-variable defines the list of operating systems that the deployment supports.
+On non-supported OS's, the deployment is ignored completely.
 
 Below is an example of metadata in the head of a deployment script:
 
@@ -1504,6 +1508,35 @@ D_DPL_WARNING="Warning for 'urgent' prompts forced by a flag"
 ----
 
 If a deployment has a warning, and the <<mtdt-aa,always-prompt>> mode is engaged, then the warning is printed alongside the <<fmwk-upmt,urgent>> prompt.
+
+[[mtdt-os]]
+==== Deployment OS's
+
+[source,bash]
+----
+# The deployment supports only the listed OS's:
+  D_DPL_OS=( bsd macos )
+  # or
+  D_DPL_OS='debian fedora ubuntu'
+
+# or
+
+# The deployment supports all OS's except those listed:
+  D_DPL_OS=( ! "linux" 'wsl' )
+  # or
+  D_DPL_OS="! cygwin msys solaris"
+----
+
+There are two equivalent syntaxes acceptable for the `D_DPL_OS` pseudo-variable: array and string.
+The operating systems are given as a whitespace-separated list.
+In the array syntax, the individual OS names may be quoted.
+
+The entire list is negated by including the `!` symbol as the first non-whitespace character.
+An empty list, negated or not, greenlights all OS's.
+The equivalent keywords `any` and `all` are also reserved to denote any OS.
+
+The names of the OS's are matched against the values of the <<indct-os-family,`D__OS_FAMILY`>> and <<indct-os-distro,`D__OS_DISTRO`>> indicators.
+A match against any of the two is sufficient.
 
 [[rtc-main]]
 === Return codes
