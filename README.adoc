@@ -1,8 +1,8 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revdate: 2019.11.19
-:revremark: Bring templates up to speed; improve mtdt parsing
+:revdate: 2019.11.21
+:revremark: Batch rename dmd5 to d__md5
 :doctype: article
 // Visual
 :toc: macro
@@ -4151,16 +4151,16 @@ These options are not combined and the last option given wins.
 
 |===
 
-[[func-dmd5]]
-=== Function `dmd5`
+[[func-md5]]
+=== Function `d__md5`
 
 The framework exstensively uses the https://en.wikipedia.org/wiki/MD5[MD5] checksums to indirectly compare files and strings.
-The `dmd5` function provides a cross-platform way of calculating an the MD5 checksums.
+The `d{dus}md5` function provides a cross-platform way of calculating an the MD5 checksums.
 Under the hood it uses the first utility found: `md5sum`, `md5`, or `openssl`.
 
 [source,subs="verbatim,quotes,attributes"]
 ----
-*dmd5* [-s *_STRING_*] | [*_PATH_*]
+*d{dus}md5* [-s *_STRING_*] | [*_PATH_*]
 ----
 
 * One checksum is calculated per call.
@@ -4168,7 +4168,7 @@ Under the hood it uses the first utility found: `md5sum`, `md5`, or `openssl`.
 * It is up to the caller to ensure that the path exists and is readable.
 * The checksum is printed to the `stdout`.
 
-The `dmd5` function returns zero on success and non-zero if something goes wrong.
+The `d{dus}md5` function returns zero on success and non-zero if something goes wrong.
 
 [[bckp-main]]
 === Backups
@@ -4193,7 +4193,7 @@ For the backup path, the first available strategy is employed:
 * If a `*_BACKUP_PATH_*` is given, it is used.
 If it turns out unusable, an error code is returned, without attempting other strategies.
 * If called from a deployment, the backup path is generated in the <<indct-dpl-backup-dir,`$D__DPL_BACKUP_DIR`>> directory, and named by concatenating:
-** the MD5 <<func-dmd5,checksum>> of the `*_ORIG_PATH_*`;
+** the MD5 <<func-md5,checksum>> of the `*_ORIG_PATH_*`;
 ** the `.bak` suffix.
 * If none of the above works, an error code is returned.
 
@@ -4245,7 +4245,7 @@ For the backup path, the first available strategy is employed:
 * If a `*_BACKUP_PATH_*` is given, it is used.
 If it turns out unusable, an error code is returned, without attempting other strategies.
 * If called from a deployment, the backup path is generated in the <<indct-dpl-backup-dir,`$D__DPL_BACKUP_DIR`>> directory, and named by concatenating:
-** the MD5 <<func-dmd5,checksum>> of the `*_ORIG_PATH_*`;
+** the MD5 <<func-md5,checksum>> of the `*_ORIG_PATH_*`;
 ** the `.bak` suffix.
 * If none of the above works, an error code is returned.
 

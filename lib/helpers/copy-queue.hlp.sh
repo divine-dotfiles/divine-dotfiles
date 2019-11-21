@@ -2,8 +2,8 @@
 #:title:        Divine Bash deployment helpers: copy-queue
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.19
-#:revremark:    Phase out old queue auto-targeting
+#:revdate:      2019.11.21
+#:revremark:    Batch rename dmd5 to d__md5
 #:created_at:   2019.05.23
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -91,7 +91,7 @@ d__copy_item_check()
   local d__cqei="$D__ITEM_NUM" d__cqrtc= d__cqer=()
   local d__cqea="${D_QUEUE_ASSETS[$d__cqei]}"
   local d__cqet="${D_QUEUE_TARGETS[$d__cqei]}"
-  local d__cqesk="copy_$( dmd5 -s "$d__cqet" )"
+  local d__cqesk="copy_$( d__md5 -s "$d__cqet" )"
   local d__cqeb="$D__DPL_BACKUP_DIR/$d__cqesk"
   local d__cqexct=false
   if [ "$D_ADDST_COPY_QUEUE_EXACT" = true ] \
@@ -117,7 +117,7 @@ d__copy_item_check()
     fi
     if [ -z "$d__cqrtc" ]; then
       if $d__cqexct; then
-        if [ "$( dmd5 "$d__cqea" )" = "$( dmd5 "$d__cqet" )" ]
+        if [ "$( d__md5 "$d__cqea" )" = "$( d__md5 "$d__cqet" )" ]
         then d__stash -s -- has $d__cqesk && d__cqrtc=1 || d__cqrtc=7
         else d__stash -s -- has $d__cqesk && d__cqrtc=6 || d__cqrtc=2; fi
       else d__stash -s -- has $d__cqesk && d__cqrtc=1 || d__cqrtc=7; fi
@@ -171,7 +171,7 @@ d__copy_item_install()
   local d__cqei="$D__ITEM_NUM" d__cqrtc d__cqcmd
   local d__cqea="${D_QUEUE_ASSETS[$d__cqei]}"
   local d__cqet="${D_QUEUE_TARGETS[$d__cqei]}"
-  local d__cqesk="copy_$( dmd5 -s "$d__cqet" )"
+  local d__cqesk="copy_$( d__md5 -s "$d__cqet" )"
   local d__cqeb="$D__DPL_BACKUP_DIR/$d__cqesk"
   d__context -- push "Installing a copy to: '$d__cqet'"
 
@@ -230,7 +230,7 @@ d__copy_item_remove()
   # Init storage variables; switch context
   local d__cqei="$D__ITEM_NUM" d__cqrtc d__cqeo
   local d__cqet="${D_QUEUE_TARGETS[$d__cqei]}"
-  local d__cqesk="copy_$( dmd5 -s "$d__cqet" )"
+  local d__cqesk="copy_$( d__md5 -s "$d__cqet" )"
   local d__cqeb="$D__DPL_BACKUP_DIR/$d__cqesk"
   d__context -- push "Undoing copying to: '$d__cqet'"
 

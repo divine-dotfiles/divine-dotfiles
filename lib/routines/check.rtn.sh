@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: check
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.18
-#:revremark:    Exit sub-shell instead of continuing from within
+#:revdate:      2019.11.21
+#:revremark:    Batch rename dmd5 to d__md5
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -139,7 +139,7 @@ d___check_pkgs()
 
     # Perform check
     if d__os_pkgmgr check $d__pkg_n; then
-      if d__stash -rs -- has "pkg_$( dmd5 -s $d__pkg_n )" \
+      if d__stash -rs -- has "pkg_$( d__md5 -s $d__pkg_n )" \
         || d__stash -rs -- has installed_utils "$d__pkg_n"
       then
         # Installed with stash record
@@ -149,7 +149,7 @@ d___check_pkgs()
         printf >&2 '%s %s\n' "$D__INTRO_CHK_7" "$d__plq"
       fi
     elif type -P -- $d__pkg_n &>/dev/null; then
-      if d__stash -rs -- has "pkg_$( dmd5 -s $d__pkg_n )" \
+      if d__stash -rs -- has "pkg_$( d__md5 -s $d__pkg_n )" \
         || d__stash -rs -- has installed_utils "$d__pkg_n"
       then
         # Installed without package manager, somehow there is a stash record
@@ -164,7 +164,7 @@ d___check_pkgs()
         printf >&2 '%s %s\n' "$D__INTRO_CHK_7" "$d__plq"
       fi
     else
-      if d__stash -rs -- has "pkg_$( dmd5 -s $d__pkg_n )"; then
+      if d__stash -rs -- has "pkg_$( d__md5 -s $d__pkg_n )"; then
         # Not installed, but stash record exists
         printf >&2 '%s %s\n' "$D__INTRO_CHK_6" "$d__plq"
       elif ! d__os_pkgmgr has $d__pkg_n; then

@@ -2,8 +2,8 @@
 #:title:        Divine Bash utils: stash
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.18
-#:revremark:    Fix breaking with read on first occurrence
+#:revdate:      2019.11.21
+#:revremark:    Batch rename dmd5 to d__md5
 #:created_at:   2019.05.15
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -615,7 +615,7 @@ d___check_stashing_system()
       fi
 
       # Store md5 of empty file
-      if ! dmd5 "$stash_filepath" >"$stash_md5_filepath"; then
+      if ! d__md5 "$stash_filepath" >"$stash_md5_filepath"; then
         d__notify $quiet -- \
           "Failed to create stash checksum file at: $stash_md5_filepath"
         return 1
@@ -663,7 +663,7 @@ d___check_stashing_system()
 d___stash_store_md5()
 {
   # Store current md5 checksum to intended file, or report error
-  dmd5 "$stash_filepath" >"$stash_md5_filepath" && return 0
+  d__md5 "$stash_filepath" >"$stash_md5_filepath" && return 0
   d__notify $quiet -- \
     "Failed to create stash checksum file at: $stash_md5_filepath"
   return 1
@@ -691,7 +691,7 @@ d___stash_check_md5()
   local stored_md5="$( head -1 -- "$stash_md5_filepath" 2>/dev/null )"
 
   # If checksums match: return immediately
-  [ "$stored_md5" = "$( dmd5 "$stash_filepath" )" ] && return 0
+  [ "$stored_md5" = "$( d__md5 "$stash_filepath" )" ] && return 0
 
   # Check if stored md5 is valid-ish
   if [ ${#stored_md5} -eq 32 ]; then

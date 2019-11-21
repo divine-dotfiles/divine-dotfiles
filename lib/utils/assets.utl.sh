@@ -2,8 +2,8 @@
 #:title:        Divine Bash utils: assets
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.15
-#:revremark:    Diversify not-found output of asset processing
+#:revdate:      2019.11.21
+#:revremark:    Batch rename dmd5 to d__md5
 #:created_at:   2019.10.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -260,7 +260,7 @@ d___copy_asset()
   if [ -e "$p_dst" ]; then
 
     # Cut-off checks for non-forced assets and byte-by-byte copies
-    if ! $flgf || [ "$( dmd5 "$p_src" )" = "$( dmd5 "$p_dst" )" ]
+    if ! $flgf || [ "$( d__md5 "$p_src" )" = "$( d__md5 "$p_dst" )" ]
     then return 0; fi
 
     # Overwriting: READMEs are clobbered, other files backed up in place
