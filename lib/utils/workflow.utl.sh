@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.11.21
-#:revremark:    Improve wording on --obliterate warning
+#:revremark:    With --yes, substitute --obliterate prompt with alert
 #:created_at:   2019.09.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -1533,7 +1533,7 @@ d__require_sudo()
 #
 d__confirm_obliteration()
 {
-  if d__prompt -!pn 'Slash & burn?' -- \
+  local alrt=( \
     "You have chosen the $BOLD--obliterate$NORMAL option." \
     -n- \
     "This means that the framework will ${BOLD}forego the usual concerns" \
@@ -1544,6 +1544,12 @@ d__confirm_obliteration()
     'Normally, backups of such assets are kept just in case.' \
     -n- \
     '(The described behavior is only guaranteed for the framework itself and' \
-    'the Divine deployments.)'
-  then return 0; else exit 1; fi
+    'the Divine deployments.)' \
+  )
+  case $D__OPT_ANSWER in
+    true)   d__notify -l! -- "${alrt[@]}";;
+    false)  :;;
+    *)      if d__prompt -!pn 'Slash & burn?' -- "${alrt[@]}"
+            then return 0; else exit 1; fi;;
+  esac
 }
