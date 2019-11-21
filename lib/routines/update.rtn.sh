@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: update
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.31
-#:revremark:    Repaint notices about repo url and location
+#:revdate:      2019.11.21
+#:revremark:    Improve Github retrievers (accept refs and remotes)
 #:created_at:   2019.05.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -197,7 +197,7 @@ d___update_fmk_via_pull()
 {
   # Notify and perform excellently
   d__notify -- 'Updating by pulling from Github remote'
-  if ! d___pull_updates_from_gh "$uarg" "$udst"; then
+  if ! d___pull_from_git_remote "$udst"; then
     d__notify -lx -- "Failed to pull updates from Github remote"
     printf >&2 '%s %s\n' "$D__INTRO_UPD_1" "$uplq"; return 1
   fi
@@ -475,7 +475,7 @@ d___update_bdl_via_pull()
 {
   # Notify and perform excellently
   d__notify -- 'Updating by pulling from Github remote'
-  if ! d___pull_updates_from_gh "$uarg" "$udst"; then
+  if ! d___pull_from_git_remote "$udst"; then
     d__notify -lx -- "Failed to pull updates from Github remote"
     printf >&2 '%s %s\n' "$D__INTRO_UPD_1" "$uplq"; return 1
   fi
