@@ -1,0 +1,1 @@
+* [**`api`**] Rename the `dmd5` function to `d__md5`, to conform with the overall naming convention.
