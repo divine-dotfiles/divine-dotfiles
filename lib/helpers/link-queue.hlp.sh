@@ -2,8 +2,8 @@
 #:title:        Divine Bash deployment helpers: link-queue
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.19
-#:revremark:    Phase out old queue auto-targeting
+#:revdate:      2019.11.21
+#:revremark:    Batch rename dmd5 to d__md5
 #:created_at:   2019.04.02
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -91,7 +91,7 @@ d__link_item_check()
   local d__lqei="$D__ITEM_NUM" d__lqrtc d__lqer=()
   local d__lqea="${D_QUEUE_ASSETS[$d__lqei]}"
   local d__lqet="${D_QUEUE_TARGETS[$d__lqei]}"
-  local d__lqesk="link_$( dmd5 -s "$d__lqet" )"
+  local d__lqesk="link_$( d__md5 -s "$d__lqet" )"
   local d__lqeb="$D__DPL_BACKUP_DIR/$d__lqesk"
   d__context -- push "Checking if linked at: '$d__lqet'"
 
@@ -155,7 +155,7 @@ d__link_item_install()
   local d__lqei="$D__ITEM_NUM" d__lqrtc d__lqcmd
   local d__lqea="${D_QUEUE_ASSETS[$d__lqei]}"
   local d__lqet="${D_QUEUE_TARGETS[$d__lqei]}"
-  local d__lqesk="link_$( dmd5 -s "$d__lqet" )"
+  local d__lqesk="link_$( d__md5 -s "$d__lqet" )"
   local d__lqeb="$D__DPL_BACKUP_DIR/$d__lqesk"
   d__context -- push "Installing a link at: '$d__lqet'"
 
@@ -215,7 +215,7 @@ d__link_item_remove()
   local d__lqei="$D__ITEM_NUM" d__lqrtc d__lqeo
   local d__lqea="${D_QUEUE_ASSETS[$d__lqei]}"
   local d__lqet="${D_QUEUE_TARGETS[$d__lqei]}"
-  local d__lqesk="link_$( dmd5 -s "$d__lqet" )"
+  local d__lqesk="link_$( d__md5 -s "$d__lqet" )"
   local d__lqeb="$D__DPL_BACKUP_DIR/$d__lqesk"
   d__context -- push "Undoing link at: '$d__lqet'"
 

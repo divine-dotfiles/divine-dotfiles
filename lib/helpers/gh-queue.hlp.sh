@@ -2,8 +2,8 @@
 #:title:        Divine Bash deployment helpers: gh-queue
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.19
-#:revremark:    Phase out old queue auto-targeting
+#:revdate:      2019.11.21
+#:revremark:    Batch rename dmd5 to d__md5
 #:created_at:   2019.10.10
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -89,7 +89,7 @@ d__gh_item_check()
   local d__gqei="$D__ITEM_NUM" d__gqen="$D__ITEM_NAME" d__gqrtc d__gqer=()
   local d__gqet="${D_QUEUE_TARGETS[$d__gqei]}"
   local d__gqeb="$D__DPL_BACKUP_DIR/$d__gqesk"
-  local d__gqesk="gh_$( dmd5 -s "$d__gqet" )"
+  local d__gqesk="gh_$( d__md5 -s "$d__gqet" )"
   d__context -- push "Checking if cloned to: '$d__gqet'"
 
   # Do sanity checks
@@ -158,7 +158,7 @@ d__gh_item_install()
   # Init storage variables; switch context
   local d__gqei="$D__ITEM_NUM" d__gqen="$D__ITEM_NAME" d__gqrtc
   local d__gqet="${D_QUEUE_TARGETS[$d__gqei]}"
-  local d__gqesk="gh_$( dmd5 -s "$d__gqet" )"
+  local d__gqesk="gh_$( d__md5 -s "$d__gqet" )"
   local d__gqeb="$D__DPL_BACKUP_DIR/$d__gqesk"
   d__context -- push "Retrieving a Github repo to: '$d__gqet'"
 
@@ -217,7 +217,7 @@ d__gh_item_remove()
   # Init storage variables; switch context
   local d__gqei="$D__ITEM_NUM" d__gqen="$D__ITEM_NAME" d__gqrtc d__gqeo
   local d__gqet="${D_QUEUE_TARGETS[$d__gqei]}"
-  local d__gqesk="gh_$( dmd5 -s "$d__gqet" )"
+  local d__gqesk="gh_$( d__md5 -s "$d__gqet" )"
   local d__gqeb="$D__DPL_BACKUP_DIR/$d__gqesk"
   d__context -- push "Removing Github repo at: '$d__gqet'"
 
