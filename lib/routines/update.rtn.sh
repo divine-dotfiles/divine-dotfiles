@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.11.21
-#:revremark:    Improve Github retrievers (accept refs and remotes)
+#:revremark:    Rewrite update functions to honor nightly mode
 #:created_at:   2019.05.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -59,7 +59,7 @@ d__rtn_update()
 
   # Storage & status variables
   local uarg udst uplq utmp ufmk=false ugrl=false ubdl=false ubdla=()
-  local uanys=false uanyf=false uanyd=false uanyn=false usc=0
+  local uanys=false uanyf=false uanyd=false uanyn=false usc=0 urtc
 
   # Parse update arguments
   d___parse_update_args
@@ -171,30 +171,76 @@ d___update_fmk()
     printf >&2 '%s %s\n' "$D__INTRO_UPD_1" "$uplq"; return 1
   fi
 
-  # Compose destination path; print location
+  # Check if Grail directory is accessible
   udst="$D__DIR_FMWK"
+  if ! pushd -- "$udst" &>/dev/null; then
+    d__notify -lx -- "Framework directory is inaccessible: '$udst'"
+    printf >&2 '%s %s\n' "$D__INTRO_UPD_1" "$uplq"; return 1
+  fi
+
+  # Compose destination path; print location
   d__notify -lv -- "Repo URL: https://github.com/$uarg"
   d__notify -lv -- "Location: $udst"
 
   # Check if framework directory is a cloned Github repository
   if d___path_is_gh_clone "$udst" "$uarg"; then
-    if [ "$D__GH_METHOD" = g ]
-    then d___update_fmk_via_pull; return $?
-    else
+    if ! [ "$D__GH_METHOD" = g ]; then 
       d__notify -lxt 'Unable to update' -- 'Framework is a clone' \
         'of Github remote, but Git is currently not available on the system'
       printf >&2 '%s %s\n' "$D__INTRO_UPD_2" "$uplq"
-      return 1
+      popd &>/dev/null; return 1
     fi
+    d___update_fmk_via_pull; urtc=$?; popd &>/dev/null; return $urtc
   else
-    if [ "$D__GH_METHOD" = g ]
-    then d___upgrade_fmk_to_git; return $?
-    else d___crude_update_fmk; return $?; fi
+    if [ "$D__GH_METHOD" = g ]; then d___upgrade_fmk_to_git
+    else d___crude_update_fmk; fi
+    urtc=$?; popd &>/dev/null; return $urtc
   fi
 }
 
 d___update_fmk_via_pull()
 {
+  # Extract and validate current branch; exctract relevant Git config
+  local curbr="$( git rev-parse --abbrev-ref HEAD 2>/dev/null )"
+  case $brn in
+    '')     d__notify -lx -- 'Unable to retrieve name of current Git branch'
+            printf >&2 '%s %s\n' "$D__INTRO_UPD_1" "$uplq"; return 1;;
+    'HEAD') d__notify -lx -- "Unable to pull in 'detached HEAD' state"
+            printf >&2 '%s %s\n' "$D__INTRO_UPD_1" "$uplq"; return 1;;
+  esac
+  local curcfg="$( git config --get remote.origin.fetch )"
+
+  # Perform checks based on whether the 'nightly' mode is enabled
+  if d__stast -gs -- has 'nightly'; then
+    local reqcfg='+refs/heads/*:refs/remotes/origin/*'
+    if ! [ "$curcfg" = "$reqcfg" ] \
+      && ! git config remote.origin.fetch "$reqcfg" 2>/dev/null
+    then
+      d__notify -lx -- 'Failed to set Git configuration'
+      printf >&2 '%s %s\n' "$D__INTRO_UPD_1" "$uplq"; return 1
+    fi
+    case $curbr in
+      master) if ! git fetch origin 2>/dev/null; then
+                d__notify -lx -- 'Failed to fetch latest framework revision'
+                printf >&2 '%s %s\n' "$D__INTRO_UPD_1" "$uplq"; return 1
+              fi
+              if ! git checkout --track origin/dev 2>/dev/null; then
+                d__notify -lx -- "Failed to switch to branch 'dev'"
+                printf >&2 '%s %s\n' "$D__INTRO_UPD_1" "$uplq"; return 1
+              fi
+              printf >&2 '%s %s\n' "$D__INTRO_UPD_0" "$uplq"; return 0
+      dev)    :;;
+      *)      d__notify -ls -- "Refusing to move away from branch '$curbr'"
+              printf >&2 '%s %s\n' "$D__INTRO_UPD_2" "$uplq"; return 1;;
+    esac
+  else
+    case $curbr in
+      master) :;;
+      *)      d__notify -ls -- "Refusing to move away from branch '$curbr'"
+              printf >&2 '%s %s\n' "$D__INTRO_UPD_2" "$uplq"; return 1;;
+    esac
+  fi
+
   # Notify and perform excellently
   d__notify -- 'Updating by pulling from Github remote'
   if ! d___pull_from_git_remote "$udst"; then
@@ -206,8 +252,12 @@ d___update_fmk_via_pull()
 
 d___upgrade_fmk_to_git()
 {
+  # Check whether nightly mode is enabled
+  local nght=false nplq=; d__stast -gs -- has 'nightly' && nght=true
+  $nght && nplq=' (nightly build)'
+
   # Announce; compose destination path; print location
-  d__notify -l! -- 'Replacing current framework copy with Github clone' \
+  d__notify -l! -- "Replacing current framework copy with Github clone$nplq" \
     -i- -t- 'Repo URL' "https://github.com/$uarg" \
     -n- 'Current framework directory will be kept'
 
@@ -219,7 +269,9 @@ d___upgrade_fmk_to_git()
   fi
 
   # Pull the repository into the temporary directory
-  utmp="$(mktemp -d)"; d___clone_gh_repo "$uarg" "$utmp"
+  utmp="$(mktemp -d)"
+  if $nght; then d___clone_gh_repo -fb dev -- "$uarg" "$utmp"
+  else d___clone_gh_repo "$uarg" "$utmp"; fi
   if (($?)); then
     printf >&2 '%s %s\n' "$D__INTRO_UPD_1" "$uplq"
     rm -rf -- "$utmp"; return 1
@@ -262,19 +314,24 @@ d___upgrade_fmk_to_git()
 
 d___crude_update_fmk()
 {
+  # Check whether nightly mode is enabled
+  local nplq= refopt=
+  if d__stast -gs -- has 'nightly'
+  then nplq=' (nightly build)'; refopt='-r dev'; fi
+
   # Only proceed in force mode
   if $D__OPT_FORCE; then
     printf >&2 '%s %s\n' "$D__INTRO_UPD_F" "$uplq"
   else
     d__notify -l! -- 'The only avenue of updating framework seems to be' \
-      'to re-download a new copy from Github'
+      "to re-download a new copy from Github$nplq"
     d__notify -l! -- "Re-try with --force to perform such 'crude' update"
     printf >&2 '%s %s\n' "$D__INTRO_UPD_2" "$uplq"
     return 1
   fi
 
   # Announce; compose destination path; print location
-  d__notify -l! -- 'Downloading a new copy of the framework from Github' \
+  d__notify -l! -- "Downloading a new copy of the framework from Github$nplq" \
     -i- -t- 'Repo URL' "https://github.com/$uarg" \
     -n- 'Current framework directory will be kept'
 
@@ -284,9 +341,10 @@ d___crude_update_fmk()
   then printf >&2 '%s %s\n' "$D__INTRO_UPD_S" "$uplq"; return 2; fi
 
   # Pull the repository into the temporary directory
-  utmp="$(mktemp -d)"; case $D__GH_METHOD in
-    c)  d___curl_gh_repo "$uarg" "$utmp";;
-    w)  d___wget_gh_repo "$uarg" "$utmp";;
+  utmp="$(mktemp -d)"
+  case $D__GH_METHOD in
+    c)  d___curl_gh_repo $refopt -- "$uarg" "$utmp";;
+    w)  d___wget_gh_repo $refopt -- "$uarg" "$utmp";;
   esac
   if (($?)); then
     printf >&2 '%s %s\n' "$D__INTRO_UPD_1" "$uplq"

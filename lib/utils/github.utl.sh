@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.11.21
-#:revremark:    Improve Github retrievers (accept refs and remotes)
+#:revremark:    Rewrite update functions to honor nightly mode
 #:created_at:   2019.09.13
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -17,7 +17,7 @@ d__load procedure prep-sys
 d__load util workflow
 d__load procedure check-gh
 
-#>  d___clone_gh_repo REPO_HANDLE REPO_PATH
+#>  d___clone_gh_repo [-f|--full] [--] REPO_HANDLE REPO_PATH
 #
 ## INTERNAL USE ONLY
 #
@@ -30,23 +30,47 @@ d__load procedure check-gh
 #
 d___clone_gh_repo()
 {
+  # Pluck out options, round up arguments
+  local args=() arg ii shl='--depth=1' brn brplq= clnplq='clone'; unset brn
+  while (($#)); do arg="$1"; shift; case $arg in
+    -*) case ${arg:1} in
+          -)  args+=("$@"); break;;
+          f|-full) shl=;;
+          b|-branch) if (($#)); then brn="$1"; shift; fi;;
+          '') :;;
+          -*) :;;
+          *)  for ((ii=1;ii<${#arg};++ii)); do case ${arg:ii:1} in
+                f)  shl=;;
+                b|-branch) if (($#)); then brn="$1"; shift; fi;;
+                *)  :;;
+              esac; done;;
+        esac;;
+    *)  args+=("$arg");;
+  esac; done
+  [ -z ${brn+isset} ] || { brplq=" (branch '$brn')"; brn=( -b "$brn" ); }
+  [ -n "$shl" ] && clnplq='shallow clone'
+
   d__context -- notch
-  d__context -- push "Cloning Github repository '$1'"
-  d__context -- push "Cloning into: $2"
-  d__cmd --qq-- git clone --depth=1 --REPO_URL-- "https://github.com/$1.git" \
-    --REPO_PATH-- "$2" --else-- 'Failed to clone' || return 1
+  d__context -- push "Making a $clnplq of Github repository '${args[0]}'$brplq"
+  d__context -- push "Cloning into: ${args[1]}"
+  d__cmd --qq-- git clone $shl "${brn[@]}" \
+    --REPO_URL-- "https://github.com/${args[0]}.git" \
+    --REPO_PATH-- "${args[1]}" --else-- 'Failed to clone' || return 1
   d__context -- pop
-  d__context -t 'Done' -- pop "Successfully cloned Github repository '$1'"
+  d__context -t 'Done' -- pop \
+    "Successfully cloned Github repository '${args[0]}'"
   d__context -- lop
   return 0
 }
 
-#>  d___curl_gh_repo REPO_HANDLE REPO_PATH
+#>  d___curl_gh_repo [-r|--ref REF] [--] REPO_HANDLE REPO_PATH
 #
 ## INTERNAL USE ONLY
 #
 ## Downloads using curl the latest copy of the Github repository REPO_HANDLE 
 #. (in the form 'username/repository') into the empty directory REPO_PATH.
+#
+## Particular REF may be requested with the --ref option.
 #
 ## Returns:
 #.  0 - Successfully downloaded and untarred.
@@ -87,12 +111,14 @@ d___curl_gh_repo()
   return 0
 }
 
-#>  d___wget_gh_repo REPO_HANDLE REPO_PATH
+#>  d___wget_gh_repo [-r|--ref REF] [--] REPO_HANDLE REPO_PATH
 #
 ## INTERNAL USE ONLY
 #
 ## Downloads using wget the latest copy of the Github repository REPO_HANDLE 
 #. (in the form 'username/repository') into the empty directory REPO_PATH.
+#
+## Particular REF may be requested with the --ref option.
 #
 ## Returns:
 #.  0 - Successfully downloaded and untarred.
