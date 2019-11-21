@@ -2,8 +2,8 @@
 #:title:        Divine deployment annotated template for copy-queue
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.19
-#:revremark:    Bring templates up to speed; improve mtdt parsing
+#:revdate:      2019.11.20
+#:revremark:    Add D_DPL_OS to the dpl templates
 #:created_at:   2019.11.19
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -23,6 +23,7 @@ D_DPL_DESC='An example description'
 D_DPL_PRIORITY=1000
 D_DPL_FLAGS=r
 D_DPL_WARNING="Removing this deployment is dangerous"
+D_DPL_OS=any
 
 ## Variables to fill:
 #.  * $D_QUEUE_MAIN     - (array) The queue determinant. Each element of this 

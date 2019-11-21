@@ -2,8 +2,8 @@
 #:title:        Divine Bash utils: backup
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.29
-#:revremark:    Leave note of original path when backing up, dpls only
+#:revdate:      2019.11.21
+#:revremark:    Batch rename dmd5 to d__md5
 #:created_at:   2019.09.18
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -118,7 +118,7 @@ d__push_backup()
       --else-- 'Cannot back up without an explicit backup path' \
       || return 3
     backup_dirpath="$D__DPL_BACKUP_DIR"
-    backup_path="$backup_dirpath/$( dmd5 -s "$orig_path" || exit $? ).bak"
+    backup_path="$backup_dirpath/$( d__md5 -s "$orig_path" || exit $? ).bak"
     if (($?)); then
       d__fail -- 'Failed to generate the md5 checksum of the path'
       return 3
@@ -269,7 +269,7 @@ d__pop_backup()
       --crcm-- 'Popping of backup initiated outside of a deployment' \
       --else-- 'Cannot pop backup without an explicit backup path' \
       || return 3
-    backup_path="$D__DPL_BACKUP_DIR/$( dmd5 -s "$orig_path" || exit $? ).bak"
+    backup_path="$D__DPL_BACKUP_DIR/$( d__md5 -s "$orig_path" || exit $? ).bak"
     if (($?)); then
       d__fail -- 'Failed to generate the md5 checksum of the path'
       return 3

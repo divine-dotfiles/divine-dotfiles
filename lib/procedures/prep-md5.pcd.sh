@@ -2,8 +2,8 @@
 #:title:        Divine Bash procedure: prep-md5
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.18
-#:revremark:    Improve debug output of utility choices
+#:revdate:      2019.11.21
+#:revremark:    Batch rename dmd5 to d__md5
 #:created_at:   2019.07.05
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -23,7 +23,7 @@ d__pcd_prep_md5()
   # Settle on utility for generating md5 checksums across the fmwk
   if md5sum --version &>/dev/null; then
     d__notify -qqq -- "Using 'md5sum' utility to calculate md5 checksums"
-    dmd5()
+    d__md5()
     {
       local md5; if [ "$1" = -s ]; then
         md5="$( printf %s "$2" | md5sum | awk '{print $1}' )"
@@ -35,7 +35,7 @@ d__pcd_prep_md5()
     }
   elif md5 -r <<<test &>/dev/null; then
     d__notify -qqq -- "Using 'md5' utility to calculate md5 checksums"
-    dmd5()
+    d__md5()
     {
       local md5; if [ "$1" = -s ]; then
         md5="$( md5 -rs "$2" | awk '{print $1}' )"
@@ -47,7 +47,7 @@ d__pcd_prep_md5()
     }
   elif openssl version &>/dev/null; then
     d__notify -qqq -- "Using 'openssl' utility to calculate md5 checksums"
-    dmd5()
+    d__md5()
     {
       local md5; if [ "$1" = -s ]; then
         md5="$( printf %s "$2" | openssl md5 | awk '{print $1}' )"

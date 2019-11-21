@@ -2,8 +2,8 @@
 #:title:        Divine Bash deployment helpers: link-queue
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.18
-#:revremark:    Inject and eject the same configuration of newline characters
+#:revdate:      2019.11.21
+#:revremark:    Batch rename dmd5 to d__md5
 #:created_at:   2019.10.28
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -44,7 +44,7 @@ d__inject_check()
   local njtmp lbf njexs=false njrtc njwrn=
   njsp="$D_INJECT_SRC" njtp="$D_INJECT_TGT"
   if [ -e "$njsp" ]; then
-    if [ -f "$njsp" -a -r "$njsp" ]; then njcs_src="$( dmd5 "$njsp" )"
+    if [ -f "$njsp" -a -r "$njsp" ]; then njcs_src="$( d__md5 "$njsp" )"
     else erra+=( -i- "- injection source is not a readable file: '$njsp'" ); fi
   else njcs_src='d41d8cd98f00b204e9800998ecf8427e'; fi
   if ! d__require_wfile "$njtp"
@@ -54,7 +54,7 @@ d__inject_check()
   [ -n "$D_INJECT_CMT" ] && njcmt="$D_INJECT_CMT"
   d__stash -- ready || return 3
   d__context notch; d__context -- push "Checking text injection into: '$njtp'"
-  nj_key="inject_$( dmd5 -s "$njtp" )" njtmp="$(mktemp)"
+  nj_key="inject_$( d__md5 -s "$njtp" )" njtmp="$(mktemp)"
 
   # Analyze target file
   if [ -f "$njtp" ]; then while IFS= read -r lbf || [ -n "$lbf" ]; do
@@ -67,7 +67,7 @@ d__inject_check()
       esac; done; njexs=true
     fi
   done <"$njtp" >$njtmp; fi
-  njcs_tgt="$( dmd5 $njtmp )"; rm -f -- $njtmp
+  njcs_tgt="$( d__md5 $njtmp )"; rm -f -- $njtmp
 
   # Analyze retrieved data; report inconsistencies
   if [ $njcs_src = 'd41d8cd98f00b204e9800998ecf8427e' ]; then
@@ -155,7 +155,7 @@ d__inject_install()
   njexs="${D__INJECT_OVERWRITES[$D__INJECT_NUM]}"
   njcs_tgt="${D__INJECT_TGT_CHECKSUMS[$D__INJECT_NUM]}"
   if [ -e "$njsp" ]; then
-    if [ -f "$njsp" -a -r "$njsp" ]; then njcs_src="$( dmd5 "$njsp" )"
+    if [ -f "$njsp" -a -r "$njsp" ]; then njcs_src="$( d__md5 "$njsp" )"
     else erra+=( -i- "- injection source is not a readable file: '$njsp'" ); fi
   else erra+=( -i- "- injection source does not exist: '$njsp'" ); fi
   if [ "$njcs_src" = 'd41d8cd98f00b204e9800998ecf8427e' ]
@@ -172,7 +172,7 @@ d__inject_install()
   then d__notify -lx -- 'Unable to inject:' "${erra[@]}"; return 3; fi
   [ -n "$D_INJECT_CMT" ] && njcmt="$D_INJECT_CMT"
   d__context notch; d__context -- push "Injecting text into: '$njtp'"
-  nj_key="inject_$( dmd5 -s "$njtp" )"
+  nj_key="inject_$( d__md5 -s "$njtp" )"
 
   # Analyze retrieved data; prompt if found inconsistencies
   if d__stash -s -- has $nj_key; then
@@ -278,7 +278,7 @@ d__inject_remove()
   njexs="${D__INJECT_OVERWRITES[$D__INJECT_NUM]}"
   njcs_tgt="${D__INJECT_TGT_CHECKSUMS[$D__INJECT_NUM]}"
   if [ -e "$njsp" ]; then
-    if [ -f "$njsp" -a -r "$njsp" ]; then njcs_src="$( dmd5 "$njsp" )"
+    if [ -f "$njsp" -a -r "$njsp" ]; then njcs_src="$( d__md5 "$njsp" )"
     else erra+=( -i- "- injection source is not a readable file: '$njsp'" ); fi
   else njcs_src='d41d8cd98f00b204e9800998ecf8427e'; fi
   case $njrtc in
@@ -293,7 +293,7 @@ d__inject_remove()
   then d__notify -lx -- 'Unable to inject:' "${erra[@]}"; return 3; fi
   [ -n "$D_INJECT_CMT" ] && njcmt="$D_INJECT_CMT"
   d__context notch; d__context -- push "Removing text injection from: '$njtp'"
-  nj_key="inject_$( dmd5 -s "$njtp" )"
+  nj_key="inject_$( d__md5 -s "$njtp" )"
 
   # Analyze retrieved data; report inconsistencies
   if [ $njcs_src = 'd41d8cd98f00b204e9800998ecf8427e' ]; then

@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: install
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.19
-#:revremark:    Bring templates up to speed; improve mtdt parsing
+#:revdate:      2019.11.21
+#:revremark:    Batch rename dmd5 to d__md5
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -158,7 +158,7 @@ d___install_pkgs()
 
     # Perform check prior to processing
     if d__os_pkgmgr check $d__pkg_n; then
-      if d__stash -rs -- has "pkg_$( dmd5 -s $d__pkg_n )"; then
+      if d__stash -rs -- has "pkg_$( d__md5 -s $d__pkg_n )"; then
         # Installed with stash record
         printf >&2 '%s %s\n' "$D__INTRO_INS_A" "$d__plq"; continue
       elif d__stash -rs -- has installed_utils "$d__pkg_n"; then
@@ -182,7 +182,7 @@ d___install_pkgs()
         fi
       fi
     elif type -P -- $d__pkg_n &>/dev/null; then
-      if d__stash -rs -- has "pkg_$( dmd5 -s $d__pkg_n )"; then
+      if d__stash -rs -- has "pkg_$( d__md5 -s $d__pkg_n )"; then
         # Installed without package manager, somehow there is a stash record
         d__notify -lx -- "Package '$d__pkg_n' is recorded" \
           "as previously installed via '$D__OS_PKGMGR'" \
@@ -214,7 +214,7 @@ d___install_pkgs()
         fi
       fi
     else
-      if d__stash -rs -- has "pkg_$( dmd5 -s $d__pkg_n )"; then
+      if d__stash -rs -- has "pkg_$( d__md5 -s $d__pkg_n )"; then
         # Not installed, but stash record exists
         d__notify -lx -- \
           "Package '$d__pkg_n' is recorded as previously installed" \
@@ -275,7 +275,7 @@ d___install_pkgs()
 
     # Set stash record
     if $d__shs; then
-      d__stash -rs -- set "pkg_$( dmd5 -s $d__pkg_n )"
+      d__stash -rs -- set "pkg_$( d__md5 -s $d__pkg_n )"
       if (($?)); then
         d__notify -lx -- "Failed to set stash record for package '$d__pkg_n'"
         printf >&2 '%s %s\n' "$D__INTRO_INS_1" "$d__plq"; continue
