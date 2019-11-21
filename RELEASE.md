@@ -1,0 +1,1 @@
+* [**`other`**] When the `--yes` and `--obliterate` options are both given, substitute the `--obliterate` prompt with an alert.
