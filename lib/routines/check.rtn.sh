@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: check
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.21
-#:revremark:    Batch rename dmd5 to d__md5
+#:revdate:      2019.11.22
+#:revremark:    Shorten obliterate check in routines
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -48,8 +48,7 @@ d__load procedure assemble
 #
 d__rtn_check()
 {
-  if $D__OPT_OBLITERATE && [ "$D__OPT_ANSWER" != false ]
-  then d__confirm_obliteration; fi
+  $D__OPT_OBLITERATE && d__confirm_obliteration
 
   # Print a separating empty line, switch context
   printf >&2 '\n'

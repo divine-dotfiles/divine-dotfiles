@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.11.22
-#:revremark:    Rewire update rtn to check nightly key in root stash
+#:revremark:    Shorten obliterate check in routines
 #:created_at:   2019.05.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -42,8 +42,7 @@ d__rtn_update()
     exit 1
   fi
 
-  if $D__OPT_OBLITERATE && [ "$D__OPT_ANSWER" != false ]
-  then d__confirm_obliteration; fi
+  $D__OPT_OBLITERATE && d__confirm_obliteration
 
   # Print a separating empty line, switch context
   printf >&2 '\n'

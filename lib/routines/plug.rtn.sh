@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: plug
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.31
-#:revremark:    React to --obliterate in key framework mechanisms
+#:revdate:      2019.11.22
+#:revremark:    Shorten obliterate check in routines
 #:created_at:   2019.06.26
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -35,8 +35,7 @@ d__rtn_plug()
     exit 0
   fi
 
-  if $D__OPT_OBLITERATE && [ "$D__OPT_ANSWER" != false ]
-  then d__confirm_obliteration; fi
+  $D__OPT_OBLITERATE && d__confirm_obliteration
 
   # Print a separating empty line, switch context
   printf >&2 '\n'
