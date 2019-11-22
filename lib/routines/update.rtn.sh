@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: update
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.21
-#:revremark:    Rewrite update functions to honor nightly mode
+#:revdate:      2019.11.22
+#:revremark:    Rewire update rtn to check nightly key in root stash
 #:created_at:   2019.05.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -211,7 +211,7 @@ d___update_fmk_via_pull()
   local curcfg="$( git config --get remote.origin.fetch )"
 
   # Perform checks based on whether the 'nightly' mode is enabled
-  if d__stast -gs -- has 'nightly'; then
+  if d__stast -rs -- has 'nightly'; then
     local reqcfg='+refs/heads/*:refs/remotes/origin/*'
     if ! [ "$curcfg" = "$reqcfg" ] \
       && ! git config remote.origin.fetch "$reqcfg" 2>/dev/null
@@ -253,7 +253,7 @@ d___update_fmk_via_pull()
 d___upgrade_fmk_to_git()
 {
   # Check whether nightly mode is enabled
-  local nght=false nplq=; d__stast -gs -- has 'nightly' && nght=true
+  local nght=false nplq=; d__stast -rs -- has 'nightly' && nght=true
   $nght && nplq=' (nightly build)'
 
   # Announce; compose destination path; print location
@@ -316,7 +316,7 @@ d___crude_update_fmk()
 {
   # Check whether nightly mode is enabled
   local nplq= refopt=
-  if d__stast -gs -- has 'nightly'
+  if d__stast -rs -- has 'nightly'
   then nplq=' (nightly build)'; refopt='-r dev'; fi
 
   # Only proceed in force mode
