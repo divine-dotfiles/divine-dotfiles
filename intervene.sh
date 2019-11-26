@@ -2,8 +2,8 @@
 #:title:        Divine Bash script: intervene
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.19
-#:revremark:    Phase out old queue auto-targeting
+#:revdate:      2019.11.26
+#:revremark:    Implement calling fmwk routine at the very top
 #:created_at:   2018.03.25
 
 ## Launches the Divine intervention
@@ -153,6 +153,7 @@ d__parse_arguments()
     v|ve|vr|ver|version)                  rtn=version;;
     h|he|hl|hp|hel|help)                  rtn=help;;
     us|ug|usa|usage)                      rtn=usage;;
+    f|fm|fr|fmw|fmk|fra|fmwk|framework)   rtn=fmwk;;
     fmwk-install|fi)                      rtn=fmwk-install;;
     fmwk-uninstall|fu|fr)                 rtn=fmwk-uninstall;;
     '') rtn=usage;;
@@ -388,6 +389,7 @@ d__perform_routine()
     update)         d__load routine update;;
     version)        d__load routine version;;
     help)           d__load routine help;;
+    fmwk)           d__load routine fmwk;;
     fmwk-install)   d__load routine fmwk-install;;
     fmwk-uninstall) d__load routine fmwk-uninstall;;
     *)              d__load routine usage;;
