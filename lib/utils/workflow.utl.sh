@@ -2,8 +2,8 @@
 #:title:        Divine Bash utils: workflow
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.11
-#:revremark:    Update readme for D.d v2, pt. 8
+#:revdate:      2019.11.21
+#:revremark:    With --yes, substitute --obliterate prompt with alert
 #:created_at:   2019.09.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -1533,12 +1533,23 @@ d__require_sudo()
 #
 d__confirm_obliteration()
 {
-  if d__prompt -!pn 'Slash & burn?' -- \
+  local alrt=( \
     "You have chosen the $BOLD--obliterate$NORMAL option." \
     -n- \
-    "This means, that the framework will ${BOLD}forego the usual concerns" \
-    "of zero data loss$NORMAL while performing removals (if any occur)." \
+    "This means that the framework will ${BOLD}forego the usual concerns" \
+    "of zero data loss$NORMAL" \
     -n- \
-    'However, no guarantees can be given about the third-party deployments.'
-  then return 0; else exit 1; fi
+    "while removing ${BOLD}deployment and framework assets$NORMAL." \
+    -n- \
+    'Normally, backups of such assets are kept just in case.' \
+    -n- \
+    '(The described behavior is only guaranteed for the framework itself and' \
+    'the Divine deployments.)' \
+  )
+  case $D__OPT_ANSWER in
+    true)   d__notify -l! -- "${alrt[@]}";;
+    false)  :;;
+    *)      if d__prompt -!pn 'Slash & burn?' -- "${alrt[@]}"
+            then return 0; else exit 1; fi;;
+  esac
 }

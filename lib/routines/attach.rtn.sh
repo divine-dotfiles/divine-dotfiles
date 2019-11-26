@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: attach
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.31
-#:revremark:    Repaint notices about repo url and location
+#:revdate:      2019.11.26
+#:revremark:    Rewrite update rtn; implement nightly switch
 #:created_at:   2019.05.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -18,7 +18,7 @@
 readonly D__RTN_ATTACH=loaded
 d__load util workflow
 d__load util stash
-d__load util github
+d__load util git
 d__load util scan
 d__load procedure prep-stash
 d__load procedure offer-gh
@@ -154,9 +154,9 @@ d___attach_bundle()
 
   # Pull the repository into the temporary directory
   btmp="$(mktemp -d)"; case $D__GH_METHOD in
-    g)  d___clone_gh_repo "$barg" "$btmp";;
-    c)  d___curl_gh_repo "$barg" "$btmp";;
-    w)  d___wget_gh_repo "$barg" "$btmp";;
+    g)  d___clone_git_repo "$barg" "$btmp";;
+    c)  d___dl_gh_repo -c "$barg" "$btmp";;
+    w)  d___dl_gh_repo -w "$barg" "$btmp";;
   esac
   if (($?)); then
     printf >&2 '%s %s\n' "$D__INTRO_ATC_1" "$bplq"

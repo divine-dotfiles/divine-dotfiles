@@ -2,8 +2,8 @@
 #:title:        Divine Bash procedure: sync-bundles
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.18
-#:revremark:    Fix treatment of files in bundles dir
+#:revdate:      2019.11.26
+#:revremark:    Rewrite update rtn; implement nightly switch
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -18,7 +18,7 @@
 readonly D__PCD_SYNC_BUNDLES=loaded
 d__load util workflow
 d__load util stash
-d__load util github
+d__load util git
 d__load procedure prep-sys
 d__load procedure prep-stash
 d__load procedure check-gh
@@ -94,11 +94,11 @@ d__pcd_sync_bundles()
     if ! d___gh_repo_exists "$recb"
     then erra+=( -i- "- invalid Github repo handle '$recb'" ); continue; fi
     case $D__GH_METHOD in
-      g)  d___clone_gh_repo "$recb" "$D__BUNDLES_DIR/$recb";;
+      g)  d___clone_git_repo "$recb" "$D__BUNDLES_DIR/$recb";;
       c)  mkdir -p &>/dev/null -- "$D__BUNDLES_DIR/$recb" \
-            && d___curl_gh_repo "$recb" "$D__BUNDLES_DIR/$recb";;
+            && d___dl_gh_repo -c "$recb" "$D__BUNDLES_DIR/$recb";;
       w)  mkdir -p &>/dev/null -- "$D__BUNDLES_DIR/$recb" \
-            && d___wget_gh_repo "$recb" "$D__BUNDLES_DIR/$recb";;
+            && d___dl_gh_repo -w "$recb" "$D__BUNDLES_DIR/$recb";;
     esac
     if (($?))
     then d__notify -l -- 'Retrieved missing bundle '$recb''

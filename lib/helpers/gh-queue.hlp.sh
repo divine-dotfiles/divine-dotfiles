@@ -2,8 +2,8 @@
 #:title:        Divine Bash deployment helpers: gh-queue
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.21
-#:revremark:    Batch rename dmd5 to d__md5
+#:revdate:      2019.11.26
+#:revremark:    Rewrite update rtn; implement nightly switch
 #:created_at:   2019.10.10
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -21,7 +21,7 @@ d__load procedure detect-os
 d__load procedure prep-md5
 d__load procedure check-gh
 d__load util stash
-d__load util github
+d__load util git
 
 d__gh_queue_check()
 {
@@ -165,11 +165,11 @@ d__gh_item_install()
   # Do the actual installing
   if d__push_backup -- "$d__gqet" "$d__gqeb"; then
     case $D__GH_METHOD in
-      g)  d___clone_gh_repo "$d__gqen" "$d__gqet";;
+      g)  d___clone_git_repo "$d__gqen" "$d__gqet";;
       c)  mkdir -p &>/dev/null -- "$d__gqet" \
-            && d___curl_gh_repo "$d__gqen" "$d__gqet";;
+            && d___dl_gh_repo -c "$d__gqen" "$d__gqet";;
       w)  mkdir -p &>/dev/null -- "$d__gqet" \
-            && d___wget_gh_repo "$d__gqen" "$d__gqet";;
+            && d___dl_gh_repo -w "$d__gqen" "$d__gqet";;
     esac; (($?)) && d__gqrtc=1 || d__gqrtc=0
   else d__gqrtc=1; fi
   if [ $d__gqrtc -eq 0 ]; then

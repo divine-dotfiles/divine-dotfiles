@@ -2,7 +2,7 @@
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
 :revdate: 2019.11.21
-:revremark: Describe the new OS metadatum
+:revremark: Fix typo in --link opt description in readme
 :doctype: article
 // Visual
 :toc: macro
@@ -1162,8 +1162,8 @@ The `--obliterate` option directs to instead erase the pre-existing Grail.
 
 Normally, the `plug` routine retrieves a copy of the Grail at the given `*_ADDRESS_*`.
 
-The `--obliterate` option directs to instead create a symlink to it.
-Consequently, when the `--obliterate` option is active, the `*_ADDRESS_*` is interpreted only as a local directory.
+The `--link` option directs to instead create a symlink to it.
+Consequently, when the `--link` option is active, the `*_ADDRESS_*` is interpreted only as a local directory.
 
 | +++<p align="center">+++
 *Verbosity options*
