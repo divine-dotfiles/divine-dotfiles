@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.11.26
-#:revremark:    Rewrite update rtn; implement nightly switch
+#:revremark:    Fix incorrect var name in git utils
 #:created_at:   2019.09.13
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -356,7 +356,7 @@ d___pull_git_remote()
     esac
 
     # First, pull updates with rebasing
-    d__cmd --q-- git pull --rebase --stat "$remn" \
+    d__cmd --q-- git pull --rebase --stat "$prem" \
       --else-- 'Failed to pull updates before changing current branch' \
       || { popd &>/dev/null; return 1; }
 
@@ -374,7 +374,7 @@ d___pull_git_remote()
 
     # Pulling current branch
     d__context -- push "Pulling updates from $psrc"
-    d__cmd --q-- git pull --rebase --stat "$remn" "$cbrn" \
+    d__cmd --q-- git pull --rebase --stat "$prem" "$cbrn" \
       --else-- 'Failed to pull from remote' \
       || { popd &>/dev/null; return 1; }
     popd &>/dev/null
