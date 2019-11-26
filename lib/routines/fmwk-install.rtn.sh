@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: fmwk-install
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.31
-#:revremark:    Print location of backed up pre-existing path
+#:revdate:      2019.11.26
+#:revremark:    Rewrite update rtn; implement nightly switch
 #:created_at:   2019.10.15
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -144,7 +144,7 @@ d___get_ready()
   fi
 
   # Ensure that the remote repository exists
-  d__load util github
+  d__load util git
   if ! d___gh_repo_exists "$iarg"; then iaok=false
     d__notify -lx -- "Github repository '$iarg' does not appear to exist"
   fi
@@ -241,9 +241,9 @@ d___install_fmwk()
 
   # Pull the repository into the temporary directory
   itmp="$(mktemp -d)"; case $D__GH_METHOD in
-    g)  d___clone_gh_repo "$iarg" "$itmp";;
-    c)  d___curl_gh_repo "$iarg" "$itmp";;
-    w)  d___wget_gh_repo "$iarg" "$itmp";;
+    g)  d___clone_git_repo "$iarg" "$itmp";;
+    c)  d___dl_gh_repo -c "$iarg" "$itmp";;
+    w)  d___dl_gh_repo -w "$iarg" "$itmp";;
   esac
   if (($?)); then
     printf >&2 '%s %s\n' "$D__INTRO_INS_1" "$iplq"

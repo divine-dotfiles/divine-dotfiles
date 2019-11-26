@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: plug
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.22
-#:revremark:    Shorten obliterate check in routines
+#:revdate:      2019.11.26
+#:revremark:    Rewrite update rtn; implement nightly switch
 #:created_at:   2019.06.26
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -17,7 +17,7 @@
 # Marker and dependencies
 readonly D__RTN_PLUG=loaded
 d__load util workflow
-d__load util github
+d__load util git
 d__load util backup
 d__load util scan
 d__load procedure offer-gh
@@ -135,9 +135,9 @@ d___plug_github_repo()
 
   # Pull the repository into the temporary directory
   ptmp="$(mktemp -d)"; case $D__GH_METHOD in
-    g)  d___clone_gh_repo "$parg" "$ptmp";;
-    c)  d___curl_gh_repo "$parg" "$ptmp";;
-    w)  d___wget_gh_repo "$parg" "$ptmp";;
+    g)  d___clone_git_repo "$parg" "$ptmp";;
+    c)  d___dl_gh_repo -c "$parg" "$ptmp";;
+    w)  d___dl_gh_repo -w "$parg" "$ptmp";;
   esac
   if (($?)); then
     printf >&2 '%s %s\n' "$D__INTRO_PLG_1" "$pplq"
@@ -211,7 +211,7 @@ d___plug_local_repo()
 
   # Pull the repository into the temporary directory
   ptmp="$(mktemp -d)"
-  if ! d___clone_git_repo "$parg" "$ptmp"; then
+  if ! d___clone_git_repo -gs -- "$parg" "$ptmp"; then
     printf >&2 '%s %s\n' "$D__INTRO_PLG_1" "$pplq"
     rm -rf -- "$ptmp"; return 2
   fi
@@ -317,30 +317,6 @@ d___plug_local_dir()
 
   # Report success
   printf >&2 '%s %s\n' "$D__INTRO_PLG_0" "$pplq"
-  return 0
-}
-
-#>  d___clone_git_repo REPO_SRC REPO_PATH
-#
-## INTERNAL USE ONLY
-#
-## Makes a shallow clone using Git of the Git repository at REPO_SRC into the 
-#. empty/non-existent directory REPO_PATH.
-#
-## Returns:
-#.  0 - Successfully cloned.
-#.  1 - Otherwise.
-#
-d___clone_git_repo()
-{
-  d__context -- notch
-  d__context -- push "Cloning Git repository: $1"
-  d__context -- push "Cloning into: $2"
-  d__cmd --qq-- git clone --depth=1 --REPO_SRC-- "$1" \
-    --REPO_PATH-- "$2" --else-- 'Failed to clone' || return 1
-  d__context -- pop
-  d__context -t 'Done' -- pop 'Successfully cloned Git repository'
-  d__context -- lop
   return 0
 }
 

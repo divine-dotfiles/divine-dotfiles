@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: update
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.22
-#:revremark:    Shorten obliterate check in routines
+#:revdate:      2019.11.26
+#:revremark:    Rewrite update rtn; implement nightly switch
 #:created_at:   2019.05.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -16,8 +16,9 @@
 readonly D__RTN_UPDATE=loaded
 d__load util workflow
 d__load util stash
-d__load util github
+d__load util git
 d__load util backup
+d__load util fmwk-update
 d__load procedure prep-stash
 d__load procedure prep-sys
 d__load procedure offer-gh
@@ -56,578 +57,535 @@ d__rtn_update()
     d__announce -v -- 'Updating Divine.dotfiles'
   fi
 
-  # Storage & status variables
-  local uarg udst uplq utmp ufmk=false ugrl=false ubdl=false ubdla=()
-  local uanys=false uanyf=false uanyd=false uanyn=false usc=0 urtc
+  # Storage variables
+  local ii uttr=() ubtr=() utsk
+  local anys=false anyf=false anyd=false ucst=0
 
-  # Parse update arguments
+  # Parse update arguments; perform updates in order
   d___parse_update_args
-
-  # Perform updates in order
-  for uarg in fmk grl; do
-    d___update_$uarg
-    case $? in
-      0)  uanys=true;; # Success
-      1)  uanyf=true;; # Failure
-      2)  uanyd=true;; # Declined
-      3)  uanyn=true;; # Not chosen
+  for ((ii=0;ii<${#uttr[@]};++ii)); do
+    utsk=${uttr[$ii]}
+    case $utsk in
+      fmwk)       d___update_fmwk;;
+      grail)      d___update_grail;;
+      'bundle='*) d___update_bundle "${utsk#'bundle='}";;
+      no_bundles) d___update_no_bundles
+                  continue
+                  ;;
+      *)          continue;;
     esac
   done
-  d___update_bdls
-
+  
   # Count statuses
-  $uanys && ((++usc)); $uanyf && ((++usc))
-  $uanyd && ((++usc)); $uanyn && ((++usc))
+  $anys && ((++ucst))
+  $anyf && ((++ucst))
+  $anyd && ((++ucst))
 
   # If any updates succeeded, process asset manifests
-  if $uanys; then d__load procedure process-all-assets; fi
+  if $anys; then d__load procedure process-all-assets; fi
 
   # Announce routine completion
   printf >&2 '\n'
   if [ "$D__OPT_ANSWER" = false ]; then
-    d__announce -s -- "Finished 'updating' Divine.dotfiles"; return 0
-  elif [ $usc -eq 1 ] || ( [ $usc -eq 2 ] && $uanyn ); then
-    if $uanys
-    then d__announce -v -- 'Successfully updated Divine.dotfiles'; return 0
-    elif $uanyf
-    then d__announce -x -- 'Failed to update Divine.dotfiles'; return 1
-    elif $uanyd
-    then d__announce -s -- 'Declined to update Divine.dotfiles'; return 0
-    elif $uanyn
-    then d__announce -s -- 'Skipped updating Divine.dotfiles'; return 0; fi
-  elif [ $usc -eq 2 ]; then
-    if $uanys && $uanyf
-    then d__announce -! -- 'Partly updated Divine.dotfiles'; return 1
-    elif $uanys && $uanyd
-    then d__announce -v -- 'Partly updated Divine.dotfiles'; return 0
-    elif $uanyf && $uanyd
-    then d__announce -x -- 'Failed to update Divine.dotfiles'; return 1; fi
-  elif [ $usc -eq 3 ]; then
-    if ! $uanys
-    then d__announce -x -- 'Failed to update Divine.dotfiles'; return 1
-    elif ! $uanyf
-    then d__announce -v -- 'Partly updated Divine.dotfiles'; return 0
-    elif ! $uanyd
-    then d__announce -! -- 'Partly updated Divine.dotfiles'; return 1
-    elif ! $uanyn
-    then d__announce -! -- 'Partly updated Divine.dotfiles'; return 1; fi
+    d__announce -s -- "Finished 'updating' Divine.dotfiles"
+    return 0
   else
-    d__announce -! -- 'Partly updated Divine.dotfiles'; return 1
+    case $ucst in
+      0)  d__announce -s -- 'Skipped updating Divine.dotfiles'
+          return 0
+          ;;
+      1)  if $anys; then
+            d__announce -v -- 'Successfully updated Divine.dotfiles'
+            return 0
+          elif $anyf; then
+            d__announce -x -- 'Failed to update Divine.dotfiles'
+            return 1
+          elif $anyd; then
+            d__announce -s -- 'Declined to update Divine.dotfiles'
+            return 0
+          fi
+          ;;
+      2)  if $anys && $anyf; then
+            d__announce -! -- 'Partly updated Divine.dotfiles'
+            return 1
+          elif $anys && $anyd; then
+            d__announce -v -- 'Partly updated Divine.dotfiles'
+            return 0
+          elif $anyf && $anyd; then
+            d__announce -x -- 'Failed to update Divine.dotfiles'
+            return 1
+          fi
+          ;;
+      3)  d__announce -! -- 'Partly updated Divine.dotfiles'
+          return 1
+          ;;
+    esac
   fi
 }
 
 d___parse_update_args()
 {
-  # If given a list of bundles, update just them by default
-  if ((${#D__REQ_BUNDLES[@]}))
-  then ubdl=true ubdla+=("${D__REQ_BUNDLES[@]}"); fi
+  # Variables to track selections
+  local uslf=false uslg=false uslb=false erra=()
+
+  # Check if given a list of bundles
+  if ((${#D__REQ_BUNDLES[@]})); then
+
+    # Iterate over list of given bundles
+    for ughh in "${D__REQ_BUNDLES[@]}"; do
+
+      # Accept one of two patterns: 'builtin_repo_name' and 'username/repo'
+      if [[ $ughh =~ ^[0-9A-Za-z_.-]+$ ]]; then
+        ughh="no-simpler/divine-bundle-$ughh"
+      elif [[ $ughh =~ ^[0-9A-Za-z_.-]+/[0-9A-Za-z_.-]+$ ]]; then
+        :
+      else
+        erra+=( -i- "- invalid bundle identifier '$ughh'" )
+        continue
+      fi
+
+      # Check if such a directory exists
+      if ! [ -d "$D__DIR_BUNDLES/$ughh" ]; then
+        erra+=( -i- "- bundle '$ughh' does not appear to be attached" )
+        continue
+      fi
+
+      # Add bundle to update train
+      ubtr+=("bundle=$ughh")
+    
+    # Done iterating over list of given bundles
+    done
+
+    # If there are illegal bundles, print an alert and stop
+    if ((${#erra[@]})); then
+      local beex='All'; ((${#ubtr[@]})) && beex='Some'
+      d__notify -nl! -- "$beex of the given bundles are invalid:" \
+        "${erra[@]}" -n- 'Stopping just in case'
+      return 1
+    fi
+
+    # If given bundles are valid, implicitly enable bundle updating
+    ((${#ubtr[@]})) && uslb=true
+  
+  # Done checking if given a list of bundles
+  fi
 
   # Parse update arguments
   if [ ${#D__REQ_ARGS[@]} -eq 0 ]; then
-    if ! $ubdl; then ufmk=true ugrl=true ubdl=true; fi
-  else for uarg in "${D__REQ_ARGS[@]}"; do case $uarg in
-    a|al|all)       ufmk=true ugrl=true ubdl=true;;
-    f|fr|fm|fmwk)   ufmk=true;;
-    framework)      ufmk=true;;
-    g|gr|grail)     ugrl=true;;
-    b|bu|bundles)   ubdl=true;;
-    bd|bdl|bdls)    ubdl=true;;
-    d|dp|dpl|dpls)  ubdl=true;;
-    deployment)     ubdl=true;;
-    deployments)    ubdl=true;;
-    *)              :;;
-  esac; done; fi
 
-  # If updating bundles, but not having a list yet, pull from stash
-  if $ubdl && [ ${#ubdla[@]} -eq 0 ]; then
-    if d__stash -gs -- has attached_bundles; then
-      while read -r uarg; do ubdla+=("$uarg")
-      done < <( d__stash -gs -- list attached_bundles )
-    fi
-  fi
-}
+    # With zero args update everything, UNLESS bundles are given
+    $uslb || { uslf=true; uslg=true; uslb=true; }
 
-d___update_fmk()
-{
-  # Print a separating empty line; compose task name
-  printf >&2 '\n'; uplq="$BOLD$D__FMWK_NAME$NORMAL framework"
-
-  # Cut-off
-  if ! $ufmk; then
-    printf >&2 '%s %s\n' "$D__INTRO_UPD_S" "(not selected) $uplq"
-    return 3
-  fi
-  if [ "$D__OPT_ANSWER" = false ]
-  then printf >&2 '%s %s\n' "$D__INTRO_UPD_S" "$uplq"; return 3; fi
-
-  # Print intro
-  printf >&2 '%s %s\n' "$D__INTRO_UPD_N" "$uplq"
-
-  # Store remote address; ensure that the remote repository exists
-  uarg='no-simpler/divine-dotfiles'
-  if ! d___gh_repo_exists "$uarg"; then
-    d__notify -ls -- "Github repository '$uarg' does not appear to exist"
-    printf >&2 '%s %s\n' "$D__INTRO_UPD_1" "$uplq"; return 1
-  fi
-
-  # Check if Grail directory is accessible
-  udst="$D__DIR_FMWK"
-  if ! pushd -- "$udst" &>/dev/null; then
-    d__notify -lx -- "Framework directory is inaccessible: '$udst'"
-    printf >&2 '%s %s\n' "$D__INTRO_UPD_1" "$uplq"; return 1
-  fi
-
-  # Compose destination path; print location
-  d__notify -lv -- "Repo URL: https://github.com/$uarg"
-  d__notify -lv -- "Location: $udst"
-
-  # Check if framework directory is a cloned Github repository
-  if d___path_is_gh_clone "$udst" "$uarg"; then
-    if ! [ "$D__GH_METHOD" = g ]; then 
-      d__notify -lxt 'Unable to update' -- 'Framework is a clone' \
-        'of Github remote, but Git is currently not available on the system'
-      printf >&2 '%s %s\n' "$D__INTRO_UPD_2" "$uplq"
-      popd &>/dev/null; return 1
-    fi
-    d___update_fmk_via_pull; urtc=$?; popd &>/dev/null; return $urtc
   else
-    if [ "$D__GH_METHOD" = g ]; then d___upgrade_fmk_to_git
-    else d___crude_update_fmk; fi
-    urtc=$?; popd &>/dev/null; return $urtc
-  fi
-}
 
-d___update_fmk_via_pull()
-{
-  # Extract and validate current branch; exctract relevant Git config
-  local curbr="$( git rev-parse --abbrev-ref HEAD 2>/dev/null )"
-  case $brn in
-    '')     d__notify -lx -- 'Unable to retrieve name of current Git branch'
-            printf >&2 '%s %s\n' "$D__INTRO_UPD_1" "$uplq"; return 1;;
-    'HEAD') d__notify -lx -- "Unable to pull in 'detached HEAD' state"
-            printf >&2 '%s %s\n' "$D__INTRO_UPD_1" "$uplq"; return 1;;
-  esac
-  local curcfg="$( git config --get remote.origin.fetch )"
-
-  # Perform checks based on whether the 'nightly' mode is enabled
-  if d__stast -rs -- has 'nightly'; then
-    local reqcfg='+refs/heads/*:refs/remotes/origin/*'
-    if ! [ "$curcfg" = "$reqcfg" ] \
-      && ! git config remote.origin.fetch "$reqcfg" 2>/dev/null
-    then
-      d__notify -lx -- 'Failed to set Git configuration'
-      printf >&2 '%s %s\n' "$D__INTRO_UPD_1" "$uplq"; return 1
-    fi
-    case $curbr in
-      master) if ! git fetch origin 2>/dev/null; then
-                d__notify -lx -- 'Failed to fetch latest framework revision'
-                printf >&2 '%s %s\n' "$D__INTRO_UPD_1" "$uplq"; return 1
-              fi
-              if ! git checkout --track origin/dev 2>/dev/null; then
-                d__notify -lx -- "Failed to switch to branch 'dev'"
-                printf >&2 '%s %s\n' "$D__INTRO_UPD_1" "$uplq"; return 1
-              fi
-              printf >&2 '%s %s\n' "$D__INTRO_UPD_0" "$uplq"; return 0
-      dev)    :;;
-      *)      d__notify -ls -- "Refusing to move away from branch '$curbr'"
-              printf >&2 '%s %s\n' "$D__INTRO_UPD_2" "$uplq"; return 1;;
-    esac
-  else
-    case $curbr in
-      master) :;;
-      *)      d__notify -ls -- "Refusing to move away from branch '$curbr'"
-              printf >&2 '%s %s\n' "$D__INTRO_UPD_2" "$uplq"; return 1;;
-    esac
+    # With non-zero args, iterate over them
+    for ii in "${D__REQ_ARGS[@]}"; do case $ii in
+      a|al|all)           uslf=true; uslg=true; uslb=true;;
+      f|fr|fm|fmwk)       uslf=true;;
+      framework)          uslf=true;;
+      g|gr|grail)         uslg=true;;
+      b|bu|bundles)       uslb=true;;
+      bd|bdl|bdls)        uslb=true;;
+      d|dp|dpl|dpls)      uslb=true;;
+      de|dep|deps)        uslb=true;;
+      deployment)         uslb=true;;
+      deployments)        uslb=true;;
+      *)                  erra+=( -i- "- unrecognized argument '$ii'" );;
+    esac; done
+  
+  # Done parsing update arguments
   fi
 
-  # Notify and perform excellently
-  d__notify -- 'Updating by pulling from Github remote'
-  if ! d___pull_from_git_remote "$udst"; then
-    d__notify -lx -- "Failed to pull updates from Github remote"
-    printf >&2 '%s %s\n' "$D__INTRO_UPD_1" "$uplq"; return 1
-  fi
-  printf >&2 '%s %s\n' "$D__INTRO_UPD_0" "$uplq"; return 0
-}
-
-d___upgrade_fmk_to_git()
-{
-  # Check whether nightly mode is enabled
-  local nght=false nplq=; d__stast -rs -- has 'nightly' && nght=true
-  $nght && nplq=' (nightly build)'
-
-  # Announce; compose destination path; print location
-  d__notify -l! -- "Replacing current framework copy with Github clone$nplq" \
-    -i- -t- 'Repo URL' "https://github.com/$uarg" \
-    -n- 'Current framework directory will be kept'
-
-  # Conditionally prompt for user's approval
-  if [ "$D__OPT_ANSWER" != true ]; then
-    printf >&2 '%s ' "$D__INTRO_CNF_N"
-    if ! d__prompt -b
-    then printf >&2 '%s %s\n' "$D__INTRO_UPD_S" "$uplq"; return 2; fi
-  fi
-
-  # Pull the repository into the temporary directory
-  utmp="$(mktemp -d)"
-  if $nght; then d___clone_gh_repo -fb dev -- "$uarg" "$utmp"
-  else d___clone_gh_repo "$uarg" "$utmp"; fi
-  if (($?)); then
-    printf >&2 '%s %s\n' "$D__INTRO_UPD_1" "$uplq"
-    rm -rf -- "$utmp"; return 1
-  fi
-
-  # Back up previous framework directory (and capture backup path)
-  local d__bckp=; if ! d__push_backup -- "$udst" "$udst.bak"; then
-    d__notify -lx -- 'Failed to back up old framework directory'
-    printf >&2 '%s %s\n' "$D__INTRO_UPD_1" "$uplq"
-    rm -rf -- "$utmp"; return 1
-  fi
-
-  # Move the retrieved framework clone into place
-  if ! mv -n -- "$utmp" "$udst"; then
-    d__notify -lx -- 'Failed to move framework clone into place'
-    printf >&2 '%s %s\n' "$D__INTRO_UPD_1" "$uplq"
-    rm -rf -- "$utmp"; return 1
-  fi
-
-  # Return Grail and state directories
-  local erra=() src="$d__bckp/grail" dst="$udst/grail"
-  if ! mv -n -- "$src" "$dst"
-  then erra+=( -i- "- Grail directory" ); fi
-  src="$d__bckp/state" dst="$udst/state"
-  if ! mv -n -- "$src" "$dst"
-  then erra+=( -i- "- state directory" ); fi
+  # If there are illegal arguments, print an alert and stop
   if ((${#erra[@]})); then
-    d__notify -lx -- 'Failed to restore directories after upgrading' \
-      'framework to Github clone:' "${erra[@]}"
-    d__notify l! -- 'Please, move the directories manually from:' \
-      -i- "$d__bckp" -n- 'to:' -i- "$udst"
-    printf >&2 '%s %s\n' "$D__INTRO_UPD_1" "$uplq"
-    return 0
-  fi
-
-  # Report success
-  printf >&2 '%s %s\n' "$D__INTRO_UPD_0" "$uplq"
-  return 0
-}
-
-d___crude_update_fmk()
-{
-  # Check whether nightly mode is enabled
-  local nplq= refopt=
-  if d__stast -rs -- has 'nightly'
-  then nplq=' (nightly build)'; refopt='-r dev'; fi
-
-  # Only proceed in force mode
-  if $D__OPT_FORCE; then
-    printf >&2 '%s %s\n' "$D__INTRO_UPD_F" "$uplq"
-  else
-    d__notify -l! -- 'The only avenue of updating framework seems to be' \
-      "to re-download a new copy from Github$nplq"
-    d__notify -l! -- "Re-try with --force to perform such 'crude' update"
-    printf >&2 '%s %s\n' "$D__INTRO_UPD_2" "$uplq"
+    d__notify -nl! -- "There are problems with the request:" "${erra[@]}" \
+      -n- 'Stopping just in case'
     return 1
   fi
 
-  # Announce; compose destination path; print location
-  d__notify -l! -- "Downloading a new copy of the framework from Github$nplq" \
-    -i- -t- 'Repo URL' "https://github.com/$uarg" \
-    -n- 'Current framework directory will be kept'
-
-  # Conditionally prompt for user's approval
-  printf >&2 '%s ' "$D__INTRO_CNF_U"
-  if ! d__prompt -b
-  then printf >&2 '%s %s\n' "$D__INTRO_UPD_S" "$uplq"; return 2; fi
-
-  # Pull the repository into the temporary directory
-  utmp="$(mktemp -d)"
-  case $D__GH_METHOD in
-    c)  d___curl_gh_repo $refopt -- "$uarg" "$utmp";;
-    w)  d___wget_gh_repo $refopt -- "$uarg" "$utmp";;
-  esac
-  if (($?)); then
-    printf >&2 '%s %s\n' "$D__INTRO_UPD_1" "$uplq"
-    rm -rf -- "$utmp"; return 1
+  # If updating bundles, but not having a list yet, pull from stash
+  if $uslb && [ ${#ubtr[@]} -eq 0 ]; then
+    if d__stash -gs -- has attached_bundles; then
+      while read -r ughh; do
+        ubtr+=("bundle=$ughh")
+      done < <( d__stash -gs -- list attached_bundles )
+    fi
   fi
 
-  # Back up previous framework directory (and capture backup path)
-  local d__bckp=; if ! d__push_backup -- "$udst" "$udst.bak"; then
-    d__notify -lx -- 'Failed to back up old framework directory'
-    printf >&2 '%s %s\n' "$D__INTRO_UPD_1" "$uplq"
-    rm -rf -- "$utmp"; return 1
+  # Assemble update train
+  $uslf && uttr+=(fmwk)
+  $uslg && uttr+=(grail)
+  if $uslb; then
+    if ((${#ubtr[@]})); then
+      uttr+=("${ubtr[@]}")
+    else
+      uttr+=(no_bundles)
+    fi
   fi
 
-  # Move the retrieved framework copy into place
-  if ! mv -n -- "$utmp" "$udst"; then
-    d__notify -lx -- 'Failed to move new framework copy into place'
-    printf >&2 '%s %s\n' "$D__INTRO_UPD_1" "$uplq"
-    rm -rf -- "$utmp"; return 1
+  # If zero update tasks found, print alert
+  if [ ${#uttr[@]} -eq 0 ]; then
+    d__notify -nls -- 'No update tasks provided'
+    return 1
   fi
 
-  # Return Grail and state directories
-  local erra=() src="$d__bckp/grail" dst="$udst/grail"
-  if ! mv -n -- "$src" "$dst"
-  then erra+=( -i- "- Grail directory" ); fi
-  src="$d__bckp/state" dst="$udst/state"
-  if ! mv -n -- "$src" "$dst"
-  then erra+=( -i- "- state directory" ); fi
-  if ((${#erra[@]})); then
-    d__notify -lx -- "Failed to restore directories after 'crudely' updating" \
-      'framework:' "${erra[@]}"
-    d__notify l! -- 'Please, move the directories manually from:' \
-      -i- "$d__bckp" -n- 'to:' -i- "$udst"
-    printf >&2 '%s %s\n' "$D__INTRO_UPD_1" "$uplq"
-    return 0
-  fi
-
-  # Report success
-  printf >&2 '%s %s\n' "$D__INTRO_UPD_0" "$uplq"
   return 0
 }
 
-d___update_grl()
+#>  d___update_pre
+#
+## INTERNAL USE ONLY
+#
+#>  $uplq
+#>  $udst
+#
+#<  0 - good to go
+#<  1 - otherwise
+#
+d___update_pre()
 {
-  # Print a separating empty line; compose task name
-  printf >&2 '\n'; uplq="The ${BOLD}Grail$NORMAL directory"
+  # Print a separating empty line
+  printf >&2 '\n'
 
-  # Cut-off checks
-  if ! $ugrl; then
-    printf >&2 '%s %s\n' "$D__INTRO_UPD_S" "(not selected) $uplq"
-    return 3
+  # Cut-off for dry-runs
+  if [ "$D__OPT_ANSWER" = false ]; then
+    printf >&2 '%s %s\n' "$D__INTRO_UPD_S" "$uplq"
+    return 1
   fi
-  if [ "$D__OPT_ANSWER" = false ]
-  then printf >&2 '%s %s\n' "$D__INTRO_UPD_S" "$uplq"; return 3; fi
+
+  # Ensure that destination directory exists
+  if ! pushd -- "$udst" &>/dev/null; then
+    d__notify -lx -- "Unable to access directory to be updated: '$udst'"
+    printf >&2 '%s %s\n' "$D__INTRO_UPD_2" "$uplq"
+    anyf=true
+    return 1
+  fi
+
+  # Print intro and return
+  printf >&2 '%s %s\n' "$D__INTRO_UPD_N" "$uplq"
+  return 0
+}
+
+#>  d___update_report
+#
+## INTERNAL USE ONLY
+#
+#>  $1      - return code for update
+#>  $uplq
+#
+#<  $?      - $1, if supported, otherwise 1
+#
+d___update_report()
+{
+  popd &>/dev/null
+  case $1 in
+    0)  printf >&2 '%s %s\n' "$D__INTRO_UPD_0" "$uplq"
+        anys=true
+        return 0
+        ;;
+    1)  printf >&2 '%s %s\n' "$D__INTRO_UPD_1" "$uplq"
+        anyf=true
+        return 1
+        ;;
+    2)  printf >&2 '%s %s\n' "$D__INTRO_UPD_2" "$uplq"
+        anyf=true
+        return 2
+        ;;
+    3)  printf >&2 '%s %s\n' "$D__INTRO_UPD_S" "$uplq"
+        anyd=true
+        return 3
+        ;;
+    *)  return 1;;
+  esac
+}
+
+d___update_fmwk()
+{
+  # Set up key variables; call pre-processing function
+  local uplq="$BOLD$D__FMWK_NAME$NORMAL framework"
+  local ughh='no_simpler/divine-dotfiles'
+  local udst="$D__DIR_FMWK"
+  d___update_pre || return 1
+
+  # Ensure that remote repository exists
+  if ! d___gh_repo_exists "$ughh"; then
+    d__notify -ls -- "Github repository '$ughh' does not appear to exist"
+    d___update_report 2
+    return 1
+  fi
+
+  # Print locations
+  d__notify -lv -- "Repo URL: https://github.com/$ughh"
+  d__notify -lv -- "Location: $udst"
+
+  # Check for current status of nightly mode
+  local ungh=false ubld='stable'
+  d__stast -rs -- has 'nightly' && { ungh=true; ubld='nightly'; }
+
+  # Settle on method and compose prompt
+  local umet=d ufrc=false
+  if d___path_is_gh_clone "$udst" "$ughh"; then
+    if [ "$D__GH_METHOD" = g ]; then
+      d__notify -l! -- \
+        "Pulling latest revision of $D__FMWK_NAME ($BOLD$ubld$NORMAL build)"
+      umet=p
+    else
+      d__notify -lxt 'Unable to update' -- 'Framework is a clone' \
+        'of Github remote, but Git is currently not available on the system'
+      d___update_report 2
+      return 1
+    fi
+  else
+    if [ "$D__GH_METHOD" = g ]; then
+      d__notify -l! -- "Upgrading downloaded copy of $D__FMWK_NAME" \
+        "to a clone of its repository ($BOLD$ubld$NORMAL build)" \
+        -n- 'Current framework directory will be kept'
+      umet=c
+    else
+      if $D__OPT_FORCE; then
+        d__notify -l! -- "Re-downloading latest copy of $D__FMWK_NAME" \
+          "($BOLD$ubld$NORMAL build)" \
+          -n- 'Current framework directory will be kept'
+        umet=d ufrc=true
+      else
+        d__notify -lx -- "The only avenue of updating $D__FMWK_NAME" \
+          "is to re-download latest copy ($BOLD$ubld$NORMAL build)"
+        d__notify -l! -- 'Re-try with --force to overcome'
+        d___update_report 2
+        return 1
+      fi
+    fi
+  fi
+
+  # Launch appropriate function; finish up
+  case $umet in
+    p)  d___update_fmwk_via_pull;;
+    c)  d___update_fmwk_to_clone;;
+    d)  d___update_fmwk_via_dl;;
+  esac
+  d___update_report $? && return 0 || return 1
+}
+
+d___update_grail()
+{
+  # Set up key variables; call pre-processing function
+  local uplq="${BOLD}Grail$NORMAL directory"
+  local udst="$D__DIR_GRAIL"
+  d___update_pre || return 1
 
   # Cut-off check against git
   if ! [ "$D__GH_METHOD" = g ]; then
     d__notify -lx -- 'Unable to check status of Grail directory' \
-      'because current system does not have Git'
+      'because current system does not Git'
+    d___update_report 3
     return 1
   fi
 
-  # Print intro
-  printf >&2 '%s %s\n' "$D__INTRO_UPD_N" "$uplq"
-
-  # Check if framework directory is a git repository
-  if ! git ls-remote "$D__DIR_GRAIL" -q &>/dev/null; then
+  # Check if Grail directory is a git repository
+  if ! git ls-remote "$udst" -q &>/dev/null; then
     d__notify -ls -- 'Grail directory is not a Git repository'
-    printf >&2 '%s %s\n' "$D__INTRO_UPD_S" "$uplq"
-    return 3
-  fi
-
-  # Check if Grail directory is accessible
-  if ! pushd -- "$D__DIR_GRAIL" &>/dev/null; then
-    d__notify -lx -- 'Grail directory is inaccessible'
-    printf >&2 '%s %s\n' "$D__INTRO_UPD_1" "$uplq"
+    d___update_report 3
     return 1
   fi
 
-  # Check if Grail repository has 'origin' remote
-  if ! git remote 2>/dev/null | grep -Fxq origin &>/dev/null; then
-    d__notify -lx -- 'Grail repository does not have a remote to pull from'
-    printf >&2 '%s %s\n' "$D__INTRO_UPD_S" "$uplq"
-    popd &>/dev/null; return 3
+  # Figure out current branch
+  local cbrn="$( git rev-parse --abbrev-ref HEAD 2>/dev/null )" prtc=0
+  case $cbrn in
+    '')     d__notify -lx -- \
+              'Unable to detect current branch of Git repo in Grail directory'
+            d___update_report 2
+            return 1
+            ;;
+    'HEAD') d__notify -lx -- 'Unable to update Git repo in Grail directory' \
+              "because it is in 'detached HEAD' state"
+            d___update_report 2
+            return 1
+            ;;
+  esac
+
+  # Validate remote and extract its address
+  if ! git ls-remote --exit-code origin "$cbrn" &>/dev/null; then
+    d__notify -ls -- "Unable to find branch '$cbrn' on remote 'origin'" \
+      'of Git repo in Grail directory'
+    d___update_report 2
+    return 1
+  fi
+  local usrc="$( git config --get remote.origin.url 2>/dev/null )"
+  if [ -z "$usrc" ]; then
+    d__notify -lx -- "Unable to detect address of remote 'origin'" \
+      'of Git repo in Grail directory'
+    d___update_report 2
+    return 1
+  fi
+  if [[ $usrc = 'https://github.com/'* ]]; then
+    usrc="${usrc%.git}"
+    usrc="Github repository '${usrc#https://github.com/}'"
+  else
+    usrc="Git repository at '$usrc'"
   fi
 
-  # Conditionally prompt for user's approval
+  # Print locations
+  d__notify -lv -- "Origin  : $usrc"
+  d__notify -lv -- "Location: $udst"
+
+  # Prompt user
   if [ "$D__OPT_ANSWER" != true ]; then
     printf >&2 '%s ' "$D__INTRO_CNF_N"
-    if ! d__prompt -b
-    then
-      printf >&2 '%s %s\n' "$D__INTRO_UPD_S" "$uplq"
-      popd &>/dev/null; return 2
+    if ! d__prompt -b; then
+      d___update_report 3
+      return 1
     fi
   fi
 
-  # Pull and rebase
-  d__notify -- 'Updating by pulling from Git remote'
-  git pull --rebase --stat origin master
-
-  # Check status
-  if (($?)); then
-    d__notify -lx -- 'Git returned error code while pulling from remote into' \
-      'Grail repository'
-    printf >&2 '%s %s\n' "$D__INTRO_UPD_1" "$uplq"
-    popd &>/dev/null; return 1
-  fi
-
-  # Report success
-  printf >&2 '%s %s\n' "$D__INTRO_UPD_0" "$uplq"
-  popd &>/dev/null; return 0
+  # Launch routine; finish up
+  d___pull_git_remote -t 'Grail directory' -- "$udst"
+  d___update_report $? && return 0 || return 1
 }
 
-d___update_bdls()
+d___update_bundle()
 {
-  # Compose task name; if not updating bundles, skip gracefully
-  uplq="Attached ${BOLD}bundles$NORMAL"
-  if ! $ubdl; then
-    printf >&2 '\n%s %s\n' "$D__INTRO_UPD_S" "(not selected) $uplq"
-    uanyn=true; return 0
-  fi
-  if [ "$D__OPT_ANSWER" = false ]; then
-    printf >&2 '\n%s %s\n' "$D__INTRO_UPD_S" "$uplq"
-    uanyn=true; return 0
-  fi
+  # Set up key variables; call pre-processing function
+  local ughh="$1"
+  local uplq="Attached bundle '$BOLD$ughh$NORMAL'"
+  local udst="$D__DIR_BUNDLES/$ughh"
+  d___update_pre || return 1
 
-  # If list of bundles is empty, then there are certainly no attached bundles
-  if [ ${#ubdla[@]} -eq 0 ]; then
-    printf >&2 '\n%s %s\n' "$D__INTRO_UPD_S" \
-      "There are no attached ${BOLD}bundles$NORMAL"
-    uanyn=true; return 0
+  # Ensure that remote repository exists
+  if ! d___gh_repo_exists "$ughh"; then
+    d__notify -ls -- "Github repository '$ughh' does not appear to exist"
+    d___update_report 2
+    return 1
   fi
 
-  # Update bundles sequentially
-  for uarg in "${ubdla[@]}"; do
-    d___update_bdl
-    case $? in 0) uanys=true;; 1) uanyf=true;; 2) uanyd=true;; esac
-  done
-}
-
-d___update_bdl()
-{
-  # Print a separating empty line; compose task name
-  printf >&2 '\n'; uplq="Bundle '$BOLD$uarg$NORMAL'"
-
-  # Print intro
-  printf >&2 '%s %s\n' "$D__INTRO_UPD_N" "$uplq"
-
-  # Accept one of two patterns: 'builtin_repo_name' and 'username/repo'
-  if [[ $uarg =~ ^[0-9A-Za-z_.-]+$ ]]
-  then uarg="no-simpler/divine-bundle-$uarg"
-  elif [[ $uarg =~ ^[0-9A-Za-z_.-]+/[0-9A-Za-z_.-]+$ ]]; then :
-  else
-    d__notify -lx -- "Invalid bundle identifier '$uarg'"
-    printf >&2 '%s %s\n' "$D__INTRO_UPD_2" "$uplq"; return 1
-  fi
-
-  # Ensure that the remote repository exists
-  if ! d___gh_repo_exists "$uarg"; then
-    d__notify -lx -- "Github repository '$uarg' does not appear to exist"
-    printf >&2 '%s %s\n' "$D__INTRO_UPD_2" "$uplq"; return 1
-  fi
-
-  # Compose destination path; print location
-  udst="$D__DIR_BUNDLES/$uarg"
-  d__notify -lv -- "Repo URL: https://github.com/$uarg"
+  # Print locations
+  d__notify -lv -- "Repo URL: https://github.com/$ughh"
   d__notify -lv -- "Location: $udst"
 
-  # Check if bundle directory is a cloned Github repository
-  if d___path_is_gh_clone "$udst" "$uarg"; then
-    if [ "$D__GH_METHOD" = g ]
-    then d___update_bdl_via_pull; return $?
+  # Settle on method and compose prompt
+  local umet=d ufrc=false
+  if d___path_is_gh_clone "$udst" "$ughh"; then
+    if [ "$D__GH_METHOD" = g ]; then
+      d__notify -l! -- "Pulling latest revision of bundle '$ughh'"
+      umet=p
     else
-      d__notify -lxt 'Unable to update' -- 'Bundle is a clone' \
+      d__notify -lxt 'Unable to update' -- 'Bundle '$ughh' is a clone' \
         'of Github remote, but Git is currently not available on the system'
-      printf >&2 '%s %s\n' "$D__INTRO_UPD_2" "$uplq"
+      d___update_report 2
       return 1
     fi
   else
-    if [ "$D__GH_METHOD" = g ]
-    then d___upgrade_bdl_to_git; return $?
-    else d___crude_update_bdl; return $?; fi
+    if [ "$D__GH_METHOD" = g ]; then
+      d__notify -l! -- "Upgrading downloaded copy of bundle '$ughh'" \
+        'to a clone of its repository' \
+        -n- 'Current bundle directory will be kept'
+      umet=c
+    else
+      if $D__OPT_FORCE; then
+        d__notify -lx -- "Re-downloading latest copy of bundle '$ughh'" \
+          -n- 'Current bundle directory will be kept'
+        umet=d ufrc=true
+      else
+        d__notify -l! -- "The only avenue of updating bundle '$ughh'" \
+          'is to re-download latest copy'
+        d__notify -l! -- 'Re-try with --force to overcome'
+        d___update_report 2
+        return 1
+      fi
+    fi
   fi
+
+  # Prompt user
+  if $ufrc || [ "$D__OPT_ANSWER" != true ]; then
+    if $ufrc; then
+      printf >&2 '%s ' "$D__INTRO_CNF_U"
+    else
+      printf >&2 '%s ' "$D__INTRO_CNF_N"
+    fi
+    if ! d__prompt -b; then
+      d___update_report 3
+      return 1
+    fi
+  fi
+
+  # Launch appropriate function; finish up
+  case $umet in
+    p)  d___pull_git_remote -t "bundle '$ughh'" -- "$udst";;
+    c)  d___update_bundle_to_clone;;
+    d)  d___update_bundle_via_dl;;
+  esac
+  d___update_report $? && return 0 || return 1
 }
 
-d___update_bdl_via_pull()
+d___update_no_bundles()
 {
-  # Notify and perform excellently
-  d__notify -- 'Updating by pulling from Github remote'
-  if ! d___pull_from_git_remote "$udst"; then
-    d__notify -lx -- "Failed to pull updates from Github remote"
-    printf >&2 '%s %s\n' "$D__INTRO_UPD_1" "$uplq"; return 1
+  # Do a quick skipping dance
+  local uplq="Attached bundles"
+  printf >&2 '\n'
+  if [ "$D__OPT_ANSWER" = false ]; then
+    printf >&2 '%s %s\n' "$D__INTRO_UPD_S" "$uplq"
+    return 1
   fi
-  printf >&2 '%s %s\n' "$D__INTRO_UPD_0" "$uplq"; return 0
+  printf >&2 '%s %s\n' "$D__INTRO_UPD_N" "$uplq"
+  d__notify -ls -- 'There are no bundles attached to the Grail directory'
+  printf >&2 '%s %s\n' "$D__INTRO_UPD_S" "$uplq"
+  anyd=true
+  return 0
 }
 
-d___upgrade_bdl_to_git()
+d___update_bundle_to_clone()
 {
-  # Announce; compose destination path; print location
-  d__notify -l! -- 'Replacing current bundle copy with Github clone' \
-    -i- -t- 'Repo URL' "https://github.com/$uarg" \
-    -n- "Current bundle directory will be kept"
-
-  # Conditionally prompt for user's approval
-  if [ "$D__OPT_ANSWER" != true ]; then
-    printf >&2 '%s ' "$D__INTRO_CNF_N"
-    if ! d__prompt -b
-    then printf >&2 '%s %s\n' "$D__INTRO_UPD_S" "$uplq"; return 2; fi
-  fi
-
   # Pull the repository into the temporary directory
-  utmp="$(mktemp -d)"; d___clone_gh_repo "$uarg" "$utmp"
-  if (($?)); then
-    printf >&2 '%s %s\n' "$D__INTRO_UPD_1" "$uplq"
-    rm -rf -- "$utmp"; return 1
+  local utmp="$(mktemp -d)" uopt=( -Gt "bundle '$ughh'" )
+  if ! d___clone_git_repo "${uopt[@]}" -- "$ughh" "$utmp"; then
+    rm -rf -- "$utmp"
+    return 2
   fi
 
   # Back up previous bundle directory
-  if ! d__push_backup -- "$udst" "$D__DIR_BUNDLE_BACKUPS/$uarg.bak"; then
+  if ! d__push_backup -- "$udst" "$D__DIR_BUNDLE_BACKUPS/$ughh.bak"; then
     d__notify -lx -- 'Failed to back up old bundle directory'
-    printf >&2 '%s %s\n' "$D__INTRO_UPD_1" "$uplq"
-    rm -rf -- "$utmp"; return 1
+    rm -rf -- "$utmp"
+    return 1
   fi
 
   # Move the retrieved bundle clone into place
   if ! mv -n -- "$utmp" "$udst"; then
     d__notify -lx -- 'Failed to move bundle clone into place'
-    printf >&2 '%s %s\n' "$D__INTRO_UPD_1" "$uplq"
-    rm -rf -- "$utmp"; return 1
-  fi
-
-  # Report success
-  printf >&2 '%s %s\n' "$D__INTRO_UPD_0" "$uplq"
-  return 0
-}
-
-d___crude_update_bdl()
-{
-  # Only proceed in force mode
-  if $D__OPT_FORCE; then
-    printf >&2 '%s %s\n' "$D__INTRO_UPD_F" "$uplq"
-  else
-    d__notify -l! -- "The only avenue of updating bundle '$uarg' seems to be" \
-      'to re-download a new copy from Github'
-    d__notify -l! -- "Re-try with --force to perform such 'crude' update"
-    printf >&2 '%s %s\n' "$D__INTRO_UPD_2" "$uplq"
+    rm -rf -- "$utmp"
     return 1
   fi
 
-  # Announce; compose destination path; print location
-  d__notify -l! -- 'Downloading a new copy of the bundle from Github' \
-    -i- -t- 'Repo URL' "https://github.com/$uarg" \
-    -n- "Current bundle directory will be kept"
+  # Report success
+  return 0
+}
 
-  # Conditionally prompt for user's approval
-  printf >&2 '%s ' "$D__INTRO_CNF_U"
-  if ! d__prompt -b
-  then printf >&2 '%s %s\n' "$D__INTRO_UPD_S" "$uplq"; return 2; fi
+d___update_bundle_via_dl()
+{
+  # Print forced intro
+  printf >&2 '%s %s\n' "$D__INTRO_UPD_F" "$uplq"
 
   # Pull the repository into the temporary directory
-  utmp="$(mktemp -d)"; case $D__GH_METHOD in
-    c)  d___curl_gh_repo "$uarg" "$utmp";;
-    w)  d___wget_gh_repo "$uarg" "$utmp";;
-  esac
-  if (($?)); then
-    printf >&2 '%s %s\n' "$D__INTRO_UPD_1" "$uplq"
-    rm -rf -- "$utmp"; return 1
+  local utmp="$(mktemp -d)" uopt=( -$D__GH_METHOD -t "bundle '$ughh'" )
+  if ! d___dl_gh_repo "${uopt[@]}" -- "$ughh" "$utmp"; then
+    rm -rf -- "$utmp"
+    return 2
   fi
 
-  # Back up previous bundle directory
-  if ! d__push_backup -- "$udst" "$D__DIR_BUNDLE_BACKUPS/$uarg.bak"; then
+  # Back up previous bundle directory (and capture backup path)
+  if ! d__push_backup -- "$udst" "$D__DIR_BUNDLE_BACKUPS/$ughh.bak"; then
     d__notify -lx -- 'Failed to back up old bundle directory'
-    printf >&2 '%s %s\n' "$D__INTRO_UPD_1" "$uplq"
-    rm -rf -- "$utmp"; return 1
+    rm -rf -- "$utmp"
+    return 1
   fi
 
   # Move the retrieved bundle copy into place
   if ! mv -n -- "$utmp" "$udst"; then
     d__notify -lx -- 'Failed to move new bundle copy into place'
-    printf >&2 '%s %s\n' "$D__INTRO_UPD_1" "$uplq"
-    rm -rf -- "$utmp"; return 1
+    rm -rf -- "$utmp"
+    return 1
   fi
 
   # Report success
-  printf >&2 '%s %s\n' "$D__INTRO_UPD_0" "$uplq"
   return 0
 }
 

@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: install
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.22
-#:revremark:    Shorten obliterate check in routines
+#:revdate:      2019.11.26
+#:revremark:    Rewrite update rtn; implement nightly switch
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -18,7 +18,7 @@ readonly D__RTN_INSTALL=loaded
 d__load util workflow
 d__load util stash
 d__load util offer
-d__load util github
+d__load util git
 d__load util backup
 d__load util assets
 d__load util items
