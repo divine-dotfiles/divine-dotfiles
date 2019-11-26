@@ -1,0 +1,1 @@
+* [**`fix`**] Fix the incorrect Github handle of the *Divine.dotfiles* repository during the update routine.
