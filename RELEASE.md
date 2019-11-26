@@ -1,0 +1,1 @@
+* [**`fix`**] Fix a typo in variable name that led to errors when pulling from remote Git repositories.
