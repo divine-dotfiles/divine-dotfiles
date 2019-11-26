@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: install
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.21
-#:revremark:    Batch rename dmd5 to d__md5
+#:revdate:      2019.11.26
+#:revremark:    Rewrite update rtn; implement nightly switch
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -18,7 +18,7 @@ readonly D__RTN_INSTALL=loaded
 d__load util workflow
 d__load util stash
 d__load util offer
-d__load util github
+d__load util git
 d__load util backup
 d__load util assets
 d__load util items
@@ -48,8 +48,7 @@ d__load procedure assemble
 #
 d__rtn_install()
 {
-  if $D__OPT_OBLITERATE && [ "$D__OPT_ANSWER" != false ]
-  then d__confirm_obliteration; fi
+  $D__OPT_OBLITERATE && d__confirm_obliteration
 
   # Print a separating empty line, switch context
   printf >&2 '\n'
