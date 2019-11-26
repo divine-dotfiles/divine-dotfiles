@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.11.26
-#:revremark:    Fix incorrect fmwk repo handle in fmwk update
+#:revremark:    Fix typo in stash call
 #:created_at:   2019.05.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -320,7 +320,7 @@ d___update_fmwk()
 
   # Check for current status of nightly mode
   local ungh=false ubld='stable'
-  d__stast -rs -- has 'nightly' && { ungh=true; ubld='nightly'; }
+  d__stash -rs -- has 'nightly' && { ungh=true; ubld='nightly'; }
 
   # Settle on method and compose prompt
   local umet=d ufrc=false
