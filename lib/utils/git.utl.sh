@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.11.26
-#:revremark:    Fix incorrect var name in git utils
+#:revremark:    Improve checking for GH repo existence via ls-remote
 #:created_at:   2019.09.13
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -403,7 +403,7 @@ d___pull_git_remote()
 d___gh_repo_exists()
 {
   case $D__GH_METHOD in
-    g)  git ls-remote "https://github.com/$1.git" -q &>/dev/null;;
+    g)  git ls-remote "git://github.com/$1.git" &>/dev/null;;
     c)  grep -q 200 < <( curl -I "https://api.github.com/repos/$1" \
           2>/dev/null | head -1 );;
     w)  grep -q 200 < <( wget -q --spider --server-response \
