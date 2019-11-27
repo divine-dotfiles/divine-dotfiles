@@ -1,2 +1,1 @@
-* [**`other`**] Slight improvements in the `README` wording.
-* [**`fix`**] Straighten up syntax typo in Git pulling mechanism.
+* [**`fix`**] Fix incorrect internal calls to `d__cmd` involving the `--else--` options, all within the Git pulling utility.
