@@ -1,1 +1,0 @@
-* [**`fix`**] Correctly use Bash variable substitution when applying bolding to the word 'not' throughout the framework's debug output.
