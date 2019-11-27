@@ -1,0 +1,1 @@
+* [**`other`**] Slight improvements in the `README` wording.
