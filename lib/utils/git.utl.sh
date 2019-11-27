@@ -2,8 +2,8 @@
 #:title:        Divine Bash utils: git
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.26
-#:revremark:    Improve checking for GH repo existence via ls-remote
+#:revdate:      2019.11.27
+#:revremark:    Improve git pull util when changing branch
 #:created_at:   2019.09.13
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -286,7 +286,7 @@ d___pull_git_remote()
   (($prtc)) && { popd &>/dev/null; return $prtc; }
 
   # Check if branch change rules allow to proceed
-  local chbr=false
+  local chbr=false achb=false
   [ -z ${pbrn+isset} ] && pbrn="$cbrn"
   if [ "$cbrn" = "$pbrn" ]; then
     :
@@ -311,6 +311,8 @@ d___pull_git_remote()
     prtc=2
   fi
   (($prtc)) && { popd &>/dev/null; return $prtc; }
+
+  # Fork based on whether cnanging current branch
   if $chbr; then
     d__context -- push "Switching from branch '$cbrn' to branch '$pbrn'"
   else
@@ -319,7 +321,7 @@ d___pull_git_remote()
 
   # Validate name of the remote; extract remote URL
   if ! git ls-remote --exit-code "$prem" "$pbrn" &>/dev/null; then
-    d__fail -- "Unable to reach branch '$pbrn' on remote '$prem'"
+    d__fail -- "Unable to find branch '$pbrn' on remote '$prem'"
     popd &>/dev/null
     return 2
   fi
@@ -339,8 +341,9 @@ d___pull_git_remote()
   # Fork based on whether changing branch or not
   if $chbr; then
 
-    # Changing current branch
-    d__context -- push "Pulling updates from $psrc"
+    # Announce plans
+    d__context -- push "Pulling updates from '$psrc'," \
+      "switching to branch '$pbrn', and rebasing local commits on top"
 
     # Set proper Git options
     local curc reqc unic
@@ -355,15 +358,23 @@ d___pull_git_remote()
             || { popd &>/dev/null; return 1; };;
     esac
 
-    # First, pull updates with rebasing
-    d__cmd --q-- git pull --rebase --stat "$prem" \
-      --else-- 'Failed to pull updates before changing current branch' \
+    # First, fetch updates for target branch
+    d__cmd --q-- git fetch "$prem" "$prbn" --else-- 'Failed to fetch updates' \
+      "for branch '$pbrn' from remote '$prem'" \
       || { popd &>/dev/null; return 1; }
 
-    # Checkout required branch
-    d__cmd --q-- git checkout --track "$prem/$pbrn" \
-      --else-- 'Failed to change current branch' \
+    # Checkout required branch, which should definitely exist after fetch
+    d__cmd --q-- git checkout "$pbrn" \
+      --else-- "Failed to change current branch to '$pbrn'" \
       || { popd &>/dev/null; return 1; }
+
+    # Finally, rebase any local commits on top of updates from remote
+    d__cmd --q-- git rebase "$prem/$pbrn" "$pbrn" \
+      --else-- "Failed to rebase local commits in '$pbrn'" \
+      "on top of its remote version '$prem/$pbrn'" \
+      || { popd &>/dev/null; return 1; }
+
+    # Finish up
     popd &>/dev/null
     d__context -t 'Done' -- pop \
       "Successfully pulled updates and changed current branch to '$pbrn'"
@@ -372,8 +383,9 @@ d___pull_git_remote()
 
   else
 
-    # Pulling current branch
-    d__context -- push "Pulling updates from $psrc"
+    # With current branch, simple pull --rebase will do
+    d__context -- push "Pulling updates from '$psrc'" \
+      "for current branch '$cbrn', and rebasing local commits on top"
     d__cmd --q-- git pull --rebase --stat "$prem" "$cbrn" \
       --else-- 'Failed to pull from remote' \
       || { popd &>/dev/null; return 1; }
