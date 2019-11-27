@@ -2,8 +2,8 @@
 #:title:        Divine.dotfiles fmwk install script
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.19
-#:revremark:    Phase out old queue auto-targeting
+#:revdate:      2019.11.27
+#:revremark:    Temporarily re-wire fmwk installation to dev branch
 #:created_at:   2019.07.22
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -191,7 +191,7 @@ d__load()
 {
   # Init vars; transform subject name
   local vr="$( printf '%s\n' "$2" | tr a-z- A-Z_ )" tmp rc
-  local url='https://raw.github.com/no-simpler/divine-dotfiles/master/lib'
+  local url='https://raw.github.com/no-simpler/divine-dotfiles/dev/lib'
 
   # Perform different
   case $1 in
