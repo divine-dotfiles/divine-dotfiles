@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.11.27
-#:revremark:    Permit fmwk installation to prompt to use sudo on shct
+#:revremark:    Optimize sudo prompt in fmwk installation
 #:created_at:   2019.10.15
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -213,24 +213,17 @@ d___pfc_shortcut()
   done
 
   # Check if a directory has been chosen
-  if [ -z "$sdst" ]; then
-    if ((${#nwrd[@]})); then
-      if d__prompt -p 'Use sudo?' -- 'Following candidate directory' \
-        'for shortcut installation is not writable without sudo:' "${nwrd[0]}"
-      then
-        sdst="${nwrd[0]}/$snm"
-      else
-        iaok=false
-        d__notify -lx -- 'Unable to find a writable installation directory' \
-          'for shortcut among candidates'
-        d__notify -l! -- 'Re-try with --shct-no to install without shortcut'
-      fi
-    else
-      iaok=false
-      d__notify -lx -- 'Unable to find a writable installation directory' \
-        'for shortcut among candidates'
-      d__notify -l! -- 'Re-try with --shct-no to install without shortcut'
-    fi
+  if [ -n "$sdst" ]; then
+    : 
+  elif ((${#nwrd[@]})) && d__prompt -p 'Use sudo?' -- 'Candidate directory' \
+    'for shortcut installation is not writable without sudo:' "${nwrd[0]}"
+  then
+    sdst="${nwrd[0]}/$snm"
+  else
+    iaok=false
+    d__notify -lx -- 'Unable to find a writable installation directory' \
+      'for shortcut among candidates'
+    d__notify -l! -- 'Re-try with --shct-no to install without shortcut'
   fi
 }
 
