@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.11.27
-#:revremark:    Fix syntax typo in git pull util
+#:revremark:    Fix incorrect calls to d__cmd with --else--
 #:created_at:   2019.09.13
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -359,10 +359,9 @@ d___pull_git_remote()
     esac
 
     # First, fetch updates for target branch
+    local ufms="Failed to fetch updates for branch '$pbrn' from remote '$prem'"
     d__cmd --q-- git fetch "$prem" "$pbrn" \
-      --else-- \
-      "Failed to fetch updates for branch '$pbrn' from remote '$prem'" \
-      || { popd &>/dev/null; return 1; }
+      --else-- "$ufms" || { popd &>/dev/null; return 1; }
 
     # Checkout required branch, which should definitely exist after fetch
     d__cmd --q-- git checkout "$pbrn" \
@@ -370,10 +369,10 @@ d___pull_git_remote()
       || { popd &>/dev/null; return 1; }
 
     # Finally, rebase any local commits on top of updates from remote
+    ufms="Failed to rebase local commits in '$pbrn'"
+    ufms+=" on top of its remote version '$prem/$pbrn'"
     d__cmd --q-- git rebase "$prem/$pbrn" "$pbrn" \
-      --else-- "Failed to rebase local commits in '$pbrn'" \
-      "on top of its remote version '$prem/$pbrn'" \
-      || { popd &>/dev/null; return 1; }
+      --else-- "$ufms" || { popd &>/dev/null; return 1; }
 
     # Finish up
     popd &>/dev/null
@@ -387,9 +386,10 @@ d___pull_git_remote()
     # With current branch, simple pull --rebase will do
     d__context -- push "Pulling updates from '$psrc'" \
       "for current branch '$cbrn', and rebasing local commits on top"
+    local ufms="Failed to pull updates for branch '$pbrn' from remote '$prem'"
+    ufms+=' and rebase local commits on top of remote ones'
     d__cmd --q-- git pull --rebase --stat "$prem" "$cbrn" \
-      --else-- 'Failed to pull from remote' \
-      || { popd &>/dev/null; return 1; }
+      --else-- "$ufms" || { popd &>/dev/null; return 1; }
     popd &>/dev/null
     d__context -t 'Done' -- pop "Successfully pulled updates from $psrc"
     d__context -- lop
