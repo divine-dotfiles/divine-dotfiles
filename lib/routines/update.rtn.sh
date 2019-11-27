@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.11.26
-#:revremark:    Rewrite update rtn; implement nightly switch
+#:revremark:    Fix typo in stash call
 #:created_at:   2019.05.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -303,7 +303,7 @@ d___update_fmwk()
 {
   # Set up key variables; call pre-processing function
   local uplq="$BOLD$D__FMWK_NAME$NORMAL framework"
-  local ughh='no_simpler/divine-dotfiles'
+  local ughh='no-simpler/divine-dotfiles'
   local udst="$D__DIR_FMWK"
   d___update_pre || return 1
 
@@ -320,7 +320,7 @@ d___update_fmwk()
 
   # Check for current status of nightly mode
   local ungh=false ubld='stable'
-  d__stast -rs -- has 'nightly' && { ungh=true; ubld='nightly'; }
+  d__stash -rs -- has 'nightly' && { ungh=true; ubld='nightly'; }
 
   # Settle on method and compose prompt
   local umet=d ufrc=false

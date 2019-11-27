@@ -1,8 +1,8 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revdate: 2019.11.21
-:revremark: Fix typo in --link opt description in readme
+:revdate: 2019.11.27
+:revremark: Move note on joy ride undo cmd down
 :doctype: article
 // Visual
 :toc: macro
@@ -575,8 +575,6 @@ The following single shell command provides the <<fmwk-joy-ride-sum,introductory
 
 All three commands *skip* the trivial <<fmwk-interactivity,prompts>> (e.g., 'Are you sure?').
 
-The *undo* command is provided in the <<fmwk-joy-ride-undo,following section>>.
-
 [source,bash]
 ----
 bash -c "TMP=\$(mktemp); \
@@ -590,6 +588,8 @@ exit 3 || exit 0" bash --yes \
 && ~/.divine/intervene.sh attach essentials --yes \
 && ~/.divine/intervene.sh install --yes
 ----
+
+(The *undo* command is provided in the <<fmwk-joy-ride-undo,following section>>.)
 
 Both the framework and deployments <<fmwk-zero-data-loss,do not overwrite>> pre-existing files on the system without backing them up.
 Everything that is backed up is <<fmwk-reversibility,automatically restored>> upon removal.
