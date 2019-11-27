@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.11.27
-#:revremark:    Improve git pull util when changing branch
+#:revremark:    Fix syntax typo in git pull util
 #:created_at:   2019.09.13
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -359,8 +359,9 @@ d___pull_git_remote()
     esac
 
     # First, fetch updates for target branch
-    d__cmd --q-- git fetch "$prem" "$prbn" --else-- 'Failed to fetch updates' \
-      "for branch '$pbrn' from remote '$prem'" \
+    d__cmd --q-- git fetch "$prem" "$pbrn" \
+      --else-- \
+      "Failed to fetch updates for branch '$pbrn' from remote '$prem'" \
       || { popd &>/dev/null; return 1; }
 
     # Checkout required branch, which should definitely exist after fetch
