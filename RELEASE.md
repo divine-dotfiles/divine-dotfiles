@@ -1,0 +1,1 @@
+* [**`fix`**] Fix incorrect internal calls to `d__cmd` involving the `--else--` options, all within the Git pulling utility.
