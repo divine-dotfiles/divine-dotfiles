@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: fmwk-install
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.26
-#:revremark:    Rewrite update rtn; implement nightly switch
+#:revdate:      2019.11.27
+#:revremark:    Optimize sudo prompt in fmwk installation
 #:created_at:   2019.10.15
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -192,6 +192,7 @@ d___pfc_shortcut()
 
   # Settle on installation directory for the shortcut
   d__notify 'Choosing shortcut installation directory'
+  local nwrd=()
   for sdir in "${D__SHORTCUT_DIR_CANDIDATES[@]}"; do
     if ! [[ :$PATH: = *:$sdir:* ]]; then
       d__notify -- "Skipping candidate '$sdir' (not on \$PATH)"; continue
@@ -199,21 +200,30 @@ d___pfc_shortcut()
     if ! [ -d "$sdir" ]; then
       d__notify -- "Skipping candidate '$sdir' (not a directory)"; continue
     fi
-    if ! [ -w "$sdir" ] && ! sudo -n true 2>/dev/null; then
-      d__notify -- "Skipping candidate '$sdir' (not writable)"; continue
-    fi
     if [ -e "$sdir/$snm" ]; then
       d__notify -- "Skipping candidate '$sdir'" \
         "(file named '$snm' already exists in it)"
       continue
     fi
+    if ! [ -w "$sdir" ]; then
+      nwrd+=("$sdir")
+      d__notify -- "Skipping candidate '$sdir' (not writable)"; continue
+    fi
     sdst="$sdir/$snm"; break
   done
 
-  # Ensure a directory has been chosen
-  if [ -z "$sdst" ]; then iaok=false
-    d__notify -lx -- 'Unable to find a writable shortcut installation' \
-      'directory among candidates'
+  # Check if a directory has been chosen
+  if [ -n "$sdst" ]; then
+    : 
+  elif ((${#nwrd[@]})) && d__prompt -p 'Use sudo?' -- 'Candidate directory' \
+    'for shortcut installation is not writable without sudo:' "${nwrd[0]}"
+  then
+    sdst="${nwrd[0]}/$snm"
+  else
+    iaok=false
+    d__notify -lx -- 'Unable to find a writable installation directory' \
+      'for shortcut among candidates'
+    d__notify -l! -- 'Re-try with --shct-no to install without shortcut'
   fi
 }
 
@@ -311,11 +321,10 @@ d___install_shortcut()
   printf >&2 '%s %s\n' "$D__INTRO_INS_N" "$iplq"
   d__notify -lv -- "Location: $sdst"
   d__notify -lv -- "Target  : $stgt"
+  local ln=ln; d__require_wdir "$sdst" || ln='sudo ln'
 
   # Install shortcut
-  if [ -w "$sdir" ]; then ln -s -- "$stgt" "$sdst" &>/dev/null
-  else sudo -n ln -s -- "$stgt" "$sdst" &>/dev/null; fi
-  if (($?)); then
+  if ! $ln -s -- "$stgt" "$sdst" &>/dev/null; then
     d__notify -lx -- "Failed to create symlink at: '$sdst'"
     printf >&2 '%s %s\n' "$D__INTRO_INS_1" "$iplq"
     return 1

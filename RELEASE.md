@@ -1,1 +1,1 @@
-* [**`fix`**] Fix incorrect internal calls to `d__cmd` involving the `--else--` options, all within the Git pulling utility.
+* [**`tweak`**] Permit the framework installation routine to ask to, and subsequently use, `sudo` to create the shortcut command in a directory that is not writable. This happens only when there are no options to use another, writable directory on `$PATH`.
