@@ -2,8 +2,8 @@
 #:title:        Divine Bash deployment helpers: reconcile
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.19
-#:revremark:    Bring templates up to speed; improve mtdt parsing
+#:revdate:      2019.11.27
+#:revremark:    Fix var sub when applying bolding to the word 'not'
 #:created_at:   2019.06.18
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -309,7 +309,7 @@ d__mltsk_install()
           printf >&2 '%s %s\n' "$D__INTRO_QIN_N" "$d__mtplq"
           d__notify -lx -- \
             "Task '$d__mtn' is recorded as previously installed" \
-            -n- "but does $BOLDnot$NORMAL appear to be installed right now" \
+            -n- "but does ${BOLD}not$NORMAL appear to be installed right now" \
             -n- '(which may be due to manual tinkering)'
           if $D__OPT_FORCE; then d__mtfrcd=true
           else d__mtok=false
@@ -337,9 +337,9 @@ d__mltsk_install()
           d__mtdfac=true; if $D__OPT_FORCE; then d__mtfrcd=true; fi;;
       9)  # Likely not installed (unknown)
           printf >&2 '%s %s\n' "$D__INTRO_QIN_N" "$d__mtplq"
-          d__notify -l! -- "Task '$d__mtn' is $BOLDnot$NORMAL recorded" \
+          d__notify -l! -- "Task '$d__mtn' is ${BOLD}not$NORMAL recorded" \
             'as previously installed' -n- 'but there is no way to confirm' \
-            "that it is indeed $BOLDnot$NORMAL installed"
+            "that it is indeed ${BOLD}not$NORMAL installed"
           if $D__OPT_FORCE; then d__mtfrcd=true
           else d__mtok=false
             d__notify -l! -- 'Re-try with --force to overcome'
@@ -585,7 +585,7 @@ d__mltsk_remove()
           printf >&2 '%s %s\n' "$D__INTRO_QRM_N" "$d__mtplq"
           d__notify -lx -- \
             "Task '$d__mtn' is recorded as previously installed" \
-            -n- "but does $BOLDnot$NORMAL appear to be installed right now" \
+            -n- "but does ${BOLD}not$NORMAL appear to be installed right now" \
             -n- '(which may be due to manual tinkering)'
           if $D__OPT_FORCE; then d__mtfrcd=true
           else d__mtok=false
@@ -612,9 +612,9 @@ d__mltsk_remove()
           fi;;
       9)  # Likely not installed (unknown)
           printf >&2 '%s %s\n' "$D__INTRO_QRM_N" "$d__mtplq"
-          d__notify -l! -- "Task '$d__mtn' is $BOLDnot$NORMAL recorded" \
+          d__notify -l! -- "Task '$d__mtn' is ${BOLD}not$NORMAL recorded" \
             'as previously installed' -n- 'but there is no way to confirm' \
-            "that it is indeed $BOLDnot$NORMAL installed"
+            "that it is indeed ${BOLD}not$NORMAL installed"
           if $D__OPT_FORCE; then d__mtfrcd=true
           else d__mtok=false
             d__notify -l! -- 'Re-try with --force to overcome'

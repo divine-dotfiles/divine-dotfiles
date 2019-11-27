@@ -2,8 +2,8 @@
 #:title:        Divine Bash deployment helpers: queue
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.19
-#:revremark:    Bring templates up to speed; improve mtdt parsing
+#:revdate:      2019.11.27
+#:revremark:    Fix var sub when applying bolding to the word 'not'
 #:created_at:   2019.06.10
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -377,7 +377,7 @@ d__queue_install()
           printf >&2 '%s %s\n' "$D__INTRO_QIN_N" "$d__qeplq"
           d__notify -lx -- \
             "Item '$d__qen' is recorded as previously installed" \
-            -n- "but does $BOLDnot$NORMAL appear to be installed right now" \
+            -n- "but does ${BOLD}not$NORMAL appear to be installed right now" \
             -n- '(which may be due to manual tinkering)'
           if $D__OPT_FORCE; then d__qefrcd=true
           else d__qeok=false
@@ -405,9 +405,9 @@ d__queue_install()
           d__qedfac=true; if $D__OPT_FORCE; then d__qefrcd=true; fi;;
       9)  # Likely not installed (unknown)
           printf >&2 '%s %s\n' "$D__INTRO_QIN_N" "$d__qeplq"
-          d__notify -l! -- "Item '$d__qen' is $BOLDnot$NORMAL recorded" \
+          d__notify -l! -- "Item '$d__qen' is ${BOLD}not$NORMAL recorded" \
             'as previously installed' -n- 'but there is no way to confirm' \
-            "that it is indeed $BOLDnot$NORMAL installed"
+            "that it is indeed ${BOLD}not$NORMAL installed"
           if $D__OPT_FORCE; then d__qefrcd=true
           else d__qeok=false
             d__notify -l! -- 'Re-try with --force to overcome'
@@ -679,7 +679,7 @@ d__queue_remove()
           printf >&2 '%s %s\n' "$D__INTRO_QRM_N" "$d__qeplq"
           d__notify -lx -- \
             "Item '$d__qen' is recorded as previously installed" \
-            -n- "but does $BOLDnot$NORMAL appear to be installed right now" \
+            -n- "but does ${BOLD}not$NORMAL appear to be installed right now" \
             -n- '(which may be due to manual tinkering)'
           if $D__OPT_FORCE; then d__qefrcd=true
           else d__qeok=false
@@ -706,9 +706,9 @@ d__queue_remove()
           fi;;
       9)  # Likely not installed (unknown)
           printf >&2 '%s %s\n' "$D__INTRO_QRM_N" "$d__qeplq"
-          d__notify -l! -- "Item '$d__qen' is $BOLDnot$NORMAL recorded" \
+          d__notify -l! -- "Item '$d__qen' is ${BOLD}not$NORMAL recorded" \
             'as previously installed' -n- 'but there is no way to confirm' \
-            "that it is indeed $BOLDnot$NORMAL installed"
+            "that it is indeed ${BOLD}not$NORMAL installed"
           if $D__OPT_FORCE; then d__qefrcd=true
           else d__qeok=false
             d__notify -l! -- 'Re-try with --force to overcome'

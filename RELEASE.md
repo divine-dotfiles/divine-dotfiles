@@ -1,1 +1,1 @@
-* [**`tweak`**] Permit the framework installation routine to ask to, and subsequently use, `sudo` to create the shortcut command in a directory that is not writable. This happens only when there are no options to use another, writable directory on `$PATH`.
+* [**`fix`**] Correctly use Bash variable substitution when applying bolding to the word 'not' throughout the framework's debug output.
