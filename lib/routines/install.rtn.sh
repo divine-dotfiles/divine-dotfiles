@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: install
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.26
-#:revremark:    Rewrite update rtn; implement nightly switch
+#:revdate:      2019.11.27
+#:revremark:    Fix var sub when applying bolding to the word 'not'
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -217,7 +217,7 @@ d___install_pkgs()
         # Not installed, but stash record exists
         d__notify -lx -- \
           "Package '$d__pkg_n' is recorded as previously installed" \
-          -n- "but does $BOLDnot$NORMAL appear to be installed right now" \
+          -n- "but does ${BOLD}not$NORMAL appear to be installed right now" \
           -n- '(which may be due to manual tinkering)'
         if $D__OPT_FORCE; then d__frcd=true d__shi=true
         else
@@ -229,7 +229,7 @@ d___install_pkgs()
         d__notify -lx -- \
           "Package '$d__pkg_n' is recorded as previously installed" \
           "by $D__FMWK_NAME itself" \
-          -n- "but does $BOLDnot$NORMAL appear to be installed right now" \
+          -n- "but does ${BOLD}not$NORMAL appear to be installed right now" \
           -n- '(which may be due to manual tinkering)'
         if $D__OPT_FORCE; then d__frcd=true d__shi=true d__shs=true
         else
@@ -444,8 +444,8 @@ d___install_dpls()
         6)  # Manually removed (tinkered with)
             d__notify -lx -- \
               "Deployment '$d__dpl_n' is recorded as previously installed" \
-              -n- "but does $BOLDnot$NORMAL appear to be installed right now" \
-              -n- '(which may be due to manual tinkering)'
+              -n- "but does ${BOLD}not$NORMAL appear to be installed" \
+              -n- 'right now (which may be due to manual tinkering)'
             if $D__OPT_FORCE; then d__frcd=true
             else
               d__notify -l! -- 'Re-try with --force to overcome'
@@ -469,9 +469,9 @@ d___install_dpls()
             d__dfac=true; if $D__OPT_FORCE; then d__frcd=true; fi;;
         9)  # Likely not installed (unknown)
             d__notify -l! -- \
-              "Deployment '$d__dpl_n' is $BOLDnot$NORMAL recorded" \
+              "Deployment '$d__dpl_n' is ${BOLD}not$NORMAL recorded" \
               'as previously installed' -n- 'but there is no way to confirm' \
-              "that it is indeed $BOLDnot$NORMAL installed"
+              "that it is indeed ${BOLD}not$NORMAL installed"
             if $D__OPT_FORCE; then d__frcd=true
             else
               d__notify -l! -- 'Re-try with --force to overcome'
