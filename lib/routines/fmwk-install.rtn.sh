@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.11.28
-#:revremark:    Make location/URL alerts less visible
+#:revremark:    In fmwk inst, don't prompt for sudo if already priveleged
 #:created_at:   2019.10.15
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -214,9 +214,11 @@ d___pfc_shortcut()
 
   # Check if a directory has been chosen
   if [ -n "$sdst" ]; then
-    : 
-  elif ((${#nwrd[@]})) && d__prompt -p 'Use sudo?' -- 'Candidate directory' \
-    'for shortcut installation is not writable without sudo:' "${nwrd[0]}"
+    :
+  elif ((${#nwrd[@]})) \
+    && ( sudo -n true &>/dev/null \
+    || d__prompt -p 'Use sudo?' -- 'Candidate directory' \
+    'for shortcut installation is not writable without sudo:' "${nwrd[0]}" )
   then
     sdst="${nwrd[0]}/$snm"
   else
