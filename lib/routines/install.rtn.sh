@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.11.28
-#:revremark:    Return informative code from install/remove routines
+#:revremark:    Consider 'already inst.' and 'irrelevant' as success on installation
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -491,7 +491,7 @@ d___install_dpls()
             else
               printf >&2 '%s %s\n' "$D__INTRO_INS_A" "$d__plq"
               d__notify -qqq -- 'Exiting sub-shell'
-              d___write_status 2
+              d___write_status 0
               exit
             fi;;
         2)  # Fully not installed
@@ -499,7 +499,7 @@ d___install_dpls()
         3)  # Irrelevant or invalid
             printf >&2 '%s %s\n' "$D__INTRO_CHK_3" "$d__plq"
             d__notify -qqq -- 'Exiting sub-shell'
-            d___write_status 2
+            d___write_status 0
             exit;;
         4)  # Partly installed
             d__notify -l! -- \
