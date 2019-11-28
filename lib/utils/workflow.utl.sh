@@ -2,8 +2,8 @@
 #:title:        Divine Bash utils: workflow
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.21
-#:revremark:    With --yes, substitute --obliterate prompt with alert
+#:revdate:      2019.11.28
+#:revremark:    Improve wording of --obliterate alert
 #:created_at:   2019.09.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -1543,8 +1543,7 @@ d__confirm_obliteration()
     -n- \
     'Normally, backups of such assets are kept just in case.' \
     -n- \
-    '(The described behavior is only guaranteed for the framework itself and' \
-    'the Divine deployments.)' \
+    '(Guaranteed only for the framework itself and the Divine deployments.)' \
   )
   case $D__OPT_ANSWER in
     true)   d__notify -l! -- "${alrt[@]}";;
