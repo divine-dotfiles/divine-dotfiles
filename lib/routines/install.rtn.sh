@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.11.28
-#:revremark:    Add debug output to install/remove failures/skips
+#:revremark:    In removal, treat already removed pkg as a-ok
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -150,7 +150,7 @@ d___install_pkgs()
 
   # Storage variables
   local d__plq d__pkga_n d__pkga_b d__pkga_f d__pkg_n d__pkg_b d__pkg_f d__i
-  local d__aamd d__frcd d__shi d__shs d__msg d__prtc=
+  local d__aamd d__frcd d__shi d__shs d__msg d__pstt=
 
   # Split package names on newline
   IFS=$'\n' read -r -d '' -a d__pkga_n <<<"${D__WKLD_PKGS[$d__prty]}"
@@ -163,7 +163,7 @@ d___install_pkgs()
   for ((d__i=0;d__i<${#d__pkga_n[@]};++d__i)); do
 
     # Process status from previous iteration; set default value
-    case $d__prtc in
+    case $d__pstt in
       0)  d__anys=true;;
       1)  d__notify -qq -- 'Recorded failure to install'
           d__anyf=true;;
@@ -171,7 +171,7 @@ d___install_pkgs()
           d__anyn=true;;
       *)  :;;
     esac
-    d__prtc=1
+    d__pstt=1
 
     # Print a separating empty line; extract pkg name; compose task name
     printf >&2 '\n'; d__pkg_n="${d__pkga_n[$d__i]}"
@@ -197,7 +197,7 @@ d___install_pkgs()
       if d__stash -rs -- has "pkg_$( d__md5 -s $d__pkg_n )"; then
         # Installed with stash record
         printf >&2 '%s %s\n' "$D__INTRO_INS_A" "$d__plq"
-        d__prtc=0
+        d__pstt=0
         continue
       elif d__stash -rs -- has installed_utils "$d__pkg_n"; then
         # Installed through offer
@@ -208,7 +208,7 @@ d___install_pkgs()
         else d__notify -q! -- "$d__msg"
           d__notify -q! -- 'Re-try with --force to overcome'
           printf >&2 '%s %s\n' "$D__INTRO_INS_A" "$d__plq"
-          d__prtc=0
+          d__pstt=0
           continue
         fi
       else
@@ -219,7 +219,7 @@ d___install_pkgs()
         else d__notify -q! -- "$d__msg"
           d__notify -q! -- 'Re-try with --force to overcome'
           printf >&2 '%s %s\n' "$D__INTRO_CHK_7" "$d__plq"
-          d__prtc=0
+          d__pstt=0
           continue
         fi
       fi
@@ -253,7 +253,7 @@ d___install_pkgs()
         else d__notify -q! -- "$d__msg"
           d__notify -q! -- 'Re-try with --force to overcome'
           printf >&2 '%s %s\n' "$D__INTRO_CHK_7" "$d__plq"
-          d__prtc=0
+          d__pstt=0
           continue
         fi
       fi
@@ -292,7 +292,7 @@ d___install_pkgs()
       d__notify -qs -- \
         "Package '$d__pkg_n' is currently not available from '$D__OS_PKGMGR'"
       printf >&2 '%s %s\n' "$D__INTRO_NOTAV" "$d__plq"
-      d__prtc=2
+      d__pstt=2
       continue
     fi
 
@@ -306,7 +306,7 @@ d___install_pkgs()
       else printf >&2 '%s ' "$D__INTRO_CNF_N"; fi
       if ! d__prompt -b; then
         printf >&2 '%s %s\n' "$D__INTRO_INS_S" "$d__plq"
-        d__prtc=2
+        d__pstt=2
         continue
       fi
     fi
@@ -331,14 +331,14 @@ d___install_pkgs()
     fi
 
     # Report
-    d__prtc=0
+    d__pstt=0
     printf >&2 '%s %s\n' "$D__INTRO_INS_0" "$d__plq"
 
   # Done iterating over package names
   done
 
   # Process last status
-  case $d__prtc in
+  case $d__pstt in
     0)  d__anys=true;;
     1)  d__notify -qq -- 'Recorded failure to install'
         d__anyf=true;;
