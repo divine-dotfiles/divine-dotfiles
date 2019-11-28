@@ -1,0 +1,1 @@
+* [**`debug`**] Add debug output when recording `install`/`remove` tasks as failed or refused.

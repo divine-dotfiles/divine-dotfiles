@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.11.28
-#:revremark:    Return informative code from install/remove routines
+#:revremark:    Add debug output to install/remove failures/skips
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -169,8 +169,10 @@ d___remove_pkgs()
     # Process status from previous iteration; set default value
     case $d__prtc in
       0)  d__anys=true;;
-      1)  d__anyf=true;;
-      2)  d__anyn=true;;
+      1)  d__notify -qq -- 'Recorded failure to remove'
+          d__anyf=true;;
+      2)  d__notify -qq -- 'Recorded refusal to remove'
+          d__anyn=true;;
       *)  :;;
     esac
     d__prtc=1
@@ -342,8 +344,10 @@ d___remove_pkgs()
   # Process last status
   case $d__prtc in
     0)  d__anys=true;;
-    1)  d__anyf=true;;
-    2)  d__anyn=true;;
+    1)  d__notify -qq -- 'Recorded failure to remove'
+        d__anyf=true;;
+    2)  d__notify -qq -- 'Recorded refusal to remove'
+        d__anyn=true;;
     *)  :;;
   esac
 
@@ -397,8 +401,10 @@ d___remove_dpls()
     # Process status from previous iteration; set default value
     case $( d___read_status ) in
       0)  d__anys=true;;
-      1)  d__anyf=true;;
-      2)  d__anyn=true;;
+      1)  d__notify -qq -- 'Recorded failure to remove'
+          d__anyf=true;;
+      2)  d__notify -qq -- 'Recorded refusal to remove'
+          d__anyn=true;;
       *)  :;;
     esac
     d___write_status 1
@@ -676,8 +682,10 @@ d___remove_dpls()
   # Process last status
   case $( d___read_status ) in
     0)  d__anys=true;;
-    1)  d__anyf=true;;
-    2)  d__anyn=true;;
+    1)  d__notify -qq -- 'Recorded failure to remove'
+        d__anyf=true;;
+    2)  d__notify -qq -- 'Recorded refusal to remove'
+        d__anyn=true;;
     *)  :;;
   esac
 
