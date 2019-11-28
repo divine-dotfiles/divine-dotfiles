@@ -1,0 +1,1 @@
+* [**`readme`**] Correct the signature of the intervention utility `di` (specifically it's `--version`, not `-version`).
