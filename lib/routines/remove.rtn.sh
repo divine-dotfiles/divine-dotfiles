@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.11.28
-#:revremark:    In removal, treat already removed pkg as a-ok
+#:revremark:    Treat halting as failure to install/remove
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -597,7 +597,8 @@ d___remove_dpls()
         printf >&2 '%s %s\n' "$D__INTRO_HALTN" \
           "Deployment '$d__dpl_n' has requested to halt the routine"
         d__notify -qqq -- 'Exiting sub-shell'
-        return 1
+        d___write_status h
+        break
       fi
 
       # If forcing, print a forceful intro
@@ -667,7 +668,8 @@ d___remove_dpls()
         printf >&2 '%s %s\n' "$D__INTRO_HALTN" \
           "Deployment '$d__dpl_n' has requested to halt the routine"
         d__notify -qqq -- 'Exiting sub-shell'
-        return 1
+        d___write_status h
+        break
       fi
 
       # Announce
@@ -686,6 +688,9 @@ d___remove_dpls()
         d__anyf=true;;
     2)  d__notify -qq -- 'Recorded refusal to remove'
         d__anyn=true;;
+    h)  d__notify -qq -- 'Recorded halting as failure to remove'
+        d__anyf=true
+        return 1;;
     *)  :;;
   esac
 
