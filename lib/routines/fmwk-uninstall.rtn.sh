@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.11.28
-#:revremark:    Make location/URL alerts less visible
+#:revremark:    Better support sudo when removing shortcut on fmwk uninst
 #:created_at:   2019.10.15
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -148,13 +148,17 @@ d___pfc_fmwk()
   fi
 
   # Ensure there are writing permissions for shortcut directory
-  if ! [ -w "$( dirname -- "$sdst" )" ] && ! sudo -n true &>/dev/null; then
+  if [ -w "$( dirname -- "$sdst" )" ] \
+    || sudo -n true &>/dev/null \
+    || d__prompt -p 'Use sudo?' -- 'Shortcut installation directory' \
+    'requires sudo to remove shortcut:' -i- "$sdst"
+  then
+    :
+  else
     d__notify -l! -- 'Shortcut symlink lives in a non-writable directory:' \
       -i- "$sdst" -n- 'It will have to be removed manually'
     sdst=; return 0
   fi
-
-  return 0
 }
 
 d___pfc_utils()
@@ -358,10 +362,10 @@ d___uninstall_fmwk()
 
   # Remove shortcut command, if exists
   if [ -n "$sdst" ]; then
-    if [ -w "$( dirname -- "$sdst" )" ]; then rm -f -- "$sdst" &>/dev/null
-    else sudo -n rm -f -- "$sdst" &>/dev/null; fi
-    if (($?)); then
-      d__notify -lx -- 'Failed to remove shortcut command at:' -i- "$sdst"
+    local rm=rm; d__require_wdir "$sdst" || rm='sudo rm'
+    if ! $rm -f -- "$sdst" &>/dev/null; then
+      d__notify -lx -- 'Failed to remove shortcut command at:' -i- "$sdst" \
+        -n- 'It will have to be removed manually'
     fi
   fi
 

@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.11.28
-#:revremark:    In fmwk inst, don't prompt for sudo if already priveleged
+#:revremark:    Better support sudo when removing shortcut on fmwk uninst
 #:created_at:   2019.10.15
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -217,8 +217,8 @@ d___pfc_shortcut()
     :
   elif ((${#nwrd[@]})) \
     && ( sudo -n true &>/dev/null \
-    || d__prompt -p 'Use sudo?' -- 'Candidate directory' \
-    'for shortcut installation is not writable without sudo:' "${nwrd[0]}" )
+    || d__prompt -p 'Use sudo?' -- 'Candidate directory for shortcut' \
+    'installation is not writable without sudo:' -i- "${nwrd[0]}" )
   then
     sdst="${nwrd[0]}/$snm"
   else
