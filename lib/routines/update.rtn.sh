@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: update
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.26
-#:revremark:    Fix typo in stash call
+#:revdate:      2019.11.28
+#:revremark:    Make location/URL alerts less visible
 #:created_at:   2019.05.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -315,8 +315,8 @@ d___update_fmwk()
   fi
 
   # Print locations
-  d__notify -lv -- "Repo URL: https://github.com/$ughh"
-  d__notify -lv -- "Location: $udst"
+  d__notify -ld -- "Repo URL: https://github.com/$ughh"
+  d__notify -ld -- "Location: $udst"
 
   # Check for current status of nightly mode
   local ungh=false ubld='stable'
@@ -425,8 +425,8 @@ d___update_grail()
   fi
 
   # Print locations
-  d__notify -lv -- "Origin  : $usrc"
-  d__notify -lv -- "Location: $udst"
+  d__notify -ld -- "Origin  : $usrc"
+  d__notify -ld -- "Location: $udst"
 
   # Prompt user
   if [ "$D__OPT_ANSWER" != true ]; then
@@ -458,8 +458,8 @@ d___update_bundle()
   fi
 
   # Print locations
-  d__notify -lv -- "Repo URL: https://github.com/$ughh"
-  d__notify -lv -- "Location: $udst"
+  d__notify -ld -- "Repo URL: https://github.com/$ughh"
+  d__notify -ld -- "Location: $udst"
 
   # Settle on method and compose prompt
   local umet=d ufrc=false

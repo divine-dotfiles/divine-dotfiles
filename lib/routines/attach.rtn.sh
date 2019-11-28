@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: attach
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.26
-#:revremark:    Rewrite update rtn; implement nightly switch
+#:revdate:      2019.11.28
+#:revremark:    Make location/URL alerts less visible
 #:created_at:   2019.05.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -136,8 +136,8 @@ d___attach_bundle()
 
   # Compose destination path; print location
   bdst="$D__DIR_BUNDLES/$barg"
-  d__notify -lv -- "Repo URL: https://github.com/$barg"
-  d__notify -lv -- "Location: $bdst"
+  d__notify -ld -- "Repo URL: https://github.com/$barg"
+  d__notify -ld -- "Location: $bdst"
 
   # Check if destination already exists
   if [ -e "$bdst" ]; then
