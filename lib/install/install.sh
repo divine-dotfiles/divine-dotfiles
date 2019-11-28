@@ -2,8 +2,8 @@
 #:title:        Divine.dotfiles fmwk install script
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.27
-#:revremark:    Revert fmwk installation script to master branch
+#:revdate:      2019.11.28
+#:revremark:    Prepend blank line to output of fmwk (un)inst.
 #:created_at:   2019.07.22
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -21,7 +21,7 @@ d__main()
   d__whereto
 
   # Announce
-  printf >&2 '\033[36m%s\033[0m\n' \
+  printf >&2 '\n\033[36m%s\033[0m\n' \
     '==> Retrieving installation logic from Github'
 
   # Load fundamental dependencies: checks and fixes; globals; workflow utils
