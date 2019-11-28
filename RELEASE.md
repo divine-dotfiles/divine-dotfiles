@@ -1,1 +1,2 @@
-* [**`fix`**] Correctly use Bash variable substitution when applying bolding to the word 'not' throughout the framework's debug output.
+* [**`feature`**] The `install` and `remove` routines now return a non-zero code when there were failures or significant irregularities among deployments/packages. The code `1` means 'at least one failure'; the code `2` means 'no failures, but some tasks were skipped/declined'.
+* [**`readme`**] Correct the signature of the intervention utility `di` (specifically it's `--version`, not `-version`).

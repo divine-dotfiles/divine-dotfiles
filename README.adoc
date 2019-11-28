@@ -1,8 +1,8 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revdate: 2019.11.27
-:revremark: Describe joy ride steps cmd steps as sub-cmds
+:revdate: 2019.11.28
+:revremark: Fix incorrect signature of di in readme
 :doctype: article
 // Visual
 :toc: macro
@@ -713,7 +713,7 @@ _Divine.dotfiles_ provides a command line interface via *Divine intervention uti
 
 [source,subs="verbatim,quotes,attributes"]
 ----
-*di* [-efhlnoqvwy]… [-version] [-b *_BUNDLE_*]… [--] *_ROUTINE_* [*_ARG_*]…
+*di* [-efhlnoqvwy]… [--version] [-b *_BUNDLE_*]… [--] *_ROUTINE_* [*_ARG_*]…
 ----
 
 The first non-option argument, `*_ROUTINE_*`, can be any of the following:

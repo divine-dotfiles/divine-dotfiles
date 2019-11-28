@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: remove
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.27
-#:revremark:    Fix var sub when applying bolding to the word 'not'
+#:revdate:      2019.11.28
+#:revremark:    Return informative code from install/remove routines
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -66,8 +66,10 @@ d__rtn_remove()
   # (This is normally required even for removal)
   d__load procedure update-pkgs
 
-  # Storage variable
+  # Storage variables; set up proxy file for statuses
   local d__prtya=(${!D__WKLD[@]}) d__prty d__prtys d__i
+  local d__anys=false d__anyf=false d__anyn=false d__prxf
+  d__prxf="$(mktemp)"
 
   # Iterate over taken priorities
   for ((d__i=${#d__prtya[@]}-1;d__i>=0;--d__i)); do
@@ -93,15 +95,40 @@ d__rtn_remove()
 
   done
 
-  # Announce completion
+  # Remove proxy file
+  rm -f -- $d__prxf
+
+  # Announce completion and return appropriately
   printf >&2 '\n'
+  local d__rrtc=0
   if [ "$D__OPT_ANSWER" = false ]; then
     d__announce -s -- "Successfully 'undid' Divine intervention"
   else
-    d__announce -v -- 'Successfully undid Divine intervention'
+    if $d__anys && $d__anyf && $d__anyn; then
+      d__rrtc=1
+      d__announce -x -- 'Partly undid Divine intervention'
+    elif $d__anys && $d__anyf; then
+      d__rrtc=1
+      d__announce -x -- 'Partly undid Divine intervention'
+    elif $d__anys && $d__anyn; then
+      d__rrtc=2
+      d__announce -! -- 'Partly undid Divine intervention'
+    elif $d__anyf && $d__anyn; then
+      d__rrtc=1
+      d__announce -! -- 'Partly undid Divine intervention'
+    elif $d__anys; then
+      d__rrtc=0
+      d__announce -v -- 'Successfully undid Divine intervention'
+    elif $d__anyf; then
+      d__rrtc=1
+      d__announce -x -- 'Failed to undo Divine intervention'
+    elif $d__anyn; then
+      d__rrtc=2
+      d__announce -! -- 'Refused to undo Divine intervention'
+    fi
   fi
   d__context -- lop
-  return 0
+  return $d__rrtc
 }
 
 #>  d___remove_pkgs
@@ -127,7 +154,7 @@ d___remove_pkgs()
 
   # Storage variables
   local d__plq d__pkga_n d__pkga_b d__pkga_f d__pkg_n d__pkg_b d__pkg_f d__i
-  local d__aamd d__frcd d__shr d__shs
+  local d__aamd d__frcd d__shr d__shs d__prtc=
 
   # Split package names on newline
   IFS=$'\n' read -r -d '' -a d__pkga_n <<<"${D__WKLD_PKGS[$d__prty]}"
@@ -138,6 +165,15 @@ d___remove_pkgs()
 
   # Iterate over package names in reverse order
   for ((d__i=${#d__pkga_n[@]}-1;d__i>=0;--d__i)); do
+
+    # Process status from previous iteration; set default value
+    case $d__prtc in
+      0)  d__anys=true;;
+      1)  d__anyf=true;;
+      2)  d__anyn=true;;
+      *)  :;;
+    esac
+    d__prtc=1
 
     # Print a separating empty line; extract pkg name; compose task name
     printf >&2 '\n'; d__pkg_n="${d__pkga_n[$d__i]}"
@@ -170,7 +206,9 @@ d___remove_pkgs()
         if $D__OPT_FORCE; then d__frcd=true d__shr=true d__shs=true
         else
           d__notify -l! -- 'Re-try with --force to overcome'
-          printf >&2 '%s %s\n' "$D__INTRO_RMV_2" "$d__plq"; continue
+          printf >&2 '%s %s\n' "$D__INTRO_RMV_2" "$d__plq"
+          d__prtc=0
+          continue
         fi
       else
         # Installed without stash record
@@ -179,7 +217,9 @@ d___remove_pkgs()
         if $D__OPT_FORCE; then d__frcd=true d__shr=true
         else
           d__notify -l! -- 'Re-try with --force to overcome'
-          printf >&2 '%s %s\n' "$D__INTRO_RMV_2" "$d__plq"; continue
+          printf >&2 '%s %s\n' "$D__INTRO_RMV_2" "$d__plq"
+          d__prtc=0
+          continue
         fi
       fi
     elif type -P -- $d__pkg_n &>/dev/null; then
@@ -212,7 +252,9 @@ d___remove_pkgs()
           d__notify -l! -- "Package '$d__pkg_n' appears to be installed" \
             "by means other than '$D__OS_PKGMGR'"
         fi
-        printf >&2 '%s %s\n' "$D__INTRO_RMV_2" "$d__plq"; continue
+        printf >&2 '%s %s\n' "$D__INTRO_RMV_2" "$d__plq"
+        d__prtc=0
+        continue
       fi
     else
       if d__stash -rs -- has "pkg_$( d__md5 -s $d__pkg_n )"; then
@@ -241,6 +283,8 @@ d___remove_pkgs()
       else
         # Not installed, no stash record
         printf >&2 '%s %s\n' "$D__INTRO_RMV_A" "$d__plq"
+        d__rtc=0
+        continue
       fi
     fi
 
@@ -248,7 +292,9 @@ d___remove_pkgs()
     if ! d__os_pkgmgr has $d__pkg_n; then
       d__notify -qs -- \
         "Package '$d__pkg_n' is currently not available from '$D__OS_PKGMGR'"
-      printf >&2 '%s %s\n' "$D__INTRO_NOTAV" "$d__plq"; continue
+      printf >&2 '%s %s\n' "$D__INTRO_NOTAV" "$d__plq"
+      d__prtc=2
+      continue
     fi
 
     # Settle on always-ask mode; if forcing, print force intro
@@ -260,7 +306,9 @@ d___remove_pkgs()
       if $d__aamd || $d__frcd; then printf >&2 '%s ' "$D__INTRO_CNF_U"
       else printf >&2 '%s ' "$D__INTRO_CNF_N"; fi
       if ! d__prompt -b; then
-        printf >&2 '%s %s\n' "$D__INTRO_RMV_S" "$d__plq"; continue
+        printf >&2 '%s %s\n' "$D__INTRO_RMV_S" "$d__plq"
+        d__prtc=2
+        continue
       fi
     fi
 
@@ -285,10 +333,19 @@ d___remove_pkgs()
     fi
 
     # Report
+    d__prtc=0
     printf >&2 '%s %s\n' "$D__INTRO_RMV_0" "$d__plq"
 
   # Done iterating over package names in reverse order
   done
+
+  # Process last status
+  case $d__prtc in
+    0)  d__anys=true;;
+    1)  d__anyf=true;;
+    2)  d__anyn=true;;
+    *)  :;;
+  esac
 
   # Always return zero
   return 0
@@ -331,8 +388,20 @@ d___remove_dpls()
     IFS=$'\n' read -r -d '' -a d__dpla_w <<<"${D__WKLD_DPL_WARNS[$d__prty]}"
   fi
 
+  # Clear status
+  d___write_status
+
   # Iterate over *.dpl.sh filepaths in reverse order
   for ((d__i=${#d__dpla_n[@]}-1;d__i>=0;--d__i)); do
+
+    # Process status from previous iteration; set default value
+    case $( d___read_status ) in
+      0)  d__anys=true;;
+      1)  d__anyf=true;;
+      2)  d__anyn=true;;
+      *)  :;;
+    esac
+    d___write_status 1
 
     # Print a separating empty line; extract dpl name; compose task name
     printf >&2 '\n'; d__dpl_n="${d__dpla_n[$d__i]}"
@@ -367,7 +436,9 @@ d___remove_dpls()
         printf >&2 '%s ' "$D__INTRO_CNF_U"
       else printf >&2 '%s ' "$D__INTRO_CNF_N"; fi
       if ! d__prompt -b; then
-        printf >&2 '%s %s\n' "$D__INTRO_RMV_S" "$d__plq"; continue
+        printf >&2 '%s %s\n' "$D__INTRO_RMV_S" "$d__plq"
+        d___write_status 2
+        continue
       fi
     fi
 
@@ -425,11 +496,15 @@ d___remove_dpls()
                 "Deployment '$d__dpl_n' appears to be already not installed"
             else
               printf >&2 '%s %s\n' "$D__INTRO_RMV_A" "$d__plq"
-              d__notify -qqq -- 'Exiting sub-shell'; exit
+              d__notify -qqq -- 'Exiting sub-shell'
+              d___write_status 0
+              exit
             fi;;
         3)  # Irrelevant or invalid
             printf >&2 '%s %s\n' "$D__INTRO_CHK_3" "$d__plq"
-            d__notify -qqq -- 'Exiting sub-shell'; exit;;
+            d__notify -qqq -- 'Exiting sub-shell'
+            d___write_status 0
+            exit;;
         4)  # Partly installed
             d__notify -l! -- \
               "Deployment '$d__dpl_n' appears to be only partly installed";;
@@ -527,7 +602,9 @@ d___remove_dpls()
         printf >&2 '%s ' "$D__INTRO_CNF_U"
         if ! d__prompt -b; then
           printf >&2 '%s %s\n' "$D__INTRO_RMV_S" "$d__plq"
-          d__notify -qqq -- 'Exiting sub-shell'; exit
+          d__notify -qqq -- 'Exiting sub-shell'
+          d___write_status 2
+          exit
         fi
       fi
 
@@ -548,9 +625,13 @@ d___remove_dpls()
       # Process return code
       case $d__rtc in
         1)  printf >&2 '%s %s\n' "$D__INTRO_RMV_1" "$d__plq";;
-        2)  printf >&2 '%s %s\n' "$D__INTRO_RMV_2" "$d__plq";;
+        2)  printf >&2 '%s %s\n' "$D__INTRO_RMV_2" "$d__plq"
+            d___write_status 2
+            ;;
         3)  printf >&2 '%s %s\n' "$D__INTRO_RMV_3" "$d__plq";;
-        *)  printf >&2 '%s %s\n' "$D__INTRO_RMV_0" "$d__plq";;
+        *)  printf >&2 '%s %s\n' "$D__INTRO_RMV_0" "$d__plq"
+            d___write_status 0
+            ;;
       esac
 
       # Catch add-statuses
@@ -592,8 +673,19 @@ d___remove_dpls()
   # Done iterating over *.dpl.sh filepaths in reverse order
   done
 
+  # Process last status
+  case $( d___read_status ) in
+    0)  d__anys=true;;
+    1)  d__anyf=true;;
+    2)  d__anyn=true;;
+    *)  :;;
+  esac
+
   # Always return zero
   return 0
 }
+
+d___write_status() { printf >$d__prxf '%s\n' "$1"; }
+d___read_status() { local ii; read -r ii <$d__prxf; printf '%s\n' "$ii"; }
 
 d__rtn_remove
