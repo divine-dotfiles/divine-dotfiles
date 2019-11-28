@@ -2,8 +2,8 @@
 #:title:        Divine Bash procedure: init-vars
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.27
-#:revremark:    Clear release notes; kick off 2.3.6+dev
+#:revdate:      2019.11.28
+#:revremark:    Bump version to 2.3.7
 #:created_at:   2019.10.11
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -38,7 +38,7 @@ d__populate_globals()
   readonly D__FMWK_NAME='Divine.dotfiles'
 
   # Framework's displayed version
-  readonly D__FMWK_VERSION='2.3.6+dev'
+  readonly D__FMWK_VERSION='2.3.7'
 
   # Paths to directories within $D__DIR
   readonly D__DIR_GRAIL="$D__DIR/grail"
