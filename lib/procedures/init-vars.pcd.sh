@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.11.28
-#:revremark:    Add transitions directory and .trs.sh suffix
+#:revremark:    Make transitions a more universal constant
 #:created_at:   2019.10.11
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -54,8 +54,11 @@ d__populate_globals()
   readonly D__DIR_BUNDLES="$D__DIR_STATE/bundles"
   readonly D__DIR_BUNDLE_BACKUPS="$D__DIR_STATE/bundle-backups"
 
-  # Directory containing transition scripts
-  readonly D__DIR_TRANSITIONS="$D__DIR_LIB/transitions"
+  # Name for directories containing transition scripts
+  readonly D__CONST_NAME_TRS="transitions"
+
+  # Name for directories containing transition scripts
+  readonly D__DIR_TRS="$D__DIR_LIB/$D__CONST_NAME_TRS"
 
   # Filename suffix for transition scripts
   readonly D__SUFFIX_TRS_SH='.trs.sh'
