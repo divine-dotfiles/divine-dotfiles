@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: fmwk
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.26
-#:revremark:    Rewrite update rtn; implement nightly switch
+#:revdate:      2019.11.28
+#:revremark:    Make location/URL alerts less visible
 #:created_at:   2019.05.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -149,8 +149,8 @@ d___switch_to_nightly()
   fi
 
   # Print locations
-  d__notify -lv -- "Repo URL: https://github.com/$ughh"
-  d__notify -lv -- "Location: $udst"
+  d__notify -ld -- "Repo URL: https://github.com/$ughh"
+  d__notify -ld -- "Location: $udst"
 
   # Settle on method and compose prompt
   if d___path_is_gh_clone "$udst" "$ughh"; then
@@ -274,8 +274,8 @@ d___switch_to_stable()
   fi
 
   # Print locations
-  d__notify -lv -- "Repo URL: https://github.com/$ughh"
-  d__notify -lv -- "Location: $udst"
+  d__notify -ld -- "Repo URL: https://github.com/$ughh"
+  d__notify -ld -- "Location: $udst"
 
   # Settle on method and compose prompt
   if d___path_is_gh_clone "$udst" "$ughh"; then

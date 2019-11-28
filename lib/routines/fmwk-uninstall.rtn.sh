@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: fmwk-uninstall
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.31
-#:revremark:    Repaint notices about repo url and location
+#:revdate:      2019.11.28
+#:revremark:    Make location/URL alerts less visible
 #:created_at:   2019.10.15
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -346,8 +346,8 @@ d___uninstall_fmwk()
 
   # Print intro; print locations
   printf >&2 '%s %s\n' "$D__INTRO_RMV_N" "$uplq"
-  d__notify -lv -- 'Repo URL: https://github.com/no-simpler/divine-dotfiles'
-  d__notify -lv -- "Location: $udst"
+  d__notify -ld -- 'Repo URL: https://github.com/no-simpler/divine-dotfiles'
+  d__notify -ld -- "Location: $udst"
 
   # Conditionally prompt for user's approval
   if [ "$D__OPT_ANSWER_F" != true ]; then
