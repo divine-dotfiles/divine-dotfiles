@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.11.29
-#:revremark:    Expell Grail from fmwk dir, allow overrides
+#:revremark:    Slightly tweak wording on version update output
 #:created_at:   2019.11.22
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -219,12 +219,12 @@ d___apply_transitions()
           fi
         fi
         if $vdgr; then
-          d__notify -lx -- 'Updated to a downgraded version:' \
-            "$BOLD$ovrs$NORMAL->$BOLD$nvrs$NORMAL"
+          d__notify -lx -- 'Updated to a downgraded version,' \
+            "from $BOLD$ovrs$NORMAL to $BOLD$nvrs$NORMAL"
           return 1
         fi
         d__notify -lv -- \
-          "Updated version: $BOLD$ovrs$NORMAL->$BOLD$nvrs$NORMAL"
+          "Updated version from $BOLD$ovrs$NORMAL to $BOLD$nvrs$NORMAL"
         d__context -- notch
         d__context -- push "Applying transitions between versions $ovcl->$nvcl"
         ;;

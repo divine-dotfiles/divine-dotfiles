@@ -1,0 +1,1 @@
+* [**`appearance`**] Slightly tweak wording on the version update output.
