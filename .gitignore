@@ -11,6 +11,9 @@
 # Keep lib directory with all of its content
 !/lib/
 
+# Allow transitions directory
+!/transitions/
+
 # End manual ignores
 
 # Created by https://www.gitignore.io/api/vim,macos,linux,windows,sublimetext
