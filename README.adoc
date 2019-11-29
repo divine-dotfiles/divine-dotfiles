@@ -2,7 +2,7 @@
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
 :revdate: 2019.11.29
-:revremark: Describe bundle tag and versioning
+:revremark: Describe the new location of the Grail
 :doctype: article
 // Visual
 :toc: macro
@@ -76,7 +76,7 @@ Below is a sample deployment that does a scaled down version of that:
 
 [source,bash,subs="verbatim,attributes"]
 ----
-# grail/dpls/example.dpl.sh
+# ~/.grail/dpls/example.dpl.sh
 
 d_dpl_check() {
   [ -e ~/bin/cmd ] && return 1 {vbar}{vbar} return 2
@@ -217,6 +217,7 @@ A glaring exception to this principle is the upgrading of the local package repo
 _Divine.dotfiles_ is installed, by default, into the `~/.divine/` directory, and is contained entirely in that directory, *except*:
 
 * A symlink to the framework's <<fmwk-script,main script>>, `intervene.sh`, is created somewhere on `$PATH`.
+* The <<fmwk-grail,Grail>> directory — home to user's assets and deployments — is located, by default, at `~/.grail/`.
 * Deployments may affect the system pretty much <<fmwk-security,anywhere>>.
 
 The installed framework consists of the following main parts:
@@ -225,7 +226,7 @@ The installed framework consists of the following main parts:
 [%noheader,cols="<.<a",stripes=none]
 |===
 
-| [[fmwk-grail]]+++<p align="center">+++#`~/.divine/*grail*/`#+++</p>+++
+| [[fmwk-grail]]+++<p align="center">+++#`~/*.grail*/`#+++</p>+++
 
 *The Grail directory* (or simply, *the Grail*) houses the user's deployments, assets, and persistent settings.
 
@@ -238,6 +239,9 @@ The Grail is sub-structured as follows:
 * `*dpls*/` — The directory for user's custom deployments.
 * `*.stash.cfg*` — _The Grail-level <<stash-main,stash>> container, maintained by the framework._
 * `*.stash.cfg.md5*` — _The stash integrity checksum, maintained by the framework._
+
+The location of the Grail directory can be permanently overridden by creating a file named `.grail-dir-path` in the root of the <<fmwk-state,state>> directory.
+This file should contain the overriding path as its first line.
 
 | [[fmwk-state]]+++<p align="center">+++#`~/.divine/*state*/`#+++</p>+++
 
