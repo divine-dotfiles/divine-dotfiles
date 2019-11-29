@@ -1,3 +1,4 @@
+* [**`feature`**] Add initial support for **bundle tags**. A bundle tag is a file in the root of the bundle directory, namde `bundle.sh`. It is the container for bundle's metadata.
 * [**`fix`**] During the `remove` routine, do not raise error state when a package is already removed.
 * [**`fix`**] During the `install` and `remove` routines, treat halting as a form of failure, in terms of the routine's return code.
 * [**`appearance`**] Slightly mute the informative alerts about the source and location of updated/retrieved repositories, e.g., during the `update` routine.
