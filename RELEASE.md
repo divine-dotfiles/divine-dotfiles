@@ -1,3 +1,4 @@
+* [**`api`**] Completely **extricate the Grail directory** from within the framework directory. The Grail is now located at the root of the home directory and named `.grail`. Overrides for the Grail location are accepted (see the README).
 * [**`feature`**] Add initial support for **bundle tags**. A bundle tag is a file in the root of the bundle directory, namde `bundle.sh`. It is the container for bundle's metadata.
 * [**`fix`**] Restore missing user prompt when updating the framework.
 * [**`fix`**] Fix the egregious syntax errors in the bundle synchronization system.
