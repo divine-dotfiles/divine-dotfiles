@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.11.29
-#:revremark:    Implement transitions for fmwk and bundles
+#:revremark:    Implement transitions for failed updates
 #:created_at:   2019.10.11
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -74,6 +74,12 @@ d__populate_globals()
 
   # Name of bundle.sh file
   readonly D__CONST_NAME_BUNDLE_SH='bundle.sh'
+
+  # Name of transition-from-version file
+  readonly D__CONST_NAME_MNTRS='.transition-from-version'
+
+  # Name of untransitioned-version file
+  readonly D__CONST_NAME_UNTRS='.untransitioned-version'
 
   # Name of Divinefile
   readonly D__CONST_NAME_DIVINEFILE='Divinefile'

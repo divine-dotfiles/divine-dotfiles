@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.11.29
-#:revremark:    Implement transitions for fmwk and bundles
+#:revremark:    Implement transitions for failed updates
 #:created_at:   2019.05.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -322,7 +322,14 @@ d___update_fmwk()
   local ungh=false ubld='stable'
   d__stash -rs -- has 'nightly' && { ungh=true; ubld='nightly'; }
 
-  # Settle on method and compose prompt
+  # Compose path to transition-from-version and untransitioned-version files
+  local mntv="$D__DIR_STATE/$D__CONST_NAME_MNTRS" ervt= uvrs
+  local untv="$D__DIR_STATE/$D__CONST_NAME_UNTRS"
+
+  # Extract previous version
+  local ovrs="$D__FMWK_VERSION"
+
+  # Settle on method and compose prompt; check if special files are present
   local umet=d ufrc=false
   if d___path_is_gh_clone "$udst" "$ughh"; then
     if [ "$D__GH_METHOD" = g ]; then
@@ -356,21 +363,60 @@ d___update_fmwk()
       fi
     fi
   fi
+  if [ -f "$untv" ]; then
+    ervt=u
+    read -r uvrs <"$untv"
+    d__notify -l! -- "Found record of failed update from version '$uvrs'"
+  elif [ -f "$mntv" ]; then
+    ervt=m
+    read -r uvrs <"$mntv"
+    d__notify -l! -- "Found directive to transition from version '$uvrs'"
+  fi
+  if [ -n "$ervt" ]; then
+    if $D__OPT_FORCE; then
+      ufrc=true
+    else
+      d__notify -l! -- 'Re-try with --force to overcome'
+      d___update_report 2
+      return 1
+    fi
+  fi
 
-  # Launch appropriate function; finish up on error
+  # Prompt user
+  if $ufrc || [ "$D__OPT_ANSWER" != true ]; then
+    if $ufrc; then
+      printf >&2 '%s ' "$D__INTRO_CNF_U"
+    else
+      printf >&2 '%s ' "$D__INTRO_CNF_N"
+    fi
+    if ! d__prompt -b; then
+      d___update_report 3
+      return 1
+    fi
+  fi
+
+  # Launch appropriate function; save return code
   local urtc
   case $umet in
     p)  d___update_fmwk_via_pull;;
     c)  d___update_fmwk_to_clone;;
     d)  d___update_fmwk_via_dl;;
   esac; urtc=$?
-  if (($urtc)); then
-    d___update_report $urtc
-    return 1
-  fi
 
-  # Extract previous and now-current versions
-  local ovrs="$D__FMWK_VERSION" nvrs invl
+  # Analyze return code
+  case $urtc in
+    0)  [ -n "$ervt" ] && ovrs="$uvrs";;
+    1)  [ -f "$untv" ] || printf >"$untv" '%s\n' "$ovrs"
+        d___update_report $urtc
+        return 1
+        ;;
+    2)  d___update_report $urtc
+        return 1
+        ;;
+  esac
+
+  # Extract now-current version
+  local nvrs invl
   while read -r invl || [[ -n "$invl" ]]; do
     [[ $invl = 'readonly D__FMWK_VERSION='* ]] || continue
     IFS='=' read -r invl nvrs <<<"$invl "
@@ -380,9 +426,14 @@ d___update_fmwk()
     break
   done <"$D__PATH_INIT_VARS"
 
-  # Initiate transitions
-  d___apply_transitions
-  d___update_report $? && return 0 || return 1
+  # Initiate transitions; delete marker files; wrap up
+  d___apply_transitions; urtc=$?
+  case $ervt in
+    u)  rm -f -- "$untv" || d__notify -lx -- "Failed to remove: $untv";;
+    m)  rm -f -- "$mntv" || d__notify -lx -- "Failed to remove: $mntv";;
+    *)  :;;
+  esac
+  d___update_report $urtc && return 0 || return 1
 }
 
 d___update_grail()
@@ -480,7 +531,25 @@ d___update_bundle()
   d__notify -ld -- "Repo URL: https://github.com/$ughh"
   d__notify -ld -- "Location: $udst"
 
-  # Settle on method and compose prompt
+  # Compose paths to special files
+  local bshf="$udst/$D__CONST_NAME_BUNDLE_SH"
+  local mntv="$udst/$D__CONST_NAME_MNTRS" ervt= uvrs
+  local untv="$udst/$D__CONST_NAME_UNTRS"
+
+  # Extract previous version
+  local ovrs invl
+  if [ -f "$bshf" ]; then
+    while read -r invl || [[ -n "$invl" ]]; do
+      [[ $invl = 'D_BUNDLE_VERSION='* ]] || continue
+      IFS='=' read -r invl ovrs <<<"$invl "
+      if [[ $ovrs = \'*\'\  || $ovrs = \"*\"\  ]]
+      then read -r ovrs <<<"${ovrs:1:${#ovrs}-3}"
+      else read -r ovrs <<<"$ovrs"; fi
+      break
+    done <"$bshf"
+  fi
+
+  # Settle on method and compose prompt; check if special files are present
   local umet=d ufrc=false
   if d___path_is_gh_clone "$udst" "$ughh"; then
     if [ "$D__GH_METHOD" = g ]; then
@@ -512,6 +581,24 @@ d___update_bundle()
       fi
     fi
   fi
+  if [ -f "$untv" ]; then
+    ervt=u
+    read -r uvrs <"$untv"
+    d__notify -l! -- "Found record of failed update from version '$uvrs'"
+  elif [ -f "$mntv" ]; then
+    ervt=m
+    read -r uvrs <"$mntv"
+    d__notify -l! -- "Found directive to transition from version '$uvrs'"
+  fi
+  if [ -n "$ervt" ]; then
+    if $D__OPT_FORCE; then
+      ufrc=true
+    else
+      d__notify -l! -- 'Re-try with --force to overcome'
+      d___update_report 2
+      return 1
+    fi
+  fi
 
   # Prompt user
   if $ufrc || [ "$D__OPT_ANSWER" != true ]; then
@@ -526,30 +613,25 @@ d___update_bundle()
     fi
   fi
 
-  # Extract previous version
-  local ovrs invl bshf="$udst/$D__CONST_NAME_BUNDLE_SH"
-  if [ -f "$bshf" ]; then
-    while read -r invl || [[ -n "$invl" ]]; do
-      [[ $invl = 'D_BUNDLE_VERSION='* ]] || continue
-      IFS='=' read -r invl ovrs <<<"$invl "
-      if [[ $ovrs = \'*\'\  || $ovrs = \"*\"\  ]]
-      then read -r ovrs <<<"${ovrs:1:${#ovrs}-3}"
-      else read -r ovrs <<<"$ovrs"; fi
-      break
-    done <"$bshf"
-  fi
-
-  # Launch appropriate function; finish up
+  # Launch appropriate function; save return code
   local urtc
   case $umet in
     p)  d___pull_git_remote -t "bundle '$ughh'" -- "$udst";;
     c)  d___update_bundle_to_clone;;
     d)  d___update_bundle_via_dl;;
   esac; urtc=$?
-  if (($urtc)); then
-    d___update_report $urtc
-    return 1
-  fi
+
+  # Analyze return code
+  case $urtc in
+    0)  [ -n "$ervt" ] && ovrs="$uvrs";;
+    1)  [ -f "$untv" ] || printf >"$untv" '%s\n' "$ovrs"
+        d___update_report $urtc
+        return 1
+        ;;
+    2)  d___update_report $urtc
+        return 1
+        ;;
+  esac
 
   # Extract now-current version
   local nvrs
@@ -564,9 +646,14 @@ d___update_bundle()
     done <"$bshf"
   fi
 
-  # Initiate transitions
-  d___apply_transitions
-  d___update_report $? && return 0 || return 1
+  # Initiate transitions; delete marker files; wrap up
+  d___apply_transitions; urtc=$?
+  case $ervt in
+    u)  rm -f -- "$untv" || d__notify -lx -- "Failed to remove: $untv";;
+    m)  rm -f -- "$mntv" || d__notify -lx -- "Failed to remove: $mntv";;
+    *)  :;;
+  esac
+  d___update_report $urtc && return 0 || return 1
 }
 
 d___update_no_bundles()

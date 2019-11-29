@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: fmwk
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.28
-#:revremark:    Make location/URL alerts less visible
+#:revdate:      2019.11.29
+#:revremark:    Implement transitions for failed updates
 #:created_at:   2019.05.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -152,7 +152,14 @@ d___switch_to_nightly()
   d__notify -ld -- "Repo URL: https://github.com/$ughh"
   d__notify -ld -- "Location: $udst"
 
-  # Settle on method and compose prompt
+  # Compose path to transition-from-version and untransitioned-version files
+  local mntv="$D__DIR_STATE/$D__CONST_NAME_MNTRS" ervt= uvrs
+  local untv="$D__DIR_STATE/$D__CONST_NAME_UNTRS"
+
+  # Extract previous version
+  local ovrs="$D__FMWK_VERSION"
+
+  # Settle on method and compose prompt; check if special files are present
   if d___path_is_gh_clone "$udst" "$ughh"; then
     if [ "$D__GH_METHOD" = g ]; then
       d__notify -l! -- "Switching $D__FMWK_NAME to ${BOLD}nightly$NORMAL build"
@@ -187,6 +194,24 @@ d___switch_to_nightly()
       fi
     fi
   fi
+  if [ -f "$untv" ]; then
+    ervt=u
+    read -r uvrs <"$untv"
+    d__notify -l! -- "Found record of failed update from version '$uvrs'"
+  elif [ -f "$mntv" ]; then
+    ervt=m
+    read -r uvrs <"$mntv"
+    d__notify -l! -- "Found directive to transition from version '$uvrs'"
+  fi
+  if [ -n "$ervt" ]; then
+    if $D__OPT_FORCE; then
+      ufrc=true
+    else
+      d__notify -l! -- 'Re-try with --force to overcome'
+      popd &>/dev/null
+      return 2
+    fi
+  fi
 
   # Prompt user
   if $ufrc || [ "$D__OPT_ANSWER" != true ]; then
@@ -215,21 +240,49 @@ d___switch_to_nightly()
     fi
   fi
 
-  # Launch appropriate function; finish up
+  # Launch appropriate function; save return code
   case $umet in
     p)  d___update_fmwk_via_pull;;
     c)  d___update_fmwk_to_clone;;
     d)  d___update_fmwk_via_dl;;
   esac; urtc=$?
 
-  # Finish up based on results
-  if (($urtc)) && $tsst; then
-    if d__stash -rs -- unset 'nightly'; then
-      d__notify -lv -- 'Unset stash key'
-    else
-      d__notify -lx -- 'Failed to unset stash key'
+  # Analyze return code
+  if (($urtc)); then
+    if [ "$urtc" -eq 1 ]; then
+      [ -f "$untv" ] || printf >"$untv" '%s\n' "$ovrs"
     fi
+    if $tsst; then
+      if d__stash -rs -- unset 'nightly'; then
+        d__notify -lv -- 'Unset stash key'
+      else
+        d__notify -lx -- 'Failed to unset stash key'
+      fi
+    fi
+    popd &>/dev/null
+    return $urtc
+  else
+    [ -n "$ervt" ] && ovrs="$uvrs"
   fi
+
+  # Extract now-current version
+  local nvrs invl
+  while read -r invl || [[ -n "$invl" ]]; do
+    [[ $invl = 'readonly D__FMWK_VERSION='* ]] || continue
+    IFS='=' read -r invl nvrs <<<"$invl "
+    if [[ $nvrs = \'*\'\  || $nvrs = \"*\"\  ]]
+    then read -r nvrs <<<"${nvrs:1:${#nvrs}-3}"
+    else read -r nvrs <<<"$nvrs"; fi
+    break
+  done <"$D__PATH_INIT_VARS"
+
+  # Initiate transitions; delete marker files; wrap up
+  d___apply_transitions; urtc=$?
+  case $ervt in
+    u)  rm -f -- "$untv" || d__notify -lx -- "Failed to remove: $untv";;
+    m)  rm -f -- "$mntv" || d__notify -lx -- "Failed to remove: $mntv";;
+    *)  :;;
+  esac
   popd &>/dev/null
   return $urtc
 }
