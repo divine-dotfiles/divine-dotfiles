@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.11.29
-#:revremark:    Slightly tweak wording on version update output
+#:revremark:    New output when changing version label but not version itself
 #:created_at:   2019.11.22
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -208,7 +208,12 @@ d___apply_transitions()
         d__context -- push "Applying transitions onto version $nvcl"
         ;;
     on) if [ "$ovcl" = "$nvcl" ]; then
-          d__notify -lv -- "Version already up to date: $BOLD$nvrs$NORMAL"
+          if [ "$ovrs" = "$nvrs" ]; then
+            d__notify -lv -- "Version already up to date: $BOLD$nvrs$NORMAL"
+          else
+            d__notify -lv -- \
+              "Changed version from $BOLD$ovrs$NORMAL to $BOLD$nvrs$NORMAL"
+          fi
           return 0
         fi
         if [[ $ovma -gt $nvma ]]; then vdgr=true
