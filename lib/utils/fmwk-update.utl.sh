@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.11.29
-#:revremark:    Fix syntax of semver parsing
+#:revremark:    Tweak version output when updating
 #:created_at:   2019.11.22
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -190,17 +190,17 @@ d___apply_transitions()
     '') d__notify -- 'Versioning is not used'
         return 0
         ;;
-    o)  d__notify -lx -- "Updated from previous version $BOLD$ovcl$NORMAL" \
+    o)  d__notify -lx -- "Updated from previous version $BOLD$ovrs$NORMAL" \
           'to an unmarked version'
         return 1
         ;;
     n)  d__notify -lv -- 'Updated from an unmarked version' \
-          "to current version $BOLD$nvcl$NORMAL"
+          "to current version $BOLD$nvrs$NORMAL"
         d__context -- notch
         d__context -- push "Applying transitions onto version $nvcl"
         ;;
     on) if [ "$ovcl" = "$nvcl" ]; then
-          d__notify -lv -- "Version already up to date: $BOLD$nvcl$NORMAL"
+          d__notify -lv -- "Version already up to date: $BOLD$nvrs$NORMAL"
           return 0
         fi
         if [[ $ovma -gt $nvma ]]; then vdgr=true
@@ -212,11 +212,11 @@ d___apply_transitions()
         fi
         if $vdgr; then
           d__notify -lx -- 'Updated to a downgraded version:' \
-            "$BOLD$ovcl$NORMAL->$BOLD$nvcl$NORMAL"
+            "$BOLD$ovrs$NORMAL->$BOLD$nvrs$NORMAL"
           return 1
         fi
         d__notify -lv -- \
-          "Updated version: $BOLD$ovcl$NORMAL->$BOLD$nvcl$NORMAL"
+          "Updated version: $BOLD$ovrs$NORMAL->$BOLD$nvrs$NORMAL"
         d__context -- notch
         d__context -- push "Applying transitions between versions $ovcl->$nvcl"
         ;;
