@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: plug
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.26
-#:revremark:    Rewrite update rtn; implement nightly switch
+#:revdate:      2019.11.29
+#:revremark:    Fix syntax error in plug rtn
 #:created_at:   2019.06.26
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -307,6 +307,7 @@ d___plug_local_dir()
       d__notify -lx -- "Failed to symlink Grail candidate into place"
       printf >&2 '%s %s\n' "$D__INTRO_PLG_1" "$pplq"
       return 2
+    fi
   else
     if ! cp -Rn -- "$parg" "$pdst"; then
       d__notify -lx -- "Failed to copy Grail candidate into place"
