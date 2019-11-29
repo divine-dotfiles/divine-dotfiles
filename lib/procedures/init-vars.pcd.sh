@@ -2,8 +2,8 @@
 #:title:        Divine Bash procedure: init-vars
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.28
-#:revremark:    Clear release notes; kick off 2.3.7+dev
+#:revdate:      2019.11.29
+#:revremark:    Implement transitions for failed updates
 #:created_at:   2019.10.11
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -54,6 +54,12 @@ d__populate_globals()
   readonly D__DIR_BUNDLES="$D__DIR_STATE/bundles"
   readonly D__DIR_BUNDLE_BACKUPS="$D__DIR_STATE/bundle-backups"
 
+  # Path to this very file (used to extract framework version)
+  readonly D__PATH_INIT_VARS="$D__DIR_LIB/procedures/init-vars.pcd.sh"
+
+  # Filename suffix for transition scripts
+  readonly D__SUFFIX_TRS_SH='.trs.sh'
+
   # Filename suffix for deployment files
   readonly D__SUFFIX_DPL_SH='.dpl.sh'
 
@@ -63,9 +69,21 @@ d__populate_globals()
   # Filename suffix for main queue manifest files
   readonly D__SUFFIX_DPL_QUE='.dpl.que'
 
+  # Name for directories containing transition scripts
+  readonly D__CONST_DIRNAME_TRS='transitions'
+
+  # Name of bundle.sh file
+  readonly D__CONST_NAME_BUNDLE_SH='bundle.sh'
+
+  # Name of transition-from-version file
+  readonly D__CONST_NAME_MNTRS='.transition-from-version'
+
+  # Name of untransitioned-version file
+  readonly D__CONST_NAME_UNTRS='.untransitioned-version'
+
   # Name of Divinefile
   readonly D__CONST_NAME_DIVINEFILE='Divinefile'
-  
+
   # Name for stash files
   readonly D__CONST_NAME_STASHFILE=".stash.cfg"
 

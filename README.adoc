@@ -1,8 +1,8 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revdate: 2019.11.28
-:revremark: Fix incorrect signature of di in readme
+:revdate: 2019.11.29
+:revremark: Describe bundle tag and versioning
 :doctype: article
 // Visual
 :toc: macro
@@ -1401,6 +1401,7 @@ D_DPL_FLAGS=ci!89
 D_DPL_WARNING="A warning message"
 ----
 
+[[dpls-metadata-syntax]]
 The following syntax limitations are imposed upon metadata:
 
 * As mentioned above, the metadata must precede all other non-whitespace, non-commented lines of the deployment script.
@@ -4368,6 +4369,37 @@ In that file, search for the `\<<CONTRIBUTE HERE>>` line.
 To start the work on your own adapter, get the template at `<<fmwk-lib,lib>>/templates/adapters/distro.adp.sh`.
 
 Adapters for all OS distributions out there will be welcomed with open arms.
+
+[[bdl-main]]
+== Bundles
+
+A *bundle* is a https://github.com[Github] repository containing at least one deployment (or Divinefile).
+Nothing more is needed to make a bundle.
+
+[[bdl-tag]]
+=== Bundle tag
+
+A bundle may optionally carry a tag: a file in the root of the repository named `*bundle.sh*`.
+The bundle tag is the container for the bundle's *metadata*, which is similar to the <<dpls-metadata,deployment metadata>> and pose as Bash variable assignments.
+Despite the `.sh` suffix, the bundle tag is never actually sourced by the Bash interpreter.
+Instead, the metadata values are extracted using pattern matching.
+The same syntax limitations should be adhered as for the deployment <<dpls-metadata-syntax,counterparts>>, except that the bundle metadata may occur anywhere within the tag file.s
+
+Currently, the following metadata are supported:
+
+* `<<bdl-versioning,*D_BUNDLE_VERSION*>>=_MAJOR.MINOR.PATCH_`
++
+The current version of the bundle, following the https://semver.org[semantic versioning] pattern.
+By default, this version is purely cosmetic, but can play a crucial part in the <<bdl-versioning,bundle versioning>>.
+
+[[bdl-versioning]]
+=== Bundle versioning
+
+The framework provides the *transitions* system, which can be employed whenever updating a bundle past a particular <<bdl-tag,version>> of it requires running additional commands.
+
+Transition scripts may be put into the directory named `*transitions*`, located in the root of the bundle repository.
+A transition script must be named as the version of the bundle that it applies to, followed by the `.trs.sh` suffix.
+So, for example, a transition script `transitions/1.5.0.trs.sh` is sourced if and only if the bundle is <<rtn-update,updated>> from a version older than `1.5.0` to a version newer or equal to `1.5.0`.
 
 [[divine-bundles]]
 == Divine bundles
