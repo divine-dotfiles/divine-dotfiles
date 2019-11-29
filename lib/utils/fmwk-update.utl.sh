@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.11.29
-#:revremark:    Implement transitions for fmwk and bundles
+#:revremark:    Fix syntax of semver parsing
 #:created_at:   2019.11.22
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -150,14 +150,12 @@ d___apply_transitions()
   if [ -n "$ovrs" ]; then
     IFS=. read -r -a vrar <<<"$ovrs"
     ovma="${vrar[0]}" ovmi="${vrar[1]}" ovpa="${vrar[2]}"
-    while [[ -n "$ovma" && $ovma !=~ ^[0-9]+$ ]]
-    do ovma="${ovma:1}"; done
-    while [[ -n "$ovmi" && $ovmi !=~ ^[0-9]+$ ]]
+    while [[ -n "$ovma" && ! $ovma =~ ^[0-9]+$ ]]; do ovma="${ovma:1}"; done
+    while [[ -n "$ovmi" && ! $ovmi =~ ^[0-9]+$ ]]
     do ovmi="${ovmi::${#ovmi}-1}"; done
-    while [[ -n "$ovpa" && $ovpa !=~ ^[0-9]+$ ]]
+    while [[ -n "$ovpa" && ! $ovpa =~ ^[0-9]+$ ]]
     do ovpa="${ovpa::${#ovpa}-1}"; done
-    if [[ $ovma !=~ ^[0-9]+$ && $ovmi !=~ ^[0-9]+$ && $ovpa !=~ ^[0-9]+$ ]]
-    then
+    if [[ $ovma =~ ^[0-9]+$ && $ovmi =~ ^[0-9]+$ && $ovpa =~ ^[0-9]+$ ]]; then
       gdvr+=o ovcl="$ovma.$ovmi.$ovpa"
       d__notify -- "Valid previous version: $BOLD$ovcl$NORMAL"
     else
@@ -171,14 +169,13 @@ d___apply_transitions()
   if [ -n "$nvrs" ]; then
     IFS=. read -r -a vrar <<<"$nvrs"
     nvma="${vrar[0]}" nvmi="${vrar[1]}" nvpa="${vrar[2]}"
-    while [[ -n "$nvma" && $nvma !=~ ^[0-9]+$ ]]
+    while [[ -n "$nvma" && ! $nvma =~ ^[0-9]+$ ]]
     do nvma="${nvma:1}"; done
-    while [[ -n "$nvmi" && $nvmi !=~ ^[0-9]+$ ]]
+    while [[ -n "$nvmi" && ! $nvmi =~ ^[0-9]+$ ]]
     do nvmi="${nvmi::${#nvmi}-1}"; done
-    while [[ -n "$nvpa" && $nvpa !=~ ^[0-9]+$ ]]
+    while [[ -n "$nvpa" && ! $nvpa =~ ^[0-9]+$ ]]
     do nvpa="${nvpa::${#nvpa}-1}"; done
-    if [[ $nvma !=~ ^[0-9]+$ && $nvmi !=~ ^[0-9]+$ && $nvpa !=~ ^[0-9]+$ ]]
-    then
+    if [[ $nvma =~ ^[0-9]+$ && $nvmi =~ ^[0-9]+$ && $nvpa =~ ^[0-9]+$ ]]; then
       gdvr+=n nvcl="$nvma.$nvmi.$nvpa"
       d__notify -- "Valid current version: $BOLD$nvcl$NORMAL"
     else
@@ -239,14 +236,13 @@ d___apply_transitions()
     trsn="$( basename -- "$trsf" )"; tvrs="${trsn%$D__SUFFIX_TRS_SH}"
     IFS=. read -r -a vrar <<<"$tvrs"
     tvma="${vrar[0]}" tvmi="${vrar[1]}" tvpa="${vrar[2]}"
-    while [[ -n "$tvma" && $tvma !=~ ^[0-9]+$ ]]
+    while [[ -n "$tvma" && ! $tvma =~ ^[0-9]+$ ]]
     do tvma="${tvma:1}"; done
-    while [[ -n "$tvmi" && $tvmi !=~ ^[0-9]+$ ]]
+    while [[ -n "$tvmi" && ! $tvmi =~ ^[0-9]+$ ]]
     do tvmi="${tvmi::${#tvmi}-1}"; done
-    while [[ -n "$tvpa" && $tvpa !=~ ^[0-9]+$ ]]
+    while [[ -n "$tvpa" && ! $tvpa =~ ^[0-9]+$ ]]
     do tvpa="${tvpa::${#tvpa}-1}"; done
-    if [[ $tvma !=~ ^[0-9]+$ && $tvmi !=~ ^[0-9]+$ && $tvpa !=~ ^[0-9]+$ ]]
-    then
+    if [[ $tvma =~ ^[0-9]+$ && $tvmi =~ ^[0-9]+$ && $tvpa =~ ^[0-9]+$ ]]; then
       tvcl="$tvma.$tvmi.$tvpa"
       d__notify -- "Valid transition version: $BOLD$tvcl$NORMAL"
     else
