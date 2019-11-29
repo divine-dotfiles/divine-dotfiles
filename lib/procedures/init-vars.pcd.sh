@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.11.29
-#:revremark:    Expell Grail from fmwk dir, allow overrides
+#:revremark:    Bump version to 2.4.0
 #:created_at:   2019.10.11
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -38,7 +38,7 @@ d__populate_globals()
   readonly D__FMWK_NAME='Divine.dotfiles'
 
   # Framework's displayed version
-  readonly D__FMWK_VERSION='2.3.7+dev'
+  readonly D__FMWK_VERSION='2.4.0'
 
   # Paths to state directory
   readonly D__DIR_STATE="$D__DIR/state"
