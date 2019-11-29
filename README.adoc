@@ -2,7 +2,7 @@
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
 :revdate: 2019.11.29
-:revremark: Correct all Grail paths in README
+:revremark: Describe how Grail is not touched when uninst. the fmwk
 :doctype: article
 // Visual
 :toc: macro
@@ -474,13 +474,14 @@ di fmwk-uninstall
 
 * Optional dependencies that have been installed will be offered for removal.
 * The installation directory will be displaced (backed up) according to the zero data loss <<fmwk-zero-data-loss,policy>>.
+* The <<fmwk-grail,Grail>> directory will remain untouched.
 * The optional symlink (<<iutil-main,`di`>>) will be erased.
 
 The script will <<fmwk-interactivity,prompt>> for every major life decision.
 |===
 
 One thing that framework uninstallation does *_not_* do is uninstall deployments.
-Any deployments that might have been installed *_must be removed manually_* before uninstalling Divine.dotfiles. 
+If not needed, any deployments that might have been installed *_must be removed manually_* before uninstalling Divine.dotfiles. 
 
 [[fmwk-uninstall-opts]]
 ==== Uninstallation options and overrides
@@ -548,9 +549,9 @@ The `--force` option directs to instead <<fmwk-upmt,urgently>> prompt the user a
 
 The framework adheres to the zero data loss <<fmwk-zero-data-loss,policy>>.
 
-Accordingly, during the uninstallation of the framework, its directory is displaced into a backup location.
+Accordingly, during the uninstallation of the framework, its directory is displaced into a backup location, and the <<fmwk-grail,Grail>> directory is untouched.
 
-The `--obliterate` option directs to instead erase the framework directory.
+The `--obliterate` option directs to instead erase both the framework directory and the Grail without any backups.
 
 | +++<p align="center">+++
 *Verbosity options*
