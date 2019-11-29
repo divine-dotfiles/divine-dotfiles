@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.11.29
-#:revremark:    Implement transitions for failed updates
+#:revremark:    Expell Grail from fmwk dir, allow overrides
 #:created_at:   2019.10.11
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -40,9 +40,25 @@ d__populate_globals()
   # Framework's displayed version
   readonly D__FMWK_VERSION='2.3.7+dev'
 
-  # Paths to directories within $D__DIR
-  readonly D__DIR_GRAIL="$D__DIR/grail"
+  # Paths to state directory
   readonly D__DIR_STATE="$D__DIR/state"
+
+  # Path to Grail directory, with possible overriding
+  readonly D__PATH_GRAIL_OVRD="$D__DIR_STATE/.grail-dir-path"
+  if ! [ -z ${D_GRAIL+isset} ]; then
+    printf >&2 '\033[36m%s\033[0m\n' \
+      "==> Grail directory overridden: '$D_GRAIL'"
+    readonly D__DIR_GRAIL="$D_GRAIL"
+  elif [ -f "$D__PATH_GRAIL_OVRD" -a -r "$D__PATH_GRAIL_OVRD" ]; then
+    local d_grail; read -r d_grail <"$D__PATH_GRAIL_OVRD"
+    if (($D__OPT_VERBOSITY)); then
+      printf >&2 '\033[36m%s\033[0m\n' \
+        "==> Grail directory overridden: '$d_grail'"
+    fi
+    readonly D__DIR_GRAIL="$d_grail"
+  else
+    readonly D__DIR_GRAIL="$HOME/.grail"
+  fi
 
   # Paths to directories within $D__DIR_GRAIL
   readonly D__DIR_ASSETS="$D__DIR_GRAIL/assets"
