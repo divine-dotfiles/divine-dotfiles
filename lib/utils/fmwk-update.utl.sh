@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.11.29
-#:revremark:    Tweak version output when updating
+#:revremark:    Expell Grail from fmwk dir, allow overrides
 #:created_at:   2019.11.22
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -65,12 +65,16 @@ d___update_fmwk_to_clone()
   fi
 
   # Return Grail and state directories
-  local erra=() src="$d__bckp/grail" dst="$udst/grail"
-  if ! mv -n -- "$src" "$dst"; then
-    erra+=( -i- "- Grail directory" )
+  local erra=() grrp src dst
+  if [[ $D__DIR_GRAIL = "$udst/"* ]]; then
+    grrp="${D__DIR_GRAIL#"$udst/"}"
+    src="$d__bckp/$grrp" dst="$udst/$grrp"
+    if [ -d "$src" ] && ! mv -n -- "$src" "$dst"; then
+      erra+=( -i- "- Grail directory" )
+    fi
   fi
   src="$d__bckp/state" dst="$udst/state"
-  if ! mv -n -- "$src" "$dst"; then
+  if [ -d "$src" ] && ! mv -n -- "$src" "$dst"; then
     erra+=( -i- "- state directory" )
   fi
   if ((${#erra[@]})); then
@@ -113,12 +117,16 @@ d___update_fmwk_via_dl()
   fi
 
   # Return Grail and state directories
-  local erra=() src="$d__bckp/grail" dst="$udst/grail"
-  if ! mv -n -- "$src" "$dst"; then
-    erra+=( -i- "- Grail directory" )
+  local erra=() grrp src dst
+  if [[ $D__DIR_GRAIL = "$udst/"* ]]; then
+    grrp="${D__DIR_GRAIL#"$udst/"}"
+    src="$d__bckp/$grrp" dst="$udst/$grrp"
+    if [ -d "$src" ] && ! mv -n -- "$src" "$dst"; then
+      erra+=( -i- "- Grail directory" )
+    fi
   fi
   src="$d__bckp/state" dst="$udst/state"
-  if ! mv -n -- "$src" "$dst"; then
+  if [ -d "$src" ] && ! mv -n -- "$src" "$dst"; then
     erra+=( -i- "- state directory" )
   fi
   if ((${#erra[@]})); then

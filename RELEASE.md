@@ -1,5 +1,7 @@
+* [**`api`**] Completely **extricate the Grail directory** from within the framework directory. The Grail is now located at the root of the home directory and named `.grail`. Overrides for the Grail location are accepted (see the README).
 * [**`feature`**] Add initial support for **bundle tags**. A bundle tag is a file in the root of the bundle directory, namde `bundle.sh`. It is the container for bundle's metadata.
 * [**`fix`**] Restore missing user prompt when updating the framework.
+* [**`fix`**] Fix the egregious syntax errors in the bundle synchronization system.
 * [**`fix`**] During the `remove` routine, do not raise error state when a package is already removed.
 * [**`fix`**] During the `install` and `remove` routines, treat halting as a form of failure, in terms of the routine's return code.
 * [**`appearance`**] Slightly mute the informative alerts about the source and location of updated/retrieved repositories, e.g., during the `update` routine.
