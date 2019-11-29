@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.11.29
-#:revremark:    Fix d__load rtc in fmwk (un)inst
+#:revremark:    Tweak first output of fmwk (un)inst
 #:created_at:   2019.07.22
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -22,7 +22,7 @@ d__main()
 
   # Announce
   printf >&2 '\n\033[36m%s\033[0m\n' \
-    '==> Retrieving installation logic from Github'
+    '==> Retrieving framework installation logic from Github'
 
   # Load fundamental dependencies: checks and fixes; globals; workflow utils
   d__load procedure pre-flight
