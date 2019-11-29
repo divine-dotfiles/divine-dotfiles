@@ -2,8 +2,8 @@
 #:title:        Divine Bash procedure: sync-bundles
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.26
-#:revremark:    Rewrite update rtn; implement nightly switch
+#:revdate:      2019.11.29
+#:revremark:    Fix egregious syntax errors in sync-bundles
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -87,22 +87,22 @@ d__pcd_sync_bundles()
   # Synchronize
   erra=()
   for recb in "${recba[@]}"; do
-    if [ -e "$D__BUNDLES_DIR/$recb" ]; then
+    if [ -e "$D__DIR_BUNDLES/$recb" ]; then
       erra+=( -i- "- path to directory of bundle '$recb' is occupied" )
       continue
     fi
     if ! d___gh_repo_exists "$recb"
     then erra+=( -i- "- invalid Github repo handle '$recb'" ); continue; fi
     case $D__GH_METHOD in
-      g)  d___clone_git_repo "$recb" "$D__BUNDLES_DIR/$recb";;
-      c)  mkdir -p &>/dev/null -- "$D__BUNDLES_DIR/$recb" \
-            && d___dl_gh_repo -c "$recb" "$D__BUNDLES_DIR/$recb";;
-      w)  mkdir -p &>/dev/null -- "$D__BUNDLES_DIR/$recb" \
-            && d___dl_gh_repo -w "$recb" "$D__BUNDLES_DIR/$recb";;
+      g)  d___clone_git_repo "$recb" "$D__DIR_BUNDLES/$recb";;
+      c)  mkdir -p &>/dev/null -- "$D__DIR_BUNDLES/$recb" \
+            && d___dl_gh_repo -c "$recb" "$D__DIR_BUNDLES/$recb";;
+      w)  mkdir -p &>/dev/null -- "$D__DIR_BUNDLES/$recb" \
+            && d___dl_gh_repo -w "$recb" "$D__DIR_BUNDLES/$recb";;
     esac
     if (($?))
-    then d__notify -l -- 'Retrieved missing bundle '$recb''
-    else erra+=( -i- "- failed to retrieve missing bundle '$recb'" ); fi
+    then erra+=( -i- "- failed to retrieve missing bundle '$recb'" )
+    else d__notify -l -- 'Retrieved missing bundle '$recb''; fi
   done
   for actb in "${actba[@]}"; do
     if rm -rf -- "$actb"

@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: fmwk-install
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.27
-#:revremark:    Optimize sudo prompt in fmwk installation
+#:revdate:      2019.11.28
+#:revremark:    Better support sudo when removing shortcut on fmwk uninst
 #:created_at:   2019.10.15
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -214,9 +214,11 @@ d___pfc_shortcut()
 
   # Check if a directory has been chosen
   if [ -n "$sdst" ]; then
-    : 
-  elif ((${#nwrd[@]})) && d__prompt -p 'Use sudo?' -- 'Candidate directory' \
-    'for shortcut installation is not writable without sudo:' "${nwrd[0]}"
+    :
+  elif ((${#nwrd[@]})) \
+    && ( sudo -n true &>/dev/null \
+    || d__prompt -p 'Use sudo?' -- 'Candidate directory for shortcut' \
+    'installation is not writable without sudo:' -i- "${nwrd[0]}" )
   then
     sdst="${nwrd[0]}/$snm"
   else
@@ -239,8 +241,8 @@ d___install_fmwk()
 
   # Print intro; print locations
   printf >&2 '%s %s\n' "$D__INTRO_INS_N" "$iplq"
-  d__notify -lv -- "Repo URL: https://github.com/$iarg"
-  d__notify -lv -- "Location: $idst"
+  d__notify -ld -- "Repo URL: https://github.com/$iarg"
+  d__notify -ld -- "Location: $idst"
 
   # Conditionally prompt for user's approval
   if [ "$D__OPT_ANSWER_F" != true ]; then
@@ -319,8 +321,8 @@ d___install_shortcut()
   # Compose target; print intro; print locations
   stgt="$D__DIR/intervene.sh"
   printf >&2 '%s %s\n' "$D__INTRO_INS_N" "$iplq"
-  d__notify -lv -- "Location: $sdst"
-  d__notify -lv -- "Target  : $stgt"
+  d__notify -ld -- "Location: $sdst"
+  d__notify -ld -- "Target  : $stgt"
   local ln=ln; d__require_wdir "$sdst" || ln='sudo ln'
 
   # Install shortcut

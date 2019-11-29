@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: fmwk-uninstall
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.31
-#:revremark:    Repaint notices about repo url and location
+#:revdate:      2019.11.29
+#:revremark:    Support extricated Grail in fmwk uninstall
 #:created_at:   2019.10.15
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -27,7 +27,20 @@ d__rtn_fmwk_uninstall()
 {
   if $D__OPT_OBLITERATE \
     && ! [ "$D__OPT_ANSWER" = false -o "$D__OPT_ANSWER_F" = false ]
-  then d__confirm_obliteration; fi
+  then
+    local alrt=( \
+      "You have chosen the $BOLD--obliterate$NORMAL option" \
+      -n- \
+      "Both ${BOLD}the framework and the Grail directory will be erased" \
+      "without a trace$NORMAL" \
+    )
+    case $D__OPT_ANSWER in
+      true)   d__notify -l! -- "${alrt[@]}";;
+      false)  :;;
+      *)      if d__prompt -!pn 'Slash & burn?' -- "${alrt[@]}"
+              then return 0; else exit 1; fi;;
+    esac
+  fi
 
   # Print a separating empty line, switch context
   printf >&2 '\n'
@@ -148,13 +161,17 @@ d___pfc_fmwk()
   fi
 
   # Ensure there are writing permissions for shortcut directory
-  if ! [ -w "$( dirname -- "$sdst" )" ] && ! sudo -n true &>/dev/null; then
+  if [ -w "$( dirname -- "$sdst" )" ] \
+    || sudo -n true &>/dev/null \
+    || d__prompt -p 'Use sudo?' -- 'Shortcut installation directory' \
+    'requires sudo to remove shortcut:' -i- "$sdst"
+  then
+    :
+  else
     d__notify -l! -- 'Shortcut symlink lives in a non-writable directory:' \
       -i- "$sdst" -n- 'It will have to be removed manually'
     sdst=; return 0
   fi
-
-  return 0
 }
 
 d___pfc_utils()
@@ -346,8 +363,20 @@ d___uninstall_fmwk()
 
   # Print intro; print locations
   printf >&2 '%s %s\n' "$D__INTRO_RMV_N" "$uplq"
-  d__notify -lv -- 'Repo URL: https://github.com/no-simpler/divine-dotfiles'
-  d__notify -lv -- "Location: $udst"
+  d__notify -ld -- 'Repo URL: https://github.com/no-simpler/divine-dotfiles'
+  d__notify -ld -- "Location: $udst"
+  if [[ $D__DIR_GRAIL = "$udst/"* ]]; then
+    d__notify -ld -- '(The framework directory contains the Grail directory)'
+  else
+    d__notify -ld -- "Grail   : $D__DIR_GRAIL"
+  fi
+  if $D__OPT_OBLITERATE; then
+    d__notify -l! -- \
+      "${BOLD}Both directories will be erased without backup$NORMAL"
+  else
+    d__notify -ld -- 'The framework directory will be backed up' \
+      -n- 'The Grail directory will remain untouched'
+  fi
 
   # Conditionally prompt for user's approval
   if [ "$D__OPT_ANSWER_F" != true ]; then
@@ -358,10 +387,10 @@ d___uninstall_fmwk()
 
   # Remove shortcut command, if exists
   if [ -n "$sdst" ]; then
-    if [ -w "$( dirname -- "$sdst" )" ]; then rm -f -- "$sdst" &>/dev/null
-    else sudo -n rm -f -- "$sdst" &>/dev/null; fi
-    if (($?)); then
-      d__notify -lx -- 'Failed to remove shortcut command at:' -i- "$sdst"
+    local rm=rm; d__require_wdir "$sdst" || rm='sudo rm'
+    if ! $rm -f -- "$sdst" &>/dev/null; then
+      d__notify -lx -- 'Failed to remove shortcut command at:' -i- "$sdst" \
+        -n- 'It will have to be removed manually'
     fi
   fi
 
@@ -374,6 +403,13 @@ d___uninstall_fmwk()
 
   # Back up or erase the framework directory (and capture backup path)
   if $D__OPT_OBLITERATE; then
+    if ! [[ $D__DIR_GRAIL = "$udst/"* ]]; then
+      if rm -rf -- "$D__DIR_GRAIL" &>/dev/null; then
+        d__notify -lv -- 'Erased framework directory at:' -i- "$D__DIR_GRAIL"
+      else
+        d__notify -lx -- 'Failed to erase Grail directory'
+      fi
+    fi
     if ! rm -rf -- "$udst" &>/dev/null; then
       d__notify -lx -- 'Failed to erase framework directory'
       printf >&2 '%s %s\n' "$D__INTRO_RMV_1" "$uplq"

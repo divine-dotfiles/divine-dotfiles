@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.11.28
-#:revremark:    Return informative code from install/remove routines
+#:revremark:    Support case when install/remove rtn finished with zero tasks smh
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -125,6 +125,9 @@ d__rtn_remove()
     elif $d__anyn; then
       d__rrtc=2
       d__announce -! -- 'Refused to undo Divine intervention'
+    else
+      d__irtc=2
+      d__announce -s -- 'Undid Divine intervention on absolutely nothing'
     fi
   fi
   d__context -- lop
@@ -154,7 +157,7 @@ d___remove_pkgs()
 
   # Storage variables
   local d__plq d__pkga_n d__pkga_b d__pkga_f d__pkg_n d__pkg_b d__pkg_f d__i
-  local d__aamd d__frcd d__shr d__shs d__prtc=
+  local d__aamd d__frcd d__shr d__shs d__pstt=
 
   # Split package names on newline
   IFS=$'\n' read -r -d '' -a d__pkga_n <<<"${D__WKLD_PKGS[$d__prty]}"
@@ -167,13 +170,15 @@ d___remove_pkgs()
   for ((d__i=${#d__pkga_n[@]}-1;d__i>=0;--d__i)); do
 
     # Process status from previous iteration; set default value
-    case $d__prtc in
+    case $d__pstt in
       0)  d__anys=true;;
-      1)  d__anyf=true;;
-      2)  d__anyn=true;;
+      1)  d__notify -qq -- 'Recorded failure to remove'
+          d__anyf=true;;
+      2)  d__notify -qq -- 'Recorded refusal to remove'
+          d__anyn=true;;
       *)  :;;
     esac
-    d__prtc=1
+    d__pstt=1
 
     # Print a separating empty line; extract pkg name; compose task name
     printf >&2 '\n'; d__pkg_n="${d__pkga_n[$d__i]}"
@@ -207,7 +212,7 @@ d___remove_pkgs()
         else
           d__notify -l! -- 'Re-try with --force to overcome'
           printf >&2 '%s %s\n' "$D__INTRO_RMV_2" "$d__plq"
-          d__prtc=0
+          d__pstt=0
           continue
         fi
       else
@@ -218,7 +223,7 @@ d___remove_pkgs()
         else
           d__notify -l! -- 'Re-try with --force to overcome'
           printf >&2 '%s %s\n' "$D__INTRO_RMV_2" "$d__plq"
-          d__prtc=0
+          d__pstt=0
           continue
         fi
       fi
@@ -253,7 +258,7 @@ d___remove_pkgs()
             "by means other than '$D__OS_PKGMGR'"
         fi
         printf >&2 '%s %s\n' "$D__INTRO_RMV_2" "$d__plq"
-        d__prtc=0
+        d__pstt=0
         continue
       fi
     else
@@ -283,7 +288,7 @@ d___remove_pkgs()
       else
         # Not installed, no stash record
         printf >&2 '%s %s\n' "$D__INTRO_RMV_A" "$d__plq"
-        d__rtc=0
+        d__pstt=0
         continue
       fi
     fi
@@ -293,7 +298,7 @@ d___remove_pkgs()
       d__notify -qs -- \
         "Package '$d__pkg_n' is currently not available from '$D__OS_PKGMGR'"
       printf >&2 '%s %s\n' "$D__INTRO_NOTAV" "$d__plq"
-      d__prtc=2
+      d__pstt=2
       continue
     fi
 
@@ -307,7 +312,7 @@ d___remove_pkgs()
       else printf >&2 '%s ' "$D__INTRO_CNF_N"; fi
       if ! d__prompt -b; then
         printf >&2 '%s %s\n' "$D__INTRO_RMV_S" "$d__plq"
-        d__prtc=2
+        d__pstt=2
         continue
       fi
     fi
@@ -333,17 +338,19 @@ d___remove_pkgs()
     fi
 
     # Report
-    d__prtc=0
+    d__pstt=0
     printf >&2 '%s %s\n' "$D__INTRO_RMV_0" "$d__plq"
 
   # Done iterating over package names in reverse order
   done
 
   # Process last status
-  case $d__prtc in
+  case $d__pstt in
     0)  d__anys=true;;
-    1)  d__anyf=true;;
-    2)  d__anyn=true;;
+    1)  d__notify -qq -- 'Recorded failure to remove'
+        d__anyf=true;;
+    2)  d__notify -qq -- 'Recorded refusal to remove'
+        d__anyn=true;;
     *)  :;;
   esac
 
@@ -397,8 +404,10 @@ d___remove_dpls()
     # Process status from previous iteration; set default value
     case $( d___read_status ) in
       0)  d__anys=true;;
-      1)  d__anyf=true;;
-      2)  d__anyn=true;;
+      1)  d__notify -qq -- 'Recorded failure to remove'
+          d__anyf=true;;
+      2)  d__notify -qq -- 'Recorded refusal to remove'
+          d__anyn=true;;
       *)  :;;
     esac
     d___write_status 1
@@ -591,7 +600,8 @@ d___remove_dpls()
         printf >&2 '%s %s\n' "$D__INTRO_HALTN" \
           "Deployment '$d__dpl_n' has requested to halt the routine"
         d__notify -qqq -- 'Exiting sub-shell'
-        return 1
+        d___write_status h
+        break
       fi
 
       # If forcing, print a forceful intro
@@ -661,7 +671,8 @@ d___remove_dpls()
         printf >&2 '%s %s\n' "$D__INTRO_HALTN" \
           "Deployment '$d__dpl_n' has requested to halt the routine"
         d__notify -qqq -- 'Exiting sub-shell'
-        return 1
+        d___write_status h
+        break
       fi
 
       # Announce
@@ -676,8 +687,13 @@ d___remove_dpls()
   # Process last status
   case $( d___read_status ) in
     0)  d__anys=true;;
-    1)  d__anyf=true;;
-    2)  d__anyn=true;;
+    1)  d__notify -qq -- 'Recorded failure to remove'
+        d__anyf=true;;
+    2)  d__notify -qq -- 'Recorded refusal to remove'
+        d__anyn=true;;
+    h)  d__notify -qq -- 'Recorded halting as failure to remove'
+        d__anyf=true
+        return 1;;
     *)  :;;
   esac
 
