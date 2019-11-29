@@ -2,7 +2,7 @@
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
 :revdate: 2019.11.29
-:revremark: Describe the new location of the Grail
+:revremark: Correct all Grail paths in README
 :doctype: article
 // Visual
 :toc: macro
@@ -614,7 +614,7 @@ Once the bundle is fully installed, and the shell reloaded, _voilà_:
 * Opinionated configs are plugged in for Git, Vim, Bash, and Zsh.
 * Any pre-existing files that have gotten in the way are safely backed up or re-used.
 
-All of the above is controlled and customized through the key configuration files, which are located at `<<fmwk-grail,grail>>/assets/`.
+All of the above is controlled and customized through the key configuration files, which are located at `~/<<fmwk-grail,.grail>>/assets/`.
 
 .Overview of asset directories for the bundle `essentials`
 [%noheader,cols="<.<a",stripes=none]
@@ -865,7 +865,7 @@ Note, that requesting by name of the <<mtdt-groups,single-digit group>> does not
 
 Deployments are retrieved from two directories (at any depth):
 
-* The directory for user's deployments: `<<fmwk-grail,grail>>/dpls/`.
+* The directory for user's deployments: `~/<<fmwk-grail,.grail>>/dpls/`.
 * The directory for attached bundles of deployments: `<<fmwk-state,state>>/bundles/`.
 
 The search can be narrowed down to particular bundles of deployments by including any number of the <<opt-bundle,`--bundle`>> options.
@@ -1258,7 +1258,7 @@ No other parts of a deployment are mandatory.
 
 To be picked up by the framework, the deployments must be located at any depth under the two recognized deployment locations:
 
-* `<<fmwk-grail,grail>>/dpls/` — the user's deployments;
+* `~/<<fmwk-grail,.grail>>/dpls/` — the user's deployments;
 * `<<fmwk-state,state>>/bundles/` — the <<rtn-bundles,attached>> bundles of deployments.
 
 === Deployment structure
@@ -1901,7 +1901,7 @@ All are declared `readonly`.
 * `*D__DPL_DIR*` — the directory containing the deployment file.
 * `*D__DPL_ASSET_DIR*` — the directory generated for the deployment's assets.
 +
-Located at: `<<fmwk-grail,grail>>/assets/<<mtdt-name-and-desc,_DPL-NAME_>>/`
+Located at: `~/<<fmwk-grail,.grail>>/assets/<<mtdt-name-and-desc,_DPL-NAME_>>/`
 * `*D__DPL_BACKUP_DIR*` — the directory generated for the deployment's backups.
 +
 Located at: `<<fmwk-state,state>>/backups/<<mtdt-name-and-desc,_DPL-NAME_>>/`
@@ -2129,7 +2129,7 @@ Deployment *assets* are any files that are associated with the deployment, but a
 _Divine.dotfiles_ provides a way to separate the static deployment logic from the dynamic deployment assets.
 
 [[assets-dir]]
-Every deployment is alotted a designated <<indct-dpl-asset-dir,*asset directory*>> at `<<fmwk-grail,grail>>/assets/*_DPL-NAME_*/`.
+Every deployment is alotted a designated <<indct-dpl-asset-dir,*asset directory*>> at `~/<<fmwk-grail,.grail>>/assets/*_DPL-NAME_*/`.
 Keeping the deployment assets in their separate directory within the <<fmwk-grail,Grail>> provides the following advantages:
 
 * The assets — e.g., symlinked configuration files — are in one place, for the user to inspect and modify.
@@ -2324,7 +2324,7 @@ Quite simply, a Divinefile is a <<mnf-main,manifest>> of packages to be maintain
 * A Divinefile must be named, well, `Divinefile`.
 * There can absolutely be more than one — their contents are effectively merged.
 * The framework picks up every Divinefile located at any depth under two recognized deployment directories:
-** `<<fmwk-grail,grail>>/dpls/` — the user's Divinefiles.
+** `~/<<fmwk-grail,.grail>>/dpls/` — the user's Divinefiles.
 ** `<<fmwk-state,state>>/bundles/` — the <<rtn-bundles,attached>> third-party Divinefiles.
 * The Divinefiles collectively act as a deployment.
 
@@ -4057,7 +4057,7 @@ Stored in `<<fmwk-state,state>>/stash/*_DPL-NAME_*/.stash.cfg`.
 Stored in `<<fmwk-state,state>>/stash/.stash.cfg`.
 * The *Grail stash* — shared by all deployments across all machines that use the same <<fmwk-grail,Grail>>.
 +
-Stored in `<<fmwk-grail,grail>>/.stash.cfg`.
+Stored in `~/<<fmwk-grail,.grail>>/.stash.cfg`.
 
 [.note]
 [%noheader,cols="<.<a"]
