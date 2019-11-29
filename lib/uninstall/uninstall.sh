@@ -2,8 +2,8 @@
 #:title:        Divine.dotfiles fmwk uninstall script
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.28
-#:revremark:    Prepend blank line to output of fmwk (un)inst.
+#:revdate:      2019.11.29
+#:revremark:    Fix d__load rtc in fmwk (un)inst
 #:created_at:   2019.07.22
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -194,7 +194,7 @@ d__load()
       "Dependency is not a readable file: '$path'"
     exit 1
   fi
-  D__DEP_STACK+=( -i- "- $1 $2" ); source $tmp; rc=$?; rm -f $tmp; return $?
+  D__DEP_STACK+=( -i- "- $1 $2" ); source $tmp; rc=$?; rm -f $tmp; return $rc
 }
 
 #>  d__perform_routine
