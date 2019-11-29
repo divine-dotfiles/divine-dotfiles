@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: update
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.28
-#:revremark:    Make location/URL alerts less visible
+#:revdate:      2019.11.29
+#:revremark:    Implement transitions for fmwk and bundles
 #:created_at:   2019.05.12
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -357,12 +357,31 @@ d___update_fmwk()
     fi
   fi
 
-  # Launch appropriate function; finish up
+  # Launch appropriate function; finish up on error
+  local urtc
   case $umet in
     p)  d___update_fmwk_via_pull;;
     c)  d___update_fmwk_to_clone;;
     d)  d___update_fmwk_via_dl;;
-  esac
+  esac; urtc=$?
+  if (($urtc)); then
+    d___update_report $urtc
+    return 1
+  fi
+
+  # Extract previous and now-current versions
+  local ovrs="$D__FMWK_VERSION" nvrs invl
+  while read -r invl || [[ -n "$invl" ]]; do
+    [[ $invl = 'readonly D__FMWK_VERSION='* ]] || continue
+    IFS='=' read -r invl nvrs <<<"$invl "
+    if [[ $nvrs = \'*\'\  || $nvrs = \"*\"\  ]]
+    then read -r nvrs <<<"${nvrs:1:${#nvrs}-3}"
+    else read -r nvrs <<<"$nvrs"; fi
+    break
+  done <"$D__PATH_INIT_VARS"
+
+  # Initiate transitions
+  d___apply_transitions
   d___update_report $? && return 0 || return 1
 }
 
@@ -507,12 +526,46 @@ d___update_bundle()
     fi
   fi
 
+  # Extract previous version
+  local ovrs invl bshf="$udst/$D__CONST_NAME_BUNDLE_SH"
+  if [ -f "$bshf" ]; then
+    while read -r invl || [[ -n "$invl" ]]; do
+      [[ $invl = 'D_BUNDLE_VERSION='* ]] || continue
+      IFS='=' read -r invl ovrs <<<"$invl "
+      if [[ $ovrs = \'*\'\  || $ovrs = \"*\"\  ]]
+      then read -r ovrs <<<"${ovrs:1:${#ovrs}-3}"
+      else read -r ovrs <<<"$ovrs"; fi
+      break
+    done <"$bshf"
+  fi
+
   # Launch appropriate function; finish up
+  local urtc
   case $umet in
     p)  d___pull_git_remote -t "bundle '$ughh'" -- "$udst";;
     c)  d___update_bundle_to_clone;;
     d)  d___update_bundle_via_dl;;
-  esac
+  esac; urtc=$?
+  if (($urtc)); then
+    d___update_report $urtc
+    return 1
+  fi
+
+  # Extract now-current version
+  local nvrs
+  if [ -f "$bshf" ]; then
+    while read -r invl || [[ -n "$invl" ]]; do
+      [[ $invl = 'D_BUNDLE_VERSION='* ]] || continue
+      IFS='=' read -r invl nvrs <<<"$invl "
+      if [[ $nvrs = \'*\'\  || $nvrs = \"*\"\  ]]
+      then read -r nvrs <<<"${nvrs:1:${#nvrs}-3}"
+      else read -r nvrs <<<"$nvrs"; fi
+      break
+    done <"$bshf"
+  fi
+
+  # Initiate transitions
+  d___apply_transitions
   d___update_report $? && return 0 || return 1
 }
 

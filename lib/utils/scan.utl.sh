@@ -2,8 +2,8 @@
 #:title:        Divine Bash utils: scan
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.19
-#:revremark:    Introduce OS filtering via D_DPL_OS metadatum
+#:revdate:      2019.11.29
+#:revremark:    Implement transitions for fmwk and bundles
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
@@ -310,7 +310,7 @@ d__scan_for_dpl_files()
         then read -r vlu <<<"${vlu:1:${#vlu}-3}"
         else read -r vlu <<<"$vlu"; fi
         [ -n "$vlu" ] && mtdt[$jj]="$vlu"
-      done < "$d__dpl_p"
+      done <"$d__dpl_p"
 
       # Process deployment name
       d__dpl_n="${mtdt[0]}"
