@@ -2,11 +2,11 @@
 #:title:        Divine Bash routine: fmwk-install
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.28
-#:revremark:    Better support sudo when removing shortcut on fmwk uninst
+#:revdate:      2019.11.30
+#:revremark:    Rewrite all Github references to point to new repo location
 #:created_at:   2019.10.15
 
-## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
+## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
 #
 ## Installs Divine.dotfiles framework and shortcut command.
 #
@@ -72,7 +72,7 @@ d___get_ready()
   fi
 
   # Store remote address
-  iarg='no-simpler/divine-dotfiles'
+  iarg='divine-dotfiles/divine-dotfiles'
 
   # Compose destination path
   idst="$D__DIR"
@@ -365,7 +365,7 @@ You can now access ${BOLD}Divine.dotfiles${NORMAL} in shell using:
     $ $BOLD$mcmd$NORMAL
 
 For help, try:
-    ${BOLD}https://github.com/no-simpler/divine-dotfiles${NORMAL}
+    ${BOLD}https://github.com/divine-dotfiles/divine-dotfiles${NORMAL}
     ...or $BOLD$D__DIR/README.adoc$NORMAL
     ...or $ $BOLD$mcmd --help$NORMAL
 
@@ -375,7 +375,7 @@ Your personal deployments and assets go into Grail directory at:
 
 For a joy ride, try our bundled Divine deployments using:
     $ $BOLD$mcmd attach essentials$NORMAL && $BOLD$mcmd install$NORMAL
-(More info on these at: https://github.com/no-simpler/divine-bundle-essentials)
+(More info on these at: https://github.com/divine-bundles/essentials)
     
 Thank you, and have a safe and productive day.
 EOF

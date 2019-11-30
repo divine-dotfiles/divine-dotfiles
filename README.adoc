@@ -1,8 +1,8 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revdate: 2019.11.29
-:revremark: Describe how Grail is not touched when uninst. the fmwk
+:revdate: 2019.11.30
+:revremark: Rewrite all Github references to point to new repo location
 :doctype: article
 // Visual
 :toc: macro
@@ -132,7 +132,7 @@ The built-in OS detection mechanism allows to adapt to the growing <<fmwk-os-sup
 
 | +++<p align="center">+++<<rtn-attach,*Third-party deployments (bundles)*>>+++</p>+++
 
-The Github repositories containing deployments are treated as bundles that can be attached with one command, e.g., the https://github.com/no-simpler/divine-bundle-essentials[`essentials`] bundle.
+The Github repositories containing deployments are treated as bundles that can be attached with one command, e.g., the https://github.com/divine-bundles/essentials[`essentials`] bundle.
 
 | +++<p align="center">+++<<stash-main,*Stash*>>+++</p>+++
 
@@ -316,14 +316,14 @@ The following single shell command installs the _Divine.dotfiles_ framework:
 
 [source,bash]
 ----
-bash -c "TMP=\$(mktemp); \
-URL=https://raw.github.com/no-simpler/divine-dotfiles/master/lib/install/insta\
-ll.sh; if curl --version &>/dev/null; then curl -fsSL \$URL >\$TMP; elif wget \
---version &>/dev/null; then wget -qO \$TMP \$URL; else printf >&2 \"\n==> Erro\
-r: failed to detect neither curl nor wget\n\"; rm -f \$TMP; exit 1; fi || { pr\
-intf >&2 \"\n==> Error: failed to download installation script\n\"; rm -f \$TM\
-P; exit 2; }; chmod +x \$TMP && \$TMP \"\$@\"; RC=\$?; rm -f \$TMP; ((RC)) && \
-exit 3 || exit 0" bash
+bash -c "TMP=\$(mktemp); URL=https:\
+//raw.github.com/divine-dotfiles/divine-dotfiles/master/lib/install/install.sh\
+; if curl --version &>/dev/null; then curl -fsSL \$URL >\$TMP; elif wget --ver\
+sion &>/dev/null; then wget -qO \$TMP \$URL; else printf >&2 \"\n==> Error: fa\
+iled to detect neither curl nor wget\n\"; rm -f \$TMP; exit 1; fi || { printf \
+>&2 \"\n==> Error: failed to download installation script\n\"; rm -f \$TMP; ex\
+it 2; }; chmod +x \$TMP && \$TMP \"\$@\"; RC=\$?; rm -f \$TMP; ((RC)) && exit \
+3 || exit 0" bash
 ----
 
 Equivalently, the framework can be installed from a local copy of this repository (located _not_ at the installation path) by running this command:
@@ -443,14 +443,14 @@ The following single shell command uninstalls the _Divine.dotfiles_ framework:
 
 [source,bash]
 ----
-bash -c "TMP=\$(mktemp); \
-URL=https://raw.github.com/no-simpler/divine-dotfiles/master/lib/uninstall/uni\
-nstall.sh; if curl --version &>/dev/null; then curl -fsSL \$URL >\$TMP; elif w\
-get --version &>/dev/null; then wget -qO \$TMP \$URL; else printf >&2 \"\n==> \
-Error: failed to detect neither curl nor wget\n\"; rm -f \$TMP; exit 1; fi || \
-{ printf >&2 \"\n==> Error: failed to download uninstallation script\n\"; rm -\
-f \$TMP; exit 2; }; chmod +x \$TMP && \$TMP \"\$@\"; RC=\$?; rm -f \$TMP; ((RC\
-)) && exit 3 || exit 0" bash
+bash -c "TMP=\$(mktemp); URL=https://raw.\
+github.com/divine-dotfiles/divine-dotfiles/master/lib/uninstall/uninstall.sh; \
+if curl --version &>/dev/null; then curl -fsSL \$URL >\$TMP; elif wget --versi\
+on &>/dev/null; then wget -qO \$TMP \$URL; else printf >&2 \"\n==> Error: fail\
+ed to detect neither curl nor wget\n\"; rm -f \$TMP; exit 1; fi || { printf >&\
+2 \"\n==> Error: failed to download uninstallation script\n\"; rm -f \$TMP; ex\
+it 2; }; chmod +x \$TMP && \$TMP \"\$@\"; RC=\$?; rm -f \$TMP; ((RC)) && exit \
+3 || exit 0" bash
 ----
 
 Equivalently, the framework can be uninstalled from a local copy of this repository (located anywhere) by running this command:
@@ -575,21 +575,21 @@ As established before, _Divine.dotfiles_ is intended as an <<fmwk-interactivity,
 The following single shell command provides the <<fmwk-joy-ride-sum,introductory experience>> of the framework and deployments:
 
 * <<fmwk-install,installs>> the framework;
-* <<rtn-attach,attaches>> the https://github.com/no-simpler/divine-bundle-essentials[`*essentials*`] bundle of Divine deployments (distributed separately);
+* <<rtn-attach,attaches>> the https://github.com/divine-bundles/essentials[`*essentials*`] bundle of Divine deployments (distributed separately);
 * <<rtn-install,installs>> the attached deployments.
 
 All three sub-commands *skip* the trivial <<fmwk-interactivity,prompts>> (e.g., 'Are you sure?').
 
 [source,bash]
 ----
-bash -c "TMP=\$(mktemp); \
-URL=https://raw.github.com/no-simpler/divine-dotfiles/master/lib/install/insta\
-ll.sh; if curl --version &>/dev/null; then curl -fsSL \$URL >\$TMP; elif wget \
---version &>/dev/null; then wget -qO \$TMP \$URL; else printf >&2 \"\n==> Erro\
-r: failed to detect neither curl nor wget\n\"; rm -f \$TMP; exit 1; fi || { pr\
-intf >&2 \"\n==> Error: failed to download installation script\n\"; rm -f \$TM\
-P; exit 2; }; chmod +x \$TMP && \$TMP \"\$@\"; RC=\$?; rm -f \$TMP; ((RC)) && \
-exit 3 || exit 0" bash --yes \
+bash -c "TMP=\$(mktemp); URL=https:\
+//raw.github.com/divine-dotfiles/divine-dotfiles/master/lib/install/install.sh\
+; if curl --version &>/dev/null; then curl -fsSL \$URL >\$TMP; elif wget --ver\
+sion &>/dev/null; then wget -qO \$TMP \$URL; else printf >&2 \"\n==> Error: fa\
+iled to detect neither curl nor wget\n\"; rm -f \$TMP; exit 1; fi || { printf \
+>&2 \"\n==> Error: failed to download installation script\n\"; rm -f \$TMP; ex\
+it 2; }; chmod +x \$TMP && \$TMP \"\$@\"; RC=\$?; rm -f \$TMP; ((RC)) && exit \
+3 || exit 0" bash --yes \
 && ~/.divine/intervene.sh attach essentials --yes \
 && ~/.divine/intervene.sh install --yes
 ----
@@ -683,7 +683,7 @@ The container for the personal executables (this directory is maintained on the 
 The following single shell command methodically undoes the <<fmwk-joy-ride,joy ride>> installation:
 
 * <<rtn-remove,removes>> (uninstalls) the attached deployments;
-* <<rtn-detach,detaches>> the https://github.com/no-simpler/divine-bundle-essentials[`*essentials*`] bundle;
+* <<rtn-detach,detaches>> the https://github.com/divine-bundles/essentials[`*essentials*`] bundle;
 * <<fmwk-uninstall,uninstalls>> the framework.
 
 All three sub-commands *skip* the trivial <<fmwk-interactivity,prompts>> (e.g., 'Are you sure?').
@@ -695,14 +695,14 @@ However, <<opt-obliterate,no copies>> of the framework's assets are kept.
 ----
 ~/.divine/intervene.sh remove --yes --obliterate \
 && ~/.divine/intervene.sh detach essentials --yes \
-&& bash -c "TMP=\$(mktemp); \
-URL=https://raw.github.com/no-simpler/divine-dotfiles/master/lib/uninstall/uni\
-nstall.sh; if curl --version &>/dev/null; then curl -fsSL \$URL >\$TMP; elif w\
-get --version &>/dev/null; then wget -qO \$TMP \$URL; else printf >&2 \"\n==> \
-Error: failed to detect neither curl nor wget\n\"; rm -f \$TMP; exit 1; fi || \
-{ printf >&2 \"\n==> Error: failed to download uninstallation script\n\"; rm -\
-f \$TMP; exit 2; }; chmod +x \$TMP && \$TMP \"\$@\"; RC=\$?; rm -f \$TMP; ((RC\
-)) && exit 3 || exit 0" bash --yes --obliterate
+&& bash -c "TMP=\$(mktemp); URL=https://raw.\
+github.com/divine-dotfiles/divine-dotfiles/master/lib/uninstall/uninstall.sh; \
+if curl --version &>/dev/null; then curl -fsSL \$URL >\$TMP; elif wget --versi\
+on &>/dev/null; then wget -qO \$TMP \$URL; else printf >&2 \"\n==> Error: fail\
+ed to detect neither curl nor wget\n\"; rm -f \$TMP; exit 1; fi || { printf >&\
+2 \"\n==> Error: failed to download uninstallation script\n\"; rm -f \$TMP; ex\
+it 2; }; chmod +x \$TMP && \$TMP \"\$@\"; RC=\$?; rm -f \$TMP; ((RC)) && exit \
+3 || exit 0" bash --yes --obliterate
 ----
 
 After the undo steps have successfully run, there is no trace of _Divine.dotfiles_ on the system.
@@ -1064,7 +1064,7 @@ For the optional `*_REPO_*` arguments, the following (case-insensitive) values a
 +
 [source,subs="verbatim,quotes,attributes"]
 ----
-*_REPO_*  =>  no-simpler/divine-bundle-*_REPO_*
+*_REPO_*  =>  divine-bundles/*_REPO_*
 ----
 +
 (`*_REPO_*` must match the RegEx pattern `^[0-9A-Za-z_.-]+$`.)
@@ -1188,7 +1188,7 @@ This affects the same <<opt-verbosity,global verbosity level>> as is used by the
 
 There are three parts of a _Divine.dotfiles_ installation that are potentially cloned Git repositories:
 
-* The framework https://github.com/no-simpler/divine-dotfiles[itself].
+* The framework https://github.com/divine-dotfiles/divine-dotfiles[itself].
 * The Grail directory (if <<rtn-plug,plugged>> from a repository).
 * The <<rtn-bundles,attached>> bundles of deployments.
 
@@ -4412,12 +4412,14 @@ So, for example, a transition script `transitions/1.5.0.trs.sh` is sourced if an
 The *Divine bundles* of deployments are developed and distributed along with _Divine.dotfiles_.
 Apart from being useful by themselves, they serve as an illustration of the framework's mechanisms put to good use.
 
+The Divine bundles are published to the Gighub page: https://github.com/divine-bundles.
+
 .List of Divine bundles
 [%noheader,cols="<.<a",stripes=none]
 |===
 
 | +++<p align="center">+++
-`*https://github.com/no-simpler/divine-bundle-essentials[Essentials]*`
+`*https://github.com/divine-bundles/essentials[Essentials]*`
 +++</p>+++
 
 A bundle of core deployments, mostly centered around the 'classic' dotfiles.
@@ -4434,23 +4436,32 @@ Still, these are functional to the described extent.
 |===
 
 | +++<p align="center">+++
-`*https://github.com/no-simpler/divine-bundle-gpg-primer[GnuPG best practices]*`
+`*https://github.com/divine-bundles/primers[Secure handler of GnuPG and SSH keys]*`
 +++</p>+++
 
 _(fully functional on macOS, not yet fully documented)_
 
-Automates adherence to best security practices in regards to https://www.gnupg.org[GnuPG].
+Automates adherence to best security practices while handling secret keys to
+
+* https://www.gnupg.org[GnuPG].
+* https://en.wikipedia.org/wiki/Secure_Shell[SSH].
 
 | +++<p align="center">+++
-`*https://github.com/no-simpler/divine-bundle-ssh-primer[SSH key handling]*`
+`*https://github.com/divine-bundles/configs[Application configs]*`
 +++</p>+++
 
 _(fully functional on macOS, not yet fully documented)_
 
-Automates secure stashing and retrieval of SSH secret keys.
+A collection of configuration maintainers for:
+
+* https://code.visualstudio.com[Visual Studio Code].
+* https://hyper.is[Hyper] terminal.
+* https://transmissionbt.com[Transmission BT].
+
+This collection is intended to grow.
 
 | +++<p align="center">+++
-`*https://github.com/no-simpler/divine-bundle-fonts[Fonts collection]*`
+`*https://github.com/divine-bundles/fonts[Fonts collection]*`
 +++</p>+++
 
 _(fully functional on macOS & Ubuntu, not yet fully documented)_
@@ -4460,46 +4471,20 @@ Maintains a collection of personal font files across machines.
 ^.^h| macOS-specific deployments
 
 | +++<p align="center">+++
-`*https://github.com/no-simpler/divine-bundle-macos-local-server[Local development server]*`
-+++</p>+++
-
-_(still unstable, not yet fully documented)_
-
-Maintains a local development server on macOS.
-For the most part, it automates instructions from https://getgrav.org/blog/macos-mojave-apache-multiple-php-versions[this article].
-
-| +++<p align="center">+++
-`*https://github.com/no-simpler/divine-bundle-macos-tilde-switch[Tilde-switch]*`
+`*https://github.com/divine-bundles/mac-tilde-switch[MacBook tilde-switch]*`
 +++</p>+++
 
 _(fully functional on macOS, not yet fully documented)_
 
 Programmatically switches the keys tilde `~` and plus-minus `±` on a MacBook's built-in physical keyboard.
 
-^.^h| App-specific configuration deployments
-
 | +++<p align="center">+++
-`*https://github.com/no-simpler/divine-bundle-config-vscode[Visual Studio Code]*`
+`*https://github.com/divine-bundles/macos-local-server[Local development server]*`
 +++</p>+++
 
-_(fully functional on macOS, not yet fully documented)_
+_(still unstable, not yet fully documented)_
 
-Maintains configuration for https://code.visualstudio.com[VS Code].
-
-| +++<p align="center">+++
-`*https://github.com/no-simpler/divine-bundle-config-hyperjs[Hyper.js]*`
-+++</p>+++
-
-_(fully functional on macOS, not yet fully documented)_
-
-Maintains configuration for https://hyper.is[Hyper] terminal.
-
-| +++<p align="center">+++
-`*https://github.com/no-simpler/divine-bundle-config-transmissionbt[Transmission BT]*`
-+++</p>+++
-
-_(fully functional on macOS, not yet fully documented)_
-
-Maintains configuration for https://transmissionbt.com[Transmission].
+Maintains a local development server on macOS.
+For the most part, it automates instructions from https://getgrav.org/blog/macos-mojave-apache-multiple-php-versions[this article].
 
 |===

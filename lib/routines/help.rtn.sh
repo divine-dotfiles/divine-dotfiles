@@ -2,11 +2,11 @@
 #:title:        Divine Bash routine: help
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.31
-#:revremark:    Lay groundwork for --obliterate option
+#:revdate:      2019.11.30
+#:revremark:    Rewrite all Github references to point to new repo location
 #:created_at:   2018.03.25
 
-## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
+## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
 #
 ## This file is intended to be sourced from framework's main script.
 #
@@ -58,7 +58,7 @@ DESCRIPTION
     Divinefiles as a special kind.
 
     Full documentation is available at:
-      https://github.com/no-simpler/divine-dotfiles
+      https://github.com/divine-dotfiles/divine-dotfiles
 
     This Divine intervention utility is the command line interface to the 
     Divine.dotfiles framework. The intervention utility does:
@@ -121,7 +121,7 @@ DESCRIPTION
 
     - Accepts bundles of deployments in any of two forms:
       - Divine deployment package in the form 'NAME' (which translates to 
-        Github repository 'no-simpler/divine-bundle-NAME').
+        Github repository 'divine-bundles/NAME').
       - Third-party deployment package (Github repository) in the form 
         'username/repository'.
     - Makes shallow clones of repositories (or downloads them) into internal 
@@ -134,7 +134,7 @@ DESCRIPTION
 
     - Accepts bundles of deployments in any of two forms:
       - Divine deployment package in the form 'NAME' (which translates to 
-        Github repository 'no-simpler/divine-bundle-NAME').
+        Github repository 'divine-bundles/NAME').
       - Third-party deployment package (Github repository) in the form 
         'username/repository'.
     - If such a repository is currently attached, removes it.
@@ -233,7 +233,7 @@ OPTIONS
 AUTHOR
     ${BOLD}Grove Pyree${NORMAL} <grayarea@protonmail.ch>
 
-    Part of ${BOLD}Divine.dotfiles${NORMAL} <https://github.com/no-simpler/divine-dotfiles>
+    Part of ${BOLD}Divine.dotfiles${NORMAL} <https://github.com/divine-dotfiles/divine-dotfiles>
 
     This is free software: you are free to change and redistribute it.
     There is NO WARRANTY, to the extent permitted by law.

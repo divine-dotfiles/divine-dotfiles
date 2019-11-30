@@ -2,11 +2,11 @@
 #:title:        Divine Bash routine: plug
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.29
-#:revremark:    Fix syntax error in plug rtn
+#:revdate:      2019.11.30
+#:revremark:    Rewrite all Github references to point to new repo location
 #:created_at:   2019.06.26
 
-## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
+## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
 #
 ## This file is intended to be sourced from framework's main script.
 #
@@ -110,7 +110,7 @@ d___plug_github_repo()
 
   # Accept one of two patterns: 'builtin_repo_name' and 'username/repo'
   if [[ $parg =~ ^[0-9A-Za-z_.-]+$ ]]
-  then parg="no-simpler/divine-bundle-$parg"
+  then parg="divine-bundles/$parg"
   elif [[ $parg =~ ^[0-9A-Za-z_.-]+/[0-9A-Za-z_.-]+$ ]]; then :
   else
     d__notify -ls -- 'Not a valid Github repository handle'
