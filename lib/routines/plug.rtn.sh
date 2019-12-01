@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: plug
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.30
-#:revremark:    Rewrite all Github references to point to new repo location
+#:revdate:      2019.12.01
+#:revremark:    Actually read argument during plug routine
 #:created_at:   2019.06.26
 
 ## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
@@ -80,6 +80,15 @@ d__rtn_plug()
 
 d___plug_candidate()
 {
+  # Check whether there is at least one argument
+  if [ ${#D__REQ_ARGS} -eq 0 ]; then
+    d__notify -nlst 'Nothing to do' -- 'Grail candidate not provided'
+    return 1
+  fi
+
+  # Extract first argument
+  parg="${D__REQ_ARGS[0]}"
+
   # Print a separating empty line; compose task name
   printf >&2 '\n'; pplq="Grail candidate '$BOLD$parg$NORMAL'"
 
