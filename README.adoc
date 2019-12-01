@@ -1,8 +1,8 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revdate: 2019.11.30
-:revremark: Rewrite all Github references to point to new repo location
+:revdate: 2019.12.01
+:revremark: Tweak descriptions of Divine bundles
 :doctype: article
 // Visual
 :toc: macro
@@ -4436,15 +4436,15 @@ Still, these are functional to the described extent.
 |===
 
 | +++<p align="center">+++
-`*https://github.com/divine-bundles/primers[Secure handler of GnuPG and SSH keys]*`
+`*https://github.com/divine-bundles/primers[Application primers]*`
 +++</p>+++
 
 _(fully functional on macOS, not yet fully documented)_
 
-Automates adherence to best security practices while handling secret keys to
+Automates one-time setting-up of utilities that tend to require it:
 
-* https://www.gnupg.org[GnuPG].
-* https://en.wikipedia.org/wiki/Secure_Shell[SSH].
+* https://www.gnupg.org[GnuPG]: automates adherence to best security practices while handling the secret keys.
+* https://en.wikipedia.org/wiki/Secure_Shell[SSH]: automates secure stashing and retrieving of SSH keys.
 
 | +++<p align="center">+++
 `*https://github.com/divine-bundles/configs[Application configs]*`
@@ -4452,13 +4452,11 @@ Automates adherence to best security practices while handling secret keys to
 
 _(fully functional on macOS, not yet fully documented)_
 
-A collection of configuration maintainers for:
+Automates plugging (and unplugging) of the pre-made configuration files for:
 
 * https://code.visualstudio.com[Visual Studio Code].
 * https://hyper.is[Hyper] terminal.
 * https://transmissionbt.com[Transmission BT].
-
-This collection is intended to grow.
 
 | +++<p align="center">+++
 `*https://github.com/divine-bundles/fonts[Fonts collection]*`
