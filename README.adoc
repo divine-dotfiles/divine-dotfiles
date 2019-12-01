@@ -2,7 +2,7 @@
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
 :revdate: 2019.12.01
-:revremark: Tweak descriptions of Divine bundles
+:revremark: Improve readme wording on divine-bundles
 :doctype: article
 // Visual
 :toc: macro
@@ -4409,10 +4409,10 @@ So, for example, a transition script `transitions/1.5.0.trs.sh` is sourced if an
 [[divine-bundles]]
 == Divine bundles
 
-The *Divine bundles* of deployments are developed and distributed along with _Divine.dotfiles_.
+The *Divine bundles* of deployments are regular bundles that are developed and distributed alongside _Divine.dotfiles_.
 Apart from being useful by themselves, they serve as an illustration of the framework's mechanisms put to good use.
 
-The Divine bundles are published to the Gighub page: https://github.com/divine-bundles.
+The Divine bundles are published to their own Gighub organization, https://github.com/divine-bundles[`*divine-bundles*`].
 
 .List of Divine bundles
 [%noheader,cols="<.<a",stripes=none]
