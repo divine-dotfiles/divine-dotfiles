@@ -2,11 +2,11 @@
 #:title:        Divine Bash procedure: detect-os
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.19
-#:revremark:    Phase out old queue auto-targeting
+#:revdate:      2019.11.30
+#:revremark:    Rewrite all Github references to point to new repo location
 #:created_at:   2019.03.15
 
-## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
+## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
 #
 ## Search for <<CONTRIBUTE HERE>> to find the portion of the code that is 
 #. intended for extension, to support additional OS distributions.

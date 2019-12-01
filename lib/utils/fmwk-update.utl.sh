@@ -2,11 +2,11 @@
 #:title:        Divine Bash utils: fmwk-update
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.29
-#:revremark:    New output when changing version label but not version itself
+#:revdate:      2019.11.30
+#:revremark:    Rewrite all Github references to point to new repo location
 #:created_at:   2019.11.22
 
-## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
+## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
 #
 ## Groups functions that update framework itself to latest revision, while 
 #. minding the possible 'nightly' mode. The fuctions expect the framework 

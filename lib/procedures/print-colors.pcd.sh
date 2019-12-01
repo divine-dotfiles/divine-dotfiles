@@ -2,11 +2,11 @@
 #:title:        Divine Bash procedure: print-colors
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.28
-#:revremark:    Change textual icon on halt intro
+#:revdate:      2019.11.30
+#:revremark:    Rewrite all Github references to point to new repo location
 #:created_at:   2018.12.20
 
-## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
+## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
 #
 ## Provides into the global scope a number of read-only global variables that 
 #. can be used to colorize and add effects to terminal output.
