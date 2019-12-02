@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.12.02
-#:revremark:    Announce when d__load-ing dev version
+#:revremark:    Hard code d__load-ing from dev branch
 #:created_at:   2019.07.22
 
 ## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
@@ -164,13 +164,7 @@ d__load()
 {
   # Init vars; transform subject name
   local vr="$( printf '%s\n' "$2" | tr a-z- A-Z_ )" tmp rc
-  local url='https://raw.github.com/divine-dotfiles/divine-dotfiles'
-  local msg="==> Loading $1 '$2'"
-  if [ "$D__FMWK_DEV" = true ]; then
-    url+='/dev/lib' msg+=' (dev version)'
-  else
-    url+='/master/lib'
-  fi
+  local url='https://raw.github.com/divine-dotfiles/divine-dotfiles/dev/lib'
 
   # Perform different
   case $1 in
@@ -192,7 +186,7 @@ d__load()
   tmp="$(mktemp)"
   if declare -f d__notify &>/dev/null; then d__notify -q -- "Loading $1 '$2'"
   elif (($D__OPT_VERBOSITY))
-  then printf >&2 '\033[36m%s\033[0m\n' "$msg"; fi
+  then printf >&2 '\033[36m%s\033[0m\n' "==> Loading $1 '$2'"; fi
   if curl --version &>/dev/null; then curl -fsSL $url >$tmp
   elif wget --version &>/dev/null; then wget -qO $tmp $url; fi
   if (($?)); then
