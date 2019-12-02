@@ -1,1 +1,2 @@
+* [**`other`**] If the installation of the framework fails during the pre-flight checks, do not leave an empty framework directory behind.
 * [**`other`**] Rename internal variables in the `fmwk` routine to be synergetic with the `update` routine.

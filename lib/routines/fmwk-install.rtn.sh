@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: fmwk-install
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.30
-#:revremark:    Rewrite all Github references to point to new repo location
+#:revdate:      2019.12.02
+#:revremark:    Erase empty fmwk dir if fmwk inst. fails
 #:created_at:   2019.10.15
 
 ## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
@@ -156,6 +156,7 @@ d___get_ready()
   if $iaok; then d__load util stash
     printf >&2 '%s %s\n' "$D__INTRO_SUCCS" "$iplq"; return 0
   else
+    [ -z "$idrs" ] && rm -rf -- "$idst" &>/dev/null
     printf >&2 '%s %s\n' "$D__INTRO_FAILR" "$iplq"; return 1
   fi
 }
