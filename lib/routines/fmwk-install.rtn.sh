@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.12.02
-#:revremark:    Add temp code to fmwk install
+#:revremark:    Handle dead di symlink during fmwk installation
 #:created_at:   2019.10.15
 
 ## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
@@ -204,13 +204,17 @@ d___pfc_shortcut()
       continue
     fi
     if [ -e "$sdir/$snm" ]; then
-      echo "Something exists at '$sdir/$snm'"
+      d__notify -lx -- ''
       d__notify -- "Skipping candidate '$sdir'" \
         "(file named '$snm' already exists in it)"
       continue
-    else
-      echo "Absolutely nothing exists at '$sdir/$snm', even though it very much DOES"
-      ls -la -- "$sdir"
+    fi
+    if [ -L "$sdir/$snm" ]; then
+      iaok=false
+      d__notify -lx -- "Dead symlink at: $sdir/$snm" \
+        -n- '(Possibly a remnant of previous installation)'
+      d__notify -l! -- 'Re-try with --shct-no to install without shortcut'
+      return 1
     fi
     if ! [ -w "$sdir" ]; then
       nwrd+=("$sdir")
