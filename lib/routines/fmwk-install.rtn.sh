@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.12.02
-#:revremark:    Do not output shct name in fmwk installation if --shct-no
+#:revremark:    In fmwk installation set nightly flag when in dev
 #:created_at:   2019.10.15
 
 ## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
@@ -328,6 +328,15 @@ d___install_fmwk()
     return 0
   fi
 
+  # If installed a dev version, set the stash flag
+  if [ "$D__FMWK_DEV" = true ]; then
+    if d__stash -r -- set 'nightly'; then
+      d__notify -- "Recorded 'nightly' flag to root stash"
+    else
+      d__notify -lx -- "Failed to record 'nightly' flag to root stash"
+    fi
+  fi
+
   # Report success
   printf >&2 '%s %s\n' "$D__INTRO_INS_0" "$iplq"
   return 0
@@ -359,9 +368,9 @@ d___install_shortcut()
 
   # Set stash record
   if d__stash -r -- set di_shortcut "$sdst"; then
-    d__notify -- "Recorded installing shortcut to root stash"
+    d__notify -- 'Recorded installing shortcut to root stash'
   else
-    d__notify -lx -- "Failed to record installing shortcut to root stash"
+    d__notify -lx -- 'Failed to record installing shortcut to root stash'
   fi
 
   # Report success
