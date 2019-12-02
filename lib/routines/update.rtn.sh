@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: update
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.30
-#:revremark:    Rewrite all Github references to point to new repo location
+#:revdate:      2019.12.02
+#:revremark:    Rearrange deps of update rtn to offer GH before checking
 #:created_at:   2019.05.12
 
 ## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
@@ -17,13 +17,13 @@ readonly D__RTN_UPDATE=loaded
 d__load util workflow
 d__load util stash
 d__load util git
-d__load util backup
-d__load util fmwk-update
 d__load procedure prep-stash
 d__load procedure prep-sys
 d__load procedure offer-gh
 d__load procedure check-gh
 d__load procedure sync-bundles
+d__load util backup
+d__load util fmwk-update
 
 #>  d__rtn_update
 #
