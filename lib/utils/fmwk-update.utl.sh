@@ -2,8 +2,8 @@
 #:title:        Divine Bash utils: fmwk-update
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.30
-#:revremark:    Rewrite all Github references to point to new repo location
+#:revdate:      2019.12.02
+#:revremark:    Rephrase output when version is unchenged in update
 #:created_at:   2019.11.22
 
 ## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
@@ -209,7 +209,7 @@ d___apply_transitions()
         ;;
     on) if [ "$ovcl" = "$nvcl" ]; then
           if [ "$ovrs" = "$nvrs" ]; then
-            d__notify -lv -- "Version already up to date: $BOLD$nvrs$NORMAL"
+            d__notify -lv -- "Version unchanged: $BOLD$nvrs$NORMAL"
           else
             d__notify -lv -- \
               "Changed version from $BOLD$ovrs$NORMAL to $BOLD$nvrs$NORMAL"
