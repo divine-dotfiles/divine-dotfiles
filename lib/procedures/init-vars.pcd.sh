@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.12.02
-#:revremark:    Include global marker for nightly builds
+#:revremark:    Ensure no empty template is left after failed fmwk inst.
 #:created_at:   2019.10.11
 
 ## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>

@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.12.02
-#:revremark:    Include global marker for nightly builds
+#:revremark:    Ensure no empty template is left after failed fmwk inst.
 #:created_at:   2019.10.15
 
 ## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
@@ -242,7 +242,9 @@ d___install_fmwk()
 
   # Early exit for dry runs
   if [ "$D__OPT_ANSWER_F" = false ]; then
-    printf >&2 '%s %s\n' "$D__INTRO_INS_S" "$iplq"; return 2
+    printf >&2 '%s %s\n' "$D__INTRO_INS_S" "$iplq"
+    [ -z "$idrs" ] && rm -rf -- "$idst" &>/dev/null
+    return 2
   fi
 
   # Print intro; print locations
@@ -253,8 +255,11 @@ d___install_fmwk()
   # Conditionally prompt for user's approval
   if [ "$D__OPT_ANSWER_F" != true ]; then
     printf >&2 '%s ' "$D__INTRO_CNF_N"
-    if ! d__prompt -bp 'Install?'
-    then printf >&2 '%s %s\n' "$D__INTRO_INS_S" "$iplq"; return 1; fi
+    if ! d__prompt -bp 'Install?'; then
+      printf >&2 '%s %s\n' "$D__INTRO_INS_S" "$iplq"
+      [ -z "$idrs" ] && rm -rf -- "$idst" &>/dev/null
+      return 1
+    fi
   fi
 
   # Pull the repository into the temporary directory
@@ -267,21 +272,25 @@ d___install_fmwk()
   esac
   if (($?)); then
     printf >&2 '%s %s\n' "$D__INTRO_INS_1" "$iplq"
-    rm -rf -- "$itmp"; return 1
+    rm -rf -- "$itmp"
+    [ -z "$idrs" ] && rm -rf -- "$idst" &>/dev/null
+    return 1
   fi
 
   # Move template directory out of the way
   d__bckp=; if ! d__push_backup -- "$idst" "$idst.tmp"; then
     d__notify -lx -- 'Failed to back up template framework directory'
     printf >&2 '%s %s\n' "$D__INTRO_INS_1" "$iplq"
-    rm -rf -- "$itmp"; return 1
+    rm -rf -- "$itmp"
+    return 1
   fi
 
   # Move the retrieved framework into place
   if ! mv -n -- "$itmp" "$idst"; then
     d__notify -lx -- 'Failed to move framework directory into place'
     printf >&2 '%s %s\n' "$D__INTRO_INS_1" "$iplq"
-    rm -rf -- "$itmp"; return 1
+    rm -rf -- "$itmp"
+    return 1
   fi
 
   # Restore grail and state directories; delete template
