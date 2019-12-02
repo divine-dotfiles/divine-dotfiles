@@ -1,8 +1,8 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revdate: 2019.12.01
-:revremark: Improve readme wording on divine-bundles
+:revdate: 2019.12.02
+:revremark: Make dev readme install nightly build
 :doctype: article
 // Visual
 :toc: macro
@@ -317,7 +317,7 @@ The following single shell command installs the _Divine.dotfiles_ framework:
 [source,bash]
 ----
 bash -c "TMP=\$(mktemp); URL=https:\
-//raw.github.com/divine-dotfiles/divine-dotfiles/master/lib/install/install.sh\
+//raw.github.com/divine-dotfiles/divine-dotfiles/dev/lib/install/install.sh\
 ; if curl --version &>/dev/null; then curl -fsSL \$URL >\$TMP; elif wget --ver\
 sion &>/dev/null; then wget -qO \$TMP \$URL; else printf >&2 \"\n==> Error: fa\
 iled to detect neither curl nor wget\n\"; rm -f \$TMP; exit 1; fi || { printf \
@@ -444,7 +444,7 @@ The following single shell command uninstalls the _Divine.dotfiles_ framework:
 [source,bash]
 ----
 bash -c "TMP=\$(mktemp); URL=https://raw.\
-github.com/divine-dotfiles/divine-dotfiles/master/lib/uninstall/uninstall.sh; \
+github.com/divine-dotfiles/divine-dotfiles/dev/lib/uninstall/uninstall.sh; \
 if curl --version &>/dev/null; then curl -fsSL \$URL >\$TMP; elif wget --versi\
 on &>/dev/null; then wget -qO \$TMP \$URL; else printf >&2 \"\n==> Error: fail\
 ed to detect neither curl nor wget\n\"; rm -f \$TMP; exit 1; fi || { printf >&\
@@ -583,7 +583,7 @@ All three sub-commands *skip* the trivial <<fmwk-interactivity,prompts>> (e.g., 
 [source,bash]
 ----
 bash -c "TMP=\$(mktemp); URL=https:\
-//raw.github.com/divine-dotfiles/divine-dotfiles/master/lib/install/install.sh\
+//raw.github.com/divine-dotfiles/divine-dotfiles/dev/lib/install/install.sh\
 ; if curl --version &>/dev/null; then curl -fsSL \$URL >\$TMP; elif wget --ver\
 sion &>/dev/null; then wget -qO \$TMP \$URL; else printf >&2 \"\n==> Error: fa\
 iled to detect neither curl nor wget\n\"; rm -f \$TMP; exit 1; fi || { printf \
@@ -696,7 +696,7 @@ However, <<opt-obliterate,no copies>> of the framework's assets are kept.
 ~/.divine/intervene.sh remove --yes --obliterate \
 && ~/.divine/intervene.sh detach essentials --yes \
 && bash -c "TMP=\$(mktemp); URL=https://raw.\
-github.com/divine-dotfiles/divine-dotfiles/master/lib/uninstall/uninstall.sh; \
+github.com/divine-dotfiles/divine-dotfiles/dev/lib/uninstall/uninstall.sh; \
 if curl --version &>/dev/null; then curl -fsSL \$URL >\$TMP; elif wget --versi\
 on &>/dev/null; then wget -qO \$TMP \$URL; else printf >&2 \"\n==> Error: fail\
 ed to detect neither curl nor wget\n\"; rm -f \$TMP; exit 1; fi || { printf >&\

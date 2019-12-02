@@ -2,8 +2,8 @@
 #:title:        Divine.dotfiles fmwk uninstall script
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.30
-#:revremark:    Rewrite all Github references to point to new repo location
+#:revdate:      2019.12.02
+#:revremark:    Make dev readme install nightly build
 #:created_at:   2019.07.22
 
 ## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
@@ -164,7 +164,7 @@ d__load()
 {
   # Init vars; transform subject name
   local vr="$( printf '%s\n' "$2" | tr a-z- A-Z_ )" tmp rc
-  local url='https://raw.github.com/divine-dotfiles/divine-dotfiles/master/lib'
+  local url='https://raw.github.com/divine-dotfiles/divine-dotfiles/dev/lib'
 
   # Perform different
   case $1 in

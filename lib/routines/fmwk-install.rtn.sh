@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.12.02
-#:revremark:    Erase empty fmwk dir if fmwk inst. fails
+#:revremark:    Make dev readme install nightly build
 #:created_at:   2019.10.15
 
 ## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
@@ -196,10 +196,12 @@ d___pfc_shortcut()
   local nwrd=()
   for sdir in "${D__SHORTCUT_DIR_CANDIDATES[@]}"; do
     if ! [[ :$PATH: = *:$sdir:* ]]; then
-      d__notify -- "Skipping candidate '$sdir' (not on \$PATH)"; continue
+      d__notify -- "Skipping candidate '$sdir' (not on \$PATH)"
+      continue
     fi
     if ! [ -d "$sdir" ]; then
-      d__notify -- "Skipping candidate '$sdir' (not a directory)"; continue
+      d__notify -- "Skipping candidate '$sdir' (not a directory)"
+      continue
     fi
     if [ -e "$sdir/$snm" ]; then
       d__notify -- "Skipping candidate '$sdir'" \
@@ -208,9 +210,12 @@ d___pfc_shortcut()
     fi
     if ! [ -w "$sdir" ]; then
       nwrd+=("$sdir")
-      d__notify -- "Skipping candidate '$sdir' (not writable)"; continue
+      d__notify -- "Skipping candidate '$sdir' (not writable)"
+      continue
     fi
-    sdst="$sdir/$snm"; break
+    sdst="$sdir/$snm"
+    d__notify -- "Will install shortcut at '$sdst'"
+    break
   done
 
   # Check if a directory has been chosen
