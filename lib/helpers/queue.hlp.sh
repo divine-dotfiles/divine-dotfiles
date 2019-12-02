@@ -2,8 +2,8 @@
 #:title:        Divine Bash deployment helpers: queue
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.30
-#:revremark:    Rewrite all Github references to point to new repo location
+#:revdate:      2019.12.02
+#:revremark:    Accept empty queue as normal possibility
 #:created_at:   2019.06.10
 
 ## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
@@ -64,11 +64,14 @@ d__queue_check()
 
   # Cut-off checks for number of items and continuity
   local d__qsl=$D__QUEUE_SECTMIN d__qsr=$D__QUEUE_SECTMAX
+  if ((d__qsl==d__qsr)); then
+    d__notify -t 'Skipping queue' -- 'Queue section is empty'
+    return 3
+  elif ((d__qsl>d__qsr)); then
+    d__fail -t 'Queue failed' -- "Invalid section bounds: from $qsl to $qsr"
+    return 3
+  fi
   d__context -- push "Checking queue items $d__qsl-$((d__qsr-1))"
-  if ((d__qsl==d__qsr))
-  then d__fail -t 'Queue failed' -- 'Empty queue section given'; return 3
-  elif ((d__qsl>d__qsr))
-  then d__fail -t 'Queue failed' -- 'Invalid queue section given'; return 3; fi
   for ((d__i=$d__qsl;d__i<$d__qsr;++d__i)); do
     [ -z ${D_QUEUE_MAIN[$d__i]+isset} ] || continue
     d__fail -t 'Queue failed' -- \
@@ -1045,16 +1048,17 @@ d__queue_target()
   fi
 
   # Cut-off checks for number of items and continuity
+  if ((qsl==qsr)); then
+    d__notify -t 'Refusing to auto-target' -- "Empty $plq"
+    return 1
+  elif ((qsl>qsr)); then
+    d__notify -lxt 'Auto-targeting failed' -- \
+      "Invalid bounds of $plq: from $qsl to $qsr"
+    return 1
+  fi
   d__context -- notch
   d__context -- push "Auto-targeting $plq items $qsl-$((qsr-1))"
   d__context -- push "Target directory: $tgtd"
-  if ((qsl==qsr)); then
-    d__fail -t 'Auto-targeting failed' -- "Empty $plq given"
-    return 1
-  elif ((qsl>qsr)); then
-    d__fail -t 'Auto-targeting failed' -- "Invalid $plq given"
-    return 1
-  fi
   for ((ii=$qsl;ii<$qsr;++ii)); do
     [ -z ${D_QUEUE_MAIN[$ii]+isset} ] || continue
     local errm=; [ -z ${sectnum+isset} ] || errm+=' in the given section'
