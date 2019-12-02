@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.12.02
-#:revremark:    Handle dead di symlink during fmwk installation
+#:revremark:    Do not output shct name in fmwk installation if --shct-no
 #:created_at:   2019.10.15
 
 ## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
@@ -340,7 +340,7 @@ d___install_shortcut()
 
   # Early exit for dry runs
   if [ "$D__OPT_ANSWER_S" = false ]; then
-    printf >&2 '%s %s\n' "$D__INTRO_INS_S" "$iplq"; return 2
+    printf >&2 '%s %s\n' "$D__INTRO_INS_S" 'Shortcut command'; return 2
   fi
 
   # Compose target; print intro; print locations
