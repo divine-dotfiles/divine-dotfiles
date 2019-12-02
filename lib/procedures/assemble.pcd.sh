@@ -2,11 +2,11 @@
 #:title:        Divine Bash procedure: assemble
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.10.16
-#:revremark:    Contain max prty len to assembly
+#:revdate:      2019.11.30
+#:revremark:    Rewrite all Github references to point to new repo location
 #:created_at:   2019.05.14
 
-## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
+## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
 #
 ## This file is intended to be sourced from framework's main script.
 #
@@ -68,7 +68,7 @@ d__pcd_assemble()
     #. or 'username/repository'
     for bundle_handle in "${D__REQ_BUNDLES[@]}"; do
       if [[ $bundle_handle =~ ^[0-9A-Za-z_.-]+$ ]]; then
-        bundle_handle="no-simpler/divine-bundle-$bundle_handle"
+        bundle_handle="divine-bundles/$bundle_handle"
       elif [[ $bundle_handle =~ ^[0-9A-Za-z_.-]+/[0-9A-Za-z_.-]+$ ]]; then :
       else rejb+=( -i- "- '$bundle_handle'" ); continue; fi
       accb+=( -i- "- '$bundle_handle'")

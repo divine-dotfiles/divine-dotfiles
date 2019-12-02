@@ -2,11 +2,11 @@
 #:title:        Divine Bash routine: fmwk-uninstall
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.29
-#:revremark:    Support extricated Grail in fmwk uninstall
+#:revdate:      2019.11.30
+#:revremark:    Rewrite all Github references to point to new repo location
 #:created_at:   2019.10.15
 
-## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
+## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
 #
 ## Uninstalls Divine.dotfiles framework and shortcut command.
 #
@@ -363,7 +363,7 @@ d___uninstall_fmwk()
 
   # Print intro; print locations
   printf >&2 '%s %s\n' "$D__INTRO_RMV_N" "$uplq"
-  d__notify -ld -- 'Repo URL: https://github.com/no-simpler/divine-dotfiles'
+  d__notify -ld -- 'Repo URL: https://github.com/divine-dotfiles/divine-dotfiles'
   d__notify -ld -- "Location: $udst"
   if [[ $D__DIR_GRAIL = "$udst/"* ]]; then
     d__notify -ld -- '(The framework directory contains the Grail directory)'

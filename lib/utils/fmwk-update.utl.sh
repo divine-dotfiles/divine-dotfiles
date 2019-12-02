@@ -2,11 +2,11 @@
 #:title:        Divine Bash utils: fmwk-update
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.29
-#:revremark:    Expell Grail from fmwk dir, allow overrides
+#:revdate:      2019.11.30
+#:revremark:    Rewrite all Github references to point to new repo location
 #:created_at:   2019.11.22
 
-## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
+## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
 #
 ## Groups functions that update framework itself to latest revision, while 
 #. minding the possible 'nightly' mode. The fuctions expect the framework 
@@ -208,7 +208,12 @@ d___apply_transitions()
         d__context -- push "Applying transitions onto version $nvcl"
         ;;
     on) if [ "$ovcl" = "$nvcl" ]; then
-          d__notify -lv -- "Version already up to date: $BOLD$nvrs$NORMAL"
+          if [ "$ovrs" = "$nvrs" ]; then
+            d__notify -lv -- "Version already up to date: $BOLD$nvrs$NORMAL"
+          else
+            d__notify -lv -- \
+              "Changed version from $BOLD$ovrs$NORMAL to $BOLD$nvrs$NORMAL"
+          fi
           return 0
         fi
         if [[ $ovma -gt $nvma ]]; then vdgr=true
@@ -219,12 +224,12 @@ d___apply_transitions()
           fi
         fi
         if $vdgr; then
-          d__notify -lx -- 'Updated to a downgraded version:' \
-            "$BOLD$ovrs$NORMAL->$BOLD$nvrs$NORMAL"
+          d__notify -lx -- 'Updated to a downgraded version,' \
+            "from $BOLD$ovrs$NORMAL to $BOLD$nvrs$NORMAL"
           return 1
         fi
         d__notify -lv -- \
-          "Updated version: $BOLD$ovrs$NORMAL->$BOLD$nvrs$NORMAL"
+          "Updated version from $BOLD$ovrs$NORMAL to $BOLD$nvrs$NORMAL"
         d__context -- notch
         d__context -- push "Applying transitions between versions $ovcl->$nvcl"
         ;;

@@ -2,11 +2,11 @@
 #:title:        Divine Bash routine: plug
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.26
-#:revremark:    Rewrite update rtn; implement nightly switch
+#:revdate:      2019.12.01
+#:revremark:    Actually read argument during plug routine
 #:created_at:   2019.06.26
 
-## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
+## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
 #
 ## This file is intended to be sourced from framework's main script.
 #
@@ -80,6 +80,15 @@ d__rtn_plug()
 
 d___plug_candidate()
 {
+  # Check whether there is at least one argument
+  if [ ${#D__REQ_ARGS} -eq 0 ]; then
+    d__notify -nlst 'Nothing to do' -- 'Grail candidate not provided'
+    return 1
+  fi
+
+  # Extract first argument
+  parg="${D__REQ_ARGS[0]}"
+
   # Print a separating empty line; compose task name
   printf >&2 '\n'; pplq="Grail candidate '$BOLD$parg$NORMAL'"
 
@@ -110,7 +119,7 @@ d___plug_github_repo()
 
   # Accept one of two patterns: 'builtin_repo_name' and 'username/repo'
   if [[ $parg =~ ^[0-9A-Za-z_.-]+$ ]]
-  then parg="no-simpler/divine-bundle-$parg"
+  then parg="divine-bundles/$parg"
   elif [[ $parg =~ ^[0-9A-Za-z_.-]+/[0-9A-Za-z_.-]+$ ]]; then :
   else
     d__notify -ls -- 'Not a valid Github repository handle'
@@ -307,6 +316,7 @@ d___plug_local_dir()
       d__notify -lx -- "Failed to symlink Grail candidate into place"
       printf >&2 '%s %s\n' "$D__INTRO_PLG_1" "$pplq"
       return 2
+    fi
   else
     if ! cp -Rn -- "$parg" "$pdst"; then
       d__notify -lx -- "Failed to copy Grail candidate into place"

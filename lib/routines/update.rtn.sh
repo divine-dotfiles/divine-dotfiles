@@ -2,11 +2,11 @@
 #:title:        Divine Bash routine: update
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.29
-#:revremark:    Implement transitions for failed updates
+#:revdate:      2019.11.30
+#:revremark:    Rewrite all Github references to point to new repo location
 #:created_at:   2019.05.12
 
-## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
+## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
 #
 ## Updates Divine.dotfiles framework, attached bundles, and Grail directory 
 #. itself if the latter is a cloned repository.
@@ -136,7 +136,7 @@ d___parse_update_args()
 
       # Accept one of two patterns: 'builtin_repo_name' and 'username/repo'
       if [[ $ughh =~ ^[0-9A-Za-z_.-]+$ ]]; then
-        ughh="no-simpler/divine-bundle-$ughh"
+        ughh="divine-bundles/$ughh"
       elif [[ $ughh =~ ^[0-9A-Za-z_.-]+/[0-9A-Za-z_.-]+$ ]]; then
         :
       else
@@ -303,7 +303,7 @@ d___update_fmwk()
 {
   # Set up key variables; call pre-processing function
   local uplq="$BOLD$D__FMWK_NAME$NORMAL framework"
-  local ughh='no-simpler/divine-dotfiles'
+  local ughh='divine-dotfiles/divine-dotfiles'
   local udst="$D__DIR_FMWK"
   d___update_pre || return 1
 

@@ -2,11 +2,11 @@
 #:title:        Divine.dotfiles fmwk install script
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.28
-#:revremark:    Prepend blank line to output of fmwk (un)inst.
+#:revdate:      2019.11.30
+#:revremark:    Rewrite all Github references to point to new repo location
 #:created_at:   2019.07.22
 
-## Part of Divine.dotfiles <https://github.com/no-simpler/divine-dotfiles>
+## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
 #
 ## This script installs the framework and optional components.
 #
@@ -22,7 +22,7 @@ d__main()
 
   # Announce
   printf >&2 '\n\033[36m%s\033[0m\n' \
-    '==> Retrieving installation logic from Github'
+    '==> Retrieving framework installation logic from Github'
 
   # Load fundamental dependencies: checks and fixes; globals; workflow utils
   d__load procedure pre-flight
@@ -191,7 +191,7 @@ d__load()
 {
   # Init vars; transform subject name
   local vr="$( printf '%s\n' "$2" | tr a-z- A-Z_ )" tmp rc
-  local url='https://raw.github.com/no-simpler/divine-dotfiles/master/lib'
+  local url='https://raw.github.com/divine-dotfiles/divine-dotfiles/master/lib'
 
   # Perform different
   case $1 in
@@ -221,7 +221,7 @@ d__load()
       "Dependency is not a readable file: '$path'"
     exit 1
   fi
-  D__DEP_STACK+=( -i- "- $1 $2" ); source $tmp; rc=$?; rm -f $tmp; return $?
+  D__DEP_STACK+=( -i- "- $1 $2" ); source $tmp; rc=$?; rm -f $tmp; return $rc
 }
 
 #>  d__perform_routine
