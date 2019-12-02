@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.12.02
-#:revremark:    Make dev readme install nightly build
+#:revremark:    Include global marker for nightly builds
 #:created_at:   2019.10.15
 
 ## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
@@ -38,7 +38,7 @@ d__rtn_fmwk_install()
   fi
 
   # Storage & status variables
-  local irc=2 iplq iarg idst itmp iaok=true d__bckp ioccbckp
+  local irc=2 iplq ighh idst itmp iaok=true d__bckp ioccbckp
   local idir iadir snm scnm sdir sdst stgt sgd=false erra idrs src dst
 
   # Perform structured installation
@@ -72,7 +72,7 @@ d___get_ready()
   fi
 
   # Store remote address
-  iarg='divine-dotfiles/divine-dotfiles'
+  ighh='divine-dotfiles/divine-dotfiles'
 
   # Compose destination path
   idst="$D__DIR"
@@ -145,8 +145,8 @@ d___get_ready()
 
   # Ensure that the remote repository exists
   d__load util git
-  if ! d___gh_repo_exists "$iarg"; then iaok=false
-    d__notify -lx -- "Github repository '$iarg' does not appear to exist"
+  if ! d___gh_repo_exists "$ighh"; then iaok=false
+    d__notify -lx -- "Github repository '$ighh' does not appear to exist"
   fi
 
   # Get on with shortcut-related checks
@@ -247,7 +247,7 @@ d___install_fmwk()
 
   # Print intro; print locations
   printf >&2 '%s %s\n' "$D__INTRO_INS_N" "$iplq"
-  d__notify -ld -- "Repo URL: https://github.com/$iarg"
+  d__notify -ld -- "Repo URL: https://github.com/$ighh"
   d__notify -ld -- "Location: $idst"
 
   # Conditionally prompt for user's approval
@@ -258,10 +258,12 @@ d___install_fmwk()
   fi
 
   # Pull the repository into the temporary directory
+  local iopt=( -t 'Divine.dotfiles' )
+  [ "$D__FMWK_DEV" = true ] && iopt+=( -b dev )
   itmp="$(mktemp -d)"; case $D__GH_METHOD in
-    g)  d___clone_git_repo "$iarg" "$itmp";;
-    c)  d___dl_gh_repo -c "$iarg" "$itmp";;
-    w)  d___dl_gh_repo -w "$iarg" "$itmp";;
+    g)  d___clone_git_repo "${iopt[@]}" -- "$ighh" "$itmp";;
+    c)  d___dl_gh_repo -c "${iopt[@]}" -- "$ighh" "$itmp";;
+    w)  d___dl_gh_repo -w "${iopt[@]}" -- "$ighh" "$itmp";;
   esac
   if (($?)); then
     printf >&2 '%s %s\n' "$D__INTRO_INS_1" "$iplq"

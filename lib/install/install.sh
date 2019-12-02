@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.12.02
-#:revremark:    Make dev readme install nightly build
+#:revremark:    Include global marker for nightly builds
 #:created_at:   2019.07.22
 
 ## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
@@ -191,7 +191,8 @@ d__load()
 {
   # Init vars; transform subject name
   local vr="$( printf '%s\n' "$2" | tr a-z- A-Z_ )" tmp rc
-  local url='https://raw.github.com/divine-dotfiles/divine-dotfiles/dev/lib'
+  local url='https://raw.github.com/divine-dotfiles/divine-dotfiles'
+  [ "$D__FMWK_DEV" = true ] && url+='/dev/lib' || url+='/master/lib'
 
   # Perform different
   case $1 in
