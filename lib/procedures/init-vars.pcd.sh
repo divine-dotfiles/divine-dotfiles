@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.12.02
-#:revremark:    Clear release notes; kick off 3.0.0+dev
+#:revremark:    Include global marker for nightly builds
 #:created_at:   2019.10.11
 
 ## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
@@ -39,6 +39,7 @@ d__populate_globals()
 
   # Framework's displayed version
   readonly D__FMWK_VERSION='3.0.0+dev'
+  readonly D__FMWK_DEV=true
 
   # Paths to state directory
   readonly D__DIR_STATE="$D__DIR/state"
