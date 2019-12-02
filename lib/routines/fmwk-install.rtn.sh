@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.12.02
-#:revremark:    Add temp output in fmwk install
+#:revremark:    Add temp code to fmwk install
 #:created_at:   2019.10.15
 
 ## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
@@ -210,6 +210,7 @@ d___pfc_shortcut()
       continue
     else
       echo "Absolutely nothing exists at '$sdir/$snm', even though it very much DOES"
+      ls -la -- "$sdir"
     fi
     if ! [ -w "$sdir" ]; then
       nwrd+=("$sdir")
