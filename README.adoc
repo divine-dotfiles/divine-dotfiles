@@ -1,8 +1,8 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revdate: 2019.12.02
-:revremark: Make dev readme install nightly build
+:revdate: 2019.12.03
+:revremark: Add a note on race conditions to readme
 :doctype: article
 // Visual
 :toc: macro
@@ -210,6 +210,12 @@ To give an example, any backups created when installing a <<cpqe-main,copy-queue
 Another example is the introductory <<fmwk-joy-ride,joy ride>>: if taken reasonably, it will leave the system in largely the same state as before installing the framework.
 
 A glaring exception to this principle is the upgrading of the local package repositories through the system package manager (e.g., `sudo dnf upgrade -y`), which is deemed safe enough to overlook.
+
+[[fmwk-race-war]]
+==== Race conditions
+
+The framework mechanisms do _not_ preclude race conditions, such as when the framework and another program operate on a file at the same time.
+For most applications, the risk of this approach becoming an issue is negligible.
 
 [[fmwk-structure]]
 === Framework structure
