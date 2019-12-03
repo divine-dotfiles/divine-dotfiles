@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: update
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.12.02
-#:revremark:    Rearrange deps of update rtn to offer GH before checking
+#:revdate:      2019.12.03
+#:revremark:    In update rtn show url and location only with -v
 #:created_at:   2019.05.12
 
 ## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
@@ -315,8 +315,8 @@ d___update_fmwk()
   fi
 
   # Print locations
-  d__notify -ld -- "Repo URL: https://github.com/$ughh"
-  d__notify -ld -- "Location: $udst"
+  d__notify -- "Repo URL: https://github.com/$ughh"
+  d__notify -- "Location: $udst"
 
   # Check for current status of nightly mode
   local ungh=false ubld='stable'
@@ -495,8 +495,8 @@ d___update_grail()
   fi
 
   # Print locations
-  d__notify -ld -- "Origin  : $usrc"
-  d__notify -ld -- "Location: $udst"
+  d__notify -- "Origin  : $usrc"
+  d__notify -- "Location: $udst"
 
   # Prompt user
   if [ "$D__OPT_ANSWER" != true ]; then
@@ -528,8 +528,8 @@ d___update_bundle()
   fi
 
   # Print locations
-  d__notify -ld -- "Repo URL: https://github.com/$ughh"
-  d__notify -ld -- "Location: $udst"
+  d__notify -- "Repo URL: https://github.com/$ughh"
+  d__notify -- "Location: $udst"
 
   # Compose paths to special files
   local bshf="$udst/$D__CONST_NAME_BUNDLE_SH"
