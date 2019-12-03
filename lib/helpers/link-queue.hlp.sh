@@ -2,8 +2,8 @@
 #:title:        Divine Bash deployment helpers: link-queue
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.30
-#:revremark:    Rewrite all Github references to point to new repo location
+#:revdate:      2019.12.03
+#:revremark:    Support dead symlinks with spec queues
 #:created_at:   2019.04.02
 
 ## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
@@ -93,6 +93,7 @@ d__link_item_check()
   local d__lqet="${D_QUEUE_TARGETS[$d__lqei]}"
   local d__lqesk="link_$( d__md5 -s "$d__lqet" )"
   local d__lqeb="$D__DPL_BACKUP_DIR/$d__lqesk"
+  local d__ddsl=false
   d__context -- push "Checking if linked at: '$d__lqet'"
 
   # Do sanity checks
@@ -104,9 +105,16 @@ d__link_item_check()
   fi
 
   # Do the actual checking; check if source is readable
-  if [ -L "$d__lqet" -a "$d__lqet" -ef "$d__lqea" ]
-  then d__stash -s -- has $d__lqesk && d__lqrtc=1 || d__lqrtc=7
-  else d__stash -s -- has $d__lqesk && d__lqrtc=6 || d__lqrtc=2; fi
+  if [ ! -e "$d__lqet" -a -L "$d__lqet" ]; then
+    D_ADDST_WARNING+=("Dead symlink at: $d__lqet")
+    D_ADDST_PROMPT=true
+    d__ddsl=true
+  fi
+  if [ -e "$d__lqet" ] || $d__ddsl; then
+    if [ -L "$d__lqet" -a "$d__lqet" -ef "$d__lqea" ]
+    then d__stash -s -- has $d__lqesk && d__lqrtc=1 || d__lqrtc=7
+    else d__stash -s -- has $d__lqesk && d__lqrtc=6 || d__lqrtc=2; fi
+  else d__stash -s -- has $d__lqesk && d__lqrtc=6 || d__lqrtc=2; fi    
   if ! [ $d__lqrtc = 1 ] && [ -e "$d__lqeb" ];
   then d__notify -l!h -- "Orphaned backup at: $d__lqeb"; fi
   if ! [ -r "$d__lqea" ]; then

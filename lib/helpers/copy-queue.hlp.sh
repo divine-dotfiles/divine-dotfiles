@@ -2,8 +2,8 @@
 #:title:        Divine Bash deployment helpers: copy-queue
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.30
-#:revremark:    Rewrite all Github references to point to new repo location
+#:revdate:      2019.12.03
+#:revremark:    Support dead symlinks with spec queues
 #:created_at:   2019.05.23
 
 ## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
@@ -93,7 +93,7 @@ d__copy_item_check()
   local d__cqet="${D_QUEUE_TARGETS[$d__cqei]}"
   local d__cqesk="copy_$( d__md5 -s "$d__cqet" )"
   local d__cqeb="$D__DPL_BACKUP_DIR/$d__cqesk"
-  local d__cqexct=false
+  local d__cqexct=false d__ddsl=false
   if [ "$D_ADDST_COPY_QUEUE_EXACT" = true ] \
     || [ "$D_ADDST_COPY_ITEM_EXACT" = true ];
   then d__cqexct=true; D_ADDST_ITEM_FLAGS='e'; fi
@@ -109,7 +109,12 @@ d__copy_item_check()
   fi
 
   # Do the actual checking; check if source is readable
-  if [ -e "$d__cqet" ]; then
+  if [ ! -e "$d__cqet" -a -L "$d__cqet" ]; then
+    D_ADDST_WARNING+=("Dead symlink at: $d__cqet")
+    D_ADDST_PROMPT=true
+    d__ddsl=true
+  fi
+  if [ -e "$d__cqet" ] || $d__ddsl; then
     if ! [ -r "$d__cqea" ]; then
       d__notify -lxh -- "Unreadable asset at: $d__cqea"
       if $d__cqexct; then d__cqrtc=3
@@ -120,8 +125,12 @@ d__copy_item_check()
         if [ "$( d__md5 "$d__cqea" )" = "$( d__md5 "$d__cqet" )" ]
         then d__stash -s -- has $d__cqesk && d__cqrtc=1 || d__cqrtc=7
         else d__stash -s -- has $d__cqesk && d__cqrtc=6 || d__cqrtc=2; fi
-      else d__stash -s -- has $d__cqesk && d__cqrtc=1 || d__cqrtc=7; fi
-    fi
+      else
+        if $d__ddsl
+        then d__stash -s -- has $d__cqesk && d__cqrtc=6 || d__cqrtc=2
+        else d__stash -s -- has $d__cqesk && d__cqrtc=1 || d__cqrtc=7; fi
+      fi
+    fi  
   else d__stash -s -- has $d__cqesk && d__cqrtc=6 || d__cqrtc=2; fi
   if ! [ $d__cqrtc = 1 ] && [ -e "$d__cqeb" ]; then
     local d__cqeno='-l!h'
