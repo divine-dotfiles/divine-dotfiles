@@ -1,3 +1,4 @@
+* [**`feature`**] During the updating of either the framework or a bundle, if any of the transition scripts fails, halt all further transitions and record the event, so that the offending transition is re-applied on the next update.
 * [**`improvement`**] Make all specialized queues check for dead symlinks at their destination paths.
 * [**`appearance`**] During the `update` routine, show the repository URL and the destination path only in verbose mode.
 * [**`other`**] Improve the `README` to better advertise the main points of the framework.

@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: update
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.12.03
-#:revremark:    In update rtn show url and location only with -v
+#:revdate:      2019.12.04
+#:revremark:    Handle failing transitions, re-apply on re-update
 #:created_at:   2019.05.12
 
 ## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
@@ -426,10 +426,13 @@ d___update_fmwk()
     break
   done <"$D__PATH_INIT_VARS"
 
-  # Initiate transitions; delete marker files; wrap up
+  # Initiate transitions; conditionally delete marker files; wrap up
   d___apply_transitions; urtc=$?
   case $ervt in
-    u)  rm -f -- "$untv" || d__notify -lx -- "Failed to remove: $untv";;
+    u)  if [ $urtc -eq 0 ]; then
+          rm -f -- "$untv" || d__notify -lx -- "Failed to remove: $untv"
+        fi
+        ;;
     m)  rm -f -- "$mntv" || d__notify -lx -- "Failed to remove: $mntv";;
     *)  :;;
   esac
@@ -646,10 +649,13 @@ d___update_bundle()
     done <"$bshf"
   fi
 
-  # Initiate transitions; delete marker files; wrap up
+  # Initiate transitions; conditionally delete marker files; wrap up
   d___apply_transitions; urtc=$?
   case $ervt in
-    u)  rm -f -- "$untv" || d__notify -lx -- "Failed to remove: $untv";;
+    u)  if [ $urtc -eq 0 ]; then
+          rm -f -- "$untv" || d__notify -lx -- "Failed to remove: $untv"
+        fi
+        ;;
     m)  rm -f -- "$mntv" || d__notify -lx -- "Failed to remove: $mntv";;
     *)  :;;
   esac
