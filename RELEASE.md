@@ -1,5 +1,6 @@
 * [**`improvement`**] Make all specialized queues check for dead symlinks at their destination paths.
 * [**`appearance`**] During the `update` routine, show the repository URL and the destination path only in verbose mode.
+* [**`other`**] Improve the `README` to better advertise the main points of the framework.
 * [**`other`**] Add a note on race conditions to the `README`.
 * [**`other`**] Rewrite the framework installation commands in the `dev` branch to install the nightly build.
 * [**`other`**] Make the framework installation fail if there exists a dead symlink resembling a previously installed shortcut command.

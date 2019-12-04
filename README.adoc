@@ -1,8 +1,8 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revdate: 2019.12.03
-:revremark: Add a note on race conditions to readme
+:revdate: 2019.12.04
+:revremark: Improve readme to paint a better pic of fmwk
 :doctype: article
 // Visual
 :toc: macro
@@ -110,13 +110,14 @@ But there's more.
 [%noheader,cols="<.<a",stripes=none]
 |===
 
-| +++<p align="center">+++<<dfls-main,*Divinefiles*>>+++</p>+++
-
-A special kind of deployments, the <<dfls-main,*Divinefiles*>> maintain a stable set of packages across machines and OS's.
-
 | +++<p align="center">+++<<fmwk-grail,*The Grail directory*>>+++</p>+++
 
-The centralized, <<rtn-plug,pluggable>> storage for the personal deployments and assets (e.g., the config files).
+The Grail directory at `~/*.grail*/` is the one stop for configs, assets, and other dotfiles.
+The Grail contents are carried across OS's and installed/removed using _Divine.dotfiles_.
+
+| +++<p align="center">+++<<dfls-main,*Divinefiles*>>+++</p>+++
+
+A special kind of deployments, the <<dfls-main,*Divinefiles*>> maintain a set of system packages across machines and OS's.
 
 | +++<p align="center">+++<<mtdt-priority,*Priorities*>>+++</p>+++
 
@@ -130,9 +131,9 @@ The deployments support basic grouping via <<mtdt-flags,flags>>.
 
 The built-in OS detection mechanism allows to adapt to the growing <<fmwk-os-support,list>> of supported OS distributions.
 
-| +++<p align="center">+++<<rtn-attach,*Third-party deployments (bundles)*>>+++</p>+++
+| +++<p align="center">+++<<bdl-main,*Bundles (third-party deployments)*>>+++</p>+++
 
-The Github repositories containing deployments are treated as bundles that can be attached with one command, e.g., the https://github.com/divine-bundles/essentials[`essentials`] bundle.
+The Github repositories containing deployments are treated as bundles that can be attached with one <<rtn-attach,command>>. One example is the associated <<divine-bundles,Divine bundle>> https://github.com/divine-bundles/essentials[`essentials`].
 
 | +++<p align="center">+++<<stash-main,*Stash*>>+++</p>+++
 
@@ -4425,10 +4426,12 @@ The Divine bundles are published to their own Gighub organization, https://githu
 |===
 
 | +++<p align="center">+++
-`*https://github.com/divine-bundles/essentials[Essentials]*`
+*https://github.com/divine-bundles/essentials[Essentials]*
 +++</p>+++
 
-A bundle of core deployments, mostly centered around the 'classic' dotfiles.
+The deployment bundle `essentials` for Divine.dotfiles is a collection of opinionated system set-up scripts. It is intended as a useful starting point for any Unix-like box.
+
+The effects of installing the `essentials` bundle are described on its https://github.com/divine-bundles/essentials[page] and also in the <<fmwk-joy-ride,joy ride>> section.
 
 |===
 
@@ -4442,7 +4445,7 @@ Still, these are functional to the described extent.
 |===
 
 | +++<p align="center">+++
-`*https://github.com/divine-bundles/primers[Application primers]*`
+*https://github.com/divine-bundles/primers[Application primers]*
 +++</p>+++
 
 _(fully functional on macOS, not yet fully documented)_
@@ -4453,7 +4456,7 @@ Automates one-time setting-up of utilities that tend to require it:
 * https://en.wikipedia.org/wiki/Secure_Shell[SSH]: automates secure stashing and retrieving of SSH keys.
 
 | +++<p align="center">+++
-`*https://github.com/divine-bundles/configs[Application configs]*`
+*https://github.com/divine-bundles/configs[Application configs]*
 +++</p>+++
 
 _(fully functional on macOS, not yet fully documented)_
@@ -4465,7 +4468,7 @@ Automates plugging (and unplugging) of the pre-made configuration files for:
 * https://transmissionbt.com[Transmission BT].
 
 | +++<p align="center">+++
-`*https://github.com/divine-bundles/fonts[Fonts collection]*`
+*https://github.com/divine-bundles/fonts[Fonts collection]*
 +++</p>+++
 
 _(fully functional on macOS & Ubuntu, not yet fully documented)_
@@ -4475,7 +4478,7 @@ Maintains a collection of personal font files across machines.
 ^.^h| macOS-specific deployments
 
 | +++<p align="center">+++
-`*https://github.com/divine-bundles/mac-tilde-switch[MacBook tilde-switch]*`
+*https://github.com/divine-bundles/mac-tilde-switch[MacBook tilde-switch]*
 +++</p>+++
 
 _(fully functional on macOS, not yet fully documented)_
@@ -4483,7 +4486,7 @@ _(fully functional on macOS, not yet fully documented)_
 Programmatically switches the keys tilde `~` and plus-minus `±` on a MacBook's built-in physical keyboard.
 
 | +++<p align="center">+++
-`*https://github.com/divine-bundles/macos-local-server[Local development server]*`
+*https://github.com/divine-bundles/macos-local-server[Local development server]*
 +++</p>+++
 
 _(still unstable, not yet fully documented)_
