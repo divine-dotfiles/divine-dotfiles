@@ -2,7 +2,7 @@
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
 :revdate: 2019.12.05
-:revremark: In fmwk install support restricted execution in /tmp
+:revremark: Expand and partly reword fmwk features in readme
 :doctype: article
 // Visual
 :toc: macro
@@ -113,7 +113,7 @@ But there's more.
 | +++<p align="center">+++<<fmwk-grail,*The Grail directory*>>+++</p>+++
 
 The Grail directory at `~/*.grail*/` is the one stop for configs, assets, and other dotfiles.
-The Grail contents are carried across OS's and installed/removed using _Divine.dotfiles_.
+The Grail contents are carried across OS's and installed/removed via <<dpls-main,deployments>>.
 
 | +++<p align="center">+++<<dfls-main,*Divinefiles*>>+++</p>+++
 
@@ -133,19 +133,27 @@ The built-in OS detection mechanism allows to adapt to the growing <<fmwk-os-sup
 
 | +++<p align="center">+++<<bdl-main,*Bundles (third-party deployments)*>>+++</p>+++
 
-The Github repositories containing deployments are treated as bundles that can be attached with one <<rtn-attach,command>>. One example is the associated <<divine-bundles,Divine bundle>> https://github.com/divine-bundles/essentials[`essentials`].
+The Github repositories containing deployments are called bundles that can be attached with one <<rtn-attach,command>>. One example is the associated <<divine-bundles,Divine bundle>> https://github.com/divine-bundles/essentials[`essentials`].
 
 | +++<p align="center">+++<<stash-main,*Stash*>>+++</p>+++
 
-The deployments have access to a persistent key-value store, which can be used to remember statuses between invocations.
+The deployments have access to a persistent key-value store, which can be used to track status between invocations.
 
 | +++<p align="center">+++<<assets-main,*Assets*>>+++</p>+++
 
-The assets provide a way to separate static logic from dynamic content.
+The assets provide a way to separate the installation/removal logic from the content such as the configuration files.
 
 | +++<p align="center">+++*<<queue-main,Queues>> and <<mltsk-main,multitasking>>*+++</p>+++
 
-An assortment of helper functions streamline repetitive tasks.
+Helper functions assist in implementing series of <<queue-main,similar>> or <<mltsk-main,dissimilar>> tasks.
+
+| +++<p align="center">+++*Smart <<cpqe-main,copying>> and <<lnqe-main,symlinking>>*+++</p>+++
+
+Specialized queues insert provided assets into target locations, while backing up pre-existing files and logging steps for future reversal.
+
+| +++<p align="center">+++*Automated <<ghqe-main,retrieval>> of Github repositories*+++</p>+++
+
+A specialized queue either clones or downloads public repositories, depending on the available tools.
 
 |===
 
