@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: fmwk-uninstall
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.30
-#:revremark:    Rewrite all Github references to point to new repo location
+#:revdate:      2019.12.05
+#:revremark:    Fix output on erasing Grail when uninstalling fmwk
 #:created_at:   2019.10.15
 
 ## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
@@ -405,7 +405,7 @@ d___uninstall_fmwk()
   if $D__OPT_OBLITERATE; then
     if ! [[ $D__DIR_GRAIL = "$udst/"* ]]; then
       if rm -rf -- "$D__DIR_GRAIL" &>/dev/null; then
-        d__notify -lv -- 'Erased framework directory at:' -i- "$D__DIR_GRAIL"
+        d__notify -lv -- 'Erased Grail directory at:' -i- "$D__DIR_GRAIL"
       else
         d__notify -lx -- 'Failed to erase Grail directory'
       fi
