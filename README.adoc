@@ -1,8 +1,8 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revdate: 2019.12.04
-:revremark: Improve readme to paint a better pic of fmwk
+:revdate: 2019.12.05
+:revremark: In fmwk install support restricted execution in /tmp
 :doctype: article
 // Visual
 :toc: macro
@@ -323,14 +323,14 @@ The following single shell command installs the _Divine.dotfiles_ framework:
 
 [source,bash]
 ----
-bash -c "TMP=\$(mktemp); URL=https:\
-//raw.github.com/divine-dotfiles/divine-dotfiles/dev/lib/install/install.sh\
-; if curl --version &>/dev/null; then curl -fsSL \$URL >\$TMP; elif wget --ver\
-sion &>/dev/null; then wget -qO \$TMP \$URL; else printf >&2 \"\n==> Error: fa\
-iled to detect neither curl nor wget\n\"; rm -f \$TMP; exit 1; fi || { printf \
->&2 \"\n==> Error: failed to download installation script\n\"; rm -f \$TMP; ex\
-it 2; }; chmod +x \$TMP && \$TMP \"\$@\"; RC=\$?; rm -f \$TMP; ((RC)) && exit \
-3 || exit 0" bash
+bash -c "TMP=\$(mktemp); URL=https://raw.github\
+.com/divine-dotfiles/divine-dotfiles/dev/lib/install/install.sh; if curl --\
+version &>/dev/null; then curl -fsSL \$URL >\$TMP; elif wget --version &>/dev/\
+null; then wget -qO \$TMP \$URL; else printf >&2 \"\n==> Error: failed to dete\
+ct neither curl nor wget\n\"; rm -f \$TMP; exit 1; fi || { printf >&2 \"\n==> \
+Error: failed to download installation script\n\"; rm -f \$TMP; exit 2; }; mv \
+-n \$TMP ~ && TMP=\$HOME/\$(basename \$TMP) && chmod +x \$TMP && \$TMP \"\$@\"\
+; RC=\$?; rm -f \$TMP; ((RC)) && exit 3 || exit 0" bash
 ----
 
 Equivalently, the framework can be installed from a local copy of this repository (located _not_ at the installation path) by running this command:
@@ -450,14 +450,14 @@ The following single shell command uninstalls the _Divine.dotfiles_ framework:
 
 [source,bash]
 ----
-bash -c "TMP=\$(mktemp); URL=https://raw.\
-github.com/divine-dotfiles/divine-dotfiles/dev/lib/uninstall/uninstall.sh; \
-if curl --version &>/dev/null; then curl -fsSL \$URL >\$TMP; elif wget --versi\
-on &>/dev/null; then wget -qO \$TMP \$URL; else printf >&2 \"\n==> Error: fail\
-ed to detect neither curl nor wget\n\"; rm -f \$TMP; exit 1; fi || { printf >&\
-2 \"\n==> Error: failed to download uninstallation script\n\"; rm -f \$TMP; ex\
-it 2; }; chmod +x \$TMP && \$TMP \"\$@\"; RC=\$?; rm -f \$TMP; ((RC)) && exit \
-3 || exit 0" bash
+bash -c "TMP=\$(mktemp); URL=https://\
+raw.github.com/divine-dotfiles/divine-dotfiles/dev/lib/uninstall/uninstall.\
+sh; if curl --version &>/dev/null; then curl -fsSL \$URL >\$TMP; elif wget --v\
+ersion &>/dev/null; then wget -qO \$TMP \$URL; else printf >&2 \"\n==> Error: \
+failed to detect neither curl nor wget\n\"; rm -f \$TMP; exit 1; fi || { print\
+f >&2 \"\n==> Error: failed to download uninstallation script\n\"; rm -f \$TMP\
+; exit 2; }; mv -n \$TMP ~ && TMP=\$HOME/\$(basename \$TMP) && chmod +x \$TMP \
+&& \$TMP \"\$@\"; RC=\$?; rm -f \$TMP; ((RC)) && exit 3 || exit 0" bash
 ----
 
 Equivalently, the framework can be uninstalled from a local copy of this repository (located anywhere) by running this command:
@@ -589,14 +589,14 @@ All three sub-commands *skip* the trivial <<fmwk-interactivity,prompts>> (e.g., 
 
 [source,bash]
 ----
-bash -c "TMP=\$(mktemp); URL=https:\
-//raw.github.com/divine-dotfiles/divine-dotfiles/dev/lib/install/install.sh\
-; if curl --version &>/dev/null; then curl -fsSL \$URL >\$TMP; elif wget --ver\
-sion &>/dev/null; then wget -qO \$TMP \$URL; else printf >&2 \"\n==> Error: fa\
-iled to detect neither curl nor wget\n\"; rm -f \$TMP; exit 1; fi || { printf \
->&2 \"\n==> Error: failed to download installation script\n\"; rm -f \$TMP; ex\
-it 2; }; chmod +x \$TMP && \$TMP \"\$@\"; RC=\$?; rm -f \$TMP; ((RC)) && exit \
-3 || exit 0" bash --yes \
+bash -c "TMP=\$(mktemp); URL=https://raw.github\
+.com/divine-dotfiles/divine-dotfiles/dev/lib/install/install.sh; if curl --\
+version &>/dev/null; then curl -fsSL \$URL >\$TMP; elif wget --version &>/dev/\
+null; then wget -qO \$TMP \$URL; else printf >&2 \"\n==> Error: failed to dete\
+ct neither curl nor wget\n\"; rm -f \$TMP; exit 1; fi || { printf >&2 \"\n==> \
+Error: failed to download installation script\n\"; rm -f \$TMP; exit 2; }; mv \
+-n \$TMP ~ && TMP=\$HOME/\$(basename \$TMP) && chmod +x \$TMP && \$TMP \"\$@\"\
+; RC=\$?; rm -f \$TMP; ((RC)) && exit 3 || exit 0" bash --yes \
 && ~/.divine/intervene.sh attach essentials --yes \
 && ~/.divine/intervene.sh install --yes
 ----
@@ -702,14 +702,14 @@ However, <<opt-obliterate,no copies>> of the framework's assets are kept.
 ----
 ~/.divine/intervene.sh remove --yes --obliterate \
 && ~/.divine/intervene.sh detach essentials --yes \
-&& bash -c "TMP=\$(mktemp); URL=https://raw.\
-github.com/divine-dotfiles/divine-dotfiles/dev/lib/uninstall/uninstall.sh; \
-if curl --version &>/dev/null; then curl -fsSL \$URL >\$TMP; elif wget --versi\
-on &>/dev/null; then wget -qO \$TMP \$URL; else printf >&2 \"\n==> Error: fail\
-ed to detect neither curl nor wget\n\"; rm -f \$TMP; exit 1; fi || { printf >&\
-2 \"\n==> Error: failed to download uninstallation script\n\"; rm -f \$TMP; ex\
-it 2; }; chmod +x \$TMP && \$TMP \"\$@\"; RC=\$?; rm -f \$TMP; ((RC)) && exit \
-3 || exit 0" bash --yes --obliterate
+&& bash -c "TMP=\$(mktemp); URL=https://\
+raw.github.com/divine-dotfiles/divine-dotfiles/dev/lib/uninstall/uninstall.\
+sh; if curl --version &>/dev/null; then curl -fsSL \$URL >\$TMP; elif wget --v\
+ersion &>/dev/null; then wget -qO \$TMP \$URL; else printf >&2 \"\n==> Error: \
+failed to detect neither curl nor wget\n\"; rm -f \$TMP; exit 1; fi || { print\
+f >&2 \"\n==> Error: failed to download uninstallation script\n\"; rm -f \$TMP\
+; exit 2; }; mv -n \$TMP ~ && TMP=\$HOME/\$(basename \$TMP) && chmod +x \$TMP \
+&& \$TMP \"\$@\"; RC=\$?; rm -f \$TMP; ((RC)) && exit 3 || exit 0" bash --yes --obliterate
 ----
 
 After the undo steps have successfully run, there is no trace of _Divine.dotfiles_ on the system.
