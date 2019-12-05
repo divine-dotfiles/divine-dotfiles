@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.12.05
-#:revremark:    Exit script after failing /dev/fd check
+#:revremark:    Tweak newlines in pre-flight
 #:created_at:   2019.10.11
 
 ## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
@@ -40,7 +40,7 @@ d__pcd_pre_flight()
       ;;
     *)
       # Other Bash versions are not supported (yet?)
-      printf >&2 "Divine.dotfiles: Unsupported version of Bash: '%s'\n\n" \
+      printf >&2 "Divine.dotfiles: Unsupported version of Bash: '%s'\n" \
         "${BASH_VERSION}"
       exit 1
       ;;
@@ -53,7 +53,6 @@ d__pcd_pre_flight()
 This is likely a conscious restriction by maintainers of the current system. 
 Divine.dotfiles relies on /dev/fd for its operations and thus cannot run.
 EOF
-    printf >&2 '\n'
     exit 1
   fi
 
