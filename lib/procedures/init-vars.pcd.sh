@@ -2,8 +2,8 @@
 #:title:        Divine Bash procedure: init-vars
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.12.02
-#:revremark:    Ensure no empty template is left after failed fmwk inst.
+#:revdate:      2019.12.05
+#:revremark:    Bump version to 3.1.0
 #:created_at:   2019.10.11
 
 ## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
@@ -38,8 +38,8 @@ d__populate_globals()
   readonly D__FMWK_NAME='Divine.dotfiles'
 
   # Framework's displayed version
-  readonly D__FMWK_VERSION='3.0.0+dev'
-  readonly D__FMWK_DEV=true
+  readonly D__FMWK_VERSION='3.1.0'
+  readonly D__FMWK_DEV=false
 
   # Paths to state directory
   readonly D__DIR_STATE="$D__DIR/state"
