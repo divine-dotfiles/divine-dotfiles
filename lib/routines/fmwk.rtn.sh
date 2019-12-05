@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: fmwk
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.30
-#:revremark:    Rewrite all Github references to point to new repo location
+#:revdate:      2019.12.02
+#:revremark:    Rename local vars in tinker routine to be compatible with update
 #:created_at:   2019.05.12
 
 ## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
@@ -47,10 +47,10 @@ d__rtn_fmwk()
   fi
 
   # Storage & status variables
-  local tstt taa tplq
+  local ustt arga uplq
 
   # Parse first argument to the script
-  d___dispatch_tinker_task; tstt=$?
+  d___dispatch_tinker_task; ustt=$?
 
   # Announce routine completion
   printf >&2 '\n'
@@ -58,7 +58,7 @@ d__rtn_fmwk()
     d__announce -s -- "Finished 'tinkering' with Divine.dotfiles"
     return 0
   else
-    case $tstt in
+    case $ustt in
       0)  d__announce -v -- 'Successfully tinkered with Divine.dotfiles'
           return 0
           ;;
@@ -84,7 +84,7 @@ d___dispatch_tinker_task()
   fi
 
   # Extract other arguments; dispatch tinker task
-  taa=("${D__REQ_ARGS[@]:1}")
+  arga=("${D__REQ_ARGS[@]:1}")
   case ${D__REQ_ARGS[0]} in
     '') d__notify -nlst 'Nothing to do' -- 'Empty task argument given'
         return 2
@@ -95,33 +95,33 @@ d___dispatch_tinker_task()
           "Tinker task '${D__REQ_ARGS[0]}' does not compute"
         return 2
         ;;
-  esac; tstt=$?
+  esac; ustt=$?
 
   # Print plaque
-  case $tstt in
-    0)  printf >&2 '%s %s\n' "$D__INTRO_UPD_0" "$tplq";;
-    1)  printf >&2 '%s %s\n' "$D__INTRO_UPD_1" "$tplq";;
-    2)  printf >&2 '%s %s\n' "$D__INTRO_UPD_2" "$tplq";;
-    3)  printf >&2 '%s %s\n' "$D__INTRO_UPD_S" "$tplq";;
+  case $ustt in
+    0)  printf >&2 '%s %s\n' "$D__INTRO_UPD_0" "$uplq";;
+    1)  printf >&2 '%s %s\n' "$D__INTRO_UPD_1" "$uplq";;
+    2)  printf >&2 '%s %s\n' "$D__INTRO_UPD_2" "$uplq";;
+    3)  printf >&2 '%s %s\n' "$D__INTRO_UPD_S" "$uplq";;
   esac
 
   # Pass the status
-  return $tstt
+  return $ustt
 }
 
 d___switch_to_nightly()
 {
   # Print separating empty line; set task plaque; cut-off for dry-runs
   printf >&2 '\n'
-  tplq="Switching framework to ${BOLD}nightly$NORMAL build"
+  uplq="Switching framework to ${BOLD}nightly$NORMAL build"
   [ "$D__OPT_ANSWER" = false ] && return 3
 
   # Cut-off check against Github methods available
   case $D__GH_METHOD in
-    g)  tplq+=" (Git branch 'dev')";;
-    c)  tplq+=" (curl, branch 'dev')";;
-    w)  tplq+=" (wget, branch 'dev')";;
-    *)  printf >&2 '%s %s\n' "$D__INTRO_UPD_N" "$tplq"
+    g)  uplq+=" (Git branch 'dev')";;
+    c)  uplq+=" (curl, branch 'dev')";;
+    w)  uplq+=" (wget, branch 'dev')";;
+    *)  printf >&2 '%s %s\n' "$D__INTRO_UPD_N" "$uplq"
         d__notify -lxt 'Unable to switch build' -- \
           'No way to access Github repository'
         return 2
@@ -129,7 +129,7 @@ d___switch_to_nightly()
   esac
 
   # Print intro
-  printf >&2 '%s %s\n' "$D__INTRO_UPD_N" "$tplq"
+  printf >&2 '%s %s\n' "$D__INTRO_UPD_N" "$uplq"
 
   # Storage variables
   local ughh udst urtc tsst=false ungh=true umet=d ufrc=false
@@ -291,15 +291,15 @@ d___switch_to_stable()
 {
   # Print separating empty line; set task plaque; cut-off for dry-runs
   printf >&2 '\n'
-  tplq="Switching framework to ${BOLD}stable$NORMAL build"
+  uplq="Switching framework to ${BOLD}stable$NORMAL build"
   [ "$D__OPT_ANSWER" = false ] && return 3
 
   # Cut-off check against Github methods available
   case $D__GH_METHOD in
-    g)  tplq+=" (Git branch 'master')";;
-    c)  tplq+=" (curl, branch 'master')";;
-    w)  tplq+=" (wget, branch 'master')";;
-    *)  printf >&2 '%s %s\n' "$D__INTRO_UPD_N" "$tplq"
+    g)  uplq+=" (Git branch 'master')";;
+    c)  uplq+=" (curl, branch 'master')";;
+    w)  uplq+=" (wget, branch 'master')";;
+    *)  printf >&2 '%s %s\n' "$D__INTRO_UPD_N" "$uplq"
         d__notify -lxt 'Unable to switch build' -- \
           'No way to access Github repository'
         return 2
@@ -307,7 +307,7 @@ d___switch_to_stable()
   esac
 
   # Print intro
-  printf >&2 '%s %s\n' "$D__INTRO_UPD_N" "$tplq"
+  printf >&2 '%s %s\n' "$D__INTRO_UPD_N" "$uplq"
 
   # Storage variables
   local ughh udst urtc tsst=false ungh=false umet=d ufrc=false

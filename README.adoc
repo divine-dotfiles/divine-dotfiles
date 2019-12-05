@@ -1,8 +1,8 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revdate: 2019.12.01
-:revremark: Improve readme wording on divine-bundles
+:revdate: 2019.12.05
+:revremark: Bump version to 3.1.0
 :doctype: article
 // Visual
 :toc: macro
@@ -110,13 +110,14 @@ But there's more.
 [%noheader,cols="<.<a",stripes=none]
 |===
 
-| +++<p align="center">+++<<dfls-main,*Divinefiles*>>+++</p>+++
-
-A special kind of deployments, the <<dfls-main,*Divinefiles*>> maintain a stable set of packages across machines and OS's.
-
 | +++<p align="center">+++<<fmwk-grail,*The Grail directory*>>+++</p>+++
 
-The centralized, <<rtn-plug,pluggable>> storage for the personal deployments and assets (e.g., the config files).
+The Grail directory at `~/*.grail*/` is the one stop for configs, assets, and other dotfiles.
+The Grail contents are carried across OS's and installed/removed via <<dpls-main,deployments>>.
+
+| +++<p align="center">+++<<dfls-main,*Divinefiles*>>+++</p>+++
+
+A special kind of deployments, the <<dfls-main,*Divinefiles*>> maintain a set of system packages across machines and OS's.
 
 | +++<p align="center">+++<<mtdt-priority,*Priorities*>>+++</p>+++
 
@@ -130,21 +131,29 @@ The deployments support basic grouping via <<mtdt-flags,flags>>.
 
 The built-in OS detection mechanism allows to adapt to the growing <<fmwk-os-support,list>> of supported OS distributions.
 
-| +++<p align="center">+++<<rtn-attach,*Third-party deployments (bundles)*>>+++</p>+++
+| +++<p align="center">+++<<bdl-main,*Bundles (third-party deployments)*>>+++</p>+++
 
-The Github repositories containing deployments are treated as bundles that can be attached with one command, e.g., the https://github.com/divine-bundles/essentials[`essentials`] bundle.
+The Github repositories containing deployments are called bundles that can be attached with one <<rtn-attach,command>>. One example is the associated <<divine-bundles,Divine bundle>> https://github.com/divine-bundles/essentials[`essentials`].
 
 | +++<p align="center">+++<<stash-main,*Stash*>>+++</p>+++
 
-The deployments have access to a persistent key-value store, which can be used to remember statuses between invocations.
+The deployments have access to a persistent key-value store, which can be used to track status between invocations.
 
 | +++<p align="center">+++<<assets-main,*Assets*>>+++</p>+++
 
-The assets provide a way to separate static logic from dynamic content.
+The assets provide a way to separate the installation/removal logic from the content such as the configuration files.
 
 | +++<p align="center">+++*<<queue-main,Queues>> and <<mltsk-main,multitasking>>*+++</p>+++
 
-An assortment of helper functions streamline repetitive tasks.
+Helper functions assist in implementing series of <<queue-main,similar>> or <<mltsk-main,dissimilar>> tasks.
+
+| +++<p align="center">+++*Smart <<cpqe-main,copying>> and <<lnqe-main,symlinking>>*+++</p>+++
+
+Specialized queues insert provided assets into target locations, while backing up pre-existing files and logging steps for future reversal.
+
+| +++<p align="center">+++*Automated <<ghqe-main,retrieval>> of Github repositories*+++</p>+++
+
+A specialized queue either clones or downloads public repositories, depending on the available tools.
 
 |===
 
@@ -210,6 +219,12 @@ To give an example, any backups created when installing a <<cpqe-main,copy-queue
 Another example is the introductory <<fmwk-joy-ride,joy ride>>: if taken reasonably, it will leave the system in largely the same state as before installing the framework.
 
 A glaring exception to this principle is the upgrading of the local package repositories through the system package manager (e.g., `sudo dnf upgrade -y`), which is deemed safe enough to overlook.
+
+[[fmwk-race-war]]
+==== Race conditions
+
+The framework mechanisms do _not_ preclude race conditions, such as when the framework and another program operate on a file at the same time.
+For most applications, the risk of this approach becoming an issue is negligible.
 
 [[fmwk-structure]]
 === Framework structure
@@ -316,14 +331,14 @@ The following single shell command installs the _Divine.dotfiles_ framework:
 
 [source,bash]
 ----
-bash -c "TMP=\$(mktemp); URL=https:\
-//raw.github.com/divine-dotfiles/divine-dotfiles/master/lib/install/install.sh\
-; if curl --version &>/dev/null; then curl -fsSL \$URL >\$TMP; elif wget --ver\
-sion &>/dev/null; then wget -qO \$TMP \$URL; else printf >&2 \"\n==> Error: fa\
-iled to detect neither curl nor wget\n\"; rm -f \$TMP; exit 1; fi || { printf \
->&2 \"\n==> Error: failed to download installation script\n\"; rm -f \$TMP; ex\
-it 2; }; chmod +x \$TMP && \$TMP \"\$@\"; RC=\$?; rm -f \$TMP; ((RC)) && exit \
-3 || exit 0" bash
+bash -c "TMP=\$(mktemp); URL=https://raw.github\
+.com/divine-dotfiles/divine-dotfiles/master/lib/install/install.sh; if curl --\
+version &>/dev/null; then curl -fsSL \$URL >\$TMP; elif wget --version &>/dev/\
+null; then wget -qO \$TMP \$URL; else printf >&2 \"\n==> Error: failed to dete\
+ct neither curl nor wget\n\"; rm -f \$TMP; exit 1; fi || { printf >&2 \"\n==> \
+Error: failed to download installation script\n\"; rm -f \$TMP; exit 2; }; mv \
+-n \$TMP ~ && TMP=\$HOME/\$(basename \$TMP) && chmod +x \$TMP && \$TMP \"\$@\"\
+; RC=\$?; rm -f \$TMP; ((RC)) && exit 3 || exit 0" bash
 ----
 
 Equivalently, the framework can be installed from a local copy of this repository (located _not_ at the installation path) by running this command:
@@ -443,14 +458,14 @@ The following single shell command uninstalls the _Divine.dotfiles_ framework:
 
 [source,bash]
 ----
-bash -c "TMP=\$(mktemp); URL=https://raw.\
-github.com/divine-dotfiles/divine-dotfiles/master/lib/uninstall/uninstall.sh; \
-if curl --version &>/dev/null; then curl -fsSL \$URL >\$TMP; elif wget --versi\
-on &>/dev/null; then wget -qO \$TMP \$URL; else printf >&2 \"\n==> Error: fail\
-ed to detect neither curl nor wget\n\"; rm -f \$TMP; exit 1; fi || { printf >&\
-2 \"\n==> Error: failed to download uninstallation script\n\"; rm -f \$TMP; ex\
-it 2; }; chmod +x \$TMP && \$TMP \"\$@\"; RC=\$?; rm -f \$TMP; ((RC)) && exit \
-3 || exit 0" bash
+bash -c "TMP=\$(mktemp); URL=https://\
+raw.github.com/divine-dotfiles/divine-dotfiles/master/lib/uninstall/uninstall.\
+sh; if curl --version &>/dev/null; then curl -fsSL \$URL >\$TMP; elif wget --v\
+ersion &>/dev/null; then wget -qO \$TMP \$URL; else printf >&2 \"\n==> Error: \
+failed to detect neither curl nor wget\n\"; rm -f \$TMP; exit 1; fi || { print\
+f >&2 \"\n==> Error: failed to download uninstallation script\n\"; rm -f \$TMP\
+; exit 2; }; mv -n \$TMP ~ && TMP=\$HOME/\$(basename \$TMP) && chmod +x \$TMP \
+&& \$TMP \"\$@\"; RC=\$?; rm -f \$TMP; ((RC)) && exit 3 || exit 0" bash
 ----
 
 Equivalently, the framework can be uninstalled from a local copy of this repository (located anywhere) by running this command:
@@ -582,14 +597,14 @@ All three sub-commands *skip* the trivial <<fmwk-interactivity,prompts>> (e.g., 
 
 [source,bash]
 ----
-bash -c "TMP=\$(mktemp); URL=https:\
-//raw.github.com/divine-dotfiles/divine-dotfiles/master/lib/install/install.sh\
-; if curl --version &>/dev/null; then curl -fsSL \$URL >\$TMP; elif wget --ver\
-sion &>/dev/null; then wget -qO \$TMP \$URL; else printf >&2 \"\n==> Error: fa\
-iled to detect neither curl nor wget\n\"; rm -f \$TMP; exit 1; fi || { printf \
->&2 \"\n==> Error: failed to download installation script\n\"; rm -f \$TMP; ex\
-it 2; }; chmod +x \$TMP && \$TMP \"\$@\"; RC=\$?; rm -f \$TMP; ((RC)) && exit \
-3 || exit 0" bash --yes \
+bash -c "TMP=\$(mktemp); URL=https://raw.github\
+.com/divine-dotfiles/divine-dotfiles/master/lib/install/install.sh; if curl --\
+version &>/dev/null; then curl -fsSL \$URL >\$TMP; elif wget --version &>/dev/\
+null; then wget -qO \$TMP \$URL; else printf >&2 \"\n==> Error: failed to dete\
+ct neither curl nor wget\n\"; rm -f \$TMP; exit 1; fi || { printf >&2 \"\n==> \
+Error: failed to download installation script\n\"; rm -f \$TMP; exit 2; }; mv \
+-n \$TMP ~ && TMP=\$HOME/\$(basename \$TMP) && chmod +x \$TMP && \$TMP \"\$@\"\
+; RC=\$?; rm -f \$TMP; ((RC)) && exit 3 || exit 0" bash --yes \
 && ~/.divine/intervene.sh attach essentials --yes \
 && ~/.divine/intervene.sh install --yes
 ----
@@ -695,14 +710,14 @@ However, <<opt-obliterate,no copies>> of the framework's assets are kept.
 ----
 ~/.divine/intervene.sh remove --yes --obliterate \
 && ~/.divine/intervene.sh detach essentials --yes \
-&& bash -c "TMP=\$(mktemp); URL=https://raw.\
-github.com/divine-dotfiles/divine-dotfiles/master/lib/uninstall/uninstall.sh; \
-if curl --version &>/dev/null; then curl -fsSL \$URL >\$TMP; elif wget --versi\
-on &>/dev/null; then wget -qO \$TMP \$URL; else printf >&2 \"\n==> Error: fail\
-ed to detect neither curl nor wget\n\"; rm -f \$TMP; exit 1; fi || { printf >&\
-2 \"\n==> Error: failed to download uninstallation script\n\"; rm -f \$TMP; ex\
-it 2; }; chmod +x \$TMP && \$TMP \"\$@\"; RC=\$?; rm -f \$TMP; ((RC)) && exit \
-3 || exit 0" bash --yes --obliterate
+&& bash -c "TMP=\$(mktemp); URL=https://\
+raw.github.com/divine-dotfiles/divine-dotfiles/master/lib/uninstall/uninstall.\
+sh; if curl --version &>/dev/null; then curl -fsSL \$URL >\$TMP; elif wget --v\
+ersion &>/dev/null; then wget -qO \$TMP \$URL; else printf >&2 \"\n==> Error: \
+failed to detect neither curl nor wget\n\"; rm -f \$TMP; exit 1; fi || { print\
+f >&2 \"\n==> Error: failed to download uninstallation script\n\"; rm -f \$TMP\
+; exit 2; }; mv -n \$TMP ~ && TMP=\$HOME/\$(basename \$TMP) && chmod +x \$TMP \
+&& \$TMP \"\$@\"; RC=\$?; rm -f \$TMP; ((RC)) && exit 3 || exit 0" bash --yes --obliterate
 ----
 
 After the undo steps have successfully run, there is no trace of _Divine.dotfiles_ on the system.
@@ -2915,7 +2930,7 @@ Each subsequent section needs to define and implement its own.
 
 Regardless of whether the deployment employs the <<queue-main,queues>>, the framework automatically populates the queue <<queue-determinant,determinant>> (and some accompanying arrays) whenever a suitable <<mnf-main, manifest>> is encountered.
 
-The *auto-queues* are built at two points in processing of a deployment.
+Such *auto-queues* are built at two points in processing of a deployment.
 The order is significant here, because the queues supersede each other.
 
 . [[queue-auto-amnf]]_Before_ the deployment script is sourced, an auto-queue is built from the deployment's <<assets-mnf,asset manifest>>:
@@ -3014,7 +3029,24 @@ d_dpl_install() { d__copy_queue_install; }
 d_dpl_remove()  { d__copy_queue_remove;  }
 ----
 
-The assembly of the copy-queue arrays can be <<queue-auto,automated>>, especially when using the copy-queue to process the deployment <<assets-main,assets>>.
+The assembly of the copy-queue arrays can be <<queue-auto,automated>>, especially when copying <<assets-main,assets>>.
+
+.Assembled copy-queue example
+[source,bash]
+----
+# ~/.grail/dpls/copy-queue-example.dpl.sh
+
+d_dpl_check()   { assemble_queue; d__copy_queue_check;   }
+d_dpl_install() {                 d__copy_queue_install; }
+d_dpl_remove()  {                 d__copy_queue_remove;  }
+
+assemble_queue()
+{
+  D_QUEUE_MAIN=( '.hushlogin' )
+  D_QUEUE_ASSETS=( "$D__DPL_ASSET_DIR/.hushlogin" )
+  D_QUEUE_TARGETS=( "$HOME/.hushlogin" )
+}
+----
 
 [[cpqe-h-a-i]]
 ==== Copy-queue hooks, add-statuses, and indicators
@@ -3074,7 +3106,24 @@ d_dpl_install() { d__link_queue_install; }
 d_dpl_remove()  { d__link_queue_remove;  }
 ----
 
-The assembly of the link-queue arrays can be <<queue-auto,automated>>, especially when using the link-queue to process the deployment <<assets-main,assets>>.
+The assembly of the link-queue arrays can be <<queue-auto,automated>>, especially when symlinking <<assets-main,assets>>.
+
+.Assembled link-queue example
+[source,bash]
+----
+# ~/.grail/dpls/link-queue-example.dpl.sh
+
+d_dpl_check()   { assemble_queue; d__link_queue_check;   }
+d_dpl_install() {                 d__link_queue_install; }
+d_dpl_remove()  {                 d__link_queue_remove;  }
+
+assemble_queue()
+{
+  D_QUEUE_MAIN=( '.bashrc' )
+  D_QUEUE_ASSETS=( "$D__DPL_ASSET_DIR/.bashrc" )
+  D_QUEUE_TARGETS=( "$HOME/.bashrc" )
+}
+----
 
 [[lnqe-h-a-i]]
 ==== Link-queue hooks, add-statuses, and indicators
@@ -3107,7 +3156,23 @@ d_dpl_install() { d__gh_queue_install; }
 d_dpl_remove()  { d__gh_queue_remove;  }
 ----
 
-The assembly of the Github-queue arrays can be <<queue-auto,automated>>, especially when using the Github-queue to process the deployment <<assets-main,assets>>.
+The assembly of the Github-queue arrays can be <<queue-auto,automated>>.
+
+.Assembled Github-queue example
+[source,bash]
+----
+# ~/.grail/dpls/github-queue-example.dpl.sh
+
+d_dpl_check()   { assemble_queue; d__gh_queue_check;   }
+d_dpl_install() {                 d__gh_queue_install; }
+d_dpl_remove()  {                 d__gh_queue_remove;  }
+
+assemble_queue()
+{
+  D_QUEUE_MAIN=( 'ohmyzsh/ohmyzsh' )
+  D_QUEUE_TARGETS=( "$HOME/.oh-my-zsh" )
+}
+----
 
 [[ghqe-h-a-i]]
 ==== Github-queue hooks, add-statuses, and indicators
@@ -4419,10 +4484,12 @@ The Divine bundles are published to their own Gighub organization, https://githu
 |===
 
 | +++<p align="center">+++
-`*https://github.com/divine-bundles/essentials[Essentials]*`
+*https://github.com/divine-bundles/essentials[Essentials]*
 +++</p>+++
 
-A bundle of core deployments, mostly centered around the 'classic' dotfiles.
+The deployment bundle `essentials` for Divine.dotfiles is a collection of opinionated system set-up scripts. It is intended as a useful starting point for any Unix-like box.
+
+The effects of installing the `essentials` bundle are described on its https://github.com/divine-bundles/essentials[page] and also in the <<fmwk-joy-ride,joy ride>> section.
 
 |===
 
@@ -4436,7 +4503,7 @@ Still, these are functional to the described extent.
 |===
 
 | +++<p align="center">+++
-`*https://github.com/divine-bundles/primers[Application primers]*`
+*https://github.com/divine-bundles/primers[Application primers]*
 +++</p>+++
 
 _(fully functional on macOS, not yet fully documented)_
@@ -4447,7 +4514,7 @@ Automates one-time setting-up of utilities that tend to require it:
 * https://en.wikipedia.org/wiki/Secure_Shell[SSH]: automates secure stashing and retrieving of SSH keys.
 
 | +++<p align="center">+++
-`*https://github.com/divine-bundles/configs[Application configs]*`
+*https://github.com/divine-bundles/configs[Application configs]*
 +++</p>+++
 
 _(fully functional on macOS, not yet fully documented)_
@@ -4459,7 +4526,7 @@ Automates plugging (and unplugging) of the pre-made configuration files for:
 * https://transmissionbt.com[Transmission BT].
 
 | +++<p align="center">+++
-`*https://github.com/divine-bundles/fonts[Fonts collection]*`
+*https://github.com/divine-bundles/fonts[Fonts collection]*
 +++</p>+++
 
 _(fully functional on macOS & Ubuntu, not yet fully documented)_
@@ -4469,7 +4536,7 @@ Maintains a collection of personal font files across machines.
 ^.^h| macOS-specific deployments
 
 | +++<p align="center">+++
-`*https://github.com/divine-bundles/mac-tilde-switch[MacBook tilde-switch]*`
+*https://github.com/divine-bundles/mac-tilde-switch[MacBook tilde-switch]*
 +++</p>+++
 
 _(fully functional on macOS, not yet fully documented)_
@@ -4477,7 +4544,7 @@ _(fully functional on macOS, not yet fully documented)_
 Programmatically switches the keys tilde `~` and plus-minus `±` on a MacBook's built-in physical keyboard.
 
 | +++<p align="center">+++
-`*https://github.com/divine-bundles/macos-local-server[Local development server]*`
+*https://github.com/divine-bundles/macos-local-server[Local development server]*
 +++</p>+++
 
 _(still unstable, not yet fully documented)_

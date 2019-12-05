@@ -2,8 +2,8 @@
 #:title:        Divine Bash utils: fmwk-update
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.30
-#:revremark:    Rewrite all Github references to point to new repo location
+#:revdate:      2019.12.04
+#:revremark:    Handle failing transitions, re-apply on re-update
 #:created_at:   2019.11.22
 
 ## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
@@ -147,6 +147,7 @@ d___update_fmwk_via_dl()
 #>  $udst
 #>  $ovrs
 #>  $nvrs
+#>  $untv   - Path to file that keeps the latest untransitioned version
 #
 d___apply_transitions()
 {
@@ -209,7 +210,7 @@ d___apply_transitions()
         ;;
     on) if [ "$ovcl" = "$nvcl" ]; then
           if [ "$ovrs" = "$nvrs" ]; then
-            d__notify -lv -- "Version already up to date: $BOLD$nvrs$NORMAL"
+            d__notify -lv -- "Version unchanged: $BOLD$nvrs$NORMAL"
           else
             d__notify -lv -- \
               "Changed version from $BOLD$ovrs$NORMAL to $BOLD$nvrs$NORMAL"
@@ -298,10 +299,16 @@ d___apply_transitions()
     source "$trsf"
     if (($?)); then
       traf=true
+      printf >"$untv" '%s\n' "$ovcl"
       d__notify -lx -- \
-        "Error code after applying transition onto version $BOLD$tvcl$NORMAL"
+        "Error code after applying transition onto version $BOLD$tvcl$NORMAL" \
+        -n- 'Hopefully, the failed transition has explained itself' \
+        -n- 'Please, seek to eliminate the problem, then re-update'
+      d__notify -l! -- 'Further transitions, if any, will not be applied'
+      break
     else
       tras=true
+      ovcl="$tvcl"
       d__notify -lv -- \
         "Successfully applied transition onto version $BOLD$tvcl$NORMAL"
     fi

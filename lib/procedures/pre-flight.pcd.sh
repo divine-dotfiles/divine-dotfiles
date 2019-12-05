@@ -2,8 +2,8 @@
 #:title:        Divine Bash procedure: pre-flight
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.30
-#:revremark:    Rewrite all Github references to point to new repo location
+#:revdate:      2019.12.05
+#:revremark:    Tweak newlines in pre-flight
 #:created_at:   2019.10.11
 
 ## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
@@ -40,10 +40,21 @@ d__pcd_pre_flight()
       ;;
     *)
       # Other Bash versions are not supported (yet?)
-      printf >&2 "Unsupported version of Bash: '%s'\n\n" "${BASH_VERSION}"
+      printf >&2 "Divine.dotfiles: Unsupported version of Bash: '%s'\n" \
+        "${BASH_VERSION}"
       exit 1
       ;;
   esac
+
+  # Check if /dev/fd exists
+  if ! [ -e /dev/fd ]; then
+    printf >&2 'Divine.dotfiles: Missing directory: /dev/fd\n\n'
+    cat >&2 <<EOF
+This is likely a conscious restriction by maintainers of the current system. 
+Divine.dotfiles relies on /dev/fd for its operations and thus cannot run.
+EOF
+    exit 1
+  fi
 
   # Return zero if gotten to here
   return 0

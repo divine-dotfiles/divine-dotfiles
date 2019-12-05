@@ -2,8 +2,8 @@
 #:title:        Divine Bash deployment helpers: gh-queue
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.30
-#:revremark:    Rewrite all Github references to point to new repo location
+#:revdate:      2019.12.03
+#:revremark:    Support dead symlinks with spec queues
 #:created_at:   2019.10.10
 
 ## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
@@ -90,6 +90,7 @@ d__gh_item_check()
   local d__gqet="${D_QUEUE_TARGETS[$d__gqei]}"
   local d__gqeb="$D__DPL_BACKUP_DIR/$d__gqesk"
   local d__gqesk="gh_$( d__md5 -s "$d__gqet" )"
+  local d__ddsl=false
   d__context -- push "Checking if cloned to: '$d__gqet'"
 
   # Do sanity checks
@@ -102,16 +103,19 @@ d__gh_item_check()
   fi
 
   # Do the actual checking; check if source is readable
+  if [ ! -e "$d__gqet" -a -L "$d__gqet" ]; then
+    D_ADDST_WARNING+=("Dead symlink at: $d__gqet")
+    D_ADDST_PROMPT=true
+    d__ddsl=true
+  fi
   if d___path_is_gh_clone "$d__gqet" "$d__gqen"
   then d__stash -s -- has $d__gqesk && d__gqrtc=1 || d__gqrtc=7
   elif [ -d "$d__gqet" ]
   then d__stash -s -- has $d__gqesk && d__gqrtc=5 || d__gqrtc=9
   else d__stash -s -- has $d__gqesk && d__gqrtc=6 || d__gqrtc=2
-    if [ -e "$d__gqet" ]; then
-      if [ "$D__REQ_ROUTINE" = install ]; then
-        D_ADDST_WARNING+=("Path for Github clone is occupied: $d__gqet")
-        D_ADDST_PROMPT=true
-      else d__notify -l! -- "Path for Github clone is occupied: $d__gqet"; fi
+    if [ -e "$d__gqet" ] || $d__ddsl; then
+      D_ADDST_WARNING+=("Path for Github clone is occupied: $d__gqet")
+      D_ADDST_PROMPT=true
     fi
   fi
   case $d__gqrtc in

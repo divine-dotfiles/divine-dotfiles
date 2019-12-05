@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: fmwk-install
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.30
-#:revremark:    Rewrite all Github references to point to new repo location
+#:revdate:      2019.12.02
+#:revremark:    In fmwk installation set nightly flag when in dev
 #:created_at:   2019.10.15
 
 ## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
@@ -38,7 +38,7 @@ d__rtn_fmwk_install()
   fi
 
   # Storage & status variables
-  local irc=2 iplq iarg idst itmp iaok=true d__bckp ioccbckp
+  local irc=2 iplq ighh idst itmp iaok=true d__bckp ioccbckp
   local idir iadir snm scnm sdir sdst stgt sgd=false erra idrs src dst
 
   # Perform structured installation
@@ -72,7 +72,7 @@ d___get_ready()
   fi
 
   # Store remote address
-  iarg='divine-dotfiles/divine-dotfiles'
+  ighh='divine-dotfiles/divine-dotfiles'
 
   # Compose destination path
   idst="$D__DIR"
@@ -145,8 +145,8 @@ d___get_ready()
 
   # Ensure that the remote repository exists
   d__load util git
-  if ! d___gh_repo_exists "$iarg"; then iaok=false
-    d__notify -lx -- "Github repository '$iarg' does not appear to exist"
+  if ! d___gh_repo_exists "$ighh"; then iaok=false
+    d__notify -lx -- "Github repository '$ighh' does not appear to exist"
   fi
 
   # Get on with shortcut-related checks
@@ -156,6 +156,7 @@ d___get_ready()
   if $iaok; then d__load util stash
     printf >&2 '%s %s\n' "$D__INTRO_SUCCS" "$iplq"; return 0
   else
+    [ -z "$idrs" ] && rm -rf -- "$idst" &>/dev/null
     printf >&2 '%s %s\n' "$D__INTRO_FAILR" "$iplq"; return 1
   fi
 }
@@ -195,21 +196,34 @@ d___pfc_shortcut()
   local nwrd=()
   for sdir in "${D__SHORTCUT_DIR_CANDIDATES[@]}"; do
     if ! [[ :$PATH: = *:$sdir:* ]]; then
-      d__notify -- "Skipping candidate '$sdir' (not on \$PATH)"; continue
+      d__notify -- "Skipping candidate '$sdir' (not on \$PATH)"
+      continue
     fi
     if ! [ -d "$sdir" ]; then
-      d__notify -- "Skipping candidate '$sdir' (not a directory)"; continue
+      d__notify -- "Skipping candidate '$sdir' (not a directory)"
+      continue
     fi
     if [ -e "$sdir/$snm" ]; then
+      d__notify -lx -- ''
       d__notify -- "Skipping candidate '$sdir'" \
         "(file named '$snm' already exists in it)"
       continue
     fi
+    if [ -L "$sdir/$snm" ]; then
+      iaok=false
+      d__notify -lx -- "Dead symlink at: $sdir/$snm" \
+        -n- '(Possibly a remnant of previous installation)'
+      d__notify -l! -- 'Re-try with --shct-no to install without shortcut'
+      return 1
+    fi
     if ! [ -w "$sdir" ]; then
       nwrd+=("$sdir")
-      d__notify -- "Skipping candidate '$sdir' (not writable)"; continue
+      d__notify -- "Skipping candidate '$sdir' (not writable)"
+      continue
     fi
-    sdst="$sdir/$snm"; break
+    sdst="$sdir/$snm"
+    d__notify -- "Will install shortcut at '$sdst'"
+    break
   done
 
   # Check if a directory has been chosen
@@ -236,44 +250,55 @@ d___install_fmwk()
 
   # Early exit for dry runs
   if [ "$D__OPT_ANSWER_F" = false ]; then
-    printf >&2 '%s %s\n' "$D__INTRO_INS_S" "$iplq"; return 2
+    printf >&2 '%s %s\n' "$D__INTRO_INS_S" "$iplq"
+    [ -z "$idrs" ] && rm -rf -- "$idst" &>/dev/null
+    return 2
   fi
 
   # Print intro; print locations
   printf >&2 '%s %s\n' "$D__INTRO_INS_N" "$iplq"
-  d__notify -ld -- "Repo URL: https://github.com/$iarg"
+  d__notify -ld -- "Repo URL: https://github.com/$ighh"
   d__notify -ld -- "Location: $idst"
 
   # Conditionally prompt for user's approval
   if [ "$D__OPT_ANSWER_F" != true ]; then
     printf >&2 '%s ' "$D__INTRO_CNF_N"
-    if ! d__prompt -bp 'Install?'
-    then printf >&2 '%s %s\n' "$D__INTRO_INS_S" "$iplq"; return 1; fi
+    if ! d__prompt -bp 'Install?'; then
+      printf >&2 '%s %s\n' "$D__INTRO_INS_S" "$iplq"
+      [ -z "$idrs" ] && rm -rf -- "$idst" &>/dev/null
+      return 1
+    fi
   fi
 
   # Pull the repository into the temporary directory
+  local iopt=( -t 'Divine.dotfiles' )
+  [ "$D__FMWK_DEV" = true ] && iopt+=( -b dev )
   itmp="$(mktemp -d)"; case $D__GH_METHOD in
-    g)  d___clone_git_repo "$iarg" "$itmp";;
-    c)  d___dl_gh_repo -c "$iarg" "$itmp";;
-    w)  d___dl_gh_repo -w "$iarg" "$itmp";;
+    g)  d___clone_git_repo "${iopt[@]}" -- "$ighh" "$itmp";;
+    c)  d___dl_gh_repo -c "${iopt[@]}" -- "$ighh" "$itmp";;
+    w)  d___dl_gh_repo -w "${iopt[@]}" -- "$ighh" "$itmp";;
   esac
   if (($?)); then
     printf >&2 '%s %s\n' "$D__INTRO_INS_1" "$iplq"
-    rm -rf -- "$itmp"; return 1
+    rm -rf -- "$itmp"
+    [ -z "$idrs" ] && rm -rf -- "$idst" &>/dev/null
+    return 1
   fi
 
   # Move template directory out of the way
   d__bckp=; if ! d__push_backup -- "$idst" "$idst.tmp"; then
     d__notify -lx -- 'Failed to back up template framework directory'
     printf >&2 '%s %s\n' "$D__INTRO_INS_1" "$iplq"
-    rm -rf -- "$itmp"; return 1
+    rm -rf -- "$itmp"
+    return 1
   fi
 
   # Move the retrieved framework into place
   if ! mv -n -- "$itmp" "$idst"; then
     d__notify -lx -- 'Failed to move framework directory into place'
     printf >&2 '%s %s\n' "$D__INTRO_INS_1" "$iplq"
-    rm -rf -- "$itmp"; return 1
+    rm -rf -- "$itmp"
+    return 1
   fi
 
   # Restore grail and state directories; delete template
@@ -303,6 +328,15 @@ d___install_fmwk()
     return 0
   fi
 
+  # If installed a dev version, set the stash flag
+  if [ "$D__FMWK_DEV" = true ]; then
+    if d__stash -r -- set 'nightly'; then
+      d__notify -- "Recorded 'nightly' flag to root stash"
+    else
+      d__notify -lx -- "Failed to record 'nightly' flag to root stash"
+    fi
+  fi
+
   # Report success
   printf >&2 '%s %s\n' "$D__INTRO_INS_0" "$iplq"
   return 0
@@ -315,7 +349,7 @@ d___install_shortcut()
 
   # Early exit for dry runs
   if [ "$D__OPT_ANSWER_S" = false ]; then
-    printf >&2 '%s %s\n' "$D__INTRO_INS_S" "$iplq"; return 2
+    printf >&2 '%s %s\n' "$D__INTRO_INS_S" 'Shortcut command'; return 2
   fi
 
   # Compose target; print intro; print locations
@@ -334,9 +368,9 @@ d___install_shortcut()
 
   # Set stash record
   if d__stash -r -- set di_shortcut "$sdst"; then
-    d__notify -- "Recorded installing shortcut to root stash"
+    d__notify -- 'Recorded installing shortcut to root stash'
   else
-    d__notify -lx -- "Failed to record installing shortcut to root stash"
+    d__notify -lx -- 'Failed to record installing shortcut to root stash'
   fi
 
   # Report success

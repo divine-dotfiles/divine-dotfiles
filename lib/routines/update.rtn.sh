@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: update
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.30
-#:revremark:    Rewrite all Github references to point to new repo location
+#:revdate:      2019.12.04
+#:revremark:    Handle failing transitions, re-apply on re-update
 #:created_at:   2019.05.12
 
 ## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
@@ -17,13 +17,13 @@ readonly D__RTN_UPDATE=loaded
 d__load util workflow
 d__load util stash
 d__load util git
-d__load util backup
-d__load util fmwk-update
 d__load procedure prep-stash
 d__load procedure prep-sys
 d__load procedure offer-gh
 d__load procedure check-gh
 d__load procedure sync-bundles
+d__load util backup
+d__load util fmwk-update
 
 #>  d__rtn_update
 #
@@ -315,8 +315,8 @@ d___update_fmwk()
   fi
 
   # Print locations
-  d__notify -ld -- "Repo URL: https://github.com/$ughh"
-  d__notify -ld -- "Location: $udst"
+  d__notify -- "Repo URL: https://github.com/$ughh"
+  d__notify -- "Location: $udst"
 
   # Check for current status of nightly mode
   local ungh=false ubld='stable'
@@ -426,10 +426,13 @@ d___update_fmwk()
     break
   done <"$D__PATH_INIT_VARS"
 
-  # Initiate transitions; delete marker files; wrap up
+  # Initiate transitions; conditionally delete marker files; wrap up
   d___apply_transitions; urtc=$?
   case $ervt in
-    u)  rm -f -- "$untv" || d__notify -lx -- "Failed to remove: $untv";;
+    u)  if [ $urtc -eq 0 ]; then
+          rm -f -- "$untv" || d__notify -lx -- "Failed to remove: $untv"
+        fi
+        ;;
     m)  rm -f -- "$mntv" || d__notify -lx -- "Failed to remove: $mntv";;
     *)  :;;
   esac
@@ -495,8 +498,8 @@ d___update_grail()
   fi
 
   # Print locations
-  d__notify -ld -- "Origin  : $usrc"
-  d__notify -ld -- "Location: $udst"
+  d__notify -- "Origin  : $usrc"
+  d__notify -- "Location: $udst"
 
   # Prompt user
   if [ "$D__OPT_ANSWER" != true ]; then
@@ -528,8 +531,8 @@ d___update_bundle()
   fi
 
   # Print locations
-  d__notify -ld -- "Repo URL: https://github.com/$ughh"
-  d__notify -ld -- "Location: $udst"
+  d__notify -- "Repo URL: https://github.com/$ughh"
+  d__notify -- "Location: $udst"
 
   # Compose paths to special files
   local bshf="$udst/$D__CONST_NAME_BUNDLE_SH"
@@ -646,10 +649,13 @@ d___update_bundle()
     done <"$bshf"
   fi
 
-  # Initiate transitions; delete marker files; wrap up
+  # Initiate transitions; conditionally delete marker files; wrap up
   d___apply_transitions; urtc=$?
   case $ervt in
-    u)  rm -f -- "$untv" || d__notify -lx -- "Failed to remove: $untv";;
+    u)  if [ $urtc -eq 0 ]; then
+          rm -f -- "$untv" || d__notify -lx -- "Failed to remove: $untv"
+        fi
+        ;;
     m)  rm -f -- "$mntv" || d__notify -lx -- "Failed to remove: $mntv";;
     *)  :;;
   esac

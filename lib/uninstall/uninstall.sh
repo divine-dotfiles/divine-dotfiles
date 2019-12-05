@@ -2,8 +2,8 @@
 #:title:        Divine.dotfiles fmwk uninstall script
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.30
-#:revremark:    Rewrite all Github references to point to new repo location
+#:revdate:      2019.12.05
+#:revremark:    Bump version to 3.1.0
 #:created_at:   2019.07.22
 
 ## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
