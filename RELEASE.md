@@ -1,4 +1,5 @@
 * [**`feature`**] During the updating of either the framework or a bundle, if any of the transition scripts fails, halt all further transitions and record the event, so that the offending transition is re-applied on the next update.
+* [**`improvement`**] On every launch, check for availability of the `/dev/fd` directory, as it is required for most all framework operations.
 * [**`improvement`**] Make all specialized queues check for dead symlinks at their destination paths.
 * [**`improvement`**] In the framework (un)installation commands, add support for restricted script execution in the OS's temporary directory.
 * [**`appearance`**] During the `update` routine, show the repository URL and the destination path only in verbose mode.
