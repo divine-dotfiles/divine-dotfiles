@@ -2,7 +2,7 @@
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
 :revdate: 2019.12.05
-:revremark: Expand and partly reword fmwk features in readme
+:revremark: Add assembled examples of spec queues
 :doctype: article
 // Visual
 :toc: macro
@@ -2930,7 +2930,7 @@ Each subsequent section needs to define and implement its own.
 
 Regardless of whether the deployment employs the <<queue-main,queues>>, the framework automatically populates the queue <<queue-determinant,determinant>> (and some accompanying arrays) whenever a suitable <<mnf-main, manifest>> is encountered.
 
-The *auto-queues* are built at two points in processing of a deployment.
+Such *auto-queues* are built at two points in processing of a deployment.
 The order is significant here, because the queues supersede each other.
 
 . [[queue-auto-amnf]]_Before_ the deployment script is sourced, an auto-queue is built from the deployment's <<assets-mnf,asset manifest>>:
@@ -3029,7 +3029,24 @@ d_dpl_install() { d__copy_queue_install; }
 d_dpl_remove()  { d__copy_queue_remove;  }
 ----
 
-The assembly of the copy-queue arrays can be <<queue-auto,automated>>, especially when using the copy-queue to process the deployment <<assets-main,assets>>.
+The assembly of the copy-queue arrays can be <<queue-auto,automated>>, especially when copying <<assets-main,assets>>.
+
+.Assembled copy-queue example
+[source,bash]
+----
+# ~/.grail/dpls/copy-queue-example.dpl.sh
+
+d_dpl_check()   { assemble_queue; d__copy_queue_check;   }
+d_dpl_install() {                 d__copy_queue_install; }
+d_dpl_remove()  {                 d__copy_queue_remove;  }
+
+assemble_queue()
+{
+  D_QUEUE_MAIN=( '.hushlogin' )
+  D_QUEUE_ASSETS=( "$D__DPL_ASSET_DIR/.hushlogin" )
+  D_QUEUE_TARGETS=( "$HOME/.hushlogin" )
+}
+----
 
 [[cpqe-h-a-i]]
 ==== Copy-queue hooks, add-statuses, and indicators
@@ -3089,7 +3106,24 @@ d_dpl_install() { d__link_queue_install; }
 d_dpl_remove()  { d__link_queue_remove;  }
 ----
 
-The assembly of the link-queue arrays can be <<queue-auto,automated>>, especially when using the link-queue to process the deployment <<assets-main,assets>>.
+The assembly of the link-queue arrays can be <<queue-auto,automated>>, especially when symlinking <<assets-main,assets>>.
+
+.Assembled link-queue example
+[source,bash]
+----
+# ~/.grail/dpls/link-queue-example.dpl.sh
+
+d_dpl_check()   { assemble_queue; d__link_queue_check;   }
+d_dpl_install() {                 d__link_queue_install; }
+d_dpl_remove()  {                 d__link_queue_remove;  }
+
+assemble_queue()
+{
+  D_QUEUE_MAIN=( '.bashrc' )
+  D_QUEUE_ASSETS=( "$D__DPL_ASSET_DIR/.bashrc" )
+  D_QUEUE_TARGETS=( "$HOME/.bashrc" )
+}
+----
 
 [[lnqe-h-a-i]]
 ==== Link-queue hooks, add-statuses, and indicators
@@ -3122,7 +3156,23 @@ d_dpl_install() { d__gh_queue_install; }
 d_dpl_remove()  { d__gh_queue_remove;  }
 ----
 
-The assembly of the Github-queue arrays can be <<queue-auto,automated>>, especially when using the Github-queue to process the deployment <<assets-main,assets>>.
+The assembly of the Github-queue arrays can be <<queue-auto,automated>>.
+
+.Assembled Github-queue example
+[source,bash]
+----
+# ~/.grail/dpls/github-queue-example.dpl.sh
+
+d_dpl_check()   { assemble_queue; d__gh_queue_check;   }
+d_dpl_install() {                 d__gh_queue_install; }
+d_dpl_remove()  {                 d__gh_queue_remove;  }
+
+assemble_queue()
+{
+  D_QUEUE_MAIN=( 'ohmyzsh/ohmyzsh' )
+  D_QUEUE_TARGETS=( "$HOME/.oh-my-zsh" )
+}
+----
 
 [[ghqe-h-a-i]]
 ==== Github-queue hooks, add-statuses, and indicators
