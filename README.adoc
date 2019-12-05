@@ -2,7 +2,7 @@
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
 :revdate: 2019.12.05
-:revremark: Clear release notes; kick off 3.1.0+dev
+:revremark: Visually improve fmwk uninstall cmd in readme
 :doctype: article
 // Visual
 :toc: macro
@@ -458,14 +458,14 @@ The following single shell command uninstalls the _Divine.dotfiles_ framework:
 
 [source,bash]
 ----
-bash -c "TMP=\$(mktemp); URL=https://\
-raw.github.com/divine-dotfiles/divine-dotfiles/dev/lib/uninstall/uninstall.\
-sh; if curl --version &>/dev/null; then curl -fsSL \$URL >\$TMP; elif wget --v\
-ersion &>/dev/null; then wget -qO \$TMP \$URL; else printf >&2 \"\n==> Error: \
-failed to detect neither curl nor wget\n\"; rm -f \$TMP; exit 1; fi || { print\
-f >&2 \"\n==> Error: failed to download uninstallation script\n\"; rm -f \$TMP\
-; exit 2; }; mv -n \$TMP ~ && TMP=\$HOME/\$(basename \$TMP) && chmod +x \$TMP \
-&& \$TMP \"\$@\"; RC=\$?; rm -f \$TMP; ((RC)) && exit 3 || exit 0" bash
+bash -c "TMP=\$(mktemp); URL=https://raw.github.com/divine-dot\
+files/divine-dotfiles/dev/lib/uninstall/uninstall.sh; if curl --version &>/\
+dev/null; then curl -fsSL \$URL >\$TMP; elif wget --version &>/dev/null; then \
+wget -qO \$TMP \$URL; else printf >&2 \"\n==> Error: failed to detect neither \
+curl nor wget\n\"; rm -f \$TMP; exit 1; fi || { printf >&2 \"\n==> Error: fail\
+ed to download uninstallation script\n\"; rm -f \$TMP; exit 2; }; mv -n \$TMP \
+~ && TMP=\$HOME/\$(basename \$TMP) && chmod +x \$TMP && \$TMP \"\$@\"; RC=\$?;\
+rm -f \$TMP; ((RC)) && exit 3 || exit 0" bash
 ----
 
 Equivalently, the framework can be uninstalled from a local copy of this repository (located anywhere) by running this command:
@@ -710,14 +710,14 @@ However, <<opt-obliterate,no copies>> of the framework's assets are kept.
 ----
 ~/.divine/intervene.sh remove --yes --obliterate \
 && ~/.divine/intervene.sh detach essentials --yes \
-&& bash -c "TMP=\$(mktemp); URL=https://\
-raw.github.com/divine-dotfiles/divine-dotfiles/dev/lib/uninstall/uninstall.\
-sh; if curl --version &>/dev/null; then curl -fsSL \$URL >\$TMP; elif wget --v\
-ersion &>/dev/null; then wget -qO \$TMP \$URL; else printf >&2 \"\n==> Error: \
-failed to detect neither curl nor wget\n\"; rm -f \$TMP; exit 1; fi || { print\
-f >&2 \"\n==> Error: failed to download uninstallation script\n\"; rm -f \$TMP\
-; exit 2; }; mv -n \$TMP ~ && TMP=\$HOME/\$(basename \$TMP) && chmod +x \$TMP \
-&& \$TMP \"\$@\"; RC=\$?; rm -f \$TMP; ((RC)) && exit 3 || exit 0" bash --yes --obliterate
+&& bash -c "TMP=\$(mktemp); URL=https://raw.github.com/divine-dot\
+files/divine-dotfiles/dev/lib/uninstall/uninstall.sh; if curl --version &>/\
+dev/null; then curl -fsSL \$URL >\$TMP; elif wget --version &>/dev/null; then \
+wget -qO \$TMP \$URL; else printf >&2 \"\n==> Error: failed to detect neither \
+curl nor wget\n\"; rm -f \$TMP; exit 1; fi || { printf >&2 \"\n==> Error: fail\
+ed to download uninstallation script\n\"; rm -f \$TMP; exit 2; }; mv -n \$TMP \
+~ && TMP=\$HOME/\$(basename \$TMP) && chmod +x \$TMP && \$TMP \"\$@\"; RC=\$?;\
+rm -f \$TMP; ((RC)) && exit 3 || exit 0" bash --yes --obliterate
 ----
 
 After the undo steps have successfully run, there is no trace of _Divine.dotfiles_ on the system.
