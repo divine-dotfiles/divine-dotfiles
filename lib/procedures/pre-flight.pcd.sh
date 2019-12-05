@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.12.05
-#:revremark:    Check for /dev/fd on every launch
+#:revremark:    Exit script after failing /dev/fd check
 #:created_at:   2019.10.11
 
 ## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
@@ -54,6 +54,7 @@ This is likely a conscious restriction by maintainers of the current system.
 Divine.dotfiles relies on /dev/fd for its operations and thus cannot run.
 EOF
     printf >&2 '\n'
+    exit 1
   fi
 
   # Return zero if gotten to here
