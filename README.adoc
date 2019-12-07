@@ -2,7 +2,7 @@
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
 :revdate: 2019.12.07
-:revremark: Make fmwk (un)inst cmds both single-line and wrapping visually
+:revremark: Reword reasoning behind Bash choice
 :doctype: article
 // Visual
 :toc: macro
@@ -160,8 +160,9 @@ A specialized queue either clones or downloads public repositories, depending on
 [[fmwk-design]]
 === Framework design
 
-The _Divine.dotfiles_ framework is written in pure Bash.
-This is a conscious decision, intended to maximize portability.
+The _Divine.dotfiles_ framework is written in Bash.
+No attempt is made at https://en.wikipedia.org/wiki/POSIX[POSIX] compliancy, nor at cross-shell portability.
+Bash is chosen as the least common denominator across the _modern_ operating systems.
 
 At its very core, this framework is a sequential launcher of user-defined Bash code.
 
