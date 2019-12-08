@@ -2,8 +2,8 @@
 #:title:        Divine Bash procedure: pre-flight
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.12.05
-#:revremark:    Tweak newlines in pre-flight
+#:revdate:      2019.12.08
+#:revremark:    Change into home dir first thing
 #:created_at:   2019.10.11
 
 ## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
@@ -27,6 +27,9 @@ d__pcd_pre_flight()
 {
   # Set sane umask
   umask g-w,o-w
+
+  # Change into home directory, assuming it is always available
+  cd &>/dev/null
 
   # Retrieve and inspect major Bash version
   case ${BASH_VERSION:0:1} in

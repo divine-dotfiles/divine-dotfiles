@@ -1,3 +1,5 @@
+* [**`other`**] Change into the home directory as a first step of doing anything. This is mainly in case the current directory at the time of launching the script is no longer valid.
+
 Related to transitions:
 
 * [**`feature`**] Apply transition scripts not only during the updating of a bundle, but also during the attaching of it.
