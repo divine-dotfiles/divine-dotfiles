@@ -2,8 +2,8 @@
 #:title:        Divine Bash procedure: sync-bundles
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.30
-#:revremark:    Rewrite all Github references to point to new repo location
+#:revdate:      2019.12.08
+#:revremark:    Assemble only individual bundle dirs
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
@@ -51,9 +51,13 @@ d__pcd_sync_bundles()
     d__fail -- "Path to bundles directory is occupied: '$D__DIR_BUNDLES'"
     exit 1
   elif [ -r "$D__DIR_BUNDLES" -a -d "$D__DIR_BUNDLES" ]; then
-    while IFS= read -r -d $'\0' actb; do actba+=( "$actb" )
+    while IFS= read -r -d $'\0' actb; do
+      actba+=("$actb")
     done < <( find "$D__DIR_BUNDLES" -mindepth 2 -maxdepth 2 -type d -print0 )
   fi; actc=${#actba[@]}
+
+  # Store actual bundles in a global variable
+  D__BUNDLE_DIRS=("${actba[@]}")
 
   # Cross-reference directories to records
   for ((j=0;j<$actc;++j)); do
@@ -66,16 +70,19 @@ d__pcd_sync_bundles()
 
   # Report inconsistencies if they are present
   for recb in "${recba[@]}"; do
-    alta+=( -i- "- missing bundle '$recb'" ) actb="$D__DIR_BUNDLES/$recb"
-    if [ -e "$actb" ]
-    then erra+=( -i- "- path to bundle directory is blocked: $actb" ); fi
+    alta+=( -i- "- missing bundle '$recb'" )
+    actb="$D__DIR_BUNDLES/$recb"
+    if [ -e "$actb" ]; then
+      erra+=( -i- "- path to bundle directory is blocked: $actb" )
+    fi
   done
   if ((${#erra[@]})); then
     d__fail -- 'Illegal state of bundles directory:' "${erra[@]}"
     exit 1
   fi
-  for actb in "${actba[@]}"
-  do alta+=( -i- "- unrecorded bundle '$actb'" ); done
+  for actb in "${actba[@]}"; do
+    alta+=( -i- "- unrecorded bundle '$actb'" )
+  done
   if [ ${#alta[@]} -eq 0 ]; then d__context -- lop; return 0; fi
   d__notify -l! -- 'Bundles directory is inconsistent' \
     'with Grail stash records:' "${alta[@]}"
@@ -100,14 +107,18 @@ d__pcd_sync_bundles()
       w)  mkdir -p &>/dev/null -- "$D__DIR_BUNDLES/$recb" \
             && d___dl_gh_repo -w "$recb" "$D__DIR_BUNDLES/$recb";;
     esac
-    if (($?))
-    then erra+=( -i- "- failed to retrieve missing bundle '$recb'" )
-    else d__notify -l -- 'Retrieved missing bundle '$recb''; fi
+    if (($?)); then
+      erra+=( -i- "- failed to retrieve missing bundle '$recb'" )
+    else
+      d__notify -l -- 'Retrieved missing bundle '$recb''
+    fi
   done
   for actb in "${actba[@]}"; do
-    if rm -rf -- "$actb"
-    then d__notify -l -- 'Deleted unrecorded bundle '$actb''
-    else erra+=( -i- "- failed to delete unrecorded bundle '$actb'" ); fi
+    if rm -rf -- "$actb"; then
+      d__notify -l -- 'Deleted unrecorded bundle '$actb''
+    else
+      erra+=( -i- "- failed to delete unrecorded bundle '$actb'" )
+    fi
   done
 
   # Report results and return
@@ -115,7 +126,14 @@ d__pcd_sync_bundles()
     d__fail -- 'Unable to fully synchronize bundles directory' \
       'with Grail stash records:' "${erra[@]}"
     exit 1
-  else d__context -- lop; return 0; fi
+  else
+    D__BUNDLE_DIRS=()
+    while IFS= read -r -d $'\0' actb; do
+      D__BUNDLE_DIRS+=("$actb")
+    done < <( find "$D__DIR_BUNDLES" -mindepth 2 -maxdepth 2 -type d -print0 )
+    d__context -- lop
+    return 0
+  fi
 }
 
 d__pcd_sync_bundles
