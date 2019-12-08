@@ -1,8 +1,8 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revdate: 2019.12.07
-:revremark: Reword reasoning behind Bash choice
+:revdate: 2019.12.08
+:revremark: Apply transitions on attach; block when trs fails
 :doctype: article
 // Visual
 :toc: macro
@@ -4434,11 +4434,24 @@ By default, this version is purely cosmetic, but can play a crucial part in the 
 [[bdl-versioning]]
 === Bundle versioning
 
-The framework provides the *transitions* system, which can be employed whenever updating a bundle past a particular <<bdl-tag,version>> of it requires running additional commands.
+The framework provides the *transitions* system.
+A transition is a Bash script that is sourced by the framework whenever the bundle reaches or supercedes a particular <<bdl-tag,version>>.
 
 Transition scripts may be put into the directory named `*transitions*`, located in the root of the bundle repository.
 A transition script must be named as the version of the bundle that it applies to, followed by the `.trs.sh` suffix.
-So, for example, a transition script `transitions/1.5.0.trs.sh` is sourced if and only if the bundle is <<rtn-update,updated>> from a version older than `1.5.0` to a version newer or equal to `1.5.0`.
+Multiple transitions are applied in the ascending alphanumerical order of their file names.
+
+For example, a transition script `transitions/1.5.0.trs.sh` is sourced in one of two scenarios:
+
+* The bundle is <<rtn-attach,attached>> with its version equal to or newer than `1.5.0`.
+* The bundle is <<rtn-update,updated>> from a version older than `1.5.0` (or from an unmarked version) to a version equal to or newer than `1.5.0`.
+
+The framework monitors the return code of the transition script: if it is not zero, the transition is marked as failed.
+Whenever a transition fails:
+
+* no further transitions are applied;
+* on the next invocation of the <<rtn-update,`update`>> routine the transitions are re-applied starting from the failed one;
+* the bundle is excluded from the <<rtn-primaries,primary routines>> until all transitions are applied successfully.
 
 [[divine-bundles]]
 == Divine bundles

@@ -2,8 +2,8 @@
 #:title:        Divine Bash procedure: process-all-assets
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.30
-#:revremark:    Rewrite all Github references to point to new repo location
+#:revdate:      2019.12.08
+#:revremark:    Apply transitions on attach; block when trs fails
 #:created_at:   2019.10.12
 
 ## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
@@ -51,7 +51,7 @@ d__pcd_process_all_assets()
       D__DPL_MNF_PATH="${dpl_p%$D__SUFFIX_DPL_SH}$D__SUFFIX_DPL_MNF"
       D__DPL_DIR="$( dirname -- "$dpl_p" )"
       D__DPL_ASSET_DIR="$D__DIR_ASSETS/$dpl_n"
-      d__process_asset_manifest_of_current_dpl || algd=false  
+      d__process_asset_manifest_of_current_dpl || algd=false
     done
 
   done

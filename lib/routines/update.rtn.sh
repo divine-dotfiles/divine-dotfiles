@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: update
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.12.04
-#:revremark:    Handle failing transitions, re-apply on re-update
+#:revdate:      2019.12.08
+#:revremark:    Apply transitions on attach; block when trs fails
 #:created_at:   2019.05.12
 
 ## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
@@ -14,16 +14,17 @@
 
 # Marker and dependencies
 readonly D__RTN_UPDATE=loaded
-d__load util workflow
-d__load util stash
-d__load util git
 d__load procedure prep-stash
 d__load procedure prep-sys
 d__load procedure offer-gh
 d__load procedure check-gh
 d__load procedure sync-bundles
+d__load util workflow
+d__load util stash
+d__load util git
 d__load util backup
 d__load util fmwk-update
+d__load util transitions
 
 #>  d__rtn_update
 #

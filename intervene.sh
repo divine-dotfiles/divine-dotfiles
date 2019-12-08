@@ -2,8 +2,8 @@
 #:title:        Divine Bash script: intervene
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.26
-#:revremark:    Implement calling fmwk routine at the very top
+#:revdate:      2019.12.08
+#:revremark:    Apply transitions on attach; block when trs fails
 #:created_at:   2018.03.25
 
 ## Launches the Divine intervention
@@ -377,6 +377,25 @@ d__perform_routine()
   # Print request errors, if any
   if ((${#D__REQ_ERRORS[@]}))
   then d__notify -nlx -- 'Request errors:' "${D__REQ_ERRORS[@]}"; fi
+
+  # Ensure there are no records of failed transitions
+  case $D__REQ_ROUTINE in
+    update|help|version|usage) :;;
+    *)  if [ -f "$D__DIR_STATE/$D__CONST_NAME_UNTRS" ]; then
+          d__notify -lx -- 'Found record of failed transition at:' \
+            -i- "$D__DIR_STATE/$D__CONST_NAME_UNTRS" \
+            -n- 'Please, update the framework' \
+            "via '${BASH_SOURCE[0]} update fmwk'"
+          exit 1
+        elif [ -f "$D__DIR_STATE/$D__CONST_NAME_MNTRS" ]; then
+          d__notify -lx -- 'Found directive to transition at:' \
+            -i- "$D__DIR_STATE/$D__CONST_NAME_MNTRS" \
+            -n- 'Please, update the framework' \
+            "via '${BASH_SOURCE[0]} update fmwk'"
+          exit 1
+        fi
+        ;;
+  esac
 
   # Fork based on routine
   local rc; case $D__REQ_ROUTINE in
