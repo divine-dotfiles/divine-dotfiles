@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.12.08
-#:revremark:    Apply transitions on attach; block when trs fails
+#:revremark:    Restore forgotten assets util dep to attach rtn
 #:created_at:   2019.05.12
 
 ## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
@@ -24,6 +24,7 @@ d__load util workflow
 d__load util stash
 d__load util git
 d__load util scan
+d__load util assets
 d__load util transitions
 
 #>  d__rtn_attach
