@@ -4,6 +4,10 @@ Related to transitions:
 * [**`feature`**] Block most framework routines in case there is a record of failed transition script.
 * [**`feature`**] Exclude a bundle from the primary routines in case there is a record of failed transition script.
 
+Related to Git repository retrieval:
+
+* [**`other`**] Do not take into account untracked files when checking whether a repository is dirty prior to pulling updates from its remote.
+
 In the `README`:
 
 * [**`fix`**] Add descriptions related to bundle transitions:
