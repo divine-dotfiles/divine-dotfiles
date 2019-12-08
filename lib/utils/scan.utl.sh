@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.12.08
-#:revremark:    Apply transitions on attach; block when trs fails
+#:revremark:    In scan utils skip all dirs with untransitioned record
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
@@ -287,6 +287,13 @@ d__scan_for_dpl_files()
 
   # Iterate over given directories
   for scan_dir in "${args[@]}"; do
+
+    # Ensure there are no records of failed transitions
+    if [ -f "$scan_dir/$D__CONST_NAME_UNTRS" ]; then
+      continue
+    elif [ -f "$scan_dir/$D__CONST_NAME_MNTRS" ]; then
+      continue
+    fi
 
     # Switch context; perform cut-off check
     d__context -- push "Scanning in: $scan_dir"
