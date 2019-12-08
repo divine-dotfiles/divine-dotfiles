@@ -11,4 +11,5 @@ In the `README`:
   * how their return codes are handled;
   * what happens if they fail.
 * [**`fix`**] Improve the presentation of the framework (un)installation commands. Make them single-line and wrapping visually on Github. This is also intended for pasting into non-Bash shells.
+* [**`fix`**] Unsilence the calls to `wget` in the framework (un)installation commands. This is due to the fact that unlike `curl`, `wget` does not provide an option to silence the normal progress output without muting error messages.
 * [**`other`**] Reword the reasoning behind choosing Bash as the language of the framework.
