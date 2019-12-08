@@ -2,8 +2,8 @@
 #:title:        Divine Bash utils: git
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.30
-#:revremark:    Rewrite all Github references to point to new repo location
+#:revdate:      2019.12.08
+#:revremark:    Ignore untracked when checking for dirty repo
 #:created_at:   2019.09.13
 
 ## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
@@ -266,7 +266,7 @@ d___pull_git_remote()
     || return 2
 
   # Ensure working tree is clean, or bail out
-  if [ -n "$( git status --porcelain 2>/dev/null )" ]; then
+  if [ -n "$( git status --porcelain --untracked-files=no 2>/dev/null )" ]; then
     d__fail -t 'Refusing to pull' -- \
       'There are manual uncommitted changes in the directory'
     popd &>/dev/null
