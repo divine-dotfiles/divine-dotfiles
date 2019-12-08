@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: attach
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.30
-#:revremark:    Rewrite all Github references to point to new repo location
+#:revdate:      2019.12.08
+#:revremark:    Restore forgotten assets util dep to attach rtn
 #:created_at:   2019.05.12
 
 ## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
@@ -16,14 +16,16 @@
 
 # Marker and dependencies
 readonly D__RTN_ATTACH=loaded
-d__load util workflow
-d__load util stash
-d__load util git
-d__load util scan
 d__load procedure prep-stash
 d__load procedure offer-gh
 d__load procedure check-gh
 d__load procedure sync-bundles
+d__load util workflow
+d__load util stash
+d__load util git
+d__load util scan
+d__load util assets
+d__load util transitions
 
 #>  d__rtn_attach
 #
@@ -78,14 +80,14 @@ d__rtn_attach()
   fi
 
   # Storage & status variables
-  local barg bdst bplq btmp bany=false ball=true bss bpcs bdcs
+  local barg bdst bplq btmp bany=false ball=true bss bpcs bdcs ii dpln dplp
 
   # Iterate over script arguments
   for barg in "${D__REQ_ARGS[@]}"
   do d___attach_bundle && bany=true || ball=false; done
 
-  # If any attachments succeeded, process asset manifests
-  if $bany; then d__load procedure process-all-assets; fi
+  # Process all asset manifests again
+  d__load procedure process-all-assets
 
   # Announce routine completion
   printf >&2 '\n'
@@ -206,8 +208,37 @@ d___attach_bundle()
     rm -rf -- "$btmp"; return 1
   fi
 
+  # Process assets
+  for ((ii=0;ii<${#D__EXT_DPL_NAMES[@]};++ii)); do
+    dpln="${D__EXT_DPL_NAMES[$ii]}"
+    dplp="$bdst/${D__EXT_DPL_NAME_PATHS[$ii]}"
+    D__DPL_MNF_PATH="${dplp%$D__SUFFIX_DPL_SH}$D__SUFFIX_DPL_MNF"
+    D__DPL_DIR="$( dirname -- "$dplp" )"
+    D__DPL_ASSET_DIR="$D__DIR_ASSETS/$dpln"
+    d__process_asset_manifest_of_current_dpl
+  done
+
   # Merge records; report success
   d__merge_ext_into_int "$bdst"; d__notify -lv -- "$bss"
+
+  # Set up variables for transitions, then apply transitions
+  local bshf="$bdst/$D__CONST_NAME_BUNDLE_SH" brtc
+  local udst="$bdst" ovrs nvrs invl untv="$bdst/$D__CONST_NAME_UNTRS"
+
+  # Extract now-current version of attached bundle
+  if [ -f "$bshf" ]; then
+    while read -r invl || [[ -n "$invl" ]]; do
+      [[ $invl = 'D_BUNDLE_VERSION='* ]] || continue
+      IFS='=' read -r invl nvrs <<<"$invl "
+      if [[ $nvrs = \'*\'\  || $nvrs = \"*\"\  ]]
+      then read -r nvrs <<<"${nvrs:1:${#nvrs}-3}"
+      else read -r nvrs <<<"$nvrs"; fi
+      break
+    done <"$bshf"
+  fi
+
+  # Initiate transitions
+  d___apply_transitions
 
   # Set stash record
   if  d__stash -gs -- add attached_bundles "$barg"; then

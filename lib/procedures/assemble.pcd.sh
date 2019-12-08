@@ -2,8 +2,8 @@
 #:title:        Divine Bash procedure: assemble
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.30
-#:revremark:    Rewrite all Github references to point to new repo location
+#:revdate:      2019.12.08
+#:revremark:    Assemble only individual bundle dirs
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
@@ -15,6 +15,7 @@
 
 # Marker and dependencies
 readonly D__PCD_ASSEMBLE=loaded
+d__load procedure sync-bundles
 d__load util workflow
 d__load util scan
 
@@ -88,7 +89,7 @@ d__pcd_assemble()
   else
 
     d__context -- push 'Assembling from default deployment directories'
-    dirs_to_scan=( "$D__DIR_DPLS" "$D__DIR_BUNDLES" )
+    dirs_to_scan=( "$D__DIR_DPLS" "${D__BUNDLE_DIRS[@]}" )
 
   fi
 

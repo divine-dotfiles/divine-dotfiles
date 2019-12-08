@@ -1,8 +1,8 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revdate: 2019.12.05
-:revremark: Bump version to 3.1.0
+:revdate: 2019.12.08
+:revremark: Bump version to 3.2.0
 :doctype: article
 // Visual
 :toc: macro
@@ -160,8 +160,9 @@ A specialized queue either clones or downloads public repositories, depending on
 [[fmwk-design]]
 === Framework design
 
-The _Divine.dotfiles_ framework is written in pure Bash.
-This is a conscious decision, intended to maximize portability.
+The _Divine.dotfiles_ framework is written in Bash.
+No attempt is made at https://en.wikipedia.org/wiki/POSIX[POSIX] compliancy, nor at cross-shell portability.
+Bash is chosen as the least common denominator across the _modern_ operating systems.
 
 At its very core, this framework is a sequential launcher of user-defined Bash code.
 
@@ -329,17 +330,10 @@ However, the framework will then proceed to vex the user with suggestions to aut
 
 The following single shell command installs the _Divine.dotfiles_ framework:
 
-[source,bash]
-----
-bash -c "TMP=\$(mktemp); URL=https://raw.github\
-.com/divine-dotfiles/divine-dotfiles/master/lib/install/install.sh; if curl --\
-version &>/dev/null; then curl -fsSL \$URL >\$TMP; elif wget --version &>/dev/\
-null; then wget -qO \$TMP \$URL; else printf >&2 \"\n==> Error: failed to dete\
-ct neither curl nor wget\n\"; rm -f \$TMP; exit 1; fi || { printf >&2 \"\n==> \
-Error: failed to download installation script\n\"; rm -f \$TMP; exit 2; }; mv \
--n \$TMP ~ && TMP=\$HOME/\$(basename \$TMP) && chmod +x \$TMP && \$TMP \"\$@\"\
-; RC=\$?; rm -f \$TMP; ((RC)) && exit 3 || exit 0" bash
-----
+[%noheader,cols="<.<a"]
+|===
+| `bash -c 'TMP=$(mktemp); URL=https://raw.github.com/divine-dotfiles/divine-dotfiles/master/lib/install/install.sh; if curl --version &>/dev/null; then curl -fsSL $URL >$TMP; elif wget --version &>/dev/null; then wget -O $TMP $URL; else printf >&2 "\n==> Error: failed to detect neither curl nor wget\n"; rm -f $TMP; exit 1; fi {vbar}{vbar} { printf >&2 "\n==> Error: failed to download installation script\n"; rm -f $TMP; exit 2; }; mv -n $TMP ~ && TMP=$HOME/$(basename $TMP) && chmod +x $TMP && $TMP "$@"; RC=$?; rm -f $TMP; \((RC)) && exit 3 {vbar}{vbar} exit 0' bash`
+|===
 
 Equivalently, the framework can be installed from a local copy of this repository (located _not_ at the installation path) by running this command:
 
@@ -456,17 +450,10 @@ As established before, _Divine.dotfiles_ is intended as an <<fmwk-interactivity,
 
 The following single shell command uninstalls the _Divine.dotfiles_ framework:
 
-[source,bash]
-----
-bash -c "TMP=\$(mktemp); URL=https://\
-raw.github.com/divine-dotfiles/divine-dotfiles/master/lib/uninstall/uninstall.\
-sh; if curl --version &>/dev/null; then curl -fsSL \$URL >\$TMP; elif wget --v\
-ersion &>/dev/null; then wget -qO \$TMP \$URL; else printf >&2 \"\n==> Error: \
-failed to detect neither curl nor wget\n\"; rm -f \$TMP; exit 1; fi || { print\
-f >&2 \"\n==> Error: failed to download uninstallation script\n\"; rm -f \$TMP\
-; exit 2; }; mv -n \$TMP ~ && TMP=\$HOME/\$(basename \$TMP) && chmod +x \$TMP \
-&& \$TMP \"\$@\"; RC=\$?; rm -f \$TMP; ((RC)) && exit 3 || exit 0" bash
-----
+[%noheader,cols="<.<a"]
+|===
+| `bash -c 'TMP=$(mktemp); URL=https://raw.github.com/divine-dotfiles/divine-dotfiles/master/lib/uninstall/uninstall.sh; if curl --version &>/dev/null; then curl -fsSL $URL >$TMP; elif wget --version &>/dev/null; then wget -O $TMP $URL; else printf >&2 "\n==> Error: failed to detect neither curl nor wget\n"; rm -f $TMP; exit 1; fi {vbar}{vbar} { printf >&2 "\n==> Error: failed to download uninstallation script\n"; rm -f $TMP; exit 2; }; mv -n $TMP ~ && TMP=$HOME/$(basename $TMP) && chmod +x $TMP && $TMP "$@"; RC=$?;rm -f $TMP; \((RC)) && exit 3 {vbar}{vbar} exit 0' bash`
+|===
 
 Equivalently, the framework can be uninstalled from a local copy of this repository (located anywhere) by running this command:
 
@@ -595,19 +582,10 @@ The following single shell command provides the <<fmwk-joy-ride-sum,introductory
 
 All three sub-commands *skip* the trivial <<fmwk-interactivity,prompts>> (e.g., 'Are you sure?').
 
-[source,bash]
-----
-bash -c "TMP=\$(mktemp); URL=https://raw.github\
-.com/divine-dotfiles/divine-dotfiles/master/lib/install/install.sh; if curl --\
-version &>/dev/null; then curl -fsSL \$URL >\$TMP; elif wget --version &>/dev/\
-null; then wget -qO \$TMP \$URL; else printf >&2 \"\n==> Error: failed to dete\
-ct neither curl nor wget\n\"; rm -f \$TMP; exit 1; fi || { printf >&2 \"\n==> \
-Error: failed to download installation script\n\"; rm -f \$TMP; exit 2; }; mv \
--n \$TMP ~ && TMP=\$HOME/\$(basename \$TMP) && chmod +x \$TMP && \$TMP \"\$@\"\
-; RC=\$?; rm -f \$TMP; ((RC)) && exit 3 || exit 0" bash --yes \
-&& ~/.divine/intervene.sh attach essentials --yes \
-&& ~/.divine/intervene.sh install --yes
-----
+[%noheader,cols="<.<a"]
+|===
+| `bash -c 'TMP=$(mktemp); URL=https://raw.github.com/divine-dotfiles/divine-dotfiles/master/lib/install/install.sh; if curl --version &>/dev/null; then curl -fsSL $URL >$TMP; elif wget --version &>/dev/null; then wget -O $TMP $URL; else printf >&2 "\n==> Error: failed to detect neither curl nor wget\n"; rm -f $TMP; exit 1; fi {vbar}{vbar} { printf >&2 "\n==> Error: failed to download installation script\n"; rm -f $TMP; exit 2; }; mv -n $TMP ~ && TMP=$HOME/$(basename $TMP) && chmod +x $TMP && $TMP "$@"; RC=$?; rm -f $TMP; \((RC)) && exit 3 {vbar}{vbar} exit 0' bash --yes && ~/.divine/intervene.sh attach essentials --yes && ~/.divine/intervene.sh install --yes`
+|===
 
 (The *undo* command is provided in the <<fmwk-joy-ride-undo,following section>>.)
 
@@ -706,19 +684,10 @@ All three sub-commands *skip* the trivial <<fmwk-interactivity,prompts>> (e.g., 
 The original state of the system (before the installation) is <<fmwk-reversibility,restored>>.
 However, <<opt-obliterate,no copies>> of the framework's assets are kept.
 
-[source,bash]
-----
-~/.divine/intervene.sh remove --yes --obliterate \
-&& ~/.divine/intervene.sh detach essentials --yes \
-&& bash -c "TMP=\$(mktemp); URL=https://\
-raw.github.com/divine-dotfiles/divine-dotfiles/master/lib/uninstall/uninstall.\
-sh; if curl --version &>/dev/null; then curl -fsSL \$URL >\$TMP; elif wget --v\
-ersion &>/dev/null; then wget -qO \$TMP \$URL; else printf >&2 \"\n==> Error: \
-failed to detect neither curl nor wget\n\"; rm -f \$TMP; exit 1; fi || { print\
-f >&2 \"\n==> Error: failed to download uninstallation script\n\"; rm -f \$TMP\
-; exit 2; }; mv -n \$TMP ~ && TMP=\$HOME/\$(basename \$TMP) && chmod +x \$TMP \
-&& \$TMP \"\$@\"; RC=\$?; rm -f \$TMP; ((RC)) && exit 3 || exit 0" bash --yes --obliterate
-----
+[%noheader,cols="<.<a"]
+|===
+| `~/.divine/intervene.sh remove --yes --obliterate && ~/.divine/intervene.sh detach essentials --yes && bash -c 'TMP=$(mktemp); URL=https://raw.github.com/divine-dotfiles/divine-dotfiles/master/lib/uninstall/uninstall.sh; if curl --version &>/dev/null; then curl -fsSL $URL >$TMP; elif wget --version &>/dev/null; then wget -O $TMP $URL; else printf >&2 "\n==> Error: failed to detect neither curl nor wget\n"; rm -f $TMP; exit 1; fi {vbar}{vbar} { printf >&2 "\n==> Error: failed to download uninstallation script\n"; rm -f $TMP; exit 2; }; mv -n $TMP ~ && TMP=$HOME/$(basename $TMP) && chmod +x $TMP && $TMP "$@"; RC=$?;rm -f $TMP; \((RC)) && exit 3 {vbar}{vbar} exit 0' bash --yes --obliterate`
+|===
 
 After the undo steps have successfully run, there is no trace of _Divine.dotfiles_ on the system.
 _(Sigh.)_
@@ -4465,11 +4434,24 @@ By default, this version is purely cosmetic, but can play a crucial part in the 
 [[bdl-versioning]]
 === Bundle versioning
 
-The framework provides the *transitions* system, which can be employed whenever updating a bundle past a particular <<bdl-tag,version>> of it requires running additional commands.
+The framework provides the *transitions* system.
+A transition is a Bash script that is sourced by the framework whenever the bundle reaches or supercedes a particular <<bdl-tag,version>>.
 
 Transition scripts may be put into the directory named `*transitions*`, located in the root of the bundle repository.
 A transition script must be named as the version of the bundle that it applies to, followed by the `.trs.sh` suffix.
-So, for example, a transition script `transitions/1.5.0.trs.sh` is sourced if and only if the bundle is <<rtn-update,updated>> from a version older than `1.5.0` to a version newer or equal to `1.5.0`.
+Multiple transitions are applied in the ascending alphanumerical order of their file names.
+
+For example, a transition script `transitions/1.5.0.trs.sh` is sourced in one of two scenarios:
+
+* The bundle is <<rtn-attach,attached>> with its version equal to or newer than `1.5.0`.
+* The bundle is <<rtn-update,updated>> from a version older than `1.5.0` (or from an unmarked version) to a version equal to or newer than `1.5.0`.
+
+The framework monitors the return code of the transition script: if it is not zero, the transition is marked as failed.
+Whenever a transition fails:
+
+* no further transitions are applied;
+* on the next invocation of the <<rtn-update,`update`>> routine the transitions are re-applied starting from the failed one;
+* the bundle is excluded from the <<rtn-primaries,primary routines>> until all transitions are applied successfully.
 
 [[divine-bundles]]
 == Divine bundles

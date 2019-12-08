@@ -2,8 +2,8 @@
 #:title:        Divine Bash utils: scan
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.30
-#:revremark:    Rewrite all Github references to point to new repo location
+#:revdate:      2019.12.08
+#:revremark:    In scan utils skip all dirs with untransitioned record
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
@@ -98,6 +98,17 @@ d__scan_for_divinefiles()
 
   # Iterate over given directories
   for scan_dir in "${args[@]}"; do
+
+    # Ensure there are no records of failed transitions
+    if [ -f "$scan_dir/$D__CONST_NAME_UNTRS" ]; then
+      d__notify -l!h -- \
+        'Skipping directory with record of failed transition:' -i- "$scan_dir"
+      continue
+    elif [ -f "$scan_dir/$D__CONST_NAME_MNTRS" ]; then
+      d__notify -l!h -- 'Skipping directory with directive to transition:' \
+        -i- "$scan_dir"
+      continue
+    fi
 
     # Switch context; perform cut-off check
     d__context -- push "Scanning in: $scan_dir"
@@ -276,6 +287,13 @@ d__scan_for_dpl_files()
 
   # Iterate over given directories
   for scan_dir in "${args[@]}"; do
+
+    # Ensure there are no records of failed transitions
+    if [ -f "$scan_dir/$D__CONST_NAME_UNTRS" ]; then
+      continue
+    elif [ -f "$scan_dir/$D__CONST_NAME_MNTRS" ]; then
+      continue
+    fi
 
     # Switch context; perform cut-off check
     d__context -- push "Scanning in: $scan_dir"
