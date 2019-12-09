@@ -3,11 +3,11 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 <<<<<<< HEAD
-#:revdate:      2019.12.08
-#:revremark:    Clear release notes; kick off 3.2.0+dev
+#:revdate:      2019.12.09
+#:revremark:    Kick off 3.2.1+dev
 =======
 #:revdate:      2019.12.09
-#:revremark:    Bump version to 3.2.1
+#:revremark:    Kick off 3.2.1+dev
 >>>>>>> hf-3.2.1
 #:created_at:   2019.10.11
 
@@ -43,8 +43,8 @@ d__populate_globals()
   readonly D__FMWK_NAME='Divine.dotfiles'
 
   # Framework's displayed version
-  readonly D__FMWK_VERSION='3.2.1'
-  readonly D__FMWK_DEV=false
+  readonly D__FMWK_VERSION='3.2.1+dev'
+  readonly D__FMWK_DEV=true
 
   # Paths to state directory
   readonly D__DIR_STATE="$D__DIR/state"
