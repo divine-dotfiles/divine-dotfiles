@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: fmwk-install
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.12.02
-#:revremark:    In fmwk installation set nightly flag when in dev
+#:revdate:      2019.12.09
+#:revremark:    Fix grail path in fmwk install success msg
 #:created_at:   2019.10.15
 
 ## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
@@ -404,7 +404,7 @@ For help, try:
     ...or $ $BOLD$mcmd --help$NORMAL
 
 Your personal deployments and assets go into Grail directory at:
-    $BOLD$D__DIR/grail$NORMAL
+    $BOLD~/.grail$NORMAL
 (It is a good idea to take your Grail under version control)
 
 For a joy ride, try our bundled Divine deployments using:
