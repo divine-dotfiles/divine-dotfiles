@@ -2,13 +2,8 @@
 #:title:        Divine Bash procedure: init-vars
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-<<<<<<< HEAD
-#:revdate:      2019.12.09
-#:revremark:    Kick off 3.2.1+dev
-=======
-#:revdate:      2019.12.09
-#:revremark:    Kick off 3.2.1+dev
->>>>>>> hf-3.2.1
+#:revdate:      2019.12.10
+#:revremark:    Fix miraculous merge conflict
 #:created_at:   2019.10.11
 
 ## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
