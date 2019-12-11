@@ -2,8 +2,8 @@
 #:title:        Divine Bash deployment helpers: queue
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.12.02
-#:revremark:    Accept empty queue as normal possibility
+#:revdate:      2019.12.11
+#:revremark:    Implement add-status that makes queue/mltsk irrelevant
 #:created_at:   2019.06.10
 
 ## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
@@ -81,10 +81,10 @@ d__queue_check()
 
   # Run queue pre-processing, if implemented
   local d__qrtc d__tmp; if declare -f d_queue_pre_check &>/dev/null; then
-    unset D_ADDST_QUEUE_CHECK_CODE
+    unset D_ADDST_QUEUE_CHECK_CODE D_ADDST_QUEUE_IRRELEVANT
     d_queue_pre_check; d__tmp=$?; unset -f d_queue_pre_check
-    if (($d__tmp)); then
-      d__notify -qh -- "Queue's pre-check hook declares it irrelevant"
+    if (($d__tmp)) || [ "$D_ADDST_QUEUE_IRRELEVANT" = true ]; then
+      d__notify -qh -- "Queue's pre-check hook declares queue irrelevant"
       d__context -- lop; return 3
     elif [[ $D_ADDST_QUEUE_CHECK_CODE =~ ^[0-9]+$ ]]; then
       d__notify -qh -- "Queue's pre-check hook forces" \
@@ -128,7 +128,7 @@ d__queue_check()
     # Run item pre-processing, if implemented
     unset D_ADDST_ITEM_FLAGS; d__qertc=0 d__qeh=false; d_item_pre_check
     if (($?)); then
-      d__notify -qh -- "Queue item's pre-check hook declares it irrelevant"
+      d__notify -qh -- "Queue item's pre-check hook declares item irrelevant"
       d__qertc=3 d__qeh=true
     elif [[ $D_ADDST_ITEM_CHECK_CODE =~ ^[0-9]+$ ]]; then
       d__notify -qh -- "Queue item's pre-check hook forces" \
@@ -142,6 +142,11 @@ d__queue_check()
       d__qeflg+="$D_ADDST_ITEM_FLAGS" D__ITEM_FLAGS+="$D_ADDST_ITEM_FLAGS"
       D__QUEUE_FLAGS[$d__qei]+="$D_ADDST_ITEM_FLAGS"
     fi
+    if [ "$D_ADDST_QUEUE_IRRELEVANT" = true ]; then
+      d__notify -qh -- "Queue item's pre-check hook declares queue irrelevant"
+      d__context -- lop
+      return 3
+    fi
 
     # Get return code of d_dpl_check, or fall back to zero
     if ! $d__qeh; then unset D_ADDST_ITEM_FLAGS; d_item_check; d__qertc=$?
@@ -152,6 +157,11 @@ d__queue_check()
         d__qeflg+="$D_ADDST_ITEM_FLAGS" D__ITEM_FLAGS+="$D_ADDST_ITEM_FLAGS"
         D__QUEUE_FLAGS[$d__qei]+="$D_ADDST_ITEM_FLAGS"
       fi
+      if [ "$D_ADDST_QUEUE_IRRELEVANT" = true ]; then
+        d__notify -qh -- "Queue item's checking declares queue irrelevant"
+        d__context -- lop
+        return 3
+      fi
     fi
 
     # Run item post-processing, if implemented
@@ -159,7 +169,7 @@ d__queue_check()
       D__ITEM_CHECK_CODE="$d__qertc"; d_item_post_check
       if (($?)); then
         d__notify -qh -- \
-          "Queue item's post-check hook declares it irrelevant" \
+          "Queue item's post-check hook declares item irrelevant" \
           "instead of actual code '$d__qertc'"
         d__qertc=3
       elif [[ $D_ADDST_ITEM_CHECK_CODE =~ ^[0-9]+$ ]]; then
@@ -174,6 +184,12 @@ d__queue_check()
       if ! [ -z ${D_ADDST_ITEM_FLAGS+isset} ]; then
         d__qeflg+="$D_ADDST_ITEM_FLAGS" D__ITEM_FLAGS+="$D_ADDST_ITEM_FLAGS"
         D__QUEUE_FLAGS[$d__qei]+="$D_ADDST_ITEM_FLAGS"
+      fi
+      if [ "$D_ADDST_QUEUE_IRRELEVANT" = true ]; then
+        d__notify -qh -- \
+          "Queue item's post-check hook declares queue irrelevant"
+          d__context -- lop
+        return 3
       fi
     fi
 
@@ -262,8 +278,8 @@ d__queue_check()
   if declare -f d_queue_post_check &>/dev/null; then
     unset D_ADDST_QUEUE_CHECK_CODE; D__QUEUE_CHECK_CODE="$d__qrtc"
     d_queue_post_check; d__tmp=$?; unset -f d_queue_post_check
-    if (($d__tmp)); then
-      d__notify -qh -- "Queue's post-check hook declares it irrelevant"
+    if (($d__tmp)) || [ "$D_ADDST_QUEUE_IRRELEVANT" = true ]; then
+      d__notify -qh -- "Queue's post-check hook declares queue irrelevant"
       d__context -- lop; return 3
     elif [[ $D_ADDST_QUEUE_CHECK_CODE =~ ^[0-9]+$ ]]; then
       d__notify -qh -- "Queue's post-check hook forces" \
@@ -303,7 +319,7 @@ d__queue_install()
     unset D_ADDST_QUEUE_INSTALL_CODE
     d_queue_pre_install; d__tmp=$?; unset -f d_queue_pre_install
     if (($d__tmp)); then
-      d__notify -qh -- "Queue's pre-install hook declares it rejected"
+      d__notify -qh -- "Queue's pre-install hook declares queue rejected"
       d__context -- lop; return 2
     elif [[ $D_ADDST_QUEUE_INSTALL_CODE =~ ^[0-9]+$ ]]; then
       d__notify -qh -- "Queue's pre-install hook forces" \
@@ -451,7 +467,7 @@ d__queue_install()
     # Run item pre-processing, if implemented
     unset D_ADDST_ITEM_FLAGS; d__qertc=0 d__qeh=false; d_item_pre_install
     if (($?)); then
-      d__notify -qh -- "Queue item's pre-install hook declares it rejected"
+      d__notify -qh -- "Queue item's pre-install hook declares item rejected"
       d__qertc=2 d__qeh=true
     elif [[ $D_ADDST_ITEM_INSTALL_CODE =~ ^[0-9]+$ ]]; then
       d__notify -qh -- "Queue item's pre-install hook forces" \
@@ -482,7 +498,7 @@ d__queue_install()
       D__ITEM_INSTALL_CODE="$d__qertc"; d_item_post_install
       if (($?)); then
         d__notify -qh -- \
-          "Queue item's post-install hook declares it rejected" \
+          "Queue item's post-install hook declares item rejected" \
           "instead of actual code '$d__qertc'"
         d__qertc=2
       elif [[ $D_ADDST_ITEM_INSTALL_CODE =~ ^[0-9]+$ ]]; then
@@ -563,7 +579,7 @@ d__queue_install()
     unset D_ADDST_QUEUE_INSTALL_CODE; D__QUEUE_INSTALL_CODE="$d__qrtc"
     d_queue_post_install; d__tmp=$?; unset -f d_queue_post_install
     if (($d__tmp)); then
-      d__notify -qh -- "Queue's post-install hook declares it rejected"
+      d__notify -qh -- "Queue's post-install hook declares queue rejected"
       d__context -- lop; return 2
     elif [[ $D_ADDST_QUEUE_INSTALL_CODE =~ ^[0-9]+$ ]]; then
       d__notify -qh -- "Queue's post-install hook forces" \
@@ -604,7 +620,7 @@ d__queue_remove()
     unset D_ADDST_QUEUE_REMOVE_CODE
     d_queue_pre_remove; d__tmp=$?; unset -f d_queue_pre_remove
     if (($d__tmp)); then
-      d__notify -qh -- "Queue's pre-remove hook declares it rejected"
+      d__notify -qh -- "Queue's pre-remove hook declares queue rejected"
       d__context -- lop; return 2
     elif [[ $D_ADDST_QUEUE_REMOVE_CODE =~ ^[0-9]+$ ]]; then
       d__notify -qh -- "Queue's pre-remove hook forces" \
@@ -746,7 +762,7 @@ d__queue_remove()
     # Run item pre-processing, if implemented
     unset D_ADDST_ITEM_FLAGS; d__qertc=0 d__qeh=false; d_item_pre_remove
     if (($?)); then
-      d__notify -qh -- "Queue item's pre-remove hook declares it rejected"
+      d__notify -qh -- "Queue item's pre-remove hook declares item rejected"
       d__qertc=2 d__qeh=true
     elif [[ $D_ADDST_ITEM_REMOVE_CODE =~ ^[0-9]+$ ]]; then
       d__notify -qh -- "Queue item's pre-remove hook forces" \
@@ -776,7 +792,7 @@ d__queue_remove()
     if ! $d__qeh; then unset D_ADDST_ITEM_FLAGS
       D__ITEM_INSTALL_CODE="$d__qertc"; d_item_post_remove
       if (($?)); then
-        d__notify -qh -- "Queue item's post-remove hook declares it rejected" \
+        d__notify -qh -- "Queue item's post-remove hook declares item rejected" \
           "instead of actual code '$d__qertc'"
         d__qertc=2
       elif [[ $D_ADDST_ITEM_REMOVE_CODE =~ ^[0-9]+$ ]]; then
@@ -857,7 +873,7 @@ d__queue_remove()
     unset D_ADDST_QUEUE_REMOVE_CODE; D__QUEUE_REMOVE_CODE="$d__qrtc"
     d_queue_post_remove; d__tmp=$?; unset -f d_queue_post_remove
     if (($d__tmp)); then
-      d__notify -qh -- "Queue's post-remove hook declares it rejected"
+      d__notify -qh -- "Queue's post-remove hook declares queue rejected"
       d__context -- lop; return 2
     elif [[ $D_ADDST_QUEUE_REMOVE_CODE =~ ^[0-9]+$ ]]; then
       d__notify -qh -- "Queue's post-remove hook forces" \
