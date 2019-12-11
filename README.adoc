@@ -1,8 +1,8 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revdate: 2019.12.08
-:revremark: Clear release notes; kick off 3.2.0+dev
+:revdate: 2019.12.11
+:revremark: Describe new queue/mltsk add-statuses
 :doctype: article
 // Visual
 :toc: macro
@@ -2502,6 +2502,13 @@ No further tasks will be processed.
 If set during the `check` phase, the `install`/`remove` phase will still commence for the tasks that have been checked before the halting.
 
 | +++<p align="center">+++
+`*D_ADDST_MLTSK_IRRELEVANT*`
++++</p>+++
+
+If set to `true` during the `check` phase, stops all further processing of tasks and forces the <<rtc-check,check code>> of `3` ('Irrelevant or invalid').
+This add-status does not work during the `install`/`remove` phases.
+
+| +++<p align="center">+++
 *Add-statuses of pre- and post- multitask <<mltsk-hooks,hooks>>*
 +++<br>+++
 `*D_ADDST_MLTSK_CHECK_CODE*`,
@@ -2756,6 +2763,13 @@ If set to `true`, forces halting of the current <<queues,queue>>.
 No further queue items will be processed.
 
 If set during the `check` phase, the `install`/`remove` phase will still commence for the queue items that have been checked before the halting.
+
+| +++<p align="center">+++
+`*D_ADDST_QUEUE_IRRELEVANT*`
++++</p>+++
+
+If set to `true` during the `check` phase, stops all further processing of that queue section and forces the <<rtc-check,check code>> of `3` ('Irrelevant or invalid').
+This add-status does not work during the `install`/`remove` phases.
 
 | +++<p align="center">+++
 *Add-statuses of pre- and post- queue <<queue-hooks,hooks>>*
