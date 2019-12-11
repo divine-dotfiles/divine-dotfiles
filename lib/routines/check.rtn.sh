@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.12.11
-#:revremark:    Extract plg primary handlers to their own util
+#:revremark:    Implement pkg-queue
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
@@ -33,6 +33,7 @@ d__load helper queue
 d__load helper link-queue
 d__load helper copy-queue
 d__load helper gh-queue
+d__load helper pkg-queue
 d__load helper inject
 
 #>  d__rtn_check
