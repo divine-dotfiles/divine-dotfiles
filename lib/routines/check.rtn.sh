@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: check
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.30
-#:revremark:    Rewrite all Github references to point to new repo location
+#:revdate:      2019.12.11
+#:revremark:    Implement pkg-queue
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
@@ -15,6 +15,11 @@
 
 # Marker and dependencies
 readonly D__RTN_CHECK=loaded
+d__load procedure prep-stash
+d__load procedure offer-gh
+d__load procedure check-gh
+d__load procedure sync-bundles
+d__load procedure assemble
 d__load util workflow
 d__load util stash
 d__load util offer
@@ -22,17 +27,14 @@ d__load util git
 d__load util backup
 d__load util assets
 d__load util items
+d__load util pkg
 d__load helper multitask
 d__load helper queue
 d__load helper link-queue
 d__load helper copy-queue
 d__load helper gh-queue
+d__load helper pkg-queue
 d__load helper inject
-d__load procedure prep-stash
-d__load procedure offer-gh
-d__load procedure check-gh
-d__load procedure sync-bundles
-d__load procedure assemble
 
 #>  d__rtn_check
 #
@@ -129,7 +131,8 @@ d___check_pkgs()
 
     ## Print a separating empty line; compose task name. Note: in check routine 
     #. package flags are effectively ignored
-    printf >&2 '\n'; d__plq="$d__prtys Package '$BOLD$d__pkg_n$NORMAL'"
+    printf >&2 '\n'
+    d__plq="$d__prtys Package '$BOLD$d__pkg_n$NORMAL'"
 
     # Early exit for dry runs
     if [ "$D__OPT_ANSWER" = false ]; then
@@ -137,43 +140,7 @@ d___check_pkgs()
     fi
 
     # Perform check
-    if d__os_pkgmgr check $d__pkg_n; then
-      if d__stash -rs -- has "pkg_$( d__md5 -s $d__pkg_n )" \
-        || d__stash -rs -- has installed_utils "$d__pkg_n"
-      then
-        # Installed with stash record
-        printf >&2 '%s %s\n' "$D__INTRO_CHK_1" "$d__plq"
-      else
-        # Installed without stash record
-        printf >&2 '%s %s\n' "$D__INTRO_CHK_7" "$d__plq"
-      fi
-    elif type -P -- $d__pkg_n &>/dev/null; then
-      if d__stash -rs -- has "pkg_$( d__md5 -s $d__pkg_n )" \
-        || d__stash -rs -- has installed_utils "$d__pkg_n"
-      then
-        # Installed without package manager, somehow there is a stash record
-        d__notify -lx -- "Package '$d__pkg_n' is recorded" \
-          "as previously installed via '$D__OS_PKGMGR'" \
-          -n- 'but it now appears to be installed by other means'
-        printf >&2 '%s %s\n' "$D__INTRO_CHK_6" "$d__plq"
-      else
-        # Installed without package manager, no stash record
-        d__notify -qq -- "Package '$d__pkg_n' appears to be installed" \
-          "by means other than '$D__OS_PKGMGR'"
-        printf >&2 '%s %s\n' "$D__INTRO_CHK_7" "$d__plq"
-      fi
-    else
-      if d__stash -rs -- has "pkg_$( d__md5 -s $d__pkg_n )"; then
-        # Not installed, but stash record exists
-        printf >&2 '%s %s\n' "$D__INTRO_CHK_6" "$d__plq"
-      elif ! d__os_pkgmgr has $d__pkg_n; then
-        # Not available in package manager at all
-        printf >&2 '%s %s\n' "$D__INTRO_NOTAV" "$d__plq"
-      else
-        # Not installed, no stash record
-        printf >&2 '%s %s\n' "$D__INTRO_CHK_2" "$d__plq"
-      fi
-    fi
+    d__pkg_check --plaque-text "$d__plq" -- "$d__pkg_n"
 
   # Done iterating over package names
   done

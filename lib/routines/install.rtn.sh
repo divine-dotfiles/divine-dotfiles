@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: install
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.30
-#:revremark:    Rewrite all Github references to point to new repo location
+#:revdate:      2019.12.11
+#:revremark:    Implement pkg-queue
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
@@ -15,6 +15,11 @@
 
 # Marker and dependencies
 readonly D__RTN_INSTALL=loaded
+d__load procedure prep-stash
+d__load procedure offer-gh
+d__load procedure check-gh
+d__load procedure sync-bundles
+d__load procedure assemble
 d__load util workflow
 d__load util stash
 d__load util offer
@@ -22,17 +27,14 @@ d__load util git
 d__load util backup
 d__load util assets
 d__load util items
+d__load util pkg
 d__load helper multitask
 d__load helper queue
 d__load helper link-queue
 d__load helper copy-queue
 d__load helper gh-queue
+d__load helper pkg-queue
 d__load helper inject
-d__load procedure prep-stash
-d__load procedure offer-gh
-d__load procedure check-gh
-d__load procedure sync-bundles
-d__load procedure assemble
 
 #>  d__rtn_install
 #
@@ -153,7 +155,7 @@ d___install_pkgs()
 
   # Storage variables
   local d__plq d__pkga_n d__pkga_b d__pkga_f d__pkg_n d__pkg_b d__pkg_f d__i
-  local d__aamd d__frcd d__shi d__shs d__msg d__pstt=
+  local d__aamd d__frcd d__shi d__shs d__msg
 
   # Split package names on newline
   IFS=$'\n' read -r -d '' -a d__pkga_n <<<"${D__WKLD_PKGS[$d__prty]}"
@@ -165,19 +167,9 @@ d___install_pkgs()
   # Iterate over package names
   for ((d__i=0;d__i<${#d__pkga_n[@]};++d__i)); do
 
-    # Process status from previous iteration; set default value
-    case $d__pstt in
-      0)  d__anys=true;;
-      1)  d__notify -qq -- 'Recorded failure to install'
-          d__anyf=true;;
-      2)  d__notify -qq -- 'Recorded refusal to install'
-          d__anyn=true;;
-      *)  :;;
-    esac
-    d__pstt=1
-
     # Print a separating empty line; extract pkg name; compose task name
-    printf >&2 '\n'; d__pkg_n="${d__pkga_n[$d__i]}"
+    printf >&2 '\n'
+    d__pkg_n="${d__pkga_n[$d__i]}"
     d__plq="$d__prtys Package '$BOLD$d__pkg_n$NORMAL'"
 
     # Early exit for dry runs
@@ -185,170 +177,22 @@ d___install_pkgs()
       printf >&2 '%s %s\n' "$D__INTRO_INS_S" "$d__plq"; continue
     fi
 
-    # Print intro
-    printf >&2 '%s %s\n' "$D__INTRO_INS_N" "$d__plq"
-
     # Extract the rest of the data
     d__pkg_b="${d__pkga_b[$d__i]}"
     d__pkg_f=; [ "$d__pkg_b" = 1 ] && d__pkg_f="${d__pkga_f[$d__i]}"
 
-    # Pre-set default statuses
-    d__frcd=false d__shi=false d__shs=false
-
-    # Perform check prior to processing
-    if d__os_pkgmgr check $d__pkg_n; then
-      if d__stash -rs -- has "pkg_$( d__md5 -s $d__pkg_n )"; then
-        # Installed with stash record
-        printf >&2 '%s %s\n' "$D__INTRO_INS_A" "$d__plq"
-        d__pstt=0
-        continue
-      elif d__stash -rs -- has installed_utils "$d__pkg_n"; then
-        # Installed through offer
-        d__msg="Package '$d__pkg_n' appears to be "
-        d__msg+="already installed by $D__FMWK_NAME itself"
-        if $D__OPT_FORCE; then d__notify -l! -- "$d__msg"
-          d__frcd=true d__shs=true
-        else d__notify -q! -- "$d__msg"
-          d__notify -q! -- 'Re-try with --force to overcome'
-          printf >&2 '%s %s\n' "$D__INTRO_INS_A" "$d__plq"
-          d__pstt=0
-          continue
-        fi
-      else
-        # Installed without stash record
-        d__msg="Package '$d__pkg_n' appears to be already installed"
-        if $D__OPT_FORCE; then d__notify -l! -- "$d__msg"
-          d__frcd=true d__shs=true
-        else d__notify -q! -- "$d__msg"
-          d__notify -q! -- 'Re-try with --force to overcome'
-          printf >&2 '%s %s\n' "$D__INTRO_CHK_7" "$d__plq"
-          d__pstt=0
-          continue
-        fi
-      fi
-    elif type -P -- $d__pkg_n &>/dev/null; then
-      if d__stash -rs -- has "pkg_$( d__md5 -s $d__pkg_n )"; then
-        # Installed without package manager, somehow there is a stash record
-        d__notify -lx -- "Package '$d__pkg_n' is recorded" \
-          "as previously installed via '$D__OS_PKGMGR'" \
-          -n- 'but it now appears to be installed by other means'
-        if $D__OPT_FORCE; then d__frcd=true d__shi=true
-        else
-          d__notify -l! -- 'Re-try with --force to overcome'
-          printf >&2 '%s %s\n' "$D__INTRO_INS_2" "$d__plq"; continue
-        fi
-      elif d__stash -rs -- has installed_utils "$d__pkg_n"; then
-        # Installed without package manager, somehow there is an offer record
-        d__notify -lx -- "Package '$d__pkg_n' is recorded" \
-          "as previously installed by $D__FMWK_NAME itself" \
-          -n- 'but it now appears to be installed by other means'
-        if $D__OPT_FORCE; then d__frcd=true d__shi=true d__shs=true
-        else
-          d__notify -l! -- 'Re-try with --force to overcome'
-          printf >&2 '%s %s\n' "$D__INTRO_INS_2" "$d__plq"; continue
-        fi
-      else
-        # Installed without package manager, no stash record
-        d__msg="Package '$d__pkg_n' appears to be installed "
-        d__msg+="by means other than '$D__OS_PKGMGR'"
-        if $D__OPT_FORCE; then d__notify -l! -- "$d__msg"
-          d__frcd=true d__shi=true d__shs=true
-        else d__notify -q! -- "$d__msg"
-          d__notify -q! -- 'Re-try with --force to overcome'
-          printf >&2 '%s %s\n' "$D__INTRO_CHK_7" "$d__plq"
-          d__pstt=0
-          continue
-        fi
-      fi
-    else
-      if d__stash -rs -- has "pkg_$( d__md5 -s $d__pkg_n )"; then
-        # Not installed, but stash record exists
-        d__notify -lx -- \
-          "Package '$d__pkg_n' is recorded as previously installed" \
-          -n- "but does ${BOLD}not$NORMAL appear to be installed right now" \
-          -n- '(which may be due to manual tinkering)'
-        if $D__OPT_FORCE; then d__frcd=true d__shi=true
-        else
-          d__notify -l! -- 'Re-try with --force to overcome'
-          printf >&2 '%s %s\n' "$D__INTRO_INS_2" "$d__plq"; continue
-        fi
-      elif d__stash -rs -- has installed_utils "$d__pkg_n"; then
-        # Not installed, but offer record exists
-        d__notify -lx -- \
-          "Package '$d__pkg_n' is recorded as previously installed" \
-          "by $D__FMWK_NAME itself" \
-          -n- "but does ${BOLD}not$NORMAL appear to be installed right now" \
-          -n- '(which may be due to manual tinkering)'
-        if $D__OPT_FORCE; then d__frcd=true d__shi=true d__shs=true
-        else
-          d__notify -l! -- 'Re-try with --force to overcome'
-          printf >&2 '%s %s\n' "$D__INTRO_INS_2" "$d__plq"; continue
-        fi
-      else
-        # Not installed, no stash record
-        d__shi=true d__shs=true
-      fi
-    fi
-
-    # Check whether that particular package is available in package manager
-    if ! d__os_pkgmgr has $d__pkg_n; then
-      d__notify -qs -- \
-        "Package '$d__pkg_n' is currently not available from '$D__OS_PKGMGR'"
-      printf >&2 '%s %s\n' "$D__INTRO_NOTAV" "$d__plq"
-      d__pstt=2
-      continue
-    fi
-
-    # Settle on always-ask mode; if forcing, print force intro
-    d__aamd=false; case $d__pkg_f in *[ai]*) d__aamd=true;; esac
-    if $d__frcd; then printf >&2 '%s %s\n' "$D__INTRO_INS_F" "$d__plq"; fi
-
-    # Conditionally prompt for user's approval
-    if $d__aamd || $d__frcd || [ "$D__OPT_ANSWER" != true ]; then
-      if $d__aamd || $d__frcd; then printf >&2 '%s ' "$D__INTRO_CNF_U"
-      else printf >&2 '%s ' "$D__INTRO_CNF_N"; fi
-      if ! d__prompt -b; then
-        printf >&2 '%s %s\n' "$D__INTRO_INS_S" "$d__plq"
-        d__pstt=2
-        continue
-      fi
-    fi
-
-    # Launch OS package manager
-    if $d__shi; then
-      d__os_pkgmgr install $d__pkg_n
-      if (($?)); then
-        d__notify -lx -- 'Package manager returned an error code' \
-          "while installing package '$d__pkg_n'"
-        printf >&2 '%s %s\n' "$D__INTRO_INS_1" "$d__plq"; continue
-      fi
-    fi
-
-    # Set stash record
-    if $d__shs; then
-      d__stash -rs -- set "pkg_$( d__md5 -s $d__pkg_n )"
-      if (($?)); then
-        d__notify -lx -- "Failed to set stash record for package '$d__pkg_n'"
-        printf >&2 '%s %s\n' "$D__INTRO_INS_1" "$d__plq"; continue
-      fi
-    fi
-
-    # Report
-    d__pstt=0
-    printf >&2 '%s %s\n' "$D__INTRO_INS_0" "$d__plq"
+    d__pkg_install --flags "$d__pkg_f" --plaque-text "$d__plq" -- "$d__pkg_n"
+    case $? in
+      0)  d__anys=true;;
+      1)  d__notify -qq -- 'Recorded failure to install'
+          d__anyf=true;;
+      2)  d__notify -qq -- 'Recorded refusal to install'
+          d__anyn=true;;
+      *)  :;;
+    esac
 
   # Done iterating over package names
   done
-
-  # Process last status
-  case $d__pstt in
-    0)  d__anys=true;;
-    1)  d__notify -qq -- 'Recorded failure to install'
-        d__anyf=true;;
-    2)  d__notify -qq -- 'Recorded refusal to install'
-        d__anyn=true;;
-    *)  :;;
-  esac
 
   # Always return zero
   return 0
