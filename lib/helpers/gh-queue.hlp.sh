@@ -2,8 +2,8 @@
 #:title:        Divine Bash deployment helpers: gh-queue
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.12.03
-#:revremark:    Support dead symlinks with spec queues
+#:revdate:      2019.12.11
+#:revremark:    Re-arrange dependencies in spec queue helpers
 #:created_at:   2019.10.10
 
 ## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
@@ -16,10 +16,9 @@
 
 # Marker and dependencies
 readonly D__HLP_GH_QUEUE=loaded
-d__load util workflow
-d__load procedure detect-os
 d__load procedure prep-md5
 d__load procedure check-gh
+d__load util workflow
 d__load util stash
 d__load util git
 
