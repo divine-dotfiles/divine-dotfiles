@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.12.11
-#:revremark:    Fix syntax error in pkg utils
+#:revremark:    Fix another syntax error in pkg utils
 #:created_at:   2019.12.11
 
 ## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
@@ -214,7 +214,7 @@ d__pkg_install()
           '') :;;
           -*) :;;
           *)  for ((ii=1;ii<${#arg};++ii)); do case ${arg:ii:1} in
-                f)  if (($#)); then pkg_flags="$1"; shift; fi
+                f)  if (($#)); then pkg_flags="$1"; shift; fi;;
                 t)  if (($#)); then
                       print_plaque=true plaque_txt="$1"
                       shift
@@ -465,7 +465,7 @@ d__pkg_remove()
           '') :;;
           -*) :;;
           *)  for ((ii=1;ii<${#arg};++ii)); do case ${arg:ii:1} in
-                f)  if (($#)); then pkg_flags="$1"; shift; fi
+                f)  if (($#)); then pkg_flags="$1"; shift; fi;;
                 t)  if (($#)); then
                       print_plaque=true plaque_txt="$1"
                       shift
