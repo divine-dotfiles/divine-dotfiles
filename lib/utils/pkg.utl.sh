@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.12.11
-#:revremark:    Extract plg primary handlers to their own util
+#:revremark:    Fix syntax error in pkg utils
 #:created_at:   2019.12.11
 
 ## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
@@ -203,7 +203,7 @@ d__pkg_install()
   while (($#)); do arg="$1"; shift; case $arg in
     -*) case ${arg:1} in
           -)  args+=("$@"); break;;
-          -f|-flags) if (($#)); then pkg_flags="$1"; shift; fi
+          -f|-flags) if (($#)); then pkg_flags="$1"; shift; fi;;
           -t|-plaque-text)  if (($#)); then
                               print_plaque=true plaque_txt="$1"
                               shift
@@ -454,7 +454,7 @@ d__pkg_remove()
   while (($#)); do arg="$1"; shift; case $arg in
     -*) case ${arg:1} in
           -)  args+=("$@"); break;;
-          -f|-flags) if (($#)); then pkg_flags="$1"; shift; fi
+          -f|-flags) if (($#)); then pkg_flags="$1"; shift; fi;;
           -t|-plaque-text)  if (($#)); then
                               print_plaque=true plaque_txt="$1"
                               shift
