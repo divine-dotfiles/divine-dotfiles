@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.12.12
-#:revremark:    Make stash skip checks by default
+#:revremark:    Remove stash checks options from public descriptions
 #:created_at:   2019.05.15
 
 ## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
@@ -22,7 +22,7 @@ d__load procedure prep-sys
 d__load util workflow
 d__load procedure prep-md5
 
-#>  d__stash [-drgsq] [--] [ CMD [ KEY [VALUE] ] ]
+#>  d__stash [-cdrgsq] [--] [ CMD [ KEY [VALUE] ] ]
 #
 ## Main interface into the stash, be that on deployment, root, or Grail level. 
 #. Dispatches task based on first non-opt argument.
