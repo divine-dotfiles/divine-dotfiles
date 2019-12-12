@@ -2,8 +2,8 @@
 #:title:        Divine Bash utils: stash
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.30
-#:revremark:    Rewrite all Github references to point to new repo location
+#:revdate:      2019.12.12
+#:revremark:    Make stash skip checks by default
 #:created_at:   2019.05.15
 
 ## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
@@ -57,15 +57,15 @@ d__load procedure prep-md5
 #.  clear             - Erases all stash records completely.
 #
 ## Options:
-#.  -s|--skip-checks  - Normally, pre-flight stash readiness checks are run for 
-#.                      every CMD. This option directs to skip most checks. If 
-#.                      this function is invoked multiple times in the same 
-#.                      context, it is advisable to include this option in all 
-#.                      but the very first call.
-#.  -q|--quiet        - Slightly decreases the amount of error messages that 
-#.                      are always printed, regardless of global verbosity. 
-#.                      This is intended to be added to readiness checks in 
-#.                      cases where not using stash is also a viable option.
+#.  -c|--do-checks    - Runs pre-flight stash readiness checks. These checks 
+#.                      are automatically run by the framework for every 
+#.                      deployment, so there is practically no need to use this 
+#.                      option manually.
+#.  -s|--skip-checks  - (default) This option directs to skip most pre-flight 
+#.                      readiness checks.
+#.  -q|--quiet        - Makes stash errors (including critical ones) much less 
+#.                      visible in the debug output. This is intended for cases 
+#.                      when not using stash is also a viable option.
 #
 ## Stash level (one is active at a time, last option wins):
 #.  -d|--dpl    - (default) Use deployment stash. Deployment stash is stored 
@@ -91,22 +91,26 @@ d__stash()
 {
   # Parse options
   local args=() arg opt i
-  local stash_level=d do_checks=true quiet=false
+  local stash_level=d  # stash level option container
+  local opt_checks=false  # checks option container
+  local opt_qt=false  # verbosity option container
   while (($#)); do arg="$1"; shift; case $arg in
     -*) case ${arg:1} in
           -)              args+=("$@"); break;;
           d|-dpl)         stash_level=d;;
           r|-root)        stash_level=r;;
           g|-grail)       stash_level=g;;
-          s|-skip-checks) do_checks=false;;
-          q|-quiet)       quiet=true;;
+          c|-do-checks)   opt_checks=true;;
+          s|-skip-checks) opt_checks=false;;
+          q|-quiet)       opt_qt=true;;
           *)  for ((i=1;i<${#arg};++i)); do opt="${arg:i:1}"
                 case $opt in
                   d)  stash_level=d;;
                   r)  stash_level=r;;
                   g)  stash_level=g;;
-                  s)  do_checks=false;;
-                  q)  quiet=true;;
+                  c)  opt_checks=true;;
+                  s)  opt_checks=false;;
+                  q)  opt_qt=true;;
                   *)  d__notify -l!t "$FUNCNAME" -- \
                         "Ignoring unrecognized option: '$opt'";;
                 esac
@@ -116,34 +120,45 @@ d__stash()
   esac; done; set -- "${args[@]}"
 
   # Initialize local variables
-  local stash_filepath stash_md5_filepath stash_intro='Stash'
+  local stash_filepath  # path to file with stash records
+  local stash_md5_filepath  # path to file with stash checksum
+  local arg_task=ready  # name of stashing task to perform (1st arg)
+  local arg_key; unset arg_key  # stash key (2nd arg)
+  local arg_val; unset arg_val  # stash value (3rd arg)
 
-  # Options for d__notify
-  $quiet && quiet='-qq' || quiet='-lx'
+  # Sort out options for debug and error output
+  local out_opts  # options for debug output
+  local err_opts  # options for error output
+  case $stash_level in
+    r)  out_opts="t 'Root stash'";;
+    g)  out_opts="t 'Grail stash'";;
+    *)  out_opts="t 'Dpl stash'";;
+  esac
+  $opt_qt && err_opts="-qq$out_opts" || err_opts="-lx$out_opts"
+  out_opts="-qqq$out_opts"
+
+  # Extract arguments
+  if (($#)); then arg_task="$1"; shift; fi
+  if (($#)); then arg_key="$1"; shift; fi
+  if (($#)); then arg_val="$1"; shift; fi
 
   # Run pre-flight checks
+  [ "$arg_task" = ready ] && opt_checks=true
   d___check_stashing_system || return 2
 
-  # Extract task name, or quick return
-  if (($#)); then local task="$1"; shift; else return 0; fi
-
-  # Extract key and value, if they are given, or ensure the variable is unset
-  if (($#)); then local dkey="$1"; shift; else unset dkey; fi
-  if (($#)); then local dvalue="$1"; shift; else unset dvalue; fi
-
   # Dispatch appropriate task
-  case $task in
+  case $arg_task in
     ready)      :;;
-    has)        d__validate_stash_key "$dkey" && d___stash_has;;
-    set)        d__validate_stash_key "$dkey" && d___stash_set;;
-    add)        d__validate_stash_key "$dkey" && d___stash_add;;
-    get)        d__validate_stash_key "$dkey" && d___stash_get;;
-    list)       d__validate_stash_key "$dkey" && d___stash_list;;
-    unset)      d__validate_stash_key "$dkey" && d___stash_unset;;
+    has)        d___validate_stash_key "$arg_key" && d___stash_has;;
+    set)        d___validate_stash_key "$arg_key" && d___stash_set;;
+    add)        d___validate_stash_key "$arg_key" && d___stash_add;;
+    get)        d___validate_stash_key "$arg_key" && d___stash_get;;
+    list)       d___validate_stash_key "$arg_key" && d___stash_list;;
+    unset)      d___validate_stash_key "$arg_key" && d___stash_unset;;
     list-keys)  d___stash_list_keys;;
     clear)      d___stash_clear;;
-    *)          d__notify -lxt "${FUNCNAME}" \
-                  "Refusing to work with unrecognized routine: '$task'"
+    *)          d__notify $err_opts -- \
+                  "Refusing to work with unrecognized routine: '$arg_task'"
                 return 3
                 ;;
   esac
@@ -152,40 +167,48 @@ d__stash()
   return $?
 }
 
-#>  d__validate_stash_key KEY
+#>  d___validate_stash_key KEY
+#
+## INTERNAL USE ONLY
 #
 ## Checks if KEY is safe for stashing. Practically, it means ensuring that key 
 #. consists of allowed characters only: ASCII letters (both cases) and digits, 
 #. underscore '_', and hyphen '-'.
 #
+## In:
+#>  $arg_key
+#>  $err_opts
+#
 ## Returns:
 #.  0 - Key is acceptable.
 #.  1 - Otherwise.
 #
-d__validate_stash_key()
+d___validate_stash_key()
 {
-  (($#)) || d__notify -lxt "${FUNCNAME}" 'Called without arguments'
-  if [ -z "$1" ]; then
-    d__notify -lxt "${FUNCNAME}" 'Empty stash key' 'The key must be non-empty'
-  elif ! [[ $1 =~ ^[a-zA-Z0-9_-]+$ ]]; then
-    d__notify -lxt "${FUNCNAME}" "Illegal stash key: '$1'" \
+  if [ -z "$arg_key" ]; then
+    d__notify $err_opts -- 'Empty stash key given; must be non-empty'
+    return 1
+  elif ! [[ $arg_key =~ ^[a-zA-Z0-9_-]+$ ]]; then
+    d__notify $err_opts -- "Illegal stash key: '$arg_key'" -n- \
       "Allowed characters: alphanumeric chars, underscore'_', and hyphen '-'"
-  else return 0; fi
-  return 1
+    return 1
+  fi
+  return 0
 }
 
 #>  d___stash_has
 #
 ## INTERNAL USE ONLY
 #
-## Checks whether $dkey is currently set to any value, including empty string.
-#. If $dvalue is given, checks if there is at least one occurrence of $dkey set 
-#. to $dvalue. Key is assumed to be validated.
+## Checks whether $arg_key is currently set to any value, including empty 
+#. string. If $arg_val is given, checks if there is at least one occurrence of 
+#. $arg_key set to $arg_val. Key is assumed to be validated.
 #
 ## In:
-#>  $dkey
-#>  $dvalue
+#>  $arg_key
+#>  $arg_val
 #>  $stash_filepath
+#>  $out_opts
 #
 ## Returns:
 #.  0 - Value not given:  key is present
@@ -195,13 +218,13 @@ d__validate_stash_key()
 d___stash_has()
 {
   # Fork depending on whether a value is given
-  if [ -z "${dvalue+isset}" ]; then
-    d__notify -qqqt "$stash_intro" -- "Checking for key '$dkey'"
-    grep -q ^"$dkey"= -- "$stash_filepath" &>/dev/null || return 1
+  if [ -z "${arg_val+isset}" ]; then
+    d__notify $out_opts -- "Checking for key '$arg_key'"
+    grep -q ^"$arg_key"= -- "$stash_filepath" &>/dev/null || return 1
   else
-    d__notify -qqqt "$stash_intro" -- \
-      "Checking for key '$dkey' with value '$dvalue'"
-    grep -Fxq "$dkey=$dvalue" -- "$stash_filepath" &>/dev/null || return 1
+    d__notify $out_opts -- \
+      "Checking for key '$arg_key' with value '$arg_val'"
+    grep -Fxq "$arg_key=$arg_val" -- "$stash_filepath" &>/dev/null || return 1
   fi
 }
 
@@ -209,14 +232,16 @@ d___stash_has()
 #
 ## INTERNAL USE ONLY
 #
-## Ensures there is a single instance of $dkey, and that it is set to $dvalue, 
+## Ensures there is a single instance of $arg_key, and that it is set to $arg_val, 
 #. even if the value is empty.
 #
 ## In:
-#>  $dkey
-#>  $dvalue
+#>  $arg_key
+#>  $arg_val
 #>  $stash_filepath
 #>  $stash_md5_filepath
+#>  $out_opts
+#>  $err_opts
 #
 ## Returns:
 #.  0 - Task performed successfully
@@ -225,72 +250,57 @@ d___stash_has()
 d___stash_set()
 {
   # Announce
-  d__notify -qqqt "$stash_intro" -- "Setting key '$dkey' to value '$dvalue'"
-
-  # Storage variables
-  local temp=$(mktemp) line found=false should_replace=false
+  d__notify $out_opts -- "Setting key '$arg_key' to value '$arg_val'"
+  local tmp_file=$(mktemp)  # buffer for building new stash file
+  local line_buf  # buffer for holding current line
+  local alr_has=false  # flag for whether stash already contains this k-v
+  local should_replace=false  # flag for whether temp file should replace stash
 
   # Iterate over lines in current stash file
-  while read -r line; do
+  while read -r line_buf; do
 
     # Check if current line is for the required key
-    if [[ $line = "$dkey="* ]]; then
-
+    if [[ $line_buf = "$arg_key="* ]]; then
       # If already surely replacing, just skip this line
       $should_replace && continue
-
       # Check if current line sets the required value
-      if [ "$line" = "$dkey=$dvalue" ]; then
-
+      if [ "$line_buf" = "$arg_key=$arg_val" ]; then
         ## This is the required line: if not yet found, copy it to temp, 
         #. otherwise this is a duplicate, and we should replace anyway.
         #
-        if $found; then should_replace=true
-        else printf '%s\n' "$line"; found=true; fi
-
+        if $alr_has; then should_replace=true
+        else printf '%s\n' "$line_buf"; alr_has=true; fi
       else
-
         # This key is set to the wrong value: skip line and set flag
         should_replace=true
-
       fi
-
     else
-
       # Regular line, with different key: copy to temp
-      printf '%s\n' "$line"
-
+      printf '%s\n' "$line_buf"
     fi
 
-  done <"$stash_filepath" >$temp
+  done <"$stash_filepath" >$tmp_file
 
   # Check if required key-value has been found and copied to temp file
-  if ! $found; then
-  
+  if ! $alr_has; then
     # Not found: append manually and set flag
-    printf '%s\n' "$dkey=$dvalue" >>$temp
+    printf '%s\n' "$arg_key=$arg_val" >>$tmp_file
     should_replace=true
-  
   fi
 
   # Check if assembled temp file needs to replace the original
   if $should_replace; then
-
     # Move temp to location of stash file
-    if ! mv -f -- $temp "$stash_filepath"; then
-      d__notify -lx -- "Failed to move temp file from: $temp" \
-        "to: $stash_filepath" 'while setting keys'
+    if ! mv -f -- $tmp_file "$stash_filepath"; then
+      d__notify $err_opts -- "Failed to move temp file from: $tmp_file" \
+        -n- "to: $stash_filepath" -n- 'while setting keys'
       return 1
     fi
-
     # Update stash file checksum and return zero always
     d___stash_store_md5; return 0
-
   else
-
     # If there is no need for replacing, erase the temp file and return zero
-    rm -f -- $temp; return 0
-
+    rm -f -- $tmp_file; return 0
   fi
 }
 
@@ -298,14 +308,16 @@ d___stash_set()
 #
 ## INTERNAL USE ONLY
 #
-## Adds new occurrence of $dkey and sets it to $dvalue, even if the value is 
+## Adds new occurrence of $arg_key and sets it to $arg_val, even if the value is 
 #. empty.
 #
 ## In:
-#>  $dkey
-#>  $dvalue
+#>  $arg_key
+#>  $arg_val
 #>  $stash_filepath
 #>  $stash_md5_filepath
+#>  $out_opts
+#>  $err_opts
 #
 ## Returns:
 #.  0 - Task performed successfully
@@ -314,12 +326,12 @@ d___stash_set()
 d___stash_add()
 {
   # Announce
-  d__notify -qqqt "$stash_intro" -- "Adding to key '$dkey' value '$dvalue'"
+  d__notify $out_opts -- "Adding to key '$arg_key' value '$arg_val'"
   
   # Append record at the end
-  if ! printf '%s\n' "$dkey=$dvalue" >>"$stash_filepath"; then
-    d__notify -lx -- "Failed to add record: $dkey=$dvalue" \
-      "in stash file at: $stash_filepath"
+  if ! printf '%s\n' "$arg_key=$arg_val" >>"$stash_filepath"; then
+    d__notify $err_opts -- "Failed to add record: '$arg_key=$arg_val'" \
+      -n- "in stash file at: $stash_filepath"
     return 1
   fi
 
@@ -331,80 +343,86 @@ d___stash_add()
 #
 ## INTERNAL USE ONLY
 #
-## Prints value of first instance of $dkey to stdout. If the value is empty, 
-#. prints empty string. If $dkey does not exist, prints nothing and returns 
+## Prints value of first instance of $arg_key to stdout. If the value is empty, 
+#. prints empty string. If $arg_key does not exist, prints nothing and returns 
 #. non-zero.
 #
 ## In:
-#>  $dkey
+#>  $arg_key
 #>  $stash_filepath
+#>  $out_opts
+#>  $err_opts
 #
 ## Returns:
-#.  0 - Instance of $dkey is found, its value is printed
-#.  1 - Otherwise: $dkey not found, or other failure
+#.  0 - Instance of $arg_key is found, its value is printed
+#.  1 - Otherwise: $arg_key not found, or other failure
 #
 d___stash_get()
 {
   # Announce
-  d__notify -qqqt "$stash_intro" -- "Retrieving value for key '$dkey'"
+  d__notify $out_opts -- "Retrieving value for key '$arg_key'"
   
-  # Search for the $dkey
-  local result="$( grep -m 1 ^"$dkey"= -- "$stash_filepath" 2>/dev/null \
+  # Search for the $arg_key
+  local result="$( grep -m 1 ^"$arg_key"= -- "$stash_filepath" 2>/dev/null \
     || exit $? )"
 
   # If grep returned non-zero, pass it along
   if (($?)); then return 1; fi
 
-  # Print the result, chopping off the '$dkey=' part from it
-  printf '%s\n' "${result#$dkey=}"
+  # Print the result, chopping off the '$arg_key=' part from it
+  printf '%s\n' "${result#$arg_key=}"
 }
 
 #>  d___stash_list
 #
 ## INTERNAL USE ONLY
 #
-## For each instance of $dkey, prints its value to its own line in stdout, even 
+## For each instance of $arg_key, prints its value to its own line in stdout, even 
 #. if the value is empty. If key does not exist prints nothing and returns 
 #. non-zero.
 #
 ## In:
-#>  $dkey
+#>  $arg_key
 #>  $stash_filepath
+#>  $out_opts
+#>  $err_opts
 #
 ## Returns:
-#.  0 - At least one instance of $dkey is found, values are printed
-#.  1 - Otherwise: $dkey not found, or other failure
+#.  0 - At least one instance of $arg_key is found, values are printed
+#.  1 - Otherwise: $arg_key not found, or other failure
 #
 d___stash_list()
 {
   # Announce
-  d__notify -qqqt "$stash_intro" -- "Listing values for key '$dkey'"
+  d__notify $out_opts -- "Listing values for key '$arg_key'"
   
   # Storage variables
-  local found=false left right
+  local match_found=false left right
 
   # Iterate over grep results, break on first '=', print the right part
   while read -r left; do
     IFS='=' read -r left right <<<"$left "
-    printf '%s\n' "${right::${#right}-1}"; found=true
-  done < <( grep ^"$dkey"= -- "$stash_filepath" 2>/dev/null )
+    printf '%s\n' "${right::${#right}-1}"; match_found=true
+  done < <( grep ^"$arg_key"= -- "$stash_filepath" 2>/dev/null )
 
   # Return based on whether at least one result was there
-  $found && return 0 || return 1
+  $match_found && return 0 || return 1
 }
 
 #>  d___stash_unset
 #
 ## INTERNAL USE ONLY
 #
-## Unsets (removes) all instances of $dkey. If $dvalue is given, unsets only 
-#. those instances of $dkey, that are currently set to $dvalue.
+## Unsets (removes) all instances of $arg_key. If $arg_val is given, unsets only 
+#. those instances of $arg_key, that are currently set to $arg_val.
 #
 ## In:
-#>  $dkey
-#>  $dvalue
+#>  $arg_key
+#>  $arg_val
 #>  $stash_filepath
 #>  $stash_md5_filepath
+#>  $out_opts
+#>  $err_opts
 #
 ## Returns:
 #.  0 - Task performed successfully.
@@ -413,32 +431,32 @@ d___stash_list()
 d___stash_unset()
 {  
   # Storage variables
-  local temp=$(mktemp) line
+  local tmp_file=$(mktemp) line_buf
 
   # Fork depending on whether a value is given
-  if [ -z "${dvalue+isset}" ]; then
+  if [ -z "${arg_val+isset}" ]; then
 
-    # No value: copy stash file, but without lines starting with '$dkey='
-    d__notify -qqqt "$stash_intro" -- "Unsetting key '$dkey'"
-    while read -r line; do
-      [[ $line = "$dkey="* ]] || printf '%s\n' "$line"
-    done <"$stash_filepath" >$temp
+    # No value: copy stash file, but without lines starting with '$arg_key='
+    d__notify $out_opts -- "Unsetting key '$arg_key'"
+    while read -r line_buf; do
+      [[ $line_buf = "$arg_key="* ]] || printf '%s\n' "$line_buf"
+    done <"$stash_filepath" >$tmp_file
 
   else
 
-    # Value given: copy stash file, but without lines '$dkey=$dvalue'
-    d__notify -qqqt "$stash_intro" -- \
-      "Unsetting key '$dkey' with value '$dvalue'"
-    while read -r line; do
-      [ "$line" = "$dkey=$dvalue" ] || printf '%s\n' "$line"
-    done <"$stash_filepath" >$temp
+    # Value given: copy stash file, but without lines '$arg_key=$arg_val'
+    d__notify $out_opts -- \
+      "Unsetting key '$arg_key' with value '$arg_val'"
+    while read -r line_buf; do
+      [ "$line_buf" = "$arg_key=$arg_val" ] || printf '%s\n' "$line_buf"
+    done <"$stash_filepath" >$tmp_file
 
   fi
 
   # Move temp to location of stash file
-  if ! mv -f -- $temp "$stash_filepath"; then
-    d__notify -lx -- "Failed to move temp file from: $temp" \
-      "to: $stash_filepath" 'while unsetting keys'
+  if ! mv -f -- $tmp_file "$stash_filepath"; then
+    d__notify $err_opts -- "Failed to move temp file from: $tmp_file" \
+      -n- "to: $stash_filepath" -n- 'while unsetting keys'
     return 1
   fi
 
@@ -455,6 +473,8 @@ d___stash_unset()
 #
 ## In:
 #>  $stash_filepath
+#>  $out_opts
+#>  $err_opts
 #
 ## Returns:
 #.  0 - Successfully printed at least one key
@@ -463,17 +483,18 @@ d___stash_unset()
 d___stash_list_keys()
 {
   # Announce
-  d__notify -qqqt "$stash_intro" -- 'Listing all keys'
+  d__notify $out_opts -- 'Listing all keys'
   
   # Storage variables
-  local found=false left right
+  local match_found=false left right
 
   # Iterate over lines in stash file, break on first '=', print the left part
-  while IFS='=' read -r left right; do printf '%s\n' "$left" && found=true
+  while IFS='=' read -r left right; do
+    printf '%s\n' "$left" && match_found=true
   done <"$stash_filepath"
 
   # Return based on results
-  $found && return 0 || return 1
+  $match_found && return 0 || return 1
 }
 
 #>  d___stash_clear
@@ -485,6 +506,8 @@ d___stash_list_keys()
 ## In:
 #>  $stash_filepath
 #>  $stash_md5_filepath
+#>  $out_opts
+#>  $err_opts
 #
 ## Returns:
 #.  0 - (always) Successfully erased
@@ -492,7 +515,7 @@ d___stash_list_keys()
 d___stash_clear()
 {
   # Announce
-  d__notify -qqt "$stash_intro" -- 'Clearing all contents'
+  d__notify $out_opts -- 'Clearing all contents'
   
   # Erase stash file
   >"$stash_filepath"
@@ -509,10 +532,10 @@ d___stash_clear()
 #
 ## In:
 #>  $stash_level
-#>  $do_checks
+#>  $opt_checks
 #>  $stash_filepath
 #>  $stash_md5_filepath
-#>  $quiet
+#>  $err_opts
 #
 ## Out:
 #<  $stash_filepath
@@ -525,14 +548,14 @@ d___stash_clear()
 d___check_stashing_system()
 {
   # Check if extended diagnostics are required, fire initial debug message
-  if $do_checks; then
+  if $opt_checks; then
 
     # Сheck for necessary variables
     case $stash_level in
       r)  if [ -n "$D__DIR_STASH" ]; then
             d__notify -qq -- 'Preparing root-level stash'
           else
-            d__notify $quiet -- \
+            d__notify $err_opts -- \
               'Root-level stash has been accessed with empty $D__DIR_STASH'
             return 1
           fi
@@ -540,7 +563,7 @@ d___check_stashing_system()
       g)  if [ -n "$D__DIR_GRAIL" ]; then
             d__notify -qq -- 'Preparing Grail-level stash'
           else
-            d__notify $quiet -- \
+            d__notify $err_opts -- \
               'Grail-level stash has been accessed with empty $D__DIR_GRAIL'
             return 1
           fi
@@ -548,12 +571,12 @@ d___check_stashing_system()
       *)  if [ -n "$D_DPL_NAME" ]; then
             d__notify -qq -- "Preparing stash for deployment '$D_DPL_NAME'"
           else
-            d__notify $quiet -- \
+            d__notify $err_opts -- \
               'Dpl-level stash has been accessed with empty $D_DPL_NAME'
             return 1
           fi
           if ! [ -n "$D__DIR_STASH" ]; then
-            d__notify $quiet -- \
+            d__notify $err_opts -- \
               'Dpl-level stash has been accessed with empty $D__DIR_STASH'
             return 1
           fi
@@ -562,7 +585,7 @@ d___check_stashing_system()
 
     # Check if name for stash file is set globally
     if ! [ -n "$D__CONST_NAME_STASHFILE" ]; then
-      d__notify $quiet -- \
+      d__notify $err_opts -- \
         'Stashing has been accessed with empty $D__CONST_NAME_STASHFILE'
       return 1
     fi
@@ -572,14 +595,15 @@ d___check_stashing_system()
   # Establish stash directory; set title of debug messages
   local stash_dirpath
   case $stash_level in
-    r)  stash_intro='Root stash'; stash_dirpath="$D__DIR_STASH";;
-    g)  stash_intro='Grail stash'; stash_dirpath="$D__DIR_GRAIL";;
-    *)  stash_intro='Dpl stash'; stash_dirpath="$D__DIR_STASH/$D_DPL_NAME";;
+    r)  stash_dirpath="$D__DIR_STASH";;
+    g)  stash_dirpath="$D__DIR_GRAIL";;
+    *)  stash_dirpath="$D__DIR_STASH/$D_DPL_NAME";;
   esac
 
   # Ensure directory for this stash exists
   if ! mkdir -p -- "$stash_dirpath"; then
-    d__notify $quiet -- "Failed to create stash directory at: $stash_dirpath"
+    d__notify $err_opts -- \
+      "Failed to create stash directory at: $stash_dirpath"
     return 1
   fi
 
@@ -588,18 +612,18 @@ d___check_stashing_system()
   stash_md5_filepath="$stash_filepath.md5"
 
   # Check if extended diagnostics are required
-  if $do_checks; then
+  if $opt_checks; then
 
     # Ensure path to stash file is not occupied by not-file
     if [ -e "$stash_filepath" -a ! -f "$stash_filepath" ]; then
-      d__notify $quiet -- \
+      d__notify $err_opts -- \
         "Stash filepath occupied by a non-file: $stash_filepath"
       return 1
     fi
 
     # Ensure path to stash md5 file is not occupied by not-file
     if [ -e "$stash_md5_filepath" -a ! -f "$stash_md5_filepath" ]; then
-      d__notify $quiet -- \
+      d__notify $err_opts -- \
         "Stash checksum filepath occupied by a non-file: $stash_md5_filepath"
       return 1
     fi
@@ -609,14 +633,14 @@ d___check_stashing_system()
 
       # Touch up a fresh empty file
       if ! touch -- "$stash_filepath"; then
-        d__notify $quiet -- \
+        d__notify $err_opts -- \
           "Failed to create fresh stash file at: $stash_filepath"
         return 1
       fi
 
       # Store md5 of empty file
       if ! d__md5 "$stash_filepath" >"$stash_md5_filepath"; then
-        d__notify $quiet -- \
+        d__notify $err_opts -- \
           "Failed to create stash checksum file at: $stash_md5_filepath"
         return 1
       fi
@@ -625,13 +649,13 @@ d___check_stashing_system()
 
     # Ensure stash file is a writable files
     if ! [ -w "$stash_filepath" ]; then
-      d__notify $quiet -- "Stash filepath is not writable: $stash_filepath"
+      d__notify $err_opts -- "Stash filepath is not writable: $stash_filepath"
       return 1
     fi
 
     # Ensure stash checksum file is a writable files
     if ! [ -w "$stash_md5_filepath" ]; then
-      d__notify $quiet -- \
+      d__notify $err_opts -- \
         "Stash checksum filepath is not writable: $stash_md5_filepath"
       return 1
     fi
@@ -664,7 +688,7 @@ d___stash_store_md5()
 {
   # Store current md5 checksum to intended file, or report error
   d__md5 "$stash_filepath" >"$stash_md5_filepath" && return 0
-  d__notify $quiet -- \
+  d__notify $err_opts -- \
     "Failed to create stash checksum file at: $stash_md5_filepath"
   return 1
 }
