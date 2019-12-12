@@ -2,8 +2,8 @@
 #:title:        Divine.dotfiles macOS adapter
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.30
-#:revremark:    Rewrite all Github references to point to new repo location
+#:revdate:      2019.12.12
+#:revremark:    Implement d flag for pkgs to remove with deps
 #:created_at:   2019.06.04
 
 ## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
@@ -47,6 +47,35 @@ d__detect_os_pkgmgr()
       remove)   brew uninstall "$2";;
       *)        return 1;;
     esac
+  }
+
+  # Implement optional d__os_pkgmgr_remove_with_deps wrapper
+  d__os_pkgmgr_remove_with_deps()
+  {
+    HOMEBREW_NO_AUTO_UPDATE=1 brew list "$1" &>/dev/null && return 0
+    local orig_leaves=()  # array of brew leaves before uninstalling
+    local new_leaves  # array of new brew leaves after uninstalling
+    local ii jj  # temp containers
+    while read -r ii; do orig_leaves+=("$ii"); done < <( brew leaves )
+    brew uninstall "$1" || return 1
+    while true; do
+      new_leaves=()
+      while read -r ii; do
+        for jj in "${orig_leaves[@]}"; do [ "$ii" = "$jj" ] && continue 2; done
+        new_leaves+=("$ii")
+      done < <( brew leaves )
+      [ ${#new_leaves[@]} -eq 0 ] && break
+      for ii in "${new_leaves[@]}"; do
+        if ! brew uninstall "$ii"; then
+          local err_msg=("Failed to uninstall dependency '$ii'")
+          err_msg+=('while uninstalling these:')
+          for jj in "${new_leaves[@]}"; do err_msg+=( -i- "- '$jj'" ); done
+          d__notify -lx -- "${err_msg[@]}"
+          return 1
+        fi
+      done
+    done
+    return 0
   }
 }
 

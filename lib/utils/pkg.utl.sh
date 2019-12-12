@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.12.12
-#:revremark:    Fix syntax error in pkg utils
+#:revremark:    Implement d flag for pkgs to remove with deps
 #:created_at:   2019.12.11
 
 ## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
@@ -521,6 +521,7 @@ d__pkg_remove()
   local will_unstash=false  # whether package's stash record will be unset
   local always_prompt_mode=false  # flag for whether to always prompt
   local mngr_only=false  # flag for whether pkg is manager-exclusive
+  local with_deps=false  # flag for whether pkg is removed with dependencies
   local temp_msg  # container for long or repeatedly used messages
 
   # Process flags
@@ -528,6 +529,7 @@ d__pkg_remove()
     *[ar]*) always_prompt_mode=true;;
   esac
   [[ $pkg_flags = *m* ]] && mngr_only=true
+  [[ $pkg_flags = *d* ]] && with_deps=true
 
   # Fork on whether the package name appears installed
   if d__os_pkgmgr check "$pkg_name"; then
@@ -659,7 +661,18 @@ d__pkg_remove()
 
   # Launch OS package manager
   if $will_remove; then
-    if ! d__os_pkgmgr remove $pkg_name; then
+    if $with_deps && ! declare -f d__os_pkgmgr_remove_with_deps &>/dev/null
+    then
+      d__notify -l! -- "Performing plain removal of package '$pkg_name'" \
+        '(removal with dependencies not supported on current OS)'
+      with_deps=false
+    fi
+    if $with_deps; then
+      d__os_pkgmgr_remove_with_deps "$pkg_name"
+    else
+      d__os_pkgmgr remove "$pkg_name"
+    fi
+    if [ $? -ne 0 ]; then
       d__notify -lx -- 'Package manager returned an error code' \
         "while removing package '$pkg_name'"
       $print_plaque && printf >&2 '%s %s\n' "$D__INTRO_RMV_1" "$plaque_txt"
