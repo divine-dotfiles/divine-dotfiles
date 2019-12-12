@@ -1,1 +1,2 @@
 * [**`feature`**] Implement a new specialized queue, pkg-queue, which performs the same tasks as the Divinefiles, but manually and via the queue helpers. Not yet documented.
+* [**`other`**] The stashing system is now automatically checked for readiness on all levels. All options regarding manual checking for stash readiness have been hidden.
