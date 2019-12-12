@@ -2,8 +2,8 @@
 #:title:        Divine Bash routine: remove
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.12.11
-#:revremark:    Implement pkg-queue
+#:revdate:      2019.12.12
+#:revremark:    Automatically check stash before sourcing deployment
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
@@ -312,6 +312,14 @@ d___remove_dpls()
       readonly D__DPL_DIR="$( dirname -- "$d__dpl_p" )"
       readonly D__DPL_ASSET_DIR="$D__DIR_ASSETS/$D_DPL_NAME"
       readonly D__DPL_BACKUP_DIR="$D__DIR_BACKUPS/$D_DPL_NAME"
+
+      # Run stash readiness checks or bail
+      if ! d__stash -- ready; then
+        d__notify -lx -- "Failed to prepare deployment's stash"
+        printf >&2 '%s %s\n' "$D__INTRO_RMV_S" "$d__plq"
+        d__notify -qqq -- 'Exiting sub-shell'
+        exit
+      fi
 
       # Process the asset manifest, if it exists
       if ! d__process_asset_manifest_of_current_dpl; then
