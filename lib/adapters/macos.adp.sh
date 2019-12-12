@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.12.12
-#:revremark:    Implement d flag for pkgs to remove with deps
+#:revremark:    Fix logic error in remove pkg with deps
 #:created_at:   2019.06.04
 
 ## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
@@ -52,7 +52,7 @@ d__detect_os_pkgmgr()
   # Implement optional d__os_pkgmgr_remove_with_deps wrapper
   d__os_pkgmgr_remove_with_deps()
   {
-    HOMEBREW_NO_AUTO_UPDATE=1 brew list "$1" &>/dev/null && return 0
+    HOMEBREW_NO_AUTO_UPDATE=1 brew list "$1" &>/dev/null || return 0
     local orig_leaves=()  # array of brew leaves before uninstalling
     local new_leaves  # array of new brew leaves after uninstalling
     local ii jj  # temp containers
