@@ -2,8 +2,8 @@
 #:title:        Divine Bash deployment helpers: reconcile
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.12.11
-#:revremark:    Implement add-status that makes queue/mltsk irrelevant
+#:revdate:      2019.12.12
+#:revremark:    Fix improper context manipulation in queues and mltsk
 #:created_at:   2019.06.18
 
 ## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
@@ -388,6 +388,7 @@ d__mltsk_install()
         if [ -z ${D__QUEUE_SECTNUM[1]+isset} ]; then D__QUEUE_SECTNUM[1]=0
         else ((++D__QUEUE_SECTNUM[1])); fi
       fi
+      d__context -- pop
       continue
     fi
 
@@ -659,6 +660,7 @@ d__mltsk_remove()
         then D__QUEUE_SECTNUM[1]=${#D__QUEUE_SPLIT_POINTS[@]}
         else ((--D__QUEUE_SECTNUM[1])); fi
       fi
+      d__context -- pop
       continue
     fi
 

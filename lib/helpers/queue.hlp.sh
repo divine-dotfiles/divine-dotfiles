@@ -2,8 +2,8 @@
 #:title:        Divine Bash deployment helpers: queue
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.12.11
-#:revremark:    Implement add-status that makes queue/mltsk irrelevant
+#:revdate:      2019.12.12
+#:revremark:    Fix improper context manipulation in queues and mltsk
 #:created_at:   2019.06.10
 
 ## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
@@ -452,7 +452,10 @@ d__queue_install()
     fi
 
     # Shared cut-off for skipping current item
-    $d__qeok || continue
+    if ! $d__qeok; then
+      d__context -- pop
+      continue
+    fi
 
     # Initialize marker var; clear add-statuses
     unset D_ADDST_QUEUE_HALT D_ADDST_HALT D_ADDST_ITEM_INSTALL_CODE
@@ -747,7 +750,10 @@ d__queue_remove()
     fi
 
     # Shared cut-off for skipping current item
-    $d__qeok || continue
+    if ! $d__qeok; then
+      d__context -- pop
+      continue
+    fi
 
     # Initialize marker var; clear add-statuses
     unset D_ADDST_QUEUE_HALT D_ADDST_HALT D_ADDST_ITEM_REMOVE_CODE

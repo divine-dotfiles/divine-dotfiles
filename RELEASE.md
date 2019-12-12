@@ -8,4 +8,5 @@ Other changes:
 
 * [**`feature`**] Implement a new specialized queue, pkg-queue, which performs the same tasks as the Divinefiles, but manually and via the queue helpers. Not yet documented.
 * [**`feature`**] Implement a new add-status for queues (`D_ADDST_QUEUE_IRRELEVANT`) and for multitasks (`D_ADDST_MLTSK_IRRELEVANT`). The purpose of this add-status is to be able to declare the whole queue/multitask irrelevant from just one member of it.
+* [**`fix`**] Properly pop context level when skipping installing/removing a queue item or a multitask's task.
 * [**`other`**] The stashing system is now automatically checked for readiness on all levels. All options regarding manual checking for stash readiness have been hidden.
