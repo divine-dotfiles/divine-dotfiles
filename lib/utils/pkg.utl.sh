@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.12.12
-#:revremark:    Implement m flag for packages
+#:revremark:    Fix syntax error in pkg utils
 #:created_at:   2019.12.11
 
 ## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
@@ -86,7 +86,7 @@ d__pkg_check()
   local pkg_name_md5="$( d__md5 -s "$pkg_name" )"  # md5 checksum of name
 
   # Pre-set variables
-  local mngr_only=fales  # flag for whether pkg is manager-exclusive
+  local mngr_only=false  # flag for whether pkg is manager-exclusive
   local temp_msg  # container for long or repeatedly used messages
 
   # Check for manager-exclusive flag
@@ -265,7 +265,7 @@ d__pkg_install()
   local will_install=false  # whether package will be installed
   local will_stash=false  # whether package's stash record will be set
   local always_prompt_mode=false  # flag for whether to always prompt
-  local mngr_only=fales  # flag for whether pkg is manager-exclusive
+  local mngr_only=false  # flag for whether pkg is manager-exclusive
   local temp_msg  # container for long or repeatedly used messages
 
   # Process flags
@@ -520,7 +520,7 @@ d__pkg_remove()
   local will_remove=false  # whether package will be removed
   local will_unstash=false  # whether package's stash record will be unset
   local always_prompt_mode=false  # flag for whether to always prompt
-  local mngr_only=fales  # flag for whether pkg is manager-exclusive
+  local mngr_only=false  # flag for whether pkg is manager-exclusive
   local temp_msg  # container for long or repeatedly used messages
 
   # Process flags
