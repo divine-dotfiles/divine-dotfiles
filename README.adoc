@@ -2,7 +2,7 @@
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
 :revdate: 2019.12.12
-:revremark: Remove stash checks options from public descriptions
+:revremark: Update README and release notes
 :doctype: article
 // Visual
 :toc: macro
@@ -2342,6 +2342,13 @@ The following flags are supported for packages.
 .List of supported package flags in Divinefiles
 [%noheader,cols="<.<a",stripes=none]
 |===
+
+| +++<p align="center">+++
+`*m*`
++++</p>+++
+
+By default, if the package is not found to be installed via the system package manager, but is nevertheless available on `$PATH`, the framework will mark it down as 'Fully installed (by user or OS)' and be done with it.
+The `*m*` flag specifies that the package should be installed exclusively via the system package manager.
 
 | +++<p align="center">+++
 `*[ir]*` _(any of the two lowercase letters)_

@@ -1,3 +1,4 @@
 * [**`feature`**] Implement a new specialized queue, pkg-queue, which performs the same tasks as the Divinefiles, but manually and via the queue helpers. Not yet documented.
+* [**`feature`**] Add a new package flag for the Divinefiles. The `*m*` flag controls whether the package should be installed exclusively via the system package manager.
 * [**`feature`**] Implement a new add-status for queues (`D_ADDST_QUEUE_IRRELEVANT`) and for multitasks (`D_ADDST_MLTSK_IRRELEVANT`). The purpose of this add-status is to be able to declare the whole queue/multitask irrelevant from just one member of it.
 * [**`other`**] The stashing system is now automatically checked for readiness on all levels. All options regarding manual checking for stash readiness have been hidden.

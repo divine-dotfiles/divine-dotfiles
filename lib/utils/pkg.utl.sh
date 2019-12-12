@@ -2,8 +2,8 @@
 #:title:        Divine Bash utils: pkg
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.12.11
-#:revremark:    Fix another syntax error in pkg utils
+#:revdate:      2019.12.12
+#:revremark:    Fix syntax error in pkg utils
 #:created_at:   2019.12.11
 
 ## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
@@ -17,9 +17,14 @@ d__load procedure prep-stash
 d__load util workflow
 d__load util stash
 
-#>  d__pkg_check [-np] [-t PLAQUE] [--] PKG
+#>  d__pkg_check [-np] [-t PLAQUE] [-f FLAGS] [--] PKG
 #
 ## Checks whether the package PKG is installed.
+#
+## Options:
+#.  -f FLAGS, --flags FLAGS
+#.                        - Passes package flags, if any.
+#
 #
 ## Plaque options (one active at a time; last one wins):
 #.  -t PLAQUE, --plaque-text PLAQUE
@@ -39,9 +44,11 @@ d__pkg_check()
   local args=() arg ii
   local print_plaque=false  # whether to print plaques describing status
   local plaque_txt; unset plaque_txt  # container for plaque text
+  local pkg_flags=  # container for package flags
   while (($#)); do arg="$1"; shift; case $arg in
     -*) case ${arg:1} in
           -)  args+=("$@"); break;;
+          -f|-flags) if (($#)); then pkg_flags="$1"; shift; fi;;
           -t|-plaque-text)  if (($#)); then
                               print_plaque=true plaque_txt="$1"
                               shift
@@ -52,6 +59,7 @@ d__pkg_check()
           '') :;;
           -*) :;;
           *)  for ((ii=1;ii<${#arg};++ii)); do case ${arg:ii:1} in
+                f)  if (($#)); then pkg_flags="$1"; shift; fi;;
                 t)  if (($#)); then
                       print_plaque=true plaque_txt="$1"
                       shift
@@ -78,7 +86,11 @@ d__pkg_check()
   local pkg_name_md5="$( d__md5 -s "$pkg_name" )"  # md5 checksum of name
 
   # Pre-set variables
+  local mngr_only=false  # flag for whether pkg is manager-exclusive
   local temp_msg  # container for long or repeatedly used messages
+
+  # Check for manager-exclusive flag
+  [[ $pkg_flags = *m* ]] && mngr_only=true
 
   # Settle on plaque text
   if $print_plaque && [ -z ${plaque_txt+isset} ]; then
@@ -101,7 +113,7 @@ d__pkg_check()
       return 7
     fi
 
-  elif type -P -- "$pkg_name" &>/dev/null; then
+  elif ! $mngr_only && type -P -- "$pkg_name" &>/dev/null; then
 
     # Installed without manager; fork on presence of stash record
     if d__stash -rs -- has "pkg_$pkg_name_md5" \
@@ -252,7 +264,15 @@ d__pkg_install()
   local pkg_forced=false  # whether package is being force-installed
   local will_install=false  # whether package will be installed
   local will_stash=false  # whether package's stash record will be set
+  local always_prompt_mode=false  # flag for whether to always prompt
+  local mngr_only=false  # flag for whether pkg is manager-exclusive
   local temp_msg  # container for long or repeatedly used messages
+
+  # Process flags
+  case $pkg_flags in
+    *[ai]*) always_prompt_mode=true;;
+  esac
+  [[ $pkg_flags = *m* ]] && mngr_only=true
 
   # Fork on whether the package name appears installed
   if d__os_pkgmgr check "$pkg_name"; then
@@ -282,7 +302,7 @@ d__pkg_install()
       fi
     fi
 
-  elif type -P -- "$pkg_name" &>/dev/null; then
+  elif ! $mngr_only && type -P -- "$pkg_name" &>/dev/null; then
 
     # Installed without manager; fork on presence of stash record
     if d__stash -rs -- has "pkg_$pkg_name_md5"; then
@@ -368,11 +388,7 @@ d__pkg_install()
     return 2
   fi
 
-  # Settle on always-ask mode; if forcing, print force intro
-  local always_prompt_mode=false
-  case $pkg_flags in
-    *[ai]*) always_prompt_mode=true;;
-  esac
+  # If forcing, print force intro
   if $pkg_forced && $print_plaque; then
     printf >&2 '%s %s\n' "$D__INTRO_INS_F" "$plaque_txt"
   fi
@@ -503,7 +519,15 @@ d__pkg_remove()
   local pkg_forced=false  # whether package is being force-removed
   local will_remove=false  # whether package will be removed
   local will_unstash=false  # whether package's stash record will be unset
+  local always_prompt_mode=false  # flag for whether to always prompt
+  local mngr_only=false  # flag for whether pkg is manager-exclusive
   local temp_msg  # container for long or repeatedly used messages
+
+  # Process flags
+  case $pkg_flags in
+    *[ar]*) always_prompt_mode=true;;
+  esac
+  [[ $pkg_flags = *m* ]] && mngr_only=true
 
   # Fork on whether the package name appears installed
   if d__os_pkgmgr check "$pkg_name"; then
@@ -531,7 +555,7 @@ d__pkg_remove()
       fi
     fi
 
-  elif type -P -- "$pkg_name" &>/dev/null; then
+  elif ! $mngr_only && type -P -- "$pkg_name" &>/dev/null; then
 
     # Installed without manager; fork on presence of stash record
     if d__stash -rs -- has "pkg_$pkg_name_md5"; then
@@ -605,11 +629,7 @@ d__pkg_remove()
       "available from '$D__OS_PKGMGR'"
   fi
 
-  # Settle on always-ask mode; if forcing, print force intro
-  always_prompt_mode=false
-  case $d__pkg_f in
-    *[ar]*) always_prompt_mode=true;;
-  esac
+  # If forcing, print force intro
   if $pkg_forced && $print_plaque; then
     printf >&2 '%s %s\n' "$D__INTRO_RMV_F" "$plaque_txt"
   fi

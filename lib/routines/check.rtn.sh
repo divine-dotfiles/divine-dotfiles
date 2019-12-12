@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.12.12
-#:revremark:    Automatically check stash before sourcing deployment
+#:revremark:    Implement m flag for packages
 #:created_at:   2019.05.14
 
 ## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
@@ -121,17 +121,21 @@ d___check_pkgs()
   [ -z ${D__WKLD_PKGS[$d__prty]+isset} ] && return 0
 
   # Storage variables
-  local d__plq d__pkga_n d__pkg_n
+  local d__plq d__pkga_n d__pkg_n d__pkga_b d__pkg_b d__pkga_f d__pkg_f d__i
 
   # Split package names on newline
   IFS=$'\n' read -r -d '' -a d__pkga_n <<<"${D__WKLD_PKGS[$d__prty]}"
+  if [ "$D__OPT_ANSWER" != false ]; then
+    IFS=$'\n' read -r -d '' -a d__pkga_b <<<"${D__WKLD_PKG_BITS[$d__prty]}"
+    IFS=$'\n' read -r -d '' -a d__pkga_f <<<"${D__WKLD_PKG_FLAGS[$d__prty]}"
+  fi
 
   # Iterate over package names
-  for d__pkg_n in "${d__pkga_n[@]}"; do
+  for ((d__i=0;d__i<${#d__pkga_n[@]};++d__i)); do
 
-    ## Print a separating empty line; compose task name. Note: in check routine 
-    #. package flags are effectively ignored
+    # Print a separating empty line; extract pkg name; compose task name
     printf >&2 '\n'
+    d__pkg_n="${d__pkga_n[$d__i]}"
     d__plq="$d__prtys Package '$BOLD$d__pkg_n$NORMAL'"
 
     # Early exit for dry runs
@@ -139,8 +143,12 @@ d___check_pkgs()
       printf >&2 '%s %s\n' "$D__INTRO_CHK_S" "$d__plq"; continue
     fi
 
+    # Extract the rest of the data
+    d__pkg_b="${d__pkga_b[$d__i]}"
+    d__pkg_f=; [ "$d__pkg_b" = 1 ] && d__pkg_f="${d__pkga_f[$d__i]}"
+
     # Perform check
-    d__pkg_check --plaque-text "$d__plq" -- "$d__pkg_n"
+    d__pkg_check --flags "$d__pkg_f" --plaque-text "$d__plq" -- "$d__pkg_n"
 
   # Done iterating over package names
   done
