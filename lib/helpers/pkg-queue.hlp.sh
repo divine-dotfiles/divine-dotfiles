@@ -3,7 +3,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.12.12
-#:revremark:    Remove erroneous continuity checks from pkg-queue helper
+#:revremark:    Implement m flag for packages
 #:created_at:   2019.12.11
 
 ## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
@@ -67,7 +67,8 @@ d__pkg_queue_pre_check()
   d__context -- pop; return $d__rtc
 }
 
-d__pkg_item_check() { d__pkg_check -- "$D__ITEM_NAME"; }
+d__pkg_item_check()
+{ d__pkg_check --flags "${D_QUEUE_FLAGS[$D__ITEM_NUM]}" -- "$D__ITEM_NAME"; }
 
 d__pkg_queue_post_check()
 {
@@ -100,7 +101,8 @@ d__pkg_queue_pre_install()
   d__context -- pop; return $d__rtc
 }
 
-d__pkg_item_install() { d__pkg_install -- "$D__ITEM_NAME"; }
+d__pkg_item_install()
+{ d__pkg_install --flags "${D_QUEUE_FLAGS[$D__ITEM_NUM]}" -- "$D__ITEM_NAME"; }
 
 d__pkg_queue_post_install()
 {
@@ -135,7 +137,8 @@ d__pkg_queue_pre_remove()
   d__context -- pop; return $d__rtc
 }
 
-d__pkg_item_remove() { d__pkg_remove -- "$D__ITEM_NAME"; }
+d__pkg_item_remove()
+{ d__pkg_remove --flags "${D_QUEUE_FLAGS[$D__ITEM_NUM]}" -- "$D__ITEM_NAME"; }
 
 d__pkg_queue_post_remove()
 {
