@@ -2,8 +2,8 @@
 #:title:        Divine Bash deployment helpers: pkg-queue
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.12.11
-#:revremark:    Implement pkg-queue
+#:revdate:      2019.12.12
+#:revremark:    Remove erroneous continuity checks from pkg-queue helper
 #:created_at:   2019.12.11
 
 ## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
@@ -53,20 +53,6 @@ d__pkg_queue_pre_check()
 {
   # Switch context
   d__context -- push 'Preparing pkg-queue for checking'
-
-  # Ensure the required arrays are continuous at the given section
-  local d__i; for ((d__i=$D__QUEUE_SECTMIN;d__i<$D__QUEUE_SECTMAX;++d__i)); do
-    if [ -z ${D_QUEUE_ASSETS[$d__i]+isset} ]; then
-      d__notify -lxht 'Pkg-queue failed' -- \
-        'Array $D_QUEUE_ASSETS is not continuous in the given section'
-      return 1
-    fi
-    if [ -z ${D_QUEUE_TARGETS[$d__i]+isset} ]; then
-      d__notify -lxht 'Pkg-queue failed' -- \
-        'Array $D_QUEUE_TARGETS is not continuous in the given section'
-      return 1
-    fi
-  done
 
   # Run queue pre-processing, if implemented
   local d__rtc=0; if declare -f d_pkg_queue_pre_check &>/dev/null
