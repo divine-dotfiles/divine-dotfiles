@@ -2,8 +2,8 @@
 #:title:        Divine Bash deployment helpers: queue
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.12.12
-#:revremark:    Fix improper context manipulation in queues and mltsk
+#:revdate:      2019.12.14
+#:revremark:    Tweak reconciliation of check codes
 #:created_at:   2019.06.10
 
 ## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
@@ -930,8 +930,8 @@ d___reconcile_item_check_codes()
         fi;;
     3)  if ${d__qss[2]} && ${d__qss[7]} && ${d__qss[8]}; then return 8; fi;;
   esac
-  if ! ( ${d__qss[0]} || ${d__qss[5]} || ${d__qss[6]} || ${d__qss[9]} )
-  then return 4; fi
+  if ${d__qss[1]} || ${d__qss[4]}; then return 4; fi
+  if ${d__qss[7]} || ${d__qss[8]}; then return 8; fi
   return 0
 }
 
