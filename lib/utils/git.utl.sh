@@ -2,8 +2,8 @@
 #:title:        Divine Bash utils: git
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.12.08
-#:revremark:    Ignore untracked when checking for dirty repo
+#:revdate:      2022.07.13
+#:revremark:    When checking Github repo existence via git, use https
 #:created_at:   2019.09.13
 
 ## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
@@ -416,7 +416,7 @@ d___pull_git_remote()
 d___gh_repo_exists()
 {
   case $D__GH_METHOD in
-    g)  git ls-remote "git://github.com/$1.git" &>/dev/null;;
+    g)  git ls-remote "https://github.com/$1.git" &>/dev/null;;
     c)  grep -q 200 < <( curl -I "https://api.github.com/repos/$1" \
           2>/dev/null | head -1 );;
     w)  grep -q 200 < <( wget -q --spider --server-response \
