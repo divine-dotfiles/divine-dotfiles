@@ -38,7 +38,7 @@ d__populate_globals()
   readonly D__FMWK_NAME='Divine.dotfiles'
 
   # Framework's displayed version
-  readonly D__FMWK_VERSION='3.2.2'
+  readonly D__FMWK_VERSION='3.2.2+dev'
   readonly D__FMWK_DEV=true
 
   # Paths to state directory
