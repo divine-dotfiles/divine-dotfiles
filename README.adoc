@@ -1,8 +1,8 @@
 = Divine.dotfiles
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revdate: 2019.12.08
-:revremark: Bump version to 3.2.0
+:revdate: 2019.12.12
+:revremark: Update README and release notes
 :doctype: article
 // Visual
 :toc: macro
@@ -332,7 +332,7 @@ The following single shell command installs the _Divine.dotfiles_ framework:
 
 [%noheader,cols="<.<a"]
 |===
-| `bash -c 'TMP=$(mktemp); URL=https://raw.github.com/divine-dotfiles/divine-dotfiles/master/lib/install/install.sh; if curl --version &>/dev/null; then curl -fsSL $URL >$TMP; elif wget --version &>/dev/null; then wget -O $TMP $URL; else printf >&2 "\n==> Error: failed to detect neither curl nor wget\n"; rm -f $TMP; exit 1; fi {vbar}{vbar} { printf >&2 "\n==> Error: failed to download installation script\n"; rm -f $TMP; exit 2; }; mv -n $TMP ~ && TMP=$HOME/$(basename $TMP) && chmod +x $TMP && $TMP "$@"; RC=$?; rm -f $TMP; \((RC)) && exit 3 {vbar}{vbar} exit 0' bash`
+| `bash -c 'TMP=$(mktemp); URL=https://raw.github.com/divine-dotfiles/divine-dotfiles/main/lib/install/install.sh; if curl --version &>/dev/null; then curl -fsSL $URL >$TMP; elif wget --version &>/dev/null; then wget -O $TMP $URL; else printf >&2 "\n==> Error: failed to detect neither curl nor wget\n"; rm -f $TMP; exit 1; fi {vbar}{vbar} { printf >&2 "\n==> Error: failed to download installation script\n"; rm -f $TMP; exit 2; }; mv -n $TMP ~ && TMP=$HOME/$(basename $TMP) && chmod +x $TMP && $TMP "$@"; RC=$?; rm -f $TMP; \((RC)) && exit 3 {vbar}{vbar} exit 0' bash`
 |===
 
 Equivalently, the framework can be installed from a local copy of this repository (located _not_ at the installation path) by running this command:
@@ -452,7 +452,7 @@ The following single shell command uninstalls the _Divine.dotfiles_ framework:
 
 [%noheader,cols="<.<a"]
 |===
-| `bash -c 'TMP=$(mktemp); URL=https://raw.github.com/divine-dotfiles/divine-dotfiles/master/lib/uninstall/uninstall.sh; if curl --version &>/dev/null; then curl -fsSL $URL >$TMP; elif wget --version &>/dev/null; then wget -O $TMP $URL; else printf >&2 "\n==> Error: failed to detect neither curl nor wget\n"; rm -f $TMP; exit 1; fi {vbar}{vbar} { printf >&2 "\n==> Error: failed to download uninstallation script\n"; rm -f $TMP; exit 2; }; mv -n $TMP ~ && TMP=$HOME/$(basename $TMP) && chmod +x $TMP && $TMP "$@"; RC=$?;rm -f $TMP; \((RC)) && exit 3 {vbar}{vbar} exit 0' bash`
+| `bash -c 'TMP=$(mktemp); URL=https://raw.github.com/divine-dotfiles/divine-dotfiles/main/lib/uninstall/uninstall.sh; if curl --version &>/dev/null; then curl -fsSL $URL >$TMP; elif wget --version &>/dev/null; then wget -O $TMP $URL; else printf >&2 "\n==> Error: failed to detect neither curl nor wget\n"; rm -f $TMP; exit 1; fi {vbar}{vbar} { printf >&2 "\n==> Error: failed to download uninstallation script\n"; rm -f $TMP; exit 2; }; mv -n $TMP ~ && TMP=$HOME/$(basename $TMP) && chmod +x $TMP && $TMP "$@"; RC=$?;rm -f $TMP; \((RC)) && exit 3 {vbar}{vbar} exit 0' bash`
 |===
 
 Equivalently, the framework can be uninstalled from a local copy of this repository (located anywhere) by running this command:
@@ -584,7 +584,7 @@ All three sub-commands *skip* the trivial <<fmwk-interactivity,prompts>> (e.g., 
 
 [%noheader,cols="<.<a"]
 |===
-| `bash -c 'TMP=$(mktemp); URL=https://raw.github.com/divine-dotfiles/divine-dotfiles/master/lib/install/install.sh; if curl --version &>/dev/null; then curl -fsSL $URL >$TMP; elif wget --version &>/dev/null; then wget -O $TMP $URL; else printf >&2 "\n==> Error: failed to detect neither curl nor wget\n"; rm -f $TMP; exit 1; fi {vbar}{vbar} { printf >&2 "\n==> Error: failed to download installation script\n"; rm -f $TMP; exit 2; }; mv -n $TMP ~ && TMP=$HOME/$(basename $TMP) && chmod +x $TMP && $TMP "$@"; RC=$?; rm -f $TMP; \((RC)) && exit 3 {vbar}{vbar} exit 0' bash --yes && ~/.divine/intervene.sh attach essentials --yes && ~/.divine/intervene.sh install --yes`
+| `bash -c 'TMP=$(mktemp); URL=https://raw.github.com/divine-dotfiles/divine-dotfiles/main/lib/install/install.sh; if curl --version &>/dev/null; then curl -fsSL $URL >$TMP; elif wget --version &>/dev/null; then wget -O $TMP $URL; else printf >&2 "\n==> Error: failed to detect neither curl nor wget\n"; rm -f $TMP; exit 1; fi {vbar}{vbar} { printf >&2 "\n==> Error: failed to download installation script\n"; rm -f $TMP; exit 2; }; mv -n $TMP ~ && TMP=$HOME/$(basename $TMP) && chmod +x $TMP && $TMP "$@"; RC=$?; rm -f $TMP; \((RC)) && exit 3 {vbar}{vbar} exit 0' bash --yes && ~/.divine/intervene.sh attach essentials --yes && ~/.divine/intervene.sh install --yes`
 |===
 
 (The *undo* command is provided in the <<fmwk-joy-ride-undo,following section>>.)
@@ -686,7 +686,7 @@ However, <<opt-obliterate,no copies>> of the framework's assets are kept.
 
 [%noheader,cols="<.<a"]
 |===
-| `~/.divine/intervene.sh remove --yes --obliterate && ~/.divine/intervene.sh detach essentials --yes && bash -c 'TMP=$(mktemp); URL=https://raw.github.com/divine-dotfiles/divine-dotfiles/master/lib/uninstall/uninstall.sh; if curl --version &>/dev/null; then curl -fsSL $URL >$TMP; elif wget --version &>/dev/null; then wget -O $TMP $URL; else printf >&2 "\n==> Error: failed to detect neither curl nor wget\n"; rm -f $TMP; exit 1; fi {vbar}{vbar} { printf >&2 "\n==> Error: failed to download uninstallation script\n"; rm -f $TMP; exit 2; }; mv -n $TMP ~ && TMP=$HOME/$(basename $TMP) && chmod +x $TMP && $TMP "$@"; RC=$?;rm -f $TMP; \((RC)) && exit 3 {vbar}{vbar} exit 0' bash --yes --obliterate`
+| `~/.divine/intervene.sh remove --yes --obliterate && ~/.divine/intervene.sh detach essentials --yes && bash -c 'TMP=$(mktemp); URL=https://raw.github.com/divine-dotfiles/divine-dotfiles/main/lib/uninstall/uninstall.sh; if curl --version &>/dev/null; then curl -fsSL $URL >$TMP; elif wget --version &>/dev/null; then wget -O $TMP $URL; else printf >&2 "\n==> Error: failed to detect neither curl nor wget\n"; rm -f $TMP; exit 1; fi {vbar}{vbar} { printf >&2 "\n==> Error: failed to download uninstallation script\n"; rm -f $TMP; exit 2; }; mv -n $TMP ~ && TMP=$HOME/$(basename $TMP) && chmod +x $TMP && $TMP "$@"; RC=$?;rm -f $TMP; \((RC)) && exit 3 {vbar}{vbar} exit 0' bash --yes --obliterate`
 |===
 
 After the undo steps have successfully run, there is no trace of _Divine.dotfiles_ on the system.
@@ -2344,6 +2344,13 @@ The following flags are supported for packages.
 |===
 
 | +++<p align="center">+++
+`*m*`
++++</p>+++
+
+By default, if the package is not found to be installed via the system package manager, but is nevertheless available on `$PATH`, the framework will mark it down as 'Fully installed (by user or OS)' and be done with it.
+The `*m*` flag specifies that the package should be installed exclusively via the system package manager.
+
+| +++<p align="center">+++
 `*[ir]*` _(any of the two lowercase letters)_
 +++</p>+++
 
@@ -2500,6 +2507,13 @@ If set to `true`, forces halting of the current <<mltsk-main,multitask>> deploym
 No further tasks will be processed.
 
 If set during the `check` phase, the `install`/`remove` phase will still commence for the tasks that have been checked before the halting.
+
+| +++<p align="center">+++
+`*D_ADDST_MLTSK_IRRELEVANT*`
++++</p>+++
+
+If set to `true` during the `check` phase, stops all further processing of tasks and forces the <<rtc-check,check code>> of `3` ('Irrelevant or invalid').
+This add-status does not work during the `install`/`remove` phases.
 
 | +++<p align="center">+++
 *Add-statuses of pre- and post- multitask <<mltsk-hooks,hooks>>*
@@ -2756,6 +2770,13 @@ If set to `true`, forces halting of the current <<queues,queue>>.
 No further queue items will be processed.
 
 If set during the `check` phase, the `install`/`remove` phase will still commence for the queue items that have been checked before the halting.
+
+| +++<p align="center">+++
+`*D_ADDST_QUEUE_IRRELEVANT*`
++++</p>+++
+
+If set to `true` during the `check` phase, stops all further processing of that queue section and forces the <<rtc-check,check code>> of `3` ('Irrelevant or invalid').
+This add-status does not work during the `install`/`remove` phases.
 
 | +++<p align="center">+++
 *Add-statuses of pre- and post- queue <<queue-hooks,hooks>>*
@@ -4115,7 +4136,7 @@ The stashing system is accessible via the `d{dus}stash` function.
 
 [source,subs="verbatim,quotes,attributes"]
 ----
-*d{dus}stash* [-drgsq] [--] [ *_CMD_* [ *_KEY_* [*_VALUE_*] ] ]
+*d{dus}stash* [-drgq] [--] [ *_CMD_* [ *_KEY_* [*_VALUE_*] ] ]
 ----
 
 Depending on first argument, usage is as follows.
@@ -4123,14 +4144,6 @@ Depending on first argument, usage is as follows.
 .Usage patterns of `d{dus}stash`
 [%noheader,cols="<.<a",stripes=none]
 |===
-
-| `d{dus}stash *ready*`
-
-(_default task_)
-Checks whether the stashing system is primed and ready on the selected <<stash-levels,level>>.
-By default, the stashing system prints a loud error message if something is critically wrong with the stash.
-
-Returns `0` if the stash is ready, `2` if not.
 
 | `d{dus}stash *has* *_KEY_* [*_VALUE_*]`
 
@@ -4190,21 +4203,13 @@ Clears all records from this stash.
 |===
 
 | +++<p align="center">+++
-`*-s*`, `*--skip-checks*`
-+++</p>+++
-
-By default, every invocation of the `d{dus}stash` function (with any arguments) begins with the stash readiness check.
-If the function is called multiple times on the same <<stash-levels,level>>, such checks become redundant.
-It is recommended that after the initial call to `d{dus}stash ready`, this option is included with any subsequent invocations.
-
-| +++<p align="center">+++
 `*-q*`, `*--quiet*`
 +++</p>+++
 
-By default, any inconsistency during the stash readiness checks triggers a loud error message.
+By default, any inconsistency during stashing triggers a loud error message.
 The `--quiet` option directs to instead honor the <<opt-verbosity,global verbosity level>>.
 
-This option is intended to be included with the readiness checks in cases where not using the stash is also a viable option.
+This option is intended for cases when not using the stash is also a viable option.
 
 | +++<p align="center">+++
 *Stash <<stash-levels,level>> options*

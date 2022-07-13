@@ -2,8 +2,8 @@
 #:title:        Divine Bash deployment helpers: reconcile
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.30
-#:revremark:    Rewrite all Github references to point to new repo location
+#:revdate:      2019.12.14
+#:revremark:    Tweak reconciliation of check codes
 #:created_at:   2019.06.18
 
 ## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
@@ -33,10 +33,11 @@ d__mltsk_check()
 
   # Run multitask pre-processing, if implemented
   local d__mrtc d__tmp; if declare -f d_mltsk_pre_check &>/dev/null; then
-    unset D_ADDST_MLTSK_CHECK_CODE
+    unset D_ADDST_MLTSK_CHECK_CODE D_ADDST_MLTSK_IRRELEVANT
     d_mltsk_pre_check; d__tmp=$?; unset -f d_mltsk_pre_check
-    if (($d__tmp)); then
-      d__notify -qh -- "Multitask's pre-check hook declares it irrelevant"
+    if (($d__tmp)) || [ "$D_ADDST_MLTSK_IRRELEVANT" = true ]; then
+      d__notify -qh -- \
+        "Multitask's pre-check hook declares multitask irrelevant"
       d__context -- lop; return 3
     elif [[ $D_ADDST_MLTSK_CHECK_CODE =~ ^[0-9]+$ ]]; then
       d__notify -qh -- "Multitask's pre-check hook forces" \
@@ -77,7 +78,7 @@ d__mltsk_check()
     unset D_ADDST_TASK_FLAGS; d__mtrtc=0 d__mth=false
     if declare -f "$d__mtbf" &>/dev/null; then "$d__mtbf"; else true; fi
     if (($?)); then
-      d__notify -qh -- "Task's pre-check hook declares it irrelevant"
+      d__notify -qh -- "Task's pre-check hook declares task irrelevant"
       d__mtrtc=3 d__mth=true
     elif [[ $D_ADDST_TASK_CHECK_CODE =~ ^[0-9]+$ ]]; then
       d__notify -qh -- "Task's pre-check hook forces" \
@@ -89,6 +90,11 @@ d__mltsk_check()
     fi
     if ! [ -z ${D_ADDST_TASK_FLAGS+isset} ]
     then D__MLTSK_FLAGS[$d__mti]+="$D_ADDST_TASK_FLAGS"; fi
+    if [ "$D_ADDST_MLTSK_IRRELEVANT" = true ]; then
+      d__notify -qh -- "Task's pre-check hook declares multitask irrelevant"
+      d__context -- lop
+      return 3
+    fi
 
     # Get return code of d_dpl_check, or fall back to zero
     if ! $d__mth; then unset D_ADDST_TASK_FLAGS
@@ -99,6 +105,11 @@ d__mltsk_check()
       fi
       if ! [ -z ${D_ADDST_TASK_FLAGS+isset} ]
       then D__MLTSK_FLAGS[$d__mti]+="$D_ADDST_TASK_FLAGS"; fi
+      if [ "$D_ADDST_MLTSK_IRRELEVANT" = true ]; then d__mth=true
+        d__notify -qh -- "Task's checking declares multitask irrelevant"
+        d__context -- lop
+        return 3
+      fi
     fi
 
     # Run task post-processing, if implemented
@@ -106,7 +117,7 @@ d__mltsk_check()
       unset D_ADDST_TASK_FLAGS; D__TASK_CHECK_CODE="$d__mtrtc"
       if declare -f "$d__mtaf" &>/dev/null; then "$d__mtaf"; else true; fi
       if (($?)); then
-        d__notify -qh -- "Task's post-check hook declares it irrelevant" \
+        d__notify -qh -- "Task's post-check hook declares task irrelevant" \
           "instead of actual code '$d__mtrtc'"
         d__mtrtc=3
       elif [[ $D_ADDST_TASK_CHECK_CODE =~ ^[0-9]+$ ]]; then
@@ -120,6 +131,11 @@ d__mltsk_check()
       fi
       if ! [ -z ${D_ADDST_TASK_FLAGS+isset} ]
       then D__MLTSK_FLAGS[$d__mti]+="$D_ADDST_TASK_FLAGS"; fi
+      if [ "$D_ADDST_MLTSK_IRRELEVANT" = true ]; then
+        d__notify -qh -- "Task's post-check hook declares multitask irrelevant"
+        d__context -- lop
+        return 3
+      fi
     fi
 
     # Store return code
@@ -215,9 +231,9 @@ d__mltsk_check()
   if declare -f d_mltsk_post_check &>/dev/null; then
     unset D_ADDST_MLTSK_CHECK_CODE; D__MLTSK_CHECK_CODE="$d__mrtc"
     d_mltsk_post_check; d__tmp=$?; unset -f d_mltsk_post_check
-    if (($d__tmp)); then
-      d__notify -qh -- "Multitask's post-check hook declares it irrelevant" \
-        "instead of actual code '$d__mrtc'"
+    if (($d__tmp)) || [ "$D_ADDST_MLTSK_IRRELEVANT" = true ]; then
+      d__notify -qh -- "Multitask's post-check hook declares multitask" \
+        "irrelevant instead of actual code '$d__mrtc'"
       d__context -- lop; return 3
     elif [[ $D_ADDST_MLTSK_CHECK_CODE =~ ^[0-9]+$ ]]; then
       d__notify -qh -- "Multitask's post-check hook forces" \
@@ -240,7 +256,8 @@ d__mltsk_install()
     unset D_ADDST_MLTSK_INSTALL_CODE
     d_mltsk_pre_install; d__tmp=$?; unset -f d_mltsk_pre_install
     if (($d__tmp)); then
-      d__notify -qh -- "Multitask's pre-install hook declares it rejected"
+      d__notify -qh -- \
+        "Multitask's pre-install hook declares multitask rejected"
       d__context -- lop; return 2
     elif [[ $D_ADDST_MLTSK_INSTALL_CODE =~ ^[0-9]+$ ]]; then
       d__notify -qh -- "Multitask's pre-install hook forces" \
@@ -371,6 +388,7 @@ d__mltsk_install()
         if [ -z ${D__QUEUE_SECTNUM[1]+isset} ]; then D__QUEUE_SECTNUM[1]=0
         else ((++D__QUEUE_SECTNUM[1])); fi
       fi
+      d__context -- pop
       continue
     fi
 
@@ -388,7 +406,7 @@ d__mltsk_install()
     d__mtrtc=0 d__mth=false
     if declare -f "$d__mtbf" &>/dev/null; then "$d__mtbf"; else true; fi
     if (($?)); then
-      d__notify -qh -- "Task's pre-install hook declares it rejected"
+      d__notify -qh -- "Task's pre-install hook declares task rejected"
       d__mtrtc=2 d__mth=true
     elif [[ $D_ADDST_TASK_INSTALL_CODE =~ ^[0-9]+$ ]]; then
       d__notify -qh -- "Task's pre-install hook forces" \
@@ -413,7 +431,7 @@ d__mltsk_install()
       D__TASK_INSTALL_CODE="$d__mtrtc"
       if declare -f "$d__mtaf" &>/dev/null; then "$d__mtaf"; else true; fi
       if (($?)); then
-        d__notify -qh -- "Task's post-install hook declares it rejected" \
+        d__notify -qh -- "Task's post-install hook declares task rejected" \
           "instead of actual code '$d__mtrtc'"
         d__mtrtc=2
       elif [[ $D_ADDST_TASK_INSTALL_CODE =~ ^[0-9]+$ ]]; then
@@ -491,8 +509,8 @@ d__mltsk_install()
     unset D_ADDST_MLTSK_INSTALL_CODE; D__MLTSK_INSTALL_CODE="$d__mrtc"
     d_mltsk_post_install; d__tmp=$?; unset -f d_mltsk_post_install
     if (($d__tmp)); then
-      d__notify -qh -- "Multitask's post-install hook declares it rejected" \
-        "instead of actual code '$d__mrtc'"
+      d__notify -qh -- "Multitask's post-install hook declares multitask" \
+        "rejected instead of actual code '$d__mrtc'"
       d__context -- lop; return 2
     elif [[ $D_ADDST_MLTSK_INSTALL_CODE =~ ^[0-9]+$ ]]; then
       d__notify -qh -- "Multitask's post-install hook forces" \
@@ -515,7 +533,8 @@ d__mltsk_remove()
     unset D_ADDST_MLTSK_REMOVE_CODE
     d_mltsk_pre_remove; d__tmp=$?; unset -f d_mltsk_pre_remove
     if (($d__tmp)); then
-      d__notify -qh -- "Multitask's pre-remove hook declares it rejected"
+      d__notify -qh -- \
+        "Multitask's pre-remove hook declares multitask rejected"
       d__context -- lop; return 2
     elif [[ $D_ADDST_MLTSK_REMOVE_CODE =~ ^[0-9]+$ ]]; then
       d__notify -qh -- "Multitask's pre-remove hook forces" \
@@ -641,6 +660,7 @@ d__mltsk_remove()
         then D__QUEUE_SECTNUM[1]=${#D__QUEUE_SPLIT_POINTS[@]}
         else ((--D__QUEUE_SECTNUM[1])); fi
       fi
+      d__context -- pop
       continue
     fi
 
@@ -658,7 +678,7 @@ d__mltsk_remove()
     d__mtrtc=0 d__mth=false
     if declare -f "$d__mtbf" &>/dev/null; then "$d__mtbf"; else true; fi
     if (($?)); then
-      d__notify -qh -- "Task's pre-remove hook declares it rejected"
+      d__notify -qh -- "Task's pre-remove hook declares task rejected"
       d__mtrtc=2 d__mth=true
     elif [[ $D_ADDST_TASK_REMOVE_CODE =~ ^[0-9]+$ ]]; then
       d__notify -qh -- "Task's pre-remove hook forces" \
@@ -683,7 +703,7 @@ d__mltsk_remove()
       D__TASK_INSTALL_CODE="$d__mtrtc"
       if declare -f "$d__mtaf" &>/dev/null; then "$d__mtaf"; else true; fi
       if (($?)); then
-        d__notify -qh -- "Task's post-remove hook declares it rejected" \
+        d__notify -qh -- "Task's post-remove hook declares task rejected" \
           "instead of actual code '$d__mtrtc'"
         d__mtrtc=2
       elif [[ $D_ADDST_TASK_REMOVE_CODE =~ ^[0-9]+$ ]]; then
@@ -760,8 +780,8 @@ d__mltsk_remove()
     unset D_ADDST_MLTSK_REMOVE_CODE; D__MLTSK_REMOVE_CODE="$d__mrtc"
     d_mltsk_post_remove; d__tmp=$?; unset -f d_mltsk_post_remove
     if (($d__tmp)); then
-      d__notify -qh -- "Multitask's post-remove hook declares it rejected" \
-        "instead of actual code '$d__mrtc'"
+      d__notify -qh -- "Multitask's post-remove hook declares multitask" \
+        "rejected instead of actual code '$d__mrtc'"
       d__context -- lop; return 2
     elif [[ $D_ADDST_MLTSK_REMOVE_CODE =~ ^[0-9]+$ ]]; then
       d__notify -qh -- "Multitask's post-remove hook forces" \
@@ -817,8 +837,8 @@ d___reconcile_task_check_codes()
         fi;;
     3)  if ${d__mss[2]} && ${d__mss[7]} && ${d__mss[8]}; then return 8; fi;;
   esac
-  if ! ( ${d__mss[0]} || ${d__mss[5]} || ${d__mss[6]} || ${d__mss[9]} )
-  then return 4; fi
+  if ${d__mss[1]} || ${d__mss[4]}; then return 4; fi
+  if ${d__mss[7]} || ${d__mss[8]}; then return 8; fi
   return 0
 }
 

@@ -2,8 +2,8 @@
 #:title:        Divine Bash utils: backup
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.11.30
-#:revremark:    Rewrite all Github references to point to new repo location
+#:revdate:      2019.12.12
+#:revremark:    For mv, require writing permission on both ends
 #:created_at:   2019.09.18
 
 ## Part of Divine.dotfiles <https://github.com/divine-dotfiles/divine-dotfiles>
@@ -171,7 +171,9 @@ d__push_backup()
       || return 3
   else
     d__context -- push 'Moving the original to the backup location'
-    cmd=mv; d__require_wdir "$backup_dirpath" || cmd='sudo mv'
+    cmd=mv
+    d__require_wdir "$orig_path" || cmd='sudo mv'
+    d__require_wdir "$backup_dirpath" || cmd='sudo mv'
     d__cmd --se-- $cmd -n -- --ORIG_PATH-- "$orig_path" \
       --BACKUP_PATH-- "$backup_path" --else-- 'Failed to push backup' \
       || return 3
@@ -348,7 +350,9 @@ d__pop_backup()
   if ! $restore; then d__context lop; return 0; fi
 
   d__context -- push 'Moving the backup to its original location'
-  cmd=mv; d__require_wdir "$orig_dirpath" || cmd='sudo mv'
+  cmd=mv
+  d__require_wdir "$backup_path" || cmd='sudo mv'
+  d__require_wdir "$orig_dirpath" || cmd='sudo mv'
   d__cmd --se-- $cmd -n -- --BACKUP_PATH-- "$backup_path" \
     --ORIG_PATH-- "$orig_path" --else-- 'Failed to pop backup' \
     || return 3

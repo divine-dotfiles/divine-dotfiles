@@ -1,21 +1,13 @@
-* [**`other`**] Change into the home directory as a first step of doing anything. This is mainly in case the current directory at the time of launching the script is no longer valid.
+Add new package flags for the Divinefiles:
 
-Related to transitions:
+* [**`feature`**] The `*m*` flag controls whether the package should be installed exclusively via the system package manager.
+* [**`feature`**] The `*d*` flag controls whether the package should be removed along with its dependencies. The condition for removal of a dependency is that is was not a leaf package *before* the main package is removed and it became a leaf package *after* the main package is removed.
+This flag requires an additional function to be implemented in the OS distro adapter. This flag is currently not documented.
 
-* [**`feature`**] Apply transition scripts not only during the updating of a bundle, but also during the attaching of it.
-* [**`feature`**] Block most framework routines in case there is a record of failed transition script.
-* [**`feature`**] Exclude a bundle from the primary routines in case there is a record of failed transition script.
+Other changes:
 
-Related to Git repository retrieval:
-
-* [**`other`**] Do not take into account untracked files when checking whether a repository is dirty prior to pulling updates from its remote.
-
-In the `README`:
-
-* [**`fix`**] Add descriptions related to bundle transitions:
-  * when they are applied;
-  * how their return codes are handled;
-  * what happens if they fail.
-* [**`fix`**] Improve the presentation of the framework (un)installation commands. Make them single-line and wrapping visually on Github. This is also intended for pasting into non-Bash shells.
-* [**`fix`**] Unsilence the calls to `wget` in the framework (un)installation commands. This is due to the fact that unlike `curl`, `wget` does not provide an option to silence the normal progress output without muting error messages.
-* [**`other`**] Reword the reasoning behind choosing Bash as the language of the framework.
+* [**`feature`**] Implement a new specialized queue, pkg-queue, which performs the same tasks as the Divinefiles, but manually and via the queue helpers. Not yet documented.
+* [**`feature`**] Implement a new add-status for queues (`D_ADDST_QUEUE_IRRELEVANT`) and for multitasks (`D_ADDST_MLTSK_IRRELEVANT`). The purpose of this add-status is to be able to declare the whole queue/multitask irrelevant from just one member of it.
+* [**`fix`**] Properly pop context level when skipping installing/removing a queue item or a multitask's task.
+* [**`fix`**] For the usage of the `mv` command, require writing permission on both ends, not just at destination. Failing that, use `sudo`.
+* [**`other`**] The stashing system is now automatically checked for readiness on all levels. All options regarding manual checking for stash readiness have been hidden.
